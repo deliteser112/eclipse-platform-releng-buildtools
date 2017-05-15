@@ -35,6 +35,7 @@ import google.registry.xjc.rdeidn.XjcRdeIdn;
 import google.registry.xjc.rdeidn.XjcRdeIdnElement;
 import google.registry.xjc.rdepolicy.XjcRdePolicy;
 import google.registry.xjc.rdepolicy.XjcRdePolicyElement;
+import google.registry.xml.ValidationMode;
 import google.registry.xml.XmlException;
 import google.registry.xml.XmlFragmentMarshaller;
 import java.io.ByteArrayOutputStream;
@@ -50,10 +51,14 @@ import org.joda.time.DateTime;
 public final class RdeMarshaller implements Serializable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
-
   private static final long serialVersionUID = 202890386611768455L;
 
+  private final ValidationMode validationMode;
   private transient XmlFragmentMarshaller memoizedMarshaller;
+
+  public RdeMarshaller(ValidationMode validationMode) {
+    this.validationMode = validationMode;
+  }
 
   /** Returns top-portion of XML document. */
   public String makeHeader(
@@ -79,7 +84,7 @@ public final class RdeMarshaller implements Serializable {
     deposit.setContents(contents);
     ByteArrayOutputStream os = new ByteArrayOutputStream();
     try {
-      XjcXmlTransformer.marshalStrict(deposit, os, UTF_8);
+      XjcXmlTransformer.marshal(deposit, os, UTF_8, validationMode);
     } catch (XmlException e) {
       throw new RuntimeException(e);
     }
@@ -95,10 +100,18 @@ public final class RdeMarshaller implements Serializable {
     return "\n</rde:contents>\n</rde:deposit>\n";
   }
 
-  /** Turns XJC element into XML fragment, with schema validation. */
-  public String marshalStrictlyOrDie(JAXBElement<?> element) {
+  /** Turns XJC element into XML fragment, with schema validation unless in lenient mode. */
+  public String marshal(JAXBElement<?> element) throws MarshalException {
+    return getMarshaller().marshal(element, validationMode);
+  }
+
+  /**
+   * Turns XJC element into XML fragment, converting {@link MarshalException}s to {@link
+   * RuntimeException}s.
+   */
+  public String marshalOrDie(JAXBElement<?> element) {
     try {
-      return getMarshaller().marshal(element);
+      return marshal(element);
     } catch (MarshalException e) {
       throw new RuntimeException(e);
     }
@@ -141,7 +154,7 @@ public final class RdeMarshaller implements Serializable {
     bean.setId(idn.getName());
     bean.setUrl(idn.getUrl().toString());
     bean.setUrlPolicy(idn.getPolicy().toString());
-    return marshalStrictlyOrDie(new XjcRdeIdnElement(bean));
+    return marshalOrDie(new XjcRdeIdnElement(bean));
   }
 
   private DepositFragment marshalResource(
@@ -149,7 +162,7 @@ public final class RdeMarshaller implements Serializable {
     String xml = "";
     String error = "";
     try {
-      xml = getMarshaller().marshal(element);
+      xml = marshal(element);
     } catch (MarshalException e) {
       error = String.format("RDE XML schema validation failed: %s\n%s%s\n",
           Key.create(resource),

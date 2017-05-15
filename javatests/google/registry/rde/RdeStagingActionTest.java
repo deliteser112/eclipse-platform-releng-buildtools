@@ -135,12 +135,15 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action = new RdeStagingAction();
     action.clock = clock;
     action.mrRunner = makeDefaultRunner();
-    action.reducer = new RdeStagingReducer();
-    action.reducer.ghostrydeBufferSize = 31337;
-    action.reducer.lockTimeout = Duration.standardHours(1);
-    action.reducer.bucket = "rde-bucket";
-    action.reducer.taskEnqueuer = new TaskEnqueuer(new Retrier(new SystemSleeper(), 1));
-    action.reducer.stagingKeyBytes = PgpHelper.convertPublicKeyToBytes(encryptKey);
+    action.lenient = false;
+    action.reducer = new RdeStagingReducer(
+        new TaskEnqueuer(new Retrier(new SystemSleeper(), 1)), // taskEnqueuer
+        0, // gcsBufferSize
+        "rde-bucket", // bucket
+        31337, // ghostrydeBufferSize
+        Duration.standardHours(1), // lockTimeout
+        PgpHelper.convertPublicKeyToBytes(encryptKey), // stagingKeyBytes
+        false); // lenient
     action.pendingDepositChecker = new PendingDepositChecker();
     action.pendingDepositChecker.brdaDayOfWeek = DateTimeConstants.TUESDAY;
     action.pendingDepositChecker.brdaInterval = Duration.standardDays(7);

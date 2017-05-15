@@ -16,6 +16,8 @@ package google.registry.xml;
 
 import static com.google.common.base.Throwables.throwIfInstanceOf;
 import static com.google.common.base.Verify.verify;
+import static google.registry.xml.ValidationMode.LENIENT;
+import static google.registry.xml.ValidationMode.STRICT;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.re2j.Pattern;
@@ -56,21 +58,27 @@ public final class XmlFragmentMarshaller {
    * @throws MarshalException if schema validation failed
    */
   public String marshal(JAXBElement<?> element) throws MarshalException {
-    return internalMarshal(element, true);
+    return marshal(element, STRICT);
   }
 
   /** Turns an individual JAXB element into an XML fragment string. */
   public String marshalLenient(JAXBElement<?> element) {
     try {
-      return internalMarshal(element, false);
+      return marshal(element, LENIENT);
     } catch (MarshalException e) {
       throw new RuntimeException("MarshalException shouldn't be thrown in lenient mode", e);
     }
   }
 
-  private String internalMarshal(JAXBElement<?> element, boolean strict) throws MarshalException {
+  /**
+   * Turns an individual JAXB element into an XML fragment string using the given validation mode.
+   *
+   * @throws MarshalException if schema validation failed
+   */
+  public String marshal(JAXBElement<?> element, ValidationMode validationMode)
+      throws MarshalException {
     os.reset();
-    marshaller.setSchema(strict ? schema : null);
+    marshaller.setSchema((validationMode == STRICT) ? schema : null);
     try {
       marshaller.marshal(element, os);
     } catch (JAXBException e) {

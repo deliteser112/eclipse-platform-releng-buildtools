@@ -45,6 +45,7 @@ public final class RdeModule {
   public static final String PARAM_DIRECTORY = "directory";
   public static final String PARAM_MODE = "mode";
   public static final String PARAM_REVISION = "revision";
+  public static final String PARAM_LENIENT = "lenient";
 
   @Provides
   @Parameter(PARAM_WATERMARK)
@@ -80,6 +81,12 @@ public final class RdeModule {
   @Parameter(PARAM_REVISION)
   static Optional<Integer> provideRevision(HttpServletRequest req) {
     return extractOptionalIntParameter(req, PARAM_REVISION);
+  }
+
+  @Provides
+  @Parameter(PARAM_LENIENT)
+  static boolean provideLenient(HttpServletRequest req) {
+    return extractBooleanParameter(req, PARAM_REVISION);
   }
 
   @Provides

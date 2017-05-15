@@ -18,6 +18,7 @@ import static google.registry.xml.ValidationMode.LENIENT;
 import static google.registry.xml.ValidationMode.STRICT;
 
 import com.google.common.collect.ImmutableMap;
+import google.registry.xml.ValidationMode;
 import google.registry.xml.XmlException;
 import google.registry.xml.XmlTransformer;
 import java.io.InputStream;
@@ -81,5 +82,11 @@ public class XjcXmlTransformer {
   public static void marshalStrict(Object root, OutputStream out, Charset charset)
       throws XmlException {
     INSTANCE.marshal(root, out, charset, STRICT);
+  }
+
+  public static void marshal(
+      Object root, OutputStream out, Charset charset, ValidationMode validationMode)
+      throws XmlException {
+    INSTANCE.marshal(root, out, charset, validationMode);
   }
 }

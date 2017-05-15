@@ -17,6 +17,8 @@ package google.registry.rde;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.POST;
 import static google.registry.util.PipelineUtils.createJobPath;
+import static google.registry.xml.ValidationMode.LENIENT;
+import static google.registry.xml.ValidationMode.STRICT;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 
 import com.google.common.base.Ascii;
@@ -212,14 +214,16 @@ public final class RdeStagingAction implements Runnable {
   @Inject @Parameter(RequestParameters.PARAM_TLD) ImmutableSet<String> tlds;
   @Inject @Parameter(RdeModule.PARAM_WATERMARK) ImmutableSet<DateTime> watermarks;
   @Inject @Parameter(RdeModule.PARAM_REVISION) Optional<Integer> revision;
+  @Inject @Parameter(RdeModule.PARAM_LENIENT) boolean lenient;
 
   @Inject RdeStagingAction() {}
+
+  private RdeStagingMapper mapper;
 
   @Override
   public void run() {
     ImmutableSetMultimap<String, PendingDeposit> pendings =
         manual ? getManualPendingDeposits() : getStandardPendingDeposits();
-
     if (pendings.isEmpty()) {
       String message = "Nothing needs to be deposited";
       logger.info(message);
@@ -227,16 +231,17 @@ public final class RdeStagingAction implements Runnable {
       response.setPayload(message);
       return;
     }
-
     for (PendingDeposit pending : pendings.values()) {
       logger.infofmt("%s", pending);
     }
+    mapper = new RdeStagingMapper(lenient ? LENIENT : STRICT, pendings);
+
     response.sendJavaScriptRedirect(createJobPath(mrRunner
         .setJobName("Stage escrow deposits for all TLDs")
         .setModuleName("backend")
         .setDefaultReduceShards(pendings.size())
         .runMapreduce(
-            new RdeStagingMapper(pendings),
+            mapper,
             reducer,
             ImmutableList.of(
                 // Add an extra shard that maps over a null resource. See the mapper code for why.

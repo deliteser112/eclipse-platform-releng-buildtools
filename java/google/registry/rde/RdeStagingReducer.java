@@ -21,6 +21,8 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 import static google.registry.model.common.Cursor.getCursorTimeOrStartOfTime;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.xml.ValidationMode.LENIENT;
+import static google.registry.xml.ValidationMode.STRICT;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -39,6 +41,7 @@ import google.registry.model.rde.RdeNamingUtils;
 import google.registry.model.rde.RdeRevision;
 import google.registry.model.registry.Registry;
 import google.registry.model.server.Lock;
+import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.tldconfig.idn.IdnTableEnum;
 import google.registry.util.FormattingLogger;
@@ -67,15 +70,31 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  private final RdeMarshaller marshaller = new RdeMarshaller();
+  private final TaskEnqueuer taskEnqueuer;
+  private final int gcsBufferSize;
+  private final String bucket;
+  private final int ghostrydeBufferSize;
+  private final Duration lockTimeout;
+  private final byte[] stagingKeyBytes;
+  private final RdeMarshaller marshaller;
 
-  @Inject TaskEnqueuer taskEnqueuer;
-  @Inject @Config("gcsBufferSize") int gcsBufferSize;
-  @Inject @Config("rdeBucket") String bucket;
-  @Inject @Config("rdeGhostrydeBufferSize") int ghostrydeBufferSize;
-  @Inject @Config("rdeStagingLockTimeout") Duration lockTimeout;
-  @Inject @KeyModule.Key("rdeStagingEncryptionKey") byte[] stagingKeyBytes;
-  @Inject RdeStagingReducer() {}
+  @Inject
+  RdeStagingReducer(
+      TaskEnqueuer taskEnqueuer,
+      @Config("gcsBufferSize") int gcsBufferSize,
+      @Config("rdeBucket") String bucket,
+      @Config("rdeGhostrydeBufferSize") int ghostrydeBufferSize,
+      @Config("rdeStagingLockTimeout") Duration lockTimeout,
+      @KeyModule.Key("rdeStagingEncryptionKey") byte[] stagingKeyBytes,
+      @Parameter(RdeModule.PARAM_LENIENT) boolean lenient) {
+    this.taskEnqueuer = taskEnqueuer;
+    this.gcsBufferSize = gcsBufferSize;
+    this.bucket = bucket;
+    this.ghostrydeBufferSize = ghostrydeBufferSize;
+    this.lockTimeout = lockTimeout;
+    this.stagingKeyBytes = stagingKeyBytes;
+    this.marshaller = new RdeMarshaller(lenient ? LENIENT : STRICT);
+  }
 
   @Override
   public void reduce(final PendingDeposit key, final ReducerInput<DepositFragment> fragments) {
@@ -154,7 +173,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
 
       // Output XML that says how many resources were emitted.
       header = counter.makeHeader(tld, mode);
-      output.write(marshaller.marshalStrictlyOrDie(new XjcRdeHeaderElement(header)));
+      output.write(marshaller.marshalOrDie(new XjcRdeHeaderElement(header)));
 
       // Output the bottom of the XML document.
       output.write(marshaller.makeFooter());
