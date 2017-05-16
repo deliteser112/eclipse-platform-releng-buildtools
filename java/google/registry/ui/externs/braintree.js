@@ -196,9 +196,15 @@ braintreepayments.Integrator.prototype.teardown = function(opt_callback) {};
 braintreepayments.PaypalIntegrator = function() {};
 
 
+/**
+ * @return {void}
+ */
 braintreepayments.PaypalIntegrator.prototype.closeAuthFlow = function() {};
 
 
+/**
+ * @return {void}
+ */
 braintreepayments.PaypalIntegrator.prototype.initAuthFlow = function() {};
 
 
