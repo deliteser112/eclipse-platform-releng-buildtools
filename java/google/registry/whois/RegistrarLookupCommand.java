@@ -25,6 +25,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.registrar.Registrar;
 import google.registry.util.FormattingLogger;
@@ -48,10 +49,9 @@ final class RegistrarLookupCommand implements WhoisCommand {
         @Override
         public Map<String, Registrar> get() {
           Map<String, Registrar> map = new HashMap<>();
-          // Use the normalized registrar name as a key.
-          Iterable<Registrar> registrars = Registrar.loadAllActiveAndPubliclyVisible();
-          for (Registrar registrar : registrars) {
-            if (registrar.getRegistrarName() == null) {
+          // Use the normalized registrar name as a key, and ignore inactive and hidden registrars.
+          for (Registrar registrar : Registrar.loadAllCached()) {
+            if (!registrar.isActiveAndPubliclyVisible() || registrar.getRegistrarName() == null) {
               continue;
             }
             String normalized = normalizeRegistrarName(registrar.getRegistrarName());
@@ -65,7 +65,7 @@ final class RegistrarLookupCommand implements WhoisCommand {
           // if there isn't already a mapping for this string, so that if there's a registrar with a
           // two word name (Go Daddy) and no business-type suffix and another registrar with just
           // that first word as its name (Go), the latter will win.
-          for (Registrar registrar : registrars) {
+          for (Registrar registrar : ImmutableList.copyOf(map.values())) {
             if (registrar.getRegistrarName() == null) {
               continue;
             }

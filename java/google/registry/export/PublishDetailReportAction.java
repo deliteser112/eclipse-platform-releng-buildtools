@@ -91,7 +91,7 @@ public final class PublishDetailReportAction implements Runnable, JsonAction {
     try {
       logger.infofmt("Publishing detail report for parameters: %s", json);
       String registrarId = getParam(json, REGISTRAR_ID_PARAM);
-      Registrar registrar = checkArgumentNotNull(Registrar.loadByClientId(registrarId),
+      Registrar registrar = checkArgumentNotNull(Registrar.loadByClientIdCached(registrarId),
           "Registrar %s not found", registrarId);
       String driveFolderId = checkArgumentNotNull(registrar.getDriveFolderId(),
           "No drive folder associated with registrar " + registrarId);

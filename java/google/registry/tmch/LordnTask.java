@@ -151,7 +151,7 @@ public class LordnTask {
   /** Retrieves the IANA identifier for a registrar based on the client id. */
   private static String getIanaIdentifier(String clientId) {
      Registrar registrar = checkNotNull(
-         Registrar.loadByClientId(clientId),
+         Registrar.loadByClientIdCached(clientId),
          "No registrar found for client id: %s", clientId);
     // Return the string "null" for null identifiers, since some Registrar.Types such as OTE will
     // have null iana ids.

@@ -113,13 +113,13 @@ public final class SyncGroupMembersAction implements Runnable {
    */
   @Override
   public void run() {
-    List<Registrar> dirtyRegistrars = Registrar
-        .loadAllActive()
+    List<Registrar> dirtyRegistrars = FluentIterable.from(Registrar.loadAllCached())
         .filter(new Predicate<Registrar>() {
           @Override
           public boolean apply(Registrar registrar) {
-            // Only grab registrars that require syncing and are of the correct type.
-            return registrar.getContactsRequireSyncing()
+            // Only grab active registrars that require syncing and are of the correct type.
+            return registrar.isActive()
+                && registrar.getContactsRequireSyncing()
                 && registrar.getType() == Registrar.Type.REAL;
           }})
         .toList();

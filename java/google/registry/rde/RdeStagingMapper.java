@@ -62,7 +62,7 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
     // emitted from the mapper. Without this, a cursor might never advance because no EppResource
     // entity exists at the watermark.
     if (resource == null) {
-      for (Registrar registrar : Registrar.loadAll()) {
+      for (Registrar registrar : Registrar.loadAllCached()) {
         DepositFragment fragment = marshaller.marshalRegistrar(registrar);
         for (PendingDeposit pending : pendings.values()) {
           emit(pending, fragment);

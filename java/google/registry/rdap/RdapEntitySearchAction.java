@@ -16,14 +16,18 @@ package google.registry.rdap;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.rdap.RdapIcannStandardInformation.TRUNCATION_NOTICES;
+import static google.registry.rdap.RdapUtils.getRegistrarByIanaIdentifier;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Booleans;
+import com.google.common.primitives.Longs;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.contact.ContactResource;
@@ -138,19 +142,16 @@ public class RdapEntitySearchAction extends RdapActionBase {
       throw new UnprocessableEntityException("Suffixes not allowed in entity name searches");
     }
     // Get the registrar matches, depending on whether there's a wildcard.
-    ImmutableList<Registrar> registrarMatches;
-    if (!partialStringQuery.getHasWildcard()) {
-      Registrar registrar = Registrar.loadByName(partialStringQuery.getInitialString());
-      registrarMatches = (registrar == null)
-          ? ImmutableList.<Registrar>of()
-          : ImmutableList.of(registrar);
-    } else {
-      // Fetch an additional registrar, so we can detect result set truncation.
-      registrarMatches = ImmutableList.copyOf(Registrar.loadByNameRange(
-          partialStringQuery.getInitialString(),
-          partialStringQuery.getNextInitialString(),
-          rdapResultSetMaxSize + 1));
-    }
+    ImmutableList<Registrar> registrarMatches =
+        FluentIterable.from(Registrar.loadAllCached())
+            .filter( 
+                new Predicate<Registrar>() {
+                  @Override
+                  public boolean apply(Registrar registrar) {
+                    return partialStringQuery.matches(registrar.getRegistrarName());
+                  }})
+            .limit(rdapResultSetMaxSize + 1)
+            .toList();
     // Get the contact matches and return the results, fetching an additional contact to detect
     // truncation.
     return makeSearchResults(
@@ -169,7 +170,8 @@ public class RdapEntitySearchAction extends RdapActionBase {
           .type(ContactResource.class)
           .id(partialStringQuery.getInitialString())
           .now();
-      ImmutableList<Registrar> registrars = getMatchingRegistrars(partialStringQuery);
+      ImmutableList<Registrar> registrars = 
+          getMatchingRegistrars(partialStringQuery.getInitialString());
       return makeSearchResults(
           ((contactResource == null) || !contactResource.getDeletionTime().isEqual(END_OF_TIME))
               ? ImmutableList.<ContactResource>of() : ImmutableList.of(contactResource),
@@ -201,17 +203,15 @@ public class RdapEntitySearchAction extends RdapActionBase {
   }
 
   /** Looks up registrars by handle (i.e. IANA identifier). */
-  private ImmutableList<Registrar>
-      getMatchingRegistrars(final RdapSearchPattern partialStringQuery) {
-    Long ianaIdentifier;
-    try {
-      ianaIdentifier = Long.parseLong(partialStringQuery.getInitialString());
-    } catch (NumberFormatException e) {
-      return ImmutableList.of();
+  private ImmutableList<Registrar> getMatchingRegistrars(final String ianaIdentifierString) {
+    Long ianaIdentifier = Longs.tryParse(ianaIdentifierString);
+    if (ianaIdentifier != null) {
+      Optional<Registrar> registrar = getRegistrarByIanaIdentifier(ianaIdentifier);
+      if (registrar.isPresent()) {
+        return ImmutableList.of(registrar.get());
+      }
     }
-    // Fetch an additional registrar to detect result set truncation.
-    return ImmutableList.copyOf(Registrar.loadByIanaIdentifierRange(
-        ianaIdentifier, ianaIdentifier + 1, rdapResultSetMaxSize + 1));
+    return ImmutableList.of();
   }
 
   /** Builds a JSON array of entity info maps based on the specified contacts and registrars. */

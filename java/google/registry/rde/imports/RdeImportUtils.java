@@ -163,7 +163,7 @@ public class RdeImportUtils {
         // validate that all registrars exist
         while (parser.nextRegistrar()) {
           XjcRdeRegistrar registrar = parser.getRegistrar();
-          if (Registrar.loadByClientId(registrar.getId()) == null) {
+          if (Registrar.loadByClientIdCached(registrar.getId()) == null) {
             throw new IllegalArgumentException(
                 String.format("Registrar '%s' not found in the registry", registrar.getId()));
           }

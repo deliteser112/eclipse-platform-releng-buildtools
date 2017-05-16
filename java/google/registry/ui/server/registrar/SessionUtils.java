@@ -122,7 +122,9 @@ public class SessionUtils {
     if (contact == null) {
       return Optional.absent();
     }
-    Optional<Registrar> result = Optional.fromNullable(ofy().load().key(contact.getParent()).now());
+    String registrarClientId = contact.getParent().getName();
+    Optional<Registrar> result =
+        Optional.fromNullable(Registrar.loadByClientIdCached(registrarClientId));
     if (!result.isPresent()) {
       logger.severefmt(
           "A contact record exists for non-existent registrar: %s.", Key.create(contact));
@@ -132,7 +134,7 @@ public class SessionUtils {
 
   /** @see #hasAccessToRegistrar(Registrar, String) */
   private static boolean hasAccessToRegistrar(String clientId, final String gaeUserId) {
-    Registrar registrar = Registrar.loadByClientId(clientId);
+    Registrar registrar = Registrar.loadByClientIdCached(clientId);
     if (registrar == null) {
       logger.warningfmt("Registrar '%s' disappeared from Datastore!", clientId);
       return false;

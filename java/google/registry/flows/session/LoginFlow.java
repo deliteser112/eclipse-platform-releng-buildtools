@@ -116,7 +116,7 @@ public class LoginFlow implements Flow {
       }
       serviceExtensionUrisBuilder.add(uri);
     }
-    Registrar registrar = Registrar.loadByClientId(login.getClientId());
+    Registrar registrar = Registrar.loadByClientIdCached(login.getClientId());
     if (registrar == null) {
       throw new BadRegistrarClientIdException(login.getClientId());
     }

@@ -65,7 +65,7 @@ class SyncRegistrarsSheet {
   boolean wereRegistrarsModified() {
     Cursor cursor = ofy().load().key(Cursor.createGlobalKey(SYNC_REGISTRAR_SHEET)).now();
     DateTime lastUpdateTime = (cursor == null) ? START_OF_TIME : cursor.getCursorTime();
-    for (Registrar registrar : Registrar.loadAll()) {
+    for (Registrar registrar : Registrar.loadAllCached()) {
       if (DateTimeUtils.isAtOrAfter(registrar.getLastUpdateTime(), lastUpdateTime)) {
         return true;
       }
@@ -85,7 +85,7 @@ class SyncRegistrarsSheet {
                   public int compare(Registrar left, Registrar right) {
                     return left.getClientId().compareTo(right.getClientId());
                   }
-                }.immutableSortedCopy(Registrar.loadAll()))
+                }.immutableSortedCopy(Registrar.loadAllCached()))
             .filter(
                 new Predicate<Registrar>() {
                   @Override

@@ -16,7 +16,6 @@ package google.registry.model.registrar;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.notNull;
@@ -26,6 +25,7 @@ import static com.google.common.collect.Sets.immutableEnumSet;
 import static com.google.common.io.BaseEncoding.base64;
 import static google.registry.config.RegistryConfig.getDefaultRegistrarReferralUrl;
 import static google.registry.config.RegistryConfig.getDefaultRegistrarWhoisServer;
+import static google.registry.model.CacheUtils.memoizeWithShortExpiration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
@@ -45,6 +45,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 import com.google.re2j.Pattern;
 import com.googlecode.objectify.Key;
@@ -200,6 +201,27 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
         }
       };
 
+  /**
+   * A caching {@link Supplier} of a clientId to {@link Registrar} map.
+   *
+   * <p>The supplier's get() method enters a transactionless context briefly to avoid enrolling the
+   * query inside an unrelated client-affecting transaction.
+   */
+  private static final Supplier<ImmutableMap<String, Registrar>> CACHE_BY_CLIENT_ID =
+      memoizeWithShortExpiration(new Supplier<ImmutableMap<String, Registrar>>() {
+        @Override
+        public ImmutableMap<String, Registrar> get() {
+          return ofy().doTransactionless(new Work<ImmutableMap<String, Registrar>>() {
+            @Override
+            public ImmutableMap<String, Registrar> run() {
+              ImmutableMap.Builder<String, Registrar> builder = new ImmutableMap.Builder<>();
+              for (Registrar registrar : loadAll()) {
+                builder.put(registrar.getClientId(), registrar);
+              }
+              return builder.build();
+            }});
+        }});
+
   @Parent
   Key<EntityGroupRoot> parent = getCrossTldKey();
 
@@ -306,9 +328,11 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    * @see <a href="http://www.iana.org/assignments/registrar-ids/registrar-ids.txt">Registrar IDs</a>
    */
   @Index
+  @Nullable
   Long ianaIdentifier;
 
   /** Identifier of registrar used in external billing system (e.g. Oracle). */
+  @Nullable
   Long billingIdentifier;
 
   /**
@@ -413,10 +437,12 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     return creationTime.getTimestamp();
   }
 
+  @Nullable
   public Long getIanaIdentifier() {
     return ianaIdentifier;
   }
 
+  @Nullable
   public Long getBillingIdentifier() {
     return billingIdentifier;
   }
@@ -647,7 +673,8 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     public Builder setClientId(String clientId) {
       // Client id must be [3,16] chars long. See "clIDType" in the base EPP schema of RFC 5730.
       // (Need to validate this here as there's no matching EPP XSD for validation.)
-      checkArgument(clientId.length() >= 3 && clientId.length() <= 16,
+      checkArgument(
+          Range.closed(3,  16).contains(clientId.length()),
           "Client identifier must be 3-16 characters long.");
       getInstance().clientIdentifier = clientId;
       return this;
@@ -831,8 +858,9 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
 
     public Builder setPassword(String password) {
       // Passwords must be [6,16] chars long. See "pwType" in the base EPP schema of RFC 5730.
-      checkArgument(password != null && password.length() >= 6 && password.length() <= 16,
-          "Password must be [6,16] characters long.");
+      checkArgument(
+          Range.closed(6, 16).contains(nullToEmpty(password).length()),
+          "Password must be 6-16 characters long.");
       getInstance().salt = base64().encode(saltSupplier.get());
       getInstance().passwordHash = getInstance().hashPassword(password);
       return this;
@@ -862,124 +890,25 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     }
   }
 
-  /** Load a registrar entity by its client id outside of a transaction. */
-  @Nullable
-  public static Registrar loadByClientId(final String clientId) {
-    checkNotNull(clientId, "Client ID cannot be null");
-    return ofy().doTransactionless(new Work<Registrar>() {
-      @Override
-      public Registrar run() {
-        return ofy().loadWithMemcache()
-            .type(Registrar.class)
-            .parent(getCrossTldKey())
-            .id(clientId)
-            .now();
-      }});
-  }
-
-  /**
-   * Load registrar entities by client id range outside of a transaction.
-   *
-   * @param clientIdStart returned registrars will have a client id greater than or equal to this
-   * @param clientIdAfterEnd returned registrars will have a client id less than this
-   * @param resultSetMaxSize the maximum number of registrar entities to be returned
-   */
-  public static Iterable<Registrar> loadByClientIdRange(
-      final String clientIdStart, final String clientIdAfterEnd, final int resultSetMaxSize) {
-    return ofy().doTransactionless(new Work<Iterable<Registrar>>() {
-      @Override
-      public Iterable<Registrar> run() {
-        return ofy().load()
-            .type(Registrar.class)
-            .filterKey(">=", Key.create(getCrossTldKey(), Registrar.class, clientIdStart))
-            .filterKey("<", Key.create(getCrossTldKey(), Registrar.class, clientIdAfterEnd))
-            .limit(resultSetMaxSize);
-      }});
-  }
-
-  /** Load a registrar entity by its name outside of a transaction. */
-  @Nullable
-  public static Registrar loadByName(final String name) {
-    return ofy().doTransactionless(new Work<Registrar>() {
-      @Override
-      public Registrar run() {
-        return ofy().load()
-            .type(Registrar.class)
-            .filter("registrarName", name)
-            .first()
-            .now();
-      }});
-  }
-
-  /**
-   * Load registrar entities by registrar name range, inclusive of the start but not the end,
-   * outside of a transaction.
-   *
-   * @param nameStart returned registrars will have a name greater than or equal to this
-   * @param nameAfterEnd returned registrars will have a name less than this
-   * @param resultSetMaxSize the maximum number of registrar entities to be returned
-   */
-  public static Iterable<Registrar> loadByNameRange(
-      final String nameStart, final String nameAfterEnd, final int resultSetMaxSize) {
-    return ofy().doTransactionless(new Work<Iterable<Registrar>>() {
-      @Override
-      public Iterable<Registrar> run() {
-        return ofy().load()
-            .type(Registrar.class)
-            .filter("registrarName >=", nameStart)
-            .filter("registrarName <", nameAfterEnd)
-            .limit(resultSetMaxSize);
-      }});
-  }
-
-  /**
-   * Load registrar entities by IANA identifier range outside of a transaction.
-   *
-   * @param ianaIdentifierStart returned registrars will have an IANA id greater than or equal to
-   *        this
-   * @param ianaIdentifierAfterEnd returned registrars will have an IANA id less than this
-   * @param resultSetMaxSize the maximum number of registrar entities to be returned
-   */
-  public static Iterable<Registrar> loadByIanaIdentifierRange(
-      final Long ianaIdentifierStart,
-      final Long ianaIdentifierAfterEnd,
-      final int resultSetMaxSize) {
-    return ofy().doTransactionless(new Work<Iterable<Registrar>>() {
-      @Override
-      public Iterable<Registrar> run() {
-        return ofy().load()
-            .type(Registrar.class)
-            .filter("ianaIdentifier >=", ianaIdentifierStart)
-            .filter("ianaIdentifier <", ianaIdentifierAfterEnd)
-            .limit(resultSetMaxSize);
-      }});
-  }
-
-  /** Loads all registrar entities. */
+  /** Loads all registrar entities directly from Datastore. */
   public static Iterable<Registrar> loadAll() {
-    return ofy().load().type(Registrar.class).ancestor(getCrossTldKey());
+    return ImmutableList.copyOf(ofy().load().type(Registrar.class).ancestor(getCrossTldKey()));
   }
 
-  /** Loads all active registrar entities. */
-  public static FluentIterable<Registrar> loadAllActive() {
-    return FluentIterable.from(loadAll()).filter(IS_ACTIVE);
+  /** Loads all registrar entities using an in-memory cache. */
+  public static Iterable<Registrar> loadAllCached() {
+    return CACHE_BY_CLIENT_ID.get().values();
   }
 
-  private static final Predicate<Registrar> IS_ACTIVE = new Predicate<Registrar>() {
-    @Override
-    public boolean apply(Registrar registrar) {
-      return registrar.isActive();
-    }};
-
-  /** Loads all active registrar entities. */
-  public static FluentIterable<Registrar> loadAllActiveAndPubliclyVisible() {
-    return FluentIterable.from(loadAll()).filter(IS_ACTIVE_AND_PUBLICLY_VISIBLE);
+  /** Load a registrar entity by its client id directly from Datastore. */
+  @Nullable
+  public static Registrar loadByClientId(String clientId) {
+    return ofy().load().type(Registrar.class).parent(getCrossTldKey()).id(clientId).now();
   }
 
-  private static final Predicate<Registrar> IS_ACTIVE_AND_PUBLICLY_VISIBLE =
-      new Predicate<Registrar>() {
-        @Override
-        public boolean apply(Registrar registrar) {
-          return registrar.isActiveAndPubliclyVisible();
-        }};
+  /** Load a registrar entity by its client id using an in-memory cache. */
+  @Nullable
+  public static Registrar loadByClientIdCached(String clientId) {
+    return CACHE_BY_CLIENT_ID.get().get(clientId);
+  }
 }

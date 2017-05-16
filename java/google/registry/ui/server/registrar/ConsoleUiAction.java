@@ -115,7 +115,7 @@ public final class ConsoleUiAction implements Runnable {
               .render());
       return;
     }
-    Registrar registrar = Registrar.loadByClientId(sessionUtils.getRegistrarClientId(req));
+    Registrar registrar = Registrar.loadByClientIdCached(sessionUtils.getRegistrarClientId(req));
     data.put(
         "xsrfToken",
         xsrfTokenManager.generateToken(userService.getCurrentUser().getEmail()));

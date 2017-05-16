@@ -15,12 +15,13 @@
 package google.registry.rdap;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.rdap.RdapUtils.getRegistrarByIanaIdentifier;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
+import com.google.common.primitives.Longs;
 import com.google.re2j.Pattern;
 import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactResource;
@@ -96,18 +97,14 @@ public class RdapEntityAction extends RdapActionBase {
             OutputDataType.FULL);
       }
     }
-    try {
-      Long ianaIdentifier = Long.parseLong(pathSearchString);
+    Long ianaIdentifier = Longs.tryParse(pathSearchString);
+    if (ianaIdentifier != null) {
       wasValidKey = true;
-      Registrar registrar = Iterables.getOnlyElement(
-          Registrar.loadByIanaIdentifierRange(ianaIdentifier, ianaIdentifier + 1, 1), null);
-      if ((registrar != null) && registrar.isActiveAndPubliclyVisible()) {
+      Optional<Registrar> registrar = getRegistrarByIanaIdentifier(ianaIdentifier);
+      if ((registrar.isPresent()) && registrar.get().isActiveAndPubliclyVisible()) {
         return rdapJsonFormatter.makeRdapJsonForRegistrar(
-            registrar, true, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL);
+            registrar.get(), true, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL);
       }
-    } catch (NumberFormatException e) {
-      // Although the search string was not a valid IANA identifier, it might still have been a
-      // valid ROID.
     }
     // At this point, we have failed to find either a contact or a registrar.
     throw wasValidKey

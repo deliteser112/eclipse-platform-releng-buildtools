@@ -230,7 +230,7 @@ public class DomainFlowUtils {
   /** Check if the registrar running the flow has access to the TLD in question. */
   public static void checkAllowedAccessToTld(String clientId, String tld)
       throws EppException {
-    if (!Registrar.loadByClientId(clientId).getAllowedTlds().contains(tld)) {
+    if (!Registrar.loadByClientIdCached(clientId).getAllowedTlds().contains(tld)) {
       throw new DomainFlowUtils.NotAuthorizedForTldException(tld);
     }
   }
@@ -434,7 +434,7 @@ public class DomainFlowUtils {
     if (isDomainPremium(domainName, priceTime)) {
       // NB: The load of the Registar object is transactionless, which means that it should hit
       // memcache most of the time.
-      if (Registrar.loadByClientId(clientId).getBlockPremiumNames()) {
+      if (Registrar.loadByClientIdCached(clientId).getBlockPremiumNames()) {
         throw new PremiumNameBlockedException();
       }
     }

@@ -142,19 +142,19 @@ public class RegistrarTest extends EntityTestCase {
 
   @Test
   public void testFailure_passwordNull() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Password must be [6,16] characters long.");
+    thrown.expect(IllegalArgumentException.class, "Password must be 6-16 characters long.");
     new Registrar.Builder().setPassword(null);
   }
 
   @Test
   public void testFailure_passwordTooShort() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Password must be [6,16] characters long.");
+    thrown.expect(IllegalArgumentException.class, "Password must be 6-16 characters long.");
     new Registrar.Builder().setPassword("abcde");
   }
 
   @Test
   public void testFailure_passwordTooLong() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Password must be [6,16] characters long.");
+    thrown.expect(IllegalArgumentException.class, "Password must be 6-16 characters long.");
     new Registrar.Builder().setPassword("abcdefghijklmnopq");
   }
 
@@ -397,11 +397,11 @@ public class RegistrarTest extends EntityTestCase {
   }
 
   @Test
-  public void testLoadByClientId_isTransactionless() {
+  public void testLoadByClientIdCached_isTransactionless() {
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
-        assertThat(Registrar.loadByClientId("registrar")).isNotNull();
+        assertThat(Registrar.loadByClientIdCached("registrar")).isNotNull();
         // Load something as a control to make sure we are seeing loaded keys in the session cache.
         ofy().load().entity(abuseAdminContact).now();
         assertThat(ofy().getSessionKeys()).contains(Key.create(abuseAdminContact));
@@ -409,7 +409,7 @@ public class RegistrarTest extends EntityTestCase {
       }});
     ofy().clearSessionCache();
     // Conversely, loads outside of a transaction should end up in the session cache.
-    assertThat(Registrar.loadByClientId("registrar")).isNotNull();
+    assertThat(Registrar.loadByClientIdCached("registrar")).isNotNull();
     assertThat(ofy().getSessionKeys()).contains(Key.create(registrar));
   }
 }
