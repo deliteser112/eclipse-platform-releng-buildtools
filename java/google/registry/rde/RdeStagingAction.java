@@ -218,8 +218,6 @@ public final class RdeStagingAction implements Runnable {
 
   @Inject RdeStagingAction() {}
 
-  private RdeStagingMapper mapper;
-
   @Override
   public void run() {
     ImmutableSetMultimap<String, PendingDeposit> pendings =
@@ -234,7 +232,7 @@ public final class RdeStagingAction implements Runnable {
     for (PendingDeposit pending : pendings.values()) {
       logger.infofmt("%s", pending);
     }
-    mapper = new RdeStagingMapper(lenient ? LENIENT : STRICT, pendings);
+    RdeStagingMapper mapper = new RdeStagingMapper(lenient ? LENIENT : STRICT, pendings);
 
     response.sendJavaScriptRedirect(createJobPath(mrRunner
         .setJobName("Stage escrow deposits for all TLDs")
