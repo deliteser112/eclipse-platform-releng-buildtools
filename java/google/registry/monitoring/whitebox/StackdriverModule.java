@@ -24,7 +24,6 @@ import com.google.appengine.api.ThreadManager;
 import com.google.appengine.api.modules.ModulesService;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfig.Config;
@@ -88,10 +87,7 @@ public final class StackdriverModule {
   @Provides
   @Named("metricsBackgroundThreadFactory")
   static ThreadFactory provideThreadFactory() {
-    return new ThreadFactoryBuilder()
-        .setThreadFactory(ThreadManager.backgroundThreadFactory())
-        .setDaemon(true)
-        .build();
+    return ThreadManager.backgroundThreadFactory();
   }
 
   @Provides
