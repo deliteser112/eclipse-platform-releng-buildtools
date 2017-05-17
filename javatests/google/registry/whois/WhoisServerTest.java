@@ -78,7 +78,8 @@ public class WhoisServerTest {
     whoisServer.whoisReader = new WhoisReader(new WhoisCommandFactory());
     whoisServer.whoisMetrics = new WhoisMetrics();
     whoisServer.metricBuilder = WhoisMetric.builderForRequest(clock);
-    whoisServer.disclaimer = "Doodle Disclaimer";
+    whoisServer.disclaimer =
+        "Doodle Disclaimer\nI exist so that carriage return\nin disclaimer can be tested.";
     whoisServer.retrier = new Retrier(new FakeSleeper(clock), 3);
     return whoisServer;
   }

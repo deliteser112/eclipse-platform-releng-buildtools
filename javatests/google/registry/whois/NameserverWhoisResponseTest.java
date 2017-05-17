@@ -76,7 +76,10 @@ public class NameserverWhoisResponseTest {
   public void testGetTextOutput() {
     NameserverWhoisResponse nameserverWhoisResponse =
         new NameserverWhoisResponse(hostResource1, clock.nowUtc());
-    assertThat(nameserverWhoisResponse.getResponse(false, "Doodle Disclaimer"))
+    assertThat(
+            nameserverWhoisResponse.getResponse(
+                false,
+                "Doodle Disclaimer\nI exist so that carriage return\nin disclaimer can be tested."))
         .isEqualTo(WhoisResponseResults.create(loadWhoisTestFile("whois_nameserver.txt"), 1));
   }
 
@@ -84,7 +87,10 @@ public class NameserverWhoisResponseTest {
   public void testGetMultipleNameserversResponse() {
     NameserverWhoisResponse nameserverWhoisResponse =
         new NameserverWhoisResponse(ImmutableList.of(hostResource1, hostResource2), clock.nowUtc());
-    assertThat(nameserverWhoisResponse.getResponse(false, "Doodle Disclaimer"))
+    assertThat(
+            nameserverWhoisResponse.getResponse(
+                false,
+                "Doodle Disclaimer\nI exist so that carriage return\nin disclaimer can be tested."))
         .isEqualTo(
             WhoisResponseResults.create(loadWhoisTestFile("whois_multiple_nameservers.txt"), 2));
   }

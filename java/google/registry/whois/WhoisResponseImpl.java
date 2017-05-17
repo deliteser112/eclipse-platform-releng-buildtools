@@ -157,7 +157,7 @@ abstract class WhoisResponseImpl implements WhoisResponse {
 
     /** Returns raw text that should be appended to the end of ALL WHOIS responses. */
     E emitFooter(String disclaimer) {
-      stringBuilder.append(disclaimer).append("\r\n");
+      stringBuilder.append(disclaimer.replaceAll("\r?\n", "\r\n").trim()).append("\r\n");
       return thisCastToDerived();
     }
 

@@ -115,7 +115,10 @@ public class RegistrarWhoisResponseTest {
 
     RegistrarWhoisResponse registrarWhoisResponse =
         new RegistrarWhoisResponse(registrar, clock.nowUtc());
-    assertThat(registrarWhoisResponse.getResponse(false, "Doodle Disclaimer"))
+    assertThat(
+            registrarWhoisResponse.getResponse(
+                false,
+                "Doodle Disclaimer\nI exist so that carriage return\nin disclaimer can be tested."))
         .isEqualTo(WhoisResponseResults.create(loadWhoisTestFile("whois_registrar.txt"), 1));
   }
 
@@ -127,6 +130,7 @@ public class RegistrarWhoisResponseTest {
     RegistrarWhoisResponse registrarWhoisResponse =
         new RegistrarWhoisResponse(registrar, clock.nowUtc());
     // Just make sure this doesn't NPE.
-    registrarWhoisResponse.getResponse(false, "Doodle Disclaimer");
+    registrarWhoisResponse.getResponse(
+        false, "Doodle Disclaimer\nI exist so that carriage return\nin disclaimer can be tested.");
   }
 }

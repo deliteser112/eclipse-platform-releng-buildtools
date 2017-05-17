@@ -254,7 +254,10 @@ public class DomainWhoisResponseTest {
   public void getPlainTextOutputTest() {
     DomainWhoisResponse domainWhoisResponse =
         new DomainWhoisResponse(domainResource, clock.nowUtc());
-    assertThat(domainWhoisResponse.getResponse(false, "Doodle Disclaimer"))
+    assertThat(
+            domainWhoisResponse.getResponse(
+                false,
+                "Doodle Disclaimer\nI exist so that carriage return\nin disclaimer can be tested."))
         .isEqualTo(WhoisResponseResults.create(loadWhoisTestFile("whois_domain.txt"), 1));
   }
 
@@ -263,7 +266,13 @@ public class DomainWhoisResponseTest {
     DomainWhoisResponse domainWhoisResponse =
         new DomainWhoisResponse(
             domainResource.asBuilder().setStatusValues(null).build(), clock.nowUtc());
-    assertThat(domainWhoisResponse.getResponse(false, "Doodle Disclaimer").plainTextOutput())
+    assertThat(
+            domainWhoisResponse
+                .getResponse(
+                    false,
+                    "Doodle Disclaimer\nI exist so that carriage return\n"
+                        + "in disclaimer can be tested.")
+                .plainTextOutput())
         .contains("Domain Status: ok");
   }
 }
