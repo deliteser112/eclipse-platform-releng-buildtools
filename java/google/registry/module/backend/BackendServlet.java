@@ -14,6 +14,8 @@
 
 package google.registry.module.backend;
 
+import com.google.appengine.api.LifecycleManager;
+import com.google.appengine.api.LifecycleManager.ShutdownHook;
 import google.registry.monitoring.metrics.MetricReporter;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
@@ -43,16 +45,20 @@ public final class BackendServlet extends HttpServlet {
     } catch (TimeoutException timeoutException) {
       logger.severefmt("Failed to initialize MetricReporter: %s", timeoutException);
     }
-  }
 
-  @Override
-  public void destroy() {
-    try {
-      metricReporter.stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
-      logger.info("Shut down MetricReporter");
-    } catch (TimeoutException timeoutException) {
-      logger.severefmt("Failed to stop MetricReporter: %s", timeoutException);
-    }
+    LifecycleManager.getInstance()
+        .setShutdownHook(
+            new ShutdownHook() {
+              @Override
+              public void shutdown() {
+                try {
+                  metricReporter.stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
+                  logger.info("Shut down MetricReporter");
+                } catch (TimeoutException timeoutException) {
+                  logger.severefmt("Failed to stop MetricReporter: %s", timeoutException);
+                }
+              }
+            });
   }
 
   @Override
