@@ -1,5 +1,7 @@
 # Nomulus
 
+![Nomulus logo](./nomulus-logo.png)
+
 ## Overview
 
 Nomulus is an open source, scalable, cloud-based service for operating
