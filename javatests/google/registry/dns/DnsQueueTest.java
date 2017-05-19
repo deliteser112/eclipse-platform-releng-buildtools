@@ -52,8 +52,12 @@ public class DnsQueueTest {
   public void test_addHostRefreshTask_success() throws Exception {
     createTld("tld");
     dnsQueue.addHostRefreshTask("octopus.tld");
-    assertTasksEnqueued("dns-pull",
-        new TaskMatcher().payload("Target-Type=HOST&Target-Name=octopus.tld&tld=tld"));
+    assertTasksEnqueued(
+        "dns-pull",
+        new TaskMatcher()
+            .param("Target-Type", "HOST")
+            .param("Target-Name", "octopus.tld")
+            .param("tld", "tld"));
   }
 
   @Test
@@ -71,8 +75,12 @@ public class DnsQueueTest {
   public void test_addDomainRefreshTask_success() throws Exception {
     createTld("tld");
     dnsQueue.addDomainRefreshTask("octopus.tld");
-    assertTasksEnqueued("dns-pull",
-        new TaskMatcher().payload("Target-Type=DOMAIN&Target-Name=octopus.tld&tld=tld"));
+    assertTasksEnqueued(
+        "dns-pull",
+        new TaskMatcher()
+            .param("Target-Type", "DOMAIN")
+            .param("Target-Name", "octopus.tld")
+            .param("tld", "tld"));
   }
 
   @Test

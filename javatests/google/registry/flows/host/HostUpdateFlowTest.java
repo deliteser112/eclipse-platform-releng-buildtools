@@ -192,7 +192,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     // Task enqueued to change the NS record of the referencing domain via mapreduce.
     assertTasksEnqueued(
         QUEUE_ASYNC_HOST_RENAME,
-        new TaskMatcher().payload("hostKey=" + Key.create(renamedHost).getString()));
+        new TaskMatcher().param("hostKey", Key.create(renamedHost).getString()));
   }
 
   @Test

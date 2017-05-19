@@ -36,6 +36,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Iterables;
@@ -47,10 +48,10 @@ import google.registry.dns.DnsConstants;
 import google.registry.model.ImmutableObject;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -65,7 +66,22 @@ public class TaskQueueHelper {
    */
   public static class TaskMatcher implements Predicate<TaskStateInfo> {
 
-    MatchableTaskInfo expected = new MatchableTaskInfo();
+    private final MatchableTaskInfo expected;
+
+    public TaskMatcher() {
+      expected = new MatchableTaskInfo();
+    }
+
+    /**
+     * Constructor to create a TaskMatcher that should exactly match an existing TaskStateInfo.
+     *
+     * This is useful for checking that a pre-existing task as returned by TaskStateInfo is still
+     * in the queue; we can't just directly compare the lists of TaskStateInfos because they have
+     * no equals() override and there's no guarantee that reference equality is sufficient.
+     */
+    private TaskMatcher(TaskStateInfo taskStateInfo) {
+      expected = new MatchableTaskInfo(taskStateInfo);
+    }
 
     public TaskMatcher taskName(String taskName) {
       expected.taskName = taskName;
@@ -77,6 +93,10 @@ public class TaskQueueHelper {
       return this;
     }
 
+    /**
+     * Sets the HTTP method to match against.  WARNING: due to b/38459667, pull queue tasks will
+     * report "POST" as their method.
+     */
     public TaskMatcher method(String method) {
       expected.method = method;
       return this;
@@ -197,6 +217,15 @@ public class TaskQueueHelper {
     assertTasksEnqueuedWithProperty(queueName, nameGetter, expectedTaskNames);
   }
 
+  public static void assertTasksEnqueued(String queueName, Iterable<TaskStateInfo> taskStateInfos)
+      throws Exception {
+    ImmutableList.Builder<TaskMatcher> taskMatchers = ImmutableList.builder();
+    for (TaskStateInfo taskStateInfo : taskStateInfos) {
+      taskMatchers.add(new TaskMatcher(taskStateInfo));
+    }
+    assertTasksEnqueued(queueName, taskMatchers.build());
+  }
+
   /**
    * Ensures that the only tasks in the named queue are exactly those that match the expected
    * matchers.
@@ -210,7 +239,7 @@ public class TaskQueueHelper {
    * Ensures that the only tasks in the named queue are exactly those that match the expected
    * matchers.
    */
-  public static void assertTasksEnqueued(String queueName, List<TaskMatcher> taskMatchers)
+  public static void assertTasksEnqueued(String queueName, Collection<TaskMatcher> taskMatchers)
       throws Exception {
     QueueStateInfo qsi = getQueueInfo(queueName);
     assertThat(qsi.getTaskInfo()).hasSize(taskMatchers.size());
@@ -322,8 +351,16 @@ public class TaskQueueHelper {
       if (query != null) {
         inputParams.putAll(UriParameters.parse(query));
       }
-      if (headers.containsEntry(
-          Ascii.toLowerCase(HttpHeaders.CONTENT_TYPE), MediaType.FORM_DATA.toString())) {
+      boolean hasFormDataContentType =
+          headers.containsEntry(
+              Ascii.toLowerCase(HttpHeaders.CONTENT_TYPE), MediaType.FORM_DATA.toString());
+      // Try decoding the body as a parameter map if it either has the "x-www-form-urlencoded"
+      // content type, or if it's a POST or PULL task (in which case parameters should be encoded
+      // into the body automatically upon being enqueued).  Note that pull queue tasks also report
+      // "POST" as their method (which is misleading - see b/38459667) so we just check for "POST".
+      if (hasFormDataContentType || "POST".equals(this.method)) {
+        // Note that UriParameters.parse() does not throw an IAE on a bad query string (e.g. one
+        // where parameters are not properly URL-encoded); it always does a best-effort parse.
         inputParams.putAll(UriParameters.parse(info.getBody()));
       }
       this.params = inputParams.build();

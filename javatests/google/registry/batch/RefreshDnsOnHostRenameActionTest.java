@@ -165,7 +165,7 @@ public class RefreshDnsOnHostRenameActionTest
     assertTasksEnqueued(
         QUEUE_ASYNC_HOST_RENAME,
         new TaskMatcher()
-            .payload("hostKey=" + Key.create(host).getString())
-            .etaDelta(standardHours(23), standardHours(25)));
+            .etaDelta(standardHours(23), standardHours(25))
+            .param("hostKey", Key.create(host).getString()));
   }
 }

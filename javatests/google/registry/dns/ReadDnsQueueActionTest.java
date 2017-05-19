@@ -20,7 +20,6 @@ import static google.registry.dns.DnsConstants.DNS_PUBLISH_PUSH_QUEUE_NAME;
 import static google.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
 import static google.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
 import static google.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
-import static google.registry.request.RequestParameters.PARAM_TLD;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
@@ -30,6 +29,7 @@ import static java.util.Arrays.asList;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
+import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -38,9 +38,9 @@ import com.google.common.net.InternetDomainName;
 import google.registry.dns.DnsConstants.TargetType;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
-import google.registry.request.RequestParameters;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
+import google.registry.testing.TaskQueueHelper;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.Retrier;
 import google.registry.util.TaskEnqueuer;
@@ -109,7 +109,7 @@ public class ReadDnsQueueActionTest {
         .param(DNS_TARGET_TYPE_PARAM, type.toString())
         .param(DNS_TARGET_NAME_PARAM, name);
     String tld = InternetDomainName.from(name).parts().reverse().get(0);
-    return options.param(PARAM_TLD, tld);
+    return options.param("tld", tld);
   }
 
   private void assertTldsEnqueuedInPushQueue(String... tlds) throws Exception {
@@ -120,7 +120,7 @@ public class ReadDnsQueueActionTest {
           public TaskMatcher apply(String tld) {
             return new TaskMatcher()
                 .url(PublishDnsUpdatesAction.PATH)
-                .param(RequestParameters.PARAM_TLD, tld)
+                .param("tld", tld)
                 .header("content-type", "application/x-www-form-urlencoded");
           }}));
   }
@@ -154,13 +154,12 @@ public class ReadDnsQueueActionTest {
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.net");
     dnsQueue.addDomainRefreshTask("domain.example");
+    List<TaskStateInfo> preexistingTasks =
+        TaskQueueHelper.getQueueInfo(DNS_PULL_QUEUE_NAME).getTaskInfo();
     run(true);
-    assertTasksEnqueued(
-        DNS_PULL_QUEUE_NAME,
-        new TaskMatcher().payload("Target-Type=DOMAIN&Target-Name=domain.com&tld=com"),
-        new TaskMatcher().payload("Target-Type=DOMAIN&Target-Name=domain.net&tld=net"),
-        new TaskMatcher().payload("Target-Type=DOMAIN&Target-Name=domain.example&tld=example"));
     assertTldsEnqueuedInPushQueue("com", "net", "example");
+    // Check that keepTasks was honored and the pull queue tasks are still present in the queue.
+    assertTasksEnqueued(DNS_PULL_QUEUE_NAME, preexistingTasks);
   }
 
   @Test
