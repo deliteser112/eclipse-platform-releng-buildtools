@@ -189,8 +189,10 @@ public class GenerateEscrowDepositCommandTest
             .url("/_dr/task/rdeStaging")
             .header("Host", "1.backend.test.localhost")
             .param("mode", "THIN")
-            .param("watermark", "2017-01-01T00:00:00.000Z,2017-01-02T00:00:00.000Z")
-            .param("tld", "tld,anothertld")
+            .param("watermark", "2017-01-01T00:00:00.000Z")
+            .param("watermark", "2017-01-02T00:00:00.000Z")
+            .param("tld", "tld")
+            .param("tld", "anothertld")
             .param("directory", "test")
             .param("manual", "true")
             .param("revision", "42"));

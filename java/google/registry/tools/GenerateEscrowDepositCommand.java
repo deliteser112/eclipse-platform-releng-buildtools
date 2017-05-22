@@ -23,7 +23,6 @@ import com.beust.jcommander.Parameters;
 import com.google.appengine.api.modules.ModulesService;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskOptions;
-import com.google.common.base.Joiner;
 import google.registry.model.rde.RdeMode;
 import google.registry.rde.RdeModule;
 import google.registry.rde.RdeStagingAction;
@@ -103,10 +102,14 @@ final class GenerateEscrowDepositCommand implements RemoteApiCommand {
         withUrl(RdeStagingAction.PATH)
             .header("Host", hostname)
             .param(RdeModule.PARAM_MANUAL, String.valueOf(true))
-            .param(RequestParameters.PARAM_TLD, Joiner.on(',').join(tlds))
-            .param(RdeModule.PARAM_WATERMARK, Joiner.on(',').join(watermarks))
             .param(RdeModule.PARAM_MODE, mode.toString())
             .param(RdeModule.PARAM_DIRECTORY, outdir);
+    for (String tld : tlds) {
+      opts = opts.param(RequestParameters.PARAM_TLD, tld);
+    }
+    for (DateTime watermark : watermarks) {
+      opts = opts.param(RdeModule.PARAM_WATERMARK, watermark.toString());
+    }
     if (revision != null) {
       opts = opts.param(RdeModule.PARAM_REVISION, String.valueOf(revision));
     }
