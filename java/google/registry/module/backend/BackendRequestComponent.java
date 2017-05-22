@@ -20,7 +20,6 @@ import google.registry.backup.BackupModule;
 import google.registry.backup.CommitLogCheckpointAction;
 import google.registry.backup.DeleteOldCommitLogsAction;
 import google.registry.backup.ExportCommitLogDiffAction;
-import google.registry.backup.RestoreCommitLogsAction;
 import google.registry.batch.BatchModule;
 import google.registry.batch.DeleteContactsAndHostsAction;
 import google.registry.batch.DeleteProberDataAction;
@@ -127,7 +126,6 @@ interface BackendRequestComponent {
   RdeReporter rdeReporter();
   RefreshDnsAction refreshDnsAction();
   RefreshDnsOnHostRenameAction refreshDnsOnHostRenameAction();
-  RestoreCommitLogsAction restoreCommitLogsAction();
   SyncGroupMembersAction syncGroupMembersAction();
   SyncRegistrarsSheetAction syncRegistrarsSheetAction();
   TldFanoutAction tldFanoutAction();

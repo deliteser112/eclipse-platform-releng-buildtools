@@ -181,12 +181,6 @@
     <url-pattern>/_dr/task/exportCommitLogDiff</url-pattern>
   </servlet-mapping>
 
-  <!-- Restores commit logs. -->
-  <servlet-mapping>
-    <servlet-name>backend-servlet</servlet-name>
-    <url-pattern>/_dr/task/restoreCommitLogs</url-pattern>
-  </servlet-mapping>
-
   <!-- Deletes commit logs. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>

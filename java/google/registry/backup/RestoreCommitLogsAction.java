@@ -41,6 +41,8 @@ import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
 import java.io.IOException;
@@ -59,7 +61,14 @@ import org.joda.time.DateTime;
 @Action(
     path = RestoreCommitLogsAction.PATH,
     method = Action.Method.POST,
-    automaticallyPrintOk = true)
+    automaticallyPrintOk = true,
+    auth =
+        @Auth(
+          methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+          minimumLevel = AuthLevel.APP,
+          userPolicy = Auth.UserPolicy.ADMIN
+        )
+)
 public class RestoreCommitLogsAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

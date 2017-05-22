@@ -16,6 +16,8 @@ package google.registry.module.tools;
 
 import dagger.Module;
 import dagger.Subcomponent;
+import google.registry.backup.BackupModule;
+import google.registry.backup.RestoreCommitLogsAction;
 import google.registry.dns.DnsModule;
 import google.registry.export.PublishDetailReportAction;
 import google.registry.flows.EppToolAction;
@@ -50,6 +52,7 @@ import google.registry.tools.server.javascrap.RefreshAllDomainsAction;
 @RequestScope
 @Subcomponent(
     modules = {
+        BackupModule.class,
         DnsModule.class,
         EppToolModule.class,
         LoadTestModule.class,
@@ -77,6 +80,7 @@ interface ToolsRequestComponent {
   PublishDetailReportAction publishDetailReportAction();
   RefreshAllDomainsAction refreshAllDomainsAction();
   ResaveAllEppResourcesAction resaveAllEppResourcesAction();
+  RestoreCommitLogsAction restoreCommitLogsAction();
   UpdatePremiumListAction updatePremiumListAction();
   VerifyOteAction verifyOteAction();
 
