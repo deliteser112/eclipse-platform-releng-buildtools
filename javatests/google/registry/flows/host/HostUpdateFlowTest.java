@@ -781,7 +781,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     clock.advanceOneMilli();
     thrown.expect(
         SuperordinateDomainInPendingDeleteException.class,
-        "example.tld");
+        "Superordinate domain for this hostname is in pending delete");
     runFlow();
   }
 

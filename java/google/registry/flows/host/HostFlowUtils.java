@@ -134,16 +134,15 @@ public class HostFlowUtils {
       DomainResource superordinateDomain) throws EppException {
     if ((superordinateDomain != null)
         && superordinateDomain.getStatusValues().contains(StatusValue.PENDING_DELETE)) {
-      throw new SuperordinateDomainInPendingDeleteException(
-          superordinateDomain.getFullyQualifiedDomainName());
+      throw new SuperordinateDomainInPendingDeleteException();
     }
   }
 
   /** Superordinate domain for this hostname is in pending delete. */
   static class SuperordinateDomainInPendingDeleteException
       extends StatusProhibitsOperationException {
-    public SuperordinateDomainInPendingDeleteException(String domainName) {
-      super(domainName);
+    public SuperordinateDomainInPendingDeleteException() {
+      super("Superordinate domain for this hostname is in pending delete");
     }
   }
 
