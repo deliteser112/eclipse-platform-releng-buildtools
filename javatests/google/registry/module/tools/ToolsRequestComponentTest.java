@@ -12,34 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.model;
+package google.registry.module.tools;
 
 import static com.google.common.io.Resources.getResource;
 
-import google.registry.testing.AppEngineRule;
+import google.registry.request.RouterDisplayHelper;
 import google.registry.testing.GoldenFileTestHelper;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/**
- * Unit tests for {@link SchemaVersion}.
- *
- * <p>If the test breaks, the instructions below will be printed.
- */
+/** Unit tests for {@link ToolsRequestComponent}. */
 @RunWith(JUnit4.class)
-public class SchemaVersionTest {
-
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+public class ToolsRequestComponentTest {
 
   @Test
-  public void testGoldenSchemaFile() throws Exception {
+  public void testRoutingMap() throws Exception {
     GoldenFileTestHelper.testGoldenFile(
-        SchemaVersion.getSchema(),
-        getResource(SchemaVersionTest.class, "schema.txt"),
-        "Datastore schema",
-        "get_schema");
+        RouterDisplayHelper.extractHumanReadableRoutesFromComponent(ToolsRequestComponent.class),
+        getResource(ToolsRequestComponentTest.class, "testdata/tools_routing.txt"),
+        "tools routing map",
+        "get_routing_map -c " + ToolsRequestComponent.class.getName());
   }
 }

@@ -25,12 +25,14 @@ import com.google.common.base.Function;
 @AutoValue
 abstract class Route {
 
-  static Route create(Action action, Function<Object, Runnable> instantiator) {
-    return new AutoValue_Route(action, instantiator);
+  static Route create(
+      Action action, Function<Object, Runnable> instantiator, Class<?> actionClass) {
+    return new AutoValue_Route(action, instantiator, actionClass);
   }
 
   abstract Action action();
   abstract Function<Object, Runnable> instantiator();
+  abstract Class<?> actionClass();
 
   boolean isMethodAllowed(Action.Method requestMethod) {
     for (Action.Method method : action().method()) {

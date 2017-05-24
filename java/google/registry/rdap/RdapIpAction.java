@@ -38,7 +38,7 @@ import javax.inject.Inject;
 )
 public class RdapIpAction extends RdapActionBase {
 
-  public static final String PATH = "/rdap/ip";
+  public static final String PATH = "/rdap/ip/";
 
   @Inject RdapIpAction() {}
 

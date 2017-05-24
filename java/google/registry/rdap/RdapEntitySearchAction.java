@@ -61,7 +61,6 @@ import org.joda.time.DateTime;
 @Action(
   path = RdapEntitySearchAction.PATH,
   method = {GET, HEAD},
-  isPrefix = true,
   auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
 )
 public class RdapEntitySearchAction extends RdapActionBase {
@@ -144,7 +143,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
     // Get the registrar matches, depending on whether there's a wildcard.
     ImmutableList<Registrar> registrarMatches =
         FluentIterable.from(Registrar.loadAllCached())
-            .filter( 
+            .filter(
                 new Predicate<Registrar>() {
                   @Override
                   public boolean apply(Registrar registrar) {
@@ -170,7 +169,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
           .type(ContactResource.class)
           .id(partialStringQuery.getInitialString())
           .now();
-      ImmutableList<Registrar> registrars = 
+      ImmutableList<Registrar> registrars =
           getMatchingRegistrars(partialStringQuery.getInitialString());
       return makeSearchResults(
           ((contactResource == null) || !contactResource.getDeletionTime().isEqual(END_OF_TIME))

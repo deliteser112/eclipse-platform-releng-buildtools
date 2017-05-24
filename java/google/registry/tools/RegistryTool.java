@@ -79,6 +79,7 @@ public final class RegistryTool {
           .put("get_lrp_token", GetLrpTokenCommand.class)
           .put("get_registrar", GetRegistrarCommand.class)
           .put("get_resource_by_key", GetResourceByKeyCommand.class)
+          .put("get_routing_map", GetRoutingMapCommand.class)
           .put("get_schema", GetSchemaCommand.class)
           .put("get_schema_tree", GetSchemaTreeCommand.class)
           .put("get_tld", GetTldCommand.class)

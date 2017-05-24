@@ -58,7 +58,6 @@ import org.joda.time.DateTime;
 @Action(
   path = RdapNameserverSearchAction.PATH,
   method = {GET, HEAD},
-  isPrefix = true,
   auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
 )
 public class RdapNameserverSearchAction extends RdapActionBase {

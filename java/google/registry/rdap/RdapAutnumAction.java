@@ -38,7 +38,7 @@ import javax.inject.Inject;
 )
 public class RdapAutnumAction extends RdapActionBase {
 
-  public static final String PATH = "/rdap/autnum";
+  public static final String PATH = "/rdap/autnum/";
 
   @Inject RdapAutnumAction() {}
 

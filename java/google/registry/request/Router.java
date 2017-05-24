@@ -65,8 +65,7 @@ final class Router {
     return Optional.absent();
   }
 
-  private static
-      ImmutableSortedMap<String, Route> extractRoutesFromComponent(Class<?> componentClass) {
+  static ImmutableSortedMap<String, Route> extractRoutesFromComponent(Class<?> componentClass) {
     ImmutableSortedMap.Builder<String, Route> routes =
         new ImmutableSortedMap.Builder<>(Ordering.natural());
     for (Method method : componentClass.getMethods()) {
@@ -79,9 +78,12 @@ final class Router {
       if (action == null) {
         continue;
       }
-      @SuppressWarnings("unchecked")  // Safe due to previous checks.
+      @SuppressWarnings("unchecked") // Safe due to previous checks.
       Route route =
-          Route.create(action, (Function<Object, Runnable>) newInstantiator(method));
+          Route.create(
+              action,
+              (Function<Object, Runnable>) newInstantiator(method),
+              method.getReturnType());
       routes.put(action.path(), route);
     }
     return routes.build();
