@@ -100,7 +100,8 @@ public final class ContactDeleteFlow implements TransactionalFlow {
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingContact);
     }
-    asyncFlowEnqueuer.enqueueAsyncDelete(existingContact, clientId, trid, isSuperuser);
+    asyncFlowEnqueuer.enqueueAsyncDelete(
+        existingContact, ofy().getTransactionTime(), clientId, trid, isSuperuser);
     ContactResource newContact =
         existingContact.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build();
     historyBuilder

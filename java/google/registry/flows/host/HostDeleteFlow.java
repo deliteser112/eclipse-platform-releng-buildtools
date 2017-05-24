@@ -108,7 +108,8 @@ public final class HostDeleteFlow implements TransactionalFlow {
               : existingHost;
       verifyResourceOwnership(clientId, owningResource);
     }
-    asyncFlowEnqueuer.enqueueAsyncDelete(existingHost, clientId, trid, isSuperuser);
+    asyncFlowEnqueuer.enqueueAsyncDelete(
+        existingHost, ofy().getTransactionTime(), clientId, trid, isSuperuser);
     HostResource newHost =
         existingHost.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build();
     historyBuilder

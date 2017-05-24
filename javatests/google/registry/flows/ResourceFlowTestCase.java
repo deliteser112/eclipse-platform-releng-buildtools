@@ -156,7 +156,7 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
   }
 
   /** Asserts the presence of a single enqueued async contact or host deletion */
-  protected static <T extends EppResource> void assertAsyncDeletionTaskEnqueued(
+  protected <T extends EppResource> void assertAsyncDeletionTaskEnqueued(
       T resource, String requestingClientId, Trid trid, boolean isSuperuser) throws Exception {
     assertTasksEnqueued(
         "async-delete-pull",
@@ -166,7 +166,8 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
             .param("requestingClientId", requestingClientId)
             .param("clientTransactionId", trid.getClientTransactionId())
             .param("serverTransactionId", trid.getServerTransactionId())
-            .param("isSuperuser", Boolean.toString(isSuperuser)));
+            .param("isSuperuser", Boolean.toString(isSuperuser))
+            .param("requestedTime", clock.nowUtc().toString()));
   }
 
 

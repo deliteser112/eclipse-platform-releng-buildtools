@@ -29,6 +29,7 @@ import google.registry.util.Retrier;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import javax.inject.Named;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 /** Helper class to enqueue tasks for handling asynchronous operations in flows. */
@@ -41,6 +42,7 @@ public final class AsyncFlowEnqueuer {
   public static final String PARAM_SERVER_TRANSACTION_ID = "serverTransactionId";
   public static final String PARAM_IS_SUPERUSER = "isSuperuser";
   public static final String PARAM_HOST_KEY = "hostKey";
+  public static final String PARAM_REQUESTED_TIME = "requestedTime";
 
   /** The task queue names used by async flows. */
   public static final String QUEUE_ASYNC_DELETE = "async-delete-pull";
@@ -48,32 +50,31 @@ public final class AsyncFlowEnqueuer {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @VisibleForTesting
-  @Inject
-  @Config("asyncDeleteFlowMapreduceDelay")
-  public Duration asyncDeleteDelay;
+  private final Duration asyncDeleteDelay;
+  private final Queue asyncDeletePullQueue;
+  private final Queue asyncDnsRefreshPullQueue;
+  private final Retrier retrier;
 
   @VisibleForTesting
   @Inject
-  @Named("async-delete-pull")
-  public Queue asyncDeletePullQueue;
-
-  @VisibleForTesting
-  @Inject
-  @Named(QUEUE_ASYNC_HOST_RENAME)
-  public Queue asyncDnsRefreshPullQueue;
-
-  @VisibleForTesting
-  @Inject
-  public Retrier retrier;
-
-  @VisibleForTesting
-  @Inject
-  public AsyncFlowEnqueuer() {}
+  public AsyncFlowEnqueuer(
+      @Named(QUEUE_ASYNC_DELETE) Queue asyncDeletePullQueue,
+      @Named(QUEUE_ASYNC_HOST_RENAME) Queue asyncDnsRefreshPullQueue,
+      @Config("asyncDeleteFlowMapreduceDelay") Duration asyncDeleteDelay,
+      Retrier retrier) {
+    this.asyncDeletePullQueue = asyncDeletePullQueue;
+    this.asyncDnsRefreshPullQueue = asyncDnsRefreshPullQueue;
+    this.asyncDeleteDelay = asyncDeleteDelay;
+    this.retrier = retrier;
+  }
 
   /** Enqueues a task to asynchronously delete a contact or host, by key. */
   public void enqueueAsyncDelete(
-      EppResource resourceToDelete, String requestingClientId, Trid trid, boolean isSuperuser) {
+      EppResource resourceToDelete,
+      DateTime now,
+      String requestingClientId,
+      Trid trid,
+      boolean isSuperuser) {
     Key<EppResource> resourceKey = Key.create(resourceToDelete);
     logger.infofmt(
         "Enqueuing async deletion of %s on behalf of registrar %s.",
@@ -85,17 +86,20 @@ public final class AsyncFlowEnqueuer {
             .param(PARAM_REQUESTING_CLIENT_ID, requestingClientId)
             .param(PARAM_CLIENT_TRANSACTION_ID, trid.getClientTransactionId())
             .param(PARAM_SERVER_TRANSACTION_ID, trid.getServerTransactionId())
-            .param(PARAM_IS_SUPERUSER, Boolean.toString(isSuperuser));
+            .param(PARAM_IS_SUPERUSER, Boolean.toString(isSuperuser))
+            .param(PARAM_REQUESTED_TIME, now.toString());
     addTaskToQueueWithRetry(asyncDeletePullQueue, task);
   }
 
   /** Enqueues a task to asynchronously refresh DNS for a renamed host. */
-  public void enqueueAsyncDnsRefresh(HostResource host) {
+  public void enqueueAsyncDnsRefresh(HostResource host, DateTime now) {
     Key<HostResource> hostKey = Key.create(host);
     logger.infofmt("Enqueuing async DNS refresh for renamed host %s.", hostKey);
     addTaskToQueueWithRetry(
         asyncDnsRefreshPullQueue,
-        TaskOptions.Builder.withMethod(Method.PULL).param(PARAM_HOST_KEY, hostKey.getString()));
+        TaskOptions.Builder.withMethod(Method.PULL)
+            .param(PARAM_HOST_KEY, hostKey.getString())
+            .param(PARAM_REQUESTED_TIME, now.toString()));
   }
 
   /**

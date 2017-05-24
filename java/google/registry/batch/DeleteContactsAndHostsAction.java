@@ -25,6 +25,7 @@ import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDel
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_CLIENT_TRANSACTION_ID;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_IS_SUPERUSER;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTING_CLIENT_ID;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_SERVER_TRANSACTION_ID;
@@ -42,6 +43,7 @@ import static google.registry.util.PipelineUtils.createJobPath;
 import static java.math.RoundingMode.CEILING;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.api.taskqueue.LeaseOptions;
 import com.google.appengine.api.taskqueue.Queue;
@@ -51,7 +53,8 @@ import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Optional;
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -61,6 +64,9 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import google.registry.batch.DeleteContactsAndHostsAction.DeletionResult.Type;
 import google.registry.dns.DnsQueue;
+import google.registry.flows.async.AsyncFlowMetrics;
+import google.registry.flows.async.AsyncFlowMetrics.OperationResult;
+import google.registry.flows.async.AsyncFlowMetrics.OperationType;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.mapreduce.inputs.NullInput;
@@ -82,7 +88,9 @@ import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
 import google.registry.util.Retrier;
+import google.registry.util.SystemClock;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -107,6 +115,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
   private static final int MAX_REDUCE_SHARDS = 50;
   private static final int DELETES_PER_SHARD = 5;
 
+  @Inject AsyncFlowMetrics asyncFlowMetrics;
   @Inject Clock clock;
   @Inject MapreduceRunner mrRunner;
   @Inject @Named(QUEUE_ASYNC_DELETE) Queue queue;
@@ -119,6 +128,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
     LeaseOptions options =
         LeaseOptions.Builder.withCountLimit(maxLeaseCount()).leasePeriod(LEASE_MINUTES, MINUTES);
     List<TaskHandle> tasks = queue.leaseTasks(options);
+    asyncFlowMetrics.recordContactHostDeletionBatchSize(tasks.size());
     if (tasks.isEmpty()) {
       response.setPayload("No contact/host deletion tasks in pull queue.");
       return;
@@ -126,17 +136,16 @@ public class DeleteContactsAndHostsAction implements Runnable {
     Multiset<String> kindCounts = HashMultiset.create(2);
     ImmutableList.Builder<DeletionRequest> builder = new ImmutableList.Builder<>();
     ImmutableList.Builder<Key<? extends EppResource>> resourceKeys = new ImmutableList.Builder<>();
-    final List<TaskHandle> tasksToDelete = new ArrayList<>();
+    final List<DeletionRequest> requestsToDelete = new ArrayList<>();
     for (TaskHandle task : tasks) {
       try {
-        Optional<DeletionRequest> deletionRequest =
-            DeletionRequest.createFromTask(task, clock.nowUtc());
-        if (deletionRequest.isPresent()) {
-          builder.add(deletionRequest.get());
-          resourceKeys.add(deletionRequest.get().key());
-          kindCounts.add(deletionRequest.get().key().getKind());
+        DeletionRequest deletionRequest = DeletionRequest.createFromTask(task, clock.nowUtc());
+        if (deletionRequest.isDeletionAllowed()) {
+          builder.add(deletionRequest);
+          resourceKeys.add(deletionRequest.key());
+          kindCounts.add(deletionRequest.key().getKind());
         } else {
-          tasksToDelete.add(task);
+          requestsToDelete.add(deletionRequest);
         }
       } catch (Exception e) {
         logger.severefmt(
@@ -146,7 +155,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
         queue.modifyTaskLease(task, 1L, DAYS);
       }
     }
-    deleteTasksWithRetry(tasksToDelete);
+    deleteStaleTasksWithRetry(requestsToDelete);
     ImmutableList<DeletionRequest> deletionRequests = builder.build();
     if (deletionRequests.isEmpty()) {
       logger.info("No asynchronous deletions to process because all were already handled.");
@@ -159,18 +168,39 @@ public class DeleteContactsAndHostsAction implements Runnable {
     }
   }
 
-  /** Deletes a list of tasks from the async delete queue using a retrier. */
-  private void deleteTasksWithRetry(final List<TaskHandle> tasks) {
-    if (tasks.isEmpty()) {
+  /**
+   * Deletes a list of tasks associated with deletion requests from the async delete queue using a
+   * retrier.
+   */
+  private void deleteStaleTasksWithRetry(final List<DeletionRequest> deletionRequests) {
+    if (deletionRequests.isEmpty()) {
       return;
     }
+    final List<TaskHandle> tasks =
+        FluentIterable.from(deletionRequests)
+            .transform(
+                new Function<DeletionRequest, TaskHandle>() {
+                  @Override
+                  public TaskHandle apply(DeletionRequest deletionRequest) {
+                    return deletionRequest.task();
+                  }
+                })
+            .toList();
     retrier.callWithRetry(
         new Callable<Void>() {
           @Override
           public Void call() throws Exception {
             queue.deleteTask(tasks);
             return null;
-          }}, TransientFailureException.class);
+          }
+        },
+        TransientFailureException.class);
+    for (DeletionRequest deletionRequest : deletionRequests) {
+      asyncFlowMetrics.recordAsyncFlowResult(
+          deletionRequest.getMetricOperationType(),
+          OperationResult.STALE,
+          deletionRequest.requestedTime());
+    }
   }
 
   private void runMapreduce(ImmutableList<DeletionRequest> deletionRequests) {
@@ -253,6 +283,9 @@ public class DeleteContactsAndHostsAction implements Runnable {
     private static final long serialVersionUID = 6569363449285506326L;
     private static final DnsQueue dnsQueue = DnsQueue.create();
 
+    @NonFinalForTesting
+    private static AsyncFlowMetrics asyncFlowMetrics = new AsyncFlowMetrics(new SystemClock());
+
     @Override
     public void reduce(final DeletionRequest deletionRequest, ReducerInput<Boolean> values) {
       final boolean hasNoActiveReferences = !Iterators.contains(values, true);
@@ -266,6 +299,10 @@ public class DeleteContactsAndHostsAction implements Runnable {
           getQueue(QUEUE_ASYNC_DELETE).deleteTask(deletionRequest.task());
           return deletionResult;
         }});
+      asyncFlowMetrics.recordAsyncFlowResult(
+          deletionRequest.getMetricOperationType(),
+          result.getMetricOperationResult(),
+          deletionRequest.requestedTime());
       String resourceNamePlural = deletionRequest.key().getKind() + "s";
       getContext().incrementCounter(result.type().renderCounterText(resourceNamePlural));
       logger.infofmt(
@@ -423,7 +460,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
   @AutoValue
   abstract static class DeletionRequest implements Serializable {
 
-    private static final long serialVersionUID = 5782119100274089088L;
+    private static final long serialVersionUID = -4612618525760839240L;
 
     abstract Key<? extends EppResource> key();
     abstract DateTime lastUpdateTime();
@@ -440,6 +477,8 @@ public class DeleteContactsAndHostsAction implements Runnable {
     abstract String serverTransactionId();
 
     abstract boolean isSuperuser();
+    abstract DateTime requestedTime();
+    abstract boolean isDeletionAllowed();
     abstract TaskHandle task();
 
     @AutoValue.Builder
@@ -450,11 +489,13 @@ public class DeleteContactsAndHostsAction implements Runnable {
       abstract Builder setClientTransactionId(String clientTransactionId);
       abstract Builder setServerTransactionId(String serverTransactionId);
       abstract Builder setIsSuperuser(boolean isSuperuser);
+      abstract Builder setRequestedTime(DateTime requestedTime);
+      abstract Builder setIsDeletionAllowed(boolean isDeletionAllowed);
       abstract Builder setTask(TaskHandle task);
       abstract DeletionRequest build();
     }
 
-    static Optional<DeletionRequest> createFromTask(TaskHandle task, DateTime now)
+    static DeletionRequest createFromTask(TaskHandle task, DateTime now)
         throws Exception {
       ImmutableMap<String, String> params = ImmutableMap.copyOf(task.extractParams());
       Key<EppResource> resourceKey =
@@ -466,29 +507,43 @@ public class DeleteContactsAndHostsAction implements Runnable {
           resource instanceof ContactResource || resource instanceof HostResource,
           "Cannot delete a %s via this action",
           resource.getClass().getSimpleName());
-      if (!doesResourceStateAllowDeletion(resource, now)) {
-        return Optional.absent();
+      return new AutoValue_DeleteContactsAndHostsAction_DeletionRequest.Builder()
+          .setKey(resourceKey)
+          .setLastUpdateTime(resource.getUpdateAutoTimestamp().getTimestamp())
+          .setRequestingClientId(
+              checkNotNull(
+                  params.get(PARAM_REQUESTING_CLIENT_ID), "Requesting client id not specified"))
+          .setClientTransactionId(
+              checkNotNull(
+                  params.get(PARAM_CLIENT_TRANSACTION_ID), "Client transaction id not specified"))
+          .setServerTransactionId(
+              checkNotNull(
+                  params.get(PARAM_SERVER_TRANSACTION_ID), "Server transaction id not specified"))
+          .setIsSuperuser(
+              Boolean.valueOf(
+                  checkNotNull(params.get(PARAM_IS_SUPERUSER), "Is superuser not specified")))
+          // TODO(b/38386090): After push is completed and all old tasks are processed, change to:
+          // .setRequestedTime(DateTime.parse(
+          //     checkNotNull(params.get(PARAM_REQUESTED_TIME), "Requested time not specified")))
+          .setRequestedTime(
+              (params.containsKey(PARAM_REQUESTED_TIME))
+                  ? DateTime.parse(params.get(PARAM_REQUESTED_TIME))
+                  : DateTime.now(UTC))
+          .setIsDeletionAllowed(doesResourceStateAllowDeletion(resource, now))
+          .setTask(task)
+          .build();
+    }
+
+    OperationType getMetricOperationType() {
+      if (key().getKind().equals(KIND_CONTACT)) {
+        return OperationType.CONTACT_DELETE;
+      } else if (key().getKind().equals(KIND_HOST)) {
+        return OperationType.HOST_DELETE;
+      } else {
+        throw new IllegalStateException(
+            String.format(
+                "Cannot determine async operation type for metric for resource %s", key()));
       }
-      return Optional.<DeletionRequest>of(
-          new AutoValue_DeleteContactsAndHostsAction_DeletionRequest.Builder()
-              .setKey(resourceKey)
-              .setLastUpdateTime(resource.getUpdateAutoTimestamp().getTimestamp())
-              .setRequestingClientId(
-                  checkNotNull(
-                      params.get(PARAM_REQUESTING_CLIENT_ID), "Requesting client id not specified"))
-              .setClientTransactionId(
-                  checkNotNull(
-                      params.get(PARAM_CLIENT_TRANSACTION_ID),
-                      "Client transaction id not specified"))
-              .setServerTransactionId(
-                  checkNotNull(
-                      params.get(PARAM_SERVER_TRANSACTION_ID),
-                      "Server transaction id not specified"))
-              .setIsSuperuser(
-                  Boolean.valueOf(
-                      checkNotNull(params.get(PARAM_IS_SUPERUSER), "Is superuser not specified")))
-              .setTask(task)
-              .build());
     }
   }
 
@@ -497,14 +552,16 @@ public class DeleteContactsAndHostsAction implements Runnable {
   abstract static class DeletionResult {
 
     enum Type {
-      DELETED("%s deleted"),
-      NOT_DELETED("%s not deleted"),
-      ERRORED("%s errored out during deletion");
+      DELETED("%s deleted", OperationResult.SUCCESS),
+      NOT_DELETED("%s not deleted", OperationResult.FAILURE),
+      ERRORED("%s errored out during deletion", OperationResult.ERROR);
 
       private final String counterFormat;
+      private final OperationResult operationResult;
 
-      private Type(String counterFormat) {
+      private Type(String counterFormat, OperationResult operationResult) {
         this.counterFormat = counterFormat;
+        this.operationResult = operationResult;
       }
 
       String renderCounterText(String resourceName) {
@@ -517,6 +574,10 @@ public class DeleteContactsAndHostsAction implements Runnable {
 
     static DeletionResult create(Type type, String pollMessageText) {
       return new AutoValue_DeleteContactsAndHostsAction_DeletionResult(type, pollMessageText);
+    }
+
+    OperationResult getMetricOperationResult() {
+      return type().operationResult;
     }
   }
 

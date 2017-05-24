@@ -13,11 +13,12 @@
 // limitations under the License.
 
 package google.registry.batch;
-
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
+import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
+import static google.registry.flows.async.AsyncFlowMetrics.OperationResult.STALE;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.eppcommon.StatusValue.PENDING_DELETE;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -51,8 +52,10 @@ import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.millis;
 import static org.joda.time.Duration.standardHours;
 import static org.joda.time.Duration.standardSeconds;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.collect.FluentIterable;
@@ -60,7 +63,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
+import google.registry.batch.DeleteContactsAndHostsAction.DeleteEppResourceReducer;
 import google.registry.flows.async.AsyncFlowEnqueuer;
+import google.registry.flows.async.AsyncFlowMetrics;
+import google.registry.flows.async.AsyncFlowMetrics.OperationResult;
+import google.registry.flows.async.AsyncFlowMetrics.OperationType;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactPhoneNumber;
@@ -129,12 +136,16 @@ public class DeleteContactsAndHostsActionTest
 
   @Before
   public void setup() throws Exception {
-    enqueuer = new AsyncFlowEnqueuer();
-    enqueuer.asyncDeleteDelay = Duration.ZERO;
-    enqueuer.asyncDeletePullQueue = QueueFactory.getQueue(QUEUE_ASYNC_DELETE);
-    enqueuer.retrier = new Retrier(new FakeSleeper(clock), 1);
-
+    enqueuer =
+        new AsyncFlowEnqueuer(
+            getQueue(QUEUE_ASYNC_DELETE),
+            getQueue(QUEUE_ASYNC_HOST_RENAME),
+            Duration.ZERO,
+            new Retrier(new FakeSleeper(clock), 1));
+    AsyncFlowMetrics asyncFlowMetricsMock = mock(AsyncFlowMetrics.class);
     action = new DeleteContactsAndHostsAction();
+    action.asyncFlowMetrics = asyncFlowMetricsMock;
+    inject.setStaticField(DeleteEppResourceReducer.class, "asyncFlowMetrics", asyncFlowMetricsMock);
     action.clock = clock;
     action.mrRunner = makeDefaultRunner();
     action.response = new FakeResponse();
@@ -150,8 +161,13 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_contact_referencedByActiveDomain_doesNotGetDeleted() throws Exception {
     ContactResource contact = persistContactPendingDelete("blah8221");
     persistResource(newDomainResource("example.tld", contact));
+    DateTime timeEnqueued = clock.nowUtc();
     enqueuer.enqueueAsyncDelete(
-        contact, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        contact,
+        timeEnqueued,
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     runMapreduce();
     ContactResource contactUpdated =
         loadByForeignKey(ContactResource.class, "blah8221", clock.nowUtc());
@@ -172,13 +188,22 @@ public class DeleteContactsAndHostsActionTest
         false,
         contact);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
+    verify(action.asyncFlowMetrics).recordContactHostDeletionBatchSize(1L);
+    verify(action.asyncFlowMetrics)
+        .recordAsyncFlowResult(OperationType.CONTACT_DELETE, OperationResult.FAILURE, timeEnqueued);
+    verifyNoMoreInteractions(action.asyncFlowMetrics);
   }
 
   @Test
   public void testSuccess_contact_notReferenced_getsDeleted_andPiiWipedOut() throws Exception {
     ContactResource contact = persistContactWithPii("jim919");
+    DateTime timeEnqueued = clock.nowUtc();
     enqueuer.enqueueAsyncDelete(
-        contact, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        contact,
+        timeEnqueued,
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     runMapreduce();
     assertThat(loadByForeignKey(ContactResource.class, "jim919", clock.nowUtc())).isNull();
     ContactResource contactAfterDeletion = ofy().load().entity(contact).now();
@@ -204,6 +229,10 @@ public class DeleteContactsAndHostsActionTest
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(contactAfterDeletion, CONTACT_DELETE);
     assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted contact jim919.", true, contact);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
+    verify(action.asyncFlowMetrics).recordContactHostDeletionBatchSize(1L);
+    verify(action.asyncFlowMetrics)
+        .recordAsyncFlowResult(OperationType.CONTACT_DELETE, OperationResult.SUCCESS, timeEnqueued);
+    verifyNoMoreInteractions(action.asyncFlowMetrics);
   }
 
   @Test
@@ -211,7 +240,11 @@ public class DeleteContactsAndHostsActionTest
       throws Exception {
     ContactResource contact = persistContactPendingDelete("blah8221");
     enqueuer.enqueueAsyncDelete(
-        contact, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        contact,
+        clock.nowUtc(),
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     runMapreduce();
     ContactResource contactAfterDeletion = ofy().load().entity(contact).now();
     assertThat(contactAfterDeletion.getTransferData()).isEqualTo(TransferData.EMPTY);
@@ -227,7 +260,11 @@ public class DeleteContactsAndHostsActionTest
             transferRequestTime.plus(Registry.DEFAULT_TRANSFER_GRACE_PERIOD),
             clock.nowUtc());
     enqueuer.enqueueAsyncDelete(
-        contact, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        contact,
+        clock.nowUtc(),
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     runMapreduce();
     // Check that the contact is deleted as of now.
     assertThat(loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())).isNull();
@@ -273,7 +310,11 @@ public class DeleteContactsAndHostsActionTest
             .setDeletionTime(clock.nowUtc().minusDays(3))
             .build());
     enqueuer.enqueueAsyncDelete(
-        contactUsed, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        contactUsed,
+        clock.nowUtc(),
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     runMapreduce();
     assertThat(loadByForeignKey(ContactResource.class, "blah1234", clock.nowUtc())).isNull();
     ContactResource contactBeforeDeletion =
@@ -298,7 +339,11 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_contact_notRequestedByOwner_doesNotGetDeleted() throws Exception {
     ContactResource contact = persistContactPendingDelete("jane0991");
     enqueuer.enqueueAsyncDelete(
-        contact, "OtherRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        contact,
+        clock.nowUtc(),
+        "OtherRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     runMapreduce();
     ContactResource contactAfter =
         loadByForeignKey(ContactResource.class, "jane0991", clock.nowUtc());
@@ -321,7 +366,11 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_contact_notRequestedByOwner_isSuperuser_getsDeleted() throws Exception {
     ContactResource contact = persistContactWithPii("nate007");
     enqueuer.enqueueAsyncDelete(
-        contact, "OtherRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), true);
+        contact,
+        clock.nowUtc(),
+        "OtherRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        true);
     runMapreduce();
     assertThat(loadByForeignKey(ContactResource.class, "nate007", clock.nowUtc())).isNull();
     ContactResource contactAfterDeletion = ofy().load().entity(contact).now();
@@ -353,22 +402,38 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_targetResourcesDontExist_areDelayedForADay() throws Exception {
     ContactResource contactNotSaved = newContactResource("somecontact");
     HostResource hostNotSaved = newHostResource("a11.blah.foo");
+    DateTime timeBeforeRun = clock.nowUtc();
     enqueuer.enqueueAsyncDelete(
-        contactNotSaved, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        contactNotSaved,
+        timeBeforeRun,
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     enqueuer.enqueueAsyncDelete(
-        hostNotSaved, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        hostNotSaved,
+        timeBeforeRun,
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     runMapreduce();
-    String payloadFormat =
-        "resourceKey=%s&requestingClientId=TheRegistrar&"
-            + "clientTransactionId=fakeClientTrid&serverTransactionId=fakeServerTrid&isSuperuser=false";
     assertTasksEnqueued(
         QUEUE_ASYNC_DELETE,
         new TaskMatcher()
-            .payload(String.format(payloadFormat, Key.create(contactNotSaved).getString()))
-            .etaDelta(standardHours(23), standardHours(25)),
+            .etaDelta(standardHours(23), standardHours(25))
+            .param("resourceKey", Key.create(contactNotSaved).getString())
+            .param("requestingClientId", "TheRegistrar")
+            .param("clientTransactionId", "fakeClientTrid")
+            .param("serverTransactionId", "fakeServerTrid")
+            .param("isSuperuser", "false")
+            .param("requestedTime", timeBeforeRun.toString()),
         new TaskMatcher()
-            .payload(String.format(payloadFormat, Key.create(hostNotSaved).getString()))
-            .etaDelta(standardHours(23), standardHours(25)));
+            .etaDelta(standardHours(23), standardHours(25))
+            .param("resourceKey", Key.create(hostNotSaved).getString())
+            .param("requestingClientId", "TheRegistrar")
+            .param("clientTransactionId", "fakeClientTrid")
+            .param("serverTransactionId", "fakeServerTrid")
+            .param("isSuperuser", "false")
+            .param("requestedTime", timeBeforeRun.toString()));
   }
 
   @Test
@@ -382,22 +447,39 @@ public class DeleteContactsAndHostsActionTest
         new TaskMatcher()
             .payload("gobbledygook=kljhadfgsd9f7gsdfh")
             .etaDelta(standardHours(23), standardHours(25)));
+    verify(action.asyncFlowMetrics).recordContactHostDeletionBatchSize(1L);
+    verifyNoMoreInteractions(action.asyncFlowMetrics);
   }
 
   @Test
   public void testSuccess_resourcesNotInPendingDelete_areSkipped() throws Exception {
     ContactResource contact = persistActiveContact("blah2222");
     HostResource host = persistActiveHost("rustles.your.jimmies");
+    DateTime timeEnqueued = clock.nowUtc();
     enqueuer.enqueueAsyncDelete(
-        contact, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        contact,
+        timeEnqueued,
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     enqueuer.enqueueAsyncDelete(
-        host, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        host,
+        timeEnqueued,
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     runMapreduce();
     assertThat(loadByForeignKey(ContactResource.class, "blah2222", clock.nowUtc()))
         .isEqualTo(contact);
     assertThat(loadByForeignKey(HostResource.class, "rustles.your.jimmies", clock.nowUtc()))
         .isEqualTo(host);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
+    verify(action.asyncFlowMetrics).recordContactHostDeletionBatchSize(2L);
+    verify(action.asyncFlowMetrics)
+        .recordAsyncFlowResult(OperationType.CONTACT_DELETE, STALE, timeEnqueued);
+    verify(action.asyncFlowMetrics)
+        .recordAsyncFlowResult(OperationType.HOST_DELETE, STALE, timeEnqueued);
+    verifyNoMoreInteractions(action.asyncFlowMetrics);
   }
 
   @Test
@@ -405,9 +487,17 @@ public class DeleteContactsAndHostsActionTest
     ContactResource contactDeleted = persistDeletedContact("blah1236", clock.nowUtc().minusDays(2));
     HostResource hostDeleted = persistDeletedHost("a.lim.lop", clock.nowUtc().minusDays(3));
     enqueuer.enqueueAsyncDelete(
-        contactDeleted, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        contactDeleted,
+        clock.nowUtc(),
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     enqueuer.enqueueAsyncDelete(
-        hostDeleted, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        hostDeleted,
+        clock.nowUtc(),
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     runMapreduce();
     assertThat(ofy().load().entity(contactDeleted).now()).isEqualTo(contactDeleted);
     assertThat(ofy().load().entity(hostDeleted).now()).isEqualTo(hostDeleted);
@@ -418,8 +508,13 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_host_referencedByActiveDomain_doesNotGetDeleted() throws Exception {
     HostResource host = persistHostPendingDelete("ns1.example.tld");
     persistUsedDomain("example.tld", persistActiveContact("abc456"), host);
+    DateTime timeEnqueued = clock.nowUtc();
     enqueuer.enqueueAsyncDelete(
-        host, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        host,
+        timeEnqueued,
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     runMapreduce();
     HostResource hostAfter =
         loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc());
@@ -438,13 +533,22 @@ public class DeleteContactsAndHostsActionTest
         false,
         host);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
+    verify(action.asyncFlowMetrics).recordContactHostDeletionBatchSize(1L);
+    verify(action.asyncFlowMetrics)
+        .recordAsyncFlowResult(OperationType.HOST_DELETE, OperationResult.FAILURE, timeEnqueued);
+    verifyNoMoreInteractions(action.asyncFlowMetrics);
   }
 
   @Test
   public void testSuccess_host_notReferenced_getsDeleted() throws Exception {
     HostResource host = persistHostPendingDelete("ns2.example.tld");
+    DateTime timeEnqueued = clock.nowUtc();
     enqueuer.enqueueAsyncDelete(
-        host, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        host,
+        timeEnqueued,
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     runMapreduce();
     assertThat(loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc())).isNull();
     HostResource hostBeforeDeletion =
@@ -462,6 +566,10 @@ public class DeleteContactsAndHostsActionTest
     HistoryEntry historyEntry = getOnlyHistoryEntryOfType(hostBeforeDeletion, HOST_DELETE);
     assertPollMessageFor(historyEntry, "TheRegistrar", "Deleted host ns2.example.tld.", true, host);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
+    verify(action.asyncFlowMetrics).recordContactHostDeletionBatchSize(1L);
+    verify(action.asyncFlowMetrics)
+        .recordAsyncFlowResult(OperationType.HOST_DELETE, OperationResult.SUCCESS, timeEnqueued);
+    verifyNoMoreInteractions(action.asyncFlowMetrics);
   }
 
   @Test
@@ -474,7 +582,11 @@ public class DeleteContactsAndHostsActionTest
             .setDeletionTime(clock.nowUtc().minusDays(5))
             .build());
     enqueuer.enqueueAsyncDelete(
-        host, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        host,
+        clock.nowUtc(),
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     runMapreduce();
     assertThat(loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc())).isNull();
     HostResource hostBeforeDeletion =
@@ -509,7 +621,11 @@ public class DeleteContactsAndHostsActionTest
                 .setSuperordinateDomain(Key.create(domain))
                 .build());
     enqueuer.enqueueAsyncDelete(
-        host, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        host,
+        clock.nowUtc(),
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     runMapreduce();
     // Check that the host is deleted as of now.
     assertThat(loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc())).isNull();
@@ -538,7 +654,11 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_host_notRequestedByOwner_doesNotGetDeleted() throws Exception {
     HostResource host = persistHostPendingDelete("ns2.example.tld");
     enqueuer.enqueueAsyncDelete(
-        host, "OtherRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+        host,
+        clock.nowUtc(),
+        "OtherRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
     runMapreduce();
     HostResource hostAfter =
         loadByForeignKey(HostResource.class, "ns2.example.tld", clock.nowUtc());
@@ -561,7 +681,11 @@ public class DeleteContactsAndHostsActionTest
   public void testSuccess_host_notRequestedByOwner_isSuperuser_getsDeleted() throws Exception {
     HostResource host = persistHostPendingDelete("ns66.example.tld");
     enqueuer.enqueueAsyncDelete(
-        host, "OtherRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), true);
+        host,
+        clock.nowUtc(),
+        "OtherRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        true);
     runMapreduce();
     assertThat(loadByForeignKey(HostResource.class, "ns66.example.tld", clock.nowUtc())).isNull();
     HostResource hostBeforeDeletion =
@@ -595,7 +719,11 @@ public class DeleteContactsAndHostsActionTest
     persistUsedDomain("usescontactandhost.tld", c4, h4);
     for (EppResource resource : ImmutableList.<EppResource>of(c1, c2, c3, c4, h1, h2, h3, h4)) {
       enqueuer.enqueueAsyncDelete(
-          resource, "TheRegistrar", Trid.create("fakeClientTrid", "fakeServerTrid"), false);
+          resource,
+          clock.nowUtc(),
+          "TheRegistrar",
+          Trid.create("fakeClientTrid", "fakeServerTrid"),
+          false);
     }
     runMapreduce();
     for (EppResource resource : ImmutableList.<EppResource>of(c1, c2, c3, h1, h2, h3)) {

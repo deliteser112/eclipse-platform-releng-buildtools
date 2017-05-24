@@ -39,7 +39,7 @@ import org.joda.time.Instant;
  * <p>The {@link MutableDistribution} values tracked by this metric can be reset with {@link
  * EventMetric#reset()}.
  */
-public final class EventMetric extends AbstractMetric<Distribution> {
+public class EventMetric extends AbstractMetric<Distribution> {
 
   /**
    * Default {@link DistributionFitter} suitable for latency measurements.
@@ -86,7 +86,7 @@ public final class EventMetric extends AbstractMetric<Distribution> {
   }
 
   @VisibleForTesting
-  final ImmutableList<MetricPoint<Distribution>> getTimestampedValues(Instant endTimestamp) {
+  ImmutableList<MetricPoint<Distribution>> getTimestampedValues(Instant endTimestamp) {
     ImmutableList.Builder<MetricPoint<Distribution>> timestampedValues =
         new ImmutableList.Builder<>();
 
@@ -125,7 +125,7 @@ public final class EventMetric extends AbstractMetric<Distribution> {
    *
    * <p>The count of {@code labelValues} must be equal to the underlying metric's count of labels.
    */
-  public final void record(double sample, String... labelValues) {
+  public void record(double sample, String... labelValues) {
     MetricsUtils.checkLabelValuesLength(this, labelValues);
 
     recordMultiple(sample, 1, Instant.now(), ImmutableList.copyOf(labelValues));
@@ -140,14 +140,14 @@ public final class EventMetric extends AbstractMetric<Distribution> {
    *
    * <p>The count of {@code labelValues} must be equal to the underlying metric's count of labels.
    */
-  public final void record(double sample, int count, String... labelValues) {
+  public void record(double sample, int count, String... labelValues) {
     MetricsUtils.checkLabelValuesLength(this, labelValues);
 
     recordMultiple(sample, count, Instant.now(), ImmutableList.copyOf(labelValues));
   }
 
   @VisibleForTesting
-  final void recordMultiple(
+  void recordMultiple(
       double sample, int count, Instant startTimestamp, ImmutableList<String> labelValues) {
     Lock lock = valueLocks.get(labelValues);
     lock.lock();
