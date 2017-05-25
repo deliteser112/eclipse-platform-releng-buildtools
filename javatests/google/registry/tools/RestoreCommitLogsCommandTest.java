@@ -15,11 +15,11 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.net.MediaType;
 import google.registry.backup.RestoreCommitLogsAction;
 import google.registry.tools.ServerSideCommand.Connection;
 import org.joda.time.DateTime;
@@ -69,9 +69,13 @@ public class RestoreCommitLogsCommandTest extends CommandTestCase<RestoreCommitL
 
   // Note that this is very similar to the one in CreateOrUpdatePremiumListCommandTestCase.java but
   // not identical.
-  void verifySend(ImmutableMap<String, Object> parameters) throws Exception {
+  void verifySend(ImmutableMap<String, ?> parameters) throws Exception {
     verify(connection)
-        .send(eq(RestoreCommitLogsAction.PATH), urlParamCaptor.capture(), any(), eq(new byte[0]));
+        .send(
+            eq(RestoreCommitLogsAction.PATH),
+            urlParamCaptor.capture(),
+            eq(MediaType.PLAIN_TEXT_UTF_8),
+            eq(new byte[0]));
     assertThat(urlParamCaptor.getValue()).containsExactlyEntriesIn(parameters);
   }
 }
