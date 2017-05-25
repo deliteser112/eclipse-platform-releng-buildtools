@@ -75,7 +75,7 @@ public class RestoreCommitLogsAction implements Runnable {
 
   static final int BLOCK_SIZE = 1024 * 1024;  // Buffer 1mb at a time, for no particular reason.
 
-  static final String PATH = "/_dr/task/restoreCommitLogs";
+  public static final String PATH = "/_dr/task/restoreCommitLogs";
   static final String DRY_RUN_PARAM = "dryRun";
   static final String FROM_TIME_PARAM = "fromTime";
   static final String TO_TIME_PARAM = "toTime";

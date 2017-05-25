@@ -108,6 +108,7 @@ public final class RegistryTool {
           .put("resave_entities", ResaveEntitiesCommand.class)
           .put("resave_environment_entities", ResaveEnvironmentEntitiesCommand.class)
           .put("resave_epp_resource", ResaveEppResourceCommand.class)
+          .put("restore_commit_logs", RestoreCommitLogsCommand.class)
           .put("send_escrow_report_to_icann", SendEscrowReportToIcannCommand.class)
           .put("setup_ote", SetupOteCommand.class)
           .put("uniform_rapid_suspension", UniformRapidSuspensionCommand.class)

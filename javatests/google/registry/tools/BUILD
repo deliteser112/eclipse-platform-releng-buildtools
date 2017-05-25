@@ -16,6 +16,7 @@ java_library(
         "testdata/*.*",
     ]),
     deps = [
+        "//java/google/registry/backup",
         "//java/google/registry/config",
         "//java/google/registry/flows",
         "//java/google/registry/keyring/api",
