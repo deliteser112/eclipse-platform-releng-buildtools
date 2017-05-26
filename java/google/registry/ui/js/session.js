@@ -30,6 +30,7 @@ goog.forwardDeclare('goog.Uri');
  * @param {!registry.Session.ContentType} contentType Payload mode.
  * @constructor
  * @template REQUEST, RESPONSE
+ * @suppress {deprecated}
  */
 registry.Session = function(defaultUri, xsrfToken, contentType) {
 
