@@ -15,7 +15,6 @@ java_library(
         "//java/google/registry/mapreduce/inputs",
         "//java/google/registry/model",
         "//java/google/registry/request",
-        "//java/google/registry/request/auth",
         "//java/google/registry/tldconfig/idn",
         "//java/google/registry/util",
         "//java/google/registry/xjc",

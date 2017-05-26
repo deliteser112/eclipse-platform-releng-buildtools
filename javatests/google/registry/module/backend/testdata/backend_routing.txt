@@ -26,7 +26,7 @@ PATH                                   CLASS                              METHOD
 /_dr/task/pollBigqueryJob              BigqueryPollJobAction              GET,POST y  n    app   n     INTERNAL     APP IGNORED
 /_dr/task/publishDnsUpdates            PublishDnsUpdatesAction            POST     y  n    app   n     INTERNAL     APP IGNORED
 /_dr/task/rdeReport                    RdeReportAction                    POST     n  n    app   n     INTERNAL     APP IGNORED
-/_dr/task/rdeStaging                   RdeStagingAction                   GET,POST n  n    app   n     INTERNAL,API APP ADMIN
+/_dr/task/rdeStaging                   RdeStagingAction                   GET,POST n  n    app   n     INTERNAL     APP IGNORED
 /_dr/task/rdeUpload                    RdeUploadAction                    POST     n  n    app   n     INTERNAL     APP IGNORED
 /_dr/task/refreshDnsOnHostRename       RefreshDnsOnHostRenameAction       GET      n  n    app   n     INTERNAL     APP IGNORED
 /_dr/task/syncGroupMembers             SyncGroupMembersAction             POST     n  n    app   n     INTERNAL     APP IGNORED

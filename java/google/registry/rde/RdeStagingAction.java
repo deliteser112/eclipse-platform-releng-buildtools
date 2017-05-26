@@ -45,8 +45,6 @@ import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
-import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
@@ -189,13 +187,8 @@ import org.joda.time.Duration;
  */
 @Action(
   path = RdeStagingAction.PATH,
-  method = {GET, POST},
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
-        minimumLevel = AuthLevel.APP,
-        userPolicy = Auth.UserPolicy.ADMIN
-      ))
+  method = {GET, POST}
+)
 public final class RdeStagingAction implements Runnable {
 
   public static final String PATH = "/_dr/task/rdeStaging";
