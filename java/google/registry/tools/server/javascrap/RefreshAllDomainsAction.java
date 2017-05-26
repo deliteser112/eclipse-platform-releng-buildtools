@@ -25,6 +25,8 @@ import google.registry.model.EppResourceUtils;
 import google.registry.model.domain.DomainResource;
 import google.registry.request.Action;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -37,7 +39,15 @@ import org.joda.time.DateTimeZone;
  * run internally, or by pretending to be internal by setting the X-AppEngine-QueueName header,
  * which only admin users can do.
  */
-@Action(path = "/_dr/task/refreshAllDomains")
+@Action(
+  path = "/_dr/task/refreshAllDomains",
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = Auth.UserPolicy.ADMIN
+      )
+)
 public class RefreshAllDomainsAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

@@ -11,6 +11,7 @@ java_library(
     deps = [
         "//java/google/registry/config",
         "//java/google/registry/request",
+        "//java/google/registry/request/auth",
         "//java/google/registry/security",
         "//java/google/registry/util",
         "//third_party/java/objectify:objectify-v4_1",

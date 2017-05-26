@@ -33,6 +33,8 @@ import com.google.common.collect.Iterators;
 import google.registry.config.RegistryEnvironment;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import google.registry.security.XsrfTokenManager;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TaskEnqueuer;
@@ -47,15 +49,22 @@ import org.joda.time.DateTime;
  * Simple load test action that can generate configurable QPSes of various EPP actions.
  *
  * <p>All aspects of the load test are configured via URL parameters that are specified when the
- * loadtest URL is being POSTed to.  The {@code clientId} and {@code tld} parameters are required.
+ * loadtest URL is being POSTed to. The {@code clientId} and {@code tld} parameters are required.
  * All of the other parameters are optional, but if none are specified then no actual load testing
  * will be done since all of the different kinds of checks default to running zero per second. So at
  * least one must be specified in order for load testing to do anything.
  */
 @Action(
-    path = LoadTestAction.PATH,
-    method = Action.Method.POST,
-    automaticallyPrintOk = true)
+  path = LoadTestAction.PATH,
+  method = Action.Method.POST,
+  automaticallyPrintOk = true,
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = Auth.UserPolicy.ADMIN
+      )
+)
 public class LoadTestAction implements Runnable {
 
   private static final FormattingLogger logger = getLoggerForCallerClass();

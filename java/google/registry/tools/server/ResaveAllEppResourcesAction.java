@@ -26,6 +26,8 @@ import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.model.EppResource;
 import google.registry.request.Action;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
+import google.registry.request.auth.AuthLevel;
 import javax.inject.Inject;
 
 /**
@@ -39,7 +41,15 @@ import javax.inject.Inject;
  * run internally, or by pretending to be internal by setting the X-AppEngine-QueueName header,
  * which only admin users can do.
  */
-@Action(path = "/_dr/task/resaveAllEppResources")
+@Action(
+  path = "/_dr/task/resaveAllEppResources",
+  auth =
+      @Auth(
+        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
+        minimumLevel = AuthLevel.APP,
+        userPolicy = Auth.UserPolicy.ADMIN
+      )
+)
 public class ResaveAllEppResourcesAction implements Runnable {
 
   @Inject MapreduceRunner mrRunner;
