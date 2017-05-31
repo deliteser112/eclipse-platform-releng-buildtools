@@ -110,7 +110,7 @@ final class RegistrarContactCommand extends MutatingCommand {
   @Nullable
   @Parameter(
       names = "--visible_in_whois_as_admin",
-      description = " Whether this contact is publically visible in WHOIS results as an "
+      description = " Whether this contact is publicly visible in WHOIS results as an "
           + "Admin contact.",
       arity = 1)
   private Boolean visibleInWhoisAsAdmin;
@@ -118,10 +118,19 @@ final class RegistrarContactCommand extends MutatingCommand {
   @Nullable
   @Parameter(
       names = "--visible_in_whois_as_tech",
-      description = " Whether this contact is publically visible in WHOIS results as a "
+      description = " Whether this contact is publicly visible in WHOIS results as a "
           + "Tech contact.",
       arity = 1)
   private Boolean visibleInWhoisAsTech;
+
+  @Nullable
+  @Parameter(
+      names = "--visible_in_domain_whois_as_abuse",
+      description = " Whether this contact is publicly visible in WHOIS domain results as the "
+          + "registry abuse phone and email. If this flag is set, it will be cleared from all "
+          + "other contacts for the same registrar.",
+      arity = 1)
+  private Boolean visibleInDomainWhoisAsAbuse;
 
   @Parameter(
       names = {"-o", "--output"},
@@ -160,6 +169,7 @@ final class RegistrarContactCommand extends MutatingCommand {
         break;
       case CREATE:
         stageEntityChange(null, createContact(registrar));
+        unsetOtherWhoisAbuseFlags(contacts, null);
         break;
       case UPDATE:
         oldContact =
@@ -168,7 +178,13 @@ final class RegistrarContactCommand extends MutatingCommand {
                 "No contact with the given email: %s",
                 email);
         RegistrarContact newContact = updateContact(oldContact, registrar);
+        checkArgument(
+            !oldContact.getVisibleInDomainWhoisAsAbuse()
+                || newContact.getVisibleInDomainWhoisAsAbuse(),
+            "Cannot clear visible_in_domain_whois_as_abuse flag, as that would leave no domain"
+                + " WHOIS abuse contacts; instead, set the flag on another contact");
         stageEntityChange(oldContact, newContact);
+        unsetOtherWhoisAbuseFlags(contacts, oldContact.getEmailAddress());
         break;
       case DELETE:
         oldContact =
@@ -176,6 +192,9 @@ final class RegistrarContactCommand extends MutatingCommand {
                 contactsMap.get(checkNotNull(email, "--email is required when --mode=DELETE")),
                 "No contact with the given email: %s",
                 email);
+        checkArgument(
+            !oldContact.getVisibleInDomainWhoisAsAbuse(),
+            "Cannot delete the domain WHOIS abuse contact; set the flag on another contact first");
         stageEntityChange(oldContact, null);
         break;
       default:
@@ -220,6 +239,9 @@ final class RegistrarContactCommand extends MutatingCommand {
     if (visibleInWhoisAsTech != null) {
       builder.setVisibleInWhoisAsTech(visibleInWhoisAsTech);
     }
+    if (visibleInDomainWhoisAsAbuse != null) {
+      builder.setVisibleInDomainWhoisAsAbuse(visibleInDomainWhoisAsAbuse);
+    }
     return builder.build();
   }
 
@@ -249,6 +271,9 @@ final class RegistrarContactCommand extends MutatingCommand {
     if (visibleInWhoisAsTech != null) {
       builder.setVisibleInWhoisAsTech(visibleInWhoisAsTech);
     }
+    if (visibleInDomainWhoisAsAbuse != null) {
+      builder.setVisibleInDomainWhoisAsAbuse(visibleInDomainWhoisAsAbuse);
+    }
     if (allowConsoleAccess != null) {
       if (allowConsoleAccess.equals(Boolean.TRUE)) {
         builder.setGaeUserId(checkArgumentNotNull(
@@ -259,5 +284,18 @@ final class RegistrarContactCommand extends MutatingCommand {
       }
     }
     return builder.build();
+  }
+
+  private void unsetOtherWhoisAbuseFlags(
+      ImmutableSet<RegistrarContact> contacts, @Nullable String emailAddressNotToChange) {
+    for (RegistrarContact contact : contacts) {
+      if (((emailAddressNotToChange == null)
+              || !contact.getEmailAddress().equals(emailAddressNotToChange))
+          && contact.getVisibleInDomainWhoisAsAbuse()) {
+        RegistrarContact newContact =
+            contact.asBuilder().setVisibleInDomainWhoisAsAbuse(false).build();
+        stageEntityChange(contact, newContact);
+      }
+    }
   }
 }

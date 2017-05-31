@@ -78,6 +78,7 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
             .setTypes(ImmutableSet.of(WHOIS))
             .setVisibleInWhoisAsAdmin(true)
             .setVisibleInWhoisAsTech(true)
+            .setVisibleInDomainWhoisAsAbuse(false)
             .build());
     persistSimpleResources(contacts);
     runCommandForced(
@@ -88,7 +89,8 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
         "--fax=+1.2125650001",
         "--contact_type=WHOIS",
         "--visible_in_whois_as_admin=true",
-        "--visible_in_whois_as_tech=true",
+        "--visible_in_whois_as_tech=false",
+        "--visible_in_domain_whois_as_abuse=false",
         "NewRegistrar");
     RegistrarContact registrarContact =
         Registrar.loadByClientId("NewRegistrar").getContacts().asList().get(1);
@@ -101,7 +103,8 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
             .setFaxNumber("+1.2125650001")
             .setTypes(ImmutableSet.of(WHOIS))
             .setVisibleInWhoisAsAdmin(true)
-            .setVisibleInWhoisAsTech(true)
+            .setVisibleInWhoisAsTech(false)
+            .setVisibleInDomainWhoisAsAbuse(false)
             .build());
   }
 
@@ -145,6 +148,67 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
   }
 
   @Test
+  public void testUpdate_unsetOtherWhoisAbuseFlags() throws Exception {
+    Registrar registrar = Registrar.loadByClientId("NewRegistrar");
+    persistSimpleResource(
+        new RegistrarContact.Builder()
+            .setParent(registrar)
+            .setName("John Doe")
+            .setEmailAddress("john.doe@example.com")
+            .setGaeUserId("11111")
+            .build());
+    persistSimpleResource(
+        new RegistrarContact.Builder()
+            .setParent(registrar)
+            .setName("Johnna Doe")
+            .setEmailAddress("johnna.doe@example.com")
+            .setGaeUserId("11112")
+            .setVisibleInDomainWhoisAsAbuse(true)
+            .build());
+    runCommandForced(
+        "--mode=UPDATE",
+        "--email=john.doe@example.com",
+        "--visible_in_domain_whois_as_abuse=true",
+        "NewRegistrar");
+    ImmutableList<RegistrarContact> registrarContacts =
+        Registrar.loadByClientId("NewRegistrar").getContacts().asList();
+    for (RegistrarContact registrarContact : registrarContacts) {
+      if (registrarContact.getName().equals("John Doe")) {
+        assertThat(registrarContact.getVisibleInDomainWhoisAsAbuse()).isTrue();
+      } else {
+        assertThat(registrarContact.getVisibleInDomainWhoisAsAbuse()).isFalse();
+      }
+    }
+  }
+
+  @Test
+  public void testUpdate_cannotUnsetOnlyWhoisAbuseContact() throws Exception {
+    Registrar registrar = Registrar.loadByClientId("NewRegistrar");
+    persistSimpleResource(
+        new RegistrarContact.Builder()
+            .setParent(registrar)
+            .setName("John Doe")
+            .setEmailAddress("john.doe@example.com")
+            .setGaeUserId("11111")
+            .setVisibleInDomainWhoisAsAbuse(true)
+            .build());
+    try {
+      runCommandForced(
+          "--mode=UPDATE",
+          "--email=john.doe@example.com",
+          "--visible_in_domain_whois_as_abuse=false",
+          "NewRegistrar");
+      throw new Exception(
+          "Expected IllegalArgumentException: Cannot clear visible_in_domain_whois_as_abuse flag");
+    } catch (IllegalArgumentException e) {
+      assertThat(e).hasMessageThat().contains("Cannot clear visible_in_domain_whois_as_abuse flag");
+    }
+    RegistrarContact registrarContact =
+        Registrar.loadByClientId("NewRegistrar").getContacts().asList().get(1);
+    assertThat(registrarContact.getVisibleInDomainWhoisAsAbuse()).isTrue();
+  }
+
+  @Test
   public void testCreate_withAdminType() throws Exception {
     Registrar registrar = Registrar.loadByClientId("NewRegistrar");
     runCommandForced(
@@ -153,7 +217,8 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
         "--email=jim.doe@example.com",
         "--contact_type=ADMIN,ABUSE",
         "--visible_in_whois_as_admin=true",
-        "--visible_in_whois_as_tech=true",
+        "--visible_in_whois_as_tech=false",
+        "--visible_in_domain_whois_as_abuse=true",
         "NewRegistrar");
     RegistrarContact registrarContact =
         Registrar.loadByClientId("NewRegistrar").getContacts().asList().get(1);
@@ -164,18 +229,39 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
             .setEmailAddress("jim.doe@example.com")
             .setTypes(ImmutableSet.of(ADMIN, ABUSE))
             .setVisibleInWhoisAsAdmin(true)
-            .setVisibleInWhoisAsTech(true)
+            .setVisibleInWhoisAsTech(false)
+            .setVisibleInDomainWhoisAsAbuse(true)
             .build());
     assertThat(registrarContact.getGaeUserId()).isNull();
   }
 
   @Test
   public void testDelete() throws Exception {
+    assertThat(Registrar.loadByClientId("NewRegistrar").getContacts()).isNotEmpty();
     runCommandForced(
         "--mode=DELETE",
         "--email=janedoe@theregistrar.com",
         "NewRegistrar");
     assertThat(Registrar.loadByClientId("NewRegistrar").getContacts()).isEmpty();
+  }
+
+  @Test
+  public void testDelete_failsOnDomainWhoisAbuseContact() throws Exception {
+    RegistrarContact registrarContact =
+        Registrar.loadByClientId("NewRegistrar").getContacts().asList().get(0);
+    persistSimpleResource(
+        registrarContact.asBuilder().setVisibleInDomainWhoisAsAbuse(true).build());
+    try {
+      runCommandForced(
+          "--mode=DELETE",
+          "--email=janedoe@theregistrar.com",
+          "NewRegistrar");
+      throw new Exception(
+          "Expected IllegalArgumentException: Cannot delete the domain WHOIS abuse contact");
+    } catch (IllegalArgumentException e) {
+      assertThat(e).hasMessageThat().contains("Cannot delete the domain WHOIS abuse contact");
+    }
+    assertThat(Registrar.loadByClientId("NewRegistrar").getContacts()).isNotEmpty();
   }
 
   @Test
