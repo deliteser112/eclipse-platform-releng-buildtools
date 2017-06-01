@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.transform;
-import static com.google.common.collect.Sets.newHashSet;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -144,7 +143,7 @@ final class RegistrarContactCommand extends MutatingCommand {
       ImmutableSet.of(Mode.CREATE, Mode.UPDATE, Mode.DELETE);
 
   @Nullable
-  private Set<RegistrarContact.Type> contactTypes;
+  private ImmutableSet<RegistrarContact.Type> contactTypes;
 
   @Override
   protected void init() throws Exception {
@@ -153,10 +152,21 @@ final class RegistrarContactCommand extends MutatingCommand {
     String clientId = mainParameters.get(0);
     Registrar registrar =
         checkNotNull(Registrar.loadByClientId(clientId), "Registrar %s not found", clientId);
-    contactTypes =
-        newHashSet(
-            transform(
-                nullToEmpty(contactTypeNames), Enums.stringConverter(RegistrarContact.Type.class)));
+    // If the contact_type parameter is not specified, we should not make any changes.
+    if (contactTypeNames == null) {
+      contactTypes = null;
+    // It appears that when the user specifies "--contact_type=" with no types following, JCommander
+    // sets contactTypeNames to a one-element list containing the empty string. This is strange, but
+    // we need to handle this by setting the contact types to the empty set. Also do this if
+    // contactTypeNames is empty, which is what I would hope JCommander would return in some future,
+    // better world.
+    } else if (contactTypeNames.isEmpty()
+        || ((contactTypeNames.size() == 1) && contactTypeNames.get(0).isEmpty())) {
+      contactTypes = ImmutableSet.of();
+    } else {
+      contactTypes = ImmutableSet.copyOf(
+              transform(contactTypeNames, Enums.stringConverter(RegistrarContact.Type.class)));
+    }
     ImmutableSet<RegistrarContact> contacts = registrar.getContacts();
     Map<String, RegistrarContact> contactsMap = new LinkedHashMap<>();
     for (RegistrarContact rc : contacts) {
@@ -169,7 +179,9 @@ final class RegistrarContactCommand extends MutatingCommand {
         break;
       case CREATE:
         stageEntityChange(null, createContact(registrar));
-        unsetOtherWhoisAbuseFlags(contacts, null);
+        if ((visibleInDomainWhoisAsAbuse != null) && visibleInDomainWhoisAsAbuse.booleanValue()) {
+          unsetOtherWhoisAbuseFlags(contacts, null /* emailAddressNotToChange */ );
+        }
         break;
       case UPDATE:
         oldContact =
@@ -184,7 +196,9 @@ final class RegistrarContactCommand extends MutatingCommand {
             "Cannot clear visible_in_domain_whois_as_abuse flag, as that would leave no domain"
                 + " WHOIS abuse contacts; instead, set the flag on another contact");
         stageEntityChange(oldContact, newContact);
-        unsetOtherWhoisAbuseFlags(contacts, oldContact.getEmailAddress());
+        if ((visibleInDomainWhoisAsAbuse != null) && visibleInDomainWhoisAsAbuse.booleanValue()) {
+          unsetOtherWhoisAbuseFlags(contacts, oldContact.getEmailAddress());
+        }
         break;
       case DELETE:
         oldContact =
@@ -226,7 +240,7 @@ final class RegistrarContactCommand extends MutatingCommand {
     if (fax != null) {
       builder.setFaxNumber(fax.orNull());
     }
-    builder.setTypes(contactTypes);
+    builder.setTypes(nullToEmpty(contactTypes));
 
     if (Objects.equals(allowConsoleAccess, Boolean.TRUE)) {
       builder.setGaeUserId(checkArgumentNotNull(

@@ -17,6 +17,7 @@ package google.registry.tools;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.registrar.RegistrarContact.Type.ABUSE;
 import static google.registry.model.registrar.RegistrarContact.Type.ADMIN;
+import static google.registry.model.registrar.RegistrarContact.Type.TECH;
 import static google.registry.model.registrar.RegistrarContact.Type.WHOIS;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
@@ -209,6 +210,85 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
   }
 
   @Test
+  public void testUpdate_emptyCommandModifiesNothing() throws Exception {
+    Registrar registrar = Registrar.loadByClientId("NewRegistrar");
+    RegistrarContact existingContact = persistSimpleResource(
+        new RegistrarContact.Builder()
+            .setParent(registrar)
+            .setName("John Doe")
+            .setEmailAddress("john.doe@example.com")
+            .setGaeUserId("11111")
+            .setPhoneNumber("123-456-7890")
+            .setFaxNumber("123-456-7890")
+            .setTypes(ImmutableSet.of(ADMIN, ABUSE))
+            .setVisibleInWhoisAsAdmin(true)
+            .setVisibleInWhoisAsTech(true)
+            .setVisibleInDomainWhoisAsAbuse(true)
+            .build());
+    runCommandForced("--mode=UPDATE", "--email=john.doe@example.com", "NewRegistrar");
+    RegistrarContact registrarContact =
+        Registrar.loadByClientId("NewRegistrar").getContacts().asList().get(1);
+    assertThat(registrarContact.getEmailAddress()).isEqualTo(existingContact.getEmailAddress());
+    assertThat(registrarContact.getName()).isEqualTo(existingContact.getName());
+    assertThat(registrarContact.getGaeUserId()).isEqualTo(existingContact.getGaeUserId());
+    assertThat(registrarContact.getPhoneNumber()).isEqualTo(existingContact.getPhoneNumber());
+    assertThat(registrarContact.getFaxNumber()).isEqualTo(existingContact.getFaxNumber());
+    assertThat(registrarContact.getTypes()).isEqualTo(existingContact.getTypes());
+    assertThat(registrarContact.getVisibleInWhoisAsAdmin())
+        .isEqualTo(existingContact.getVisibleInWhoisAsAdmin());
+    assertThat(registrarContact.getVisibleInWhoisAsTech())
+        .isEqualTo(existingContact.getVisibleInWhoisAsTech());
+    assertThat(registrarContact.getVisibleInDomainWhoisAsAbuse())
+        .isEqualTo(existingContact.getVisibleInDomainWhoisAsAbuse());
+  }
+
+  @Test
+  public void testUpdate_listOfTypesWorks() throws Exception {
+    Registrar registrar = Registrar.loadByClientId("NewRegistrar");
+    persistSimpleResource(
+        new RegistrarContact.Builder()
+            .setParent(registrar)
+            .setName("John Doe")
+            .setEmailAddress("john.doe@example.com")
+            .setGaeUserId("11111")
+            .setPhoneNumber("123-456-7890")
+            .setFaxNumber("123-456-7890")
+            .setTypes(ImmutableSet.of(ADMIN, ABUSE))
+            .setVisibleInWhoisAsAdmin(true)
+            .setVisibleInWhoisAsTech(true)
+            .setVisibleInDomainWhoisAsAbuse(true)
+            .build());
+    runCommandForced(
+        "--mode=UPDATE",
+        "--email=john.doe@example.com",
+        "--contact_type=ADMIN,TECH",
+        "NewRegistrar");
+    RegistrarContact registrarContact =
+        Registrar.loadByClientId("NewRegistrar").getContacts().asList().get(1);
+    assertThat(registrarContact.getTypes()).containsExactly(ADMIN, TECH);
+  }
+
+  @Test
+  public void testUpdate_clearAllTypes() throws Exception {
+    Registrar registrar = Registrar.loadByClientId("NewRegistrar");
+    persistSimpleResource(
+        new RegistrarContact.Builder()
+            .setParent(registrar)
+            .setName("John Doe")
+            .setEmailAddress("john.doe@example.com")
+            .setTypes(ImmutableSet.of(ADMIN, ABUSE))
+            .build());
+    runCommandForced(
+        "--mode=UPDATE",
+        "--email=john.doe@example.com",
+        "--contact_type=",
+        "NewRegistrar");
+    RegistrarContact registrarContact =
+        Registrar.loadByClientId("NewRegistrar").getContacts().asList().get(1);
+    assertThat(registrarContact.getTypes()).isEmpty();
+  }
+
+  @Test
   public void testCreate_withAdminType() throws Exception {
     Registrar registrar = Registrar.loadByClientId("NewRegistrar");
     runCommandForced(
@@ -276,6 +356,18 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
     RegistrarContact registrarContact =
         Registrar.loadByClientId("NewRegistrar").getContacts().asList().get(1);
     assertThat(registrarContact.getGaeUserId()).matches("-?[0-9]+");
+  }
+
+  @Test
+  public void testCreate_withNoContactTypes() throws Exception {
+    runCommandForced(
+        "--mode=CREATE",
+        "--name=Jim Doe",
+        "--email=jim.doe@example.com",
+        "NewRegistrar");
+    RegistrarContact registrarContact =
+        Registrar.loadByClientId("NewRegistrar").getContacts().asList().get(1);
+    assertThat(registrarContact.getTypes()).isEmpty();
   }
 
   @Test
