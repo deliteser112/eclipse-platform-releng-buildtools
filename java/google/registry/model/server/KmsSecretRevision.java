@@ -62,7 +62,7 @@ public class KmsSecretRevision extends ImmutableObject {
    * The name of the {@code cryptoKeyVersion} associated with this {@link KmsSecretRevision}.
    *
    * @see <a
-   *     href="https://cloud.google.com/kms/docs/reference/rest/v1beta1/projects.locations.keyRings.cryptoKeys.cryptoKeyVersions">projects.locations.keyRings.cryptoKeys.cryptoKeyVersions</a>
+   *     href="https://cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys.cryptoKeyVersions">projects.locations.keyRings.cryptoKeys.cryptoKeyVersions</a>
    */
   String kmsCryptoKeyVersionName;
 
@@ -71,7 +71,7 @@ public class KmsSecretRevision extends ImmutableObject {
    * KMS API.
    *
    * @see <a
-   *     href="https://cloud.google.com/kms/docs/reference/rest/v1beta1/projects.locations.keyRings.cryptoKeys/encrypt">projects.locations.keyRings.cryptoKeys.encrypt</a>
+   *     href="https://cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys/encrypt">projects.locations.keyRings.cryptoKeys.encrypt</a>
    */
   String encryptedValue;
 

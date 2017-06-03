@@ -25,7 +25,7 @@ import com.google.common.annotations.VisibleForTesting;
 abstract class EncryptResponse {
 
   static EncryptResponse create(
-      com.google.api.services.cloudkms.v1beta1.model.EncryptResponse cloudKmsEncryptResponse) {
+      com.google.api.services.cloudkms.v1.model.EncryptResponse cloudKmsEncryptResponse) {
     return new AutoValue_EncryptResponse(
         cloudKmsEncryptResponse.getCiphertext(), cloudKmsEncryptResponse.getName());
   }

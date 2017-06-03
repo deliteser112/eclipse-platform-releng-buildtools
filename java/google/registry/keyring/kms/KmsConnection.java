@@ -23,7 +23,7 @@ interface KmsConnection {
    * The maximum allowable secret size, as set by Cloud KMS.
    *
    * @see <a
-   *     href="https://cloud.google.com/kms/docs/reference/rest/v1beta1/projects.locations.keyRings.cryptoKeys/encrypt#request-body">projects.locations.keyRings.cryptoKeys.encrypt</a>
+   *     href="https://cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys/encrypt#request-body">projects.locations.keyRings.cryptoKeys.encrypt</a>
    */
   int MAX_SECRET_SIZE_BYTES = 64 * 1024;
 

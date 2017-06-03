@@ -431,10 +431,10 @@ def com_google_apis_google_api_services_cloudkms():
   java_import_external(
       name = "com_google_apis_google_api_services_cloudkms",
       licenses = ["notice"],  # The Apache Software License, Version 2.0
-      jar_sha256 = "82e5995e9dd248d24edfeace90261c1be0e905ecbae0b2c5ee19bb06a3e7dfdf",
+      jar_sha256 = "c73854bdbd67c26f030eda346c65fc68e5b252a54f662af1a041caea77333ba4",
       jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/apis/google-api-services-cloudkms/v1beta1-rev409-1.22.0/google-api-services-cloudkms-v1beta1-rev409-1.22.0.jar",
-          "http://repo1.maven.org/maven2/com/google/apis/google-api-services-cloudkms/v1beta1-rev409-1.22.0/google-api-services-cloudkms-v1beta1-rev409-1.22.0.jar",
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/apis/google-api-services-cloudkms/v1-rev12-1.22.0/google-api-services-cloudkms-v1-rev12-1.22.0.jar",
+          "http://repo1.maven.org/maven2/com/google/apis/google-api-services-cloudkms/v1-rev12-1.22.0/google-api-services-cloudkms-v1-rev12-1.22.0.jar",
       ],
       deps = ["@com_google_api_client"],
   )

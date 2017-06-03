@@ -872,7 +872,7 @@ public final class RegistryConfig {
      * The name to use for the Cloud KMS KeyRing containing encryption keys for Nomulus secrets.
      *
      * @see <a
-     *     href="https://cloud.google.com/kms/docs/reference/rest/v1beta1/projects.locations.keyRings#KeyRing">projects.locations.keyRings</a>
+     *     href="https://cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings#KeyRing">projects.locations.keyRings</a>
      */
     @Provides
     @Config("cloudKmsKeyRing")
