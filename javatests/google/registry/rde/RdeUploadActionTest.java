@@ -278,8 +278,6 @@ public class RdeUploadActionTest {
 
   @Test
   public void testRunWithLock_succeedsOnThirdTry() throws Exception {
-    // XXX: For any port other than 22, JSch will reformat the hostname IPv6 style which causes
-    //      known host matching to fail.
     int port = sftpd.serve("user", "password", folder.getRoot());
     URI uploadUrl = URI.create(String.format("sftp://user:password@localhost:%d/", port));
     DateTime stagingCursor = DateTime.parse("2010-10-18TZ");
