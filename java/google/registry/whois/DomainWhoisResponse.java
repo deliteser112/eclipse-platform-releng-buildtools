@@ -23,6 +23,7 @@ import static google.registry.xml.UtcDateTimeAdapter.getFormattedString;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
@@ -88,7 +89,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
             .emitField("Registry Domain ID", domain.getRepoId())
             .emitField("Registrar WHOIS Server", registrar.getWhoisServer())
             .emitField("Registrar URL", registrar.getReferralUrl())
-            .emitField("Updated Date", getFormattedString(domain.getLastEppUpdateTime()))
+            .emitFieldIfDefined("Updated Date", getFormattedString(domain.getLastEppUpdateTime()))
             .emitField("Creation Date", getFormattedString(domain.getCreationTime()))
             .emitField(
                 "Registry Expiry Date", getFormattedString(domain.getRegistrationExpirationTime()))
@@ -98,10 +99,10 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
                 Objects.toString(registrar.getIanaIdentifier(), ""))
             // Email address is a required field for registrar contacts. Therefore as long as there
             // is an abuse contact, we can get an email address from it.
-            .emitField(
+            .emitFieldIfDefined(
                 "Registrar Abuse Contact Email",
                 abuseContact.isPresent() ? abuseContact.get().getEmailAddress() : null)
-            .emitField(
+            .emitFieldIfDefined(
                 "Registrar Abuse Contact Phone",
                 abuseContact.isPresent() ? abuseContact.get().getPhoneNumber() : null)
             .emitStatusValues(domain.getStatusValues(), domain.getGracePeriods())
@@ -144,10 +145,12 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
   class DomainEmitter extends Emitter<DomainEmitter> {
     DomainEmitter emitPhone(
         String contactType, String title, @Nullable ContactPhoneNumber phoneNumber) {
-      return emitField(
-              contactType, title, phoneNumber != null ? phoneNumber.getPhoneNumber() : null)
-          .emitField(
-              contactType, title, "Ext", phoneNumber != null ? phoneNumber.getExtension() : null);
+      if (phoneNumber == null) {
+        return this;
+      }
+      return emitFieldIfDefined(ImmutableList.of(contactType, title), phoneNumber.getPhoneNumber())
+          .emitFieldIfDefined(
+              ImmutableList.of(contactType, title, "Ext"), phoneNumber.getExtension());
     }
 
     /** Emit the contact entry of the given type. */
@@ -167,19 +170,20 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
             domain.getFullyQualifiedDomainName(), contact);
         return this;
       }
-      emitField("Registry", contactType, "ID", contactResource.getContactId());
+      // ICANN Consistent Labeling & Display policy requires that this be the ROID.
+      emitField(ImmutableList.of("Registry", contactType, "ID"), contactResource.getRepoId());
       PostalInfo postalInfo = chooseByUnicodePreference(
           preferUnicode,
           contactResource.getLocalizedPostalInfo(),
           contactResource.getInternationalizedPostalInfo());
       if (postalInfo != null) {
-        emitField(contactType, "Name", postalInfo.getName());
-        emitField(contactType, "Organization", postalInfo.getOrg());
+        emitFieldIfDefined(ImmutableList.of(contactType, "Name"), postalInfo.getName());
+        emitFieldIfDefined(ImmutableList.of(contactType, "Organization"), postalInfo.getOrg());
         emitAddress(contactType, postalInfo.getAddress());
       }
       return emitPhone(contactType, "Phone", contactResource.getVoiceNumber())
           .emitPhone(contactType, "Fax", contactResource.getFaxNumber())
-          .emitField(contactType, "Email", contactResource.getEmailAddress());
+          .emitField(ImmutableList.of(contactType, "Email"), contactResource.getEmailAddress());
     }
 
     /** Emits status values and grace periods as a set, in the AWIP format. */

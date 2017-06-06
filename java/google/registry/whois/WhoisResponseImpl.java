@@ -22,12 +22,10 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import google.registry.model.eppcommon.Address;
 import google.registry.util.Idn;
 import google.registry.xml.UtcDateTimeAdapter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -109,6 +107,16 @@ abstract class WhoisResponseImpl implements WhoisResponse {
       return thisCastToDerived();
     }
 
+    /** Emit the field name and value followed by a newline, but only if a value exists. */
+    E emitFieldIfDefined(String name, @Nullable String value) {
+      if (isNullOrEmpty(value)) {
+        return thisCastToDerived();
+      }
+      stringBuilder.append(cleanse(name)).append(':');
+      stringBuilder.append(' ').append(cleanse(value));
+      return emitNewline();
+    }
+
     /** Emit the field name and value followed by a newline. */
     E emitField(String name, @Nullable String value) {
       stringBuilder.append(cleanse(name)).append(':');
@@ -118,11 +126,17 @@ abstract class WhoisResponseImpl implements WhoisResponse {
       return emitNewline();
     }
 
+    /** Emit a multi-part field name and value followed by a newline, but only if a value exists. */
+    E emitFieldIfDefined(List<String> nameParts, String value) {
+      if (isNullOrEmpty(value)) {
+        return thisCastToDerived();
+      }
+      return emitField(nameParts, value);
+    }
+
     /** Emit a multi-part field name and value followed by a newline. */
-    E emitField(String... namePartsAndValue) {
-      List<String> parts = Arrays.asList(namePartsAndValue);
-      return emitField(
-          Joiner.on(' ').join(parts.subList(0, parts.size() - 1)), Iterables.getLast(parts));
+    E emitField(List<String> nameParts, String value) {
+      return emitField(Joiner.on(' ').join(nameParts), value);
     }
 
     /** Emit a contact address. */

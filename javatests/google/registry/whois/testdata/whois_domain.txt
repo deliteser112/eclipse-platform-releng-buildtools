@@ -15,7 +15,7 @@ Domain Status: clientRenewProhibited https://icann.org/epp#clientRenewProhibited
 Domain Status: clientTransferProhibited https://icann.org/epp#clientTransferProhibited
 Domain Status: serverUpdateProhibited https://icann.org/epp#serverUpdateProhibited
 Domain Status: transferPeriod https://icann.org/epp#transferPeriod
-Registry Registrant ID: 5372808-ERL
+Registry Registrant ID: 4-TLD
 Registrant Name: EXAMPLE REGISTRANT
 Registrant Organization: EXAMPLE ORGANIZATION
 Registrant Street: 123 EXAMPLE STREET
@@ -28,7 +28,7 @@ Registrant Phone Ext: 1234
 Registrant Fax: +1.5555551213
 Registrant Fax Ext: 4321
 Registrant Email: EMAIL@EXAMPLE.tld
-Registry Admin ID: 5372809-ERL
+Registry Admin ID: 5-TLD
 Admin Name: EXAMPLE REGISTRANT ADMINISTRATIVE
 Admin Organization: EXAMPLE REGISTRANT ORGANIZATION
 Admin Street: 123 EXAMPLE STREET
@@ -39,9 +39,8 @@ Admin Country: EX
 Admin Phone: +1.5555551212
 Admin Phone Ext: 1234
 Admin Fax: +1.5555551213
-Admin Fax Ext:
 Admin Email: EMAIL@EXAMPLE.tld
-Registry Tech ID: 5372811-ERL
+Registry Tech ID: 6-TLD
 Tech Name: EXAMPLE REGISTRAR TECHNICAL
 Tech Organization: EXAMPLE REGISTRAR LLC
 Tech Street: 123 EXAMPLE STREET
