@@ -16,11 +16,10 @@ package google.registry.monitoring.metrics;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSortedSet;
 
 /**
- * A {@link DistributionFitter} with intervals of increasing size using the Fibonacci sequence.
+ * Utility method to create a {@link CustomFitter} with intervals using the Fibonacci sequence.
  *
  * <p>A Fibonacci fitter is useful in situations where you want more precision on the low end than
  * an {@link ExponentialFitter} with exponent base 2 would provide without the hassle of dealing
@@ -31,17 +30,16 @@ import com.google.common.collect.ImmutableSortedSet;
  * <p>The interval boundaries are chosen as {@code (-inf, 0), [0, 1), [1, 2), [2, 3), [3, 5), [5,
  * 8), [8, 13)}, etc., up to {@code [fibonacciFloor(maxBucketSize), inf)}.
  */
-@AutoValue
-public abstract class FibonacciFitter implements DistributionFitter {
+public final class FibonacciFitter {
 
   /**
-   * Returns a new {@link FibonacciFitter}.
+   * Returns a new {@link CustomFitter} with bounds corresponding to the Fibonacci sequence.
    *
    * @param maxBucketSize the maximum bucket size to create (rounded down to the nearest Fibonacci
    *     number)
    * @throws IllegalArgumentException if {@code maxBucketSize <= 0}
    */
-  public static FibonacciFitter create(long maxBucketSize) {
+  public static CustomFitter create(long maxBucketSize) {
     checkArgument(maxBucketSize > 0, "maxBucketSize must be greater than 0");
 
     ImmutableSortedSet.Builder<Double> boundaries = ImmutableSortedSet.naturalOrder();
@@ -56,9 +54,8 @@ public abstract class FibonacciFitter implements DistributionFitter {
       k = i + j;
     }
 
-    return new AutoValue_FibonacciFitter(boundaries.build());
+    return CustomFitter.create(boundaries.build());
   }
 
-  @Override
-  public abstract ImmutableSortedSet<Double> boundaries();
+  private FibonacciFitter() {}
 }
