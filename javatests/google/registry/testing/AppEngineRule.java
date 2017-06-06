@@ -21,7 +21,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.json.XML.toJSONObject;
 
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
-import com.google.appengine.tools.development.testing.LocalMemcacheServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalModulesServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
@@ -96,7 +95,6 @@ public final class AppEngineRule extends ExternalResource {
 
   private boolean withDatastore;
   private boolean withLocalModules;
-  private boolean withMemcache;
   private boolean withTaskQueue;
   private boolean withUserService;
   private boolean withUrlFetch;
@@ -119,12 +117,6 @@ public final class AppEngineRule extends ExternalResource {
     /** Turn on the use of local modules. */
     public Builder withLocalModules() {
       rule.withLocalModules = true;
-      return this;
-    }
-
-    /** Turn on the use of local modules. */
-    public Builder withMemcache() {
-      rule.withMemcache = true;
       return this;
     }
 
@@ -280,9 +272,6 @@ public final class AppEngineRule extends ExternalResource {
           .addBasicScalingModuleVersion("default", "1", 1)
           .addBasicScalingModuleVersion("tools", "1", 1)
           .addBasicScalingModuleVersion("backend", "1", 1));
-    }
-    if (withMemcache) {
-      configs.add(new LocalMemcacheServiceTestConfig());
     }
     if (withTaskQueue) {
       File queueFile = temporaryFolder.newFile("queue.xml");

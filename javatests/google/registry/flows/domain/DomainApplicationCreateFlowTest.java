@@ -17,7 +17,6 @@ package google.registry.flows.domain;
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
 import static com.google.common.truth.Truth.assert_;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -25,7 +24,6 @@ import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
@@ -33,7 +31,6 @@ import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.EUR;
 import static org.joda.money.CurrencyUnit.USD;
@@ -107,12 +104,10 @@ import google.registry.flows.domain.DomainFlowUtils.UnsupportedFeeAttributeExcep
 import google.registry.flows.domain.DomainFlowUtils.UnsupportedMarkTypeException;
 import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.model.domain.DomainApplication;
-import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchPhase;
-import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
@@ -1526,7 +1521,7 @@ public class DomainApplicationCreateFlowTest
 
 
   @Test
-  public void testFailure_alreadyExists_triggersFailfast() throws Exception {
+  public void testFailure_alreadyExists() throws Exception {
     persistContactsAndHosts();
     clock.advanceOneMilli();
     persistActiveDomain(getUniqueIdFromCommand());
@@ -1537,7 +1532,6 @@ public class DomainApplicationCreateFlowTest
               + "Object with given ID (%s) already exists",
           getUniqueIdFromCommand());
     } catch (ResourceAlreadyExistsException e) {
-      assertThat(e.isFailfast()).isTrue();
       assertAboutEppExceptions().that(e).marshalsToXml().and().hasMessage(
           String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
     }
@@ -1710,37 +1704,6 @@ public class DomainApplicationCreateFlowTest
     clock.advanceOneMilli();
     thrown.expect(ExceedsMaxRegistrationYearsException.class);
     runFlow();
-  }
-
-  /**
-   * There is special logic that disallows a failfast for domains in add grace period and sunrush
-   * add grace period, so make sure that they fail anyways in the actual flow.
-   */
-  private void doNonFailFastAlreadyExistsTest(GracePeriodStatus gracePeriodStatus)
-      throws Exception {
-    persistContactsAndHosts();
-    clock.advanceOneMilli();
-    persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
-        .addGracePeriod(GracePeriod.create(gracePeriodStatus, END_OF_TIME, "", null))
-        .build());
-    try {
-      runFlow();
-      assertWithMessage("Expected ResourceAlreadyExistsException to be thrown").fail();
-    } catch (ResourceAlreadyExistsException e) {
-      assertThat(e.isFailfast()).isFalse();
-      assertAboutEppExceptions().that(e).marshalsToXml().and().hasMessage(
-          String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
-    }
-  }
-
-  @Test
-  public void testFailure_alreadyExists_addGracePeriod() throws Exception {
-    doNonFailFastAlreadyExistsTest(GracePeriodStatus.ADD);
-  }
-
-  @Test
-  public void testFailure_alreadyExists_sunrushAddGracePeriod() throws Exception {
-    doNonFailFastAlreadyExistsTest(GracePeriodStatus.SUNRUSH_ADD);
   }
 
   private void doFailingDomainNameTest(String domainName, Class<? extends Throwable> exception)

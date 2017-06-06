@@ -14,7 +14,6 @@
 
 package google.registry.model.ofy;
 
-import static com.google.appengine.api.memcache.ErrorHandlers.getConsistentLogAndContinue;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.not;
 import static com.googlecode.objectify.ObjectifyService.factory;
@@ -46,7 +45,6 @@ import google.registry.model.translators.InetAddressTranslatorFactory;
 import google.registry.model.translators.ReadableInstantUtcTranslatorFactory;
 import google.registry.model.translators.UpdateAutoTimestampTranslatorFactory;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
 
 /**
  * An instance of Ofy, obtained via {@code #ofy()}, should be used to access all persistable
@@ -114,9 +112,6 @@ public class ObjectifyService {
     // Translators must be registered before any entities can be registered.
     registerTranslators();
     registerEntityClasses(EntityClasses.ALL_CLASSES);
-
-    // Set the memcache error handler so that we don't see internally logged errors.
-    factory().setMemcacheErrorHandler(getConsistentLogAndContinue(Level.INFO));
   }
 
   /** Register translators that allow less common types to be stored directly in Datastore. */

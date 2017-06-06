@@ -20,7 +20,6 @@ import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
-import static google.registry.flows.domain.DomainFlowUtils.failfastForCreate;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationTypes;
 import static google.registry.flows.domain.DomainFlowUtils.prepareMarkedLrpTokenEntity;
 import static google.registry.flows.domain.DomainFlowUtils.validateCreateCommandContactsAndNameservers;
@@ -139,7 +138,6 @@ public class DomainAllocateFlow implements TransactionalFlow {
     validateClientIsLoggedIn(clientId);
     verifyIsSuperuser();
     DateTime now = ofy().getTransactionTime();
-    failfastForCreate(targetId, now);
     Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     verifyResourceDoesNotExist(DomainResource.class, targetId, now);
     InternetDomainName domainName = validateDomainName(command.getFullyQualifiedDomainName());

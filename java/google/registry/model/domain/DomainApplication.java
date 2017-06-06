@@ -15,11 +15,9 @@
 package google.registry.model.domain;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.collect.ImmutableList;
-import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.OnLoad;
 import google.registry.model.annotations.ExternalMessagingName;
@@ -37,7 +35,6 @@ import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 /** An application to create a domain. */
-@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @EntitySubclass(index = true)
 @ExternalMessagingName("application")
 public class DomainApplication extends DomainBase {

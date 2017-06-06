@@ -14,26 +14,11 @@
 
 package google.registry.flows.exceptions;
 
-import com.google.common.annotations.VisibleForTesting;
 import google.registry.flows.EppException.ObjectAlreadyExistsException;
 
 /** Resource with this id already exists. */
 public class ResourceAlreadyExistsException extends ObjectAlreadyExistsException {
-
-  /** Whether this was thrown from a "failfast" context. Useful for testing. */
-  final boolean failfast;
-
-  public ResourceAlreadyExistsException(String resourceId, boolean failfast) {
-    super(String.format("Object with given ID (%s) already exists", resourceId));
-    this.failfast = failfast;
-  }
-
   public ResourceAlreadyExistsException(String resourceId) {
-    this(resourceId, false);
-  }
-
-  @VisibleForTesting
-  public boolean isFailfast() {
-    return failfast;
+    super(String.format("Object with given ID (%s) already exists", resourceId));
   }
 }

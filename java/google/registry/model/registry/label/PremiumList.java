@@ -21,7 +21,6 @@ import static google.registry.config.RegistryConfig.getStaticPremiumListMaxCache
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.allocateId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -35,7 +34,6 @@ import com.google.common.hash.BloomFilter;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
-import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
@@ -59,7 +57,6 @@ import org.joda.time.Duration;
  */
 @ReportedOn
 @Entity
-@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.PremiumListEntry> {
 
   /** Stores the revision key for the set of currently used premium list entry entities. */
@@ -68,7 +65,6 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
   /** Virtual parent entity for premium list entry entities associated with a single revision. */
   @ReportedOn
   @Entity
-  @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
   public static class PremiumListRevision extends ImmutableObject {
 
     @Parent
@@ -242,7 +238,6 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
    */
   @ReportedOn
   @Entity
-  @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
   public static class PremiumListEntry extends DomainLabelEntry<Money, PremiumListEntry>
       implements Buildable {
 

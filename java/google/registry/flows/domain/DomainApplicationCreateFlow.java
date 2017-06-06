@@ -21,7 +21,6 @@ import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
-import static google.registry.flows.domain.DomainFlowUtils.failfastForCreate;
 import static google.registry.flows.domain.DomainFlowUtils.prepareMarkedLrpTokenEntity;
 import static google.registry.flows.domain.DomainFlowUtils.validateCreateCommandContactsAndNameservers;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
@@ -195,7 +194,6 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
-    failfastForCreate(targetId, now);
     Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     // Fail if the domain is already registered (e.g. this is a landrush application but the domain
     // was awarded at the end of sunrise). However, multiple domain applications can be created for

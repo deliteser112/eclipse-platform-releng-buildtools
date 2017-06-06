@@ -17,7 +17,6 @@
 import static com.google.common.collect.Sets.intersection;
 import static google.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
 import static google.registry.model.EppResourceUtils.setAutomaticTransferSuccessProperties;
-import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.util.CollectionUtils.difference;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.union;
@@ -28,7 +27,6 @@ import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.condition.IfNull;
@@ -53,7 +51,6 @@ import org.joda.time.Interval;
  *
  * @see <a href="https://tools.ietf.org/html/rfc5731">RFC 5731</a>
  */
-@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @EntitySubclass(index = true)
 @ExternalMessagingName("domain")
 public class DomainResource extends DomainBase

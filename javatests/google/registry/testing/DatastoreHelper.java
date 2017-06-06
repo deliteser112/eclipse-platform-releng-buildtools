@@ -829,9 +829,9 @@ public class DatastoreHelper {
         saveResource(resource, wantBackup);
       }});
     // Force the session cache to be cleared so that when we read the resource back, we read from
-    // Datastore (or memcache) and not from the session cache. This is needed to trigger Objectify's
-    // load process (unmarshalling entity protos to POJOs, nulling out empty collections, calling
-    // @OnLoad methods, etc.) which is bypassed for entities loaded from the session cache.
+    // Datastore and not from the session cache. This is needed to trigger Objectify's load process
+    // (unmarshalling entity protos to POJOs, nulling out empty collections, calling @OnLoad
+    // methods, etc.) which is bypassed for entities loaded from the session cache.
     ofy().clearSessionCache();
     return ofy().load().entity(resource).now();
   }
@@ -872,7 +872,7 @@ public class DatastoreHelper {
         }});
     }
     // Force the session to be cleared so that when we read it back, we read from Datastore
-    // and not from the transaction cache or memcache.
+    // and not from the transaction's session cache.
     ofy().clearSessionCache();
     for (R resource : resources) {
       ofy().load().entity(resource).now();
@@ -984,7 +984,7 @@ public class DatastoreHelper {
         ofy().saveWithoutBackup().entities(resources);
       }});
     // Force the session to be cleared so that when we read it back, we read from Datastore
-    // and not from the transaction cache or memcache.
+    // and not from the transaction's session cache.
     ofy().clearSessionCache();
     return ImmutableList.copyOf(ofy().load().entities(resources).values());
   }
@@ -992,7 +992,7 @@ public class DatastoreHelper {
   public static void deleteResource(final Object resource) {
     ofy().deleteWithoutBackup().entity(resource).now();
     // Force the session to be cleared so that when we read it back, we read from Datastore and
-    // not from the transaction cache or memcache.
+    // not from the transaction's session cache.
     ofy().clearSessionCache();
   }
 

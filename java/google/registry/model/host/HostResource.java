@@ -17,7 +17,6 @@ package google.registry.model.host;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
-import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
@@ -25,7 +24,6 @@ import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
@@ -49,7 +47,6 @@ import org.joda.time.DateTime;
  *
  * @see <a href="https://tools.ietf.org/html/rfc5732">RFC 5732</a>
  */
-@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @ReportedOn
 @Entity
 @ExternalMessagingName("host")

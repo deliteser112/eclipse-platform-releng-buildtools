@@ -21,7 +21,6 @@ import static com.google.common.base.Predicates.not;
 import static google.registry.config.RegistryConfig.getSingletonCacheRefreshDuration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -46,7 +45,6 @@ import com.google.common.collect.Range;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
-import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -78,7 +76,6 @@ import org.joda.time.Duration;
 import org.joda.time.Interval;
 
 /** Persisted per-TLD configuration data. */
-@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @ReportedOn
 @Entity
 public class Registry extends ImmutableObject implements Buildable {
@@ -245,12 +242,12 @@ public class Registry extends ImmutableObject implements Buildable {
               @Override
               public Optional<Registry> load(final String tld) {
                 // Enter a transactionless context briefly; we don't want to enroll every TLD in a
-                // transaction that might be wrapping this call, and memcached results are fine here
+                // transaction that might be wrapping this call.
                 return Optional.fromNullable(ofy().doTransactionless(new Work<Registry>() {
                     @Override
                     public Registry run() {
                       return ofy()
-                          .loadWithMemcache()
+                          .load()
                           .key(Key.create(getCrossTldKey(), Registry.class, tld))
                           .now();
                     }}));

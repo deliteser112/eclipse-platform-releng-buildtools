@@ -63,15 +63,6 @@ public class Ofy {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  /**
-   * Recommended memcache expiration time, which is one hour, specified in seconds.
-   *
-   * <p>This value should used as a cache expiration time for any entities annotated with an
-   * Objectify {@code @Cache} annotation, to put an upper bound on unlikely-but-possible divergence
-   * between memcache and Datastore when a memcache write fails.
-   */
-  public static final int RECOMMENDED_MEMCACHE_EXPIRATION = 3600;
-
   /** Default clock for transactions that don't provide one. */
   @NonFinalForTesting
   static Clock clock = new SystemClock();
@@ -130,31 +121,9 @@ public class Ofy {
     checkState(inTransaction(), "Must be called in a transaction");
   }
 
-  /**
-   * Load from Datastore, bypassing memcache even when the results might be there.
-   *
-   * <p>In general, this is the correct method to use for loads. Loading from memcache can, in rare
-   * instances, produce a stale result (when a memcache write fails and the previous result is not
-   * cleared out) and so using memcache should be avoided unless the caller can tolerate staleness
-   * until the memcache expiration time and there is a specific need for very low latency that is
-   * worth the extra complexity of reasoning about caching.
-   */
+  /** Load from Datastore. */
   public Loader load() {
-    return ofy().cache(false).load();
-  }
-
-  /**
-   * Load from Datastore, bypassing memcache even when the results might be there.
-   *
-   * <p>In general, prefer {@link #load} over this method. Loading from memcache can, in rare
-   * instances, produce a stale result (when a memcache write fails and the previous result is not
-   * cleared out) and so using memcache should be avoided unless the caller can tolerate staleness
-   * until the memcache expiration time and there is a specific need for very low latency that is
-   * worth the extra complexity of reasoning about caching.
-   */
-  public Loader loadWithMemcache() {
-    // TODO(b/27424173): Remove this method if we determine we are ok with no memcache.
-    return ofy().cache(false).load();
+    return ofy().load();
   }
 
   /**

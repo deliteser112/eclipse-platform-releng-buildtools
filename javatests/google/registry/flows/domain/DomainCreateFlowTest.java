@@ -30,7 +30,6 @@ import static google.registry.testing.DatastoreHelper.deleteTld;
 import static google.registry.testing.DatastoreHelper.getHistoryEntries;
 import static google.registry.testing.DatastoreHelper.newContactResource;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
-import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
@@ -892,7 +891,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testFailure_alreadyExists_triggersFailfast() throws Exception {
+  public void testFailure_alreadyExists() throws Exception {
     persistContactsAndHosts();
     persistActiveDomain(getUniqueIdFromCommand());
     try {
@@ -902,43 +901,11 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
               + "Object with given ID (%s) already exists",
           getUniqueIdFromCommand());
     } catch (ResourceAlreadyExistsException e) {
-      assertThat(e.isFailfast()).isTrue();
       assertAboutEppExceptions().that(e).marshalsToXml().and().hasMessage(
           String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
     }
   }
 
-  /**
-   * There is special logic that disallows a failfast for domains in add grace period and sunrush
-   * add grace period, so make sure that they fail anyways in the actual flow.
-   */
-  private void doNonFailFastAlreadyExistsTest(GracePeriodStatus gracePeriodStatus)
-      throws Exception {
-    // This doesn't fail fast, so it throws the regular ResourceAlreadyExistsException from run().
-    persistContactsAndHosts();
-    persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
-        .addGracePeriod(GracePeriod.create(gracePeriodStatus, END_OF_TIME, "", null))
-        .build());
-    thrown.expect(
-        ResourceAlreadyExistsException.class,
-        String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
-    try {
-      runFlow();
-    } catch (ResourceAlreadyExistsException e) {
-      assertThat(e.isFailfast()).isFalse();
-      throw e;
-    }
-  }
-
-  @Test
-  public void testFailure_alreadyExists_addGracePeriod() throws Exception {
-    doNonFailFastAlreadyExistsTest(GracePeriodStatus.ADD);
-  }
-
-  @Test
-  public void testFailure_alreadyExists_sunrushAddGracePeriod() throws Exception {
-    doNonFailFastAlreadyExistsTest(GracePeriodStatus.SUNRUSH_ADD);
-  }
 
   @Test
   public void testFailure_reserved() throws Exception {

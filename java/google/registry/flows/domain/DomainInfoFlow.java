@@ -21,7 +21,7 @@ import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.domain.DomainFlowUtils.addSecDnsExtensionIfPresent;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
 import static google.registry.flows.domain.DomainFlowUtils.loadForeignKeyedDesignatedContacts;
-import static google.registry.model.EppResourceUtils.loadByForeignKeyWithMemcache;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Optional;
@@ -96,13 +96,11 @@ public final class DomainInfoFlow implements Flow {
     validateClientIsLoggedIn(clientId);
     DateTime now = clock.nowUtc();
     DomainResource domain = verifyExistence(
-        DomainResource.class,
-        targetId,
-        loadByForeignKeyWithMemcache(DomainResource.class, targetId, now));
+        DomainResource.class, targetId, loadByForeignKey(DomainResource.class, targetId, now));
     verifyOptionalAuthInfo(authInfo, domain);
     customLogic.afterValidation(AfterValidationParameters.newBuilder().setDomain(domain).build());
     // Prefetch all referenced resources. Calling values() blocks until loading is done.
-    ofy().loadWithMemcache()
+    ofy().load()
         .values(union(domain.getNameservers(), domain.getReferencedContacts())).values();
     // Registrars can only see a few fields on unauthorized domains.
     // This is a policy decision that is left up to us by the rfcs.
@@ -110,7 +108,7 @@ public final class DomainInfoFlow implements Flow {
         .setFullyQualifiedDomainName(domain.getFullyQualifiedDomainName())
         .setRepoId(domain.getRepoId())
         .setCurrentSponsorClientId(domain.getCurrentSponsorClientId())
-        .setRegistrant(ofy().loadWithMemcache().key(domain.getRegistrant()).now().getContactId());
+        .setRegistrant(ofy().load().key(domain.getRegistrant()).now().getContactId());
     // If authInfo is non-null, then the caller is authorized to see the full information since we
     // will have already verified the authInfo is valid.
     if (clientId.equals(domain.getCurrentSponsorClientId()) || authInfo.isPresent()) {

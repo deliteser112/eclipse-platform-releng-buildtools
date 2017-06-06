@@ -15,7 +15,6 @@
 package google.registry.model.server;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
@@ -23,7 +22,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.primitives.Longs;
 import com.googlecode.objectify.Work;
-import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Unindex;
 import google.registry.model.annotations.NotBackedUp;
@@ -35,7 +33,6 @@ import java.util.concurrent.ExecutionException;
 
 /** A secret number used for generating tokens (such as XSRF tokens). */
 @Entity
-@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @Unindex
 @NotBackedUp(reason = Reason.AUTO_GENERATED)
 public class ServerSecret extends CrossTldSingleton {

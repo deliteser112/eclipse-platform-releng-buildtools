@@ -16,14 +16,12 @@ package google.registry.model.contact;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
-import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
@@ -43,7 +41,6 @@ import org.joda.time.DateTime;
  *
  * @see <a href="https://tools.ietf.org/html/rfc5733">RFC 5733</a>
  */
-@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @ReportedOn
 @Entity
 @ExternalMessagingName("contact")

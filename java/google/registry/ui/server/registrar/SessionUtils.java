@@ -61,7 +61,7 @@ public class SessionUtils {
    * user's GAIA ID is associated. The {@code clientId} of the first matching {@code Registrar} will
    * then be stored to the HTTP session.
    * <li>If it does exist, then we'll fetch the Registrar from Datastore to make sure access
-   * wasn't revoked. This should only cost one memcache read.
+   * wasn't revoked.
    * </ul>
    *
    * <p><b>Note:</b> You must ensure the user has logged in before calling this method, for example

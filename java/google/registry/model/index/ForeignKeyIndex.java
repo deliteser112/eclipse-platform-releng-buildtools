@@ -16,14 +16,12 @@ package google.registry.model.index;
 
 import static com.google.common.collect.Maps.filterValues;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.util.TypeUtils.instantiate;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
@@ -45,19 +43,16 @@ import org.joda.time.DateTime;
 public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroupRoot {
 
   /** The {@link ForeignKeyIndex} type for {@link ContactResource} entities. */
-  @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
   @ReportedOn
   @Entity
   public static class ForeignKeyContactIndex extends ForeignKeyIndex<ContactResource> {}
 
   /** The {@link ForeignKeyIndex} type for {@link DomainResource} entities. */
-  @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
   @ReportedOn
   @Entity
   public static class ForeignKeyDomainIndex extends ForeignKeyIndex<DomainResource> {}
 
   /** The {@link ForeignKeyIndex} type for {@link HostResource} entities. */
-  @Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
   @ReportedOn
   @Entity
   public static class ForeignKeyHostIndex extends ForeignKeyIndex<HostResource> {}

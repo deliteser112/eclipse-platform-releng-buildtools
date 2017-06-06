@@ -22,7 +22,6 @@ import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.union;
 import static google.registry.flows.domain.DomainPricingLogic.getMatchingLrpToken;
-import static google.registry.model.EppResourceUtils.loadByForeignKeyWithMemcache;
 import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
@@ -48,7 +47,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.CommandUseErrorException;
@@ -60,7 +58,6 @@ import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.EppException.UnimplementedOptionException;
-import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.flows.exceptions.ResourceHasClientUpdateProhibitedException;
 import google.registry.model.EppResource;
 import google.registry.model.billing.BillingEvent;
@@ -90,7 +87,6 @@ import google.registry.model.domain.launch.LaunchExtension;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchNotice.InvalidChecksumException;
 import google.registry.model.domain.launch.LaunchPhase;
-import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.domain.secdns.SecDnsInfoExtension;
@@ -432,8 +428,6 @@ public class DomainFlowUtils {
   static void verifyPremiumNameIsNotBlocked(
       String domainName, DateTime priceTime, String clientId) throws EppException {
     if (isDomainPremium(domainName, priceTime)) {
-      // NB: The load of the Registar object is transactionless, which means that it should hit
-      // memcache most of the time.
       if (Registrar.loadByClientIdCached(clientId).getBlockPremiumNames()) {
         throw new PremiumNameBlockedException();
       }
@@ -781,36 +775,6 @@ public class DomainFlowUtils {
     validateNameserversCountForTld(tld, domainName, fullyQualifiedHostNames.size());
     validateNameserversAllowedOnTld(tld, fullyQualifiedHostNames);
     validateNameserversAllowedOnDomain(domainName, fullyQualifiedHostNames);
-  }
-
-  /**
-   * Fail a domain or application create very fast if the domain is already registered.
-   *
-   * <p>Try to load the domain non-transactionally, since this can hit memcache. If we succeed, and
-   * the domain is not in the add grace period (the only state that allows instantaneous transition
-   * to being deleted), we can assume that the domain will not be deleted (and therefore won't be
-   * creatable) until its deletion time. For repeated failed creates this means we can avoid the
-   * Datastore lookup, which is very expensive (and first-seen failed creates are no worse than they
-   * otherwise would be). This comes at the cost of the extra lookup for successful creates (or
-   * rather, those that don't fail due to the domain existing) and also for failed creates within
-   * the existing domain's add grace period.
-   */
-  static void failfastForCreate(final String targetId, final DateTime now) throws EppException {
-    // Enter a transactionless context briefly.
-    DomainResource domain = ofy().doTransactionless(new Work<DomainResource>() {
-      @Override
-      public DomainResource run() {
-        // We want to load the ForeignKeyIndex and DomainResource from memcache if possible so that
-        // repeated create attempts of the same domain will not put load on datastore. This is safe
-        // because this is only a failfast method, and if memcache is stale the worst case scenario
-        // is that we will fall through to the regular transactional flow and fail there.
-        return loadByForeignKeyWithMemcache(DomainResource.class, targetId, now);
-      }});
-    // If the domain exists already and isn't in the add grace period then there is no way it will
-    // be suddenly deleted and therefore the create must fail.
-    if (domain != null && !domain.getGracePeriodStatuses().contains(GracePeriodStatus.ADD)) {
-      throw new ResourceAlreadyExistsException(targetId, true);
-    }
   }
 
   /** Validate the secDNS extension, if present. */

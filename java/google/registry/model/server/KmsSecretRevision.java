@@ -16,10 +16,8 @@ package google.registry.model.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
-import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
@@ -43,7 +41,6 @@ import google.registry.model.annotations.ReportedOn;
  */
 @Entity
 @ReportedOn
-@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 public class KmsSecretRevision extends ImmutableObject {
 
   /**

@@ -21,7 +21,6 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static google.registry.config.RegistryConfig.getDomainLabelListCacheDuration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
 import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
 import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
@@ -42,7 +41,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Mapify;
@@ -61,7 +59,6 @@ import org.joda.time.DateTime;
  * A reserved list entity, persisted to Datastore, that is used to check domain label reservations.
  */
 @Entity
-@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 public final class ReservedList
     extends BaseDomainLabelList<ReservationType, ReservedList.ReservedListEntry> {
 

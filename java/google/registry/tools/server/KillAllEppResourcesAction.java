@@ -22,7 +22,6 @@ import static google.registry.util.PipelineUtils.createJobPath;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import google.registry.config.RegistryEnvironment;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
@@ -92,14 +91,7 @@ public class KillAllEppResourcesAction implements Runnable {
       for (Key<Object> key : ofy().load().ancestor(resourceKey).keys()) {
         emitAndIncrementCounter(resourceKey, key);
       }
-      // Load in a transaction to make sure we don't get stale data (in case of host renames).
-      // TODO(b/27424173): A transaction is overkill. When we have memcache-skipping, use that.
-      EppResource resource = ofy().transactNewReadOnly(
-          new Work<EppResource>() {
-            @Override
-            public EppResource run() {
-              return ofy().load().key(eri.getKey()).now();
-            }});
+      EppResource resource = ofy().load().key(eri.getKey()).now();
       // TODO(b/28247733): What about FKI's for renamed hosts?
       Key<?> indexKey = resource instanceof DomainApplication
           ? DomainApplicationIndex.createKey((DomainApplication) resource)

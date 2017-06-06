@@ -24,7 +24,6 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.MemcacheHelper.clearMemcache;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static google.registry.util.DatastoreServiceUtils.KEY_TO_KIND_FUNCTION;
 
@@ -637,9 +636,8 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   @Test
   public void testBatchLoadingOfReferences() throws Exception {
     persistTestEntities(false);
-    // Clear out memcache and session cache so that we count actual Datastore calls.
+    // Clear out the session cache so that we count actual Datastore calls.
     ofy().clearSessionCache();
-    clearMemcache();
     int numPreviousReads = RequestCapturingAsyncDatastoreService.getReads().size();
     doSuccessfulTest("domain_info_response.xml", false);
     // Get all of the keys loaded in the flow, with each distinct load() call as a list of keys.

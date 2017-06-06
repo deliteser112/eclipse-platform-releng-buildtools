@@ -89,7 +89,7 @@ public final class DomainApplicationInfoFlow implements Flow {
       throw new MissingApplicationIdException();
     }
     DomainApplication application =
-        ofy().loadWithMemcache().key(Key.create(DomainApplication.class, applicationId)).now();
+        ofy().load().key(Key.create(DomainApplication.class, applicationId)).now();
     verifyExistence(
         DomainApplication.class,
         applicationId,
@@ -106,7 +106,7 @@ public final class DomainApplicationInfoFlow implements Flow {
     verifyResourceOwnership(clientId, application);
     boolean showDelegatedHosts = ((Info) resourceCommand).getHostsRequest().requestDelegated();
     // Prefetch all referenced resources. Calling values() blocks until loading is done.
-    ofy().loadWithMemcache()
+    ofy().load()
         .values(union(application.getNameservers(), application.getReferencedContacts())).values();
     return responseBuilder
         .setResData(DomainInfoData.newBuilder()
@@ -114,7 +114,7 @@ public final class DomainApplicationInfoFlow implements Flow {
             .setRepoId(application.getRepoId())
             .setStatusValues(application.getStatusValues())
             .setRegistrant(
-                ofy().loadWithMemcache().key(application.getRegistrant()).now().getContactId())
+                ofy().load().key(application.getRegistrant()).now().getContactId())
             .setContacts(loadForeignKeyedDesignatedContacts(application.getContacts()))
             .setNameservers(showDelegatedHosts
                 ? application.loadNameserverFullyQualifiedHostNames()

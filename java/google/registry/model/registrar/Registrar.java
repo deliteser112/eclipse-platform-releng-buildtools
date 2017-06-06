@@ -28,7 +28,6 @@ import static google.registry.config.RegistryConfig.getDefaultRegistrarWhoisServ
 import static google.registry.model.CacheUtils.memoizeWithShortExpiration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.model.registry.Registries.assertTldsExist;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
@@ -50,7 +49,6 @@ import com.google.common.collect.Sets;
 import com.google.re2j.Pattern;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
-import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -85,7 +83,6 @@ import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
 
 /** Information about a registrar. */
-@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 @ReportedOn
 @Entity
 public class Registrar extends ImmutableObject implements Buildable, Jsonifiable {

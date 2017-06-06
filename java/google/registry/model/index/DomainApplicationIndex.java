@@ -17,12 +17,10 @@ package google.registry.model.index;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.ofy.Ofy.RECOMMENDED_MEMCACHE_EXPIRATION;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import google.registry.model.BackupGroupRoot;
@@ -40,7 +38,6 @@ import org.joda.time.DateTime;
  */
 @ReportedOn
 @Entity
-@Cache(expirationSeconds = RECOMMENDED_MEMCACHE_EXPIRATION)
 public class DomainApplicationIndex extends BackupGroupRoot {
 
   @Id
