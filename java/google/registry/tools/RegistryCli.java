@@ -124,7 +124,6 @@ final class RegistryCli {
       System.err.println("===================================================================");
       System.err.println("You must login using 'nomulus login' prior to running this command.");
       System.err.println("===================================================================");
-      return;
     }
   }
 
