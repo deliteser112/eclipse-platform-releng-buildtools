@@ -20,8 +20,10 @@ java_library(
         "@com_google_truth_extensions_truth_java8_extension",
         "@joda_time",
         "@junit",
+        "@org_apache_beam_runners_direct_java",
         "@org_apache_beam_runners_google_cloud_dataflow_java",
         "@org_apache_beam_sdks_java_core",
+        "@org_apache_beam_sdks_java_io_google_cloud_platform",
         "@org_mockito_all",
     ],
 )

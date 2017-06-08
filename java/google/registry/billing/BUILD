@@ -22,7 +22,9 @@ java_library(
         "@com_google_http_client",
         "@javax_servlet_api",
         "@joda_time",
+        "@org_apache_beam_runners_direct_java",
         "@org_apache_beam_runners_google_cloud_dataflow_java",
         "@org_apache_beam_sdks_java_core",
+        "@org_apache_beam_sdks_java_io_google_cloud_platform",
     ],
 )
