@@ -43,7 +43,6 @@ import static google.registry.util.PipelineUtils.createJobPath;
 import static java.math.RoundingMode.CEILING;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.api.taskqueue.LeaseOptions;
 import com.google.appengine.api.taskqueue.Queue;
@@ -522,13 +521,9 @@ public class DeleteContactsAndHostsAction implements Runnable {
           .setIsSuperuser(
               Boolean.valueOf(
                   checkNotNull(params.get(PARAM_IS_SUPERUSER), "Is superuser not specified")))
-          // TODO(b/38386090): After push is completed and all old tasks are processed, change to:
-          // .setRequestedTime(DateTime.parse(
-          //     checkNotNull(params.get(PARAM_REQUESTED_TIME), "Requested time not specified")))
           .setRequestedTime(
-              (params.containsKey(PARAM_REQUESTED_TIME))
-                  ? DateTime.parse(params.get(PARAM_REQUESTED_TIME))
-                  : DateTime.now(UTC))
+              DateTime.parse(
+                  checkNotNull(params.get(PARAM_REQUESTED_TIME), "Requested time not specified")))
           .setIsDeletionAllowed(doesResourceStateAllowDeletion(resource, now))
           .setTask(task)
           .build();

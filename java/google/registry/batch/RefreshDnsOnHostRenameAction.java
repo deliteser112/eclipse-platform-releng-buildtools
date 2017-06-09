@@ -29,7 +29,6 @@ import static google.registry.util.DateTimeUtils.latestOf;
 import static google.registry.util.PipelineUtils.createJobPath;
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.api.taskqueue.LeaseOptions;
 import com.google.appengine.api.taskqueue.Queue;
@@ -301,13 +300,9 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
       return new AutoValue_RefreshDnsOnHostRenameAction_DnsRefreshRequest.Builder()
           .setHostKey(hostKey)
           .setLastUpdateTime(host.getUpdateAutoTimestamp().getTimestamp())
-          // TODO(b/38386090): After push is completed and all old tasks are processed, change to:
-          // .setRequestedTime(DateTime.parse(
-          //     checkNotNull(params.get(PARAM_REQUESTED_TIME), "Requested time not specified")))
           .setRequestedTime(
-              (params.containsKey(PARAM_REQUESTED_TIME))
-                  ? DateTime.parse(params.get(PARAM_REQUESTED_TIME))
-                  : DateTime.now(UTC))
+              DateTime.parse(
+                  checkNotNull(params.get(PARAM_REQUESTED_TIME), "Requested time not specified")))
           .setIsRefreshNeeded(!isHostDeleted)
           .setTask(task)
           .build();
