@@ -49,8 +49,20 @@ public class FormattingLogger {
     }
   }
 
+  public void fine(String msg) {
+    log(Level.FINE, null, msg);
+  }
+
+  public void fine(Throwable cause, String msg) {
+    log(Level.FINE, cause, msg);
+  }
+
   public void finefmt(String fmt, Object... args) {
     log(Level.FINE, null, String.format(fmt, args));
+  }
+
+  public void finefmt(Throwable cause, String fmt, Object... args) {
+    log(Level.FINE, cause, String.format(fmt, args));
   }
 
   public void info(String msg) {
