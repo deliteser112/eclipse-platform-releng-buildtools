@@ -21,8 +21,8 @@ goog.require('registry.EditItem');
 goog.require('registry.forms');
 goog.require('registry.util');
 
-goog.forwardDeclare('registry.Resource');
 goog.forwardDeclare('registry.Console');
+goog.forwardDeclare('registry.Resource');
 
 
 
