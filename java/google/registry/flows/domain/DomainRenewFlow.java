@@ -219,8 +219,8 @@ public final class DomainRenewFlow implements TransactionalFlow {
     verifyNoDisallowedStatuses(existingDomain, RENEW_DISALLOWED_STATUSES);
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingDomain);
+      checkAllowedAccessToTld(clientId, existingDomain.getTld());
     }
-    checkAllowedAccessToTld(clientId, existingDomain.getTld());
     verifyUnitIsYears(command.getPeriod());
     // If the date they specify doesn't match the expiration, fail. (This is an idempotence check).
     if (!command.getCurrentExpirationDate().equals(

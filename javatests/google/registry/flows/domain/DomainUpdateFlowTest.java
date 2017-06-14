@@ -962,6 +962,16 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   }
 
   @Test
+  public void testSuccess_superuserUnauthorizedClient() throws Exception {
+    sessionMetadata.setClientId("NewRegistrar");
+    persistReferencedEntities();
+    persistDomain();
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_update_response.xml"));
+  }
+
+  @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
         Registrar.loadByClientId("TheRegistrar")
@@ -975,8 +985,12 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   }
 
   @Test
-  public void testSuccess_superuserUnauthorizedClient() throws Exception {
-    sessionMetadata.setClientId("NewRegistrar");
+  public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .asBuilder()
+            .setAllowedTlds(ImmutableSet.<String>of())
+            .build());
     persistReferencedEntities();
     persistDomain();
     clock.advanceOneMilli();

@@ -31,7 +31,6 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
-import google.registry.testing.DatastoreHelper;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -81,7 +80,6 @@ public class ClaimsCheckFlowTest extends ResourceFlowTestCase<ClaimsCheckFlow, D
     doSuccessfulTest("domain_check_claims_response.xml");
   }
 
-
   @Test
   public void testSuccess_multipleTlds() throws Exception {
     setEppInput("domain_check_claims_multiple_tlds.xml");
@@ -115,13 +113,29 @@ public class ClaimsCheckFlowTest extends ResourceFlowTestCase<ClaimsCheckFlow, D
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
-    DatastoreHelper.persistResource(
+    persistResource(
         Registrar.loadByClientId("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
     thrown.expect(NotAuthorizedForTldException.class);
     runFlow();
+  }
+
+  @Test
+  public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
+    persistClaimsList(
+        ImmutableMap.of("example2", "2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001"));
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .asBuilder()
+            .setAllowedTlds(ImmutableSet.<String>of())
+            .build());
+    assertTransactionalFlow(false);
+    assertNoHistory();  // Checks don't create a history event.
+    assertNoBillingEvents();  // Checks are always free.
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_check_claims_response.xml"));
   }
 
   @Test

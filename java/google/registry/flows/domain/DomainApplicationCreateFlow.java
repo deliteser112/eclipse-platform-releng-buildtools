@@ -203,7 +203,10 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     InternetDomainName domainName = validateDomainName(targetId);
     String idnTableName = validateDomainNameWithIdnTables(domainName);
     String tld = domainName.parent().toString();
-    checkAllowedAccessToTld(clientId, tld);
+    if (!isSuperuser) {
+      // Access to the TLD should be checked before the subsequent checks as it is a greater concern
+      checkAllowedAccessToTld(clientId, tld);
+    }
     Registry registry = Registry.get(tld);
     FeesAndCredits feesAndCredits =
         pricingLogic.getCreatePrice(registry, targetId, now, command.getPeriod().getValue());

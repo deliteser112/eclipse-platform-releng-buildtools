@@ -151,6 +151,16 @@ public class DomainApplicationDeleteFlowTest
   }
 
   @Test
+  public void testSuccess_superuserUnauthorizedClient() throws Exception {
+    sessionMetadata.setClientId("NewRegistrar");
+    persistResource(
+        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response.xml"));
+  }
+
+  @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
@@ -162,12 +172,16 @@ public class DomainApplicationDeleteFlowTest
     thrown.expect(NotAuthorizedForTldException.class);
     runFlow();
   }
-
+  
   @Test
-  public void testSuccess_superuserUnauthorizedClient() throws Exception {
-    sessionMetadata.setClientId("NewRegistrar");
+  public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .asBuilder()
+            .setAllowedTlds(ImmutableSet.<String>of())
+            .build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response.xml"));

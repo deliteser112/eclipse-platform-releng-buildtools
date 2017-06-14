@@ -212,14 +212,14 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     verifyOptionalAuthInfo(authInfo, existingDomain);
     AddRemove add = command.getInnerAdd();
     AddRemove remove = command.getInnerRemove();
+    String tld = existingDomain.getTld();
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingDomain);
       verifyClientUpdateNotProhibited(command, existingDomain);
       verifyAllStatusesAreClientSettable(union(add.getStatusValues(), remove.getStatusValues()));
+      checkAllowedAccessToTld(clientId, tld);
     }
-    String tld = existingDomain.getTld();
     Registry registry = Registry.get(tld);
-    checkAllowedAccessToTld(clientId, tld);
     FeeTransformCommandExtension feeUpdate =
         eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
     // If the fee extension is present, validate it (even if the cost is zero, to check for price

@@ -217,9 +217,9 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     if (gainingClientId.equals(existingDomain.getCurrentSponsorClientId())) {
       throw new ObjectAlreadySponsoredException();
     }
-    checkAllowedAccessToTld(gainingClientId, existingDomain.getTld());
     verifyTransferPeriodIsOneYear(period);
     if (!isSuperuser) {
+      checkAllowedAccessToTld(gainingClientId, existingDomain.getTld());
       verifyPremiumNameIsNotBlocked(targetId, now, gainingClientId);
     }
   }

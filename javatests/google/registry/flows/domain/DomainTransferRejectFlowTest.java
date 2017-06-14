@@ -167,6 +167,19 @@ public class DomainTransferRejectFlowTest
   }
 
   @Test
+  public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .asBuilder()
+            .setAllowedTlds(ImmutableSet.<String>of())
+            .build());
+    runFlowAssertResponse(
+        CommitMode.LIVE,
+        UserPrivileges.SUPERUSER,
+        readFile("domain_transfer_reject_response.xml"));
+  }
+
+  @Test
   public void testFailure_badContactPassword() throws Exception {
     // Change the contact's password so it does not match the password in the file.
     contact = persistResource(

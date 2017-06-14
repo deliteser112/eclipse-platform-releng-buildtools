@@ -32,6 +32,7 @@ import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
@@ -71,6 +72,7 @@ public final class DomainTransferCancelFlow implements TransactionalFlow {
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainTransferCancelFlow() {}
@@ -85,7 +87,9 @@ public final class DomainTransferCancelFlow implements TransactionalFlow {
     verifyOptionalAuthInfo(authInfo, existingDomain);
     verifyHasPendingTransfer(existingDomain);
     verifyTransferInitiator(clientId, existingDomain);
-    checkAllowedAccessToTld(clientId, existingDomain.getTld());
+    if (!isSuperuser) {
+      checkAllowedAccessToTld(clientId, existingDomain.getTld());
+    }
     HistoryEntry historyEntry = historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_TRANSFER_CANCEL)
         .setOtherClientId(existingDomain.getTransferData().getLosingClientId())

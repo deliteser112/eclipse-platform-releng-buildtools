@@ -211,8 +211,8 @@ public final class DomainDeleteFlow implements TransactionalFlow {
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingDomain);
       verifyNotInPredelegation(registry, now);
+      checkAllowedAccessToTld(clientId, registry.getTld().toString());
     }
-    checkAllowedAccessToTld(clientId, registry.getTld().toString());
     if (!existingDomain.getSubordinateHosts().isEmpty()) {
       throw new DomainToDeleteHasHostsException();
     }

@@ -88,8 +88,8 @@ public final class DomainApplicationDeleteFlow implements TransactionalFlow {
     verifyApplicationDomainMatchesTargetId(existingApplication, targetId);
     verifyOptionalAuthInfo(authInfo, existingApplication);
     String tld = existingApplication.getTld();
-    checkAllowedAccessToTld(clientId, tld);
     if (!isSuperuser) {
+      checkAllowedAccessToTld(clientId, tld);
       Registry registry = Registry.get(tld);
       verifyRegistryStateAllowsLaunchFlows(registry, now);
       verifyLaunchPhaseMatchesRegistryPhase(

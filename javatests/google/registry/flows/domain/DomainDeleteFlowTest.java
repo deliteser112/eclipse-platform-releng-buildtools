@@ -679,6 +679,15 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   }
 
   @Test
+  public void testSuccess_superuserUnauthorizedClient() throws Exception {
+    sessionMetadata.setClientId("NewRegistrar");
+    setupSuccessfulTest();
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response_pending.xml"));
+  }
+
+  @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     setupSuccessfulTest();
     persistResource(
@@ -691,9 +700,13 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   }
 
   @Test
-  public void testSuccess_superuserUnauthorizedClient() throws Exception {
-    sessionMetadata.setClientId("NewRegistrar");
+  public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     setupSuccessfulTest();
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .asBuilder()
+            .setAllowedTlds(ImmutableSet.<String>of())
+            .build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response_pending.xml"));

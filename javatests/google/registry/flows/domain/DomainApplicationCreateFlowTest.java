@@ -1132,6 +1132,17 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
+  public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
+    DatastoreHelper.persistResource(Registrar.loadByClientId("TheRegistrar")
+        .asBuilder()
+        .setAllowedTlds(ImmutableSet.<String>of())
+        .build());
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    runSuperuserFlow("domain_create_sunrise_encoded_signed_mark_response.xml");
+  }
+
+  @Test
   public void testSuccess_superuserSunrush() throws Exception {
     createTld("tld", TldState.SUNRUSH);
     persistContactsAndHosts();

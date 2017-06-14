@@ -294,6 +294,18 @@ public class DomainCheckFlowTest
     runFlow();
   }
 
+  @Test
+  public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
+    persistActiveDomain("example2.tld");
+    DatastoreHelper.persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .asBuilder()
+            .setAllowedTlds(ImmutableSet.<String>of())
+            .build());
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_check_one_tld_response.xml"));
+  }
+
   private void doFailingBadLabelTest(String label, Class<? extends Exception> expectedException)
       throws Exception {
     setEppInput("domain_check_template.xml", ImmutableMap.of("LABEL", label));

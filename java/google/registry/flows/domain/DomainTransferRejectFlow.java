@@ -32,6 +32,7 @@ import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
@@ -71,6 +72,7 @@ public final class DomainTransferRejectFlow implements TransactionalFlow {
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainTransferRejectFlow() {}
@@ -91,7 +93,9 @@ public final class DomainTransferRejectFlow implements TransactionalFlow {
     verifyOptionalAuthInfo(authInfo, existingDomain);
     verifyHasPendingTransfer(existingDomain);
     verifyResourceOwnership(clientId, existingDomain);
-    checkAllowedAccessToTld(clientId, existingDomain.getTld());
+    if (!isSuperuser) {
+      checkAllowedAccessToTld(clientId, existingDomain.getTld());
+    }
     DomainResource newDomain =
         denyPendingTransfer(existingDomain, TransferStatus.CLIENT_REJECTED, now);
     ofy().save().<ImmutableObject>entities(

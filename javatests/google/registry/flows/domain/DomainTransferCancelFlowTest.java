@@ -299,6 +299,20 @@ public class DomainTransferCancelFlowTest
     doSuccessfulTest("domain_transfer_cancel.xml", "domain_transfer_cancel_response.xml");
   }
 
+  @Test
+  public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
+    persistResource(
+        Registrar.loadByClientId("NewRegistrar")
+            .asBuilder()
+            .setAllowedTlds(ImmutableSet.<String>of())
+            .build());
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE,
+        UserPrivileges.SUPERUSER,
+        readFile("domain_transfer_cancel_response.xml"));
+  }
+
   // NB: No need to test pending delete status since pending transfers will get cancelled upon
   // entering pending delete phase. So it's already handled in that test case.
 

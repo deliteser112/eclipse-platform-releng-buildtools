@@ -136,11 +136,10 @@ public final class DomainCheckFlow implements Flow {
       // This validation is moderately expensive, so cache the results.
       domains.put(targetId, domainName);
       String tld = domainName.parent().toString();
-      if (seenTlds.add(tld)) {
+      boolean tldFirstTimeSeen = seenTlds.add(tld);
+      if (tldFirstTimeSeen && !isSuperuser) {
         checkAllowedAccessToTld(clientId, tld);
-        if (!isSuperuser) {
-          verifyNotInPredelegation(Registry.get(tld), now);
-        }
+        verifyNotInPredelegation(Registry.get(tld), now);
       }
     }
     ImmutableMap<String, InternetDomainName> domainNames = domains.build();

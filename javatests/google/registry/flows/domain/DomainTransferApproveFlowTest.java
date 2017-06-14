@@ -423,6 +423,19 @@ public class DomainTransferApproveFlowTest
     doSuccessfulTest("tld", "domain_transfer_approve.xml", "domain_transfer_approve_response.xml");
   }
 
+  @Test
+  public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .asBuilder()
+            .setAllowedTlds(ImmutableSet.<String>of())
+            .build());
+    runFlowAssertResponse(
+        CommitMode.LIVE,
+        UserPrivileges.SUPERUSER,
+        readFile("domain_transfer_approve_response.xml"));
+  }
+
   // NB: No need to test pending delete status since pending transfers will get cancelled upon
   // entering pending delete phase. So it's already handled in that test case.
 

@@ -188,6 +188,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
       verifyResourceOwnership(clientId, existingDomain);
       verifyNotReserved(InternetDomainName.from(targetId), false);
       verifyPremiumNameIsNotBlocked(targetId, now, clientId);
+      checkAllowedAccessToTld(clientId, existingDomain.getTld());
     }
     // No other changes can be specified on a restore request.
     if (!command.noChangesPresent()) {
@@ -197,7 +198,6 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
     if (!existingDomain.getGracePeriodStatuses().contains(GracePeriodStatus.REDEMPTION)) {
       throw new DomainNotEligibleForRestoreException();
     }
-    checkAllowedAccessToTld(clientId, existingDomain.getTld());
     validateFeeChallenge(targetId, existingDomain.getTld(), now, feeUpdate, feesAndCredits);
   }
 

@@ -572,6 +572,19 @@ public class DomainTransferRequestFlowTest
   }
 
   @Test
+  public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
+    setupDomain("example", "tld");
+    persistResource(
+        Registrar.loadByClientId("NewRegistrar")
+            .asBuilder()
+            .setAllowedTlds(ImmutableSet.<String>of())
+            .build());
+    clock.advanceOneMilli();
+    // We don't verify the results; just check that the flow doesn't fail.
+    runTest("domain_transfer_request.xml", UserPrivileges.SUPERUSER);
+  }
+
+  @Test
   public void testSuccess_autorenewGraceActive_onlyAtTransferRequestTime() throws Exception {
     setupDomain("example", "tld");
     // Set the domain to have auto-renewed long enough ago that it is still in the autorenew grace

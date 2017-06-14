@@ -174,13 +174,13 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
       DomainApplication existingApplication, Update command, DateTime now) throws EppException {
     AddRemove add = command.getInnerAdd();
     AddRemove remove = command.getInnerRemove();
+    String tld = existingApplication.getTld();
     if (!isSuperuser) {
       verifyResourceOwnership(clientId, existingApplication);
       verifyClientUpdateNotProhibited(command, existingApplication);
       verifyAllStatusesAreClientSettable(union(add.getStatusValues(), remove.getStatusValues()));
+      checkAllowedAccessToTld(clientId, tld);
     }
-    String tld = existingApplication.getTld();
-    checkAllowedAccessToTld(clientId, tld);
     if (UPDATE_DISALLOWED_APPLICATION_STATUSES
         .contains(existingApplication.getApplicationStatus())) {
       throw new ApplicationStatusProhibitsUpdateException(

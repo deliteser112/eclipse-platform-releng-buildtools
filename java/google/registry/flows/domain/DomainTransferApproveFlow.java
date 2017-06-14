@@ -36,6 +36,7 @@ import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
@@ -83,6 +84,7 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
   @Inject Optional<AuthInfo> authInfo;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
+  @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainTransferApproveFlow() {}
@@ -102,7 +104,9 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
     verifyHasPendingTransfer(existingDomain);
     verifyResourceOwnership(clientId, existingDomain);
     String tld = existingDomain.getTld();
-    checkAllowedAccessToTld(clientId, tld);
+    if (!isSuperuser) {
+      checkAllowedAccessToTld(clientId, tld);
+    }
     TransferData transferData = existingDomain.getTransferData();
     String gainingClientId = transferData.getGainingClientId();
     HistoryEntry historyEntry = historyBuilder

@@ -89,9 +89,9 @@ public final class ClaimsCheckFlow implements Flow {
       String tld = domainName.parent().toString();
       // Only validate access to a TLD the first time it is encountered.
       if (seenTlds.add(tld)) {
-        checkAllowedAccessToTld(clientId, tld);
-        Registry registry = Registry.get(tld);
         if (!isSuperuser) {
+          checkAllowedAccessToTld(clientId, tld);
+          Registry registry = Registry.get(tld);
           DateTime now = clock.nowUtc();
           verifyNotInPredelegation(registry, now);
           if (registry.getTldState(now) == TldState.SUNRISE) {
