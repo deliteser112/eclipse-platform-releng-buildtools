@@ -90,8 +90,6 @@ public final class RequestHandlerTest {
   @Action(
     path = "/safe-sloth",
     method = {GET, POST},
-    xsrfProtection = true,
-    xsrfScope = "vampire",
     auth = @Auth(minimumLevel = AuthLevel.NONE)
   )
   public static class SafeSlothTask implements Runnable {
@@ -262,8 +260,7 @@ public final class RequestHandlerTest {
           }
         }),
         userService,
-        requestAuthenticator,
-        xsrfTokenManager);
+        requestAuthenticator);
     when(rsp.getWriter()).thenReturn(new PrintWriter(httpOutput));
   }
 
@@ -283,7 +280,10 @@ public final class RequestHandlerTest {
 
   @Test
   public void testHandleRequest_multipleMethodMappings_works() throws Exception {
+    userService.setUser(testUser,  false);
     when(req.getMethod()).thenReturn("POST");
+    when(req.getHeader("X-CSRF-Token"))
+        .thenReturn(xsrfTokenManager.generateToken(testUser.getEmail()));
     when(req.getRequestURI()).thenReturn("/bumblebee");
     handler.handleRequest(req, rsp);
     verify(bumblebeeTask).run();
@@ -299,7 +299,10 @@ public final class RequestHandlerTest {
 
   @Test
   public void testHandleRequest_taskHasAutoPrintOk_printsOk() throws Exception {
+    userService.setUser(testUser,  false);
     when(req.getMethod()).thenReturn("POST");
+    when(req.getHeader("X-CSRF-Token"))
+        .thenReturn(xsrfTokenManager.generateToken(testUser.getEmail()));
     when(req.getRequestURI()).thenReturn("/sloth");
     handler.handleRequest(req, rsp);
     verify(slothTask).run();
@@ -379,14 +382,6 @@ public final class RequestHandlerTest {
   }
 
   @Test
-  public void testXsrfProtection_noTokenProvided_returns403Forbidden() throws Exception {
-    when(req.getMethod()).thenReturn("POST");
-    when(req.getRequestURI()).thenReturn("/safe-sloth");
-    handler.handleRequest(req, rsp);
-    verify(rsp).sendError(403, "Invalid X-CSRF-Token");
-  }
-
-  @Test
   public void testXsrfProtection_validTokenProvided_runsAction() throws Exception {
     userService.setUser(testUser,  false);
     when(req.getMethod()).thenReturn("POST");
@@ -395,17 +390,6 @@ public final class RequestHandlerTest {
     when(req.getRequestURI()).thenReturn("/safe-sloth");
     handler.handleRequest(req, rsp);
     verify(safeSlothTask).run();
-  }
-
-  @Test
-  public void testXsrfProtection_tokenWithInvalidUserProvided_returns403() throws Exception {
-    userService.setUser(testUser,  false);
-    when(req.getMethod()).thenReturn("POST");
-    when(req.getHeader("X-CSRF-Token"))
-        .thenReturn(xsrfTokenManager.generateToken("wrong@example.com"));
-    when(req.getRequestURI()).thenReturn("/safe-sloth");
-    handler.handleRequest(req, rsp);
-    verify(rsp).sendError(403, "Invalid X-CSRF-Token");
   }
 
   @Test

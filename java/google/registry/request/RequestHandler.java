@@ -15,10 +15,8 @@
 package google.registry.request;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
-import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
@@ -28,7 +26,6 @@ import com.google.appengine.api.users.UserService;
 import com.google.common.base.Optional;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.RequestAuthenticator;
-import google.registry.security.XsrfTokenManager;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import java.io.IOException;
@@ -61,9 +58,6 @@ import javax.servlet.http.HttpServletResponse;
  *
  * <h3>Security Features</h3>
  *
- * <p>XSRF protection is built into this class. It can be enabled or disabled on individual actions
- * using {@link Action#xsrfProtection() xsrfProtection} setting.
- *
  * <p>This class also enforces the {@link Action#requireLogin() requireLogin} setting.
  *
  * @param <C> request component type
@@ -76,7 +70,6 @@ public class RequestHandler<C> {
   private final Provider<? extends RequestComponentBuilder<C>> requestComponentBuilderProvider;
   private final UserService userService;
   private final RequestAuthenticator requestAuthenticator;
-  private final XsrfTokenManager xsrfTokenManager;
 
   /**
    * Constructor for subclasses to create a new request handler for a specific request component.
@@ -90,15 +83,12 @@ public class RequestHandler<C> {
    *     request-derived modules provided by this class)
    * @param userService an instance of the App Engine UserService API
    * @param requestAuthenticator an instance of the {@link RequestAuthenticator} class
-   * @param xsrfTokenManager an instance of the {@link XsrfTokenManager} class
    */
   protected RequestHandler(
       Provider<? extends RequestComponentBuilder<C>> requestComponentBuilderProvider,
       UserService userService,
-      RequestAuthenticator requestAuthenticator,
-      XsrfTokenManager xsrfTokenManager) {
-    this(null, requestComponentBuilderProvider, userService, requestAuthenticator,
-        xsrfTokenManager);
+      RequestAuthenticator requestAuthenticator) {
+    this(null, requestComponentBuilderProvider, userService, requestAuthenticator);
   }
 
   /** Creates a new RequestHandler with an explicit component class for test purposes. */
@@ -106,22 +96,19 @@ public class RequestHandler<C> {
       Class<C> component,
       Provider<? extends RequestComponentBuilder<C>> requestComponentBuilderProvider,
       UserService userService,
-      RequestAuthenticator requestAuthenticator,
-      XsrfTokenManager xsrfTokenManager) {
+      RequestAuthenticator requestAuthenticator) {
     return new RequestHandler<>(
         checkNotNull(component),
         requestComponentBuilderProvider,
         userService,
-        requestAuthenticator,
-        xsrfTokenManager);
+        requestAuthenticator);
   }
 
   private RequestHandler(
       @Nullable Class<C> component,
       Provider<? extends RequestComponentBuilder<C>> requestComponentBuilderProvider,
       UserService userService,
-      RequestAuthenticator requestAuthenticator,
-      XsrfTokenManager xsrfTokenManager) {
+      RequestAuthenticator requestAuthenticator) {
     // If the component class isn't explicitly provided, infer it from the class's own typing.
     // This is safe only for use by subclasses of RequestHandler where the generic parameter is
     // preserved at runtime, so only expose that option via the protected constructor.
@@ -130,7 +117,6 @@ public class RequestHandler<C> {
     this.requestComponentBuilderProvider = checkNotNull(requestComponentBuilderProvider);
     this.userService = checkNotNull(userService);
     this.requestAuthenticator = checkNotNull(requestAuthenticator);
-    this.xsrfTokenManager = checkNotNull(xsrfTokenManager);
   }
 
   /** Runs the appropriate action for a servlet request. */
@@ -161,11 +147,6 @@ public class RequestHandler<C> {
       logger.info("not logged in");
       rsp.setStatus(SC_MOVED_TEMPORARILY);
       rsp.setHeader(LOCATION, userService.createLoginURL(req.getRequestURI()));
-      return;
-    }
-    if (route.get().shouldXsrfProtect(method)
-        && !xsrfTokenManager.validateToken(nullToEmpty(req.getHeader(X_CSRF_TOKEN)))) {
-      rsp.sendError(SC_FORBIDDEN, "Invalid " + X_CSRF_TOKEN);
       return;
     }
     Optional<AuthResult> authResult =

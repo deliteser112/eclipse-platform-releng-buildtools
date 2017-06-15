@@ -83,8 +83,6 @@ import javax.inject.Inject;
 @Action(
   path = VerifyOteAction.PATH,
   method = Action.Method.POST,
-  xsrfProtection = true,
-  xsrfScope = "admin",
   auth =
       @Auth(
         methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},

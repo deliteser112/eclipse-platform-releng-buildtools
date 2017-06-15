@@ -95,8 +95,6 @@ import org.joda.money.Money;
 @Action(
   path = "/registrar-payment",
   method = Action.Method.POST,
-  xsrfProtection = true,
-  xsrfScope = "console",
   requireLogin = true,
   auth =
       @Auth(

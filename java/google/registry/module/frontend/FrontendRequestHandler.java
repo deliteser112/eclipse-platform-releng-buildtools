@@ -17,7 +17,6 @@ package google.registry.module.frontend;
 import com.google.appengine.api.users.UserService;
 import google.registry.request.RequestHandler;
 import google.registry.request.auth.RequestAuthenticator;
-import google.registry.security.XsrfTokenManager;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
@@ -27,8 +26,7 @@ public class FrontendRequestHandler extends RequestHandler<FrontendRequestCompon
   @Inject FrontendRequestHandler(
       Provider<FrontendRequestComponent.Builder> componentBuilderProvider,
       UserService userService,
-      RequestAuthenticator requestAuthenticator,
-      XsrfTokenManager xsrfTokenManager) {
-    super(componentBuilderProvider, userService, requestAuthenticator, xsrfTokenManager);
+      RequestAuthenticator requestAuthenticator) {
+    super(componentBuilderProvider, userService, requestAuthenticator);
   }
 }

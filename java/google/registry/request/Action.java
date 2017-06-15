@@ -46,13 +46,6 @@ public @interface Action {
    */
   boolean automaticallyPrintOk() default false;
 
-  // TODO(b/26304887): Flip default to true.
-  /** Enables XSRF protection on all HTTP methods except GET and HEAD. */
-  boolean xsrfProtection() default false;
-
-  /** Arbitrary value included in the XSRF token hash. */
-  String xsrfScope() default "app";
-
   /**
    * Require user be logged-in or 302 redirect to the Google auth login page.
    *

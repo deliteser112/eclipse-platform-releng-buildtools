@@ -42,7 +42,6 @@ import javax.servlet.http.HttpServletRequest;
 @Action(
   path = ConsoleUiAction.PATH,
   requireLogin = true,
-  xsrfProtection = false,
   auth =
       @Auth(
         methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},

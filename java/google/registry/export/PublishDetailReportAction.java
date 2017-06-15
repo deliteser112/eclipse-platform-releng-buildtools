@@ -41,15 +41,15 @@ import javax.inject.Inject;
 
 /** Publish a single registrar detail report from GCS to Drive. */
 @Action(
-    path = PublishDetailReportAction.PATH,
-    method = Action.Method.POST,
-    auth = @Auth(
+  path = PublishDetailReportAction.PATH,
+  method = Action.Method.POST,
+  auth =
+      @Auth(
         methods = {AuthMethod.INTERNAL, Auth.AuthMethod.API},
         minimumLevel = AuthLevel.APP,
         userPolicy = UserPolicy.ADMIN
-    ),
-    xsrfProtection = true,
-    xsrfScope = "admin")
+      )
+)
 public final class PublishDetailReportAction implements Runnable, JsonAction {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

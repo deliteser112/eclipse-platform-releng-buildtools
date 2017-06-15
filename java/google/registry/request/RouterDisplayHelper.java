@@ -38,8 +38,6 @@ import java.util.Map;
  * <li>the simple name of the action class
  * <li>the allowable HTTP methods
  * <li>whether to automatically print "ok" in the response
- * <li>whether XSRF protection is enabled
- * <li>the XSRF scope
  * <li>whether login is required
  * <li>the allowable authentication methods
  * <li>the minimum authentication level
@@ -53,12 +51,11 @@ public class RouterDisplayHelper {
   private static final String PATH = "path";
   private static final String CLASS = "class";
   private static final String METHODS = "methods";
-  private static final String XSRF_SCOPE = "xsrfScope";
   private static final String AUTH_METHODS = "authMethods";
   private static final String MINIMUM_LEVEL = "minLevel";
 
   private static final String FORMAT =
-      "%%-%ds %%-%ds %%-%ds %%-2s %%-4s %%-%ds %%-5s %%-%ds %%-%ds %%s";
+      "%%-%ds %%-%ds %%-%ds %%-2s %%-5s %%-%ds %%-%ds %%s";
 
   /** Returns a string representation of the routing map in the specified component. */
   public static String extractHumanReadableRoutesFromComponent(Class<?> componentClass) {
@@ -71,7 +68,6 @@ public class RouterDisplayHelper {
         columnWidths.get(PATH),
         columnWidths.get(CLASS),
         columnWidths.get(METHODS),
-        columnWidths.get(XSRF_SCOPE),
         columnWidths.get(AUTH_METHODS),
         columnWidths.get(MINIMUM_LEVEL));
   }
@@ -83,8 +79,6 @@ public class RouterDisplayHelper {
         "CLASS",
         "METHODS",
         "OK",
-        "XSRF",
-        "SCOPE",
         "LOGIN",
         "AUTH_METHODS",
         "MIN",
@@ -98,8 +92,6 @@ public class RouterDisplayHelper {
         route.actionClass().getSimpleName(),
         Joiner.on(",").join(route.action().method()),
         route.action().automaticallyPrintOk() ? "y" : "n",
-        route.action().xsrfProtection() ? "y" : "n",
-        route.action().xsrfScope(),
         route.action().requireLogin() ? "y" : "n",
         Joiner.on(",").join(route.action().auth().methods()),
         route.action().auth().minimumLevel(),
@@ -112,7 +104,6 @@ public class RouterDisplayHelper {
     int pathWidth = 4;
     int classWidth = 5;
     int methodsWidth = 7;
-    int xsrfScopeWidth = 5;
     int authMethodsWidth = 12;
     int minLevelWidth = 3;
     for (Route route : routes) {
@@ -131,10 +122,6 @@ public class RouterDisplayHelper {
       if (len > methodsWidth) {
         methodsWidth = len;
       }
-      len = route.action().xsrfScope().length();
-      if (len > xsrfScopeWidth) {
-        xsrfScopeWidth = len;
-      }
       len = Joiner.on(",").join(route.action().auth().methods()).length();
       if (len > authMethodsWidth) {
         authMethodsWidth = len;
@@ -150,7 +137,6 @@ public class RouterDisplayHelper {
                 .put(PATH, pathWidth)
                 .put(CLASS, classWidth)
                 .put(METHODS, methodsWidth)
-                .put(XSRF_SCOPE, xsrfScopeWidth)
                 .put(AUTH_METHODS, authMethodsWidth)
                 .put(MINIMUM_LEVEL, minLevelWidth)
                 .build());

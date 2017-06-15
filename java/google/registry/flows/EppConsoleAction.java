@@ -26,8 +26,6 @@ import javax.servlet.http.HttpSession;
 /** Runs EPP from the console and requires GAE user authentication. */
 @Action(
   path = "/registrar-xhr",
-  xsrfProtection = true,
-  xsrfScope = EppConsoleAction.XSRF_SCOPE,
   method = Method.POST,
   auth =
       @Auth(
@@ -37,8 +35,6 @@ import javax.servlet.http.HttpSession;
       )
 )
 public class EppConsoleAction implements Runnable {
-
-  public static final String XSRF_SCOPE = "console";
 
   @Inject @Payload byte[] inputXmlBytes;
   @Inject HttpSession session;

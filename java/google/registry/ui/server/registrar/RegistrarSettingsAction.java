@@ -64,8 +64,6 @@ import javax.servlet.http.HttpServletRequest;
 @Action(
   path = RegistrarSettingsAction.PATH,
   requireLogin = true,
-  xsrfProtection = true,
-  xsrfScope = "console",
   method = Action.Method.POST,
   auth =
       @Auth(

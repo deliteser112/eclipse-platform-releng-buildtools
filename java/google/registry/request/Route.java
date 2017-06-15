@@ -42,9 +42,4 @@ abstract class Route {
     }
     return false;
   }
-
-  boolean shouldXsrfProtect(Action.Method requestMethod) {
-    return action().xsrfProtection()
-        && (requestMethod != Action.Method.GET) && (requestMethod != Action.Method.HEAD);
-  }
 }

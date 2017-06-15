@@ -70,8 +70,6 @@ import org.joda.money.CurrencyUnit;
 @Action(
   path = "/registrar-payment-setup",
   method = Action.Method.POST,
-  xsrfProtection = true,
-  xsrfScope = "console",
   requireLogin = true,
   auth =
       @Auth(

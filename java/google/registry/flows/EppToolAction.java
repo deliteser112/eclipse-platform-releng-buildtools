@@ -32,8 +32,6 @@ import javax.servlet.http.HttpServletRequest;
 /** Runs EPP commands directly without logging in, verifying an XSRF token from the tool. */
 @Action(
   path = "/_dr/epptool",
-  xsrfProtection = true,
-  xsrfScope = "admin",
   method = Method.POST,
   auth =
       @Auth(
