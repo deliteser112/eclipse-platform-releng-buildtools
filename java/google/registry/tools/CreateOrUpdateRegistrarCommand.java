@@ -47,6 +47,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -182,7 +183,8 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
     description =
         "Registrar Billing Account key-value pairs (formatted as key=value[,key=value...]), "
             + "where key is a currency unit (USD, JPY, etc) and value is the registrar's billing "
-            + "account id for that currency.",
+            + "account id for that currency. During update, only the pairs that need updating need "
+            + "to be provided.",
     converter = CurrencyUnitToStringMap.class,
     validateWith = CurrencyUnitToStringMap.class
   )
@@ -354,7 +356,12 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
         builder.setBillingIdentifier(billingId.orNull());
       }
       if (billingAccountMap != null) {
-        builder.setBillingAccountMap(billingAccountMap);
+        LinkedHashMap<CurrencyUnit, String> newBillingAccountMap = new LinkedHashMap<>();
+        if (oldRegistrar != null && oldRegistrar.getBillingAccountMap() != null) {
+          newBillingAccountMap.putAll(oldRegistrar.getBillingAccountMap());
+        }
+        newBillingAccountMap.putAll(billingAccountMap);
+        builder.setBillingAccountMap(newBillingAccountMap);
       }
       if (billingMethod != null) {
         if (oldRegistrar != null && !billingMethod.equals(oldRegistrar.getBillingMethod())) {

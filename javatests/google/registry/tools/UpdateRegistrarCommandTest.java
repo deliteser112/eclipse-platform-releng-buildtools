@@ -26,6 +26,7 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.billing.RegistrarBillingEntry;
 import google.registry.model.registrar.Registrar;
@@ -225,6 +226,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
         "NewRegistrar");
   }
 
+  @Test
   public void testSuccess_billingAccountMap_onlyAppliesToRealRegistrar() throws Exception {
     createTlds("foo");
     assertThat(loadByClientId("NewRegistrar").getBillingAccountMap()).isEmpty();
@@ -235,6 +237,20 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
         "NewRegistrar");
     assertThat(loadByClientId("NewRegistrar").getBillingAccountMap())
         .containsExactly(CurrencyUnit.JPY, "789xyz");
+  }
+
+  @Test
+  public void testSuccess_billingAccountMap_partialUpdate() throws Exception {
+    createTlds("foo");
+    persistResource(
+        loadByClientId("NewRegistrar")
+            .asBuilder()
+            .setBillingAccountMap(
+                ImmutableMap.of(CurrencyUnit.USD, "abc123", CurrencyUnit.JPY, "789xyz"))
+            .build());
+    runCommand("--billing_account_map=JPY=123xyz", "--allowed_tlds=foo", "--force", "NewRegistrar");
+    assertThat(loadByClientId("NewRegistrar").getBillingAccountMap())
+        .containsExactly(CurrencyUnit.JPY, "123xyz", CurrencyUnit.USD, "abc123");
   }
 
   @Test

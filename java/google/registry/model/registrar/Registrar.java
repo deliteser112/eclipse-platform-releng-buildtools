@@ -698,8 +698,8 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
         ImmutableMap.Builder<CurrencyUnit, BillingAccountEntry> billingAccountMapBuilder =
             new ImmutableMap.Builder<>();
         for (Map.Entry<CurrencyUnit, String> entry : billingAccountMap.entrySet()) {
-          CurrencyUnit key = entry.getKey();
-          billingAccountMapBuilder.put(key, new BillingAccountEntry(key, entry.getValue()));
+          billingAccountMapBuilder.put(
+              entry.getKey(), new BillingAccountEntry(entry.getKey(), entry.getValue()));
         }
         getInstance().billingAccountMap = billingAccountMapBuilder.build();
       }
