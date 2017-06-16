@@ -15,8 +15,8 @@
 package google.registry.tools;
 
 import com.google.common.collect.ImmutableMap;
+import google.registry.tools.javascrap.FixDomainTransferDataCommand;
 import google.registry.tools.javascrap.PopulateNullRegistrarFieldsCommand;
-import google.registry.tools.javascrap.RemoveDomainTransferDataCommand;
 import google.registry.tools.javascrap.RemoveIpAddressCommand;
 
 /** Container class to create and run remote commands against a Datastore instance. */
@@ -61,6 +61,7 @@ public final class RegistryTool {
           .put("domain_check_fee", DomainCheckFeeCommand.class)
           .put("encrypt_escrow_deposit", EncryptEscrowDepositCommand.class)
           .put("execute_epp", ExecuteEppCommand.class)
+          .put("fix_domain_transfer_data", FixDomainTransferDataCommand.class)
           .put("generate_applications_report", GenerateApplicationsReportCommand.class)
           .put("generate_auction_data", GenerateAuctionDataCommand.class)
           .put("generate_dns_report", GenerateDnsReportCommand.class)
@@ -103,7 +104,6 @@ public final class RegistryTool {
           .put("publish_detail_report", PublishDetailReportCommand.class)
           .put("registrar_activity_report", RegistrarActivityReportCommand.class)
           .put("registrar_contact", RegistrarContactCommand.class)
-          .put("remove_domain_transfer_data", RemoveDomainTransferDataCommand.class)
           .put("remove_ip_address", RemoveIpAddressCommand.class)
           .put("resave_entities", ResaveEntitiesCommand.class)
           .put("resave_environment_entities", ResaveEnvironmentEntitiesCommand.class)
