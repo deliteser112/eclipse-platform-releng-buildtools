@@ -16,8 +16,8 @@
 
 The IcannReportQueryBuilder class contains logic for constructing the
 multi-part BigQuery queries used to produce ICANN monthly reports.  These
-queries are fairly complicated; see the design doc published to the
-domain-registry-users@googlegroups.com for an overview.
+queries are fairly complicated; see the design doc published to
+nomulus-discuss@googlegroups.com for an overview.
 
 Currently, this class only supports building the query for activity
 reports (not transaction reports).
@@ -73,7 +73,8 @@ class IcannReportQueryBuilder(object):
         self._MakeActivityOperationalRegistrarsQuery(next_yearmonth),
         self._MakeActivityAllRampedUpRegistrarsQuery(next_yearmonth),
         self._MakeActivityAllRegistrarsQuery(registrar_count),
-        self._MakeActivityWhoisQuery(logs_query), self._MakeActivityDnsQuery(),
+        self._MakeActivityWhoisQuery(logs_query),
+        self._MakeActivityDnsQuery(),
         self._MakeActivityEppSrsMetricsQuery(epp_xml_logs_query)
     ]
     return _StripTrailingWhitespaceFromLines(self._MakeActivityReportQuery(
@@ -107,17 +108,19 @@ class IcannReportQueryBuilder(object):
     query = r"""
       -- Query EPP request logs and extract the clientId and raw EPP XML.
       SELECT
-        REGEXP_EXTRACT(logMessage, r'^%(log_signature)s\n\t.+\n\t(.+)\n') AS clientId,
-        REGEXP_EXTRACT(logMessage, r'^%(log_signature)s\n\t.+\n\t.+\n\t.+\n\t((?s).+)$') AS xml,
+        REGEXP_EXTRACT(logMessage, r'^%(log_signature)s\n\t.*\n\t(.*)\n') AS clientId,
+        REGEXP_EXTRACT(logMessage, r'^%(log_signature)s\n\t.*\n\t.*\n\t.*\n\t((?s).*)$') AS xml,
       FROM (
         -- BEGIN LOGS QUERY --
         %(logs_query)s
         -- END LOGS QUERY --
-       )
+      )
       WHERE
         -- EPP endpoints from the proxy, regtool, and console respectively.
-        requestPath IN ('/_dr/epp', '/_dr/epptool', '/registrar-xhr')
+        (requestPath IN ('/_dr/epp', '/_dr/epptool', '/registrar-xhr')
+          OR LEFT(requestPath, 7) = '/check?')
         AND REGEXP_MATCH(logMessage, r'^%(log_signature)s')
+        AND NOT logMessage CONTAINS 'DRY_RUN'
     """
     return query % {'logs_query': logs_query,
                     'log_signature': FLOWRUNNER_LOG_SIGNATURE_PATTERN}
@@ -292,7 +295,7 @@ class IcannReportQueryBuilder(object):
         -- BEGIN LOGS QUERY --
         %(logs_query)s
         -- END LOGS QUERY --
-       )
+      )
       GROUP BY metricName
       HAVING metricName IS NOT NULL
     """
@@ -318,8 +321,9 @@ class IcannReportQueryBuilder(object):
     # pylint: disable=missing-docstring
     query = r"""
       -- Query EPP XML messages and calculate SRS metrics.
+      SELECT * FROM (
       SELECT
-        domainTld AS tld,
+        LOWER(domainTld) AS tld,
         -- SRS metric names follow a set pattern corresponding to the EPP
         -- protocol elements.  First we extract the 'inner' command element in
         -- EPP, e.g. <domain:create>, which is the resource type followed by
@@ -376,7 +380,7 @@ class IcannReportQueryBuilder(object):
         REGEXP_EXTRACT(xml, '(?s)<command>.*?<([a-z]+)') AS commandType,
         REGEXP_EXTRACT(xml, '(?s)<command>.*?<[a-z]+ op="(.+?)"') AS commandOpArg,
         REGEXP_EXTRACT(xml, '(?s)<command>.*?<.+?>.*?<([a-z]+:[a-z]+)') AS innerCommand,
-        REGEXP_EXTRACT(xml, '<domain:name.*?>[^.]+[.](.+)</domain:name>') AS domainTld,
+        REGEXP_EXTRACT(xml, '<domain:name.*?>[^.]*[.](.+)</domain:name>') AS domainTld,
         REGEXP_EXTRACT(xml, '<rgp:restore op="(.+?)"/>') AS restoreOp,
         xml,
       FROM (
@@ -391,6 +395,10 @@ class IcannReportQueryBuilder(object):
       -- excludes login, logout, and poll.
       WHERE commandType IN ('check', 'create', 'delete', 'info', 'renew', 'transfer', 'update')
       GROUP BY tld, metricName
+      )
+      -- Exclude domain-related EPP requests with no parsed TLD, otherwise
+      -- a NULL tld will make them apply to all TLDs like contact/host requests.
+      WHERE NOT (metricName CONTAINS 'srs-dom' AND tld IS NULL)
     """
     return query % {'epp_xml_logs_query': epp_xml_logs_query}
 

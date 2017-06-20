@@ -156,7 +156,7 @@
           DATE_ADD(TIMESTAMP('2016-07-01'), -1, 'SECOND'))
 
         -- END LOGS QUERY --
-       )
+      )
       GROUP BY metricName
       HAVING metricName IS NOT NULL
 
@@ -176,8 +176,9 @@
 (
 
       -- Query EPP XML messages and calculate SRS metrics.
+      SELECT * FROM (
       SELECT
-        domainTld AS tld,
+        LOWER(domainTld) AS tld,
         -- SRS metric names follow a set pattern corresponding to the EPP
         -- protocol elements.  First we extract the 'inner' command element in
         -- EPP, e.g. <domain:create>, which is the resource type followed by
@@ -234,7 +235,7 @@
         REGEXP_EXTRACT(xml, '(?s)<command>.*?<([a-z]+)') AS commandType,
         REGEXP_EXTRACT(xml, '(?s)<command>.*?<[a-z]+ op="(.+?)"') AS commandOpArg,
         REGEXP_EXTRACT(xml, '(?s)<command>.*?<.+?>.*?<([a-z]+:[a-z]+)') AS innerCommand,
-        REGEXP_EXTRACT(xml, '<domain:name.*?>[^.]+[.](.+)</domain:name>') AS domainTld,
+        REGEXP_EXTRACT(xml, '<domain:name.*?>[^.]*[.](.+)</domain:name>') AS domainTld,
         REGEXP_EXTRACT(xml, '<rgp:restore op="(.+?)"/>') AS restoreOp,
         xml,
       FROM (
@@ -242,8 +243,8 @@
 
       -- Query EPP request logs and extract the clientId and raw EPP XML.
       SELECT
-        REGEXP_EXTRACT(logMessage, r'^(?:google.registry.flows.FlowRunner run|com.google.domain.registry.flows.FlowRunner run|com.google.domain.registry.util.FormattingLogger log|google.registry.util.FormattingLogger log): EPP Command\n\t.+\n\t(.+)\n') AS clientId,
-        REGEXP_EXTRACT(logMessage, r'^(?:google.registry.flows.FlowRunner run|com.google.domain.registry.flows.FlowRunner run|com.google.domain.registry.util.FormattingLogger log|google.registry.util.FormattingLogger log): EPP Command\n\t.+\n\t.+\n\t.+\n\t((?s).+)$') AS xml,
+        REGEXP_EXTRACT(logMessage, r'^(?:google.registry.flows.FlowRunner run|com.google.domain.registry.flows.FlowRunner run|com.google.domain.registry.util.FormattingLogger log|google.registry.util.FormattingLogger log): EPP Command\n\t.*\n\t(.*)\n') AS clientId,
+        REGEXP_EXTRACT(logMessage, r'^(?:google.registry.flows.FlowRunner run|com.google.domain.registry.flows.FlowRunner run|com.google.domain.registry.util.FormattingLogger log|google.registry.util.FormattingLogger log): EPP Command\n\t.*\n\t.*\n\t.*\n\t((?s).*)$') AS xml,
       FROM (
         -- BEGIN LOGS QUERY --
 
@@ -260,11 +261,13 @@
           DATE_ADD(TIMESTAMP('2016-07-01'), -1, 'SECOND'))
 
         -- END LOGS QUERY --
-       )
+      )
       WHERE
         -- EPP endpoints from the proxy, regtool, and console respectively.
-        requestPath IN ('/_dr/epp', '/_dr/epptool', '/registrar-xhr')
+        (requestPath IN ('/_dr/epp', '/_dr/epptool', '/registrar-xhr')
+          OR LEFT(requestPath, 7) = '/check?')
         AND REGEXP_MATCH(logMessage, r'^(?:google.registry.flows.FlowRunner run|com.google.domain.registry.flows.FlowRunner run|com.google.domain.registry.util.FormattingLogger log|google.registry.util.FormattingLogger log): EPP Command')
+        AND NOT logMessage CONTAINS 'DRY_RUN'
 
         -- END EPP XML LOGS QUERY --
        )
@@ -275,6 +278,10 @@
       -- excludes login, logout, and poll.
       WHERE commandType IN ('check', 'create', 'delete', 'info', 'renew', 'transfer', 'update')
       GROUP BY tld, metricName
+      )
+      -- Exclude domain-related EPP requests with no parsed TLD, otherwise
+      -- a NULL tld will make them apply to all TLDs like contact/host requests.
+      WHERE NOT (metricName CONTAINS 'srs-dom' AND tld IS NULL)
 
 )
           -- END JOINED DATA SOURCES --
