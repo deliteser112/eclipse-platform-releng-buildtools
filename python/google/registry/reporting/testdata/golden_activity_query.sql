@@ -175,78 +175,39 @@
 ),
 (
 
-      -- Query EPP XML messages and calculate SRS metrics.
-      SELECT * FROM (
+      -- Query FlowReporter JSON log messages and calculate SRS metrics.
       SELECT
-        LOWER(domainTld) AS tld,
-        -- SRS metric names follow a set pattern corresponding to the EPP
-        -- protocol elements.  First we extract the 'inner' command element in
-        -- EPP, e.g. <domain:create>, which is the resource type followed by
-        -- the standard EPP command type.  To get the metric name, we add the
-        -- prefix 'srs-', abbreviate 'domain' as 'dom' and 'contact' as 'cont',
-        -- and replace ':' with '-' to produce 'srs-dom-create'.
-        --
-        -- Transfers have subcommands indicated by an 'op' attribute, which we
-        -- extract and add as an extra suffix for transfer commands, so e.g.
-        -- 'srs-cont-transfer-approve'.  Domain restores are domain updates
-        -- with a special <rgp:restore> element; if present, the command counts
-        -- under the srs-dom-rgp-restore-{request,report} metric (depending on
-        -- the value of the 'op' attribute) instead of srs-dom-update.
-        CONCAT(
-          'srs-',
-          REPLACE(REPLACE(REPLACE(
-            CASE
-              WHEN NOT restoreOp IS NULL THEN CONCAT('domain-rgp-restore-', restoreOp)
-              WHEN commandType = 'transfer' THEN CONCAT(innerCommand, '-', commandOpArg)
-              ELSE innerCommand
-            END,
-          ':', '-'), 'domain', 'dom'), 'contact', 'cont')
-        ) AS metricName,
-        INTEGER(COUNT(xml)) AS count,
-      FROM (
-      SELECT
-        -- Extract salient bits of the EPP XML using regexes.  This is fairly
-        -- safe since the EPP gets schema-validated and pretty-printed before
-        -- getting logged, and so it looks something like this:
-        --
-        --   <command>
-        --     <transfer op="request">
-        --       <domain:transfer ...
-        --
-        -- From that, we parse out 'transfer' as the command type from the name
-        -- of the first element after <command>, 'request' as the value of the
-        -- 'op' attribute of that element (if any), and 'domain:transfer' as
-        -- the inner command from the name of the subsequent element.
-        --
-        -- Domain commands all have at least one <domain:name> element (more
-        -- than one for domain checks, but we just count the first), from which
-        -- we extract the domain TLD as everything after the first dot in the
-        -- element value.  This won't work if the client mistakenly sends a
-        -- hostname (e.g. 'www.foo.example') as the domain name, but we prefer
-        -- this over taking everything after the last dot so that multipart
-        -- TLDs like 'co.uk' can be supported.
-        --
-        -- Domain restores are indicated by an <rgp:restore> element, from
-        -- which we extract the value of the 'op' attribute.
-        --
-        -- TODO(b/20725722): preprocess the XML in FlowRunner so we don't need
-        -- regex parsing of XML here (http://stackoverflow.com/a/1732454).
-        --
-        REGEXP_EXTRACT(xml, '(?s)<command>.*?<([a-z]+)') AS commandType,
-        REGEXP_EXTRACT(xml, '(?s)<command>.*?<[a-z]+ op="(.+?)"') AS commandOpArg,
-        REGEXP_EXTRACT(xml, '(?s)<command>.*?<.+?>.*?<([a-z]+:[a-z]+)') AS innerCommand,
-        REGEXP_EXTRACT(xml, '<domain:name.*?>[^.]*[.](.+)</domain:name>') AS domainTld,
-        REGEXP_EXTRACT(xml, '<rgp:restore op="(.+?)"/>') AS restoreOp,
-        xml,
-      FROM (
-        -- BEGIN EPP XML LOGS QUERY --
-
-      -- Query EPP request logs and extract the clientId and raw EPP XML.
-      SELECT
-        REGEXP_EXTRACT(logMessage, r'^(?:google.registry.flows.FlowRunner run|com.google.domain.registry.flows.FlowRunner run|com.google.domain.registry.util.FormattingLogger log|google.registry.util.FormattingLogger log): EPP Command\n\t.*\n\t(.*)\n') AS clientId,
-        REGEXP_EXTRACT(logMessage, r'^(?:google.registry.flows.FlowRunner run|com.google.domain.registry.flows.FlowRunner run|com.google.domain.registry.util.FormattingLogger log|google.registry.util.FormattingLogger log): EPP Command\n\t.*\n\t.*\n\t.*\n\t((?s).*)$') AS xml,
-      FROM (
-        -- BEGIN LOGS QUERY --
+        tld,
+        activityReportField AS metricName,
+        -- Manual INTEGER cast to work around a BigQuery bug (b/14560012).
+        INTEGER(COUNT(*)) AS count,
+      FROM
+        -- Flatten the "tld" column (repeated) so that domain checks for names
+        -- across multiple TLDs are counted towards each checked TLD as though
+        -- there were one copy of this row per TLD (the effect of flattening).
+        FLATTEN((
+          SELECT
+            -- Use some ugly regex hackery to convert JSON list of strings into
+            -- repeated string values, since there's no built-in for this.
+            -- TODO(b/20829992): replace with "JSON.parse()" inside a JS UDF
+            --   once we can use GoogleSQL; example in b/37629674#comment2.
+            REGEXP_EXTRACT(
+              SPLIT(
+                REGEXP_EXTRACT(
+                  JSON_EXTRACT(json, '$.tlds'),
+                  r'^\[(.*)\]$')),
+              '^"(.*)"$') AS tld,
+            -- TODO(b/XXX): remove rawTlds after June 2017 (see below).
+            JSON_EXTRACT_SCALAR(json, '$.resourceType') AS resourceType,
+            JSON_EXTRACT_SCALAR(json, '$.icannActivityReportField')
+              AS activityReportField,
+          FROM (
+            SELECT
+              -- Extract JSON payload following log signature.
+              REGEXP_EXTRACT(logMessage, r'FLOW-LOG-SIGNATURE-METADATA: (.*)\n?$')
+                AS json,
+            FROM (
+              -- BEGIN LOGS QUERY --
 
       -- Query AppEngine request logs for the report month.
       SELECT
@@ -260,28 +221,19 @@
           -- timestamp representing the start of the next month.
           DATE_ADD(TIMESTAMP('2016-07-01'), -1, 'SECOND'))
 
-        -- END LOGS QUERY --
-      )
+              -- END LOGS QUERY --
+            )
+            WHERE logMessage CONTAINS 'FLOW-LOG-SIGNATURE-METADATA'
+          )
+        ),
+        -- Second argument to flatten (see above).
+        tld)
+      -- Exclude cases that can't be tabulated correctly - activity report field
+      -- is null/empty, or the TLD is null/empty even though it's a domain flow.
       WHERE
-        -- EPP endpoints from the proxy, regtool, and console respectively.
-        (requestPath IN ('/_dr/epp', '/_dr/epptool', '/registrar-xhr')
-          OR LEFT(requestPath, 7) = '/check?')
-        AND REGEXP_MATCH(logMessage, r'^(?:google.registry.flows.FlowRunner run|com.google.domain.registry.flows.FlowRunner run|com.google.domain.registry.util.FormattingLogger log|google.registry.util.FormattingLogger log): EPP Command')
-        AND NOT logMessage CONTAINS 'DRY_RUN'
-
-        -- END EPP XML LOGS QUERY --
-       )
-      -- Filter to just XML that contains a <command> element (no <hello>s).
-      WHERE xml CONTAINS '<command>'
-      )
-      -- Whitelist of EPP command types that we care about for metrics;
-      -- excludes login, logout, and poll.
-      WHERE commandType IN ('check', 'create', 'delete', 'info', 'renew', 'transfer', 'update')
+        activityReportField != '' AND (tld != '' OR resourceType != 'domain')
       GROUP BY tld, metricName
-      )
-      -- Exclude domain-related EPP requests with no parsed TLD, otherwise
-      -- a NULL tld will make them apply to all TLDs like contact/host requests.
-      WHERE NOT (metricName CONTAINS 'srs-dom' AND tld IS NULL)
+      ORDER BY tld, metricName
 
 )
           -- END JOINED DATA SOURCES --
