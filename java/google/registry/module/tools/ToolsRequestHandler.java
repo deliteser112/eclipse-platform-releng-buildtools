@@ -14,7 +14,6 @@
 
 package google.registry.module.tools;
 
-import com.google.appengine.api.users.UserService;
 import google.registry.request.RequestHandler;
 import google.registry.request.auth.RequestAuthenticator;
 import javax.inject.Inject;
@@ -25,8 +24,7 @@ public class ToolsRequestHandler extends RequestHandler<ToolsRequestComponent> {
 
   @Inject ToolsRequestHandler(
       Provider<ToolsRequestComponent.Builder> componentBuilderProvider,
-      UserService userService,
       RequestAuthenticator requestAuthenticator) {
-    super(componentBuilderProvider, userService, requestAuthenticator);
+    super(componentBuilderProvider, requestAuthenticator);
   }
 }

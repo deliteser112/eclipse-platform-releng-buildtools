@@ -97,17 +97,6 @@ public final class RequestHandlerTest {
     public void run() {}
   }
 
-  @Action(
-    path = "/users-only",
-    method = GET,
-    requireLogin = true,
-    auth = @Auth(minimumLevel = AuthLevel.NONE)
-  )
-  public static class UsersOnlyAction implements Runnable {
-    @Override
-    public void run() {}
-  }
-
   @Action(path = "/fail", auth = @Auth(minimumLevel = AuthLevel.NONE))
   public static final class FailTask implements Runnable {
     @Override
@@ -189,10 +178,6 @@ public final class RequestHandlerTest {
       return safeSlothTask;
     }
 
-    public UsersOnlyAction usersOnlyAction() {
-      return usersOnlyAction;
-    }
-
     public FailTask failTask() {
       return new FailTask();
     }
@@ -223,7 +208,6 @@ public final class RequestHandlerTest {
   private final HttpServletResponse rsp = mock(HttpServletResponse.class);
   private final BumblebeeTask bumblebeeTask = mock(BumblebeeTask.class);
   private final SlothTask slothTask = mock(SlothTask.class);
-  private final UsersOnlyAction usersOnlyAction = mock(UsersOnlyAction.class);
   private final SafeSlothTask safeSlothTask = mock(SafeSlothTask.class);
 
   private final Component component = new Component();
@@ -259,7 +243,6 @@ public final class RequestHandlerTest {
             return component;
           }
         }),
-        userService,
         requestAuthenticator);
     when(rsp.getWriter()).thenReturn(new PrintWriter(httpOutput));
   }
@@ -398,24 +381,6 @@ public final class RequestHandlerTest {
     when(req.getRequestURI()).thenReturn("/safe-sloth");
     handler.handleRequest(req, rsp);
     verify(safeSlothTask).run();
-  }
-
-  @Test
-  public void testMustBeLoggedIn_notLoggedIn_redirectsToLoginPage() throws Exception {
-    when(req.getMethod()).thenReturn("GET");
-    when(req.getRequestURI()).thenReturn("/users-only");
-    handler.handleRequest(req, rsp);
-    verify(rsp).setStatus(302);
-    verify(rsp).setHeader("Location", "/login?dest=/users-only");
-  }
-
-  @Test
-  public void testMustBeLoggedIn_loggedIn_runsAction() throws Exception {
-    userService.setUser(testUser,  false);
-    when(req.getMethod()).thenReturn("GET");
-    when(req.getRequestURI()).thenReturn("/users-only");
-    handler.handleRequest(req, rsp);
-    verify(usersOnlyAction).run();
   }
 
   @Test

@@ -97,7 +97,6 @@ import org.joda.money.Money;
 @Action(
   path = "/registrar-payment",
   method = Action.Method.POST,
-  requireLogin = true,
   auth =
       @Auth(
         methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},

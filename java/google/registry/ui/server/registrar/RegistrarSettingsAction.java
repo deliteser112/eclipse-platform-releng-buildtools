@@ -64,7 +64,6 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Action(
   path = RegistrarSettingsAction.PATH,
-  requireLogin = true,
   method = Action.Method.POST,
   auth =
       @Auth(

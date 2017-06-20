@@ -38,7 +38,6 @@ import java.util.Map;
  * <li>the simple name of the action class
  * <li>the allowable HTTP methods
  * <li>whether to automatically print "ok" in the response
- * <li>whether login is required
  * <li>the allowable authentication methods
  * <li>the minimum authentication level
  * <li>the user policy
@@ -55,7 +54,7 @@ public class RouterDisplayHelper {
   private static final String MINIMUM_LEVEL = "minLevel";
 
   private static final String FORMAT =
-      "%%-%ds %%-%ds %%-%ds %%-2s %%-5s %%-%ds %%-%ds %%s";
+      "%%-%ds %%-%ds %%-%ds %%-2s %%-%ds %%-%ds %%s";
 
   /** Returns a string representation of the routing map in the specified component. */
   public static String extractHumanReadableRoutesFromComponent(Class<?> componentClass) {
@@ -79,7 +78,6 @@ public class RouterDisplayHelper {
         "CLASS",
         "METHODS",
         "OK",
-        "LOGIN",
         "AUTH_METHODS",
         "MIN",
         "USER_POLICY");
@@ -92,7 +90,6 @@ public class RouterDisplayHelper {
         route.actionClass().getSimpleName(),
         Joiner.on(",").join(route.action().method()),
         route.action().automaticallyPrintOk() ? "y" : "n",
-        route.action().requireLogin() ? "y" : "n",
         Joiner.on(",").join(route.action().auth().methods()),
         route.action().auth().minimumLevel(),
         route.action().auth().userPolicy());

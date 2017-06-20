@@ -72,7 +72,6 @@ import org.joda.money.CurrencyUnit;
 @Action(
   path = "/registrar-payment-setup",
   method = Action.Method.POST,
-  requireLogin = true,
   auth =
       @Auth(
         methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},

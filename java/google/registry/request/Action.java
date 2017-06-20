@@ -46,16 +46,6 @@ public @interface Action {
    */
   boolean automaticallyPrintOk() default false;
 
-  /**
-   * Require user be logged-in or 302 redirect to the Google auth login page.
-   *
-   * <p><b>Warning:</b> DO NOT use this for cron and task queue endpoints.
-   *
-   * <p><b>Note:</b> Logged-in actions should also be guarded by a {@code <security-constraint>} in
-   * {@code web.xml} with {@code <role-name>*</role-name>}.
-   */
-  boolean requireLogin() default false;
-
   /** Authentication settings. */
   Auth auth() default @Auth;
 }

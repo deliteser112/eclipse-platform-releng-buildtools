@@ -14,7 +14,6 @@
 
 package google.registry.module.backend;
 
-import com.google.appengine.api.users.UserService;
 import google.registry.request.RequestHandler;
 import google.registry.request.auth.RequestAuthenticator;
 import javax.inject.Inject;
@@ -25,8 +24,7 @@ public class BackendRequestHandler extends RequestHandler<BackendRequestComponen
 
   @Inject BackendRequestHandler(
       Provider<BackendRequestComponent.Builder> componentBuilderProvider,
-      UserService userService,
       RequestAuthenticator requestAuthenticator) {
-    super(componentBuilderProvider, userService, requestAuthenticator);
+    super(componentBuilderProvider, requestAuthenticator);
   }
 }

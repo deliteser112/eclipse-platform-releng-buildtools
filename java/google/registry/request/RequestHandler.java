@@ -15,14 +15,11 @@
 package google.registry.request;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
-import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
-import com.google.appengine.api.users.UserService;
 import com.google.common.base.Optional;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.RequestAuthenticator;
@@ -58,8 +55,6 @@ import javax.servlet.http.HttpServletResponse;
  *
  * <h3>Security Features</h3>
  *
- * <p>This class also enforces the {@link Action#requireLogin() requireLogin} setting.
- *
  * @param <C> request component type
  */
 public class RequestHandler<C> {
@@ -68,7 +63,6 @@ public class RequestHandler<C> {
 
   private final Router router;
   private final Provider<? extends RequestComponentBuilder<C>> requestComponentBuilderProvider;
-  private final UserService userService;
   private final RequestAuthenticator requestAuthenticator;
 
   /**
@@ -81,33 +75,28 @@ public class RequestHandler<C> {
    * @param requestComponentBuilderProvider a Dagger {@code Provider} of builder instances that can
    *     be used to construct new instances of the request component (with the required
    *     request-derived modules provided by this class)
-   * @param userService an instance of the App Engine UserService API
    * @param requestAuthenticator an instance of the {@link RequestAuthenticator} class
    */
   protected RequestHandler(
       Provider<? extends RequestComponentBuilder<C>> requestComponentBuilderProvider,
-      UserService userService,
       RequestAuthenticator requestAuthenticator) {
-    this(null, requestComponentBuilderProvider, userService, requestAuthenticator);
+    this(null, requestComponentBuilderProvider, requestAuthenticator);
   }
 
   /** Creates a new RequestHandler with an explicit component class for test purposes. */
   public static <C> RequestHandler<C> createForTest(
       Class<C> component,
       Provider<? extends RequestComponentBuilder<C>> requestComponentBuilderProvider,
-      UserService userService,
       RequestAuthenticator requestAuthenticator) {
     return new RequestHandler<>(
         checkNotNull(component),
         requestComponentBuilderProvider,
-        userService,
         requestAuthenticator);
   }
 
   private RequestHandler(
       @Nullable Class<C> component,
       Provider<? extends RequestComponentBuilder<C>> requestComponentBuilderProvider,
-      UserService userService,
       RequestAuthenticator requestAuthenticator) {
     // If the component class isn't explicitly provided, infer it from the class's own typing.
     // This is safe only for use by subclasses of RequestHandler where the generic parameter is
@@ -115,7 +104,6 @@ public class RequestHandler<C> {
     this.router = Router.create(
         component != null ? component : new TypeInstantiator<C>(getClass()){}.getExactType());
     this.requestComponentBuilderProvider = checkNotNull(requestComponentBuilderProvider);
-    this.userService = checkNotNull(userService);
     this.requestAuthenticator = checkNotNull(requestAuthenticator);
   }
 
@@ -141,12 +129,6 @@ public class RequestHandler<C> {
     if (!route.get().isMethodAllowed(method)) {
       logger.infofmt("Method %s not allowed for: %s", method, path);
       rsp.sendError(SC_METHOD_NOT_ALLOWED);
-      return;
-    }
-    if (route.get().action().requireLogin() && !userService.isUserLoggedIn()) {
-      logger.info("not logged in");
-      rsp.setStatus(SC_MOVED_TEMPORARILY);
-      rsp.setHeader(LOCATION, userService.createLoginURL(req.getRequestURI()));
       return;
     }
     Optional<AuthResult> authResult =

@@ -1,38 +1,38 @@
-PATH                                   CLASS                              METHODS  OK LOGIN AUTH_METHODS MIN USER_POLICY
-/_dr/cron/commitLogCheckpoint          CommitLogCheckpointAction          GET      y  n     INTERNAL     APP IGNORED
-/_dr/cron/commitLogFanout              CommitLogFanoutAction              GET      y  n     INTERNAL     APP IGNORED
-/_dr/cron/fanout                       TldFanoutAction                    GET      y  n     INTERNAL     APP IGNORED
-/_dr/cron/readDnsQueue                 ReadDnsQueueAction                 GET      y  n     INTERNAL     APP IGNORED
-/_dr/dnsRefresh                        RefreshDnsAction                   GET      y  n     INTERNAL     APP IGNORED
-/_dr/task/brdaCopy                     BrdaCopyAction                     POST     y  n     INTERNAL     APP IGNORED
-/_dr/task/checkSnapshot                CheckSnapshotAction                POST,GET y  n     INTERNAL     APP IGNORED
-/_dr/task/deleteContactsAndHosts       DeleteContactsAndHostsAction       GET      n  n     INTERNAL     APP IGNORED
-/_dr/task/deleteOldCommitLogs          DeleteOldCommitLogsAction          POST     y  n     INTERNAL     APP IGNORED
-/_dr/task/deleteProberData             DeleteProberDataAction             POST     n  n     INTERNAL     APP IGNORED
-/_dr/task/expandRecurringBillingEvents ExpandRecurringBillingEventsAction GET      n  n     INTERNAL     APP IGNORED
-/_dr/task/exportCommitLogDiff          ExportCommitLogDiffAction          POST     y  n     INTERNAL     APP IGNORED
-/_dr/task/exportDomainLists            ExportDomainListsAction            POST     n  n     INTERNAL     APP IGNORED
-/_dr/task/exportReservedTerms          ExportReservedTermsAction          POST     n  n     INTERNAL     APP IGNORED
-/_dr/task/exportSnapshot               ExportSnapshotAction               POST     y  n     INTERNAL     APP IGNORED
-/_dr/task/importRdeContacts            RdeContactImportAction             GET      n  n     INTERNAL     APP IGNORED
-/_dr/task/importRdeDomains             RdeDomainImportAction              GET      n  n     INTERNAL     APP IGNORED
-/_dr/task/importRdeHosts               RdeHostImportAction                GET      n  n     INTERNAL     APP IGNORED
-/_dr/task/linkRdeHosts                 RdeHostLinkAction                  GET      n  n     INTERNAL     APP IGNORED
-/_dr/task/loadSnapshot                 LoadSnapshotAction                 POST     n  n     INTERNAL     APP IGNORED
-/_dr/task/mapreduceEntityCleanup       MapreduceEntityCleanupAction       GET      n  n     INTERNAL     APP IGNORED
-/_dr/task/metrics                      MetricsExportAction                POST     n  n     INTERNAL     APP IGNORED
-/_dr/task/nordnUpload                  NordnUploadAction                  POST     y  n     INTERNAL     APP IGNORED
-/_dr/task/nordnVerify                  NordnVerifyAction                  POST     y  n     INTERNAL     APP IGNORED
-/_dr/task/pollBigqueryJob              BigqueryPollJobAction              GET,POST y  n     INTERNAL     APP IGNORED
-/_dr/task/publishDnsUpdates            PublishDnsUpdatesAction            POST     y  n     INTERNAL     APP IGNORED
-/_dr/task/rdeReport                    RdeReportAction                    POST     n  n     INTERNAL     APP IGNORED
-/_dr/task/rdeStaging                   RdeStagingAction                   GET,POST n  n     INTERNAL     APP IGNORED
-/_dr/task/rdeUpload                    RdeUploadAction                    POST     n  n     INTERNAL     APP IGNORED
-/_dr/task/refreshDnsOnHostRename       RefreshDnsOnHostRenameAction       GET      n  n     INTERNAL     APP IGNORED
-/_dr/task/syncGroupMembers             SyncGroupMembersAction             POST     n  n     INTERNAL     APP IGNORED
-/_dr/task/syncRegistrarsSheet          SyncRegistrarsSheetAction          POST     n  n     INTERNAL     APP IGNORED
-/_dr/task/tmchCrl                      TmchCrlAction                      POST     y  n     INTERNAL     APP IGNORED
-/_dr/task/tmchDnl                      TmchDnlAction                      POST     y  n     INTERNAL     APP IGNORED
-/_dr/task/tmchSmdrl                    TmchSmdrlAction                    POST     y  n     INTERNAL     APP IGNORED
-/_dr/task/updateSnapshotView           UpdateSnapshotViewAction           POST     n  n     INTERNAL     APP IGNORED
-/_dr/task/verifyEntityIntegrity        VerifyEntityIntegrityAction        POST     n  n     INTERNAL     APP IGNORED
+PATH                                   CLASS                              METHODS  OK AUTH_METHODS MIN USER_POLICY
+/_dr/cron/commitLogCheckpoint          CommitLogCheckpointAction          GET      y  INTERNAL     APP IGNORED
+/_dr/cron/commitLogFanout              CommitLogFanoutAction              GET      y  INTERNAL     APP IGNORED
+/_dr/cron/fanout                       TldFanoutAction                    GET      y  INTERNAL     APP IGNORED
+/_dr/cron/readDnsQueue                 ReadDnsQueueAction                 GET      y  INTERNAL     APP IGNORED
+/_dr/dnsRefresh                        RefreshDnsAction                   GET      y  INTERNAL     APP IGNORED
+/_dr/task/brdaCopy                     BrdaCopyAction                     POST     y  INTERNAL     APP IGNORED
+/_dr/task/checkSnapshot                CheckSnapshotAction                POST,GET y  INTERNAL     APP IGNORED
+/_dr/task/deleteContactsAndHosts       DeleteContactsAndHostsAction       GET      n  INTERNAL     APP IGNORED
+/_dr/task/deleteOldCommitLogs          DeleteOldCommitLogsAction          POST     y  INTERNAL     APP IGNORED
+/_dr/task/deleteProberData             DeleteProberDataAction             POST     n  INTERNAL     APP IGNORED
+/_dr/task/expandRecurringBillingEvents ExpandRecurringBillingEventsAction GET      n  INTERNAL     APP IGNORED
+/_dr/task/exportCommitLogDiff          ExportCommitLogDiffAction          POST     y  INTERNAL     APP IGNORED
+/_dr/task/exportDomainLists            ExportDomainListsAction            POST     n  INTERNAL     APP IGNORED
+/_dr/task/exportReservedTerms          ExportReservedTermsAction          POST     n  INTERNAL     APP IGNORED
+/_dr/task/exportSnapshot               ExportSnapshotAction               POST     y  INTERNAL     APP IGNORED
+/_dr/task/importRdeContacts            RdeContactImportAction             GET      n  INTERNAL     APP IGNORED
+/_dr/task/importRdeDomains             RdeDomainImportAction              GET      n  INTERNAL     APP IGNORED
+/_dr/task/importRdeHosts               RdeHostImportAction                GET      n  INTERNAL     APP IGNORED
+/_dr/task/linkRdeHosts                 RdeHostLinkAction                  GET      n  INTERNAL     APP IGNORED
+/_dr/task/loadSnapshot                 LoadSnapshotAction                 POST     n  INTERNAL     APP IGNORED
+/_dr/task/mapreduceEntityCleanup       MapreduceEntityCleanupAction       GET      n  INTERNAL     APP IGNORED
+/_dr/task/metrics                      MetricsExportAction                POST     n  INTERNAL     APP IGNORED
+/_dr/task/nordnUpload                  NordnUploadAction                  POST     y  INTERNAL     APP IGNORED
+/_dr/task/nordnVerify                  NordnVerifyAction                  POST     y  INTERNAL     APP IGNORED
+/_dr/task/pollBigqueryJob              BigqueryPollJobAction              GET,POST y  INTERNAL     APP IGNORED
+/_dr/task/publishDnsUpdates            PublishDnsUpdatesAction            POST     y  INTERNAL     APP IGNORED
+/_dr/task/rdeReport                    RdeReportAction                    POST     n  INTERNAL     APP IGNORED
+/_dr/task/rdeStaging                   RdeStagingAction                   GET,POST n  INTERNAL     APP IGNORED
+/_dr/task/rdeUpload                    RdeUploadAction                    POST     n  INTERNAL     APP IGNORED
+/_dr/task/refreshDnsOnHostRename       RefreshDnsOnHostRenameAction       GET      n  INTERNAL     APP IGNORED
+/_dr/task/syncGroupMembers             SyncGroupMembersAction             POST     n  INTERNAL     APP IGNORED
+/_dr/task/syncRegistrarsSheet          SyncRegistrarsSheetAction          POST     n  INTERNAL     APP IGNORED
+/_dr/task/tmchCrl                      TmchCrlAction                      POST     y  INTERNAL     APP IGNORED
+/_dr/task/tmchDnl                      TmchDnlAction                      POST     y  INTERNAL     APP IGNORED
+/_dr/task/tmchSmdrl                    TmchSmdrlAction                    POST     y  INTERNAL     APP IGNORED
+/_dr/task/updateSnapshotView           UpdateSnapshotViewAction           POST     n  INTERNAL     APP IGNORED
+/_dr/task/verifyEntityIntegrity        VerifyEntityIntegrityAction        POST     n  INTERNAL     APP IGNORED

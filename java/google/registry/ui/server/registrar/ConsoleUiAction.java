@@ -45,7 +45,6 @@ import javax.servlet.http.HttpServletRequest;
 /** Action that serves Registrar Console single HTML page (SPA). */
 @Action(
   path = ConsoleUiAction.PATH,
-  requireLogin = true,
   auth =
       @Auth(
         methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},
