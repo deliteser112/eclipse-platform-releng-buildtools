@@ -36,11 +36,11 @@ public abstract class AuthResult {
     return authLevel() != AuthLevel.NONE;
   }
 
-  static AuthResult create(AuthLevel authLevel) {
+  public static AuthResult create(AuthLevel authLevel) {
     return new AutoValue_AuthResult(authLevel, Optional.<UserAuthInfo>absent());
   }
 
-  static AuthResult create(AuthLevel authLevel, @Nullable UserAuthInfo userAuthInfo) {
+  public static AuthResult create(AuthLevel authLevel, @Nullable UserAuthInfo userAuthInfo) {
     if (authLevel == AuthLevel.USER) {
       checkNotNull(userAuthInfo);
     }

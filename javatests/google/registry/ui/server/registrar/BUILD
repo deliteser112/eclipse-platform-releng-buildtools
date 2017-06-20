@@ -17,6 +17,7 @@ java_library(
         "//java/google/registry/export/sheet",
         "//java/google/registry/model",
         "//java/google/registry/request",
+        "//java/google/registry/request/auth",
         "//java/google/registry/security",
         "//java/google/registry/ui/server/registrar",
         "//java/google/registry/ui/soy/registrar:soy_java_wrappers",

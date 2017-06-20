@@ -24,7 +24,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
-import com.google.appengine.api.users.UserService;
 import com.google.common.testing.NullPointerTester;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
@@ -55,7 +54,6 @@ public class SessionUtilsTest {
   @Rule
   public final InjectRule inject = new InjectRule();
 
-  private final UserService userService = mock(UserService.class);
   private final HttpServletRequest req = mock(HttpServletRequest.class);
   private final HttpServletResponse rsp = mock(HttpServletResponse.class);
   private final HttpSession session = mock(HttpSession.class);
@@ -66,22 +64,20 @@ public class SessionUtilsTest {
 
   @Before
   public void before() throws Exception {
-    sessionUtils = new SessionUtils(userService);
+    sessionUtils = new SessionUtils();
     when(req.getSession()).thenReturn(session);
   }
 
   @Test
   public void testCheckRegistrarConsoleLogin_authedButNoSession_createsSession() throws Exception {
-    when(userService.getCurrentUser()).thenReturn(jart);
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req)).isTrue();
+    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, jart)).isTrue();
     verify(session).setAttribute(eq("clientId"), eq("TheRegistrar"));
   }
 
   @Test
   public void testCheckRegistrarConsoleLogin_authedWithValidSession_doesNothing() throws Exception {
     when(session.getAttribute("clientId")).thenReturn("TheRegistrar");
-    when(userService.getCurrentUser()).thenReturn(jart);
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req)).isTrue();
+    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, jart)).isTrue();
     verify(session).getAttribute("clientId");
     verifyNoMoreInteractions(session);
   }
@@ -92,16 +88,14 @@ public class SessionUtilsTest {
         Registrar.loadByClientId("TheRegistrar"),
         new java.util.HashSet<RegistrarContact>());
     when(session.getAttribute("clientId")).thenReturn("TheRegistrar");
-    when(userService.getCurrentUser()).thenReturn(jart);
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req)).isFalse();
+    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, jart)).isFalse();
     verify(session).invalidate();
   }
 
   @Test
   public void testCheckRegistrarConsoleLogin_orphanedContactIsDenied() throws Exception {
     deleteResource(Registrar.loadByClientId("TheRegistrar"));
-    when(userService.getCurrentUser()).thenReturn(jart);
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req)).isFalse();
+    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, jart)).isFalse();
   }
 
   @Test
@@ -109,13 +103,12 @@ public class SessionUtilsTest {
       throws Exception {
     thrown.expect(IllegalStateException.class);
     @SuppressWarnings("unused")
-    boolean unused = sessionUtils.checkRegistrarConsoleLogin(req);
+    boolean unused = sessionUtils.checkRegistrarConsoleLogin(req, null);
   }
 
   @Test
   public void testCheckRegistrarConsoleLogin_notAllowed_returnsFalse() throws Exception {
-    when(userService.getCurrentUser()).thenReturn(bozo);
-    assertThat(sessionUtils.checkRegistrarConsoleLogin(req)).isFalse();
+    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, bozo)).isFalse();
   }
 
   @Test

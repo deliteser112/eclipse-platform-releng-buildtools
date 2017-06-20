@@ -19,7 +19,9 @@ import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.util.Arrays.asList;
-import static org.mockito.Mockito.anyInt;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,9 +29,12 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.ImmutableMap;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
+import google.registry.request.HttpException.ForbiddenException;
+import google.registry.request.auth.AuthResult;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.util.Map;
 import javax.mail.internet.InternetAddress;
+import javax.servlet.http.HttpServletRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -65,11 +70,15 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
 
   @Test
   public void testRead_notAuthorized_failure() throws Exception {
-    when(sessionUtils.checkRegistrarConsoleLogin(req)).thenReturn(false);
-    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.<String, Object>of());
-    assertThat(response).containsEntry("status", "ERROR");
-    assertThat((String) response.get("message")).startsWith("Not authorized");
-    assertNoTasksEnqueued("sheet");
+    when(sessionUtils.getRegistrarForAuthResult(
+            any(HttpServletRequest.class), any(AuthResult.class)))
+        .thenThrow(new ForbiddenException("Not authorized to access Registrar Console"));
+    try {
+      action.handleJsonRequest(ImmutableMap.<String, Object>of());
+      fail("expected ForbiddenException");
+    } catch (ForbiddenException ex) {
+      assertNoTasksEnqueued("sheet");
+    }
   }
 
   /**

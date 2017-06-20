@@ -30,9 +30,11 @@ import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonActionRunner.JsonAction;
 import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthLevel;
+import google.registry.request.auth.AuthResult;
 import google.registry.security.JsonResponseHelper;
 import java.util.Map;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import org.joda.money.CurrencyUnit;
 
 /**
@@ -80,10 +82,12 @@ import org.joda.money.CurrencyUnit;
 )
 public final class RegistrarPaymentSetupAction implements Runnable, JsonAction {
 
+  @Inject HttpServletRequest request;
   @Inject BraintreeGateway braintreeGateway;
   @Inject BraintreeRegistrarSyncer customerSyncer;
   @Inject JsonActionRunner jsonActionRunner;
-  @Inject Registrar registrar;
+  @Inject AuthResult authResult;
+  @Inject SessionUtils sessionUtils;
   @Inject @Config("brainframe") String brainframe;
   @Inject @Config("braintreeMerchantAccountIds") ImmutableMap<CurrencyUnit, String> accountIds;
   @Inject RegistrarPaymentSetupAction() {}
@@ -95,6 +99,8 @@ public final class RegistrarPaymentSetupAction implements Runnable, JsonAction {
 
   @Override
   public Map<String, Object> handleJsonRequest(Map<String, ?> json) {
+    Registrar registrar = sessionUtils.getRegistrarForAuthResult(request, authResult);
+
     if (!json.isEmpty()) {
       return JsonResponseHelper.create(ERROR, "JSON request object must be empty");
     }

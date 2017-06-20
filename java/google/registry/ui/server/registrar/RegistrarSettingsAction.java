@@ -42,6 +42,7 @@ import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthLevel;
+import google.registry.request.auth.AuthResult;
 import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormException;
 import google.registry.ui.forms.FormFieldException;
@@ -81,7 +82,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
   @Inject HttpServletRequest request;
   @Inject JsonActionRunner jsonActionRunner;
-  @Inject Registrar initialRegistrar;
+  @Inject AuthResult authResult;
   @Inject SendEmailUtils sendEmailUtils;
   @Inject SessionUtils sessionUtils;
   @Inject @Config("registrarChangesNotificationEmailAddresses") ImmutableList<String>
@@ -105,12 +106,9 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       throw new BadRequestException("Malformed JSON");
     }
 
-    if (!sessionUtils.checkRegistrarConsoleLogin(request)) {
-      return JsonResponseHelper.create(ERROR, "Not authorized to access Registrar Console");
-    }
-
+    Registrar initialRegistrar = sessionUtils.getRegistrarForAuthResult(request, authResult);
     // Process the operation.  Though originally derived from a CRUD
-    // handlder, registrar-settings really only supports read and update.
+    // handler, registrar-settings really only supports read and update.
     String op = Optional.fromNullable((String) input.get(OP_PARAM)).or("read");
     @SuppressWarnings("unchecked")
     Map<String, ?> args = (Map<String, Object>)

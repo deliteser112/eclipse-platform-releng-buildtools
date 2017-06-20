@@ -14,19 +14,19 @@
 
 package google.registry.ui.server.registrar;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.users.User;
-import com.google.appengine.api.users.UserService;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.googlecode.objectify.Key;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
+import google.registry.request.HttpException.ForbiddenException;
+import google.registry.request.auth.AuthResult;
 import google.registry.util.FormattingLogger;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
@@ -43,38 +43,49 @@ public class SessionUtils {
 
   public static final String CLIENT_ID_ATTRIBUTE = "clientId";
 
-  private final UserService userService;
+  @Inject public SessionUtils() {}
 
-  @Inject
-  public SessionUtils(UserService userService) {
-    this.userService = checkNotNull(userService);
+  /**
+   * Checks that the authentication result indicates a user that has access to the registrar
+   * console, then gets the associated registrar.
+   *
+   * <p>Throws a {@link ForbiddenException} if the user is not logged in, or not authorized to use
+   * the registrar console.
+   */
+  @CheckReturnValue
+  Registrar getRegistrarForAuthResult(HttpServletRequest request, AuthResult authResult) {
+    if (!authResult.userAuthInfo().isPresent()) {
+      throw new ForbiddenException("Not logged in");
+    }
+    if (!checkRegistrarConsoleLogin(request, authResult.userAuthInfo().get().user())) {
+      throw new ForbiddenException("Not authorized to access Registrar Console");
+    }
+    return Registrar.loadByClientIdCached(getRegistrarClientId(request));
   }
 
   /**
-   * Checks GAE user has access to Registrar Console.
+   * Checks that the specified user has access to the Registrar Console.
    *
    * <p>This routine will first check the HTTP session (creating one if it doesn't exist) for the
    * {@code clientId} attribute:
    *
    * <ul>
    * <li>If it does not exist, then we will attempt to guess the {@link Registrar} with which the
-   * user's GAIA ID is associated. The {@code clientId} of the first matching {@code Registrar} will
-   * then be stored to the HTTP session.
+   * user is associated. The {@code clientId} of the first matching {@code Registrar} will then
+   * be stored to the HTTP session.
    * <li>If it does exist, then we'll fetch the Registrar from Datastore to make sure access
    * wasn't revoked.
    * </ul>
    *
-   * <p><b>Note:</b> You must ensure the user has logged in before calling this method, for example
-   * by setting {@code @Action(requireLogin = true)}.
+   * <p><b>Note:</b> You must ensure the user has logged in before calling this method.
    *
    * @return {@code false} if user does not have access, in which case the caller should write an
    *     error response and abort the request.
    */
   @CheckReturnValue
-  public boolean checkRegistrarConsoleLogin(HttpServletRequest req) {
-    HttpSession session = req.getSession();
-    User user = userService.getCurrentUser();
+  public boolean checkRegistrarConsoleLogin(HttpServletRequest req, User user) {
     checkState(user != null, "No logged in user found");
+    HttpSession session = req.getSession();
     String clientId = (String) session.getAttribute(CLIENT_ID_ATTRIBUTE);
     if (clientId == null) {
       Optional<Registrar> registrar = guessRegistrar(user.getUserId());
@@ -106,11 +117,6 @@ public class SessionUtils {
     String clientId = (String) req.getSession().getAttribute(CLIENT_ID_ATTRIBUTE);
     checkState(clientId != null, "You forgot to call checkRegistrarConsoleLogin()");
     return clientId;
-  }
-
-  /** @see UserService#isUserLoggedIn() */
-  public boolean isLoggedIn() {
-    return userService.isUserLoggedIn();
   }
 
   /** Returns first {@link Registrar} that {@code gaeUserId} is authorized to administer. */

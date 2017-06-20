@@ -37,6 +37,7 @@ import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonActionRunner.JsonAction;
 import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthLevel;
+import google.registry.request.auth.AuthResult;
 import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormField;
 import google.registry.ui.forms.FormFieldException;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.IllegalCurrencyException;
 import org.joda.money.Money;
@@ -148,9 +150,11 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
           .required()
           .build();
 
+  @Inject HttpServletRequest request;
   @Inject BraintreeGateway braintreeGateway;
   @Inject JsonActionRunner jsonActionRunner;
-  @Inject Registrar registrar;
+  @Inject AuthResult authResult;
+  @Inject SessionUtils sessionUtils;
   @Inject @Config("braintreeMerchantAccountIds") ImmutableMap<CurrencyUnit, String> accountIds;
   @Inject RegistrarPaymentAction() {}
 
@@ -161,6 +165,7 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
 
   @Override
   public Map<String, Object> handleJsonRequest(Map<String, ?> json) {
+    Registrar registrar = sessionUtils.getRegistrarForAuthResult(request, authResult);
     logger.infofmt("Processing payment: %s", json);
     String paymentMethodNonce;
     Money amount;

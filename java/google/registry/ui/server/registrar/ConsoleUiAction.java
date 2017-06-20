@@ -14,10 +14,13 @@
 
 package google.registry.ui.server.registrar;
 
+import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.HttpHeaders.X_FRAME_OPTIONS;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 
+import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
@@ -32,6 +35,7 @@ import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthLevel;
+import google.registry.request.auth.AuthResult;
 import google.registry.security.XsrfTokenManager;
 import google.registry.ui.server.SoyTemplateUtils;
 import google.registry.ui.soy.registrar.ConsoleSoyInfo;
@@ -69,6 +73,7 @@ public final class ConsoleUiAction implements Runnable {
   @Inject SessionUtils sessionUtils;
   @Inject UserService userService;
   @Inject XsrfTokenManager xsrfTokenManager;
+  @Inject AuthResult authResult;
   @Inject @Config("logoFilename") String logoFilename;
   @Inject @Config("productName") String productName;
   @Inject @Config("integrationEmail") String integrationEmail;
@@ -81,6 +86,12 @@ public final class ConsoleUiAction implements Runnable {
 
   @Override
   public void run() {
+    if (!authResult.userAuthInfo().isPresent()) {
+      response.setStatus(SC_MOVED_TEMPORARILY);
+      response.setHeader(LOCATION, userService.createLoginURL(req.getRequestURI()));
+      return;
+    }
+    User user = authResult.userAuthInfo().get().user();
     response.setContentType(MediaType.HTML_UTF_8);
     response.setHeader(X_FRAME_OPTIONS, "SAMEORIGIN");  // Disallow iframing.
     response.setHeader("X-Ui-Compatible", "IE=edge");  // Ask IE not to be silly.
@@ -102,9 +113,9 @@ public final class ConsoleUiAction implements Runnable {
               .render());
       return;
     }
-    data.put("username", userService.getCurrentUser().getNickname());
+    data.put("username", user.getNickname());
     data.put("logoutUrl", userService.createLogoutURL(PATH));
-    if (!sessionUtils.checkRegistrarConsoleLogin(req)) {
+    if (!sessionUtils.checkRegistrarConsoleLogin(req, user)) {
       response.setStatus(SC_FORBIDDEN);
       response.setPayload(
           TOFU_SUPPLIER.get()
@@ -115,9 +126,7 @@ public final class ConsoleUiAction implements Runnable {
       return;
     }
     Registrar registrar = Registrar.loadByClientIdCached(sessionUtils.getRegistrarClientId(req));
-    data.put(
-        "xsrfToken",
-        xsrfTokenManager.generateToken(userService.getCurrentUser().getEmail()));
+    data.put("xsrfToken", xsrfTokenManager.generateToken(user.getEmail()));
     data.put("clientId", registrar.getClientId());
     data.put("showPaymentLink", registrar.getBillingMethod() == Registrar.BillingMethod.BRAINTREE);
 

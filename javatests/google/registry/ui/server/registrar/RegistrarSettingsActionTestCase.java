@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.modules.ModulesService;
+import com.google.appengine.api.users.User;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -32,6 +33,9 @@ import google.registry.model.registrar.Registrar;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonResponse;
 import google.registry.request.ResponseImpl;
+import google.registry.request.auth.AuthLevel;
+import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
@@ -73,6 +77,7 @@ public class RegistrarSettingsActionTestCase {
   final SendEmailService emailService = mock(SendEmailService.class);
   final ModulesService modulesService = mock(ModulesService.class);
   final SessionUtils sessionUtils = mock(SessionUtils.class);
+  final User user = new User("user", "gmail.com");
 
   Message message;
 
@@ -85,7 +90,7 @@ public class RegistrarSettingsActionTestCase {
   public void setUp() throws Exception {
     action.request = req;
     action.sessionUtils = sessionUtils;
-    action.initialRegistrar = Registrar.loadByClientId(CLIENT_ID);
+    action.authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
     action.jsonActionRunner = new JsonActionRunner(
         ImmutableMap.<String, Object>of(), new JsonResponse(new ResponseImpl(rsp)));
     action.registrarChangesNotificationEmailAddresses = ImmutableList.of(
@@ -101,9 +106,8 @@ public class RegistrarSettingsActionTestCase {
     when(rsp.getWriter()).thenReturn(new PrintWriter(writer));
     when(req.getContentType()).thenReturn("application/json");
     when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of("op", "read")));
-    when(sessionUtils.isLoggedIn()).thenReturn(true);
-    when(sessionUtils.checkRegistrarConsoleLogin(req)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(req)).thenReturn(CLIENT_ID);
+    when(sessionUtils.getRegistrarForAuthResult(req, action.authResult))
+        .thenReturn(Registrar.loadByClientId(CLIENT_ID));
     when(modulesService.getVersionHostname("backend", null)).thenReturn("backend.hostname");
   }
 

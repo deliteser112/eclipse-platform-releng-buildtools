@@ -21,8 +21,10 @@ import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT2;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT2_HASH;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.util.Arrays.asList;
+import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.registrar.Registrar;
@@ -100,12 +102,14 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
 
   @Test
   public void testEmptyOrNullCertificate_doesNotClearOutCurrentOne() throws Exception {
-    action.initialRegistrar =
+    Registrar initialRegistrar = persistResource(
         Registrar.loadByClientId(CLIENT_ID).asBuilder()
             .setClientCertificate(SAMPLE_CERT, START_OF_TIME)
             .setFailoverClientCertificate(SAMPLE_CERT2, START_OF_TIME)
-            .build();
-    Map<String, Object> jsonMap = action.initialRegistrar.toJsonMap();
+            .build());
+    when(sessionUtils.getRegistrarForAuthResult(req, action.authResult))
+        .thenReturn(initialRegistrar);
+    Map<String, Object> jsonMap = initialRegistrar.toJsonMap();
     jsonMap.put("clientCertificate", null);
     jsonMap.put("failoverClientCertificate", "");
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(

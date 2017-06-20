@@ -41,7 +41,6 @@ import google.registry.ui.server.registrar.ConsoleUiAction;
 import google.registry.ui.server.registrar.RegistrarPaymentAction;
 import google.registry.ui.server.registrar.RegistrarPaymentSetupAction;
 import google.registry.ui.server.registrar.RegistrarSettingsAction;
-import google.registry.ui.server.registrar.RegistrarUserModule;
 import google.registry.whois.WhoisHttpServer;
 import google.registry.whois.WhoisModule;
 import google.registry.whois.WhoisServer;
@@ -54,7 +53,6 @@ import google.registry.whois.WhoisServer;
         DnsModule.class,
         EppTlsModule.class,
         RdapModule.class,
-        RegistrarUserModule.class,
         RequestModule.class,
         WhiteboxModule.class,
         WhoisModule.class,

@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.ReflectiveFieldExtractor.extractField;
 import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,10 +31,15 @@ import com.braintreegateway.TransactionRequest;
 import com.braintreegateway.ValidationError;
 import com.braintreegateway.ValidationErrorCode;
 import com.braintreegateway.ValidationErrors;
+import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.registrar.Registrar;
+import google.registry.request.auth.AuthLevel;
+import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
 import java.math.BigDecimal;
+import javax.servlet.http.HttpServletRequest;
 import org.joda.money.CurrencyUnit;
 import org.junit.Before;
 import org.junit.Rule;
@@ -66,6 +72,10 @@ public class RegistrarPaymentActionTest {
   @Mock
   private ValidationErrors validationErrors;
 
+  private final SessionUtils sessionUtils = mock(SessionUtils.class);
+
+  private final User user = new User("marla.singer@example.com", "gmail.com", "12345");
+
   @Captor
   private ArgumentCaptor<TransactionRequest> transactionRequestCaptor;
 
@@ -73,7 +83,8 @@ public class RegistrarPaymentActionTest {
 
   @Before
   public void before() throws Exception {
-    paymentAction.registrar = Registrar.loadByClientId("TheRegistrar");
+    paymentAction.sessionUtils = sessionUtils;
+    paymentAction.authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
     paymentAction.accountIds =
         ImmutableMap.of(
             CurrencyUnit.USD, "merchant-account-usd",
@@ -81,6 +92,9 @@ public class RegistrarPaymentActionTest {
     paymentAction.braintreeGateway = braintreeGateway;
     when(braintreeGateway.transaction()).thenReturn(transactionGateway);
     when(transactionGateway.sale(any(TransactionRequest.class))).thenReturn(result);
+    when(sessionUtils.getRegistrarForAuthResult(
+            any(HttpServletRequest.class), any(AuthResult.class)))
+        .thenReturn(Registrar.loadByClientId("TheRegistrar"));
   }
 
   @Test

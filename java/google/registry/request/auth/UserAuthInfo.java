@@ -37,12 +37,12 @@ public abstract class UserAuthInfo {
   /** Used by the OAuth authentication mechanism (only) to return information about the session. */
   public abstract Optional<OAuthTokenInfo> oauthTokenInfo();
 
-  static UserAuthInfo create(
+  public static UserAuthInfo create(
       User user, boolean isUserAdmin) {
     return new AutoValue_UserAuthInfo(user, isUserAdmin, Optional.<OAuthTokenInfo>absent());
   }
 
-  static UserAuthInfo create(
+  public static UserAuthInfo create(
       User user, boolean isUserAdmin, OAuthTokenInfo oauthTokenInfo) {
     return new AutoValue_UserAuthInfo(user, isUserAdmin, Optional.of(oauthTokenInfo));
   }
