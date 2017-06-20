@@ -91,9 +91,6 @@
       <!-- Internal AppEngine endpoints.  The '_ah' is short for app hosting.  -->
       <url-pattern>/_ah/*</url-pattern>
 
-      <!-- Internal registry endpoints.  The '_dr' is short for domain registry. -->
-      <url-pattern>/_dr/*</url-pattern>
-
       <!-- Verbatim JavaScript sources (only visible to admins for debugging). -->
       <url-pattern>/assets/sources/*</url-pattern>
 
