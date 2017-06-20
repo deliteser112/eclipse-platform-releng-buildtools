@@ -78,7 +78,7 @@
 /**
  * Contact info.
  */
-{template .contactInfo_ private="true"}
+{template .contactInfo_ visibility="private"}
   {@param emailAddress: string}
   {@param readonly: bool}
   {@param? localizedAddress: ?}
@@ -142,7 +142,7 @@
 /**
  * Read-only view of address.
  */
-{template .viewAddress_ private="true"}
+{template .viewAddress_ visibility="private"}
   {@param id: string}
   {@param street: list<string>}
   {@param city: string}
@@ -177,7 +177,7 @@
 /**
  * Editor of address.
  */
-{template .editAddress_ private="true"}
+{template .editAddress_ visibility="private"}
   {@param id: string}
   {@param? street: list<string>}
   {@param? city: string}

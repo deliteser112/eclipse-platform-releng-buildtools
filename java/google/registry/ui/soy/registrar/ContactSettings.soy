@@ -176,7 +176,7 @@
 
 
 /** @private */
-{template .contactTypeSettingsView_ private="true"}
+{template .contactTypeSettingsView_ visibility="private"}
   {@param item: map<string, ?>}
   {@param possibleTypesLookup: list<list<string>>}
   {@param actualTypesLookup: map<string, bool>}
@@ -217,7 +217,7 @@
 
 
 /** @private */
-{template .contactTypeSettingsEdit_ private="true"}
+{template .contactTypeSettingsEdit_ visibility="private"}
   {@param item: map<string, ?>}
   {@param namePrefix: string}
   {@param possibleTypesLookup: list<list<string>>}
@@ -263,7 +263,7 @@
 
 
 /** @private */
-{template .whoisVisibleRadios_ private="true"}
+{template .whoisVisibleRadios_ visibility="private"}
   {@param description: string}
   {@param? note: string}
   {@param fieldName: string}
@@ -297,7 +297,7 @@
 
 
 /** @private */
-{template .contactCheckboxes_ private="true"}
+{template .contactCheckboxes_ visibility="private"}
   {@param namePrefix: string}
   {@param actualTypesLookup: map<string, bool>}
   {@param possibleTypesLookup: list<list<string>>}
