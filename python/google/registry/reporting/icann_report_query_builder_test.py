@@ -14,6 +14,7 @@
 
 """Tests for google.registry.reporting.icann_report_query_builder."""
 
+import logging
 import os
 import unittest
 
@@ -35,10 +36,20 @@ class IcannReportQueryBuilderTest(unittest.TestCase):
     golden_activity_query_path = os.path.join(self.testdata_path,
                                               'golden_activity_query.sql')
     with open(golden_activity_query_path, 'r') as golden_activity_query:
-      self.assertMultiLineEqual(golden_activity_query.read(),
-                                query_builder.BuildActivityReportQuery(
-                                    month='2016-06',
-                                    registrar_count=None))
+      golden_file_contents = golden_activity_query.read()
+      # Remove golden file copyright header by stripping until END OF HEADER.
+      golden_file_sql = golden_file_contents.split('-- END OF HEADER\n')[1]
+      actual_sql = query_builder.BuildActivityReportQuery(
+          month='2016-06', registrar_count=None)
+      try:
+        self.assertMultiLineEqual(golden_file_sql, actual_sql)
+      except AssertionError as e:
+        # Print the actual SQL generated so that it's easy to copy-paste into
+        # the golden file when updating the query.
+        sep = '=' * 50 + '\n'
+        logging.warning(
+            'Generated activity query SQL:\n' + sep + actual_sql + sep)
+        raise e
 
   def testStringTrailingWhitespaceFromLines(self):
     def do_test(expected, original):

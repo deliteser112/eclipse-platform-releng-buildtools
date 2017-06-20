@@ -12,6 +12,8 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
+-- END OF HEADER
+
       SELECT
         Tld.tld AS tld,
         SUM(IF(metricName = 'operational-registrars', count, 0)) AS operational_registrars,
