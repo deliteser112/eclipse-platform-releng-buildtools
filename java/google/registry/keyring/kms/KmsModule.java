@@ -20,6 +20,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.services.cloudkms.v1.CloudKMS;
 import com.google.api.services.cloudkms.v1.CloudKMSScopes;
 import com.google.common.base.Function;
+import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfig.Config;
@@ -27,7 +28,7 @@ import java.util.Set;
 
 /** Dagger module for Cloud KMS connection objects. */
 @Module
-public final class KmsModule {
+public abstract class KmsModule {
 
   @Provides
   static CloudKMS provideKms(
@@ -40,8 +41,6 @@ public final class KmsModule {
         .build();
   }
 
-  @Provides
-  static KmsConnection provideKmsAdapter(KmsConnectionImpl kmsAdapter) {
-    return kmsAdapter;
-  }
+  @Binds
+  abstract KmsConnection provideKmsConnection(KmsConnectionImpl kmsConnectionImpl);
 }
