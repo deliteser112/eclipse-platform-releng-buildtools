@@ -81,12 +81,6 @@ public class RdapSearchPatternTest {
   }
 
   @Test
-  public void testPrefixTooShort_unprocessable() throws Exception {
-    thrown.expect(UnprocessableEntityException.class);
-    RdapSearchPattern.create("e*", true);
-  }
-
-  @Test
   public void testZeroLengthSuffix_unprocessable() throws Exception {
     thrown.expect(UnprocessableEntityException.class);
     RdapSearchPattern.create("exam*.", true);

@@ -39,10 +39,12 @@ import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
+import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
 import google.registry.util.Idn;
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -72,6 +74,8 @@ public class RdapDomainSearchAction extends RdapActionBase {
 
   public static final int RESULT_SET_SIZE_SCALING_FACTOR = 30;
 
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+
   @Inject Clock clock;
   @Inject @Parameter("name") Optional<String> nameParam;
   @Inject @Parameter("nsLdhName") Optional<String> nsLdhNameParam;
@@ -89,7 +93,11 @@ public class RdapDomainSearchAction extends RdapActionBase {
     return PATH;
   }
 
-  /** Parses the parameters and calls the appropriate search function. */
+  /**
+   * Parses the parameters and calls the appropriate search function.
+   *
+   * <p>The RDAP spec allows for domain search by domain name, nameserver name or nameserver IP.
+   */
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest, String linkBase) {
@@ -142,7 +150,15 @@ public class RdapDomainSearchAction extends RdapActionBase {
     return builder.build();
   }
 
-  /** Searches for domains by domain name, returning a JSON array of domain info maps. */
+  /**
+   * Searches for domains by domain name, returning a JSON array of domain info maps.
+   *
+   * <p>Domain query strings with wildcards are allowed to have a suffix after the wildcard, which
+   * must be a TLD. If the TLD is not present, the wildcard must be preceded by at least two
+   * characters (e.g. "ex*"), to avoid queries for all domains in the system. If the TLD is present,
+   * the initial string is not required (e.g. "*.tld" is valid), because the search will be
+   * restricted to a single TLD.
+   */
   private RdapSearchResults searchByDomainName(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
     // Handle queries without a wildcard -- just load by foreign key.
@@ -152,16 +168,40 @@ public class RdapDomainSearchAction extends RdapActionBase {
       ImmutableList<DomainResource> results = (domainResource == null)
           ? ImmutableList.<DomainResource>of()
           : ImmutableList.of(domainResource);
-      return makeSearchResults(results, false, now);
-    // Handle queries with a wildcard.
+      return makeSearchResults(results, false /* isTruncated */, now);
+    // Handle queries with a wildcard and no initial string.
+    } else if (partialStringQuery.getInitialString().isEmpty()) {
+      if (partialStringQuery.getSuffix() == null) {
+        throw new UnprocessableEntityException(
+            "Initial search string is required for wildcard domain searches without a TLD suffix");
+      }
+      // Since we aren't searching on fullyQualifiedDomainName, we can perform our one allowed
+      // inequality query on deletion time.
+      Query<DomainResource> query = ofy().load()
+          .type(DomainResource.class)
+          .filter("tld", partialStringQuery.getSuffix())
+          .filter("deletionTime >", now)
+          .limit(rdapResultSetMaxSize + 1);
+      return makeSearchResults(query.list(), false /* isTruncated */, now);
+    // Handle queries with a wildcard and an initial string.
     } else {
+      if ((partialStringQuery.getSuffix() == null)
+          && (partialStringQuery.getInitialString().length()
+              < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH)) {
+        throw new UnprocessableEntityException(
+            String.format(
+                "Initial search string must be at least %d characters for wildcard domain searches"
+                    + " without a TLD suffix",
+                RdapSearchPattern.MIN_INITIAL_STRING_LENGTH));
+      }
+
       // We can't query for undeleted domains as part of the query itself; that would require an
       // inequality query on deletion time, and we are already using inequality queries on
       // fullyQualifiedDomainName. So we instead pick an arbitrary limit of
       // RESULT_SET_SIZE_SCALING_FACTOR times the result set size limit, fetch up to that many, and
       // weed out all deleted domains. If there still isn't a full result set's worth of domains, we
       // give up and return just the ones we found.
-      // TODO(b/31546493): Add metrics to figure out how well this.
+      // TODO(b/31546493): Add metrics to figure out how well this works.
       List<DomainResource> domainList = new ArrayList<>();
       Query<DomainResource> query = ofy().load()
           .type(DomainResource.class)
@@ -175,16 +215,21 @@ public class RdapDomainSearchAction extends RdapActionBase {
           query.limit(RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize)) {
         if (EppResourceUtils.isActive(domain, now)) {
           if (domainList.size() >= rdapResultSetMaxSize) {
-            return makeSearchResults(ImmutableList.copyOf(domainList), true, now);
+            return makeSearchResults(ImmutableList.copyOf(domainList), true /* isTruncated */, now);
           }
           domainList.add(domain);
         }
       }
-      return makeSearchResults(ImmutableList.copyOf(domainList), false, now);
+      return makeSearchResults(domainList, false /* isTruncated */, now);
     }
   }
 
-  /** Searches for domains by nameserver name, returning a JSON array of domain info maps. */
+  /**
+   * Searches for domains by nameserver name, returning a JSON array of domain info maps.
+   *
+   * <p>This is a two-step process: get a list of host references by host name, and then look up
+   * domains by host reference.
+   */
   private RdapSearchResults searchByNameserverLdhName(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
     Iterable<Key<HostResource>> hostKeys = getNameserverRefsByLdhName(partialStringQuery, now);
@@ -194,7 +239,16 @@ public class RdapDomainSearchAction extends RdapActionBase {
     return searchByNameserverRefs(hostKeys, now);
   }
 
-  /** Assembles a list of {@link HostResource} keys by name. */
+  /**
+   * Assembles a list of {@link HostResource} keys by name.
+   *
+   * <p>Nameserver query strings with wildcards are allowed to have a suffix after the wildcard,
+   * which must be a domain. If the domain is not specified, or is not an existing domain in one of
+   * our TLDs, the wildcard must be preceded by at least two characters (e.g. "ns*"), to avoid
+   * queries for all nameservers in the system. If the suffix specifies an existing domain, the
+   * initial string is not required (e.g. "*.example.tld" is valid), because we can look up the
+   * domain and just list all of its subordinate hosts.
+   */
   private Iterable<Key<HostResource>> getNameserverRefsByLdhName(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
     // Handle queries without a wildcard; just load the host by foreign key in the usual way.
@@ -206,40 +260,63 @@ public class RdapDomainSearchAction extends RdapActionBase {
       } else {
         return ImmutableList.of(hostKey);
       }
-    // Handle queries with a wildcard, but no suffix. Query the host resources themselves, rather
-    // than the foreign key index, because then we have an index on fully qualified host name and
-    // deletion time, so we can check the deletion status in the query itself. There are no pending
-    // deletes for hosts, so we can call queryUndeleted.
-    } else if (partialStringQuery.getSuffix() == null) {
-      // TODO (b/24463238): figure out how to limit the size of these queries effectively
-      return queryUndeleted(HostResource.class, "fullyQualifiedHostName", partialStringQuery, 1000)
-          .keys();
-    // Handle queries with a wildcard and a suffix. In this case, it is more efficient to do things
-    // differently. We use the suffix to look up the domain, then loop through the subordinate hosts
-    // looking for matches.
-    // TODO(mountford): This might not be ok; it will only find nameservers on domains we control
+    // Handle queries with a wildcard.
     } else {
-      DomainResource domainResource = loadByForeignKey(
-          DomainResource.class, partialStringQuery.getSuffix(), now);
-      if (domainResource == null) {
-        throw new NotFoundException("No domain found for specified nameserver suffix");
-      }
-      ImmutableList.Builder<Key<HostResource>> builder = new ImmutableList.Builder<>();
-      for (String fqhn : ImmutableSortedSet.copyOf(domainResource.getSubordinateHosts())) {
-        // We can't just check that the host name starts with the initial query string, because then
-        // the query ns.exam*.example.com would match against nameserver ns.example.com.
-        if (partialStringQuery.matches(fqhn)) {
-          Key<HostResource> hostKey = loadAndGetKey(HostResource.class, fqhn, now);
-          if (hostKey != null) {
-            builder.add(hostKey);
+      // If there is a suffix, it must be a domain. If it happens to be a domain that we manage,
+      // we can look up the domain and look through the subordinate hosts. This is more efficient,
+      // and lets us permit wildcard searches with no initial string.
+      if (partialStringQuery.getSuffix() != null) {
+        DomainResource domainResource = loadByForeignKey(
+            DomainResource.class, partialStringQuery.getSuffix(), now);
+        if (domainResource != null) {
+          ImmutableList.Builder<Key<HostResource>> builder = new ImmutableList.Builder<>();
+          for (String fqhn : ImmutableSortedSet.copyOf(domainResource.getSubordinateHosts())) {
+            // We can't just check that the host name starts with the initial query string, because
+            // then the query ns.exam*.example.com would match against nameserver ns.example.com.
+            if (partialStringQuery.matches(fqhn)) {
+              Key<HostResource> hostKey = loadAndGetKey(HostResource.class, fqhn, now);
+              if (hostKey != null) {
+                builder.add(hostKey);
+              } else {
+                logger.warningfmt("Host key unexpectedly null");
+              }
+            }
           }
+          return builder.build();
         }
       }
-      return builder.build();
+      // If there's no suffix, or it isn't a domain we manage, query the host resources. Query the
+      // resources themselves, rather than the foreign key indexes, because then we have an index on
+      // fully qualified host name and deletion time, so we can check the deletion status in the
+      // query itself. There are no pending deletes for hosts, so we can call queryUndeleted. In
+      // this case, the initial string must be present, to avoid querying every host in the system.
+      // This restriction is enforced by queryUndeleted().
+      // TODO (b/24463238): figure out how to limit the size of these queries effectively
+      Iterable<Key<HostResource>> keys =
+          queryUndeleted(HostResource.class, "fullyQualifiedHostName", partialStringQuery, 1000)
+              .keys();
+      // queryUndeleted() ignores suffixes, so if one was specified, we must filter on the partial
+      // string query.
+      if (partialStringQuery.getSuffix() == null) {
+        return keys;
+      } else {
+        ImmutableList.Builder<Key<HostResource>> filteredKeys = new ImmutableList.Builder<>();
+        for (Key<HostResource> key : keys) {
+          if (partialStringQuery.matches(key.getName())) {
+            filteredKeys.add(key);
+          }
+        }
+        return filteredKeys.build();
+      }
     }
   }
 
-  /** Searches for domains by nameserver address, returning a JSON array of domain info maps. */
+  /**
+   * Searches for domains by nameserver address, returning a JSON array of domain info maps.
+   *
+   * <p>This is a two-step process: get a list of host references by IP address, and then look up
+   * domains by host reference.
+   */
   private RdapSearchResults searchByNameserverIp(
       final InetAddress inetAddress, final DateTime now) {
     // In theory, we could filter on the deletion time being in the future. But we can't do that in
@@ -280,13 +357,13 @@ public class RdapDomainSearchAction extends RdapActionBase {
           .limit(rdapResultSetMaxSize + 1)) {
         if (!domains.contains(domain)) {
           if (domains.size() >= rdapResultSetMaxSize) {
-            return makeSearchResults(ImmutableList.copyOf(domains), true, now);
+            return makeSearchResults(ImmutableList.copyOf(domains), true /* isTruncated */, now);
           }
           domains.add(domain);
         }
       }
     }
-    return makeSearchResults(ImmutableList.copyOf(domains), false, now);
+    return makeSearchResults(ImmutableList.copyOf(domains), false /* isTruncated */, now);
   }
 
   /**
@@ -296,7 +373,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
    * list, meaning that the truncation notice should be added.
    */
   private RdapSearchResults makeSearchResults(
-      ImmutableList<DomainResource> domains, boolean isTruncated, DateTime now) {
+      List<DomainResource> domains, boolean isTruncated, DateTime now) {
     OutputDataType outputDataType =
         (domains.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
     ImmutableList.Builder<ImmutableMap<String, Object>> jsonBuilder = new ImmutableList.Builder<>();

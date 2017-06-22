@@ -136,9 +136,17 @@ public class RdapEntitySearchAction extends RdapActionBase {
    * assume that entity names are regular unicode.
    */
   private RdapSearchResults searchByName(final RdapSearchPattern partialStringQuery, DateTime now) {
-    // Don't allow suffixes in entity name search queries.
-    if (!partialStringQuery.getHasWildcard() && (partialStringQuery.getSuffix() != null)) {
-      throw new UnprocessableEntityException("Suffixes not allowed in entity name searches");
+    // For wildcard searches, make sure the initial string is long enough, and don't allow suffixes.
+    if (partialStringQuery.getHasWildcard()) {
+      if (partialStringQuery.getSuffix() != null) {
+        throw new UnprocessableEntityException(
+            "Suffixes not allowed in wildcard entity name searches");
+      }
+      if (partialStringQuery.getInitialString().length()
+          < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH) {
+        throw new UnprocessableEntityException(
+            "Initial search string required in wildcard entity name searches");
+      }
     }
     // Get the registrar matches, depending on whether there's a wildcard.
     ImmutableList<Registrar> registrarMatches =
@@ -183,6 +191,11 @@ public class RdapEntitySearchAction extends RdapActionBase {
     // wildcard searches for registrars, by simply not searching for registrars if a wildcard is
     // present. Fetch an extra contact to detect result set truncation.
     } else if (partialStringQuery.getSuffix() == null) {
+      if (partialStringQuery.getInitialString().length()
+          < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH) {
+        throw new UnprocessableEntityException(
+            "Initial search string required in wildcard entity handle searches");
+      }
       return makeSearchResults(
           ofy().load()
               .type(ContactResource.class)

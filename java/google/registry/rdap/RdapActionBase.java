@@ -37,6 +37,7 @@ import google.registry.request.Action;
 import google.registry.request.HttpException;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
+import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.RequestMethod;
 import google.registry.request.RequestPath;
 import google.registry.request.Response;
@@ -170,8 +171,9 @@ public abstract class RdapActionBase implements Runnable {
    * @param clazz the type of resource to be queried
    * @param filterField the database field of interest
    * @param partialStringQuery the details of the search string; if there is no wildcard, an
-   *        equality query is used; if there is a wildcard, a range query is used instead; there
-   *        should not be a search suffix
+   *        equality query is used; if there is a wildcard, a range query is used instead; the
+   *        initial string should not be empty, and any search suffix will be ignored, so the caller
+   *        must filter the results if a suffix is specified
    * @param resultSetMaxSize the maximum number of results to return
    * @return the results of the query
    */
@@ -180,6 +182,13 @@ public abstract class RdapActionBase implements Runnable {
       String filterField,
       RdapSearchPattern partialStringQuery,
       int resultSetMaxSize) {
+    if (partialStringQuery.getInitialString().length()
+        < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH) {
+      throw new UnprocessableEntityException(
+          String.format(
+              "Initial search string must be at least %d characters",
+              RdapSearchPattern.MIN_INITIAL_STRING_LENGTH));
+    }
     if (!partialStringQuery.getHasWildcard()) {
       return ofy().load()
           .type(clazz)
@@ -187,7 +196,7 @@ public abstract class RdapActionBase implements Runnable {
           .filter("deletionTime", END_OF_TIME)
           .limit(resultSetMaxSize);
     } else {
-      checkArgument(partialStringQuery.getSuffix() == null, "Unexpected search string suffix");
+      // Ignore the suffix; the caller will need to filter on the suffix, if any.
       return ofy().load()
           .type(clazz)
           .filter(filterField + " >=", partialStringQuery.getInitialString())

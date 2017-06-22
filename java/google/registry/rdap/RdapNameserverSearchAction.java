@@ -80,7 +80,11 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     return PATH;
   }
 
-  /** Parses the parameters and calls the appropriate search function. */
+  /**
+   * Parses the parameters and calls the appropriate search function.
+   *
+   * <p>The RDAP spec allows nameserver search by either name or IP address.
+   */
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest, String linkBase) {
@@ -135,39 +139,51 @@ public class RdapNameserverSearchAction extends RdapActionBase {
           ImmutableList.of(
               rdapJsonFormatter.makeRdapJsonForHost(
                   hostResource, false, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL)));
-    // Handle queries with a wildcard, but no suffix. There are no pending deletes for hosts, so we
-    // can call queryUndeleted.
-    } else if (partialStringQuery.getSuffix() == null) {
-      return makeSearchResults(
-          // Add 1 so we can detect truncation.
-          queryUndeleted(
-                  HostResource.class,
-                  "fullyQualifiedHostName",
-                  partialStringQuery,
-                  rdapResultSetMaxSize + 1)
-              .list(),
-          now);
-    // Handle queries with a wildcard and a suffix. In this case, it is more efficient to do things
-    // differently. We use the suffix to look up the domain, then loop through the subordinate hosts
-    // looking for matches.
+    // Handle queries with a wildcard.
     } else {
-      DomainResource domainResource =
-          loadByForeignKey(DomainResource.class, partialStringQuery.getSuffix(), now);
-      if (domainResource == null) {
-        throw new NotFoundException("No domain found for specified nameserver suffix");
-      }
-      ImmutableList.Builder<HostResource> hostListBuilder = new ImmutableList.Builder<>();
-      for (String fqhn : ImmutableSortedSet.copyOf(domainResource.getSubordinateHosts())) {
-        // We can't just check that the host name starts with the initial query string, because then
-        // the query ns.exam*.example.com would match against nameserver ns.example.com.
-        if (partialStringQuery.matches(fqhn)) {
-          HostResource hostResource = loadByForeignKey(HostResource.class, fqhn, now);
-          if (hostResource != null) {
-            hostListBuilder.add(hostResource);
+      // If there is a suffix, it should be a domain. If it happens to be a domain that we manage,
+      // we can look up the domain and look through the subordinate hosts. This is more efficient,
+      // and lets us permit wildcard searches with no initial string.
+      if (partialStringQuery.getSuffix() != null) {
+        DomainResource domainResource =
+            loadByForeignKey(DomainResource.class, partialStringQuery.getSuffix(), now);
+        ImmutableList.Builder<HostResource> hostListBuilder = new ImmutableList.Builder<>();
+        if (domainResource != null) {
+          for (String fqhn : ImmutableSortedSet.copyOf(domainResource.getSubordinateHosts())) {
+            // We can't just check that the host name starts with the initial query string, because
+            // then the query ns.exam*.example.com would match against nameserver ns.example.com.
+            if (partialStringQuery.matches(fqhn)) {
+              HostResource hostResource = loadByForeignKey(HostResource.class, fqhn, now);
+              if (hostResource != null) {
+                hostListBuilder.add(hostResource);
+              }
+            }
+          }
+        } else {
+          // If we don't recognize the domain, call queryUndeleted and filter.
+          // TODO(mountford): figure out how to size this correctly
+          for (HostResource hostResource :
+              queryUndeleted(
+                  HostResource.class, "fullyQualifiedHostName", partialStringQuery, 1000)) {
+            if (partialStringQuery.matches(hostResource.getFullyQualifiedHostName())) {
+              hostListBuilder.add(hostResource);
+            }
           }
         }
+        return makeSearchResults(hostListBuilder.build(), now);
+      // Handle queries with a wildcard, but no suffix. There are no pending deletes for hosts, so
+      // we can call queryUndeleted.
+      } else {
+        return makeSearchResults(
+            // Add 1 so we can detect truncation.
+            queryUndeleted(
+                    HostResource.class,
+                    "fullyQualifiedHostName",
+                    partialStringQuery,
+                    rdapResultSetMaxSize + 1)
+                .list(),
+            now);
       }
-      return makeSearchResults(hostListBuilder.build(), now);
     }
   }
 

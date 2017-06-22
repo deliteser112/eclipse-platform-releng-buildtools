@@ -240,9 +240,7 @@ public class RdapNameserverSearchActionTest {
   @Test
   public void testNonexistentDomainSuffix_notFound() throws Exception {
     assertThat(generateActualJsonWithName("exam*.foo.bar"))
-        .isEqualTo(
-            generateExpectedJson(
-                "No domain found for specified nameserver suffix", "rdap_error_404.json"));
+        .isEqualTo(generateExpectedJson("No nameservers found", "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
@@ -254,11 +252,20 @@ public class RdapNameserverSearchActionTest {
   }
 
   @Test
+  public void testNoCharactersToMatch_rejected() throws Exception {
+    assertThat(generateActualJsonWithName("*"))
+        .isEqualTo(
+            generateExpectedJson(
+                "Initial search string must be at least 2 characters", "rdap_error_422.json"));
+    assertThat(response.getStatus()).isEqualTo(422);
+  }
+
+  @Test
   public void testFewerThanTwoCharactersToMatch_rejected() throws Exception {
     assertThat(generateActualJsonWithName("a*"))
         .isEqualTo(
             generateExpectedJson(
-                "At least two characters must be specified", "rdap_error_422.json"));
+                "Initial search string must be at least 2 characters", "rdap_error_422.json"));
     assertThat(response.getStatus()).isEqualTo(422);
   }
 
@@ -333,6 +340,18 @@ public class RdapNameserverSearchActionTest {
   @Test
   public void testNameMatch_nsstar_cat_lol_found() throws Exception {
     generateActualJsonWithName("ns*.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_nstar_cat_lol_found() throws Exception {
+    generateActualJsonWithName("n*.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_star_cat_lol_found() throws Exception {
+    generateActualJsonWithName("*.cat.lol");
     assertThat(response.getStatus()).isEqualTo(200);
   }
 

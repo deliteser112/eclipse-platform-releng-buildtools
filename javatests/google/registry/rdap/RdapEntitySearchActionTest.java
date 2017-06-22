@@ -255,11 +255,22 @@ public class RdapEntitySearchActionTest {
   }
 
   @Test
+  public void testNoCharactersToMatch_rejected() throws Exception {
+    assertThat(generateActualJsonWithHandle("*"))
+        .isEqualTo(
+            generateExpectedJson(
+                "Initial search string required in wildcard entity handle searches",
+                "rdap_error_422.json"));
+    assertThat(response.getStatus()).isEqualTo(422);
+  }
+
+  @Test
   public void testFewerThanTwoCharactersToMatch_rejected() throws Exception {
     assertThat(generateActualJsonWithHandle("a*"))
         .isEqualTo(
             generateExpectedJson(
-                "At least two characters must be specified", "rdap_error_422.json"));
+                "Initial search string required in wildcard entity handle searches",
+                "rdap_error_422.json"));
     assertThat(response.getStatus()).isEqualTo(422);
   }
 

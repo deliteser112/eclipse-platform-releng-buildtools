@@ -30,6 +30,8 @@ import javax.annotation.Nullable;
  */
 public final class RdapSearchPattern {
 
+  static final int MIN_INITIAL_STRING_LENGTH = 2;
+
   /** String before the wildcard character. */
   private final String initialString;
 
@@ -113,9 +115,6 @@ public final class RdapSearchPattern {
         suffix = null;
       }
       initialString = pattern.substring(0, wildcardPos);
-      if (initialString.length() < 2) {
-        throw new UnprocessableEntityException("At least two characters must be specified");
-      }
       if (initialString.startsWith(ACE_PREFIX) && (initialString.length() < 7)) {
         throw new UnprocessableEntityException(
             "At least seven characters must be specified for punycode domain searches");

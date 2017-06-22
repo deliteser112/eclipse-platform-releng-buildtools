@@ -381,10 +381,28 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
+  public void testNoCharactersToMatch_rejected() throws Exception {
+    assertThat(generateActualJson(RequestType.NAME, "*"))
+        .isEqualTo(
+            generateExpectedJson(
+                "Initial search string is required for wildcard domain searches without a TLD"
+                    + " suffix",
+                null,
+                null,
+                "rdap_error_422.json"));
+    assertThat(response.getStatus()).isEqualTo(422);
+  }
+
+  @Test
   public void testFewerThanTwoCharactersToMatch_rejected() throws Exception {
     assertThat(generateActualJson(RequestType.NAME, "a*"))
-        .isEqualTo(generateExpectedJson(
-            "At least two characters must be specified", null, null, "rdap_error_422.json"));
+        .isEqualTo(
+            generateExpectedJson(
+                "Initial search string must be at least 2 characters for wildcard domain searches"
+                    + " without a TLD suffix",
+                null,
+                null,
+                "rdap_error_422.json"));
     assertThat(response.getStatus()).isEqualTo(422);
   }
 
@@ -455,6 +473,18 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
+  public void testDomainMatch_cstar_lol_found() throws Exception {
+    generateActualJson(RequestType.NAME, "c*.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testDomainMatch_star_lol_found() throws Exception {
+    generateActualJson(RequestType.NAME, "*.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
   public void testDomainMatch_cat_star_found() throws Exception {
     generateActualJson(RequestType.NAME, "cat.*");
     assertThat(response.getStatus()).isEqualTo(200);
@@ -511,7 +541,7 @@ public class RdapDomainSearchActionTest {
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
-  // todo (b/27378695): reenable or delete this test
+  // TODO(b/27378695): reenable or delete this test
   @Ignore
   @Test
   public void testDomainMatchDomainInTestTld_notFound() throws Exception {
@@ -714,7 +744,23 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
-  public void testNameserverMatchWithWildcardAndDomainSuffix_found() throws Exception {
+  public void testNameserverMatchWithNoPrefixWildcardAndDomainSuffix_found() throws Exception {
+    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "*.cat.lol"))
+        .isEqualTo(generateExpectedJson("rdap_multiple_domains.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameserverMatchWithOneCharacterPrefixWildcardAndDomainSuffix_found()
+      throws Exception {
+    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "n*.cat.lol"))
+        .isEqualTo(generateExpectedJson("rdap_multiple_domains.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameserverMatchWithTwoCharacterPrefixWildcardAndDomainSuffix_found()
+      throws Exception {
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns*.cat.lol"))
         .isEqualTo(generateExpectedJson("rdap_multiple_domains.json"));
     assertThat(response.getStatus()).isEqualTo(200);
@@ -828,7 +874,7 @@ public class RdapDomainSearchActionTest {
         hostNs1CatLol.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat*.lol"))
         .isEqualTo(generateExpectedJson(
-            "No domain found for specified nameserver suffix", null, null, "rdap_error_404.json"));
+            "No matching nameservers found", null, null, "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
