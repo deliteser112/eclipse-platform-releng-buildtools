@@ -109,7 +109,7 @@ public final class CommitLogManifestInputTest {
       created.add(createManifest(CommitLogBucket.getBucketKey(i), DATE_TIME_OLD2));
     }
     List<CommitLogManifest> seen = new ArrayList<>();
-    Input<CommitLogManifest> input = new CommitLogManifestInput(Optional.absent());
+    Input<CommitLogManifest> input = new CommitLogManifestInput(Optional.<DateTime>absent());
     for (InputReader<CommitLogManifest> reader
         : input.createReaders()) {
       reader.beginShard();
