@@ -71,7 +71,8 @@ with the tools service are not visible to users.
 
 The tools service also runs ad-hoc MapReduces, like those invoked via `nomulus`
 tool subcommands like `generate_zone_files` and by manually hitting URLs under
-https://tools-dot-project-id.appspot.com, like `/_dr/task/refreshAllDomains`.
+https://tools-dot-project-id.appspot.com, like
+`/_dr/task/refreshDnsForAllDomains`.
 
 ## Task queues
 

@@ -42,11 +42,11 @@ import google.registry.tools.server.ListPremiumListsAction;
 import google.registry.tools.server.ListRegistrarsAction;
 import google.registry.tools.server.ListReservedListsAction;
 import google.registry.tools.server.ListTldsAction;
+import google.registry.tools.server.RefreshDnsForAllDomainsAction;
 import google.registry.tools.server.ResaveAllEppResourcesAction;
 import google.registry.tools.server.ToolsServerModule;
 import google.registry.tools.server.UpdatePremiumListAction;
 import google.registry.tools.server.VerifyOteAction;
-import google.registry.tools.server.javascrap.RefreshAllDomainsAction;
 
 /** Dagger component with per-request lifetime for "tools" App Engine module. */
 @RequestScope
@@ -78,7 +78,7 @@ interface ToolsRequestComponent {
   ListTldsAction listTldsAction();
   LoadTestAction loadTestAction();
   PublishDetailReportAction publishDetailReportAction();
-  RefreshAllDomainsAction refreshAllDomainsAction();
+  RefreshDnsForAllDomainsAction refreshDnsForAllDomainsAction();
   ResaveAllEppResourcesAction resaveAllEppResourcesAction();
   RestoreCommitLogsAction restoreCommitLogsAction();
   UpdatePremiumListAction updatePremiumListAction();

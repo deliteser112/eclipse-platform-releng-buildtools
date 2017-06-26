@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.tools.server.javascrap;
+package google.registry.tools.server;
 
 import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
 import static google.registry.util.PipelineUtils.createJobPath;
@@ -33,14 +33,18 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 /**
- * A mapreduce that enqueues publish tasks on all active domains.
+ * A mapreduce that enqueues DNS publish tasks on all active domains.
+ *
+ * <p>This refreshes DNS both for all domain names and all in-bailiwick hostnames, as DNS writers
+ * are responsible for enqueuing refresh tasks for subordinate hosts. So this action thus refreshes
+ * DNS for everything applicable under all TLDs under management.
  *
  * <p>Because there are no auth settings in the {@link Action} annotation, this command can only be
  * run internally, or by pretending to be internal by setting the X-AppEngine-QueueName header,
  * which only admin users can do.
  */
 @Action(
-  path = "/_dr/task/refreshAllDomains",
+  path = "/_dr/task/refreshDnsForAllDomains",
   auth =
       @Auth(
         methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
@@ -48,13 +52,13 @@ import org.joda.time.DateTimeZone;
         userPolicy = Auth.UserPolicy.ADMIN
       )
 )
-public class RefreshAllDomainsAction implements Runnable {
+public class RefreshDnsForAllDomainsAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;
-  @Inject RefreshAllDomainsAction() {}
+  @Inject RefreshDnsForAllDomainsAction() {}
 
   @Override
   public void run() {
@@ -65,12 +69,13 @@ public class RefreshAllDomainsAction implements Runnable {
                 .setModuleName("tools")
                 .setDefaultMapShards(10)
                 .runMapOnly(
-                    new RefreshAllDomainsActionMapper(),
+                    new RefreshDnsForAllDomainsActionMapper(),
                     ImmutableList.of(createEntityInput(DomainResource.class)))));
   }
 
-  /** Mapper to refresh all active domain resources. */
-  public static class RefreshAllDomainsActionMapper extends Mapper<DomainResource, Void, Void> {
+  /** Mapper to refresh DNS for all active domain resources. */
+  public static class RefreshDnsForAllDomainsActionMapper
+      extends Mapper<DomainResource, Void, Void> {
 
     private static final DnsQueue dnsQueue = DnsQueue.create();
     private static final long serialVersionUID = 1356876487351666133L;

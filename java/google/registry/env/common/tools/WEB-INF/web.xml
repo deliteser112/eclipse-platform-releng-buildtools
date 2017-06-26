@@ -113,7 +113,7 @@
   <!-- Refreshes all active domains in DNS -->
   <servlet-mapping>
     <servlet-name>tools-servlet</servlet-name>
-    <url-pattern>/_dr/task/refreshAllDomains</url-pattern>
+    <url-pattern>/_dr/task/refreshDnsForAllDomains</url-pattern>
   </servlet-mapping>
 
   <!-- Registrar detail report publishing action. -->
