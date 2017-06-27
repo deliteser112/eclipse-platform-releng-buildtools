@@ -27,12 +27,12 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
-import com.google.common.flogger.GoogleLogger;
 import com.google.template.soy.data.SoyMapData;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.tools.soy.DomainUpdateSoyInfo;
+import google.registry.util.FormattingLogger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -43,7 +43,7 @@ import org.joda.time.DateTime;
 @Parameters(separators = " =", commandDescription = "Update a new domain via EPP.")
 final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
 
-  private static final GoogleLogger logger = GoogleLogger.forEnclosingClass();
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Parameter(names = "--statuses", description = "Comma-separated list of statuses to set.")
   private List<String> statuses = new ArrayList<>();
@@ -182,7 +182,7 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
       boolean change = registrant != null || password != null;
 
       if (!add && !remove && !change) {
-        logger.atInfo().log("No changes need to be made to domain %s", domain);
+        logger.infofmt("No changes need to be made to domain %s", domain);
         continue;
       }
 
