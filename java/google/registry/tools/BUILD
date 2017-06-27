@@ -34,6 +34,7 @@ java_library(
     ]),
     visibility = [":allowed-tools"],
     deps = [
+        "//java/com/google/common/flogger",
         "//java/google/registry/backup",
         "//java/google/registry/bigquery",
         "//java/google/registry/config",

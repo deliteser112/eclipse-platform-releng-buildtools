@@ -34,8 +34,8 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
         "--period=1",
         "--nameservers=ns1.zdns.google,ns2.zdns.google,ns3.zdns.google,ns4.zdns.google",
         "--registrant=crr-admin",
-        "--admin=crr-admin",
-        "--tech=crr-tech",
+        "--admins=crr-admin",
+        "--techs=crr-tech",
         "--password=2fooBAR",
         "example.tld");
     eppVerifier().verifySent("domain_create_complete.xml");
@@ -47,8 +47,8 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
     runCommandForced(
         "--client=NewRegistrar",
         "--registrant=crr-admin",
-        "--admin=crr-admin",
-        "--tech=crr-tech",
+        "--admins=crr-admin",
+        "--techs=crr-tech",
         "example.tld");
     eppVerifier().verifySent("domain_create_minimal.xml");
   }
@@ -58,8 +58,8 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
     runCommandForced(
         "--client=NewRegistrar",
         "--registrant=crr-admin",
-        "--admin=crr-admin",
-        "--tech=crr-tech",
+        "--admins=crr-admin",
+        "--techs=crr-tech",
         "example.tld",
         "example.abc");
     eppVerifier().verifySent("domain_create_minimal.xml", "domain_create_minimal_abc.xml");
@@ -71,8 +71,8 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
     runCommandForced(
         "--client=NewRegistrar",
         "--registrant=crr-admin",
-        "--admin=crr-admin",
-        "--tech=crr-tech",
+        "--admins=crr-admin",
+        "--techs=crr-tech",
         "example.tld",
         "example.tld");
   }
@@ -81,35 +81,38 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   public void testFailure_missingDomain() throws Exception {
     thrown.expect(ParameterException.class, "Main parameters are required");
     runCommandForced(
-        "--client=NewRegistrar", "--registrant=crr-admin", "--admin=crr-admin", "--tech=crr-tech");
+        "--client=NewRegistrar",
+        "--registrant=crr-admin",
+        "--admins=crr-admin",
+        "--techs=crr-tech");
   }
 
   @Test
   public void testFailure_missingClientId() throws Exception {
     thrown.expect(ParameterException.class, "--client");
     runCommandForced(
-        "--admin=crr-admin", "--tech=crr-tech", "--registrant=crr-admin", "example.tld");
+        "--admins=crr-admin", "--techs=crr-tech", "--registrant=crr-admin", "example.tld");
   }
 
   @Test
   public void testFailure_missingRegistrant() throws Exception {
-    thrown.expect(ParameterException.class, "--registrant");
+    thrown.expect(IllegalArgumentException.class, "Registrant must be specified");
     runCommandForced(
-        "--client=NewRegistrar", "--admin=crr-admin", "--tech=crr-tech", "example.tld");
+        "--client=NewRegistrar", "--admins=crr-admin", "--techs=crr-tech", "example.tld");
   }
 
   @Test
-  public void testFailure_missingAdmin() throws Exception {
-    thrown.expect(ParameterException.class, "--admin");
+  public void testFailure_missingAdmins() throws Exception {
+    thrown.expect(IllegalArgumentException.class, "At least one admin must be specified");
     runCommandForced(
-        "--client=NewRegistrar", "--registrant=crr-admin", "--tech=crr-tech", "example.tld");
+        "--client=NewRegistrar", "--registrant=crr-admin", "--techs=crr-tech", "example.tld");
   }
 
   @Test
-  public void testFailure_missingTech() throws Exception {
-    thrown.expect(ParameterException.class, "--tech");
+  public void testFailure_missingTechs() throws Exception {
+    thrown.expect(IllegalArgumentException.class, "At least one tech must be specified");
     runCommandForced(
-        "--client=NewRegistrar", "--registrant=crr-admin", "--admin=crr-admin", "example.tld");
+        "--client=NewRegistrar", "--registrant=crr-admin", "--admins=crr-admin", "example.tld");
   }
 
   @Test
@@ -118,8 +121,8 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
     runCommandForced(
         "--client=NewRegistrar",
         "--registrant=crr-admin",
-        "--admin=crr-admin",
-        "--tech=crr-tech",
+        "--admins=crr-admin",
+        "--techs=crr-tech",
         "--nameservers=ns1.zdns.google,ns2.zdns.google,ns3.zdns.google,ns4.zdns.google,"
             + "ns5.zdns.google,ns6.zdns.google,ns7.zdns.google,ns8.zdns.google,"
             + "ns9.zdns.google,ns10.zdns.google,ns11.zdns.google,ns12.zdns.google,"
@@ -133,8 +136,8 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
     runCommandForced(
         "--client=NewRegistrar",
         "--registrant=crr-admin",
-        "--admin=crr-admin",
-        "--tech=crr-tech",
+        "--admins=crr-admin",
+        "--techs=crr-tech",
         "--period=x",
         "--domain=example.tld");
   }

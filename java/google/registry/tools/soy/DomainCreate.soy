@@ -19,10 +19,10 @@
 {template .domaincreate}
   {@param domain: string}
   {@param? period: string}
-  {@param? ns: list<string>}
+  {@param nameservers: list<string>}
   {@param registrant: string}
-  {@param admin: string}
-  {@param tech: string}
+  {@param admins: list<string>}
+  {@param techs: list<string>}
   {@param password: string}
 
   <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -34,16 +34,20 @@
           {if $period}
             <domain:period unit="y">{$period}</domain:period>
           {/if}
-          {if $ns}
+          {if length($nameservers) > 0}
             <domain:ns>
-              {foreach $s in $ns}
+              {foreach $s in $nameservers}
                 <domain:hostObj>{$s}</domain:hostObj>
               {/foreach}
             </domain:ns>
           {/if}
           <domain:registrant>{$registrant}</domain:registrant>
-          <domain:contact type="admin">{$admin}</domain:contact>
-          <domain:contact type="tech">{$tech}</domain:contact>
+          {foreach $admin in $admins}
+            <domain:contact type="admin">{$admin}</domain:contact>
+          {/foreach}
+          {foreach $tech in $techs}
+            <domain:contact type="tech">{$tech}</domain:contact>
+          {/foreach}
           <domain:authInfo>
             <domain:pw>{$password}</domain:pw>
           </domain:authInfo>

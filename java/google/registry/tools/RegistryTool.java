@@ -113,6 +113,7 @@ public final class RegistryTool {
           .put("update_application_status", UpdateApplicationStatusCommand.class)
           .put("update_claims_notice", UpdateClaimsNoticeCommand.class)
           .put("update_cursors", UpdateCursorsCommand.class)
+          .put("update_domain", UpdateDomainCommand.class)
           .put("update_kms_keyring", UpdateKmsKeyringCommand.class)
           .put("update_premium_list", UpdatePremiumListCommand.class)
           .put("update_registrar", UpdateRegistrarCommand.class)

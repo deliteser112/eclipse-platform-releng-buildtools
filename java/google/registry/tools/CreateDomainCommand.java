@@ -16,65 +16,23 @@ package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static google.registry.util.CollectionUtils.findDuplicates;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
 import com.google.template.soy.data.SoyMapData;
 import google.registry.tools.soy.DomainCreateSoyInfo;
 import google.registry.util.StringGenerator;
-import java.util.List;
-import java.util.Set;
 import javax.inject.Inject;
 
 /** A command to create a new domain via EPP. */
 @Parameters(separators = " =", commandDescription = "Create a new domain via EPP.")
-final class CreateDomainCommand extends MutatingEppToolCommand {
-
-  @Parameter(
-      names = {"-c", "--client"},
-      description = "Client identifier of the registrar to execute the command as",
-      required = true)
-  String clientId;
-
-  @Parameter(description = "Names of the domains", required = true)
-  private List<String> mainParameters;
+final class CreateDomainCommand extends CreateOrUpdateDomainCommand {
 
   @Parameter(
       names = "--period",
       description = "Initial registration period, in years.")
   private Integer period;
-
-  @Parameter(
-    names = {"-n", "--nameservers"},
-    description = "Comma-separated list of nameservers, up to 13."
-  )
-  private List<String> ns;
-
-  @Parameter(
-      names = {"-r", "--registrant"},
-      description = "Domain registrant.",
-      required = true)
-  private String registrant;
-
-  @Parameter(
-      names = {"-a", "--admin"},
-      description = "Admin contact.",
-      required = true)
-  private String admin;
-
-  @Parameter(
-      names = {"-t", "--tech"},
-      description = "Technical contact.",
-      required = true)
-  private String tech;
-
-  @Parameter(
-      names = {"-p", "--password"},
-      description = "Password. Optional, randomly generated if not provided.")
-  private String password;
 
   @Inject
   StringGenerator passwordGenerator;
@@ -83,13 +41,12 @@ final class CreateDomainCommand extends MutatingEppToolCommand {
 
   @Override
   protected void initMutatingEppToolCommand() {
+    checkArgumentNotNull(registrant, "Registrant must be specified");
+    checkArgument(!admins.isEmpty(), "At least one admin must be specified");
+    checkArgument(!techs.isEmpty(), "At least one tech must be specified");
     if (isNullOrEmpty(password)) {
       password = passwordGenerator.createString(PASSWORD_LENGTH);
     }
-    checkArgument(ns == null || ns.size() <= 13, "There can be at most 13 nameservers.");
-    String duplicates = Joiner.on(", ").join(findDuplicates(mainParameters));
-    checkArgument(duplicates.isEmpty(), "Duplicate arguments found: '%s'", duplicates);
-    Set<String> domains = ImmutableSet.copyOf(mainParameters);
 
     for (String domain : domains) {
       setSoyTemplate(DomainCreateSoyInfo.getInstance(), DomainCreateSoyInfo.DOMAINCREATE);
@@ -98,10 +55,10 @@ final class CreateDomainCommand extends MutatingEppToolCommand {
           new SoyMapData(
               "domain", domain,
               "period", period == null ? null : period.toString(),
-              "ns", ns,
+              "nameservers", nameservers,
               "registrant", registrant,
-              "admin", admin,
-              "tech", tech,
+              "admins", admins,
+              "techs", techs,
               "password", password));
     }
   }
