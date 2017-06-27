@@ -15,25 +15,31 @@
 package google.registry.tools.server;
 
 import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
+import static google.registry.model.EppResourceUtils.isActive;
+import static google.registry.model.registry.Registries.assertTldsExist;
+import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.mapreduce.Mapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import google.registry.dns.DnsQueue;
 import google.registry.mapreduce.MapreduceRunner;
-import google.registry.model.EppResourceUtils;
 import google.registry.model.domain.DomainResource;
 import google.registry.request.Action;
+import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthLevel;
 import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 /**
- * A mapreduce that enqueues DNS publish tasks on all active domains.
+ * A mapreduce that enqueues DNS publish tasks on all active domains on the specified TLD(s).
  *
  * <p>This refreshes DNS both for all domain names and all in-bailiwick hostnames, as DNS writers
  * are responsible for enqueuing refresh tasks for subordinate hosts. So this action thus refreshes
@@ -54,22 +60,24 @@ import org.joda.time.DateTimeZone;
 )
 public class RefreshDnsForAllDomainsAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FormattingLogger logger = getLoggerForCallerClass();
 
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;
+  @Inject @Parameter("tlds") ImmutableSet<String> tlds;
   @Inject RefreshDnsForAllDomainsAction() {}
 
   @Override
   public void run() {
+    assertTldsExist(tlds);
     response.sendJavaScriptRedirect(
         createJobPath(
             mrRunner
-                .setJobName("Refresh all domains")
+                .setJobName("Refresh DNS for all domains")
                 .setModuleName("tools")
                 .setDefaultMapShards(10)
                 .runMapOnly(
-                    new RefreshDnsForAllDomainsActionMapper(),
+                    new RefreshDnsForAllDomainsActionMapper(tlds),
                     ImmutableList.of(createEntityInput(DomainResource.class)))));
   }
 
@@ -77,22 +85,35 @@ public class RefreshDnsForAllDomainsAction implements Runnable {
   public static class RefreshDnsForAllDomainsActionMapper
       extends Mapper<DomainResource, Void, Void> {
 
-    private static final DnsQueue dnsQueue = DnsQueue.create();
-    private static final long serialVersionUID = 1356876487351666133L;
+    private static final long serialVersionUID = 1455544013508953083L;
+
+    @NonFinalForTesting
+    @VisibleForTesting
+    static DnsQueue dnsQueue = DnsQueue.create();
+
+    private final ImmutableSet<String> tlds;
+
+    RefreshDnsForAllDomainsActionMapper(ImmutableSet<String> tlds) {
+      this.tlds = tlds;
+    }
 
     @Override
     public void map(final DomainResource domain) {
       String domainName = domain.getFullyQualifiedDomainName();
-      if (EppResourceUtils.isActive(domain, DateTime.now(DateTimeZone.UTC))) {
-        try {
-          dnsQueue.addDomainRefreshTask(domainName);
-          getContext().incrementCounter("active domains refreshed");
-        } catch (Throwable t) {
-          logger.severefmt(t, "Error while refreshing DNS for domain %s", domainName);
-          getContext().incrementCounter("active domains errored");
+      if (tlds.contains(domain.getTld())) {
+        if (isActive(domain, DateTime.now(DateTimeZone.UTC))) {
+          try {
+            dnsQueue.addDomainRefreshTask(domainName);
+            getContext().incrementCounter("active domains refreshed");
+          } catch (Throwable t) {
+            logger.severefmt(t, "Error while refreshing DNS for domain %s", domainName);
+            getContext().incrementCounter("active domains errored");
+          }
+        } else {
+          getContext().incrementCounter("inactive domains skipped");
         }
       } else {
-        getContext().incrementCounter("inactive domains skipped");
+        getContext().incrementCounter("domains on non-targeted TLDs skipped");
       }
     }
   }

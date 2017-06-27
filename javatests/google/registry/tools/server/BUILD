@@ -12,6 +12,7 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["testdata/*"]),
     deps = [
+        "//java/google/registry/dns",
         "//java/google/registry/groups",
         "//java/google/registry/mapreduce",
         "//java/google/registry/model",
