@@ -452,6 +452,40 @@ public final class RegistryConfig {
     }
 
     /**
+     * Returns the Google Cloud Storage bucket for ICANN transaction and activity reports to
+     * be uploaded.
+     *
+     * @see google.registry.reporting.IcannReportingUploadAction
+     */
+    @Provides
+    @Config("icannReportingBucket")
+    public static String provideIcannReportingBucket(@Config("projectId") String projectId) {
+      return projectId + "-reporting";
+    }
+
+    /**
+     * Returns the URL we send HTTP PUT requests for ICANN monthly transactions reports.
+     *
+     * @see google.registry.reporting.IcannHttpReporter
+     */
+    @Provides
+    @Config("icannTransactionsReportingUploadUrl")
+    public static String provideIcannTransactionsReportingUploadUrl(RegistryConfigSettings config) {
+      return config.icannReporting.icannTransactionsReportingUploadUrl;
+    }
+
+    /**
+     * Returns the URL we send HTTP PUT requests for ICANN monthly activity reports.
+     *
+     * @see google.registry.reporting.IcannHttpReporter
+     */
+    @Provides
+    @Config("icannActivityReportingUploadUrl")
+    public static String provideIcannActivityReportingUploadUrl(RegistryConfigSettings config) {
+      return config.icannReporting.icannActivityReportingUploadUrl;
+    }
+
+    /**
      * Returns the Google Cloud Storage bucket for staging escrow deposits pending upload.
      *
      * @see google.registry.rde.RdeStagingAction

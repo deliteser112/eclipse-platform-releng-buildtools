@@ -26,6 +26,7 @@ public class RegistryConfigSettings {
   public RegistryPolicy registryPolicy;
   public Datastore datastore;
   public Caching caching;
+  public IcannReporting icannReporting;
   public Rde rde;
   public RegistrarConsole registrarConsole;
   public Monitoring monitoring;
@@ -100,6 +101,12 @@ public class RegistryConfigSettings {
     public int domainLabelCachingSeconds;
     public int singletonCachePersistSeconds;
     public int staticPremiumListMaxCachedEntries;
+  }
+
+  /** Configuration for ICANN monthly reporting. */
+  public static class IcannReporting {
+    public String icannTransactionsReportingUploadUrl;
+    public String icannActivityReportingUploadUrl;
   }
 
   /** Configuration for Registry Data Escrow (RDE). */

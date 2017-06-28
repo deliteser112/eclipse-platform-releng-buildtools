@@ -35,6 +35,10 @@ registryPolicy:
     multi-line
     placeholder
 
+icannReporting:
+  icannTransactionsReportingUploadUrl: https://ry-api.icann.org/report/registrar-transactions
+  icannActivityReportingUploadUrl: https://ry-api.icann.org/report/registry-functions-activity
+
 rde:
   reportUrlPrefix: https://ry-api.icann.org/report/registry-escrow-report
   uploadUrl: sftp://placeholder@sftpipm2.ironmountain.com/Outbox

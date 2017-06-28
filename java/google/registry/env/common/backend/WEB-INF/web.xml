@@ -57,6 +57,15 @@
     <url-pattern>/_dr/task/brdaCopy</url-pattern>
   </servlet-mapping>
 
+  <!--
+    Monthly ICANN transaction and activity reports. This task uploads the generated
+    report files (in CSV format) via an HTTP PUT to ICANN's endpoint.
+  -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/icannReportingUpload</url-pattern>
+  </servlet-mapping>
+
   <!-- Trademark Clearinghouse -->
 
   <!-- Downloads TMCH DNL data from MarksDB. -->
