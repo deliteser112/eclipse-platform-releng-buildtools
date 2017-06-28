@@ -48,7 +48,7 @@ public class IcannHttpReporterTest {
 
   private MockLowLevelHttpRequest mockRequest;
 
-  private MockHttpTransport createMockTransport (ByteSource iirdeaResponse) {
+  private MockHttpTransport createMockTransport (final ByteSource iirdeaResponse) {
     return new MockHttpTransport() {
       @Override
       public LowLevelHttpRequest buildRequest(String method, String url) throws IOException {
