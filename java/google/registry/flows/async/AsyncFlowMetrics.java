@@ -18,6 +18,7 @@ import static com.google.appengine.api.taskqueue.QueueConstants.maxLeaseCount;
 import static google.registry.flows.async.AsyncFlowMetrics.OperationType.CONTACT_AND_HOST_DELETE;
 import static google.registry.flows.async.AsyncFlowMetrics.OperationType.DNS_REFRESH;
 import static google.registry.monitoring.metrics.EventMetric.DEFAULT_FITTER;
+import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
@@ -28,6 +29,7 @@ import google.registry.monitoring.metrics.IncrementableMetric;
 import google.registry.monitoring.metrics.LabelDescriptor;
 import google.registry.monitoring.metrics.MetricRegistryImpl;
 import google.registry.util.Clock;
+import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -39,6 +41,8 @@ import org.joda.time.Duration;
  * @see AsyncFlowEnqueuer
  */
 public class AsyncFlowMetrics {
+
+  private static final FormattingLogger logger = getLoggerForCallerClass();
 
   private final Clock clock;
 
@@ -144,9 +148,15 @@ public class AsyncFlowMetrics {
       OperationType operationType, OperationResult operationResult, DateTime whenEnqueued) {
     asyncFlowOperationCounts.increment(
         operationType.getMetricLabelValue(), operationResult.getMetricLabelValue());
+    long processingMillis = new Duration(whenEnqueued, clock.nowUtc()).getMillis();
     asyncFlowOperationProcessingTime.record(
-        new Duration(whenEnqueued, clock.nowUtc()).getMillis(),
+        processingMillis,
         operationType.getMetricLabelValue(),
+        operationResult.getMetricLabelValue());
+    logger.infofmt(
+        "Asynchronous %s operation took %d ms to process, yielding result: %s.",
+        operationType.getMetricLabelValue(),
+        processingMillis,
         operationResult.getMetricLabelValue());
   }
 
