@@ -35,6 +35,7 @@ import java.util.concurrent.ExecutionException;
 @Entity
 @Unindex
 @NotBackedUp(reason = Reason.AUTO_GENERATED)
+// TODO(b/27427316): Replace this with an entry in KMSKeyring
 public class ServerSecret extends CrossTldSingleton {
 
   /**

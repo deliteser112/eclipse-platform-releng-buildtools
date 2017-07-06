@@ -16,9 +16,7 @@ package google.registry.keyring.kms;
 
 import dagger.Module;
 import dagger.Provides;
-
 import google.registry.keyring.api.Keyring;
-
 import javax.inject.Singleton;
 
 /** Dagger module for {@link Keyring} */
@@ -27,7 +25,6 @@ public final class KeyringModule {
 
   @Provides
   @Singleton
-  // TODO(b/35810650): return kmsKeyring directly once comparison period is over.
   public static Keyring provideKeyring(KmsKeyring kmsKeyring) {
     return kmsKeyring;
   }

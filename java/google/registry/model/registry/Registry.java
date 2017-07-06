@@ -385,6 +385,7 @@ public class Registry extends ImmutableObject implements Buildable {
   TimedTransitionProperty<Money, BillingCostTransition> eapFeeSchedule =
       TimedTransitionProperty.forMapify(DEFAULT_EAP_BILLING_COST, BillingCostTransition.class);
 
+  /** Marksdb LORDN service username (password is stored in Keyring)  */
   String lordnUsername;
 
   /** The end of the claims period (at or after this time, claims no longer applies). */

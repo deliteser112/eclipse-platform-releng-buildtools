@@ -20,7 +20,6 @@ java_library(
         "//java/google/registry/request",
         "//java/google/registry/request:modules",
         "//java/google/registry/request/auth",
-        "//java/google/registry/security",
         "//java/google/registry/ui",
         "//java/google/registry/ui/server/registrar",
         "//java/google/registry/util",
