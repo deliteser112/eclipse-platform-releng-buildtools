@@ -43,7 +43,9 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 import com.google.re2j.Pattern;
@@ -336,7 +338,9 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    * Map of currency-to-billing account for the registrar.
    *
    * <p>A registrar can have different billing accounts that are denoted in different currencies.
-   * This provides flexibility for billing systems that require such distinction.
+   * This provides flexibility for billing systems that require such distinction. When this field is
+   * accessed by {@link #getBillingAccountMap}, a sorted map is returned to guarantee deterministic
+   * behavior when serializing the map, for display purpose for instance.
    */
   @Nullable
   @Mapify(CurrencyMapper.class)
@@ -448,8 +452,8 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     if (billingAccountMap == null) {
       return ImmutableMap.of();
     }
-    ImmutableMap.Builder<CurrencyUnit, String> billingAccountMapBuilder =
-        new ImmutableMap.Builder<>();
+    ImmutableSortedMap.Builder<CurrencyUnit, String> billingAccountMapBuilder =
+        new ImmutableSortedMap.Builder<>(Ordering.natural());
     for (Map.Entry<CurrencyUnit, BillingAccountEntry> entry : billingAccountMap.entrySet()) {
       billingAccountMapBuilder.put(entry.getKey(), entry.getValue().accountId);
     }

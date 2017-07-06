@@ -78,8 +78,7 @@ class SyncRegistrarsSheet {
     final DateTime executionTime = clock.nowUtc();
     sheetSynchronizer.synchronize(
         spreadsheetId,
-        FluentIterable
-            .from(
+        FluentIterable.from(
                 new Ordering<Registrar>() {
                   @Override
                   public int compare(Registrar left, Registrar right) {
@@ -128,6 +127,7 @@ class SyncRegistrarsSheet {
                     builder.put("state", convert(registrar.getState()));
                     builder.put("ianaIdentifier", convert(registrar.getIanaIdentifier()));
                     builder.put("billingIdentifier", convert(registrar.getBillingIdentifier()));
+                    builder.put("billingAccountMap", convert(registrar.getBillingAccountMap()));
                     builder.put("primaryContacts", convertContacts(contacts, byType(ADMIN)));
                     builder.put("techContacts", convertContacts(contacts, byType(TECH)));
                     builder.put("marketingContacts", convertContacts(contacts, byType(MARKETING)));

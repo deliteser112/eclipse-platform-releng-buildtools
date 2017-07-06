@@ -25,6 +25,8 @@ import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
+import static org.joda.money.CurrencyUnit.JPY;
+import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.standardMinutes;
 import static org.mockito.Matchers.eq;
@@ -135,25 +137,29 @@ public class SyncRegistrarsSheetTest {
         .setIcannReferralEmail("jim@example.net")
         .build());
 
-    Registrar registrar = new Registrar.Builder()
-        .setClientId("aaaregistrar")
-        .setRegistrarName("AAA Registrar Inc.")
-        .setType(Registrar.Type.REAL)
-        .setIanaIdentifier(8L)
-        .setState(Registrar.State.SUSPENDED)
-        .setPassword("pa$$word")
-        .setEmailAddress("nowhere@example.org")
-        .setInternationalizedAddress(new RegistrarAddress.Builder()
-            .setStreet(ImmutableList.of("I get fallen back upon since there's no l10n addr"))
-            .setCity("Williamsburg")
-            .setState("NY")
-            .setZip("11211")
-            .setCountryCode("US")
-            .build())
-        .setAllowedTlds(ImmutableSet.of("example"))
-        .setPhoneNumber("+1.2223334444")
-        .setUrl("http://www.example.org/aaa_registrar")
-        .build();
+    Registrar registrar =
+        new Registrar.Builder()
+            .setClientId("aaaregistrar")
+            .setRegistrarName("AAA Registrar Inc.")
+            .setType(Registrar.Type.REAL)
+            .setIanaIdentifier(8L)
+            .setState(Registrar.State.SUSPENDED)
+            .setPassword("pa$$word")
+            .setEmailAddress("nowhere@example.org")
+            .setInternationalizedAddress(
+                new RegistrarAddress.Builder()
+                    .setStreet(
+                        ImmutableList.of("I get fallen back upon since there's no l10n addr"))
+                    .setCity("Williamsburg")
+                    .setState("NY")
+                    .setZip("11211")
+                    .setCountryCode("US")
+                    .build())
+            .setAllowedTlds(ImmutableSet.of("example"))
+            .setPhoneNumber("+1.2223334444")
+            .setUrl("http://www.example.org/aaa_registrar")
+            .setBillingAccountMap(ImmutableMap.of(USD, "USD1234", JPY, "JPY7890"))
+            .build();
     ImmutableList<RegistrarContact> contacts = ImmutableList.of(
         new RegistrarContact.Builder()
             .setParent(registrar)
@@ -281,6 +287,7 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("icannReferralEmail", "");
     assertThat(row).containsEntry("whoisServer", getDefaultRegistrarWhoisServer());
     assertThat(row).containsEntry("referralUrl", getDefaultRegistrarReferralUrl());
+    assertThat(row).containsEntry("billingAccountMap", "{JPY=JPY7890, USD=USD1234}");
 
     row = rows.get(1);
     assertThat(row).containsEntry("clientIdentifier", "anotherregistrar");
@@ -314,6 +321,7 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("url", "http://www.example.org/another_registrar");
     assertThat(row).containsEntry("referralUrl", getDefaultRegistrarReferralUrl());
     assertThat(row).containsEntry("icannReferralEmail", "jim@example.net");
+    assertThat(row).containsEntry("billingAccountMap", "{}");
 
     Cursor cursor = ofy().load().key(Cursor.createGlobalKey(SYNC_REGISTRAR_SHEET)).now();
     assertThat(cursor).isNotNull();
@@ -357,5 +365,6 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("url", "");
     assertThat(row).containsEntry("referralUrl", getDefaultRegistrarReferralUrl());
     assertThat(row).containsEntry("icannReferralEmail", "");
+    assertThat(row).containsEntry("billingAccountMap", "{}");
   }
 }

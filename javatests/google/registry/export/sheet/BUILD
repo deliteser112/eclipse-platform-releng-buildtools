@@ -22,6 +22,7 @@ java_library(
         "@javax_servlet_api",
         "@joda_time",
         "@junit",
+        "@org_joda_money",
         "@org_mockito_all",
     ],
 )
