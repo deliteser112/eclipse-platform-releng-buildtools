@@ -177,8 +177,11 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testSuccess_dnsWriter() throws Exception {
     assertThat(Registry.get("xn--q9jyb4c").getDnsWriter()).isEqualTo("VoidDnsWriter");
+    assertThat(Registry.get("xn--q9jyb4c").getDnsWriters()).containsExactly("VoidDnsWriter");
+
     runCommandForced("--dns_writer=FooDnsWriter", "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getDnsWriter()).isEqualTo("FooDnsWriter");
+    assertThat(Registry.get("xn--q9jyb4c").getDnsWriters()).containsExactly("FooDnsWriter");
   }
 
   @Test

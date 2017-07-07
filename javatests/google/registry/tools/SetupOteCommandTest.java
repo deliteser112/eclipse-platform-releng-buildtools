@@ -68,6 +68,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     assertThat(registry.getRoidSuffix()).isEqualTo(roidSuffix);
     assertThat(registry.getTldState(DateTime.now(UTC))).isEqualTo(tldState);
     assertThat(registry.getDnsWriter()).isEqualTo(dnsWriter);
+    assertThat(registry.getDnsWriters()).containsExactly(dnsWriter);
     assertThat(registry.getPremiumList()).isNotNull();
     assertThat(registry.getPremiumList().getName()).isEqualTo(premiumList);
     assertThat(registry.getAddGracePeriodLength()).isEqualTo(addGracePeriodLength);

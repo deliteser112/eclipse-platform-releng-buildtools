@@ -21,6 +21,7 @@ import static com.google.common.base.Predicates.not;
 import static google.registry.config.RegistryConfig.getSingletonCacheRefreshDuration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -49,6 +50,7 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Mapify;
+import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
 import google.registry.model.Buildable;
@@ -269,8 +271,29 @@ public class Registry extends ImmutableObject implements Buildable {
    *
    * <p>This must be a valid key for the map of DnsWriters injected by <code>
    * @Inject Map<String, DnsWriter></code>
+   *
+   * @deprecated by dnsWriters
    */
+  // TODO(b/63385623): Delete this field when the data migration is complete.
+  @Deprecated
   String dnsWriter;
+
+  /**
+   * The set of name(s) of the {@code DnsWriter} implementations that this TLD uses.
+   *
+   * <p>There must be at least one entry in this set.
+   *
+   * <p>All entries of this list must be valid keys for the map of {@code DnsWriter}s injected by
+   * <code>@Inject Map<String, DnsWriter></code>
+   */
+  Set<String> dnsWriters;
+
+  @OnLoad
+  public void migrateDnsWriters() {
+    if (isNullOrEmpty(dnsWriters)) {
+      dnsWriters = ImmutableSet.of(dnsWriter);
+    }
+  }
 
   /**
    * The unicode-aware representation of the TLD associated with this {@link Registry}.
@@ -588,8 +611,13 @@ public class Registry extends ImmutableObject implements Buildable {
     return pricingEngineClassName;
   }
 
+  @Deprecated
   public String getDnsWriter() {
     return dnsWriter;
+  }
+
+  public ImmutableSet<String> getDnsWriters() {
+    return ImmutableSet.copyOf(dnsWriters);
   }
 
   public ImmutableSet<String> getAllowedRegistrantContactIds() {
@@ -676,6 +704,7 @@ public class Registry extends ImmutableObject implements Buildable {
 
     public Builder setDnsWriter(String dnsWriter) {
       getInstance().dnsWriter = checkArgumentNotNull(dnsWriter);
+      getInstance().dnsWriters = ImmutableSet.of(dnsWriter);
       return this;
     }
 
@@ -946,6 +975,10 @@ public class Registry extends ImmutableObject implements Buildable {
       checkArgumentNotNull(
           instance.dnsWriter,
           "A DNS writer must be specified. VoidDnsWriter can be used if DNS writing isn't wanted");
+      checkArgument(
+          instance.dnsWriters != null && !instance.dnsWriters.isEmpty(),
+          "At least one DNS writer must be specified."
+              + " VoidDnsWriter can be used if DNS writing isn't desired");
       instance.tldStrId = tldName;
       instance.tldUnicode = Idn.toUnicode(tldName);
       return super.build();
