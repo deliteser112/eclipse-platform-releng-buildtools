@@ -72,7 +72,7 @@ public class HostFlowUtils {
       } else {
         // We need to know how many parts the hostname has beyond the public suffix, but we don't
         // know what the public suffix is. If the host is in bailiwick and we are hosting a
-        // multipart "tld" like .co.uk the publix suffix might be 2 parts. Otherwise it's an
+        // multipart "tld" like .co.uk the public suffix might be 2 parts. Otherwise it's an
         // unrecognized tld that's not on the public suffix list, so assume the tld alone is the
         // public suffix.
         Optional<InternetDomainName> tldParsed = findTldForName(hostName);
