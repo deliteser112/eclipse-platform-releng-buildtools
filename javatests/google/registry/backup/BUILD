@@ -13,10 +13,10 @@ java_library(
     resources = glob(["testdata/*"]),
     deps = [
         "//java/google/registry/backup",
-        "//java/google/registry/config",
         "//java/google/registry/model",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
+        "//javatests/google/registry/testing/mapreduce",
         "//third_party/java/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk//:testonly",
         "@com_google_appengine_tools_appengine_gcs_client",

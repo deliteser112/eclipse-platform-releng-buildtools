@@ -15,20 +15,21 @@
 package google.registry.backup;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.config.RegistryConfig.getCommitLogBucketCount;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static org.joda.time.Duration.millis;
 
-import com.googlecode.objectify.VoidWork;
+import com.google.common.collect.ImmutableList;
+import google.registry.model.contact.ContactResource;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
 import google.registry.model.ofy.Ofy;
-import google.registry.model.registrar.Registrar;
-import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
+import google.registry.testing.DatastoreHelper;
 import google.registry.testing.FakeClock;
+import google.registry.testing.FakeResponse;
+import google.registry.testing.InjectRule;
+import google.registry.testing.mapreduce.MapreduceTestCase;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,137 +37,103 @@ import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link DeleteOldCommitLogsAction}. */
 @RunWith(JUnit4.class)
-public class DeleteOldCommitLogsActionTest {
-
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .build();
-
-  @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+public class DeleteOldCommitLogsActionTest
+    extends MapreduceTestCase<DeleteOldCommitLogsAction> {
 
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
-  private final Ofy ofy = new Ofy(clock);
+  private final FakeResponse response = new FakeResponse();
+  private ContactResource contact;
 
-  private void runInAllBuckets(int maxDeletes) {
-    for (int bucketNum = 1; bucketNum <= getCommitLogBucketCount(); bucketNum++) {
-      DeleteOldCommitLogsAction task = new DeleteOldCommitLogsAction();
-      task.bucketNum = bucketNum;
-      task.clock = clock;
-      task.maxAge = Duration.millis(2);
-      task.maxDeletes = maxDeletes;
-      task.ofy = ofy;
-      task.run();
+  @Rule
+  public final InjectRule inject = new InjectRule();
+
+  @Before
+  public void setup() throws Exception {
+    inject.setStaticField(Ofy.class, "clock", clock);
+    action = new DeleteOldCommitLogsAction();
+    action.mrRunner = makeDefaultRunner();
+    action.response = response;
+    action.clock = clock;
+    action.maxAge = Duration.standardDays(30);
+
+    ContactResource contact = DatastoreHelper.persistActiveContact("TheRegistrar");
+    clock.advanceBy(Duration.standardDays(1));
+    DatastoreHelper.persistResourceWithCommitLog(contact);
+
+    prepareData();
+  }
+
+  private void runMapreduce(Duration maxAge) throws Exception {
+    action.maxAge = maxAge;
+    action.run();
+    executeTasksUntilEmpty("mapreduce");
+    ofy().clearSessionCache();
+  }
+
+  private void mutateContact(String email) {
+    ofy().clearSessionCache();
+    ContactResource contact = ofy().load()
+        .type(ContactResource.class)
+        .first()
+        .now()
+        .asBuilder()
+        .setEmailAddress(email)
+        .build();
+    DatastoreHelper.persistResourceWithCommitLog(contact);
+  }
+
+  private void prepareData() {
+
+    for (int i = 0; i < 10; i++) {
+      clock.advanceBy(Duration.standardDays(7));
+      String email = String.format("pumpkin_%d@cat.test", i);
+      mutateContact(email);
     }
+    ofy().clearSessionCache();
+
+    contact = ofy().load().type(ContactResource.class).first().now();
+
+    // The following value might change if {@link CommitLogRevisionsTranslatorFactory} changes.
+    assertThat(contact.getRevisions().size()).isEqualTo(6);
+
+    // Before deleting the unneeded manifests - we have 11 of them (one for the first
+    // creation, and 10 more for the mutateContacts)
+    assertThat(ofy().load().type(CommitLogManifest.class).count()).isEqualTo(11);
+    // And each DatastoreHelper.persistResourceWithCommitLog creates 3 mutations
+    assertThat(ofy().load().type(CommitLogMutation.class).count()).isEqualTo(33);
   }
 
+  /**
+   * Check that with very short maxAge, only the referenced elements remain.
+   */
   @Test
-  public void testRun_noCommitLogs_doesNothing() throws Exception {
-    assertManifestAndMutationCounts(0, 0);
-    runInAllBuckets(4);
-    assertManifestAndMutationCounts(0, 0);
+  public void test_shortMaxAge() throws Exception {
+    runMapreduce(Duration.millis(1));
+
+    assertThat(ofy().load().type(CommitLogManifest.class).keys().iterable())
+        .containsExactlyElementsIn(contact.getRevisions().values());
+
+    // And each DatastoreHelper.persistResourceWithCommitLog creates 3 mutations
+    assertThat(ofy().load().type(CommitLogMutation.class).keys().iterable())
+        .hasSize(contact.getRevisions().size() * 3);
   }
 
+  /**
+   * Check that with very long maxAge, all the elements remain.
+   */
   @Test
-  public void testRun_commitLogNewerThanThreshold_doesntGetDeleted() throws Exception {
-    createCommitLog();
-    clock.advanceOneMilli();
-    assertManifestAndMutationCounts(1, 2);
-    runInAllBuckets(4);
-    assertManifestAndMutationCounts(1, 2);
-  }
+  public void test_longMaxAge() throws Exception {
 
-  @Test
-  public void testRun_commitLogEqualToThreshold_doesntGetDeleted() throws Exception {
-    createCommitLog();
-    clock.advanceBy(millis(2));
-    runInAllBuckets(4);
-    assertManifestAndMutationCounts(1, 2);
-  }
+    ImmutableList<CommitLogManifest> initialManifests =
+        ImmutableList.copyOf(ofy().load().type(CommitLogManifest.class).iterable());
+    ImmutableList<CommitLogMutation> initialMutations =
+        ImmutableList.copyOf(ofy().load().type(CommitLogMutation.class).iterable());
 
-  @Test
-  public void testRun_commitLogOlderThanThreshold_getsDeleted() throws Exception {
-    createCommitLog();
-    clock.advanceBy(millis(3));
-    runInAllBuckets(4);
-    assertManifestAndMutationCounts(0, 0);
-  }
+    runMapreduce(Duration.standardDays(1000));
 
-  @Test
-  public void testRun_oneOlderThanThresholdAndOneNewer_onlyOldOneIsDeleted() throws Exception {
-    createCommitLog();
-    clock.advanceBy(millis(3));
-    createCommitLog();
-    assertManifestAndMutationCounts(2, 4);
-    runInAllBuckets(4);
-    assertManifestAndMutationCounts(1, 2);
-  }
-
-  @Test
-  public void testRun_twoOlderThanThreshold_bothGetDeletedInSameTransaction() throws Exception {
-    createCommitLog();
-    clock.advanceOneMilli();
-    createCommitLog();
-    clock.advanceBy(millis(3));
-    assertManifestAndMutationCounts(2, 4);
-    runInAllBuckets(2);
-    assertManifestAndMutationCounts(0, 0);
-  }
-
-  @Test
-  public void testRun_twoOlderThanThreshold_bothGetDeletedInTwoTransactions() throws Exception {
-    createCommitLog();
-    clock.advanceOneMilli();
-    createCommitLog();
-    clock.advanceBy(millis(3));
-    createCommitLog();
-    assertManifestAndMutationCounts(3, 6);
-    runInAllBuckets(1);
-    runInAllBuckets(1);
-    assertManifestAndMutationCounts(1, 2);
-  }
-
-  @Test
-  public void testRun_commitLogOlderButInADifferentBucket_doesntGetDeleted() throws Exception {
-    createCommitLog();
-    clock.advanceBy(millis(31337));
-    int usedBucketNum = ofy().load().type(CommitLogManifest.class).list().get(0).getBucketId();
-    DeleteOldCommitLogsAction task = new DeleteOldCommitLogsAction();
-    task.bucketNum = (usedBucketNum % getCommitLogBucketCount()) + 1;
-    task.clock = clock;
-    task.maxAge = Duration.millis(2);
-    task.maxDeletes = 20;
-    task.ofy = ofy;
-    task.run();
-    assertManifestAndMutationCounts(1, 2);
-  }
-
-  @Test
-  public void testRun_lessThanATenthOfOldData_doesntGetDeleted() throws Exception {
-    createCommitLog();
-    clock.advanceBy(millis(2));
-    runInAllBuckets(20);
-    assertManifestAndMutationCounts(1, 2);
-  }
-
-  private void assertManifestAndMutationCounts(int manifestCount, int mutationCount) {
-    assertThat(ofy.load().type(CommitLogManifest.class).count()).isEqualTo(manifestCount);
-    assertThat(ofy.load().type(CommitLogMutation.class).count()).isEqualTo(mutationCount);
-  }
-
-  private void createCommitLog() {
-    ofy.transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy.save().entity(
-            Registrar.loadByClientId("NewRegistrar").asBuilder()
-                .setEmailAddress("pumpkin@cat.test")
-                .build());
-        ofy.save().entity(
-            Registrar.loadByClientId("TheRegistrar").asBuilder()
-                .setReferralUrl("http://justine.test")
-                .build());
-      }});
+    assertThat(ofy().load().type(CommitLogManifest.class).iterable())
+        .containsExactlyElementsIn(initialManifests);
+    assertThat(ofy().load().type(CommitLogMutation.class).iterable())
+        .containsExactlyElementsIn(initialMutations);
   }
 }

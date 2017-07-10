@@ -14,27 +14,31 @@
 
 package google.registry.backup;
 
-import static com.google.common.collect.ImmutableList.copyOf;
-import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Iterables.transform;
-import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
-import static google.registry.request.Action.Method.POST;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
+import static google.registry.util.PipelineUtils.createJobPath;
 
-import com.google.common.base.Function;
+import com.google.appengine.tools.mapreduce.Mapper;
+import com.google.appengine.tools.mapreduce.Reducer;
+import com.google.appengine.tools.mapreduce.ReducerInput;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterators;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
-import com.googlecode.objectify.cmd.Loader;
-import com.googlecode.objectify.cmd.Query;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.model.ofy.CommitLogBucket;
+import google.registry.mapreduce.MapreduceRunner;
+import google.registry.mapreduce.inputs.CommitLogManifestInput;
+import google.registry.mapreduce.inputs.EppResourceInputs;
+import google.registry.model.EppResource;
+import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
-import google.registry.model.ofy.Ofy;
+import google.registry.model.translators.CommitLogRevisionsTranslatorFactory;
 import google.registry.request.Action;
-import google.registry.request.Parameter;
+import google.registry.request.Response;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-import java.util.List;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -43,114 +47,124 @@ import org.joda.time.Duration;
  * Task that garbage collects old {@link CommitLogManifest} entities.
  *
  * <p>Once commit logs have been written to GCS, we don't really need them in Datastore anymore,
- * except to reconstruct point-in-time snapshots of the database. But that functionality is not
- * useful after a certain amount of time, e.g. thirty days. So this task runs periodically to delete
- * the old data.
+ * except to reconstruct point-in-time snapshots of the database. To make that possible, {@link
+ * EppResource}s have a {@link EppResource#getRevisions} method that returns the commit logs for
+ * older points in time. But that functionality is not useful after a certain amount of time, e.g.
+ * thirty days, so unneeded revisions are deleted
+ * (see {@link CommitLogRevisionsTranslatorFactory}). This leaves commit logs in the system that are
+ * unneeded (have no revisions pointing to them). So this task runs periodically to delete the
+ * "orphan" commit logs.
  *
- * <p>This task should be invoked in a fanout style for each {@link CommitLogBucket} ID. It then
- * queries {@code CommitLogManifest} entities older than the threshold, using an ancestor query
- * operating under the assumption under the assumption that the ID is the transaction timestamp in
- * milliseconds since the UNIX epoch. It then deletes them inside a transaction, along with their
- * associated {@link CommitLogMutation} entities.
+ * <p>This action runs a mapreduce that goes over all existing {@link EppResource} and all {@link
+ * CommitLogManifest} older than commitLogDatastreRetention, and erases the commit logs aren't in an
+ * EppResource.
  *
- * <p>If additional data is leftover, we show a warning at the INFO level, because it's not
- * actionable. If anything, it just shows that the system was under high load thirty days ago, and
- * therefore serves little use as an early warning to increase the number of buckets.
- *
- * <p>Before running, this task will perform an eventually consistent count query outside of a
- * transaction to see how much data actually exists to delete. If it's less than a tenth of {@link
- * #maxDeletes}, then we don't bother running the task. This is to minimize contention on the bucket
- * and avoid wasting resources.
- *
- * <h3>Dimensioning</h3>
- *
- * <p>This entire operation operates on a single entity group, within a single transaction. Since
- * there's a 10mB upper bound on transaction size and a four minute time limit, we can only delete
- * so many commit logs at once. So given the above constraints, five hundred would make a safe
- * default value for {@code maxDeletes}. See {@linkplain
- * google.registry.config.RegistryConfig.ConfigModule#provideCommitLogMaxDeletes()
- * commitLogMaxDeletes} for further documentation on this matter.
- *
- * <p>Finally, we need to pick an appropriate cron interval time for this task. Since a bucket
- * represents a single Datastore entity group, it's only guaranteed to have one transaction per
- * second. So we just need to divide {@code maxDeletes} by sixty to get an appropriate minute
- * interval. Assuming {@code maxDeletes} is five hundred, this rounds up to ten minutes, which we'll
- * double, since this task can always catch up in off-peak hours.
- *
- * <p>There's little harm in keeping the data around a little longer, since this task is engaged in
- * a zero-sum resource struggle with the EPP transactions. Each transaction we perform here, is one
- * less transaction that's available to EPP. Furthermore, a well-administered system should have
- * enough buckets that we'll never brush up against the 1/s entity group transaction SLA.
  */
-@Action(path = "/_dr/task/deleteOldCommitLogs", method = POST, automaticallyPrintOk = true)
+@Action(path = "/_dr/task/deleteOldCommitLogs")
 public final class DeleteOldCommitLogsAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final int NUM_REDUCE_SHARDS = 10;
+  private static final FormattingLogger logger = getLoggerForCallerClass();
 
+  @Inject MapreduceRunner mrRunner;
+  @Inject Response response;
   @Inject Clock clock;
-  @Inject Ofy ofy;
-  @Inject @Parameter("bucket") int bucketNum;
   @Inject @Config("commitLogDatastoreRetention") Duration maxAge;
-  @Inject @Config("commitLogMaxDeletes") int maxDeletes;
   @Inject DeleteOldCommitLogsAction() {}
 
   @Override
   public void run() {
-    if (!doesEnoughDataExistThatThisTaskIsWorthRunning()) {
-      return;
-    }
-    Integer deleted = ofy.transact(new Work<Integer>() {
-      @Override
-      public Integer run() {
-        // Load at most maxDeletes manifest keys of commit logs older than the deletion threshold.
-        List<Key<CommitLogManifest>> manifestKeys =
-            queryManifests(ofy.load())
-                .limit(maxDeletes)
-                .keys()
-                .list();
-        // transform() is lazy so copyOf() ensures all the subqueries happen in parallel, because
-        // the queries are launched by iterable(), put into a list, and then the list of iterables
-        // is consumed and concatenated.
-        ofy.deleteWithoutBackup().keys(concat(copyOf(transform(manifestKeys,
-            new Function<Key<CommitLogManifest>, Iterable<Key<CommitLogMutation>>>() {
-              @Override
-              public Iterable<Key<CommitLogMutation>> apply(Key<CommitLogManifest> manifestKey) {
-                return ofy.load()
-                    .type(CommitLogMutation.class)
-                    .ancestor(manifestKey)
-                    .keys()
-                    .iterable(); // launches the query asynchronously
-              }}))));
-        ofy.deleteWithoutBackup().keys(manifestKeys);
-        return manifestKeys.size();
-      }});
-    if (deleted == maxDeletes) {
-      logger.infofmt("Additional old commit logs might exist in bucket %d", bucketNum);
+    DateTime deletionThreshold = clock.nowUtc().minus(maxAge);
+    logger.infofmt(
+        "Processing asynchronous deletion of unreferenced CommitLogManifests older than %s",
+        deletionThreshold);
+
+    response.sendJavaScriptRedirect(createJobPath(mrRunner
+          .setJobName("Delete old commit logs")
+          .setModuleName("backend")
+          .setDefaultReduceShards(NUM_REDUCE_SHARDS)
+          .runMapreduce(
+              new DeleteOldCommitLogsMapper(),
+              new DeleteOldCommitLogsReducer(),
+              ImmutableList.of(
+                  new CommitLogManifestInput(Optional.of(deletionThreshold)),
+                  EppResourceInputs.createEntityInput(EppResource.class)))));
+  }
+
+  /**
+   * A mapper that iterates over all {@link EppResource} and {CommitLogManifest} entities.
+   *
+   * <p>It emits the target key and {@code false} for all revisions of each EppResources (meaning
+   * "don't delete this"), and {@code true} for all CommitLogRevisions (meaning "delete this").
+   *
+   * <p>The reducer will then delete all CommitLogRevisions that only have {@code true}.
+   */
+  private static class DeleteOldCommitLogsMapper
+      extends Mapper<ImmutableObject, Key<CommitLogManifest>, Boolean> {
+
+    private static final long serialVersionUID = -1960845380164573834L;
+
+    @Override
+    public void map(ImmutableObject object) {
+      if (object instanceof EppResource) {
+        getContext().incrementCounter("Epp resources found");
+        EppResource eppResource = (EppResource) object;
+        for (Key<CommitLogManifest> manifestKey : eppResource.getRevisions().values()) {
+          emit(manifestKey, false);
+        }
+        getContext()
+            .incrementCounter("Epp resource revisions found", eppResource.getRevisions().size());
+      } else if (object instanceof CommitLogManifest) {
+        getContext().incrementCounter("old commit log manifests found");
+        emit(Key.create((CommitLogManifest) object), true);
+      } else {
+        throw new IllegalArgumentException(
+            String.format(
+                "Received object of type %s, expected either EppResource or CommitLogManifest",
+                object.getClass().getName()));
+      }
     }
   }
 
-  /** Returns the point in time at which commit logs older than that point will be deleted. */
-  private DateTime getDeletionThreshold() {
-    return clock.nowUtc().minus(maxAge);
-  }
+  /**
+   * Reducer that deletes unreferenced {@link CommitLogManifest} + child {@link CommitLogMutation}.
+   *
+   * <p>It receives the manifestKey to possibly delete, and a list of boolean 'verdicts' from
+   * various sources (the "old manifests" source and the "still referenced" source) on whether it's
+   * OK to delete this manifestKey. If even one source returns "false" (meaning "it's not OK to
+   * delete this manifest") then it won't be deleted.
+   */
+  private static class DeleteOldCommitLogsReducer
+      extends Reducer<Key<CommitLogManifest>, Boolean, Void> {
 
-  private boolean doesEnoughDataExistThatThisTaskIsWorthRunning() {
-    int tenth = Math.max(1, maxDeletes / 10);
-    int count = queryManifests(ofy.load())
-        .limit(tenth)
-        .count();
-    if (0 < count && count < tenth) {
-      logger.infofmt("Not enough old commit logs to bother running: %d < %d", count, tenth);
+    private static final long serialVersionUID = 6652129589918923333L;
+
+    @Override
+    public void reduce(
+        final Key<CommitLogManifest> manifestKey,
+        ReducerInput<Boolean> canDeleteVerdicts) {
+      if (Iterators.contains(canDeleteVerdicts, false)) {
+        getContext().incrementCounter("old commit log manifests still referenced");
+        return;
+      }
+      Integer deletedCount = ofy().transact(new Work<Integer>() {
+        @Override
+        public Integer run() {
+          Iterable<Key<CommitLogMutation>> commitLogMutationKeys = ofy().load()
+              .type(CommitLogMutation.class)
+              .ancestor(manifestKey)
+              .keys()
+              .iterable();
+          ImmutableList<Key<?>> keysToDelete = ImmutableList.<Key<?>>builder()
+              .addAll(commitLogMutationKeys)
+              .add(manifestKey)
+              .build();
+          ofy().deleteWithoutBackup().keys(keysToDelete);
+          return keysToDelete.size();
+        }
+      });
+      getContext().incrementCounter("old commit log manifests deleted");
+      getContext().incrementCounter("total entities deleted", deletedCount);
     }
-    return count >= tenth;
-  }
-
-  private Query<CommitLogManifest> queryManifests(Loader loader) {
-    long thresholdMillis = getDeletionThreshold().getMillis();
-    Key<CommitLogBucket> bucketKey = getBucketKey(bucketNum);
-    return loader
-        .type(CommitLogManifest.class)
-        .ancestor(bucketKey)
-        .filterKey("<", Key.create(bucketKey, CommitLogManifest.class, thresholdMillis));
   }
 }

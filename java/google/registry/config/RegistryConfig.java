@@ -213,27 +213,6 @@ public final class RegistryConfig {
     }
 
     /**
-     * Maximum number of commit logs to delete per transaction.
-     *
-     * <p>If we assume that the average key size is 256 bytes and that each manifest has six
-     * mutations, we can do about 5,000 deletes in a single transaction before hitting the 10mB
-     * limit. Therefore 500 should be a safe number, since it's an order of a magnitude less space
-     * than we need.
-     *
-     * <p>Transactions also have a four minute time limit. Since we have to perform N subqueries to
-     * fetch mutation keys, 500 would be a safe number if those queries were performed in serial,
-     * since each query would have about 500ms to complete, which is an order a magnitude more time
-     * than we need. However this does not apply, since the subqueries are performed asynchronously.
-     *
-     * @see google.registry.backup.DeleteOldCommitLogsAction
-     */
-    @Provides
-    @Config("commitLogMaxDeletes")
-    public static int provideCommitLogMaxDeletes() {
-      return 500;
-    }
-
-    /**
      * Batch size for the number of transactions' worth of commit log data to process at once when
      * exporting a commit log diff.
      *
