@@ -98,6 +98,57 @@ make changes to it, and include your new version instead of the default one in
 all Dagger components. All of these options will be replaced with YAML
 configuration settings in the near future.
 
+## OAuth2 client id configuration
+
+By default, the open source Nomulus release uses OAuth2 to authenticate and
+authorize users. This includes the `nomulus` tool when it connects to the system
+to execute commands. OAuth2 must be configured before you can use the `nomulus`
+tool to set up the system.
+
+OAuth2 defines the concept of a *client id*, which identifies the application
+which the user wants to authorize. This is so that, when a user clicks in an
+OAuth2 permission dialog and grants access to data, they are not granting access
+to every application on their computer (including potentially malicious ones),
+but only to the application which they agree needs access. Each installation of
+the Nomulus system should have its own client id. The same client id can be used
+for all environments.
+
+There are three steps to configuration.
+
+*   **Create the client id in App Engine:** Go to your project's ["Credentials"
+    page](https://console.developers.google.com/apis/credentials) in the
+    Developer's Console. Click "Create credentials" and select "OAuth client ID"
+    from the dropdown. In the create credentials window, select an application
+    type of "Other". After creating the client id, return to the main
+    Credentials page and click the download icon to the right of the client id
+    that you just created. This will download a json file called the *client
+    secret file*.
+
+*   **Copy the client secret file to the proper location:** The client secret
+    file is used by the `nomulus` tool to authenticate itself to the system. The
+    file should be placed in the location specified by the
+    `registryTool.clientSecretFilename` configuration parameter. By default,
+    this is `/google/registry/tools/resources/client_secret.json`. Don't
+    overwrite the file named `client_secret_UNITTEST.json` in that same
+    directory; otherwise, the unit tests will break. If you want to use a
+    different client id for each environment, copy all the client secret files
+    to this directory, with a different name, and specify the file path
+    separately in each environment's configuration file.
+
+*   **Add the new client id to the configured list of allowed client ids:** The
+    configuration files include an `oAuth` section, which defines a parameter
+    called `allowedOauthClientIds`, specifying a list of client ids which are
+    permitted to connect. Get the appropriate client id string from each client
+    secret json file (which is just a json text file) and add it to the list.
+    You will need to rebuild and redeploy the project so that the configuration
+    changes take effect.
+
+Once these steps are taken, the `nomulus` tool will use a client id which the
+server is configured to accept, and authentication should succeed. Note that
+many Nomulus commands also require that the user have App Engine admin
+privileges, meaning that the user needs to be added as an owner or viewer of the
+App Engine project.
+
 ## Sensitive global configuration
 
 Some configuration values, such as PGP private keys, are so sensitive that they
