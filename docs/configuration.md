@@ -98,16 +98,16 @@ make changes to it, and include your new version instead of the default one in
 all Dagger components. All of these options will be replaced with YAML
 configuration settings in the near future.
 
-## OAuth2 client id configuration
+## OAuth 2 client id configuration
 
-By default, the open source Nomulus release uses OAuth2 to authenticate and
-authorize users. This includes the `nomulus` tool when it connects to the system
-to execute commands. OAuth2 must be configured before you can use the `nomulus`
-tool to set up the system.
+The open source Nomulus release uses OAuth 2 to authenticate and authorize
+users. This includes the `nomulus` tool when it connects to the system to
+execute commands. OAuth must be configured before you can use the `nomulus` tool
+to set up the system.
 
-OAuth2 defines the concept of a *client id*, which identifies the application
+OAuth defines the concept of a *client id*, which identifies the application
 which the user wants to authorize. This is so that, when a user clicks in an
-OAuth2 permission dialog and grants access to data, they are not granting access
+OAuth permission dialog and grants access to data, they are not granting access
 to every application on their computer (including potentially malicious ones),
 but only to the application which they agree needs access. Each installation of
 the Nomulus system should have its own client id. The same client id can be used
