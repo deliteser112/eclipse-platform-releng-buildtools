@@ -132,8 +132,11 @@ oAuth:
   requiredOauthScopes:
     - https://www.googleapis.com/auth/userinfo.email
 
-  # OAuth client Ids that are allowed to authenticate and communicate with
-  # backend services, e. g. nomulus tool, EPP proxy, etc.
+  # OAuth client IDs that are allowed to authenticate and communicate with
+  # backend services, e. g. nomulus tool, EPP proxy, etc. All client_id values
+  # used in client_secret.json files for associated tooling should be included
+  # in this list. Client IDs are typically of the format
+  # numbers-alphanumerics.apps.googleusercontent.com
   allowedOauthClientIds: []
 
 icannReporting:
