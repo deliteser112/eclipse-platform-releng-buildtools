@@ -14,11 +14,11 @@
 
 package google.registry.tools;
 
-import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.ParameterException;
 import google.registry.testing.InjectRule;
+import google.registry.tools.server.ToolsTestData;
 import java.io.ByteArrayInputStream;
 import org.junit.Before;
 import org.junit.Rule;
@@ -35,7 +35,7 @@ public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppComm
 
   @Before
   public void initCommand() throws Exception {
-    xmlInput = readResourceUtf8(ExecuteEppCommandTest.class, "testdata/contact_create.xml");
+    xmlInput = ToolsTestData.loadUtf8("contact_create.xml");
     eppFile = writeToNamedTmpFile("eppFile", xmlInput);
   }
 
@@ -67,7 +67,7 @@ public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppComm
 
   @Test
   public void testSuccess_multipleFiles() throws Exception {
-    String xmlInput2 = readResourceUtf8(ExecuteEppCommandTest.class, "testdata/domain_check.xml");
+    String xmlInput2 = ToolsTestData.loadUtf8("domain_check.xml");
     String eppFile2 = writeToNamedTmpFile("eppFile2", xmlInput2);
     runCommand("--client=NewRegistrar", "--force", eppFile, eppFile2);
     eppVerifier().verifySent("contact_create.xml", "domain_check.xml");

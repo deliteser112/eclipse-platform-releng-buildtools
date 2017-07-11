@@ -15,7 +15,6 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.eq;
@@ -26,6 +25,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import google.registry.tools.ServerSideCommand.Connection;
+import google.registry.tools.server.ToolsTestData;
 import java.net.URLDecoder;
 import java.util.List;
 import java.util.Map;
@@ -85,7 +85,7 @@ public class EppToolVerifier {
               .split(new String(capturedParam, UTF_8));
       assertThat(map).hasSize(4);
       assertXmlEquals(
-          readResourceUtf8(getClass(), "testdata/" + xml),
+          ToolsTestData.loadUtf8(xml),
           URLDecoder.decode(map.get("xml"), UTF_8.toString()));
       assertThat(map).containsEntry("dryRun", Boolean.toString(dryRun));
       assertThat(map).containsEntry("clientId", clientId);

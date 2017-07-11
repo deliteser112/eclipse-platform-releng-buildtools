@@ -14,10 +14,9 @@
 
 package google.registry.tools;
 
-import static google.registry.util.ResourceUtils.readResourceUtf8;
-
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import google.registry.tools.server.ToolsTestData;
 import java.util.List;
 import org.junit.Test;
 
@@ -52,7 +51,7 @@ public class EppToolCommandTest extends EppToolCommandTestCase<EppToolCommand> {
     // The choice of xml file is arbitrary.
     runCommandForced(
         "--client=NewRegistrar",
-        readResourceUtf8(getClass(), "testdata/contact_create.xml"));
+        ToolsTestData.loadUtf8("contact_create.xml"));
     eppVerifier().verifySent("contact_create.xml");
   }
 
@@ -61,9 +60,9 @@ public class EppToolCommandTest extends EppToolCommandTestCase<EppToolCommand> {
     // The choice of xml files is arbitrary.
     runCommandForced(
         "--client=NewRegistrar",
-        readResourceUtf8(getClass(), "testdata/contact_create.xml"),
-        readResourceUtf8(getClass(), "testdata/domain_check.xml"),
-        readResourceUtf8(getClass(), "testdata/domain_check_fee.xml"));
+        ToolsTestData.loadUtf8("contact_create.xml"),
+        ToolsTestData.loadUtf8("domain_check.xml"),
+        ToolsTestData.loadUtf8("domain_check_fee.xml"));
     eppVerifier().verifySent("contact_create.xml", "domain_check.xml", "domain_check_fee.xml");
   }
 

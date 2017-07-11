@@ -15,8 +15,6 @@
 package google.registry.tools;
 
 import static com.google.common.io.BaseEncoding.base16;
-import static com.google.common.io.Resources.getResource;
-import static com.google.common.io.Resources.toByteArray;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.flows.picker.FlowPicker.getFlowClass;
@@ -31,7 +29,6 @@ import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
-import static google.registry.util.ResourceUtils.readResourceBytes;
 
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableSet;
@@ -45,6 +42,7 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.tools.ServerSideCommand.Connection;
+import google.registry.tools.server.ToolsTestData;
 import java.io.IOException;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -61,8 +59,8 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
   public void init() throws IOException {
     command.setConnection(connection);
     createTld("tld", QUIET_PERIOD);
-    createApplication("example-one.tld", "testdata/domain_create_sunrush.xml", "1-TLD");
-    createApplication("example-two.tld", "testdata/domain_create_sunrush2.xml", "2-TLD");
+    createApplication("example-one.tld", "domain_create_sunrush.xml", "1-TLD");
+    createApplication("example-two.tld", "domain_create_sunrush2.xml", "2-TLD");
   }
 
   private void createApplication(String name, String xmlFile, String repoId) throws IOException {
@@ -103,7 +101,7 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
             .setClientId("NewRegistrar")
             .setModificationTime(application.getCreationTime())
             .setTrid(Trid.create("ABC-123", "server-trid"))
-            .setXmlBytes(toByteArray(getResource(AllocateDomainCommandTest.class, xmlFile)))
+            .setXmlBytes(ToolsTestData.get(xmlFile).read())
             .build());
   }
 
@@ -153,7 +151,7 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
 
   @Test
   public void testXmlInstantiatesFlow() throws Exception {
-    byte[] xmlBytes = readResourceBytes(getClass(), "testdata/allocate_domain.xml").read();
+    byte[] xmlBytes = ToolsTestData.get("allocate_domain.xml").read();
     assertThat(getFlowClass(unmarshal(EppInput.class, xmlBytes)))
         .isEqualTo(DomainAllocateFlow.class);
   }

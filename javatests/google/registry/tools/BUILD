@@ -14,6 +14,7 @@ java_library(
     ]),
     resources = glob([
         "testdata/*.*",
+        "server/testdata/*.*",
     ]),
     deps = [
         "//java/google/registry/backup",
@@ -33,6 +34,7 @@ java_library(
         "//javatests/google/registry/model",
         "//javatests/google/registry/rde",
         "//javatests/google/registry/testing",
+        "//javatests/google/registry/tools/server",
         "//javatests/google/registry/xml",
         "//third_party/java/objectify:objectify-v4_1",
         "@com_beust_jcommander",
