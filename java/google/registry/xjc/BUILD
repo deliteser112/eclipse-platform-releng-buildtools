@@ -40,13 +40,14 @@ genrule(
         "XJC=$$REP/$(location @com_sun_xml_bind_jaxb_xjc//:XJCFacade)",
         "OUT=$$REP/$(GENDIR)/java",
         "TMP=$$(mktemp -d $${TMPDIR:-/tmp}/jaxb.XXXXXXXXXX)",
+        "if [ $$(uname) = Darwin ]; then SEDI=\"-i ''\"; else SEDI='-i'; fi",
         "mkdir -p $$OUT",
         "cp $(SRCS) $$TMP",
         "cd $$TMP",
         "$$XJC -npa -quiet -extension -d $$OUT -b *.xjb *.xsd",
-        ("find $$OUT -name '*.java' | xargs sed -i 's/" +
+        ("find $$OUT -name '*.java' | xargs sed $$SEDI 's/" +
          "public class/" +
-         "@SuppressWarnings({\"unchecked\",\"serial\",\"cast\"}) " +
+         "@SuppressWarnings({\"unchecked\",\"serial\",\"cast\"})\\\n" +
          "public class/'"),
         "cd $$REP",
         "rm -rf $$TMP",
