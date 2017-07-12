@@ -44,9 +44,9 @@ genrule(
         "cp $(SRCS) $$TMP",
         "cd $$TMP",
         "$$XJC -npa -quiet -extension -d $$OUT -b *.xjb *.xsd",
-        ("find $$OUT -name '*.java' | xargs sed -i.bak 's/" +
+        ("find $$OUT -name '*.java' | xargs sed -i 's/" +
          "public class/" +
-         "@SuppressWarnings({\"unchecked\",\"serial\",\"cast\"})\\\n" +
+         "@SuppressWarnings({\"unchecked\",\"serial\",\"cast\"}) " +
          "public class/'"),
         "cd $$REP",
         "rm -rf $$TMP",
