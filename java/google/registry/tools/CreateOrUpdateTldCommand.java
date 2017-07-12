@@ -393,7 +393,7 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
               dnsWriterNames.contains(dnsWriter.get()),
               "The DNS writer '%s' doesn't exist",
               dnsWriter.get());
-          builder.setDnsWriter(dnsWriter.get());
+          builder.setDnsWriters(ImmutableSet.of(dnsWriter.get()));
       }
 
       if (lrpPeriod != null) {

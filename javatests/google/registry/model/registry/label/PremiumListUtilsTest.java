@@ -37,6 +37,7 @@ import static org.joda.time.Duration.standardMinutes;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import google.registry.dns.writer.VoidDnsWriter;
@@ -98,7 +99,7 @@ public class PremiumListUtilsTest {
         new Registry.Builder()
             .setTldStr("ghost")
             .setPremiumPricingEngine(StaticPremiumListPricingEngine.NAME)
-            .setDnsWriter(VoidDnsWriter.NAME)
+            .setDnsWriters(ImmutableSet.of(VoidDnsWriter.NAME))
             .build());
     assertThat(Registry.get("ghost").getPremiumList()).isNull();
     assertThat(getPremiumPrice("blah", Registry.get("ghost"))).isAbsent();

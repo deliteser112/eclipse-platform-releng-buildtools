@@ -63,7 +63,8 @@ public class PublishDnsUpdatesActionTest {
   public void setUp() throws Exception {
     inject.setStaticField(Ofy.class, "clock", clock);
     createTld("xn--q9jyb4c");
-    persistResource(Registry.get("xn--q9jyb4c").asBuilder().setDnsWriter("mock").build());
+    persistResource(
+        Registry.get("xn--q9jyb4c").asBuilder().setDnsWriters(ImmutableSet.of("mock")).build());
     DomainResource domain1 = persistActiveDomain("example.xn--q9jyb4c");
     persistActiveSubordinateHost("ns1.example.xn--q9jyb4c", domain1);
     persistActiveSubordinateHost("ns2.example.xn--q9jyb4c", domain1);

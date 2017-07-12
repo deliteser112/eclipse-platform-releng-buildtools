@@ -66,7 +66,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     assertThat(registry.getAddGracePeriodLength()).isEqualTo(Registry.DEFAULT_ADD_GRACE_PERIOD);
     assertThat(registry.getCreationTime()).isIn(Range.closed(before, after));
     assertThat(registry.getDomainCreateRestricted()).isFalse();
-    assertThat(registry.getDnsWriter()).isEqualTo("FooDnsWriter");
+    assertThat(registry.getDnsWriters()).containsExactly("FooDnsWriter");
     assertThat(registry.getTldState(registry.getCreationTime())).isEqualTo(TldState.PREDELEGATION);
     assertThat(registry.getRedemptionGracePeriodLength())
         .isEqualTo(Registry.DEFAULT_REDEMPTION_GRACE_PERIOD);

@@ -18,10 +18,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static google.registry.config.RegistryConfig.getSingletonCacheRefreshDuration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -290,8 +290,8 @@ public class Registry extends ImmutableObject implements Buildable {
 
   @OnLoad
   public void migrateDnsWriters() {
-    if (isNullOrEmpty(dnsWriters)) {
-      dnsWriters = ImmutableSet.of(dnsWriter);
+    if (dnsWriter == null) {
+      dnsWriter = getOnlyElement(dnsWriters);
     }
   }
 
@@ -613,7 +613,7 @@ public class Registry extends ImmutableObject implements Buildable {
 
   @Deprecated
   public String getDnsWriter() {
-    return dnsWriter;
+    return getOnlyElement(dnsWriters);
   }
 
   public ImmutableSet<String> getDnsWriters() {
@@ -702,12 +702,12 @@ public class Registry extends ImmutableObject implements Buildable {
       return this;
     }
 
-    public Builder setDnsWriter(String dnsWriter) {
-      getInstance().dnsWriter = checkArgumentNotNull(dnsWriter);
-      getInstance().dnsWriters = ImmutableSet.of(dnsWriter);
+    public Builder setDnsWriters(ImmutableSet<String> dnsWriters) {
+      checkArgument(dnsWriters.size() == 1, "Multiple DNS writers are not yet supported");
+      getInstance().dnsWriters = dnsWriters;
+      getInstance().dnsWriter = getOnlyElement(dnsWriters);
       return this;
     }
-
 
     public Builder setAddGracePeriodLength(Duration addGracePeriodLength) {
       checkArgument(addGracePeriodLength.isLongerThan(Duration.ZERO),

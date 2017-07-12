@@ -268,7 +268,7 @@ public class DatastoreHelper {
         // Always set a default premium list. Tests that don't want it can delete it.
         .setPremiumList(persistPremiumList(tld, DEFAULT_PREMIUM_LIST_CONTENTS.get()))
         .setPremiumPricingEngine(StaticPremiumListPricingEngine.NAME)
-        .setDnsWriter(VoidDnsWriter.NAME)
+        .setDnsWriters(ImmutableSet.of(VoidDnsWriter.NAME))
         .build();
   }
 
