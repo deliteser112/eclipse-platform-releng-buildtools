@@ -55,9 +55,9 @@ public class ResaveEnvironmentEntitiesCommandTest
     assertThat(ofy().load().type(CommitLogMutation.class).keys()).isEmpty();
     runCommand();
 
-    // There are five entities that have been re-saved at this point (each in a separate
-    // transaction), so expect five manifests and five mutations.
-    assertThat(ofy().load().type(CommitLogManifest.class).keys()).hasSize(5);
+    // There are 5 entities that have been re-saved at this point (in 3 transactions, one for each
+    // type), so expect 3 manifests and 5 mutations.
+    assertThat(ofy().load().type(CommitLogManifest.class).keys()).hasSize(3);
     Iterable<ImmutableObject> savedEntities =
         transform(
             ofy().load().type(CommitLogMutation.class).list(),

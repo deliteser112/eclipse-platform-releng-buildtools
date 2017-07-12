@@ -14,14 +14,13 @@
 
 package google.registry.tools;
 
-import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.Lists.partition;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
-import google.registry.model.ImmutableObject;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.registry.Registry;
@@ -36,19 +35,25 @@ import google.registry.tools.Command.RemoteApiCommand;
 @Parameters(commandDescription = "Re-save all environment entities.")
 final class ResaveEnvironmentEntitiesCommand implements RemoteApiCommand {
 
+  private static final int BATCH_SIZE = 10;
+
   @Override
   public void run() throws Exception {
-    Iterable<Key<? extends ImmutableObject>> keys = concat(
-        ofy().load().type(Registrar.class).ancestor(getCrossTldKey()).keys(),
-        ofy().load().type(Registry.class).ancestor(getCrossTldKey()).keys(),
-        ofy().load().type(RegistrarContact.class).ancestor(getCrossTldKey()).keys());
-    for (final Key<? extends ImmutableObject> key : keys) {
+    batchSave(Registry.class);
+    batchSave(Registrar.class);
+    batchSave(RegistrarContact.class);
+  }
+
+  private static <T> void batchSave(Class<T> clazz) {
+    System.out.printf("Re-saving %s entities.\n", clazz.getSimpleName());
+    for (final Iterable<Key<T>> batch :
+        partition(ofy().load().type(clazz).ancestor(getCrossTldKey()).keys().list(), BATCH_SIZE)) {
       ofy().transact(new VoidWork() {
-          @Override
-          public void vrun() {
-            ofy().save().entity(ofy().load().key(key).now());
-          }});
-      System.out.printf("Re-saved entity %s\n", key);
+        @Override
+        public void vrun() {
+          ofy().save().entities(ofy().load().keys(batch).values());
+        }});
+      System.out.printf("Re-saved entities batch: %s.\n", batch);
     }
   }
 }
