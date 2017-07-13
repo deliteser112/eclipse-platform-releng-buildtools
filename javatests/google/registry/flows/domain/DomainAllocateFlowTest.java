@@ -420,13 +420,6 @@ public class DomainAllocateFlowTest
   }
 
   @Test
-  @Override
-  public void testRequiresLogin() throws Exception {
-    createTld("tld");
-    super.testRequiresLogin();
-  }
-
-  @Test
   public void testSuccess_secDns() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     setEppInput("domain_allocate_dsdata.xml");

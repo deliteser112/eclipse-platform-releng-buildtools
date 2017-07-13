@@ -198,7 +198,6 @@ public class BigqueryPollJobActionTest {
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   public void testJobStatusUnreadable() throws Exception {
     when(bigqueryJobsGet.execute()).thenThrow(IOException.class);
     thrown.expect(NotModifiedException.class);

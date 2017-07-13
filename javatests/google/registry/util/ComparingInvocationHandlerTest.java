@@ -31,11 +31,11 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class ComparingInvocationHandlerTest {
 
-  static class Dummy {
-  }
+  static class Dummy {}
 
   static interface MyInterface {
     String func(int a, String b);
+
     Dummy func();
   }
 
@@ -52,12 +52,12 @@ public class ComparingInvocationHandlerTest {
   }
 
   static final ArrayList<String> log = new ArrayList<>();
+
   static final class MyInterfaceComparingInvocationHandler
       extends ComparingInvocationHandler<MyInterface> {
 
     private boolean dummyEqualsResult = true;
     private boolean exceptionEqualsResult = true;
-
 
     MyInterfaceComparingInvocationHandler(MyInterface actual, MyInterface second) {
       super(MyInterface.class, actual, second);
@@ -73,30 +73,34 @@ public class ComparingInvocationHandlerTest {
       return this;
     }
 
-    @Override protected void log(Method method, String message) {
+    @Override
+    protected void log(Method method, String message) {
       log.add(String.format("%s: %s", method.getName(), message));
     }
 
-    @Override protected boolean compareResults(
-        Method method, @Nullable Object a, @Nullable Object b) {
+    @Override
+    protected boolean compareResults(Method method, @Nullable Object a, @Nullable Object b) {
       if (method.getReturnType().equals(Dummy.class)) {
         return dummyEqualsResult;
       }
       return super.compareResults(method, a, b);
     }
 
-    @Override protected String stringifyResult(Method method, @Nullable Object a) {
+    @Override
+    protected String stringifyResult(Method method, @Nullable Object a) {
       if (method.getReturnType().equals(Dummy.class)) {
         return "dummy";
       }
       return super.stringifyResult(method, a);
     }
 
-    @Override protected boolean compareThrown(Method method, Throwable a, Throwable b) {
+    @Override
+    protected boolean compareThrown(Method method, Throwable a, Throwable b) {
       return exceptionEqualsResult && super.compareThrown(method, a, b);
     }
 
-    @Override protected String stringifyThrown(Method method, Throwable a) {
+    @Override
+    protected String stringifyThrown(Method method, Throwable a) {
       return String.format("testException(%s)", super.stringifyThrown(method, a));
     }
   }
@@ -108,12 +112,14 @@ public class ComparingInvocationHandlerTest {
   private final MyInterface mySecondMock = mock(MyInterface.class);
   private MyInterfaceComparingInvocationHandler invocationHandler;
 
-  @Before public void setUp() {
+  @Before
+  public void setUp() {
     log.clear();
     invocationHandler = new MyInterfaceComparingInvocationHandler(myActualMock, mySecondMock);
   }
 
-  @Test public void test_actualThrows_logDifference() {
+  @Test
+  public void test_actualThrows_logDifference() {
     MyInterface comparator = invocationHandler.makeProxy();
     MyException myException = new MyException("message");
     when(myActualMock.func(3, "str")).thenThrow(myException);
@@ -125,12 +131,15 @@ public class ComparingInvocationHandlerTest {
     } catch (MyException expected) {
     }
 
-    assertThat(log).containsExactly(String.format(
-        "func: Only actual implementation threw exception: testException(%s)",
-        myException.toString()));
+    assertThat(log)
+        .containsExactly(
+            String.format(
+                "func: Only actual implementation threw exception: testException(%s)",
+                myException.toString()));
   }
 
-  @Test public void test_secondThrows_logDifference() {
+  @Test
+  public void test_secondThrows_logDifference() {
     MyInterface comparator = invocationHandler.makeProxy();
     MyOtherException myOtherException = new MyOtherException("message");
     when(myActualMock.func(3, "str")).thenReturn(ACTUAL_RESULT);
@@ -138,15 +147,16 @@ public class ComparingInvocationHandlerTest {
 
     assertThat(comparator.func(3, "str")).isEqualTo(ACTUAL_RESULT);
 
-    assertThat(log).containsExactly(String.format(
-        "func: Only second implementation threw exception: testException(%s)",
-        myOtherException.toString()));
+    assertThat(log)
+        .containsExactly(
+            String.format(
+                "func: Only second implementation threw exception: testException(%s)",
+                myOtherException.toString()));
   }
 
-  @Test public void test_bothThrowEqual_noLog() {
-    MyInterface comparator = invocationHandler
-        .setExeptionsEquals(true)
-        .makeProxy();
+  @Test
+  public void test_bothThrowEqual_noLog() {
+    MyInterface comparator = invocationHandler.setExeptionsEquals(true).makeProxy();
     MyException myException = new MyException("actual message");
     MyOtherException myOtherException = new MyOtherException("second message");
     when(myActualMock.func(3, "str")).thenThrow(myException);
@@ -161,10 +171,9 @@ public class ComparingInvocationHandlerTest {
     assertThat(log).isEmpty();
   }
 
-  @Test public void test_bothThrowDifferent_logDifference() {
-    MyInterface comparator = invocationHandler
-        .setExeptionsEquals(false)
-        .makeProxy();
+  @Test
+  public void test_bothThrowDifferent_logDifference() {
+    MyInterface comparator = invocationHandler.setExeptionsEquals(false).makeProxy();
     MyException myException = new MyException("actual message");
     MyOtherException myOtherException = new MyOtherException("second message");
     when(myActualMock.func(3, "str")).thenThrow(myException);
@@ -176,14 +185,16 @@ public class ComparingInvocationHandlerTest {
     } catch (MyException expected) {
     }
 
-    assertThat(log).containsExactly(String.format(
-        "func: Both implementations threw, but got different exceptions! "
-        + "'testException(%s)' vs 'testException(%s)'",
-        myException.toString(),
-        myOtherException.toString()));
+    assertThat(log)
+        .containsExactly(
+            String.format(
+                "func: Both implementations threw, but got different exceptions! "
+                    + "'testException(%s)' vs 'testException(%s)'",
+                myException.toString(), myOtherException.toString()));
   }
 
-  @Test public void test_bothReturnSame_noLog() {
+  @Test
+  public void test_bothReturnSame_noLog() {
     MyInterface comparator = invocationHandler.makeProxy();
     when(myActualMock.func(3, "str")).thenReturn(ACTUAL_RESULT);
     when(mySecondMock.func(3, "str")).thenReturn(ACTUAL_RESULT);
@@ -193,23 +204,21 @@ public class ComparingInvocationHandlerTest {
     assertThat(log).isEmpty();
   }
 
-  @Test public void test_bothReturnDifferent_logDifference() {
+  @Test
+  public void test_bothReturnDifferent_logDifference() {
     MyInterface comparator = invocationHandler.makeProxy();
     when(myActualMock.func(3, "str")).thenReturn(ACTUAL_RESULT);
     when(mySecondMock.func(3, "str")).thenReturn(SECOND_RESULT);
 
     assertThat(comparator.func(3, "str")).isEqualTo(ACTUAL_RESULT);
 
-    assertThat(log).containsExactly(
-        "func: Got different results! "
-        + "'actual result' vs "
-        + "'second result'");
+    assertThat(log)
+        .containsExactly("func: Got different results! 'actual result' vs 'second result'");
   }
 
-  @Test public void test_usesOverriddenMethods_noDifference() {
-    MyInterface comparator = invocationHandler
-        .setDummyEquals(true)
-        .makeProxy();
+  @Test
+  public void test_usesOverriddenMethods_noDifference() {
+    MyInterface comparator = invocationHandler.setDummyEquals(true).makeProxy();
     when(myActualMock.func()).thenReturn(new Dummy());
     when(mySecondMock.func()).thenReturn(new Dummy());
 
@@ -218,18 +227,14 @@ public class ComparingInvocationHandlerTest {
     assertThat(log).isEmpty();
   }
 
-  @Test public void test_usesOverriddenMethods_logDifference() {
-    MyInterface comparator = invocationHandler
-        .setDummyEquals(false)
-        .makeProxy();
+  @Test
+  public void test_usesOverriddenMethods_logDifference() {
+    MyInterface comparator = invocationHandler.setDummyEquals(false).makeProxy();
     when(myActualMock.func()).thenReturn(new Dummy());
     when(mySecondMock.func()).thenReturn(new Dummy());
 
     comparator.func();
 
-    assertThat(log).containsExactly(
-        "func: Got different results! "
-        + "'dummy' vs "
-        + "'dummy'");
+    assertThat(log).containsExactly("func: Got different results! 'dummy' vs 'dummy'");
   }
 }

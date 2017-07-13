@@ -29,7 +29,6 @@ public class TmchCrlTest {
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Test
-  @SuppressWarnings("null")
   public void testSuccess() throws Exception {
     assertThat(TmchCrl.get()).isNull();
     TmchCrl.set("lolcat", "http://lol.cat");
