@@ -251,7 +251,7 @@ public class VerifyOteAction implements Runnable, JsonAction {
       this.requirement = requirement;
       this.typeFilter = typeFilter;
       if (eppInputFilter == null) {
-        this.eppInputFilter = Optional.absent();
+        this.eppInputFilter = Optional.<Predicate<EppInput>>absent();
       } else {
         this.eppInputFilter = Optional.of(eppInputFilter);
       }
@@ -305,7 +305,9 @@ public class VerifyOteAction implements Runnable, JsonAction {
       byte[] xmlBytes = historyEntry.getXmlBytes();
       // xmlBytes can be null on contact create and update for safe-harbor compliance.
       final Optional<EppInput> eppInput =
-          (xmlBytes == null) ? Optional.absent() : Optional.of(unmarshal(EppInput.class, xmlBytes));
+          (xmlBytes == null)
+              ? Optional.<EppInput>absent()
+              : Optional.of(unmarshal(EppInput.class, xmlBytes));
       if (!statCounts.addAll(
           FluentIterable.from(EnumSet.allOf(StatType.class))
               .filter(
