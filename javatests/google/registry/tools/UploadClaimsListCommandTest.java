@@ -44,6 +44,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
         .isEqualTo("2013041500/A/C/7/rHdC4wnrWRvPY6nneCVtQhFj0000000003");
   }
 
+  @Test
   public void testFailure_wrongNumberOfFieldsOnFirstLine() throws Exception {
     String filename = writeToTmpFile(
       "1,2012-08-16T00:00:00.0Z,random-extra-field",
@@ -55,6 +56,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
     runCommand("--force", filename);
   }
 
+  @Test
   public void testFailure_wrongVersion() throws Exception {
     String filename = writeToTmpFile(
       "2,2012-08-16T00:00:00.0Z",
@@ -66,6 +68,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
     runCommand("--force", filename);
   }
 
+  @Test
   public void testFailure_badCreationTime() throws Exception {
     String filename = writeToTmpFile(
       "1,foo",
@@ -77,6 +80,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
     runCommand("--force", filename);
   }
 
+  @Test
   public void testFailure_badFirstHeader() throws Exception {
     String filename = writeToTmpFile(
       "1,foo",
@@ -88,6 +92,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
     runCommand("--force", filename);
   }
 
+  @Test
   public void testFailure_badSecondHeader() throws Exception {
     String filename = writeToTmpFile(
       "1,foo",
@@ -99,6 +104,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
     runCommand("--force", filename);
   }
 
+  @Test
   public void testFailure_badThirdHeader() throws Exception {
     String filename = writeToTmpFile(
       "1,foo",
@@ -110,6 +116,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
     runCommand("--force", filename);
   }
 
+  @Test
   public void testFailure_wrongNumberOfHeaders() throws Exception {
     String filename = writeToTmpFile(
       "1,foo",
@@ -121,6 +128,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
     runCommand("--force", filename);
   }
 
+  @Test
   public void testFailure_wrongNumberOfFields() throws Exception {
     String filename = writeToTmpFile(
       "1,foo",
@@ -132,6 +140,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
     runCommand("--force", filename);
   }
 
+  @Test
   public void testFailure_badInsertionTime() throws Exception {
     String filename = writeToTmpFile(
       "1,foo",

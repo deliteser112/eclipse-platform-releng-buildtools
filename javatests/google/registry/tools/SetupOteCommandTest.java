@@ -169,6 +169,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     verifyRegistrarCreation("blobio-4", "blobio-ga", passwords.get(3), ipAddresses);
   }
 
+  @Test
   public void testSuccess_alternatePremiumList() throws Exception {
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
