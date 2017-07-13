@@ -17,6 +17,10 @@ package google.registry.flows.domain;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;
+import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_CREATE;
+import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE;
+import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST;
 import static google.registry.testing.DatastoreHelper.assertBillingEventsForResource;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteResource;
@@ -57,6 +61,7 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
+import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.model.transfer.TransferStatus;
@@ -139,12 +144,12 @@ public class DomainTransferApproveFlowTest
     runFlowAssertResponse(readFile(expectedXmlFilename));
     // Transfer should have succeeded. Verify correct fields were set.
     domain = reloadResourceByForeignKey();
-    assertAboutDomains().that(domain).hasOneHistoryEntryEachOfTypes(
-        HistoryEntry.Type.DOMAIN_CREATE,
-        HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST,
-        HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE);
+    assertAboutDomains()
+        .that(domain)
+        .hasOneHistoryEntryEachOfTypes(
+            DOMAIN_CREATE, DOMAIN_TRANSFER_REQUEST, DOMAIN_TRANSFER_APPROVE);
     final HistoryEntry historyEntryTransferApproved =
-        getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE);
+        getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_APPROVE);
     assertAboutHistoryEntries().that(historyEntryTransferApproved)
         .hasOtherClientId("NewRegistrar");
     assertTransferApproved(domain);
@@ -444,5 +449,54 @@ public class DomainTransferApproveFlowTest
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-transfer-approve");
     assertTldsFieldLogged("tld");
+  }
+
+  private void setUpGracePeriodDurations() {
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setAutomaticTransferLength(Duration.standardDays(2))
+            .setTransferGracePeriodLength(Duration.standardDays(3))
+            .build());
+  }
+
+  @Test
+  public void testIcannTransactionRecord_noRecordsToCancel() throws Exception {
+    setUpGracePeriodDurations();
+    clock.advanceOneMilli();
+    runFlow();
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_APPROVE);
+    // We should only produce a transfer success record for (now + transfer grace period)
+    assertThat(persistedEntry.getDomainTransactionRecords())
+        .containsExactly(
+            DomainTransactionRecord.create(
+                "tld", clock.nowUtc().plusDays(3), TRANSFER_SUCCESSFUL, 1));
+  }
+
+  @Test
+  public void testIcannTransactionRecord_cancelsPreviousRecords() throws Exception {
+    clock.advanceOneMilli();
+    setUpGracePeriodDurations();
+    DomainTransactionRecord previousSuccessRecord =
+        DomainTransactionRecord.create(
+            "tld", clock.nowUtc().plusDays(1), TRANSFER_SUCCESSFUL, 1);
+    persistResource(
+        new HistoryEntry.Builder()
+            .setType(DOMAIN_TRANSFER_REQUEST)
+            .setParent(domain)
+            .setModificationTime(clock.nowUtc().minusDays(4))
+            .setDomainTransactionRecords(
+                ImmutableSet.of(previousSuccessRecord))
+            .build());
+    runFlow();
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_APPROVE);
+    // We should produce cancellation records for the original reporting date (now + 1 day) and
+    // success records for the new reporting date (now + transferGracePeriod=3 days)
+    assertThat(persistedEntry.getDomainTransactionRecords())
+        .containsExactly(
+            previousSuccessRecord.asBuilder().setReportAmount(-1).build(),
+            DomainTransactionRecord.create(
+                "tld", clock.nowUtc().plusDays(3), TRANSFER_SUCCESSFUL, 1));
+
   }
 }

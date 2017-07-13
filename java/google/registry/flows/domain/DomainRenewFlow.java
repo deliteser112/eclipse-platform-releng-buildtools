@@ -156,7 +156,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
             .build());
     Registry registry = Registry.get(existingDomain.getTld());
     HistoryEntry historyEntry = buildHistoryEntry(
-        existingDomain, command.getPeriod(), now, registry.getRenewGracePeriodLength());
+        existingDomain, now, command.getPeriod(), registry.getRenewGracePeriodLength());
     String tld = existingDomain.getTld();
     // Bill for this explicit renew itself.
     BillingEvent.OneTime explicitRenewEvent =
@@ -213,7 +213,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
   }
 
   private HistoryEntry buildHistoryEntry(
-      DomainResource existingDomain, Period period, DateTime now, Duration renewGracePeriod) {
+      DomainResource existingDomain, DateTime now, Period period, Duration renewGracePeriod) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_RENEW)
         .setPeriod(period)

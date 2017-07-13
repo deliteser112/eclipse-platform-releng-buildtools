@@ -61,6 +61,8 @@ import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
+import google.registry.model.reporting.DomainTransactionRecord;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.transfer.TransferData;
@@ -141,7 +143,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
         eppInput.getSingleExtension(FeeTransferCommandExtension.class);
     FeesAndCredits feesAndCredits = pricingLogic.getTransferPrice(registry, targetId, now);
     validateFeeChallenge(targetId, tld, now, feeTransfer, feesAndCredits);
-    HistoryEntry historyEntry = buildHistoryEntry(period, existingDomain, now);
+    HistoryEntry historyEntry = buildHistoryEntry(existingDomain, registry, now, period);
     DateTime automaticTransferTime = now.plus(registry.getAutomaticTransferLength());
  
     // If the domain will be in the auto-renew grace period at the moment of transfer, the transfer
@@ -252,13 +254,21 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   }
 
   private HistoryEntry buildHistoryEntry(
-      Period period, DomainResource existingDomain, DateTime now) {
+      DomainResource existingDomain, Registry registry, DateTime now, Period period) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST)
         .setOtherClientId(existingDomain.getCurrentSponsorClientId())
         .setPeriod(period)
         .setModificationTime(now)
         .setParent(Key.create(existingDomain))
+        .setDomainTransactionRecords(
+            ImmutableSet.of(
+                DomainTransactionRecord.create(
+                    registry.getTldStr(),
+                    now.plus(registry.getAutomaticTransferLength())
+                        .plus(registry.getTransferGracePeriodLength()),
+                    TransactionReportField.TRANSFER_SUCCESSFUL,
+                    1)))
         .build();
   }
 

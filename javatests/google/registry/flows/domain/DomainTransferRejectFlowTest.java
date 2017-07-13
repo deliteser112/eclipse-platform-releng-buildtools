@@ -15,6 +15,11 @@
 package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_NACKED;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;
+import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_CREATE;
+import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_TRANSFER_REJECT;
+import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
@@ -42,10 +47,13 @@ import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
+import google.registry.model.registry.Registry;
+import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferStatus;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -88,11 +96,9 @@ public class DomainTransferRejectFlowTest
         .hasRegistrationExpirationTime(originalExpirationTime).and()
         .hasLastTransferTimeNotEqualTo(clock.nowUtc()).and()
         .hasOneHistoryEntryEachOfTypes(
-            HistoryEntry.Type.DOMAIN_CREATE,
-            HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST,
-            HistoryEntry.Type.DOMAIN_TRANSFER_REJECT);
+            DOMAIN_CREATE, DOMAIN_TRANSFER_REQUEST, DOMAIN_TRANSFER_REJECT);
     final HistoryEntry historyEntryTransferRejected =
-        getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_TRANSFER_REJECT);
+        getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REJECT);
     assertAboutHistoryEntries()
         .that(historyEntryTransferRejected)
         .hasOtherClientId("NewRegistrar");
@@ -284,5 +290,47 @@ public class DomainTransferRejectFlowTest
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-transfer-reject");
     assertTldsFieldLogged("tld");
+  }
+
+  private void setUpGracePeriodDurations() {
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setAutomaticTransferLength(Duration.standardDays(2))
+            .setTransferGracePeriodLength(Duration.standardDays(3))
+            .build());
+  }
+
+  @Test
+  public void testIcannTransactionRecord_noRecordsToCancel() throws Exception {
+    setUpGracePeriodDurations();
+    runFlow();
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REJECT);
+    // We should only produce transfer nacked records, reported now
+    assertThat(persistedEntry.getDomainTransactionRecords())
+        .containsExactly(DomainTransactionRecord.create("tld", clock.nowUtc(), TRANSFER_NACKED, 1));
+  }
+
+  @Test
+  public void testIcannTransactionRecord_cancelsPreviousRecords() throws Exception {
+    setUpGracePeriodDurations();
+    DomainTransactionRecord previousSuccessRecord =
+        DomainTransactionRecord.create(
+            "tld", clock.nowUtc().plusDays(1), TRANSFER_SUCCESSFUL, 1);
+    persistResource(
+        new HistoryEntry.Builder()
+            .setType(DOMAIN_TRANSFER_REQUEST)
+            .setParent(domain)
+            .setModificationTime(clock.nowUtc().minusDays(4))
+            .setDomainTransactionRecords(
+                ImmutableSet.of(previousSuccessRecord))
+            .build());
+    runFlow();
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REJECT);
+    // We should produce cancellation records for the original success records and nack records
+    assertThat(persistedEntry.getDomainTransactionRecords())
+        .containsExactly(
+            previousSuccessRecord.asBuilder().setReportAmount(-1).build(),
+            DomainTransactionRecord.create("tld", clock.nowUtc(), TRANSFER_NACKED, 1));
   }
 }

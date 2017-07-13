@@ -108,6 +108,7 @@ import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservationType;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.model.reporting.DomainTransactionRecord;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.tmch.ClaimsListShard;
 import google.registry.util.FormattingLogger;
@@ -925,11 +926,11 @@ public class DomainFlowUtils {
    * hasn't been reported yet and b) matches the predicate 3. Return the transactionRecords under
    * the most recent HistoryEntry that fits the above criteria, with negated reportAmounts.
    */
-  static ImmutableSet<DomainTransactionRecord> createCancellingRecords(
+  static ImmutableSet<DomainTransactionRecord> createCancelingRecords(
       DomainResource domainResource,
       final DateTime now,
       Duration maxSearchPeriod,
-      final Predicate<DomainTransactionRecord> isCancellable) {
+      final ImmutableSet<TransactionReportField> cancelableFields) {
 
     List<HistoryEntry> recentHistoryEntries =  ofy().load()
         .type(HistoryEntry.class)
@@ -937,22 +938,25 @@ public class DomainFlowUtils {
         .filter("modificationTime >=", now.minus(maxSearchPeriod))
         .order("modificationTime")
         .list();
-    Optional<HistoryEntry> entryToCancel = FluentIterable.from(recentHistoryEntries)
-        .filter(
-            new Predicate<HistoryEntry>() {
-              @Override
-              public boolean apply(HistoryEntry historyEntry) {
-                // Look for add and renew transaction records that have yet to be reported
-                for (DomainTransactionRecord record : historyEntry.getDomainTransactionRecords()) {
-                  if (isCancellable.apply(record) && record.getReportingTime().isAfter(now)) {
-                    return true;
+    Optional<HistoryEntry> entryToCancel =
+        FluentIterable.from(recentHistoryEntries)
+            .filter(
+                new Predicate<HistoryEntry>() {
+                  @Override
+                  public boolean apply(HistoryEntry historyEntry) {
+                    // Look for add and renew transaction records that have yet to be reported
+                    for (DomainTransactionRecord record :
+                        historyEntry.getDomainTransactionRecords()) {
+                      if (cancelableFields.contains(record.getReportField())
+                          && record.getReportingTime().isAfter(now)) {
+                        return true;
+                      }
+                    }
+                    return false;
                   }
-                }
-                return false;
-              }
-            })
-        // We only want to cancel out the most recent add or renewal
-        .last();
+                })
+            // We only want to cancel out the most recent add or renewal
+            .last();
     ImmutableSet.Builder<DomainTransactionRecord> recordsBuilder = new ImmutableSet.Builder<>();
     if (entryToCancel.isPresent()) {
       for (DomainTransactionRecord record : entryToCancel.get().getDomainTransactionRecords()) {

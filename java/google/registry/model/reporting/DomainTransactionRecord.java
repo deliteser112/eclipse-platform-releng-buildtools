@@ -97,10 +97,8 @@ public class DomainTransactionRecord extends ImmutableObject implements Buildabl
     NET_RENEWS_8_YR,
     NET_RENEWS_9_YR,
     NET_RENEWS_10_YR,
-    TRANSFER_GAINING_SUCCESSFUL,
-    TRANSFER_GAINING_NACKED,
-    TRANSFER_LOSING_SUCCESSFUL,
-    TRANSFER_LOSING_NACKED,
+    TRANSFER_SUCCESSFUL,
+    TRANSFER_NACKED,
     DELETED_DOMAINS_GRACE,
     DELETED_DOMAINS_NOGRACE,
     RESTORED_DOMAINS;
@@ -115,7 +113,7 @@ public class DomainTransactionRecord extends ImmutableObject implements Buildabl
       return nameToField("NET_RENEWS_%d_YR", years);
     }
 
-    private static final ImmutableSet<TransactionReportField> ADD_FIELDS =
+    public static final ImmutableSet<TransactionReportField> ADD_FIELDS =
         ImmutableSet.of(
             NET_ADDS_1_YR,
             NET_ADDS_2_YR,
@@ -128,7 +126,7 @@ public class DomainTransactionRecord extends ImmutableObject implements Buildabl
             NET_ADDS_9_YR,
             NET_ADDS_10_YR);
 
-    private static final ImmutableSet<TransactionReportField> RENEW_FIELDS =
+    public static final ImmutableSet<TransactionReportField> RENEW_FIELDS =
         ImmutableSet.of(
             NET_RENEWS_1_YR,
             NET_RENEWS_2_YR,
@@ -140,16 +138,6 @@ public class DomainTransactionRecord extends ImmutableObject implements Buildabl
             NET_RENEWS_8_YR,
             NET_RENEWS_9_YR,
             NET_RENEWS_10_YR);
-
-
-    /** Boilerplate to determine if a field is one of the NET_ADDS fields. */
-    public static boolean isAddsField(TransactionReportField field) {
-      return ADD_FIELDS.contains(field);
-    }
-    /** Boilerplate to determine if a field is one of the NET_ADDS fields. */
-    public static boolean isRenewsField(TransactionReportField field) {
-      return RENEW_FIELDS.contains(field);
-    }
 
     private static TransactionReportField nameToField(String enumTemplate, int years) {
       checkArgument(

@@ -21,13 +21,16 @@ import static google.registry.flows.ResourceFlowUtils.verifyHasPendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyTransferInitiator;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
+import static google.registry.flows.domain.DomainFlowUtils.createCancelingRecords;
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.flows.domain.DomainTransferUtils.createLosingTransferPollMessage;
 import static google.registry.flows.domain.DomainTransferUtils.createTransferResponse;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
@@ -41,6 +44,8 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppoutput.EppResponse;
+import google.registry.model.registry.Registry;
+import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.transfer.TransferStatus;
@@ -90,12 +95,8 @@ public final class DomainTransferCancelFlow implements TransactionalFlow {
     if (!isSuperuser) {
       checkAllowedAccessToTld(clientId, existingDomain.getTld());
     }
-    HistoryEntry historyEntry = historyBuilder
-        .setType(HistoryEntry.Type.DOMAIN_TRANSFER_CANCEL)
-        .setOtherClientId(existingDomain.getTransferData().getLosingClientId())
-        .setModificationTime(now)
-        .setParent(Key.create(existingDomain))
-        .build();
+    Registry registry = Registry.get(existingDomain.getTld());
+    HistoryEntry historyEntry = buildHistoryEntry(existingDomain, registry, now);
     DomainResource newDomain =
         denyPendingTransfer(existingDomain, TransferStatus.CLIENT_CANCELLED, now);
     ofy().save().<ImmutableObject>entities(
@@ -111,6 +112,23 @@ public final class DomainTransferCancelFlow implements TransactionalFlow {
     ofy().delete().keys(existingDomain.getTransferData().getServerApproveEntities());
     return responseBuilder
         .setResData(createTransferResponse(targetId, newDomain.getTransferData(), null))
+        .build();
+  }
+
+  private HistoryEntry buildHistoryEntry(
+      DomainResource existingDomain, Registry registry, DateTime now) {
+    ImmutableSet<DomainTransactionRecord> cancelingRecords =
+        createCancelingRecords(
+            existingDomain,
+            now,
+            registry.getAutomaticTransferLength().plus(registry.getTransferGracePeriodLength()),
+            ImmutableSet.of(TRANSFER_SUCCESSFUL));
+    return historyBuilder
+        .setType(HistoryEntry.Type.DOMAIN_TRANSFER_CANCEL)
+        .setOtherClientId(existingDomain.getTransferData().getLosingClientId())
+        .setModificationTime(now)
+        .setParent(Key.create(existingDomain))
+        .setDomainTransactionRecords(cancelingRecords)
         .build();
   }
 }

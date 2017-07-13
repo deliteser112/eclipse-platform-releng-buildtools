@@ -16,6 +16,9 @@ package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;
+import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_CREATE;
+import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
@@ -68,6 +71,7 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
+import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferStatus;
@@ -163,14 +167,12 @@ public class DomainTransferRequestFlowTest
     // Transfer should have been requested. Verify correct fields were set.
     domain = reloadResourceByForeignKey();
     final HistoryEntry historyEntryTransferRequest =
-        getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST);
+        getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REQUEST);
     subordinateHost = reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc());
     assertTransferRequested(domain);
     assertAboutDomains().that(domain)
         .hasPendingTransferExpirationTime(implicitTransferTime).and()
-        .hasOneHistoryEntryEachOfTypes(
-            HistoryEntry.Type.DOMAIN_CREATE,
-            HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST);
+        .hasOneHistoryEntryEachOfTypes(DOMAIN_CREATE, DOMAIN_TRANSFER_REQUEST);
     assertAboutHistoryEntries()
         .that(historyEntryTransferRequest)
         .hasPeriodYears(1)
@@ -970,5 +972,24 @@ public class DomainTransferRequestFlowTest
     runTest("domain_transfer_request.xml", UserPrivileges.NORMAL);
     assertIcannReportingActivityFieldLogged("srs-dom-transfer-request");
     assertTldsFieldLogged("tld");
+  }
+
+  @Test
+  public void testIcannTransactionRecord_getsStored() throws Exception {
+    setupDomain("example", "tld");
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setAutomaticTransferLength(Duration.standardDays(2))
+            .setTransferGracePeriodLength(Duration.standardDays(3))
+            .build());
+    clock.advanceOneMilli();
+    runTest("domain_transfer_request.xml", UserPrivileges.NORMAL);
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REQUEST);
+    // We should produce a transfer success record
+    assertThat(persistedEntry.getDomainTransactionRecords())
+        .containsExactly(
+            DomainTransactionRecord.create(
+                "tld", clock.nowUtc().plusDays(5), TRANSFER_SUCCESSFUL, 1));
   }
 }

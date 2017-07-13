@@ -24,22 +24,22 @@ import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
-import static google.registry.flows.domain.DomainFlowUtils.createCancellingRecords;
+import static google.registry.flows.domain.DomainFlowUtils.createCancelingRecords;
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.isAddsField;
-import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.isRenewsField;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.ADD_FIELDS;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.RENEW_FIELDS;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.CollectionUtils.union;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
@@ -245,17 +245,11 @@ public final class DomainDeleteFlow implements TransactionalFlow {
             registry.getAutoRenewGracePeriodLength(),
             registry.getRenewGracePeriodLength()));
     ImmutableSet<DomainTransactionRecord> cancelledRecords =
-        createCancellingRecords(
+        createCancelingRecords(
             existingResource,
             now,
             maxGracePeriod,
-            new Predicate<DomainTransactionRecord>() {
-              @Override
-              public boolean apply(@Nullable DomainTransactionRecord domainTransactionRecord) {
-                return isAddsField(domainTransactionRecord.getReportField())
-                    || isRenewsField(domainTransactionRecord.getReportField());
-              }
-            });
+            Sets.immutableEnumSet(Sets.union(ADD_FIELDS, RENEW_FIELDS)));
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_DELETE)
         .setModificationTime(now)

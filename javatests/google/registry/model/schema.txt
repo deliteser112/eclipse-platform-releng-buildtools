@@ -811,10 +811,8 @@ enum google.registry.model.reporting.DomainTransactionRecord$TransactionReportFi
   NET_RENEWS_8_YR;
   NET_RENEWS_9_YR;
   RESTORED_DOMAINS;
-  TRANSFER_GAINING_NACKED;
-  TRANSFER_GAINING_SUCCESSFUL;
-  TRANSFER_LOSING_NACKED;
-  TRANSFER_LOSING_SUCCESSFUL;
+  TRANSFER_NACKED;
+  TRANSFER_SUCCESSFUL;
 }
 class google.registry.model.reporting.HistoryEntry {
   @Id long id;

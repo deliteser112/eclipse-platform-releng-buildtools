@@ -160,7 +160,7 @@ public class DomainAllocateFlow implements TransactionalFlow {
     String repoId = createDomainRepoId(ObjectifyService.allocateId(), registry.getTldStr());
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
     HistoryEntry historyEntry = buildHistoryEntry(
-        repoId, period, now, registry.getAddGracePeriodLength(), registry.getTldStr());
+        repoId, registry.getTldStr(), now, period, registry.getAddGracePeriodLength());
     entitiesToSave.add(historyEntry);
     ImmutableSet<? extends ImmutableObject> billsAndPolls = createBillingEventsAndPollMessages(
         domainName, application, historyEntry, isSunrushAddGracePeriod, registry, now, years);
@@ -234,7 +234,7 @@ public class DomainAllocateFlow implements TransactionalFlow {
   }
 
   private HistoryEntry buildHistoryEntry(
-      String repoId, Period period, DateTime now, Duration addGracePeriod, String tld) {
+      String repoId, String tld, DateTime now, Period period, Duration addGracePeriod) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_ALLOCATE)
         .setPeriod(period)

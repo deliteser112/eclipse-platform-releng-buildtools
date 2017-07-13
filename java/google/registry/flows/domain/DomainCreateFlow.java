@@ -262,7 +262,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     String repoId = createDomainRepoId(ObjectifyService.allocateId(), registry.getTldStr());
     DateTime registrationExpirationTime = leapSafeAddYears(now, years);
     HistoryEntry historyEntry = buildHistoryEntry(
-        repoId, period, now, registry.getAddGracePeriodLength(), registry.getTldStr());
+        repoId, registry.getTldStr(), now, period, registry.getAddGracePeriodLength());
     // Bill for the create.
     BillingEvent.OneTime createBillingEvent =
         createOneTimeBillingEvent(
@@ -365,7 +365,7 @@ public class DomainCreateFlow implements TransactionalFlow {
   }
 
   private HistoryEntry buildHistoryEntry(
-      String repoId, Period period, DateTime now, Duration addGracePeriod, String tld) {
+      String repoId, String tld, DateTime now, Period period, Duration addGracePeriod) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_CREATE)
         .setPeriod(period)

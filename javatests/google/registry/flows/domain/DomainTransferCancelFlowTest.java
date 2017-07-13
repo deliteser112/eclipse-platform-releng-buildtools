@@ -15,6 +15,10 @@
 package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;
+import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_CREATE;
+import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_TRANSFER_CANCEL;
+import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createPollMessageForImplicitTransfer;
 import static google.registry.testing.DatastoreHelper.deleteResource;
@@ -39,10 +43,13 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.poll.PollMessage;
+import google.registry.model.registry.Registry;
+import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.model.transfer.TransferStatus;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -113,12 +120,12 @@ public class DomainTransferCancelFlowTest
     assertAboutDomains().that(domain)
         .hasRegistrationExpirationTime(originalExpirationTime).and()
         .hasLastTransferTimeNotEqualTo(clock.nowUtc());
-    assertAboutDomains().that(domain).hasOneHistoryEntryEachOfTypes(
-        HistoryEntry.Type.DOMAIN_CREATE,
-        HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST,
-        HistoryEntry.Type.DOMAIN_TRANSFER_CANCEL);
+    assertAboutDomains()
+        .that(domain)
+        .hasOneHistoryEntryEachOfTypes(
+            DOMAIN_CREATE, DOMAIN_TRANSFER_REQUEST, DOMAIN_TRANSFER_CANCEL);
     final HistoryEntry historyEntryTransferCancel =
-        getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_TRANSFER_CANCEL);
+        getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_CANCEL);
     assertAboutHistoryEntries().that(historyEntryTransferCancel).hasClientId("NewRegistrar")
         .and().hasOtherClientId("TheRegistrar");
     // The only billing event left should be the original autorenew event, now reopened.
@@ -138,7 +145,7 @@ public class DomainTransferCancelFlowTest
             .setEventTime(originalExpirationTime)
             .setAutorenewEndTime(END_OF_TIME)
             .setMsg("Domain was auto-renewed.")
-            .setParent(getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_CREATE))
+            .setParent(getOnlyHistoryEntryOfType(domain, DOMAIN_CREATE))
             .build(),
         new PollMessage.OneTime.Builder()
             .setClientId("TheRegistrar")
@@ -152,7 +159,7 @@ public class DomainTransferCancelFlowTest
                 .setPendingTransferExpirationTime(clock.nowUtc())
                 .build()))
             .setMsg("Transfer cancelled.")
-            .setParent(getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_TRANSFER_CANCEL))
+            .setParent(getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_CANCEL))
             .build());
 
     // The original grace periods should remain untouched.
@@ -322,5 +329,39 @@ public class DomainTransferCancelFlowTest
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-transfer-cancel");
     assertTldsFieldLogged("tld");
+  }
+
+  @Test
+  public void testIcannTransactionRecord_noRecordsToCancel() throws Exception {
+    clock.advanceOneMilli();
+    runFlow();
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_CANCEL);
+    // No cancellation records should be produced
+    assertThat(persistedEntry.getDomainTransactionRecords()).isEmpty();
+  }
+
+  @Test
+  public void testIcannTransactionRecord_cancelsPreviousRecords() throws Exception {
+    clock.advanceOneMilli();
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setAutomaticTransferLength(Duration.standardDays(2))
+            .setTransferGracePeriodLength(Duration.standardDays(3))
+            .build());
+    DomainTransactionRecord previousSuccessRecord =
+        DomainTransactionRecord.create("tld", clock.nowUtc().plusDays(1), TRANSFER_SUCCESSFUL, 1);
+    persistResource(
+        new HistoryEntry.Builder()
+            .setType(DOMAIN_TRANSFER_REQUEST)
+            .setParent(domain)
+            .setModificationTime(clock.nowUtc().minusDays(4))
+            .setDomainTransactionRecords(ImmutableSet.of(previousSuccessRecord))
+            .build());
+    runFlow();
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_CANCEL);
+    // We should produce a cancellation record for the original transfer success
+    assertThat(persistedEntry.getDomainTransactionRecords())
+        .containsExactly(previousSuccessRecord.asBuilder().setReportAmount(-1).build());
   }
 }
