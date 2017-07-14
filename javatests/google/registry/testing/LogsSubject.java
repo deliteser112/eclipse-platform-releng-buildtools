@@ -66,7 +66,7 @@ public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
 
   public void hasNoLogsAtLevel(Level level) {
     check()
-        .withFailureMessage("Logs at level %s", level)
+        .withMessage("Logs at level %s", level)
         .that(getMessagesAtLevel(level))
         .isEmpty();
   }
@@ -74,7 +74,7 @@ public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
   public Which<StringSubject> hasLogAtLevelWithMessage(Level level, String message) {
     List<String> messagesAtLevel = getMessagesAtLevel(level);
     check()
-        .withFailureMessage("Logs at level %s", level)
+        .withMessage("Logs at level %s", level)
         .that(messagesAtLevel)
         .comparingElementsUsing(CONTAINS_CORRESPONDENCE)
         .contains(message);
