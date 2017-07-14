@@ -126,12 +126,20 @@ public class Lock extends ImmutableObject {
     return ofy().transactNew(new Work<Lock>() {
       @Override
       public Lock run() {
-        Lock lock = ofy().load().type(Lock.class).id(makeLockId(resourceName, tld)).now();
+        String lockId = makeLockId(resourceName, tld);
+        Lock lock = ofy().load().type(Lock.class).id(lockId).now();
         if (lock == null || isAtOrAfter(ofy().getTransactionTime(), lock.expirationTime)) {
           String requesterName = (requester == null) ? "" : requester.getCanonicalName();
-          if (!getFirst(nullToEmpty((lock == null) ? null : lock.queue), requesterName)
-              .equals(requesterName)) {
+          String firstInQueue =
+              getFirst(nullToEmpty((lock == null) ? null : lock.queue), requesterName);
+          if (!firstInQueue.equals(requesterName)) {
             // Another class is at the top of the queue; we can't acquire the lock.
+            logger.infofmt(
+                "Another class %s is first in queue (size %d) instead of requested %s for lock: %s",
+                firstInQueue,
+                lock.queue.size(),
+                requesterName,
+                lockId);
             return null;
           }
           Lock newLock = create(
@@ -143,8 +151,17 @@ public class Lock extends ImmutableObject {
           // Locks are not parented under an EntityGroupRoot (so as to avoid write contention) and
           // don't need to be backed up.
           ofy().saveWithoutBackup().entity(newLock);
+          logger.infofmt(
+              "acquire succeeded %s lock: %s",
+              newLock,
+              lockId);
           return newLock;
         }
+        logger.infofmt(
+            "Existing lock is still valid now %s (until %s) lock: %s",
+            ofy().getTransactionTime(),
+            lock.expirationTime,
+            lockId);
         return null;
       }});
   }
@@ -161,7 +178,10 @@ public class Lock extends ImmutableObject {
         Lock loadedLock = ofy().load().type(Lock.class).id(lockId).now();
         if (Lock.this.equals(loadedLock)) {
           // Use noBackupOfy() so that we don't create a commit log entry for deleting the lock.
+          logger.infofmt("Deleting lock: %s", lockId);
           ofy().deleteWithoutBackup().entity(Lock.this);
+        } else {
+          logger.infofmt("Not deleting lock: %s - someone else has it: %s", lockId, loadedLock);
         }
       }});
   }
