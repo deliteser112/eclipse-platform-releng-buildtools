@@ -420,7 +420,7 @@ public final class RequestHandlerTest {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/auth/adminUser");
     when(requestAuthenticator.authorize(AUTH_INTERNAL_OR_ADMIN.authSettings(), req))
-        .thenReturn(Optional.absent());
+        .thenReturn(Optional.<AuthResult>absent());
 
     handler.handleRequest(req, rsp);
 
