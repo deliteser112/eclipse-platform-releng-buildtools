@@ -92,7 +92,6 @@ import org.joda.time.DateTimeConstants;
 import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -603,7 +602,6 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  @Ignore("TODO(b/23791350): Causes TimestampInversionException")
   public void testMapReduce_twoDomainsDifferentTlds_isolatesDomains() throws Exception {
     clock.setTo(DateTime.parse("1999-12-31TZ"));
     createTldWithEscrowEnabled("boggle");
@@ -625,7 +623,6 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  @Ignore("TODO(b/23791350): Causes TimestampInversionException")
   public void testMapReduce_twoHostsDifferentTlds_includedInBothTldDeposits() throws Exception {
     clock.setTo(DateTime.parse("1999-12-31TZ"));
     createTldWithEscrowEnabled("fop");

@@ -36,7 +36,6 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -85,7 +84,6 @@ public class PendingDepositCheckerTest {
   }
 
   @Test
-  @Ignore("TODO(b/23791350): Causes TimestampInversionException")
   public void testMethod_firstDepositOnBrdaDay_depositsBothRdeAndBrda() throws Exception {
     clock.setTo(DateTime.parse("2000-01-04T08:00Z"));  // Tuesday
     createTldWithEscrowEnabled("lol");
@@ -151,7 +149,6 @@ public class PendingDepositCheckerTest {
   }
 
   @Test
-  @Ignore("TODO(b/23791350): Causes TimestampInversionException")
   public void testMethod_multipleTldsWithEscrowEnabled_depositsBoth() throws Exception {
     clock.setTo(DateTime.parse("2000-01-01TZ"));  // Saturday
     createTldWithEscrowEnabled("pal");
