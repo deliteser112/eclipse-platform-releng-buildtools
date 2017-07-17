@@ -39,6 +39,7 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
+import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.UrlFetchException;
@@ -57,7 +58,12 @@ import org.joda.time.Duration;
  *
  * @see NordnVerifyAction
  */
-@Action(path = NordnUploadAction.PATH, method = Action.Method.POST, automaticallyPrintOk = true)
+@Action(
+  path = NordnUploadAction.PATH,
+  method = Action.Method.POST,
+  automaticallyPrintOk = true,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public final class NordnUploadAction implements Runnable {
 
   static final String PATH = "/_dr/task/nordnUpload";

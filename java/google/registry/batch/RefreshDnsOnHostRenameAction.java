@@ -52,6 +52,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.request.Action;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
@@ -67,7 +68,10 @@ import javax.inject.Named;
 import org.joda.time.DateTime;
 
 /** Performs batched DNS refreshes for applicable domains following a host rename. */
-@Action(path = "/_dr/task/refreshDnsOnHostRename")
+@Action(
+  path = "/_dr/task/refreshDnsOnHostRename",
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class RefreshDnsOnHostRenameAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

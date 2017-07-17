@@ -16,10 +16,12 @@ package google.registry.request.auth;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
+import com.google.errorprone.annotations.Immutable;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -45,6 +47,57 @@ public class RequestAuthenticator {
   }
 
   /**
+   * Parameters used to configure the authenticator.
+   *
+   * AuthSettings shouldn't be used directly, instead - use one of the predefined {@link Auth} enum
+   * values.
+   */
+  @Immutable
+  @AutoValue
+  public abstract static class AuthSettings {
+
+    public abstract ImmutableList<AuthMethod> methods();
+    public abstract AuthLevel minimumLevel();
+    public abstract UserPolicy userPolicy();
+
+    static AuthSettings create(
+        ImmutableList<AuthMethod> methods, AuthLevel minimumLevel, UserPolicy userPolicy) {
+      return new AutoValue_RequestAuthenticator_AuthSettings(methods, minimumLevel, userPolicy);
+    }
+  }
+
+  /** Available methods for authentication. */
+  public enum AuthMethod {
+
+    /** App Engine internal authentication. Must always be provided as the first method. */
+    INTERNAL,
+
+    /** Authentication methods suitable for API-style access, such as OAuth 2. */
+    API,
+
+    /** Legacy authentication using cookie-based App Engine Users API. Must come last if present. */
+    LEGACY
+  }
+
+  /** User authorization policy options. */
+  public enum UserPolicy {
+
+    /** This action ignores end users; the only configured auth method must be INTERNAL. */
+    IGNORED,
+
+    /** No user policy is enforced; anyone can access this action. */
+    PUBLIC,
+
+    /**
+     * If there is a user, it must be an admin, as determined by isUserAdmin().
+     *
+     * <p>Note that, according to App Engine, anybody with access to the app in the GCP Console,
+     * including editors and viewers, is an admin.
+     */
+    ADMIN
+  }
+
+  /**
    * Attempts to authenticate and authorize the user, according to the settings of the action.
    *
    * @param auth the auth settings of the action, which determine what authentication and
@@ -54,7 +107,7 @@ public class RequestAuthenticator {
    *     not; authentication can be "successful" even without any authentication if the action's
    *     auth settings are set to NONE -- in this case, NOT_AUTHENTICATED is returned
    */
-  public Optional<AuthResult> authorize(Auth auth, HttpServletRequest req) {
+  public Optional<AuthResult> authorize(AuthSettings auth, HttpServletRequest req) {
     logger.infofmt("Action requires auth: %s", auth);
     AuthResult authResult = authenticate(auth, req);
     switch (auth.minimumLevel()) {
@@ -104,15 +157,15 @@ public class RequestAuthenticator {
    * @param req the {@link HttpServletRequest}; some authentication mechanisms use HTTP headers
    * @return an authentication result; if no authentication was made, returns NOT_AUTHENTICATED
    */
-  private AuthResult authenticate(Auth auth, HttpServletRequest req) {
+  private AuthResult authenticate(AuthSettings auth, HttpServletRequest req) {
     checkAuthConfig(auth);
-    for (Auth.AuthMethod authMethod : auth.methods()) {
+    for (AuthMethod authMethod : auth.methods()) {
       switch (authMethod) {
         // App Engine internal authentication, using the queue name header
         case INTERNAL:
+          // checkAuthConfig will have insured that the user policy is not USER.
           logger.info("Checking internal auth");
-          // INTERNAL should be skipped if a user is required.
-          if (auth.minimumLevel() != AuthLevel.USER) {
+          {
             AuthResult authResult = appEngineInternalAuthenticationMechanism.authenticate(req);
             if (authResult.isAuthenticated()) {
               logger.infofmt("Authenticated: %s", authResult);
@@ -148,25 +201,20 @@ public class RequestAuthenticator {
     return AuthResult.NOT_AUTHENTICATED;
   }
 
-  /** Validates an Auth object, checking for invalid setting combinations. */
-  void checkAuthConfig(Auth auth) {
-    ImmutableList<Auth.AuthMethod> authMethods = ImmutableList.copyOf(auth.methods());
+  /** Validates an AuthSettings object, checking for invalid setting combinations. */
+  static void checkAuthConfig(AuthSettings auth) {
+    ImmutableList<AuthMethod> authMethods = ImmutableList.copyOf(auth.methods());
     checkArgument(!authMethods.isEmpty(), "Must specify at least one auth method");
     checkArgument(
-        Ordering.explicit(Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY)
+        Ordering.explicit(AuthMethod.INTERNAL, AuthMethod.API, AuthMethod.LEGACY)
             .isStrictlyOrdered(authMethods),
         "Auth methods must be unique and strictly in order - INTERNAL, API, LEGACY");
     checkArgument(
-        authMethods.contains(Auth.AuthMethod.INTERNAL),
-        "Auth method INTERNAL must always be specified, and as the first auth method");
-    if (authMethods.equals(ImmutableList.of(Auth.AuthMethod.INTERNAL))) {
-      checkArgument(
-          !auth.minimumLevel().equals(AuthLevel.USER),
-          "Actions with only INTERNAL auth may not require USER auth level");
-    } else {
-      checkArgument(
-          !auth.userPolicy().equals(Auth.UserPolicy.IGNORED),
-          "Actions with auth methods beyond INTERNAL must not specify the IGNORED user policy");
-    }
+        !(authMethods.contains(AuthMethod.INTERNAL) && auth.minimumLevel().equals(AuthLevel.USER)),
+        "Actions with INTERNAL auth method may not require USER auth level");
+    checkArgument(
+        !(auth.userPolicy().equals(UserPolicy.IGNORED)
+          && !authMethods.equals(ImmutableList.of(AuthMethod.INTERNAL))),
+        "Actions with auth methods beyond INTERNAL must not specify the IGNORED user policy");
   }
 }

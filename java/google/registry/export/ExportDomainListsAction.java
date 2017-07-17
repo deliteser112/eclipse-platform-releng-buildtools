@@ -37,6 +37,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.request.Action;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -52,7 +53,11 @@ import org.joda.time.DateTime;
  * Each TLD's active domain names are exported as a newline-delimited flat text file with the name
  * TLD.txt into the domain-lists bucket.  Note that this overwrites the files in place.
  */
-@Action(path = "/_dr/task/exportDomainLists", method = POST)
+@Action(
+  path = "/_dr/task/exportDomainLists",
+  method = POST,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class ExportDomainListsAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

@@ -34,6 +34,7 @@ import google.registry.model.server.Lock;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
 import java.io.IOException;
@@ -60,7 +61,11 @@ import org.joda.time.Duration;
  *
  * @see SyncRegistrarsSheet
  */
-@Action(path = SyncRegistrarsSheetAction.PATH, method = POST)
+@Action(
+  path = SyncRegistrarsSheetAction.PATH,
+  method = POST,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class SyncRegistrarsSheetAction implements Runnable {
 
   private enum Result {

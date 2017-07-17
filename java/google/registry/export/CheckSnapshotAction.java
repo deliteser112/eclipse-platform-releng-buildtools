@@ -36,6 +36,7 @@ import google.registry.request.HttpException.NotModifiedException;
 import google.registry.request.Parameter;
 import google.registry.request.RequestMethod;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import java.util.Set;
 import javax.inject.Inject;
@@ -49,7 +50,8 @@ import org.joda.time.format.PeriodFormat;
 @Action(
   path = CheckSnapshotAction.PATH,
   method = {POST, GET},
-  automaticallyPrintOk = true
+  automaticallyPrintOk = true,
+  auth = Auth.AUTH_INTERNAL_ONLY
 )
 public class CheckSnapshotAction implements Runnable {
 

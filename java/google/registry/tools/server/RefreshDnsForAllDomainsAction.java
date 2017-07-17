@@ -31,7 +31,6 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
 import javax.inject.Inject;
@@ -51,12 +50,7 @@ import org.joda.time.DateTimeZone;
  */
 @Action(
   path = "/_dr/task/refreshDnsForAllDomains",
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
-        minimumLevel = AuthLevel.APP,
-        userPolicy = Auth.UserPolicy.ADMIN
-      )
+  auth = Auth.AUTH_INTERNAL_OR_ADMIN
 )
 public class RefreshDnsForAllDomainsAction implements Runnable {
 

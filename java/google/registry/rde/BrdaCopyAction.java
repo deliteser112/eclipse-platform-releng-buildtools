@@ -27,6 +27,7 @@ import google.registry.model.rde.RdeNamingUtils;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -52,7 +53,12 @@ import org.joda.time.DateTime;
  *
  * @see <a href="http://newgtlds.icann.org/en/applicants/agb/agreement-approved-09jan14-en.htm">Registry Agreement</a>
  */
-@Action(path = BrdaCopyAction.PATH, method = POST, automaticallyPrintOk = true)
+@Action(
+  path = BrdaCopyAction.PATH,
+  method = POST,
+  automaticallyPrintOk = true,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public final class BrdaCopyAction implements Runnable {
 
   static final String PATH = "/_dr/task/brdaCopy";

@@ -19,7 +19,6 @@ import google.registry.request.Action;
 import google.registry.request.Action.Method;
 import google.registry.request.Payload;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 
@@ -27,12 +26,7 @@ import javax.servlet.http.HttpSession;
 @Action(
   path = "/registrar-xhr",
   method = Method.POST,
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},
-        minimumLevel = AuthLevel.USER,
-        userPolicy = Auth.UserPolicy.PUBLIC
-      )
+  auth = Auth.AUTH_PUBLIC_LOGGED_IN
 )
 public class EppConsoleAction implements Runnable {
 

@@ -25,7 +25,9 @@ import com.google.appengine.api.users.UserService;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import google.registry.request.Action;
+import google.registry.request.auth.RequestAuthenticator.AuthMethod;
+import google.registry.request.auth.RequestAuthenticator.AuthSettings;
+import google.registry.request.auth.RequestAuthenticator.UserPolicy;
 import google.registry.security.XsrfTokenManager;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
@@ -49,79 +51,55 @@ public class RequestAuthenticatorTest {
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
 
-  @Action(
-      path = "/auth/none",
-      auth = @Auth(
-          methods = {Auth.AuthMethod.INTERNAL},
-          minimumLevel = AuthLevel.NONE,
-          userPolicy = Auth.UserPolicy.IGNORED),
-      method = Action.Method.GET)
-  public static class AuthNone {}
+  private static final AuthSettings AUTH_NONE = AuthSettings.create(
+      ImmutableList.of(AuthMethod.INTERNAL),
+      AuthLevel.NONE,
+      UserPolicy.IGNORED);
 
-  @Action(
-      path = "/auth/internalOnly",
-      auth = @Auth(minimumLevel = AuthLevel.APP),
-      method = Action.Method.GET)
-  public static class AuthInternalOnly {}
+  private static final AuthSettings AUTH_INTERNAL_ONLY = AuthSettings.create(
+      ImmutableList.of(AuthMethod.INTERNAL),
+      AuthLevel.APP,
+      UserPolicy.IGNORED);
 
-  @Action(
-      path = "/auth/anyUserAnyMethod",
-      auth = @Auth(
-          methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},
-          minimumLevel = AuthLevel.USER,
-          userPolicy = Auth.UserPolicy.PUBLIC),
-      method = Action.Method.GET)
-  public static class AuthAnyUserAnyMethod {}
+  private static final AuthSettings AUTH_ANY_USER_ANY_METHOD = AuthSettings.create(
+      ImmutableList.of(AuthMethod.API, AuthMethod.LEGACY),
+      AuthLevel.USER,
+      UserPolicy.PUBLIC);
 
-  @Action(
-      path = "/auth/anyUserNoLegacy",
-      auth = @Auth(
-          methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
-          minimumLevel = AuthLevel.USER,
-          userPolicy = Auth.UserPolicy.PUBLIC),
-      method = Action.Method.GET)
-  public static class AuthAnyUserNoLegacy {}
+  private static final AuthSettings AUTH_ANY_USER_NO_LEGACY = AuthSettings.create(
+      ImmutableList.of(AuthMethod.API),
+      AuthLevel.USER,
+      UserPolicy.PUBLIC);
 
-  @Action(
-      path = "/auth/adminUserAnyMethod",
-      auth = @Auth(
-          methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},
-          minimumLevel = AuthLevel.USER,
-          userPolicy = Auth.UserPolicy.ADMIN),
-      method = Action.Method.GET)
-  public static class AuthAdminUserAnyMethod {}
+  private static final AuthSettings AUTH_ADMIN_USER_ANY_METHOD = AuthSettings.create(
+      ImmutableList.of(AuthMethod.API, AuthMethod.LEGACY),
+      AuthLevel.USER,
+      UserPolicy.ADMIN);
 
-  @Action(
-      path = "/auth/noMethods",
-      auth = @Auth(methods = {}))
-  public static class AuthNoMethods {}
+  private static final AuthSettings AUTH_NO_METHODS = AuthSettings.create(
+      ImmutableList.<AuthMethod>of(),
+      AuthLevel.APP,
+      UserPolicy.IGNORED);
 
-  @Action(
-      path = "/auth/missingInternal",
-      auth = @Auth(methods = {Auth.AuthMethod.API, Auth.AuthMethod.LEGACY}))
-  public static class AuthMissingInternal {}
+  private static final AuthSettings AUTH_WRONG_METHOD_ORDERING = AuthSettings.create(
+      ImmutableList.of(AuthMethod.API, AuthMethod.INTERNAL),
+      AuthLevel.APP,
+      UserPolicy.IGNORED);
 
-  @Action(
-      path = "/auth/wrongMethodOrdering",
-      auth = @Auth(methods = {Auth.AuthMethod.API, Auth.AuthMethod.INTERNAL}))
-  public static class AuthWrongMethodOrdering {}
+  private static final AuthSettings AUTH_DUPLICATE_METHODS = AuthSettings.create(
+      ImmutableList.of(AuthMethod.INTERNAL, AuthMethod.API, AuthMethod.API),
+      AuthLevel.APP,
+      UserPolicy.IGNORED);
 
-  @Action(
-      path = "/auth/duplicateMethods",
-      auth = @Auth(methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.API}))
-  public static class AuthDuplicateMethods {}
+  private static final AuthSettings AUTH_INTERNAL_WITH_USER = AuthSettings.create(
+      ImmutableList.of(AuthMethod.INTERNAL, AuthMethod.API),
+      AuthLevel.USER,
+      UserPolicy.IGNORED);
 
-  @Action(
-      path = "/auth/internalWithUser",
-      auth = @Auth(methods = {Auth.AuthMethod.INTERNAL}, minimumLevel = AuthLevel.USER))
-  public static class AuthInternalWithUser {}
-
-  @Action(
-      path = "/auth/wronglyIgnoringUser",
-      auth = @Auth(
-          methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
-          userPolicy = Auth.UserPolicy.IGNORED))
-  public static class AuthWronglyIgnoringUser {}
+  private static final AuthSettings AUTH_WRONGLY_IGNORING_USER = AuthSettings.create(
+      ImmutableList.of(AuthMethod.INTERNAL, AuthMethod.API),
+      AuthLevel.APP,
+      UserPolicy.IGNORED);
 
   private final UserService mockUserService = mock(UserService.class);
   private final HttpServletRequest req = mock(HttpServletRequest.class);
@@ -154,14 +132,14 @@ public class RequestAuthenticatorTest {
         new LegacyAuthenticationMechanism(userService, xsrfTokenManager));
   }
 
-  private Optional<AuthResult> runTest(UserService userService, Class<?> clazz) {
+  private Optional<AuthResult> runTest(UserService userService, AuthSettings auth) {
     return createRequestAuthenticator(userService)
-        .authorize(clazz.getAnnotation(Action.class).auth(), req);
+        .authorize(auth, req);
   }
 
   @Test
   public void testNoAuthNeeded_noneFound() throws Exception {
-    Optional<AuthResult> authResult = runTest(mockUserService, AuthNone.class);
+    Optional<AuthResult> authResult = runTest(mockUserService, AUTH_NONE);
 
     verifyZeroInteractions(mockUserService);
     assertThat(authResult).isPresent();
@@ -172,7 +150,7 @@ public class RequestAuthenticatorTest {
   public void testNoAuthNeeded_internalFound() throws Exception {
     when(req.getHeader("X-AppEngine-QueueName")).thenReturn("__cron");
 
-    Optional<AuthResult> authResult = runTest(mockUserService, AuthNone.class);
+    Optional<AuthResult> authResult = runTest(mockUserService, AUTH_NONE);
 
     verifyZeroInteractions(mockUserService);
     assertThat(authResult).isPresent();
@@ -182,7 +160,7 @@ public class RequestAuthenticatorTest {
 
   @Test
   public void testInternalAuth_notInvokedInternally() throws Exception {
-    Optional<AuthResult> authResult = runTest(mockUserService, AuthInternalOnly.class);
+    Optional<AuthResult> authResult = runTest(mockUserService, AUTH_INTERNAL_ONLY);
 
     verifyZeroInteractions(mockUserService);
     assertThat(authResult).isAbsent();
@@ -192,7 +170,7 @@ public class RequestAuthenticatorTest {
   public void testInternalAuth_success() throws Exception {
     when(req.getHeader("X-AppEngine-QueueName")).thenReturn("__cron");
 
-    Optional<AuthResult> authResult = runTest(mockUserService, AuthInternalOnly.class);
+    Optional<AuthResult> authResult = runTest(mockUserService, AUTH_INTERNAL_ONLY);
 
     verifyZeroInteractions(mockUserService);
     assertThat(authResult).isPresent();
@@ -202,7 +180,7 @@ public class RequestAuthenticatorTest {
 
   @Test
   public void testAnyUserAnyMethod_notLoggedIn() throws Exception {
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAnyUserAnyMethod.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_ANY_METHOD);
 
     assertThat(authResult).isAbsent();
   }
@@ -211,7 +189,7 @@ public class RequestAuthenticatorTest {
   public void testAnyUserAnyMethod_xsrfFailure() throws Exception {
     fakeUserService.setUser(testUser, false);
 
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAnyUserAnyMethod.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_ANY_METHOD);
 
     assertThat(authResult).isAbsent();
   }
@@ -222,7 +200,7 @@ public class RequestAuthenticatorTest {
     when(req.getHeader(XsrfTokenManager.X_CSRF_TOKEN))
         .thenReturn(xsrfTokenManager.generateToken(testUser.getEmail()));
 
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAnyUserAnyMethod.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_ANY_METHOD);
 
     assertThat(authResult).isPresent();
     assertThat(authResult.get().authLevel()).isEqualTo(AuthLevel.USER);
@@ -237,7 +215,7 @@ public class RequestAuthenticatorTest {
     fakeUserService.setUser(testUser, false);
     when(req.getMethod()).thenReturn("GET");
 
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAnyUserAnyMethod.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_ANY_METHOD);
 
     assertThat(authResult).isPresent();
     assertThat(authResult.get().authLevel()).isEqualTo(AuthLevel.USER);
@@ -248,7 +226,7 @@ public class RequestAuthenticatorTest {
 
   @Test
   public void testAdminUserAnyMethod_notLoggedIn() throws Exception {
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAdminUserAnyMethod.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ADMIN_USER_ANY_METHOD);
 
     assertThat(authResult).isAbsent();
   }
@@ -257,7 +235,7 @@ public class RequestAuthenticatorTest {
   public void testAdminUserAnyMethod_notAdminUser() throws Exception {
     fakeUserService.setUser(testUser, false /* isAdmin */);
 
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAdminUserAnyMethod.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ADMIN_USER_ANY_METHOD);
 
     assertThat(authResult).isAbsent();
   }
@@ -266,7 +244,7 @@ public class RequestAuthenticatorTest {
   public void testAdminUserAnyMethod_xsrfFailure() throws Exception {
     fakeUserService.setUser(testUser, true);
 
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAdminUserAnyMethod.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ADMIN_USER_ANY_METHOD);
 
     assertThat(authResult).isAbsent();
   }
@@ -277,7 +255,7 @@ public class RequestAuthenticatorTest {
     when(req.getHeader(XsrfTokenManager.X_CSRF_TOKEN))
         .thenReturn(xsrfTokenManager.generateToken(testUser.getEmail()));
 
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAdminUserAnyMethod.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ADMIN_USER_ANY_METHOD);
 
     assertThat(authResult).isPresent();
     assertThat(authResult.get().authLevel()).isEqualTo(AuthLevel.USER);
@@ -293,7 +271,7 @@ public class RequestAuthenticatorTest {
     fakeOAuthService.setOAuthEnabled(true);
     when(req.getHeader(AUTHORIZATION)).thenReturn("Bearer TOKEN");
 
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAnyUserNoLegacy.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_NO_LEGACY);
 
     assertThat(authResult).isPresent();
     assertThat(authResult.get().authLevel()).isEqualTo(AuthLevel.USER);
@@ -316,7 +294,7 @@ public class RequestAuthenticatorTest {
     fakeOAuthService.setOAuthEnabled(true);
     when(req.getHeader(AUTHORIZATION)).thenReturn("Bearer TOKEN");
 
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAnyUserNoLegacy.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_NO_LEGACY);
 
     assertThat(authResult).isPresent();
     assertThat(authResult.get().authLevel()).isEqualTo(AuthLevel.USER);
@@ -337,7 +315,7 @@ public class RequestAuthenticatorTest {
     fakeOAuthService.setUser(testUser);
     fakeOAuthService.setOAuthEnabled(true);
 
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAnyUserNoLegacy.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_NO_LEGACY);
 
     assertThat(authResult).isAbsent();
   }
@@ -349,7 +327,7 @@ public class RequestAuthenticatorTest {
     fakeOAuthService.setClientId("wrong-client-id");
     when(req.getHeader(AUTHORIZATION)).thenReturn("Bearer TOKEN");
 
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAnyUserNoLegacy.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_NO_LEGACY);
 
     assertThat(authResult).isAbsent();
   }
@@ -361,7 +339,7 @@ public class RequestAuthenticatorTest {
     fakeOAuthService.setAuthorizedScopes();
     when(req.getHeader(AUTHORIZATION)).thenReturn("Bearer TOKEN");
 
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAnyUserNoLegacy.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_NO_LEGACY);
 
     assertThat(authResult).isAbsent();
   }
@@ -373,7 +351,7 @@ public class RequestAuthenticatorTest {
     fakeOAuthService.setAuthorizedScopes("test-scope1", "test-scope3");
     when(req.getHeader(AUTHORIZATION)).thenReturn("Bearer TOKEN");
 
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAnyUserNoLegacy.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_NO_LEGACY);
 
     assertThat(authResult).isAbsent();
   }
@@ -385,7 +363,7 @@ public class RequestAuthenticatorTest {
     fakeOAuthService.setAuthorizedScopes("test-scope1", "test-scope2", "test-scope3");
     when(req.getHeader(AUTHORIZATION)).thenReturn("Bearer TOKEN");
 
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAnyUserNoLegacy.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_NO_LEGACY);
 
     assertThat(authResult).isPresent();
     assertThat(authResult.get().authLevel()).isEqualTo(AuthLevel.USER);
@@ -405,55 +383,47 @@ public class RequestAuthenticatorTest {
   public void testAnyUserNoLegacy_failureWithLegacyUser() throws Exception {
     fakeUserService.setUser(testUser, false /* isAdmin */);
 
-    Optional<AuthResult> authResult = runTest(fakeUserService, AuthAnyUserNoLegacy.class);
+    Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_NO_LEGACY);
 
     assertThat(authResult).isAbsent();
   }
 
   @Test
-  public void testNoMethods_failure() throws Exception {
+  public void testCheckAuthConfig_NoMethods_failure() throws Exception {
     thrown.expect(IllegalArgumentException.class, "Must specify at least one auth method");
 
-    runTest(fakeUserService, AuthNoMethods.class);
+    RequestAuthenticator.checkAuthConfig(AUTH_NO_METHODS);
   }
 
   @Test
-  public void testMissingInternal_failure() throws Exception {
-    thrown.expect(IllegalArgumentException.class,
-        "Auth method INTERNAL must always be specified, and as the first auth method");
-
-    runTest(fakeUserService, AuthMissingInternal.class);
-  }
-
-  @Test
-  public void testWrongMethodOrdering_failure() throws Exception {
+  public void testCheckAuthConfig_WrongMethodOrdering_failure() throws Exception {
     thrown.expect(IllegalArgumentException.class,
         "Auth methods must be unique and strictly in order - INTERNAL, API, LEGACY");
 
-    runTest(fakeUserService, AuthWrongMethodOrdering.class);
+    RequestAuthenticator.checkAuthConfig(AUTH_WRONG_METHOD_ORDERING);
   }
 
   @Test
-  public void testDuplicateMethods_failure() throws Exception {
+  public void testCheckAuthConfig_DuplicateMethods_failure() throws Exception {
     thrown.expect(IllegalArgumentException.class,
         "Auth methods must be unique and strictly in order - INTERNAL, API, LEGACY");
 
-    runTest(fakeUserService, AuthDuplicateMethods.class);
+    RequestAuthenticator.checkAuthConfig(AUTH_DUPLICATE_METHODS);
   }
 
   @Test
-  public void testInternalWithUser_failure() throws Exception {
+  public void testCheckAuthConfig_InternalWithUser_failure() throws Exception {
     thrown.expect(IllegalArgumentException.class,
-        "Actions with only INTERNAL auth may not require USER auth level");
+        "Actions with INTERNAL auth method may not require USER auth level");
 
-    runTest(fakeUserService, AuthInternalWithUser.class);
+    RequestAuthenticator.checkAuthConfig(AUTH_INTERNAL_WITH_USER);
   }
 
   @Test
-  public void testWronglyIgnoringUser_failure() throws Exception {
+  public void testCheckAuthConfig_WronglyIgnoringUser_failure() throws Exception {
     thrown.expect(IllegalArgumentException.class,
         "Actions with auth methods beyond INTERNAL must not specify the IGNORED user policy");
 
-    runTest(fakeUserService, AuthWronglyIgnoringUser.class);
+    RequestAuthenticator.checkAuthConfig(AUTH_WRONGLY_IGNORING_USER);
   }
 }

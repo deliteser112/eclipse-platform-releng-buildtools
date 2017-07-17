@@ -132,7 +132,7 @@ public class RequestHandler<C> {
       return;
     }
     Optional<AuthResult> authResult =
-        requestAuthenticator.authorize(route.get().action().auth(), req);
+        requestAuthenticator.authorize(route.get().action().auth().authSettings(), req);
     if (!authResult.isPresent()) {
       rsp.sendError(SC_FORBIDDEN, "Not authorized");
       return;

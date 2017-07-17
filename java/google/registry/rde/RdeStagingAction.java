@@ -45,6 +45,7 @@ import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
@@ -187,7 +188,8 @@ import org.joda.time.Duration;
  */
 @Action(
   path = RdeStagingAction.PATH,
-  method = {GET, POST}
+  method = {GET, POST},
+  auth = Auth.AUTH_INTERNAL_ONLY
 )
 public final class RdeStagingAction implements Runnable {
 

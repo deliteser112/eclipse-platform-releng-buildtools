@@ -14,53 +14,74 @@
 
 package google.registry.request.auth;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.google.common.collect.ImmutableList;
+import google.registry.request.auth.RequestAuthenticator.AuthMethod;
+import google.registry.request.auth.RequestAuthenticator.AuthSettings;
+import google.registry.request.auth.RequestAuthenticator.UserPolicy;
 
-/** Annotation used to configure authentication settings for Actions. */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Auth {
+/** Enum used to configure authentication settings for Actions. */
+public enum Auth {
 
-  /** Available methods for authentication. */
-  public enum AuthMethod {
+  /**
+   * Allows anyone access, doesn't attempt to authenticate user.
+   *
+   * Will never return absent(), but only authenticates access from App Engine task-queues. For
+   * everyone else - returns NOT_AUTHENTICATED.
+   */
+  AUTH_PUBLIC_ANONYMOUS(
+      ImmutableList.of(AuthMethod.INTERNAL),
+      AuthLevel.NONE,
+      UserPolicy.PUBLIC),
 
-    /** App Engine internal authentication. Must always be provided as the first method. */
-    INTERNAL,
+  /**
+   * Allows anyone access, does attempt to authenticate user.
+   *
+   * If a user is logged in, will authenticate (and return) them. Otherwise, access is still
+   * granted, but NOT_AUTHENTICATED is returned.
+   *
+   * Will never return absent().
+   */
+  AUTH_PUBLIC(
+      ImmutableList.of(AuthMethod.INTERNAL, AuthMethod.API, AuthMethod.LEGACY),
+      AuthLevel.NONE,
+      UserPolicy.PUBLIC),
 
-    /** Authentication methods suitable for API-style access, such as OAuth 2. */
-    API,
+  /**
+   * Allows anyone access, as long as they are logged in.
+   *
+   * Does not allow access from App Engine task-queues.
+   */
+  AUTH_PUBLIC_LOGGED_IN(
+      ImmutableList.of(AuthMethod.API, AuthMethod.LEGACY),
+      AuthLevel.USER,
+      UserPolicy.PUBLIC),
 
-    /** Legacy authentication using cookie-based App Engine Users API. Must come last if present. */
-    LEGACY
+  /**
+   * Allows only admins or App Engine task-queue access.
+   */
+  AUTH_INTERNAL_OR_ADMIN(
+      ImmutableList.of(AuthMethod.INTERNAL, AuthMethod.API),
+      AuthLevel.APP,
+      UserPolicy.ADMIN),
+
+  /**
+   * Allows only internal (App Engine task-queue) access.
+   */
+  AUTH_INTERNAL_ONLY(
+      ImmutableList.of(AuthMethod.INTERNAL),
+      AuthLevel.APP,
+      UserPolicy.IGNORED);
+
+  private final AuthSettings authSettings;
+
+  Auth(
+      ImmutableList<AuthMethod> methods,
+      AuthLevel minimumLevel,
+      UserPolicy userPolicy) {
+    authSettings = AuthSettings.create(methods, minimumLevel, userPolicy);
   }
 
-  /** User authorization policy options. */
-  public enum UserPolicy {
-
-    /** This action ignores end users; the only configured auth method must be INTERNAL. */
-    IGNORED,
-
-    /** No user policy is enforced; anyone can access this action. */
-    PUBLIC,
-
-    /**
-     * If there is a user, it must be an admin, as determined by isUserAdmin().
-     *
-     * <p>Note that, according to App Engine, anybody with access to the app in the GCP Console,
-     * including editors and viewers, is an admin.
-     */
-    ADMIN
+  public AuthSettings authSettings() {
+    return authSettings;
   }
-
-  /** Enabled authentication methods for this action. */
-  AuthMethod[] methods() default { AuthMethod.INTERNAL };
-
-  /** Required minimum level of authentication for this action. */
-  AuthLevel minimumLevel() default AuthLevel.APP;
-
-  /** Required user authorization policy for this action. */
-  UserPolicy userPolicy() default UserPolicy.IGNORED;
 }

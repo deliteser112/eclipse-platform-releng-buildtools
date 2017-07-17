@@ -31,6 +31,7 @@ import google.registry.request.Header;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotModifiedException;
 import google.registry.request.Payload;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TaskEnqueuer;
 import java.io.ByteArrayInputStream;
@@ -46,9 +47,11 @@ import org.joda.time.Duration;
  * completion state; otherwise it will return a failure code so that the task will be retried.
  */
 @Action(
-    path = BigqueryPollJobAction.PATH,
-    method = {Action.Method.GET, Action.Method.POST},
-    automaticallyPrintOk = true)
+  path = BigqueryPollJobAction.PATH,
+  method = {Action.Method.GET, Action.Method.POST},
+  automaticallyPrintOk = true,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class BigqueryPollJobAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

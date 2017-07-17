@@ -42,7 +42,6 @@ import google.registry.model.ofy.CommitLogMutation;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
 import java.io.IOException;
@@ -59,15 +58,10 @@ import org.joda.time.DateTime;
 
 /** Restore Registry 2 commit logs from GCS to Datastore. */
 @Action(
-    path = RestoreCommitLogsAction.PATH,
-    method = Action.Method.POST,
-    automaticallyPrintOk = true,
-    auth =
-        @Auth(
-          methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
-          minimumLevel = AuthLevel.APP,
-          userPolicy = Auth.UserPolicy.ADMIN
-        )
+  path = RestoreCommitLogsAction.PATH,
+  method = Action.Method.POST,
+  automaticallyPrintOk = true,
+  auth = Auth.AUTH_INTERNAL_OR_ADMIN
 )
 public class RestoreCommitLogsAction implements Runnable {
 

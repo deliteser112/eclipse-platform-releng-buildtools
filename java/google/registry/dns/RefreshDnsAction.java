@@ -26,11 +26,16 @@ import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.Parameter;
+import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import javax.inject.Inject;
 
 /** Action that manually triggers refresh of DNS information. */
-@Action(path = "/_dr/dnsRefresh", automaticallyPrintOk = true)
+@Action(
+  path = "/_dr/dnsRefresh",
+  automaticallyPrintOk = true,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public final class RefreshDnsAction implements Runnable {
 
   @Inject Clock clock;

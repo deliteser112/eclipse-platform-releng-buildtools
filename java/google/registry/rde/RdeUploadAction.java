@@ -48,6 +48,7 @@ import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
@@ -77,7 +78,11 @@ import org.joda.time.Duration;
  * <p>Once this action completes, it rolls the cursor forward a day and triggers
  * {@link RdeReportAction}.
  */
-@Action(path = RdeUploadAction.PATH, method = POST)
+@Action(
+  path = RdeUploadAction.PATH,
+  method = POST,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public final class RdeUploadAction implements Runnable, EscrowTask {
 
   static final String PATH = "/_dr/task/rdeUpload";

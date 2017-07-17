@@ -25,7 +25,6 @@ import google.registry.model.EppResourceUtils;
 import google.registry.model.host.HostResource;
 import google.registry.request.Action;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import java.util.Comparator;
 import javax.inject.Inject;
@@ -35,12 +34,7 @@ import org.joda.time.DateTime;
 @Action(
   path = ListHostsAction.PATH,
   method = {GET, POST},
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
-        minimumLevel = AuthLevel.APP,
-        userPolicy = Auth.UserPolicy.ADMIN
-      )
+  auth = Auth.AUTH_INTERNAL_OR_ADMIN
 )
 public final class ListHostsAction extends ListObjectsAction<HostResource> {
 

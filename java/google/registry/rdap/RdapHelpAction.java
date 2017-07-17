@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableMap;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.request.Action;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import javax.inject.Inject;
 
@@ -31,7 +30,7 @@ import javax.inject.Inject;
   path = RdapHelpAction.PATH,
   method = {GET, HEAD},
   isPrefix = true,
-  auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
+  auth = Auth.AUTH_PUBLIC_ANONYMOUS
 )
 public class RdapHelpAction extends RdapActionBase {
 

@@ -85,6 +85,7 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.request.Action;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
@@ -103,7 +104,10 @@ import org.joda.time.DateTime;
  * over all domains and domain applications and checking for any references to the contacts/hosts in
  * pending deletion.
  */
-@Action(path = "/_dr/task/deleteContactsAndHosts")
+@Action(
+  path = "/_dr/task/deleteContactsAndHosts",
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class DeleteContactsAndHostsAction implements Runnable {
 
   static final String KIND_CONTACT = getKind(ContactResource.class);

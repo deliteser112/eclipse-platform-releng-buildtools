@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import google.registry.request.Action;
 import google.registry.request.HttpException.NotImplementedException;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import javax.inject.Inject;
 
 /**
@@ -34,7 +33,7 @@ import javax.inject.Inject;
   path = RdapIpAction.PATH,
   method = {GET, HEAD},
   isPrefix = true,
-  auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
+  auth = Auth.AUTH_PUBLIC_ANONYMOUS
 )
 public class RdapIpAction extends RdapActionBase {
 

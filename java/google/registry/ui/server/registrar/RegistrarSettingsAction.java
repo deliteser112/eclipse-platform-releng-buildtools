@@ -41,7 +41,6 @@ import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormException;
@@ -65,12 +64,7 @@ import javax.servlet.http.HttpServletRequest;
 @Action(
   path = RegistrarSettingsAction.PATH,
   method = Action.Method.POST,
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},
-        minimumLevel = AuthLevel.USER,
-        userPolicy = Auth.UserPolicy.PUBLIC
-      )
+  auth = Auth.AUTH_PUBLIC_LOGGED_IN
 )
 public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonAction {
 

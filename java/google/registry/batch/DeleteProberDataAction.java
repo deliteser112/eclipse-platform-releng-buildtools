@@ -40,6 +40,7 @@ import google.registry.model.registry.Registry.TldType;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import google.registry.util.PipelineUtils;
 import java.util.List;
@@ -51,7 +52,11 @@ import javax.inject.Inject;
  *
  * <p>See: https://www.youtube.com/watch?v=xuuv0syoHnM
  */
-@Action(path = "/_dr/task/deleteProberData", method = POST)
+@Action(
+  path = "/_dr/task/deleteProberData",
+  method = POST,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class DeleteProberDataAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

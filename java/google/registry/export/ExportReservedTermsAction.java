@@ -27,12 +27,17 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.storage.drive.DriveConnection;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
 
 /** Action that exports the publicly viewable reserved terms list for a TLD to Google Drive. */
-@Action(path = "/_dr/task/exportReservedTerms", method = POST)
+@Action(
+  path = "/_dr/task/exportReservedTerms",
+  method = POST,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class ExportReservedTermsAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

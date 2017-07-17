@@ -13,6 +13,7 @@
 // limitations under the License.
 
 package google.registry.export;
+
 import static google.registry.request.Action.Method.POST;
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -27,13 +28,18 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.request.Parameter;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import google.registry.util.SqlTemplate;
 import java.io.IOException;
 import javax.inject.Inject;
 
 /** Update a well-known view to point at a certain Datastore snapshot table in BigQuery. */
-@Action(path = UpdateSnapshotViewAction.PATH, method = POST)
+@Action(
+  path = UpdateSnapshotViewAction.PATH,
+  method = POST,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class UpdateSnapshotViewAction implements Runnable {
 
   /** Headers for passing parameters into the servlet. */

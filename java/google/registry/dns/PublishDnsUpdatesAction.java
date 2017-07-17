@@ -26,6 +26,7 @@ import google.registry.request.Action;
 import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
+import google.registry.request.auth.Auth;
 import google.registry.util.DomainNameUtils;
 import google.registry.util.FormattingLogger;
 import java.util.Set;
@@ -34,7 +35,12 @@ import javax.inject.Inject;
 import org.joda.time.Duration;
 
 /** Task that sends domain and host updates to the DNS server. */
-@Action(path = PublishDnsUpdatesAction.PATH, method = POST, automaticallyPrintOk = true)
+@Action(
+  path = PublishDnsUpdatesAction.PATH,
+  method = POST,
+  automaticallyPrintOk = true,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
 
   public static final String PATH = "/_dr/task/publishDnsUpdates";

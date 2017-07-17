@@ -37,7 +37,6 @@ import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import google.registry.util.Idn;
 import java.net.InetAddress;
@@ -58,7 +57,7 @@ import org.joda.time.DateTime;
 @Action(
   path = RdapNameserverSearchAction.PATH,
   method = {GET, HEAD},
-  auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
+  auth = Auth.AUTH_PUBLIC_ANONYMOUS
 )
 public class RdapNameserverSearchAction extends RdapActionBase {
 

@@ -42,7 +42,6 @@ import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.Idn;
@@ -66,7 +65,7 @@ import org.joda.time.DateTime;
 @Action(
   path = RdapDomainSearchAction.PATH,
   method = {GET, HEAD},
-  auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
+  auth = Auth.AUTH_PUBLIC_ANONYMOUS
 )
 public class RdapDomainSearchAction extends RdapActionBase {
 

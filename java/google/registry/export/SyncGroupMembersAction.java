@@ -36,6 +36,7 @@ import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.request.Action;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
 import java.io.IOException;
@@ -52,7 +53,11 @@ import javax.inject.Inject;
  *
  * <p>This uses the <a href="https://developers.google.com/admin-sdk/directory/">Directory API</a>.
  */
-@Action(path = "/_dr/task/syncGroupMembers", method = POST)
+@Action(
+  path = "/_dr/task/syncGroupMembers",
+  method = POST,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public final class SyncGroupMembersAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

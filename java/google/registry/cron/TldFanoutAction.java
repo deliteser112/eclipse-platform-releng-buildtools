@@ -41,6 +41,7 @@ import google.registry.request.Parameter;
 import google.registry.request.ParameterMap;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.TaskEnqueuer;
 import java.util.Random;
 import java.util.Set;
@@ -70,7 +71,11 @@ import javax.inject.Inject;
  *   This patharg is mostly useful for aesthetic purposes, since tasks are already namespaced.
  * </ul>
  */
-@Action(path = "/_dr/cron/fanout", automaticallyPrintOk = true)
+@Action(
+  path = "/_dr/cron/fanout",
+  automaticallyPrintOk = true,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public final class TldFanoutAction implements Runnable {
 
   private static final String ENDPOINT_PARAM = "endpoint";

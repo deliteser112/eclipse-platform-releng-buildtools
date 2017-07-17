@@ -26,7 +26,6 @@ import google.registry.model.registry.label.PremiumList;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import java.util.List;
 import javax.inject.Inject;
 
@@ -37,12 +36,7 @@ import javax.inject.Inject;
 @Action(
   path = CreatePremiumListAction.PATH,
   method = POST,
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
-        minimumLevel = AuthLevel.APP,
-        userPolicy = Auth.UserPolicy.ADMIN
-      )
+  auth = Auth.AUTH_INTERNAL_OR_ADMIN
 )
 public class CreatePremiumListAction extends CreateOrUpdatePremiumListAction {
 

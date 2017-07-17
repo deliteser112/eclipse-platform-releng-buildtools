@@ -33,7 +33,6 @@ import google.registry.request.Action;
 import google.registry.request.RequestPath;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.whois.WhoisMetrics.WhoisMetric;
@@ -99,7 +98,7 @@ import org.joda.time.Duration;
 @Action(
   path = WhoisHttpServer.PATH,
   isPrefix = true,
-  auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
+  auth = Auth.AUTH_PUBLIC_ANONYMOUS
 )
 public final class WhoisHttpServer implements Runnable {
 

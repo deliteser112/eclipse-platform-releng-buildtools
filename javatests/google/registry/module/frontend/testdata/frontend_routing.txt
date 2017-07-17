@@ -12,8 +12,8 @@ PATH                     CLASS                       METHODS  OK AUTH_METHODS   
 /rdap/nameserver/(*)     RdapNameserverAction        GET,HEAD n  INTERNAL            NONE PUBLIC
 /rdap/nameservers        RdapNameserverSearchAction  GET,HEAD n  INTERNAL            NONE PUBLIC
 /registrar               ConsoleUiAction             GET      n  INTERNAL,API,LEGACY NONE PUBLIC
-/registrar-payment       RegistrarPaymentAction      POST     n  INTERNAL,API,LEGACY USER PUBLIC
-/registrar-payment-setup RegistrarPaymentSetupAction POST     n  INTERNAL,API,LEGACY USER PUBLIC
-/registrar-settings      RegistrarSettingsAction     POST     n  INTERNAL,API,LEGACY USER PUBLIC
-/registrar-xhr           EppConsoleAction            POST     n  INTERNAL,API,LEGACY USER PUBLIC
+/registrar-payment       RegistrarPaymentAction      POST     n  API,LEGACY          USER PUBLIC
+/registrar-payment-setup RegistrarPaymentSetupAction POST     n  API,LEGACY          USER PUBLIC
+/registrar-settings      RegistrarSettingsAction     POST     n  API,LEGACY          USER PUBLIC
+/registrar-xhr           EppConsoleAction            POST     n  API,LEGACY          USER PUBLIC
 /whois/(*)               WhoisHttpServer             GET      n  INTERNAL            NONE PUBLIC

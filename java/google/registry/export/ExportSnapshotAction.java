@@ -20,6 +20,7 @@ import static google.registry.request.Action.Method.POST;
 import google.registry.config.RegistryConfig;
 import google.registry.request.Action;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
@@ -37,7 +38,12 @@ import javax.inject.Inject;
  *   <li>The {@link UpdateSnapshotViewAction} updates the view in latest_snapshot.
  * </ol>
  */
-@Action(path = ExportSnapshotAction.PATH, method = POST, automaticallyPrintOk = true)
+@Action(
+  path = ExportSnapshotAction.PATH,
+  method = POST,
+  automaticallyPrintOk = true,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class ExportSnapshotAction implements Runnable {
 
   /** Queue to use for enqueuing the task that will actually launch the backup. */

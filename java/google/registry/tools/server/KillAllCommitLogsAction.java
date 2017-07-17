@@ -32,6 +32,7 @@ import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogCheckpointRoot;
 import google.registry.request.Action;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import java.util.Arrays;
 import javax.inject.Inject;
 
@@ -43,7 +44,11 @@ import javax.inject.Inject;
  * which only admin users can do. That makes this command hard to use, which is appropriate, given
  * the drastic consequences of accidental execution.
  */
-@Action(path = "/_dr/task/killAllCommitLogs", method = POST)
+@Action(
+  path = "/_dr/task/killAllCommitLogs",
+  method = POST,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class KillAllCommitLogsAction implements Runnable {
 
   @Inject MapreduceRunner mrRunner;

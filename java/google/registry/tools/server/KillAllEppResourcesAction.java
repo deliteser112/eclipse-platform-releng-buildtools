@@ -32,6 +32,7 @@ import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.request.Action;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import javax.inject.Inject;
 
 /**
@@ -42,7 +43,11 @@ import javax.inject.Inject;
  * which only admin users can do. That makes this command hard to use, which is appropriate, given
  * the drastic consequences of accidental execution.
  */
-@Action(path = "/_dr/task/killAllEppResources", method = POST)
+@Action(
+  path = "/_dr/task/killAllEppResources",
+  method = POST,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class KillAllEppResourcesAction implements Runnable {
 
   @Inject MapreduceRunner mrRunner;

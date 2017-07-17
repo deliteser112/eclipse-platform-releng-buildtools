@@ -30,9 +30,6 @@ import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.Auth.AuthMethod;
-import google.registry.request.auth.Auth.UserPolicy;
-import google.registry.request.auth.AuthLevel;
 import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
 import google.registry.xml.XmlException;
@@ -48,14 +45,9 @@ import javax.inject.Inject;
  *
  */
 @Action(
-    path = IcannReportingUploadAction.PATH,
-    method = POST,
-    auth =
-    @Auth(
-        methods = {AuthMethod.INTERNAL, AuthMethod.API},
-        minimumLevel = AuthLevel.APP,
-        userPolicy = UserPolicy.ADMIN
-    )
+  path = IcannReportingUploadAction.PATH,
+  method = POST,
+  auth = Auth.AUTH_INTERNAL_OR_ADMIN
 )
 public final class IcannReportingUploadAction implements Runnable {
 

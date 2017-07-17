@@ -47,6 +47,7 @@ import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -60,9 +61,11 @@ import org.joda.time.DateTime;
 
 /** Action that exports the diff between two commit log checkpoints to GCS. */
 @Action(
-    path = ExportCommitLogDiffAction.PATH,
-    method = Action.Method.POST,
-    automaticallyPrintOk = true)
+  path = ExportCommitLogDiffAction.PATH,
+  method = Action.Method.POST,
+  automaticallyPrintOk = true,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public final class ExportCommitLogDiffAction implements Runnable {
 
   private static final FormattingLogger logger = getLoggerForCallerClass();

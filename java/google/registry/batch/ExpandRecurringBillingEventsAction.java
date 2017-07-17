@@ -52,6 +52,7 @@ import google.registry.model.registry.Registry;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import java.util.Set;
@@ -67,7 +68,10 @@ import org.joda.time.DateTime;
  * be expanded as a result of the job (the exclusive upper bound being the execution time of the
  * job).
  */
-@Action(path = "/_dr/task/expandRecurringBillingEvents")
+@Action(
+  path = "/_dr/task/expandRecurringBillingEvents",
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class ExpandRecurringBillingEventsAction implements Runnable {
 
   public static final String PARAM_CURSOR_TIME = "cursorTime";

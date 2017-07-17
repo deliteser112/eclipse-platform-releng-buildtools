@@ -23,19 +23,13 @@ import com.google.common.collect.ImmutableSet;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import javax.inject.Inject;
 
 /** An action that lists registrars, for use by the {@code nomulus list_registrars} command. */
 @Action(
   path = ListRegistrarsAction.PATH,
   method = {GET, POST},
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
-        minimumLevel = AuthLevel.APP,
-        userPolicy = Auth.UserPolicy.ADMIN
-      )
+  auth = Auth.AUTH_INTERNAL_OR_ADMIN
 )
 public final class ListRegistrarsAction extends ListObjectsAction<Registrar> {
 

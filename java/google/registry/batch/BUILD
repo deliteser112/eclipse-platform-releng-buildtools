@@ -19,6 +19,7 @@ java_library(
         "//java/google/registry/pricing",
         "//java/google/registry/request",
         "//java/google/registry/request:modules",
+        "//java/google/registry/request/auth",
         "//java/google/registry/util",
         "//third_party/java/objectify:objectify-v4_1",
         "@com_google_apis_google_api_services_bigquery",

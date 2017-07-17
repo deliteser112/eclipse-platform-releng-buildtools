@@ -40,6 +40,7 @@ import google.registry.model.registry.Registry;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TaskEnqueuer;
 import java.io.UnsupportedEncodingException;
@@ -64,7 +65,11 @@ import org.joda.time.Duration;
  *      not.
  * </ul>
  */
-@Action(path = "/_dr/cron/readDnsQueue", automaticallyPrintOk = true)
+@Action(
+  path = "/_dr/cron/readDnsQueue",
+  automaticallyPrintOk = true,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public final class ReadDnsQueueAction implements Runnable {
 
   public static final String KEEP_TASKS_PARAM = "keepTasks";

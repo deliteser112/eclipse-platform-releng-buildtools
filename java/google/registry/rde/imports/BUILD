@@ -16,6 +16,7 @@ java_library(
         "//java/google/registry/model",
         "//java/google/registry/pricing",
         "//java/google/registry/request",
+        "//java/google/registry/request/auth",
         "//java/google/registry/util",
         "//java/google/registry/xjc",
         "//java/google/registry/xml",

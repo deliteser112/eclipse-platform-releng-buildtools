@@ -46,7 +46,6 @@ import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.util.FormattingLogger;
 import java.util.Map;
 import javax.inject.Inject;
@@ -61,7 +60,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Action(
   path = "/check",
-  auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
+  auth = Auth.AUTH_PUBLIC_ANONYMOUS
 )
 public class CheckApiAction implements Runnable {
 

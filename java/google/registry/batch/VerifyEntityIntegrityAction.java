@@ -59,6 +59,7 @@ import google.registry.model.index.ForeignKeyIndex.ForeignKeyHostIndex;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.request.Action;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
 import java.io.Serializable;
@@ -88,7 +89,11 @@ import org.joda.time.DateTime;
  *       fullyQualifiedDomainName.
  * </ul>
  */
-@Action(path = "/_dr/task/verifyEntityIntegrity", method = POST)
+@Action(
+  path = "/_dr/task/verifyEntityIntegrity",
+  method = POST,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class VerifyEntityIntegrityAction implements Runnable {
 
   private static final FormattingLogger logger = getLoggerForCallerClass();

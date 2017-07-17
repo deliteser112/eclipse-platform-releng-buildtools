@@ -25,7 +25,6 @@ import google.registry.request.Action;
 import google.registry.request.Action.Method;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -33,12 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 @Action(
   path = "/_dr/epptool",
   method = Method.POST,
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
-        minimumLevel = AuthLevel.APP,
-        userPolicy = Auth.UserPolicy.ADMIN
-      )
+  auth = Auth.AUTH_INTERNAL_OR_ADMIN
 )
 public class EppToolAction implements Runnable {
 

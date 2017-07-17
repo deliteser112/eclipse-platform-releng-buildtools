@@ -34,7 +34,6 @@ import google.registry.config.RegistryEnvironment;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.security.XsrfTokenManager;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TaskEnqueuer;
@@ -58,12 +57,7 @@ import org.joda.time.DateTime;
   path = LoadTestAction.PATH,
   method = Action.Method.POST,
   automaticallyPrintOk = true,
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
-        minimumLevel = AuthLevel.APP,
-        userPolicy = Auth.UserPolicy.ADMIN
-      )
+  auth = Auth.AUTH_INTERNAL_OR_ADMIN
 )
 public class LoadTestAction implements Runnable {
 

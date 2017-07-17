@@ -27,7 +27,6 @@ import google.registry.model.domain.DomainResource;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import java.util.Comparator;
 import java.util.List;
@@ -37,12 +36,7 @@ import javax.inject.Inject;
 @Action(
   path = ListDomainsAction.PATH,
   method = {GET, POST},
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
-        minimumLevel = AuthLevel.APP,
-        userPolicy = Auth.UserPolicy.ADMIN
-      )
+  auth = Auth.AUTH_INTERNAL_OR_ADMIN
 )
 public final class ListDomainsAction extends ListObjectsAction<DomainResource> {
 

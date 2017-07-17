@@ -25,6 +25,7 @@ import google.registry.mapreduce.MapreduceRunner;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import java.util.Set;
@@ -69,7 +70,10 @@ import org.joda.time.DateTime;
  * are not in FINALIZED or STOPPED state.
  */
 
-@Action(path = "/_dr/task/mapreduceEntityCleanup")
+@Action(
+  path = "/_dr/task/mapreduceEntityCleanup",
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class MapreduceEntityCleanupAction implements Runnable {
 
   private static final int DEFAULT_DAYS_OLD = 180;

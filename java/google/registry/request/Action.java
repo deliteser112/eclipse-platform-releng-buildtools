@@ -47,5 +47,5 @@ public @interface Action {
   boolean automaticallyPrintOk() default false;
 
   /** Authentication settings. */
-  Auth auth() default @Auth;
+  Auth auth();
 }

@@ -15,6 +15,7 @@
 package google.registry.request;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.request.auth.Auth.AUTH_INTERNAL_ONLY;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -46,7 +47,7 @@ public final class RouterTest {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
-  @Action(path = "/sloth")
+  @Action(path = "/sloth", auth = AUTH_INTERNAL_ONLY)
   public static final class SlothTask implements Runnable {
     @Override
     public void run() {}
@@ -76,7 +77,7 @@ public final class RouterTest {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
-  @Action(path = "/prefix", isPrefix = true)
+  @Action(path = "/prefix", isPrefix = true, auth = AUTH_INTERNAL_ONLY)
   public static final class PrefixTask implements Runnable {
     @Override
     public void run() {}
@@ -102,7 +103,7 @@ public final class RouterTest {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
-  @Action(path = "/prefix/long", isPrefix = true)
+  @Action(path = "/prefix/long", isPrefix = true, auth = AUTH_INTERNAL_ONLY)
   public static final class LongTask implements Runnable {
     @Override
     public void run() {}
@@ -151,13 +152,13 @@ public final class RouterTest {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
-  @Action(path = "/samePathAsOtherTask")
+  @Action(path = "/samePathAsOtherTask", auth = AUTH_INTERNAL_ONLY)
   public static final class DuplicateTask1 implements Runnable {
     @Override
     public void run() {}
   }
 
-  @Action(path = "/samePathAsOtherTask")
+  @Action(path = "/samePathAsOtherTask", auth = AUTH_INTERNAL_ONLY)
   public static final class DuplicateTask2 implements Runnable {
     @Override
     public void run() {}

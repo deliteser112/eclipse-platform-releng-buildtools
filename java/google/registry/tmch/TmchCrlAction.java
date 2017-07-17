@@ -20,13 +20,19 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.base.Optional;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
+import google.registry.request.auth.Auth;
 import java.io.IOException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 import javax.inject.Inject;
 
 /** Action to download the latest ICANN TMCH CRL from MarksDB. */
-@Action(path = "/_dr/task/tmchCrl", method = POST, automaticallyPrintOk = true)
+@Action(
+  path = "/_dr/task/tmchCrl",
+  method = POST,
+  automaticallyPrintOk = true,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public final class TmchCrlAction implements Runnable {
 
   @Inject Marksdb marksdb;

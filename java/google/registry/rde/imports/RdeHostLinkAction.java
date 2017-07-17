@@ -33,6 +33,7 @@ import google.registry.model.host.HostResource;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import google.registry.xjc.JaxbFragment;
 import google.registry.xjc.rdehost.XjcRdeHost;
@@ -51,7 +52,10 @@ import org.joda.time.DateTime;
  *
  * <p>Specify the escrow file to import with the "path" parameter.
  */
-@Action(path = "/_dr/task/linkRdeHosts")
+@Action(
+  path = "/_dr/task/linkRdeHosts",
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class RdeHostLinkAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

@@ -26,6 +26,7 @@ import com.googlecode.objectify.VoidWork;
 import google.registry.model.ofy.CommitLogCheckpoint;
 import google.registry.model.ofy.CommitLogCheckpointRoot;
 import google.registry.request.Action;
+import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TaskEnqueuer;
@@ -43,9 +44,11 @@ import org.joda.time.DateTime;
  * <p>This action's supported method is GET rather than POST because it gets invoked via cron.
  */
 @Action(
-    path = "/_dr/cron/commitLogCheckpoint",
-    method = Action.Method.GET,
-    automaticallyPrintOk = true)
+  path = "/_dr/cron/commitLogCheckpoint",
+  method = Action.Method.GET,
+  automaticallyPrintOk = true,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public final class CommitLogCheckpointAction implements Runnable {
 
   private static final FormattingLogger logger = getLoggerForCallerClass();

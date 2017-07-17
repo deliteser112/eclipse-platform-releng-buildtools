@@ -20,6 +20,7 @@ import com.google.common.base.Optional;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.model.smd.SignedMarkRevocationList;
 import google.registry.request.Action;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.security.SignatureException;
@@ -28,7 +29,12 @@ import javax.inject.Inject;
 import org.bouncycastle.openpgp.PGPException;
 
 /** Action to download the latest signed mark revocation list from MarksDB. */
-@Action(path = "/_dr/task/tmchSmdrl", method = POST, automaticallyPrintOk = true)
+@Action(
+  path = "/_dr/task/tmchSmdrl",
+  method = POST,
+  automaticallyPrintOk = true,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public final class TmchSmdrlAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

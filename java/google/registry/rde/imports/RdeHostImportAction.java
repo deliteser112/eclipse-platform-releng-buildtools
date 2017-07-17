@@ -33,6 +33,7 @@ import google.registry.model.host.HostResource;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import google.registry.util.SystemClock;
 import google.registry.xjc.JaxbFragment;
@@ -45,7 +46,10 @@ import javax.inject.Inject;
  *
  * <p>Specify the escrow file to import with the "path" parameter.
  */
-@Action(path = "/_dr/task/importRdeHosts")
+@Action(
+  path = "/_dr/task/importRdeHosts",
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class RdeHostImportAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

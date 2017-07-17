@@ -37,6 +37,7 @@ import google.registry.model.ofy.CommitLogMutation;
 import google.registry.model.translators.CommitLogRevisionsTranslatorFactory;
 import google.registry.request.Action;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
@@ -60,7 +61,10 @@ import org.joda.time.Duration;
  * EppResource.
  *
  */
-@Action(path = "/_dr/task/deleteOldCommitLogs")
+@Action(
+  path = "/_dr/task/deleteOldCommitLogs",
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public final class DeleteOldCommitLogsAction implements Runnable {
 
   private static final int NUM_REDUCE_SHARDS = 10;

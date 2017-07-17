@@ -29,7 +29,6 @@ import google.registry.request.Action;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonActionRunner.JsonAction;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.security.JsonResponseHelper;
 import java.util.Map;
@@ -72,12 +71,7 @@ import org.joda.money.CurrencyUnit;
 @Action(
   path = "/registrar-payment-setup",
   method = Action.Method.POST,
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},
-        minimumLevel = AuthLevel.USER,
-        userPolicy = Auth.UserPolicy.PUBLIC
-      )
+  auth = Auth.AUTH_PUBLIC_LOGGED_IN
 )
 public final class RegistrarPaymentSetupAction implements Runnable, JsonAction {
 

@@ -17,6 +17,7 @@ java_library(
         "//java/google/registry/keyring/api",
         "//java/google/registry/model",
         "//java/google/registry/request",
+        "//java/google/registry/request/auth",
         "//java/google/registry/util",
         "//java/google/registry/xml",
         "//third_party/java/objectify:objectify-v4_1",

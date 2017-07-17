@@ -36,7 +36,6 @@ import google.registry.request.Action;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonActionRunner.JsonAction;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormField;
@@ -97,12 +96,7 @@ import org.joda.money.Money;
 @Action(
   path = "/registrar-payment",
   method = Action.Method.POST,
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},
-        minimumLevel = AuthLevel.USER,
-        userPolicy = Auth.UserPolicy.PUBLIC
-      )
+  auth = Auth.AUTH_PUBLIC_LOGGED_IN
 )
 public final class RegistrarPaymentAction implements Runnable, JsonAction {
 

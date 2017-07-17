@@ -36,13 +36,18 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.ParameterMap;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.util.Map;
 import javax.inject.Inject;
 
 /** Action for exporting metrics to BigQuery. */
-@Action(path = MetricsExportAction.PATH, method = POST)
+@Action(
+  path = MetricsExportAction.PATH,
+  method = POST,
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class MetricsExportAction implements Runnable {
 
   public static final String PATH = "/_dr/task/metrics";

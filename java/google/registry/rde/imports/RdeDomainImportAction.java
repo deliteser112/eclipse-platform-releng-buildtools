@@ -50,6 +50,7 @@ import google.registry.model.transfer.TransferStatus;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
+import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import google.registry.util.SystemClock;
 import google.registry.xjc.JaxbFragment;
@@ -63,7 +64,10 @@ import org.joda.money.Money;
  *
  * <p>Specify the escrow file to import with the "path" parameter.
  */
-@Action(path = "/_dr/task/importRdeDomains")
+@Action(
+  path = "/_dr/task/importRdeDomains",
+  auth = Auth.AUTH_INTERNAL_ONLY
+)
 public class RdeDomainImportAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

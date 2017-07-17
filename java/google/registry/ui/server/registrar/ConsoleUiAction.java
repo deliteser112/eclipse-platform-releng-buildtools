@@ -34,7 +34,6 @@ import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.security.XsrfTokenManager;
 import google.registry.ui.server.SoyTemplateUtils;
@@ -45,12 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 /** Action that serves Registrar Console single HTML page (SPA). */
 @Action(
   path = ConsoleUiAction.PATH,
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API, Auth.AuthMethod.LEGACY},
-        minimumLevel = AuthLevel.NONE,
-        userPolicy = Auth.UserPolicy.PUBLIC
-      )
+  auth = Auth.AUTH_PUBLIC
 )
 public final class ConsoleUiAction implements Runnable {
 

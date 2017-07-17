@@ -25,7 +25,6 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
@@ -54,12 +53,7 @@ import org.joda.time.DateTime;
 @Action(
   path = "/_dr/whois",
   method = POST,
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
-        minimumLevel = AuthLevel.APP,
-        userPolicy = Auth.UserPolicy.ADMIN
-      )
+  auth = Auth.AUTH_INTERNAL_OR_ADMIN
 )
 public class WhoisServer implements Runnable {
 

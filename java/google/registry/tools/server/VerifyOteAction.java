@@ -47,7 +47,6 @@ import google.registry.request.Action;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonActionRunner.JsonAction;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -62,12 +61,7 @@ import javax.inject.Inject;
 @Action(
   path = VerifyOteAction.PATH,
   method = Action.Method.POST,
-  auth =
-      @Auth(
-        methods = {Auth.AuthMethod.INTERNAL, Auth.AuthMethod.API},
-        minimumLevel = AuthLevel.APP,
-        userPolicy = Auth.UserPolicy.ADMIN
-      )
+  auth = Auth.AUTH_INTERNAL_OR_ADMIN
 )
 public class VerifyOteAction implements Runnable, JsonAction {
 

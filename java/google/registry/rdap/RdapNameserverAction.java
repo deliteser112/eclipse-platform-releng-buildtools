@@ -24,7 +24,6 @@ import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.auth.Auth;
-import google.registry.request.auth.AuthLevel;
 import google.registry.util.Clock;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -34,7 +33,7 @@ import org.joda.time.DateTime;
   path = RdapNameserverAction.PATH,
   method = {GET, HEAD},
   isPrefix = true,
-  auth = @Auth(minimumLevel = AuthLevel.NONE, userPolicy = Auth.UserPolicy.PUBLIC)
+  auth = Auth.AUTH_PUBLIC_ANONYMOUS
 )
 public class RdapNameserverAction extends RdapActionBase {
 

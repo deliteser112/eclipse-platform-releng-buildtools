@@ -90,9 +90,9 @@ public class RouterDisplayHelper {
         route.actionClass().getSimpleName(),
         Joiner.on(",").join(route.action().method()),
         route.action().automaticallyPrintOk() ? "y" : "n",
-        Joiner.on(",").join(route.action().auth().methods()),
-        route.action().auth().minimumLevel(),
-        route.action().auth().userPolicy());
+        Joiner.on(",").join(route.action().auth().authSettings().methods()),
+        route.action().auth().authSettings().minimumLevel(),
+        route.action().auth().authSettings().userPolicy());
   }
 
   private static String formatRoutes(Iterable<Route> routes) {
@@ -119,11 +119,11 @@ public class RouterDisplayHelper {
       if (len > methodsWidth) {
         methodsWidth = len;
       }
-      len = Joiner.on(",").join(route.action().auth().methods()).length();
+      len = Joiner.on(",").join(route.action().auth().authSettings().methods()).length();
       if (len > authMethodsWidth) {
         authMethodsWidth = len;
       }
-      len = route.action().auth().minimumLevel().toString().length();
+      len = route.action().auth().authSettings().minimumLevel().toString().length();
       if (len > minLevelWidth) {
         minLevelWidth = len;
       }
