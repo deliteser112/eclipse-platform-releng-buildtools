@@ -14,6 +14,7 @@
 
 package google.registry.backup;
 
+import static google.registry.mapreduce.MapreduceRunner.PARAM_DRY_RUN;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.util.PipelineUtils.createJobPath;
@@ -36,6 +37,7 @@ import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
 import google.registry.model.translators.CommitLogRevisionsTranslatorFactory;
 import google.registry.request.Action;
+import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
@@ -75,6 +77,7 @@ public final class DeleteOldCommitLogsAction implements Runnable {
   @Inject Response response;
   @Inject Clock clock;
   @Inject @Config("commitLogDatastoreRetention") Duration maxAge;
+  @Inject @Parameter(PARAM_DRY_RUN) boolean isDryRun;
   @Inject DeleteOldCommitLogsAction() {}
 
   @Override
@@ -91,7 +94,7 @@ public final class DeleteOldCommitLogsAction implements Runnable {
           .setDefaultReduceShards(NUM_REDUCE_SHARDS)
           .runMapreduce(
               new DeleteOldCommitLogsMapper(),
-              new DeleteOldCommitLogsReducer(),
+              new DeleteOldCommitLogsReducer(isDryRun),
               ImmutableList.of(
                   new CommitLogManifestInput(Optional.of(deletionThreshold)),
                   EppResourceInputs.createEntityInput(EppResource.class)))));
@@ -143,7 +146,13 @@ public final class DeleteOldCommitLogsAction implements Runnable {
   private static class DeleteOldCommitLogsReducer
       extends Reducer<Key<CommitLogManifest>, Boolean, Void> {
 
-    private static final long serialVersionUID = 6652129589918923333L;
+    private static final long serialVersionUID = -5122986392078633220L;
+
+    private final boolean isDryRun;
+
+    DeleteOldCommitLogsReducer(boolean isDryRun) {
+      this.isDryRun = isDryRun;
+    }
 
     @Override
     public void reduce(
@@ -165,7 +174,11 @@ public final class DeleteOldCommitLogsAction implements Runnable {
               .addAll(commitLogMutationKeys)
               .add(manifestKey)
               .build();
-          ofy().deleteWithoutBackup().keys(keysToDelete);
+          // Normally in a dry run we would log the entities that would be deleted, but those can
+          // number in the millions so we skip the logging.
+          if (!isDryRun) {
+            ofy().deleteWithoutBackup().keys(keysToDelete);
+          }
           return keysToDelete.size();
         }
       });
