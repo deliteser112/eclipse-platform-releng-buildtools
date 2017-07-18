@@ -66,6 +66,9 @@ final class GetKeyringSecretCommand implements RemoteApiCommand {
       case BRDA_SIGNING_KEY_PAIR:
         out.write(KeySerializer.serializeKeyPair(keyring.getBrdaSigningKey()));
         break;
+      case BRDA_SIGNING_PUBLIC_KEY:
+        out.write(KeySerializer.serializePublicKey(keyring.getBrdaSigningKey().getPublicKey()));
+        break;
       case ICANN_REPORTING_PASSWORD:
         out.write(KeySerializer.serializeString(keyring.getIcannReportingPassword()));
         break;
@@ -86,6 +89,9 @@ final class GetKeyringSecretCommand implements RemoteApiCommand {
         break;
       case RDE_SIGNING_KEY_PAIR:
         out.write(KeySerializer.serializeKeyPair(keyring.getRdeSigningKey()));
+        break;
+      case RDE_SIGNING_PUBLIC_KEY:
+        out.write(KeySerializer.serializePublicKey(keyring.getRdeSigningKey().getPublicKey()));
         break;
       case RDE_SSH_CLIENT_PRIVATE_KEY:
         out.write(KeySerializer.serializeString(keyring.getRdeSshClientPrivateKey()));

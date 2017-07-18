@@ -65,6 +65,10 @@ final class UpdateKmsKeyringCommand implements RemoteApiCommand {
       case BRDA_SIGNING_KEY_PAIR:
         kmsUpdater.setBrdaSigningKey(deserializeKeyPair(input));
         break;
+      case BRDA_SIGNING_PUBLIC_KEY:
+        throw new IllegalArgumentException(
+            "Can't update BRDA_SIGNING_PUBLIC_KEY directly."
+            + " Must update public and private keys together using BRDA_SIGNING_KEY_PAIR.");
       case ICANN_REPORTING_PASSWORD:
         kmsUpdater.setIcannReportingPassword(deserializeString(input));
         break;
@@ -86,6 +90,15 @@ final class UpdateKmsKeyringCommand implements RemoteApiCommand {
       case RDE_SIGNING_KEY_PAIR:
         kmsUpdater.setRdeSigningKey(deserializeKeyPair(input));
         break;
+      case RDE_SIGNING_PUBLIC_KEY:
+        throw new IllegalArgumentException(
+            "Can't update RDE_SIGNING_PUBLIC_KEY directly."
+            + " Must update public and private keys together using RDE_SIGNING_KEY_PAIR.");
+      // Note that RDE_SSH_CLIENT public / private keys are slightly different than other key pairs,
+      // since they are just regular strings rather than {@link PGPKeyPair}s (because OpenSSH
+      // doesn't use PGP-style keys)
+      //
+      // Hence we can and need to update the private and public keys individually.
       case RDE_SSH_CLIENT_PRIVATE_KEY:
         kmsUpdater.setRdeSshClientPrivateKey(deserializeString(input));
         break;
