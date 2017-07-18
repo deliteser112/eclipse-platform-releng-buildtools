@@ -67,6 +67,7 @@ import org.joda.time.Duration;
 )
 public final class DeleteOldCommitLogsAction implements Runnable {
 
+  private static final int NUM_MAP_SHARDS = 20;
   private static final int NUM_REDUCE_SHARDS = 10;
   private static final FormattingLogger logger = getLoggerForCallerClass();
 
@@ -86,6 +87,7 @@ public final class DeleteOldCommitLogsAction implements Runnable {
     response.sendJavaScriptRedirect(createJobPath(mrRunner
           .setJobName("Delete old commit logs")
           .setModuleName("backend")
+          .setDefaultMapShards(NUM_MAP_SHARDS)
           .setDefaultReduceShards(NUM_REDUCE_SHARDS)
           .runMapreduce(
               new DeleteOldCommitLogsMapper(),
