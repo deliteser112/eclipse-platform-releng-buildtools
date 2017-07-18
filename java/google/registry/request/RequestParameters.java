@@ -128,15 +128,14 @@ public final class RequestParameters {
   }
 
   /**
-   * Returns {@code true} if parameter is present and not empty and not {@code "false"}.
+   * Returns {@code true} iff the given parameter is present, not empty, and not {@code "false"}.
    *
    * <p>This considers a parameter with a non-existent value true, for situations where the request
    * URI is something like {@code /foo?bar}, where the mere presence of the {@code bar} parameter
    * without a value indicates that it's true.
    */
   public static boolean extractBooleanParameter(HttpServletRequest req, String name) {
-    return req.getParameterMap().containsKey(name)
-        && !equalsFalse(req.getParameter(name));
+    return req.getParameterMap().containsKey(name) && !equalsFalse(req.getParameter(name));
   }
 
   /**
