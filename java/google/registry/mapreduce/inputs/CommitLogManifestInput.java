@@ -25,7 +25,7 @@ import java.util.List;
 import org.joda.time.DateTime;
 
 /** Base class for {@link Input} classes that map over {@link CommitLogManifest}. */
-public class CommitLogManifestInput extends Input<CommitLogManifest> {
+public class CommitLogManifestInput extends Input<Key<CommitLogManifest>> {
 
   private static final long serialVersionUID = 2043552272352286428L;
 
@@ -41,15 +41,16 @@ public class CommitLogManifestInput extends Input<CommitLogManifest> {
   }
 
   @Override
-  public List<InputReader<CommitLogManifest>> createReaders() {
-    ImmutableList.Builder<InputReader<CommitLogManifest>> readers = new ImmutableList.Builder<>();
+  public List<InputReader<Key<CommitLogManifest>>> createReaders() {
+    ImmutableList.Builder<InputReader<Key<CommitLogManifest>>> readers =
+        new ImmutableList.Builder<>();
     for (Key<CommitLogBucket> bucketKey : CommitLogBucket.getAllBucketKeys()) {
       readers.add(bucketToReader(bucketKey));
     }
     return readers.build();
   }
 
-  private InputReader<CommitLogManifest> bucketToReader(Key<CommitLogBucket> bucketKey) {
+  private InputReader<Key<CommitLogManifest>> bucketToReader(Key<CommitLogBucket> bucketKey) {
     return new CommitLogManifestReader(bucketKey, olderThan);
   }
 }

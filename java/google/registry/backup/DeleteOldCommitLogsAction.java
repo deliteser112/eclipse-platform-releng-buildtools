@@ -14,6 +14,8 @@
 
 package google.registry.backup;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static google.registry.mapreduce.MapreduceRunner.PARAM_DRY_RUN;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
@@ -33,7 +35,6 @@ import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.CommitLogManifestInput;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.model.EppResource;
-import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
 import google.registry.model.translators.CommitLogRevisionsTranslatorFactory;
@@ -98,7 +99,7 @@ public final class DeleteOldCommitLogsAction implements Runnable {
               new DeleteOldCommitLogsReducer(deletionThreshold, isDryRun),
               ImmutableList.of(
                   new CommitLogManifestInput(Optional.of(deletionThreshold)),
-                  EppResourceInputs.createEntityInput(EppResource.class)))));
+                  EppResourceInputs.createKeyInput(EppResource.class)))));
   }
 
   /**
@@ -110,29 +111,52 @@ public final class DeleteOldCommitLogsAction implements Runnable {
    * <p>The reducer will then delete all CommitLogRevisions that only have {@code true}.
    */
   private static class DeleteOldCommitLogsMapper
-      extends Mapper<ImmutableObject, Key<CommitLogManifest>, Boolean> {
+      extends Mapper<Key<?>, Key<CommitLogManifest>, Boolean> {
 
     private static final long serialVersionUID = -1960845380164573834L;
 
+    private static final String KIND_MANIFEST = Key.getKind(CommitLogManifest.class);
+
     @Override
-    public void map(ImmutableObject object) {
-      if (object instanceof EppResource) {
-        getContext().incrementCounter("Epp resources found");
-        EppResource eppResource = (EppResource) object;
-        for (Key<CommitLogManifest> manifestKey : eppResource.getRevisions().values()) {
-          emit(manifestKey, false);
-        }
-        getContext()
-            .incrementCounter("Epp resource revisions found", eppResource.getRevisions().size());
-      } else if (object instanceof CommitLogManifest) {
+    public void map(final Key<?> key) {
+      // key is either a Key<CommitLogManifest> or a Key<? extends EppResource>.
+      //
+      // If it's a CommitLogManifest we just emit it as is (no need to load it).
+      if (key.getKind().equals(KIND_MANIFEST)) {
         getContext().incrementCounter("old commit log manifests found");
-        emit(Key.create((CommitLogManifest) object), true);
-      } else {
-        throw new IllegalArgumentException(
-            String.format(
-                "Received object of type %s, expected either EppResource or CommitLogManifest",
-                object.getClass().getName()));
+        // safe because we checked getKind
+        @SuppressWarnings("unchecked")
+        Key<CommitLogManifest> manifestKey = (Key<CommitLogManifest>) key;
+        emit(manifestKey, true);
+        return;
       }
+
+      // If it isn't a Key<CommitLogManifest> then it should be an EppResource, which we need to
+      // load to emit the revisions.
+      //
+      // We want to make sure we retry any load individually to reduce the chance of the entire
+      // shard failing, hence we wrap it in a transactNew.
+      Object object = ofy().transactNew(new Work<Object>() {
+        @Override
+        public Object run() {
+          return ofy().load().key(key).now();
+        }
+      });
+      checkNotNull(object, "Received a key to a missing object. key: %s", key);
+      checkState(
+          object instanceof EppResource,
+          "Received a key to an object that isn't EppResource nor CommitLogManifest."
+          + " Key: %s object type: %s",
+          key,
+          object.getClass().getName());
+
+      getContext().incrementCounter("EPP resources found");
+      EppResource eppResource = (EppResource) object;
+      for (Key<CommitLogManifest> manifestKey : eppResource.getRevisions().values()) {
+        emit(manifestKey, false);
+      }
+      getContext()
+          .incrementCounter("EPP resource revisions found", eppResource.getRevisions().size());
     }
   }
 
@@ -165,14 +189,17 @@ public final class DeleteOldCommitLogsAction implements Runnable {
         getContext().incrementCounter("old commit log manifests still referenced");
         return;
       }
-      if (ofy().load().key(manifestKey).now().getCommitTime().isAfter(deletionThreshold)) {
-        logger.severefmt("Won't delete CommitLogManifest %s that is too recent.", manifestKey);
-        getContext().incrementCounter("manifests incorrectly assigned for deletion (SEE LOGS)");
-        return;
-      }
-      Integer deletedCount = ofy().transact(new Work<Integer>() {
+
+      Integer deletedCount = ofy().transactNew(new Work<Integer>() {
         @Override
         public Integer run() {
+          // Doing a sanity check on the date. This is the only place we load the CommitLogManifest,
+          // so maybe removing this test will improve performance. However, unless it's proven that
+          // the performance boost is significant (and we've tested this enough to be sure it never
+          // happens)- the safty of "let's not delete stuff we need from prod" is more important.
+          if (ofy().load().key(manifestKey).now().getCommitTime().isAfter(deletionThreshold)) {
+            return 0;
+          }
           Iterable<Key<CommitLogMutation>> commitLogMutationKeys = ofy().load()
               .type(CommitLogMutation.class)
               .ancestor(manifestKey)
@@ -190,8 +217,14 @@ public final class DeleteOldCommitLogsAction implements Runnable {
           return keysToDelete.size();
         }
       });
-      getContext().incrementCounter("old commit log manifests deleted");
-      getContext().incrementCounter("total entities deleted", deletedCount);
+
+      if (deletedCount > 0) {
+        getContext().incrementCounter("old commit log manifests deleted");
+        getContext().incrementCounter("total entities deleted", deletedCount);
+      } else {
+        logger.severefmt("Won't delete CommitLogManifest %s that is too recent.", manifestKey);
+        getContext().incrementCounter("manifests incorrectly assigned for deletion (SEE LOGS)");
+      }
     }
   }
 }

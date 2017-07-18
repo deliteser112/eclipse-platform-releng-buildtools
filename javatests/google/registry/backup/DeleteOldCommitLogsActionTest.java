@@ -103,6 +103,10 @@ public class DeleteOldCommitLogsActionTest
     assertThat(ofy().load().type(CommitLogMutation.class).count()).isEqualTo(33);
   }
 
+  private <T> ImmutableList<T> ofyLoadType(Class<T> clazz) {
+    return ImmutableList.copyOf(ofy().load().type(clazz).iterable());
+  }
+
   /**
    * Check that with very short maxAge, only the referenced elements remain.
    */
@@ -110,12 +114,11 @@ public class DeleteOldCommitLogsActionTest
   public void test_shortMaxAge() throws Exception {
     runMapreduce(Duration.millis(1));
 
-    assertThat(ofy().load().type(CommitLogManifest.class).keys().iterable())
+    assertThat(ImmutableList.copyOf(ofy().load().type(CommitLogManifest.class).keys().iterable()))
         .containsExactlyElementsIn(contact.getRevisions().values());
 
     // And each DatastoreHelper.persistResourceWithCommitLog creates 3 mutations
-    assertThat(ofy().load().type(CommitLogMutation.class).keys().iterable())
-        .hasSize(contact.getRevisions().size() * 3);
+    assertThat(ofyLoadType(CommitLogMutation.class)).hasSize(contact.getRevisions().size() * 3);
   }
 
   /**
@@ -124,16 +127,12 @@ public class DeleteOldCommitLogsActionTest
   @Test
   public void test_longMaxAge() throws Exception {
 
-    ImmutableList<CommitLogManifest> initialManifests =
-        ImmutableList.copyOf(ofy().load().type(CommitLogManifest.class).iterable());
-    ImmutableList<CommitLogMutation> initialMutations =
-        ImmutableList.copyOf(ofy().load().type(CommitLogMutation.class).iterable());
+    ImmutableList<CommitLogManifest> initialManifests = ofyLoadType(CommitLogManifest.class);
+    ImmutableList<CommitLogMutation> initialMutations = ofyLoadType(CommitLogMutation.class);
 
     runMapreduce(Duration.standardDays(1000));
 
-    assertThat(ofy().load().type(CommitLogManifest.class).iterable())
-        .containsExactlyElementsIn(initialManifests);
-    assertThat(ofy().load().type(CommitLogMutation.class).iterable())
-        .containsExactlyElementsIn(initialMutations);
+    assertThat(ofyLoadType(CommitLogManifest.class)).containsExactlyElementsIn(initialManifests);
+    assertThat(ofyLoadType(CommitLogMutation.class)).containsExactlyElementsIn(initialMutations);
   }
 }

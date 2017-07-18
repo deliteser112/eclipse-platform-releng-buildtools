@@ -53,13 +53,14 @@ public final class CommitLogManifestInputTest {
 
   @Test
   public void testInputOlderThan_allFound() throws Exception {
-    Set<CommitLogManifest> created = new HashSet<>();
+    Set<Key<CommitLogManifest>> created = new HashSet<>();
     for (int i = 1; i <= 3; i++) {
       created.add(createManifest(CommitLogBucket.getBucketKey(i), DATE_TIME_OLD));
     }
-    List<CommitLogManifest> seen = new ArrayList<>();
-    Input<CommitLogManifest> input = new CommitLogManifestInput(Optional.of(DATE_TIME_THRESHOLD));
-    for (InputReader<CommitLogManifest> reader
+    List<Key<CommitLogManifest>> seen = new ArrayList<>();
+    Input<Key<CommitLogManifest>> input =
+        new CommitLogManifestInput(Optional.of(DATE_TIME_THRESHOLD));
+    for (InputReader<Key<CommitLogManifest>> reader
         : input.createReaders()) {
       reader.beginShard();
       reader.beginSlice();
@@ -75,16 +76,17 @@ public final class CommitLogManifestInputTest {
 
   @Test
   public void testInputOlderThan_skipsNew() throws Exception {
-    Set<CommitLogManifest> old = new HashSet<>();
+    Set<Key<CommitLogManifest>> old = new HashSet<>();
     for (int i = 1; i <= 3; i++) {
       createManifest(CommitLogBucket.getBucketKey(i), DATE_TIME_NEW);
       createManifest(CommitLogBucket.getBucketKey(i), DATE_TIME_NEW2);
       old.add(createManifest(CommitLogBucket.getBucketKey(i), DATE_TIME_OLD));
       old.add(createManifest(CommitLogBucket.getBucketKey(i), DATE_TIME_OLD2));
     }
-    List<CommitLogManifest> seen = new ArrayList<>();
-    Input<CommitLogManifest> input = new CommitLogManifestInput(Optional.of(DATE_TIME_THRESHOLD));
-    for (InputReader<CommitLogManifest> reader
+    List<Key<CommitLogManifest>> seen = new ArrayList<>();
+    Input<Key<CommitLogManifest>> input =
+        new CommitLogManifestInput(Optional.of(DATE_TIME_THRESHOLD));
+    for (InputReader<Key<CommitLogManifest>> reader
         : input.createReaders()) {
       reader.beginShard();
       reader.beginSlice();
@@ -101,16 +103,16 @@ public final class CommitLogManifestInputTest {
 
   @Test
   public void testInputAll() throws Exception {
-    Set<CommitLogManifest> created = new HashSet<>();
+    Set<Key<CommitLogManifest>> created = new HashSet<>();
     for (int i = 1; i <= 3; i++) {
       created.add(createManifest(CommitLogBucket.getBucketKey(i), DATE_TIME_NEW));
       created.add(createManifest(CommitLogBucket.getBucketKey(i), DATE_TIME_NEW2));
       created.add(createManifest(CommitLogBucket.getBucketKey(i), DATE_TIME_OLD));
       created.add(createManifest(CommitLogBucket.getBucketKey(i), DATE_TIME_OLD2));
     }
-    List<CommitLogManifest> seen = new ArrayList<>();
-    Input<CommitLogManifest> input = new CommitLogManifestInput(Optional.<DateTime>absent());
-    for (InputReader<CommitLogManifest> reader
+    List<Key<CommitLogManifest>> seen = new ArrayList<>();
+    Input<Key<CommitLogManifest>> input = new CommitLogManifestInput(Optional.<DateTime>absent());
+    for (InputReader<Key<CommitLogManifest>> reader
         : input.createReaders()) {
       reader.beginShard();
       reader.beginSlice();
@@ -125,9 +127,11 @@ public final class CommitLogManifestInputTest {
     assertThat(seen).containsExactlyElementsIn(created);
   }
 
-  private static CommitLogManifest createManifest(Key<CommitLogBucket> parent, DateTime dateTime) {
+  private static Key<CommitLogManifest> createManifest(
+      Key<CommitLogBucket> parent,
+      DateTime dateTime) {
     CommitLogManifest commitLogManifest = CommitLogManifest.create(parent, dateTime, null);
     DatastoreHelper.persistResource(commitLogManifest);
-    return commitLogManifest;
+    return Key.create(commitLogManifest);
   }
 }

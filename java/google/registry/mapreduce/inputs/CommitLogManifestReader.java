@@ -28,7 +28,7 @@ import java.util.NoSuchElementException;
 import org.joda.time.DateTime;
 
 /** {@link InputReader} that maps over {@link CommitLogManifest}. */
-class CommitLogManifestReader extends InputReader<CommitLogManifest> {
+class CommitLogManifestReader extends InputReader<Key<CommitLogManifest>> {
 
   private static final long serialVersionUID = 5117046535590539778L;
 
@@ -53,7 +53,7 @@ class CommitLogManifestReader extends InputReader<CommitLogManifest> {
   private int total;
   private int loaded;
 
-  private transient QueryResultIterator<CommitLogManifest> queryIterator;
+  private transient QueryResultIterator<Key<CommitLogManifest>> queryIterator;
 
   CommitLogManifestReader(Key<CommitLogBucket> bucketKey, Optional<DateTime> olderThan) {
     this.bucketKey = bucketKey;
@@ -83,7 +83,7 @@ class CommitLogManifestReader extends InputReader<CommitLogManifest> {
       // paused and restarted with a cursor before it would have reached the new entity.
       query = query.startAt(cursor);
     }
-    queryIterator = query.iterator();
+    queryIterator = query.keys().iterator();
   }
 
   /** Called occasionally alongside {@link #next}. */
@@ -123,7 +123,7 @@ class CommitLogManifestReader extends InputReader<CommitLogManifest> {
    * @throws NoSuchElementException if there are no more elements.
    */
   @Override
-  public CommitLogManifest next() {
+  public Key<CommitLogManifest> next() {
     loaded++;
     try {
       return queryIterator.next();
