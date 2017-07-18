@@ -28,9 +28,7 @@ registryPolicy:
   tmchCaMode: PRODUCTION
   tmchCrlUrl: http://crl.icann.org/tmch.crl
   tmchMarksDbUrl: https://ry.marksdb.org
-  checkApiServletClientId: |
-    multi-line
-    placeholder
+  checkApiServletClientId: placeholder
   whoisDisclaimer: |
     multi-line
     placeholder
