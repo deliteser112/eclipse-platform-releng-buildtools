@@ -187,7 +187,7 @@ explicitly marked as otherwise.
 
 Nomulus comes pre-configured with support for a number of different
 environments, all of which are used in Google's registry system. Other registry
-operators may choose to user more or fewer environments, depending on their
+operators may choose to use more or fewer environments, depending on their
 needs.
 
 The different environments are specified in `RegistryEnvironment`. Most
