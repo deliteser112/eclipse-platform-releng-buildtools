@@ -24,7 +24,6 @@ import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static java.util.Arrays.asList;
 
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
@@ -34,6 +33,8 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
 import google.registry.dns.DnsConstants.TargetType;
 import google.registry.model.registry.Registry;
@@ -46,6 +47,7 @@ import google.registry.util.Retrier;
 import google.registry.util.TaskEnqueuer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
@@ -85,7 +87,16 @@ public class ReadDnsQueueActionTest {
   public void before() throws Exception {
     clock.setTo(DateTime.now(DateTimeZone.UTC));
     createTlds("com", "net", "example");
-    persistResource(Registry.get("example").asBuilder().setTldType(TldType.TEST).build());
+    persistResource(
+        Registry.get("com").asBuilder().setDnsWriters(ImmutableSet.of("comWriter")).build());
+    persistResource(
+        Registry.get("net").asBuilder().setDnsWriters(ImmutableSet.of("netWriter")).build());
+    persistResource(
+        Registry.get("example")
+            .asBuilder()
+            .setTldType(TldType.TEST)
+            .setDnsWriters(ImmutableSet.of("exampleWriter"))
+            .build());
     dnsQueue = DnsQueue.create();
   }
 
@@ -112,17 +123,22 @@ public class ReadDnsQueueActionTest {
     return options.param("tld", tld);
   }
 
-  private void assertTldsEnqueuedInPushQueue(String... tlds) throws Exception {
+  private void assertTldsEnqueuedInPushQueue(ImmutableMap<String, String> tldsToDnsWriters)
+      throws Exception {
     assertTasksEnqueued(
         DNS_PUBLISH_PUSH_QUEUE_NAME,
-        transform(asList(tlds), new Function<String, TaskMatcher>() {
-          @Override
-          public TaskMatcher apply(String tld) {
-            return new TaskMatcher()
-                .url(PublishDnsUpdatesAction.PATH)
-                .param("tld", tld)
-                .header("content-type", "application/x-www-form-urlencoded");
-          }}));
+        transform(
+            tldsToDnsWriters.entrySet().asList(),
+            new Function<Entry<String, String>, TaskMatcher>() {
+              @Override
+              public TaskMatcher apply(Entry<String, String> tldToDnsWriter) {
+                return new TaskMatcher()
+                    .url(PublishDnsUpdatesAction.PATH)
+                    .param("tld", tldToDnsWriter.getKey())
+                    .param("dnsWriter", tldToDnsWriter.getValue())
+                    .header("content-type", "application/x-www-form-urlencoded");
+              }
+            }));
   }
 
   @Test
@@ -146,7 +162,8 @@ public class ReadDnsQueueActionTest {
     dnsQueue.addDomainRefreshTask("domain.example");
     run(false);
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
-    assertTldsEnqueuedInPushQueue("com", "net", "example");
+    assertTldsEnqueuedInPushQueue(
+        ImmutableMap.of("com", "comWriter", "net", "netWriter", "example", "exampleWriter"));
   }
 
   @Test
@@ -157,7 +174,8 @@ public class ReadDnsQueueActionTest {
     List<TaskStateInfo> preexistingTasks =
         TaskQueueHelper.getQueueInfo(DNS_PULL_QUEUE_NAME).getTaskInfo();
     run(true);
-    assertTldsEnqueuedInPushQueue("com", "net", "example");
+    assertTldsEnqueuedInPushQueue(
+        ImmutableMap.of("com", "comWriter", "net", "netWriter", "example", "exampleWriter"));
     // Check that keepTasks was honored and the pull queue tasks are still present in the queue.
     assertTasksEnqueued(DNS_PULL_QUEUE_NAME, preexistingTasks);
   }
@@ -170,7 +188,8 @@ public class ReadDnsQueueActionTest {
     dnsQueue.addDomainRefreshTask("domain.example");
     run(false);
     assertTasksEnqueued(DNS_PULL_QUEUE_NAME, new TaskMatcher());
-    assertTldsEnqueuedInPushQueue("com", "example");
+    assertTldsEnqueuedInPushQueue(
+        ImmutableMap.of("com", "comWriter", "example", "exampleWriter"));
   }
 
   @Test
@@ -180,13 +199,10 @@ public class ReadDnsQueueActionTest {
     dnsQueue.addZoneRefreshTask("example");
     run(false);
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
-    assertTasksEnqueued(DNS_PUBLISH_PUSH_QUEUE_NAME,
-        new TaskMatcher()
-            .url(PublishDnsUpdatesAction.PATH)
-            .param("domains", "domain.net"),
-        new TaskMatcher()
-            .url(PublishDnsUpdatesAction.PATH)
-            .param("hosts", "ns1.domain.com"));
+    assertTasksEnqueued(
+        DNS_PUBLISH_PUSH_QUEUE_NAME,
+        new TaskMatcher().url(PublishDnsUpdatesAction.PATH).param("domains", "domain.net"),
+        new TaskMatcher().url(PublishDnsUpdatesAction.PATH).param("hosts", "ns1.domain.com"));
   }
 
   @Test
@@ -234,4 +250,6 @@ public class ReadDnsQueueActionTest {
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTasksEnqueued(DNS_PUBLISH_PUSH_QUEUE_NAME, expectedTasks);
   }
+
+  // TODO(b/63385597): Add a test that DNS tasks are processed for multiple DNS writers once allowed
 }

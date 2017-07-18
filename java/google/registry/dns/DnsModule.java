@@ -16,16 +16,19 @@ package google.registry.dns;
 
 import static google.registry.dns.DnsConstants.DNS_PUBLISH_PUSH_QUEUE_NAME;
 import static google.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
-import static google.registry.dns.PublishDnsUpdatesAction.DOMAINS_PARAM;
-import static google.registry.dns.PublishDnsUpdatesAction.HOSTS_PARAM;
-import static google.registry.dns.ReadDnsQueueAction.KEEP_TASKS_PARAM;
+import static google.registry.dns.PublishDnsUpdatesAction.PARAM_DNS_WRITER;
+import static google.registry.dns.PublishDnsUpdatesAction.PARAM_DOMAINS;
+import static google.registry.dns.PublishDnsUpdatesAction.PARAM_HOSTS;
+import static google.registry.dns.ReadDnsQueueAction.PARAM_KEEP_TASKS;
 import static google.registry.request.RequestParameters.extractBooleanParameter;
 import static google.registry.request.RequestParameters.extractEnumParameter;
+import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 import static google.registry.request.RequestParameters.extractSetOfParameters;
 
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.common.base.Optional;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
@@ -58,21 +61,28 @@ public abstract class DnsModule {
   }
 
   @Provides
-  @Parameter(DOMAINS_PARAM)
+  @Parameter(PARAM_DNS_WRITER)
+  static Optional<String> provideDnsWriter(HttpServletRequest req) {
+    // TODO(b/63385597): Make this required after DNS writers migration is complete.
+    return extractOptionalParameter(req, PARAM_DNS_WRITER);
+  }
+
+  @Provides
+  @Parameter(PARAM_DOMAINS)
   static Set<String> provideDomains(HttpServletRequest req) {
-    return extractSetOfParameters(req, DOMAINS_PARAM);
+    return extractSetOfParameters(req, PARAM_DOMAINS);
   }
 
   @Provides
-  @Parameter(HOSTS_PARAM)
+  @Parameter(PARAM_HOSTS)
   static Set<String> provideHosts(HttpServletRequest req) {
-    return extractSetOfParameters(req, HOSTS_PARAM);
+    return extractSetOfParameters(req, PARAM_HOSTS);
   }
 
   @Provides
-  @Parameter(KEEP_TASKS_PARAM)
+  @Parameter(PARAM_KEEP_TASKS)
   static boolean provideKeepTasks(HttpServletRequest req) {
-    return extractBooleanParameter(req, KEEP_TASKS_PARAM);
+    return extractBooleanParameter(req, PARAM_KEEP_TASKS);
   }
 
   @Provides

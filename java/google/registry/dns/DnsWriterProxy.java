@@ -15,15 +15,19 @@
 package google.registry.dns;
 
 import static com.google.common.base.Preconditions.checkState;
+import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.dns.writer.DnsWriter;
 import google.registry.model.registry.Registry;
+import google.registry.util.FormattingLogger;
 import java.util.Map;
 import javax.inject.Inject;
 
 /** Proxy for retrieving {@link DnsWriter} implementations. */
 public final class DnsWriterProxy {
+
+  private static final FormattingLogger logger = getLoggerForCallerClass();
 
   private final ImmutableMap<String, DnsWriter> dnsWriters;
 
@@ -32,11 +36,22 @@ public final class DnsWriterProxy {
     this.dnsWriters = ImmutableMap.copyOf(dnsWriters);
   }
 
-  /** Return the {@link DnsWriter} for the given tld. */
+  /** Returns the {@link DnsWriter} for the given tld. */
+  // TODO(b/63385597): Delete this method after DNS writers migration is complete.
+  @Deprecated
   public DnsWriter getForTld(String tld) {
-    String clazz = Registry.get(tld).getDnsWriter();
-    DnsWriter dnsWriter = dnsWriters.get(clazz);
-    checkState(dnsWriter != null, "Could not load DnsWriter %s for TLD %s", clazz, tld);
+    return getByClassNameForTld(Registry.get(tld).getDnsWriter(), tld);
+  }
+
+  /** Returns the instance of {@link DnsWriter} by class name. */
+  public DnsWriter getByClassNameForTld(String className, String tld) {
+    if (!Registry.get(tld).getDnsWriters().contains(className)) {
+      logger.warningfmt(
+          "Loaded potentially stale DNS writer %s which is no longer active on TLD %s.",
+          className, tld);
+    }
+    DnsWriter dnsWriter = dnsWriters.get(className);
+    checkState(dnsWriter != null, "Could not load DnsWriter %s for TLD %s", className, tld);
     return dnsWriter;
   }
 }

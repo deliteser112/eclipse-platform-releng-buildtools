@@ -16,16 +16,18 @@ package google.registry.dns;
 
 import static google.registry.model.server.Lock.executeWithLocks;
 import static google.registry.request.Action.Method.POST;
+import static google.registry.request.RequestParameters.PARAM_TLD;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
+import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.dns.DnsMetrics.Status;
 import google.registry.dns.writer.DnsWriter;
+import google.registry.model.registry.Registry;
 import google.registry.request.Action;
 import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.request.Parameter;
-import google.registry.request.RequestParameters;
 import google.registry.request.auth.Auth;
 import google.registry.util.DomainNameUtils;
 import google.registry.util.FormattingLogger;
@@ -44,8 +46,9 @@ import org.joda.time.Duration;
 public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
 
   public static final String PATH = "/_dr/task/publishDnsUpdates";
-  public static final String DOMAINS_PARAM = "domains";
-  public static final String HOSTS_PARAM = "hosts";
+  public static final String PARAM_DNS_WRITER = "dnsWriter";
+  public static final String PARAM_DOMAINS = "domains";
+  public static final String PARAM_HOSTS = "hosts";
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -53,9 +56,21 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
   @Inject DnsWriterProxy dnsWriterProxy;
   @Inject DnsMetrics dnsMetrics;
   @Inject @Config("dnsWriteLockTimeout") Duration timeout;
-  @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
-  @Inject @Parameter(DOMAINS_PARAM) Set<String> domains;
-  @Inject @Parameter(HOSTS_PARAM) Set<String> hosts;
+
+  /**
+   * The DNS writer to use for this batch.
+   *
+   * <p>This comes from the fanout in {@link ReadDnsQueueAction} which dispatches each batch to be
+   * published by each DNS writer on the TLD. So this field contains the value of one of the DNS
+   * writers configured in {@link Registry#getDnsWriters()}, as of the time the batch was written
+   * out (and not necessarily currently).
+   */
+  // TODO(b/63385597): Make this non-optional DNS once writers migration is complete.
+  @Inject @Parameter(PARAM_DNS_WRITER) Optional<String> dnsWriter;
+
+  @Inject @Parameter(PARAM_DOMAINS) Set<String> domains;
+  @Inject @Parameter(PARAM_HOSTS) Set<String> hosts;
+  @Inject @Parameter(PARAM_TLD) String tld;
   @Inject PublishDnsUpdatesAction() {}
 
   /** Runs the task. */
@@ -80,7 +95,12 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
 
   /** Steps through the domain and host refreshes contained in the parameters and processes them. */
   private void processBatch() {
-    try (DnsWriter writer = dnsWriterProxy.getForTld(tld)) {
+    // TODO(b/63385597): After all old DNS task queue items that did not have a DNS writer on them
+    // are finished being processed, then remove handling for when dnsWriter is absent.
+    try (DnsWriter writer =
+        (dnsWriter.isPresent())
+            ? dnsWriterProxy.getByClassNameForTld(dnsWriter.get(), tld)
+            : dnsWriterProxy.getForTld(tld)) {
       for (String domain : nullToEmpty(domains)) {
         if (!DomainNameUtils.isUnder(
             InternetDomainName.from(domain), InternetDomainName.from(tld))) {
