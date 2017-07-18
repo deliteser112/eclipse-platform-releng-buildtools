@@ -18,13 +18,14 @@ import static google.registry.mapreduce.MapreduceRunner.PARAM_DRY_RUN;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.util.PipelineUtils.createJobPath;
+import static java.lang.Boolean.FALSE;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterators;
+import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import google.registry.config.RegistryConfig.Config;
@@ -94,7 +95,7 @@ public final class DeleteOldCommitLogsAction implements Runnable {
           .setDefaultReduceShards(NUM_REDUCE_SHARDS)
           .runMapreduce(
               new DeleteOldCommitLogsMapper(),
-              new DeleteOldCommitLogsReducer(isDryRun),
+              new DeleteOldCommitLogsReducer(deletionThreshold, isDryRun),
               ImmutableList.of(
                   new CommitLogManifestInput(Optional.of(deletionThreshold)),
                   EppResourceInputs.createEntityInput(EppResource.class)))));
@@ -146,11 +147,13 @@ public final class DeleteOldCommitLogsAction implements Runnable {
   private static class DeleteOldCommitLogsReducer
       extends Reducer<Key<CommitLogManifest>, Boolean, Void> {
 
-    private static final long serialVersionUID = -5122986392078633220L;
+    private static final long serialVersionUID = -4918760187627937268L;
 
+    private final DateTime deletionThreshold;
     private final boolean isDryRun;
 
-    DeleteOldCommitLogsReducer(boolean isDryRun) {
+    DeleteOldCommitLogsReducer(DateTime deletionThreshold, boolean isDryRun) {
+      this.deletionThreshold = deletionThreshold;
       this.isDryRun = isDryRun;
     }
 
@@ -158,8 +161,13 @@ public final class DeleteOldCommitLogsAction implements Runnable {
     public void reduce(
         final Key<CommitLogManifest> manifestKey,
         ReducerInput<Boolean> canDeleteVerdicts) {
-      if (Iterators.contains(canDeleteVerdicts, false)) {
+      if (ImmutableSet.copyOf(canDeleteVerdicts).contains(FALSE)) {
         getContext().incrementCounter("old commit log manifests still referenced");
+        return;
+      }
+      if (ofy().load().key(manifestKey).now().getCommitTime().isAfter(deletionThreshold)) {
+        logger.severefmt("Won't delete CommitLogManifest %s that is too recent.", manifestKey);
+        getContext().incrementCounter("manifests incorrectly assigned for deletion (SEE LOGS)");
         return;
       }
       Integer deletedCount = ofy().transact(new Work<Integer>() {
