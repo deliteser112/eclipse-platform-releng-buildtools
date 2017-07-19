@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
-import static com.google.common.collect.Iterables.getOnlyElement;
 import static google.registry.config.RegistryConfig.getSingletonCacheRefreshDuration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -50,7 +49,6 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Mapify;
-import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
 import google.registry.model.Buildable;
@@ -267,18 +265,6 @@ public class Registry extends ImmutableObject implements Buildable {
   String pricingEngineClassName;
 
   /**
-   * The name of the DnsWriter that this TLD uses.
-   *
-   * <p>This must be a valid key for the map of DnsWriters injected by <code>
-   * @Inject Map<String, DnsWriter></code>
-   *
-   * @deprecated by dnsWriters
-   */
-  // TODO(b/63385623): Delete this field when the data migration is complete.
-  @Deprecated
-  String dnsWriter;
-
-  /**
    * The set of name(s) of the {@code DnsWriter} implementations that this TLD uses.
    *
    * <p>There must be at least one entry in this set.
@@ -287,13 +273,6 @@ public class Registry extends ImmutableObject implements Buildable {
    * <code>@Inject Map<String, DnsWriter></code>
    */
   Set<String> dnsWriters;
-
-  @OnLoad
-  public void migrateDnsWriters() {
-    if (dnsWriter == null) {
-      dnsWriter = getOnlyElement(dnsWriters);
-    }
-  }
 
   /**
    * The unicode-aware representation of the TLD associated with this {@link Registry}.
@@ -611,11 +590,6 @@ public class Registry extends ImmutableObject implements Buildable {
     return pricingEngineClassName;
   }
 
-  @Deprecated
-  public String getDnsWriter() {
-    return getOnlyElement(dnsWriters);
-  }
-
   public ImmutableSet<String> getDnsWriters() {
     return ImmutableSet.copyOf(dnsWriters);
   }
@@ -703,9 +677,9 @@ public class Registry extends ImmutableObject implements Buildable {
     }
 
     public Builder setDnsWriters(ImmutableSet<String> dnsWriters) {
+      // TODO(b/63385597): Remove this restriction once DNS task queue migration is complete.
       checkArgument(dnsWriters.size() == 1, "Multiple DNS writers are not yet supported");
       getInstance().dnsWriters = dnsWriters;
-      getInstance().dnsWriter = getOnlyElement(dnsWriters);
       return this;
     }
 
@@ -972,9 +946,6 @@ public class Registry extends ImmutableObject implements Buildable {
           "All EAP fees must be in the registry's currency");
       checkArgumentNotNull(
           instance.pricingEngineClassName, "All registries must have a configured pricing engine");
-      checkArgumentNotNull(
-          instance.dnsWriter,
-          "A DNS writer must be specified. VoidDnsWriter can be used if DNS writing isn't wanted");
       checkArgument(
           instance.dnsWriters != null && !instance.dnsWriters.isEmpty(),
           "At least one DNS writer must be specified."

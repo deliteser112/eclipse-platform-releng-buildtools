@@ -59,7 +59,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
     persistReservedList("xn--q9jyb4c_r1", "foo,FULLY_BLOCKED");
     persistReservedList("xn--q9jyb4c_r2", "moop,FULLY_BLOCKED");
     createTld("xn--q9jyb4c");
-    command.dnsWriterNames = ImmutableSet.of("VoidDnsWriter", "FooDnsWriter");
+    command.validDnsWriterNames = ImmutableSet.of("VoidDnsWriter", "FooDnsWriter");
   }
 
   @Test
@@ -176,12 +176,16 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
 
   @Test
   public void testSuccess_dnsWriter() throws Exception {
-    assertThat(Registry.get("xn--q9jyb4c").getDnsWriter()).isEqualTo("VoidDnsWriter");
     assertThat(Registry.get("xn--q9jyb4c").getDnsWriters()).containsExactly("VoidDnsWriter");
 
-    runCommandForced("--dns_writer=FooDnsWriter", "xn--q9jyb4c");
-    assertThat(Registry.get("xn--q9jyb4c").getDnsWriter()).isEqualTo("FooDnsWriter");
+    runCommandForced("--dns_writers=FooDnsWriter", "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getDnsWriters()).containsExactly("FooDnsWriter");
+  }
+
+  @Test
+  public void testFailure_multipleDnsWritersNotYetSupported() throws Exception {
+    thrown.expect(IllegalArgumentException.class, "Multiple DNS writers are not yet supported");
+    runCommandForced("--dns_writers=FooDnsWriter,VoidDnsWriter", "xn--q9jyb4c");
   }
 
   @Test
@@ -653,8 +657,8 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_specifiedDnsWriter_doesntExist() throws Exception {
     thrown.expect(
-        IllegalArgumentException.class, "The DNS writer 'InvalidDnsWriter' doesn't exist");
-    runCommandForced("xn--q9jyb4c", "--dns_writer=InvalidDnsWriter");
+        IllegalArgumentException.class, "Invalid DNS writer name(s) specified: [InvalidDnsWriter]");
+    runCommandForced("xn--q9jyb4c", "--dns_writers=InvalidDnsWriter");
   }
 
   @Test

@@ -25,6 +25,8 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Sets;
 import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.Registries;
 import google.registry.model.registry.Registry;
@@ -51,7 +53,7 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
 
   @Inject
   @Named("dnsWriterNames")
-  Set<String> dnsWriterNames;
+  Set<String> validDnsWriterNames;
 
   @Parameter(description = "Names of the TLDs", required = true)
   List<String> mainParameters;
@@ -220,11 +222,9 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
 
   @Nullable
   @Parameter(
-    names = "--dns_writer",
-    description = "The name of the DnsWriter implementation to use",
-    converter = OptionalStringParameter.class,
-    validateWith = OptionalStringParameter.class)
-  Optional<String> dnsWriter;
+    names = "--dns_writers",
+    description = "A comma-separated list of DnsWriter implementations to use")
+  List<String> dnsWriters;
 
   @Nullable
   @Parameter(
@@ -388,12 +388,15 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
         }
       }
 
-      if (dnsWriter != null && dnsWriter.isPresent()) {
-          checkArgument(
-              dnsWriterNames.contains(dnsWriter.get()),
-              "The DNS writer '%s' doesn't exist",
-              dnsWriter.get());
-          builder.setDnsWriters(ImmutableSet.of(dnsWriter.get()));
+      if (dnsWriters != null) {
+        ImmutableSet<String> dnsWritersSet = ImmutableSet.copyOf(dnsWriters);
+        ImmutableSortedSet<String> invalidDnsWriters =
+            ImmutableSortedSet.copyOf(Sets.difference(dnsWritersSet, validDnsWriterNames));
+        checkArgument(
+            invalidDnsWriters.isEmpty(),
+            "Invalid DNS writer name(s) specified: %s",
+            invalidDnsWriters);
+        builder.setDnsWriters(dnsWritersSet);
       }
 
       if (lrpPeriod != null) {

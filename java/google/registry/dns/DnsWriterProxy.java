@@ -15,6 +15,7 @@
 package google.registry.dns;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.common.collect.ImmutableMap;
@@ -40,7 +41,7 @@ public final class DnsWriterProxy {
   // TODO(b/63385597): Delete this method after DNS writers migration is complete.
   @Deprecated
   public DnsWriter getForTld(String tld) {
-    return getByClassNameForTld(Registry.get(tld).getDnsWriter(), tld);
+    return getByClassNameForTld(getOnlyElement(Registry.get(tld).getDnsWriters()), tld);
   }
 
   /** Returns the instance of {@link DnsWriter} by class name. */

@@ -47,7 +47,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Before
   public void init() {
-    command.dnsWriterNames = ImmutableSet.of("FooDnsWriter", "BarDnsWriter", "VoidDnsWriter");
+    command.validDnsWriterNames = ImmutableSet.of("FooDnsWriter", "BarDnsWriter", "VoidDnsWriter");
     command.passwordGenerator = passwordGenerator;
     persistPremiumList("default_sandbox_list", "sandbox,USD 1000");
     persistPremiumList("alternate_list", "rich,USD 3000");
@@ -67,7 +67,6 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     assertThat(registry).isNotNull();
     assertThat(registry.getRoidSuffix()).isEqualTo(roidSuffix);
     assertThat(registry.getTldState(DateTime.now(UTC))).isEqualTo(tldState);
-    assertThat(registry.getDnsWriter()).isEqualTo(dnsWriter);
     assertThat(registry.getDnsWriters()).containsExactly(dnsWriter);
     assertThat(registry.getPremiumList()).isNotNull();
     assertThat(registry.getPremiumList().getName()).isEqualTo(premiumList);
@@ -111,7 +110,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "--certfile=" + getCertFilename());
 
     verifyTldCreation(
@@ -142,7 +141,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1,2.2.2.2",
         "--registrar=blobio",
-        "--dns_writer=FooDnsWriter",
+        "--dns_writers=FooDnsWriter",
         "--certfile=" + getCertFilename());
 
     verifyTldCreation(
@@ -175,7 +174,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
         "--certfile=" + getCertFilename(),
-        "--dns_writer=BarDnsWriter",
+        "--dns_writers=BarDnsWriter",
         "--premium_list=alternate_list");
 
     verifyTldCreation(
@@ -206,7 +205,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     thrown.expect(ParameterException.class, "option is required: -w, --ip_whitelist");
     runCommandForced(
         "--registrar=blobio",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
@@ -215,7 +214,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     thrown.expect(ParameterException.class, "option is required: -r, --registrar");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
@@ -224,13 +223,13 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     thrown.expect(ParameterException.class, "option is required: -c, --certfile");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "--registrar=blobio");
   }
 
   @Test
   public void testFailure_missingDnsWriter() throws Exception {
-    thrown.expect(ParameterException.class, "option is required: --dns_writer");
+    thrown.expect(ParameterException.class, "option is required: --dns_writers");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--certfile=" + getCertFilename(),
@@ -243,7 +242,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "--certfile=/dev/null");
   }
 
@@ -253,18 +252,18 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=3blobio",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
   @Test
   public void testFailure_invalidDnsWriter() throws Exception {
     thrown.expect(
-        IllegalArgumentException.class, "The DNS writer 'InvalidDnsWriter' doesn't exist");
+        IllegalArgumentException.class, "Invalid DNS writer name(s) specified: [InvalidDnsWriter]");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
-        "--dns_writer=InvalidDnsWriter",
+        "--dns_writers=InvalidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
@@ -274,7 +273,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=bl",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
@@ -284,7 +283,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobiotoooolong",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
@@ -294,7 +293,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blo#bio",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
@@ -304,7 +303,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "--certfile=" + getCertFilename(),
         "--premium_list=foo");
   }
@@ -316,7 +315,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 
@@ -331,7 +330,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "--certfile=" + getCertFilename());
   }
 }

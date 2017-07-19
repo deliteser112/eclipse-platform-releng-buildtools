@@ -56,7 +56,7 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
 
   @Inject
   @Named("dnsWriterNames")
-  Set<String> dnsWriterNames;
+  Set<String> validDnsWriterNames;
 
   @Parameter(
       names = {"-r", "--registrar"},
@@ -82,10 +82,10 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
   private Path certFile;
 
   @Parameter(
-      names = {"--dns_writer"},
-      description = "DNS writer to use on all TLDs",
+      names = {"--dns_writers"},
+      description = "comma separated list of DNS writers to use on all TLDs",
       required = true)
-  private String dnsWriter;
+  private List<String> dnsWriters;
 
   @Parameter(
       names = {"--premium_list"},
@@ -110,8 +110,8 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
       Duration pendingDeleteLength) throws Exception {
     CreateTldCommand command = new CreateTldCommand();
     command.addGracePeriod = addGracePeriod;
-    command.dnsWriter = Optional.of(dnsWriter);
-    command.dnsWriterNames = dnsWriterNames;
+    command.dnsWriters = dnsWriters;
+    command.validDnsWriterNames = validDnsWriterNames;
     command.force = force;
     command.initialTldState = initialTldState;
     command.mainParameters = ImmutableList.of(tldName);

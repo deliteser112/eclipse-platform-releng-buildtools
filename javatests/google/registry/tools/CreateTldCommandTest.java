@@ -52,13 +52,13 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     persistReservedList("tld_banned", "kilo,FULLY_BLOCKED", "lima,MISTAKEN_PREMIUM");
     persistReservedList("soy_expurgated", "fireflies,FULLY_BLOCKED");
     persistPremiumList("xn--q9jyb4c", "minecraft,USD 1000");
-    command.dnsWriterNames = ImmutableSet.of("VoidDnsWriter", "FooDnsWriter");
+    command.validDnsWriterNames = ImmutableSet.of("VoidDnsWriter", "FooDnsWriter");
   }
 
   @Test
   public void testSuccess() throws Exception {
     DateTime before = DateTime.now(UTC);
-    runCommandForced("xn--q9jyb4c", "--roid_suffix=Q9JYB4C", "--dns_writer=FooDnsWriter");
+    runCommandForced("xn--q9jyb4c", "--roid_suffix=Q9JYB4C", "--dns_writers=FooDnsWriter");
     DateTime after = DateTime.now(UTC);
 
     Registry registry = Registry.get("xn--q9jyb4c");
@@ -76,13 +76,13 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_multipleArguments() throws Exception {
     thrown.expect(IllegalArgumentException.class, "Can't create more than one TLD at a time");
-    runCommandForced("--roid_suffix=blah", "--dns_writer=VoidDnsWriter", "xn--q9jyb4c", "test");
+    runCommandForced("--roid_suffix=blah", "--dns_writers=VoidDnsWriter", "xn--q9jyb4c", "test");
   }
 
   @Test
   public void testFailure_multipleDuplicateArguments() throws Exception {
     thrown.expect(IllegalArgumentException.class, "Can't create more than one TLD at a time");
-    runCommandForced("--roid_suffix=blah", "--dns_writer=VoidDnsWriter", "test", "test");
+    runCommandForced("--roid_suffix=blah", "--dns_writers=VoidDnsWriter", "test", "test");
   }
 
   @Test
@@ -90,7 +90,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--initial_tld_state=GENERAL_AVAILABILITY",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getTldState(DateTime.now(UTC)))
         .isEqualTo(TldState.GENERAL_AVAILABILITY);
@@ -101,7 +101,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--initial_renew_billing_cost=\"USD 42.42\"",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getStandardRenewCost(DateTime.now(UTC)))
         .isEqualTo(Money.of(USD, 42.42));
@@ -118,7 +118,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
             now.toString(DATETIME_FORMAT),
             tomorrow.toString(DATETIME_FORMAT)),
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
 
     Registry registry = Registry.get("xn--q9jyb4c");
@@ -135,28 +135,28 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--add_grace_period=PT300S",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getAddGracePeriodLength()).isEqualTo(standardMinutes(5));
   }
 
   @Test
   public void testSuccess_roidSuffixWorks() throws Exception {
-    runCommandForced("--roid_suffix=RSUFFIX", "--dns_writer=VoidDnsWriter", "tld");
+    runCommandForced("--roid_suffix=RSUFFIX", "--dns_writers=VoidDnsWriter", "tld");
     assertThat(Registry.get("tld").getRoidSuffix()).isEqualTo("RSUFFIX");
   }
 
   @Test
   public void testSuccess_escrow() throws Exception {
     runCommandForced(
-        "--escrow=true", "--roid_suffix=Q9JYB4C", "--dns_writer=VoidDnsWriter", "xn--q9jyb4c");
+        "--escrow=true", "--roid_suffix=Q9JYB4C", "--dns_writers=VoidDnsWriter", "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getEscrowEnabled()).isTrue();
   }
 
   @Test
   public void testSuccess_noEscrow() throws Exception {
     runCommandForced(
-        "--escrow=false", "--roid_suffix=Q9JYB4C", "--dns_writer=VoidDnsWriter", "xn--q9jyb4c");
+        "--escrow=false", "--roid_suffix=Q9JYB4C", "--dns_writers=VoidDnsWriter", "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getEscrowEnabled()).isFalse();
   }
 
@@ -165,7 +165,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--redemption_grace_period=PT300S",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getRedemptionGracePeriodLength())
         .isEqualTo(standardMinutes(5));
@@ -176,7 +176,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--pending_delete_length=PT300S",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getPendingDeleteLength()).isEqualTo(standardMinutes(5));
   }
@@ -186,7 +186,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--automatic_transfer_length=PT300S",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getAutomaticTransferLength())
         .isEqualTo(standardMinutes(5));
@@ -197,7 +197,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--create_billing_cost=\"USD 42.42\"",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getStandardCreateCost()).isEqualTo(Money.of(USD, 42.42));
   }
@@ -207,7 +207,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--restore_billing_cost=\"USD 42.42\"",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getStandardRestoreCost())
         .isEqualTo(Money.of(USD, 42.42));
@@ -218,7 +218,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--server_status_change_cost=\"USD 42.42\"",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getServerStatusChangeCost())
         .isEqualTo(Money.of(USD, 42.42));
@@ -232,7 +232,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "--initial_renew_billing_cost=\"JPY 101112\"",
         "--server_status_change_cost=\"JPY 97865\"",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     Registry registry = Registry.get("xn--q9jyb4c");
     assertThat(registry.getStandardCreateCost()).isEqualTo(Money.ofMajor(JPY, 12345));
@@ -242,7 +242,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testSuccess_multipartTld() throws Exception {
-    runCommandForced("co.uk", "--roid_suffix=COUK", "--dns_writer=VoidDnsWriter");
+    runCommandForced("co.uk", "--roid_suffix=COUK", "--dns_writers=VoidDnsWriter");
 
     Registry registry = Registry.get("co.uk");
     assertThat(registry.getTldState(new DateTime())).isEqualTo(TldState.PREDELEGATION);
@@ -257,7 +257,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--reserved_lists=xn--q9jyb4c_abuse,common_abuse",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(transform(Registry.get("xn--q9jyb4c").getReservedLists(), GET_NAME_FUNCTION))
         .containsExactly("xn--q9jyb4c_abuse", "common_abuse");
@@ -268,7 +268,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--lrp_period=2004-06-09T12:30:00Z/2004-07-10T13:30:00Z",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getLrpPeriod()).isEqualTo(
         new Interval(
@@ -280,7 +280,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--premium_price_ack_required=true",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getPremiumPriceAckRequired()).isTrue();
   }
@@ -291,7 +291,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--add_grace_period=5m",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
   }
 
@@ -301,7 +301,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--redemption_grace_period=5m",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
   }
 
@@ -311,7 +311,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--pending_delete_length=5m",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
   }
 
@@ -321,7 +321,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--initial_tld_state=INVALID_STATE",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
   }
 
@@ -334,7 +334,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         String.format("--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE", now, now.plus(1)),
         "--initial_tld_state=GENERAL_AVAILABILITY",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
   }
 
@@ -344,7 +344,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--initial_renew_billing_cost=USD -42",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
   }
 
@@ -356,7 +356,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         String.format(
             "--eap_fee_schedule=\"%s=JPY 123456\"", START_OF_TIME.toString(DATETIME_FORMAT)),
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
   }
 
@@ -368,21 +368,21 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testFailure_noDnsWriter() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "A DNS writer must be specified");
-    runCommandForced("xn--q9jyb4c",  "--roid_suffix=Q9JYB4C");
+    thrown.expect(IllegalArgumentException.class, "At least one DNS writer must be specified");
+    runCommandForced("xn--q9jyb4c", "--roid_suffix=Q9JYB4C");
   }
 
   @Test
   public void testFailure_alreadyExists() throws Exception {
     createTld("xn--q9jyb4c");
     thrown.expect(IllegalStateException.class, "TLD 'xn--q9jyb4c' already exists");
-    runCommandForced("--roid_suffix=NOTDUPE", "--dns_writer=VoidDnsWriter", "xn--q9jyb4c");
+    runCommandForced("--roid_suffix=NOTDUPE", "--dns_writers=VoidDnsWriter", "xn--q9jyb4c");
   }
 
   @Test
   public void testFailure_tldStartsWithDigit() throws Exception {
     thrown.expect(IllegalArgumentException.class, "TLDs cannot begin with a number");
-    runCommandForced("1foo", "--roid_suffix=1FOO", "--dns_writer=VoidDnsWriter");
+    runCommandForced("1foo", "--roid_suffix=1FOO", "--dns_writers=VoidDnsWriter");
   }
 
   @Test
@@ -390,7 +390,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--allowed_registrants=alice,bob",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getAllowedRegistrantContactIds())
         .containsExactly("alice", "bob");
@@ -401,7 +401,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--allowed_nameservers=ns1.example.com,ns2.example.com",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=FooDnsWriter",
+        "--dns_writers=FooDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getAllowedFullyQualifiedHostNames())
         .containsExactly("ns1.example.com", "ns2.example.com");
@@ -412,7 +412,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--domain_create_restricted=true",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=FooDnsWriter",
+        "--dns_writers=FooDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getDomainCreateRestricted()).isTrue();
   }
@@ -490,7 +490,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--premium_list=xn--q9jyb4c",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=FooDnsWriter",
+        "--dns_writers=FooDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getPremiumList().getName()).isEqualTo("xn--q9jyb4c");
   }
@@ -500,7 +500,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--drive_folder_id=madmax2030",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getDriveFolderId()).isEqualTo("madmax2030");
   }
@@ -510,7 +510,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--drive_folder_id=null",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getDriveFolderId()).isNull();
   }
@@ -521,7 +521,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--premium_list=phonies",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
   }
 
@@ -533,7 +533,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--lrp_period=2005-06-09T12:30:00Z/2004-07-10T13:30:00Z",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
   }
 
@@ -543,15 +543,16 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     runCommandForced(
         "--lrp_period=foobar",
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
   }
 
   @Test
-  public void testFailure_specifiedDnsWriter_doesntExist() throws Exception {
+  public void testFailure_specifiedDnsWriters_dontExist() throws Exception {
     thrown.expect(
-        IllegalArgumentException.class, "The DNS writer 'InvalidDnsWriter' doesn't exist");
-    runCommandForced("xn--q9jyb4c", "--roid_suffix=Q9JYB4C", "--dns_writer=InvalidDnsWriter");
+        IllegalArgumentException.class,
+        "Invalid DNS writer name(s) specified: [Deadbeef, Invalid]");
+    runCommandForced("xn--q9jyb4c", "--roid_suffix=Q9JYB4C", "--dns_writers=Invalid,Deadbeef");
   }
 
   private void runSuccessfulReservedListsTest(String reservedLists) throws Exception {
@@ -559,7 +560,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "--reserved_lists",
         reservedLists,
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
   }
 
@@ -569,7 +570,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "--reserved_lists",
         reservedLists,
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
   }
 
@@ -581,7 +582,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "--reserved_lists",
         reservedLists,
         "--roid_suffix=Q9JYB4C",
-        "--dns_writer=VoidDnsWriter",
+        "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
   }
 }
