@@ -80,29 +80,26 @@ import org.joda.time.Interval;
 @Entity
 public class Registry extends ImmutableObject implements Buildable {
 
-  @Parent
-  Key<EntityGroupRoot> parent = getCrossTldKey();
+  @Parent Key<EntityGroupRoot> parent = getCrossTldKey();
 
   /**
-   * The canonical string representation of the TLD associated with this {@link Registry}, which
-   * is the standard ASCII for regular TLDs and punycoded ASCII for IDN TLDs.
+   * The canonical string representation of the TLD associated with this {@link Registry}, which is
+   * the standard ASCII for regular TLDs and punycoded ASCII for IDN TLDs.
    */
-  @Id
-  String tldStrId;
+  @Id String tldStrId;
 
   /**
    * A duplicate of {@link #tldStrId}, to simplify BigQuery reporting since the id field becomes
-   * {@code  __key__.name} rather than being exported as a named field.
+   * {@code __key__.name} rather than being exported as a named field.
    */
   String tldStr;
 
-  /**
-   * The suffix that identifies roids as belonging to this specific tld, e.g. -HOW for .how.
-   */
+  /** The suffix that identifies roids as belonging to this specific tld, e.g. -HOW for .how. */
   String roidSuffix;
 
   /** Default values for all the relevant TLD parameters. */
   public static final TldState DEFAULT_TLD_STATE = TldState.PREDELEGATION;
+
   public static final boolean DEFAULT_ESCROW_ENABLED = false;
   public static final boolean DEFAULT_DNS_PAUSED = false;
   public static final Duration DEFAULT_ADD_GRACE_PERIOD = Duration.standardDays(5);
@@ -131,7 +128,7 @@ public class Registry extends ImmutableObject implements Buildable {
   }
 
   /**
-   * The states a TLD can be in at any given point in time.  The ordering below is the required
+   * The states a TLD can be in at any given point in time. The ordering below is the required
    * sequence of states (ignoring {@link #PDT} which is a pseudo-state).
    */
   public enum TldState {
@@ -139,15 +136,15 @@ public class Registry extends ImmutableObject implements Buildable {
     PREDELEGATION,
 
     /**
-     * The state in which only trademark holders can submit applications for domains.  Doing so
+     * The state in which only trademark holders can submit applications for domains. Doing so
      * requires a claims notice to be submitted with the application.
-     * */
+     */
     SUNRISE,
 
     /**
      * The state representing the overlap of {@link #SUNRISE} with a "landrush" state in which
-     * anyone can submit an application for a domain name.  Sunrise applications may continue
-     * during landrush, so we model the overlap as a distinct state named "sunrush".
+     * anyone can submit an application for a domain name. Sunrise applications may continue during
+     * landrush, so we model the overlap as a distinct state named "sunrush".
      */
     SUNRUSH,
 
@@ -158,9 +155,9 @@ public class Registry extends ImmutableObject implements Buildable {
     LANDRUSH,
 
     /**
-     * A state in which no domain operations are permitted.  Generally used after sunrise or
-     * landrush to allocate uncontended applications and send contended applications to auction.
-     * This state is special in that it has no ordering constraints and can appear after any phase.
+     * A state in which no domain operations are permitted. Generally used after sunrise or landrush
+     * to allocate uncontended applications and send contended applications to auction. This state
+     * is special in that it has no ordering constraints and can appear after any phase.
      */
     QUIET_PERIOD,
 
@@ -175,8 +172,8 @@ public class Registry extends ImmutableObject implements Buildable {
   }
 
   /**
-   * A transition to a TLD state at a specific time, for use in a TimedTransitionProperty.
-   * Public because AppEngine's security manager requires this for instantiation via reflection.
+   * A transition to a TLD state at a specific time, for use in a TimedTransitionProperty. Public
+   * because AppEngine's security manager requires this for instantiation via reflection.
    */
   @Embed
   public static class TldStateTransition extends TimedTransition<TldState> {
@@ -238,26 +235,32 @@ public class Registry extends ImmutableObject implements Buildable {
   private static final LoadingCache<String, Optional<Registry>> CACHE =
       CacheBuilder.newBuilder()
           .expireAfterWrite(getSingletonCacheRefreshDuration().getMillis(), MILLISECONDS)
-          .build(new CacheLoader<String, Optional<Registry>>() {
-              @Override
-              public Optional<Registry> load(final String tld) {
-                // Enter a transactionless context briefly; we don't want to enroll every TLD in a
-                // transaction that might be wrapping this call.
-                return Optional.fromNullable(ofy().doTransactionless(new Work<Registry>() {
-                    @Override
-                    public Registry run() {
-                      return ofy()
-                          .load()
-                          .key(Key.create(getCrossTldKey(), Registry.class, tld))
-                          .now();
-                    }}));
-              }});
+          .build(
+              new CacheLoader<String, Optional<Registry>>() {
+                @Override
+                public Optional<Registry> load(final String tld) {
+                  // Enter a transactionless context briefly; we don't want to enroll every TLD in a
+                  // transaction that might be wrapping this call.
+                  return Optional.fromNullable(
+                      ofy()
+                          .doTransactionless(
+                              new Work<Registry>() {
+                                @Override
+                                public Registry run() {
+                                  return ofy()
+                                      .load()
+                                      .key(Key.create(getCrossTldKey(), Registry.class, tld))
+                                      .now();
+                                }
+                              }));
+                }
+              });
 
   /**
    * The name of the pricing engine that this TLD uses.
    *
-   * <p>This must be a valid key for the map of pricing engines injected by
-   * {@code @Inject Map<String, PricingEngine>}.
+   * <p>This must be a valid key for the map of pricing engines injected by {@code @Inject
+   * Map<String, PricingEngine>}.
    *
    * <p>Note that it used to be the canonical class name, hence the name of this field, but this
    * restriction has since been relaxed and it may now be any unique string.
@@ -277,8 +280,8 @@ public class Registry extends ImmutableObject implements Buildable {
   /**
    * The unicode-aware representation of the TLD associated with this {@link Registry}.
    *
-   * <p>This will be equal to {@link #tldStr} for ASCII TLDs, but will be non-ASCII for IDN TLDs.
-   * We store this in a field so that it will be retained upon import into BigQuery.
+   * <p>This will be equal to {@link #tldStr} for ASCII TLDs, but will be non-ASCII for IDN TLDs. We
+   * store this in a field so that it will be retained upon import into BigQuery.
    */
   String tldUnicode;
 
@@ -373,21 +376,19 @@ public class Registry extends ImmutableObject implements Buildable {
    * list of BillingCostTransition embedded objects using the @Mapify annotation.
    *
    * <p>A given value of this property represents the per-year billing cost for renewing a domain
-   * name.  This cost is also used to compute costs for transfers, since each transfer includes a
+   * name. This cost is also used to compute costs for transfers, since each transfer includes a
    * renewal to ensure transfers have a cost.
    */
   @Mapify(TimedTransitionProperty.TimeMapper.class)
   TimedTransitionProperty<Money, BillingCostTransition> renewBillingCostTransitions =
       TimedTransitionProperty.forMapify(DEFAULT_RENEW_BILLING_COST, BillingCostTransition.class);
 
-  /**
-   * A property that tracks the EAP fee schedule (if any) for the TLD.
-   */
+  /** A property that tracks the EAP fee schedule (if any) for the TLD. */
   @Mapify(TimedTransitionProperty.TimeMapper.class)
   TimedTransitionProperty<Money, BillingCostTransition> eapFeeSchedule =
       TimedTransitionProperty.forMapify(DEFAULT_EAP_BILLING_COST, BillingCostTransition.class);
 
-  /** Marksdb LORDN service username (password is stored in Keyring)  */
+  /** Marksdb LORDN service username (password is stored in Keyring) */
   String lordnUsername;
 
   /** The end of the claims period (at or after this time, claims no longer applies). */
@@ -432,7 +433,7 @@ public class Registry extends ImmutableObject implements Buildable {
   }
 
   /**
-   * Retrieve the TLD state at the given time.  Defaults to {@link TldState#PREDELEGATION}.
+   * Retrieve the TLD state at the given time. Defaults to {@link TldState#PREDELEGATION}.
    *
    * <p>Note that {@link TldState#PDT} TLDs pretend to be in {@link TldState#GENERAL_AVAILABILITY}.
    */
@@ -545,9 +546,7 @@ public class Registry extends ImmutableObject implements Buildable {
     return renewBillingCostTransitions.getValueAtTime(now);
   }
 
-  /**
-   * Returns the cost of a server status change (i.e. lock).
-   */
+  /** Returns the cost of a server status change (i.e. lock). */
   public Money getServerStatusChangeCost() {
     return serverStatusChangeBillingCost;
   }
@@ -560,16 +559,15 @@ public class Registry extends ImmutableObject implements Buildable {
     return renewBillingCostTransitions.toValueMap();
   }
 
-  /**
-   * Returns the EAP fee for the registry at the given time.
-   */
+  /** Returns the EAP fee for the registry at the given time. */
   public Fee getEapFeeFor(DateTime now) {
     ImmutableSortedMap<DateTime, Money> valueMap = eapFeeSchedule.toValueMap();
     DateTime periodStart = valueMap.floorKey(now);
     DateTime periodEnd = valueMap.ceilingKey(now);
     // NOTE: assuming END_OF_TIME would never be reached...
-    Range<DateTime> validPeriod = Range.closedOpen(
-        periodStart != null ? periodStart : START_OF_TIME,
+    Range<DateTime> validPeriod =
+        Range.closedOpen(
+            periodStart != null ? periodStart : START_OF_TIME,
             periodEnd != null ? periodEnd : END_OF_TIME);
     return Fee.create(
         eapFeeSchedule.getValueAtTime(now).getAmount(),
@@ -604,7 +602,7 @@ public class Registry extends ImmutableObject implements Buildable {
 
   public Interval getLrpPeriod() {
     return (lrpPeriodStart == null && lrpPeriodEnd == null)
-        ? new Interval(START_OF_TIME, Duration.ZERO)  // An empty duration.
+        ? new Interval(START_OF_TIME, Duration.ZERO) // An empty duration.
         : new Interval(lrpPeriodStart, lrpPeriodEnd);
   }
 
@@ -627,13 +625,14 @@ public class Registry extends ImmutableObject implements Buildable {
     }
 
     /** Sets the TLD state to transition to the specified states at the specified times. */
-    public Builder setTldStateTransitions(
-        ImmutableSortedMap<DateTime, TldState> tldStatesMap) {
+    public Builder setTldStateTransitions(ImmutableSortedMap<DateTime, TldState> tldStatesMap) {
       checkNotNull(tldStatesMap, "TLD states map cannot be null");
       // Filter out any entries with QUIET_PERIOD as the value before checking for ordering, since
       // that phase is allowed to appear anywhere.
-      checkArgument(Ordering.natural().isStrictlyOrdered(
-          Iterables.filter(tldStatesMap.values(), not(equalTo(TldState.QUIET_PERIOD)))),
+      checkArgument(
+          Ordering.natural()
+              .isStrictlyOrdered(
+                  Iterables.filter(tldStatesMap.values(), not(equalTo(TldState.QUIET_PERIOD)))),
           "The TLD states are chronologically out of order");
       getInstance().tldStateTransitions =
           TimedTransitionProperty.fromValueMap(tldStatesMap, TldStateTransition.class);
@@ -684,14 +683,16 @@ public class Registry extends ImmutableObject implements Buildable {
     }
 
     public Builder setAddGracePeriodLength(Duration addGracePeriodLength) {
-      checkArgument(addGracePeriodLength.isLongerThan(Duration.ZERO),
+      checkArgument(
+          addGracePeriodLength.isLongerThan(Duration.ZERO),
           "addGracePeriodLength must be non-zero");
       getInstance().addGracePeriodLength = addGracePeriodLength;
       return this;
     }
 
     public Builder setSunrushAddGracePeriodLength(Duration sunrushAddGracePeriodLength) {
-      checkArgument(sunrushAddGracePeriodLength.isLongerThan(Duration.ZERO),
+      checkArgument(
+          sunrushAddGracePeriodLength.isLongerThan(Duration.ZERO),
           "sunrushAddGracePeriodLength must be non-zero");
       getInstance().sunrushAddGracePeriodLength = sunrushAddGracePeriodLength;
       return this;
@@ -699,43 +700,48 @@ public class Registry extends ImmutableObject implements Buildable {
 
     /** Warning! Changing this will affect the billing time of autorenew events in the past. */
     public Builder setAutoRenewGracePeriodLength(Duration autoRenewGracePeriodLength) {
-      checkArgument(autoRenewGracePeriodLength.isLongerThan(Duration.ZERO),
+      checkArgument(
+          autoRenewGracePeriodLength.isLongerThan(Duration.ZERO),
           "autoRenewGracePeriodLength must be non-zero");
       getInstance().autoRenewGracePeriodLength = autoRenewGracePeriodLength;
       return this;
     }
 
     public Builder setRedemptionGracePeriodLength(Duration redemptionGracePeriodLength) {
-      checkArgument(redemptionGracePeriodLength.isLongerThan(Duration.ZERO),
+      checkArgument(
+          redemptionGracePeriodLength.isLongerThan(Duration.ZERO),
           "redemptionGracePeriodLength must be non-zero");
       getInstance().redemptionGracePeriodLength = redemptionGracePeriodLength;
       return this;
     }
 
     public Builder setRenewGracePeriodLength(Duration renewGracePeriodLength) {
-      checkArgument(renewGracePeriodLength.isLongerThan(Duration.ZERO),
+      checkArgument(
+          renewGracePeriodLength.isLongerThan(Duration.ZERO),
           "renewGracePeriodLength must be non-zero");
       getInstance().renewGracePeriodLength = renewGracePeriodLength;
       return this;
     }
 
     public Builder setTransferGracePeriodLength(Duration transferGracePeriodLength) {
-      checkArgument(transferGracePeriodLength.isLongerThan(Duration.ZERO),
+      checkArgument(
+          transferGracePeriodLength.isLongerThan(Duration.ZERO),
           "transferGracePeriodLength must be non-zero");
       getInstance().transferGracePeriodLength = transferGracePeriodLength;
       return this;
     }
 
     public Builder setAutomaticTransferLength(Duration automaticTransferLength) {
-      checkArgument(automaticTransferLength.isLongerThan(Duration.ZERO),
+      checkArgument(
+          automaticTransferLength.isLongerThan(Duration.ZERO),
           "automaticTransferLength must be non-zero");
       getInstance().automaticTransferLength = automaticTransferLength;
       return this;
     }
 
     public Builder setPendingDeleteLength(Duration pendingDeleteLength) {
-      checkArgument(pendingDeleteLength.isLongerThan(Duration.ZERO),
-          "pendingDeleteLength must be non-zero");
+      checkArgument(
+          pendingDeleteLength.isLongerThan(Duration.ZERO), "pendingDeleteLength must be non-zero");
       getInstance().pendingDeleteLength = pendingDeleteLength;
       return this;
     }
@@ -796,11 +802,13 @@ public class Registry extends ImmutableObject implements Buildable {
       }
       ImmutableSet<Entry<String, Collection<String>>> conflicts =
           FluentIterable.from(allAuthCodes.asMap().entrySet())
-              .filter(new Predicate<Entry<String, Collection<String>>>() {
-                @Override
-                public boolean apply(Entry<String, Collection<String>> entry) {
-                  return entry.getValue().size() > 1;
-                }})
+              .filter(
+                  new Predicate<Entry<String, Collection<String>>>() {
+                    @Override
+                    public boolean apply(Entry<String, Collection<String>> entry) {
+                      return entry.getValue().size() > 1;
+                    }
+                  })
               .toSet();
       checkArgument(
           conflicts.isEmpty(),
@@ -830,32 +838,33 @@ public class Registry extends ImmutableObject implements Buildable {
     public Builder setRenewBillingCostTransitions(
         ImmutableSortedMap<DateTime, Money> renewCostsMap) {
       checkArgumentNotNull(renewCostsMap, "Renew billing costs map cannot be null");
-      checkArgument(Iterables.all(
-          renewCostsMap.values(),
-          new Predicate<Money>() {
-            @Override
-            public boolean apply(Money amount) {
-              return amount.isPositiveOrZero();
-            }}),
+      checkArgument(
+          Iterables.all(
+              renewCostsMap.values(),
+              new Predicate<Money>() {
+                @Override
+                public boolean apply(Money amount) {
+                  return amount.isPositiveOrZero();
+                }
+              }),
           "Renew billing cost cannot be negative");
       getInstance().renewBillingCostTransitions =
           TimedTransitionProperty.fromValueMap(renewCostsMap, BillingCostTransition.class);
       return this;
     }
 
-    /**
-     * Sets the EAP fee schedule for the TLD.
-     */
-    public Builder setEapFeeSchedule(
-        ImmutableSortedMap<DateTime, Money> eapFeeSchedule) {
+    /** Sets the EAP fee schedule for the TLD. */
+    public Builder setEapFeeSchedule(ImmutableSortedMap<DateTime, Money> eapFeeSchedule) {
       checkArgumentNotNull(eapFeeSchedule, "EAP schedule map cannot be null");
-      checkArgument(Iterables.all(
-          eapFeeSchedule.values(),
-          new Predicate<Money>() {
-            @Override
-            public boolean apply(Money amount) {
-              return amount.isPositiveOrZero();
-            }}),
+      checkArgument(
+          Iterables.all(
+              eapFeeSchedule.values(),
+              new Predicate<Money>() {
+                @Override
+                public boolean apply(Money amount) {
+                  return amount.isPositiveOrZero();
+                }
+              }),
           "EAP fee cannot be negative");
       getInstance().eapFeeSchedule =
           TimedTransitionProperty.fromValueMap(eapFeeSchedule, BillingCostTransition.class);
@@ -931,18 +940,18 @@ public class Registry extends ImmutableObject implements Buildable {
       checkArgument(
           instance.getServerStatusChangeCost().getCurrencyUnit().equals(instance.currency),
           "Server status change cost must be in the registry's currency");
-      Predicate<Money> currencyCheck = new Predicate<Money>(){
-          @Override
-          public boolean apply(Money money) {
-            return money.getCurrencyUnit().equals(instance.currency);
-          }};
+      Predicate<Money> currencyCheck =
+          new Predicate<Money>() {
+            @Override
+            public boolean apply(Money money) {
+              return money.getCurrencyUnit().equals(instance.currency);
+            }
+          };
       checkArgument(
-          Iterables.all(
-              instance.getRenewBillingCostTransitions().values(), currencyCheck),
+          Iterables.all(instance.getRenewBillingCostTransitions().values(), currencyCheck),
           "Renew cost must be in the registry's currency");
       checkArgument(
-          Iterables.all(
-              instance.eapFeeSchedule.toValueMap().values(), currencyCheck),
+          Iterables.all(instance.eapFeeSchedule.toValueMap().values(), currencyCheck),
           "All EAP fees must be in the registry's currency");
       checkArgumentNotNull(
           instance.pricingEngineClassName, "All registries must have a configured pricing engine");
@@ -957,7 +966,7 @@ public class Registry extends ImmutableObject implements Buildable {
   }
 
   /** Exception to throw when no Registry is found for a given tld. */
-  public static class RegistryNotFoundException extends RuntimeException{
+  public static class RegistryNotFoundException extends RuntimeException {
     RegistryNotFoundException(String tld) {
       super("No registry object found for " + tld);
     }
