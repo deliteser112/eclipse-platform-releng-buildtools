@@ -60,8 +60,8 @@ Updated 1 entities.
     testing purposes, where `REAL` identifies the TLD is a live TLD.
 *   `roid_suffix` is the suffix that will be used for repository ids of domains
     on the TLD. This suffix must be all uppercase and a maximum of eight ASCII
-    characters and can be set t the upper-case equivalent of our TLD name (if it
-    is 8 characters or fewer), such as "EXAMPLE." You can also abbreviate the
+    characters and can be set to the upper-case equivalent of our TLD name (if
+    it is 8 characters or fewer), such as "EXAMPLE." You can also abbreviate the
     upper-case TLD name down to 8 characters. Refer to the [gTLD Registry
     Advisory: Correction of non-compliant ROIDs][roids] for further information.
 
