@@ -160,8 +160,8 @@ To tie it all together, let's create a domain name that uses the above contact
 and host.
 
 ```shell
-$ nomulus -e alpha create_domain fake.example --client acme --admin abcd1234 \
-  --tech abcd1234 --registrant abcd1234 --nameservers ns1.google.com
+$ nomulus -e alpha create_domain fake.example --client acme --admins abcd1234 \
+  --techs abcd1234 --registrant abcd1234 --nameservers ns1.google.com
 [ ... snip EPP response ... ]
 ```
 
@@ -170,8 +170,8 @@ Where:
 *   `create_domain` is the subcommand to create a domain name. It accepts a
     whitespace-separted list of domain names to be created
 *   `--client` is used to define the registrar.
-*   `--admin` is the administrative contact's id.
-*   `--tech` is the technical contact's id.
+*   `--admins` is the administrative contact's id(s).
+*   `--techs` is the technical contact's id(s).
 *   `--registrant` is the registrant contact's id.
 *   `--nameservers` is a comma-separated list of hosts.
 
