@@ -7,6 +7,7 @@ licenses(["notice"])  # Apache 2.0
 java_library(
     name = "reporting",
     srcs = glob(["*.java"]),
+    resources = glob(["sql/*"]),
     deps = [
         "//java/google/registry/config",
         "//java/google/registry/gcs",
@@ -23,5 +24,6 @@ java_library(
         "@com_google_guava",
         "@com_google_http_client",
         "@javax_servlet_api",
+        "@joda_time",
     ],
 )

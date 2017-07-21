@@ -24,6 +24,7 @@ java_library(
         "@com_google_http_client",
         "@com_google_truth",
         "@javax_servlet_api",
+        "@joda_time",
         "@junit",
         "@org_mockito_all",
     ],
