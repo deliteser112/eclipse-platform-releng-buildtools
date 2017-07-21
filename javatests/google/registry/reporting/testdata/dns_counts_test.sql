@@ -14,20 +14,16 @@
 
   -- Query for DNS metrics.
 
-  -- Our DNS provider exports logs for all queries received. However, these
-  -- tables only have a TTL of 7 days. We make daily exports of the data
-  -- relevant to us, which allows us to get the full month's UDP and TCP
-  -- queries when generating activity reports.
+  -- This is a no-op until after we transition to Google Cloud DNS, which
+  -- will likely export metrics via Stackdriver.
 
 SELECT
   -- DNS metrics apply to all tlds, which requires the 'null' magic value.
   STRING(NULL) AS tld,
   metricName,
-  -- TODO(b/63388735): Change this to actually query the DNS tables when ready.
-  -1 AS count,
-FROM (
-  SELECT
-    'dns-udp-queries' AS metricName),
-  (
-  SELECT
-    'dns-tcp-queries' AS metricName)
+  -- TODO(b/63388735): Change this to actually query Google Cloud DNS when ready.
+  -1 AS count
+FROM ((
+  SELECT 'dns-udp-queries' AS metricName)
+  UNION ALL
+  (SELECT 'dns-tcp-queries' AS metricName))

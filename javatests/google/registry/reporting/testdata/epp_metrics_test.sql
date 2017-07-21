@@ -14,51 +14,44 @@
 
   -- Query FlowReporter JSON log messages and calculate SRS metrics.
 
-  -- We use regex's over the monthly appengine logs to determine how many
-  -- EPP requests we received for each command.
+  -- We use ugly regex's over the monthly appengine logs to determine how many
+  -- EPP requests we received for each command. For example:
+  -- {"commandType":"check"...,"targetIds":["ais.a.how"],
+  -- "tld":"","tlds":["a.how"],"icannActivityReportField":"srs-dom-check"}
 
 SELECT
-  tld,
+  -- Remove quotation marks from tld fields.
+  REGEXP_EXTRACT(tld, '^"(.*)"$') AS tld,
   activityReportField AS metricName,
-  -- Manual INTEGER cast to work around a BigQuery bug (b/14560012).
-  INTEGER(COUNT(*)) AS count,
-FROM
-  -- Flatten the "tld" column (repeated) so that domain checks for names
-  -- across multiple TLDs are counted towards each checked TLD as though
-  -- there were one copy of this row per TLD (the effect of flattening).
-  FLATTEN((
+  COUNT(*) AS count
+FROM (
+  SELECT
+    -- TODO(b/32486667): Replace with JSON.parse() UDF when available for views
+    SPLIT(
+    REGEXP_EXTRACT(JSON_EXTRACT(json, '$.tlds'), r'^\[(.*)\]$')) AS tlds,
+    JSON_EXTRACT_SCALAR(json,
+      '$.resourceType') AS resourceType,
+    JSON_EXTRACT_SCALAR(json,
+      '$.icannActivityReportField') AS activityReportField
+  FROM (
     SELECT
-      -- Use some ugly regex hackery to convert JSON list of strings into
-      -- repeated string values, since there's no built-in for this.
-      -- TODO(b/20829992): replace with "JSON.parse()" inside a JS UDF
-      --   once we can use GoogleSQL; example in b/37629674#comment2.
-      -- e.g. JSON:"{"commandType":"check"...,"targetIds":["ais.a.how"],
-      -- "tld":"","tlds":["a.how"],"icannActivityReportField":"srs-dom-check"}
-      REGEXP_EXTRACT(
-        SPLIT(
-          REGEXP_EXTRACT(
-            JSON_EXTRACT(json, '$.tlds'),
-            r'^\[(.*)\]$')),
-        '^"(.*)"$') AS tld,
-      -- TODO(b/XXX): remove rawTlds after June 2017 (see below).
-      JSON_EXTRACT_SCALAR(json, '$.resourceType') AS resourceType,
-      JSON_EXTRACT_SCALAR(json, '$.icannActivityReportField')
-        AS activityReportField,
-    FROM (
-      SELECT
-        -- Extract JSON payload following log signature.
-        REGEXP_EXTRACT(logMessage, r'FLOW-LOG-SIGNATURE-METADATA: (.*)\n?$')
-          AS json,
-      FROM
-        [monthly_logs.monthly_logs_table]
-      WHERE logMessage CONTAINS 'FLOW-LOG-SIGNATURE-METADATA'
-    )
-  ),
-  -- Second argument to flatten (see above).
-  tld)
--- Exclude cases that can't be tabulated correctly - activity report field
--- is null/empty, or the TLD is null/empty even though it's a domain flow.
+      -- Extract the logged JSON payload.
+      REGEXP_EXTRACT(logMessage, r'FLOW-LOG-SIGNATURE-METADATA: (.*)\n?$')
+      AS json
+    FROM `domain-registry-alpha.icann_reporting.monthly_logs` AS logs
+    JOIN
+      UNNEST(logs.logMessage) AS logMessage
+    WHERE
+      logMessage LIKE "%FLOW-LOG-SIGNATURE-METADATA%")) AS regexes
+JOIN
+  -- Unnest the JSON-parsed tlds.
+  UNNEST(regexes.tlds) AS tld
+-- Exclude cases that can't be tabulated correctly, where activityReportField
+-- is null/empty, or TLD is null/empty despite being a domain flow.
 WHERE
-  activityReportField != '' AND (tld != '' OR resourceType != 'domain')
-GROUP BY tld, metricName
-ORDER BY tld, metricName
+  activityReportField != ''
+  AND (tld != '' OR resourceType != 'domain')
+GROUP BY
+  tld, metricName
+ORDER BY
+  tld, metricName

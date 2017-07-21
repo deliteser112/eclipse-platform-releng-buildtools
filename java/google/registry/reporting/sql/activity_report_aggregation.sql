@@ -11,8 +11,10 @@
   -- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   -- See the License for the specific language governing permissions and
   -- limitations under the License.
+
   -- This query pulls from all intermediary tables to create the activity
   -- report csv, via a table transpose and sum over all activity report fields.
+
 SELECT
   Tld.tld AS tld,
   SUM(IF(metricName = 'operational-registrars', count, 0)) AS operational_registrars,
@@ -79,10 +81,10 @@ LEFT OUTER JOIN (
     metricName,
     count FROM
     -- BEGIN INTERMEDIARY DATA SOURCES --
-    [%ACTIVITY_REPORTING_DATA_SET%.%REGISTRAR_OPERATING_STATUS_TABLE%],
-    [%ACTIVITY_REPORTING_DATA_SET%.%DNS_COUNTS_TABLE%],
-    [%ACTIVITY_REPORTING_DATA_SET%.%EPP_METRICS_TABLE%],
-    [%ACTIVITY_REPORTING_DATA_SET%.%WHOIS_COUNTS_TABLE%],
+    [%ICANN_REPORTING_DATA_SET%.%REGISTRAR_OPERATING_STATUS_TABLE%],
+    [%ICANN_REPORTING_DATA_SET%.%DNS_COUNTS_TABLE%],
+    [%ICANN_REPORTING_DATA_SET%.%EPP_METRICS_TABLE%],
+    [%ICANN_REPORTING_DATA_SET%.%WHOIS_COUNTS_TABLE%],
     -- END INTERMEDIARY DATA SOURCES --
     ) AS TldMetrics
 ON

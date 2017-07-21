@@ -26,7 +26,7 @@ SELECT
     THEN 'pre-ramp-up-registrars'
   -- The import process is imprecise; filter out invalid rows.
   ELSE 'not-applicable' END AS metricName,
-  INTEGER(COUNT(registrar_id)) AS count
+  COUNT(registrar_id) AS count
 FROM
-  [registrar_data.registrar_status]
+  `domain-registry-alpha.registrar_data.registrar_status`
 GROUP BY metricName

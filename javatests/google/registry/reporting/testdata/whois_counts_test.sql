@@ -18,16 +18,15 @@
   -- counts the number of hits via both endpoints (port 43 and the web).
 
 SELECT
-  -- Whois applies to all TLDs, hence the 'null' magic value.
   STRING(NULL) AS tld,
-  -- Whois queries over port 43 get forwarded by the proxy to /_dr/whois,
-  -- while web queries come in via /whois/<params>.
   CASE
     WHEN requestPath = '/_dr/whois' THEN 'whois-43-queries'
-    WHEN LEFT(requestPath, 7) = '/whois/' THEN 'web-whois-queries'
+    WHEN SUBSTR(requestPath, 0, 7) = '/whois/' THEN 'web-whois-queries'
   END AS metricName,
-  INTEGER(COUNT(requestPath)) AS count,
+  COUNT(requestPath) AS count
 FROM
-  [monthly_logs.monthly_logs_table]
-GROUP BY metricName
-HAVING metricName IS NOT NULL
+  `domain-registry-alpha.monthly_logs.monthly_logs`
+GROUP BY
+  metricName
+HAVING
+  metricName IS NOT NULL

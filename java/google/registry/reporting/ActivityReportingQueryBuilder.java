@@ -20,7 +20,7 @@ import google.registry.util.ResourceUtils;
 import google.registry.util.SqlTemplate;
 import java.io.IOException;
 import java.net.URL;
-import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -30,28 +30,30 @@ import org.joda.time.format.DateTimeFormatter;
 public final class ActivityReportingQueryBuilder {
 
   // Names for intermediary tables for overall activity reporting query.
-  static final String ACTIVITY_REPORTING = "activity_reporting";
-  static final String MONTHLY_LOGS = "monthly_logs";
+  static final String ICANN_REPORTING_DATA_SET = "icann_reporting";
+  static final String MONTHLY_LOGS_TABLE = "monthly_logs";
   static final String REGISTRAR_OPERATING_STATUS = "registrar_operating_status";
   static final String DNS_COUNTS = "dns_counts";
   static final String EPP_METRICS = "epp_metrics";
   static final String WHOIS_COUNTS = "whois_counts";
 
   /** Sets the month we're doing activity reporting for, and initializes the query map. */
-  static ImmutableMap<String, String> getQueryMap(DateTime reportingMonth) throws IOException {
-    // Convert the DateTime reportingMonth into YYYY-MM-01 format for start and end of month
-    DateTimeFormatter formatter = DateTimeFormat.forPattern("YYYY-MM-01");
+  static ImmutableMap<String, String> getQueryMap(
+      LocalDate reportingMonth, String projectId) throws IOException {
+    // Convert reportingMonth into YYYYMM01 format for Bigquery table partition pattern-matching.
+    DateTimeFormatter formatter = DateTimeFormat.forPattern("YYYYMM01");
     String startOfMonth = formatter.print(reportingMonth);
     String endOfMonth = formatter.print(reportingMonth.plusMonths(1));
-    return createQueryMap(startOfMonth, endOfMonth);
+    return createQueryMap(startOfMonth, endOfMonth, projectId);
   }
 
   private static ImmutableMap<String, String> createQueryMap(
-      String startOfMonth, String endOfMonth) throws IOException {
+      String startOfMonth, String endOfMonth, String projectId) throws IOException {
 
     ImmutableMap.Builder<String, String> queriesBuilder = ImmutableMap.builder();
     String operationalRegistrarsQuery =
         SqlTemplate.create(getQueryFromFile("registrar_operating_status.sql"))
+            .put("PROJECT_ID", projectId)
             .put("REGISTRAR_DATA_SET", "registrar_data")
             .put("REGISTRAR_STATUS_TABLE", "registrar_status")
             .build();
@@ -65,29 +67,33 @@ public final class ActivityReportingQueryBuilder {
     // The monthly logs query is a shared dependency for epp counts and whois metrics
     String monthlyLogsQuery =
         SqlTemplate.create(getQueryFromFile("monthly_logs.sql"))
-            .put("START_OF_MONTH", startOfMonth).put("END_OF_MONTH", endOfMonth)
+            .put("PROJECT_ID", projectId)
             .put("APPENGINE_LOGS_DATA_SET", "appengine_logs")
             .put("REQUEST_TABLE", "appengine_googleapis_com_request_log_")
+            .put("START_OF_MONTH", startOfMonth)
+            .put("END_OF_MONTH", endOfMonth)
             .build();
     queriesBuilder.put("monthly_logs", monthlyLogsQuery);
 
     String eppQuery =
         SqlTemplate.create(getQueryFromFile("epp_metrics.sql"))
-            .put("MONTHLY_LOGS_DATA_SET", MONTHLY_LOGS)
-            .put("MONTHLY_LOGS_TABLE", MONTHLY_LOGS + "_table")
+            .put("PROJECT_ID", projectId)
+            .put("ICANN_REPORTING_DATA_SET", ICANN_REPORTING_DATA_SET)
+            .put("MONTHLY_LOGS_TABLE", MONTHLY_LOGS_TABLE)
             .build();
     queriesBuilder.put(EPP_METRICS, eppQuery);
 
     String whoisQuery =
         SqlTemplate.create(getQueryFromFile("whois_counts.sql"))
-            .put("MONTHLY_LOGS_DATA_SET", MONTHLY_LOGS)
-            .put("MONTHLY_LOGS_TABLE", MONTHLY_LOGS + "_table")
+            .put("PROJECT_ID", projectId)
+            .put("ICANN_REPORTING_DATA_SET", MONTHLY_LOGS_TABLE)
+            .put("MONTHLY_LOGS_TABLE", MONTHLY_LOGS_TABLE)
             .build();
     queriesBuilder.put(WHOIS_COUNTS, whoisQuery);
 
     String activityQuery =
         SqlTemplate.create(getQueryFromFile("activity_report_aggregation.sql"))
-            .put("ACTIVITY_REPORTING_DATA_SET", ACTIVITY_REPORTING)
+            .put("ICANN_REPORTING_DATA_SET", ICANN_REPORTING_DATA_SET)
             .put("REGISTRAR_OPERATING_STATUS_TABLE", REGISTRAR_OPERATING_STATUS)
             .put("DNS_COUNTS_TABLE", DNS_COUNTS)
             .put("EPP_METRICS_TABLE", EPP_METRICS)

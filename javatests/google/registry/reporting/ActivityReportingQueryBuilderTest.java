@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
-import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -34,7 +34,7 @@ public class ActivityReportingQueryBuilderTest {
         ImmutableList.of(
             ActivityReportingQueryBuilder.REGISTRAR_OPERATING_STATUS,
             ActivityReportingQueryBuilder.DNS_COUNTS,
-            ActivityReportingQueryBuilder.MONTHLY_LOGS,
+            ActivityReportingQueryBuilder.MONTHLY_LOGS_TABLE,
             ActivityReportingQueryBuilder.EPP_METRICS,
             ActivityReportingQueryBuilder.WHOIS_COUNTS,
             "activity_report_aggregation");
@@ -46,7 +46,8 @@ public class ActivityReportingQueryBuilderTest {
     }
     ImmutableMap<String, String> testQueries = testQueryBuilder.build();
     ImmutableMap<String, String> queries =
-        ActivityReportingQueryBuilder.getQueryMap(new DateTime(2017, 05, 15, 0, 0));
+        ActivityReportingQueryBuilder.getQueryMap(
+            new LocalDate(2017, 05, 15), "domain-registry-alpha");
     for (String query : queryNames) {
       assertThat(queries.get(query)).isEqualTo(testQueries.get(query));
     }

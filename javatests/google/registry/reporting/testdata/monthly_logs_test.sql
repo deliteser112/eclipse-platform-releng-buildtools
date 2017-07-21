@@ -14,15 +14,16 @@
 
   -- Query to fetch AppEngine request logs for the report month.
 
-  -- START_OF_MONTH and END_OF_MONTH should be in YYYY-MM-01 format.
+  -- START_OF_MONTH and END_OF_MONTH should be in YYYYMM01 format.
 
 SELECT
   protoPayload.resource AS requestPath,
-  protoPayload.line.logMessage AS logMessage,
+  ARRAY(
+  SELECT
+    logMessage
+  FROM
+    UNNEST(protoPayload.line)) AS logMessage
 FROM
-  TABLE_DATE_RANGE_STRICT(
-    [appengine_logs.appengine_googleapis_com_request_log_],
-    TIMESTAMP('2017-05-01'),
-    -- End timestamp is inclusive, so subtract 1 day from the
-    -- timestamp representing the start of the next month.
-    DATE_ADD(TIMESTAMP('2017-06-01'), -1, 'DAY'))
+  `domain-registry-alpha.appengine_logs.appengine_googleapis_com_request_log_*`
+WHERE
+  _TABLE_SUFFIX BETWEEN '20170501' AND '20170601'
