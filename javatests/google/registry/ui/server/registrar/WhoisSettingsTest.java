@@ -16,6 +16,7 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.base.Strings.repeat;
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static java.util.Arrays.asList;
 
 import com.google.common.collect.ImmutableList;
@@ -37,86 +38,90 @@ public class WhoisSettingsTest extends RegistrarSettingsActionTestCase {
 
   @Test
   public void testPost_update_success() throws Exception {
-    Registrar modified = Registrar.loadByClientId(CLIENT_ID).asBuilder()
-        .setEmailAddress("hello.kitty@example.com")
-        .setPhoneNumber("+1.2125650000")
-        .setFaxNumber("+1.2125650001")
-        .setReferralUrl("http://acme.com/")
-        .setWhoisServer("ns1.foo.bar")
-        .setLocalizedAddress(new RegistrarAddress.Builder()
-            .setStreet(ImmutableList.of("76 Ninth Avenue", "Eleventh Floor"))
-            .setCity("New York")
-            .setState("NY")
-            .setZip("10009")
-            .setCountryCode("US")
-            .build())
-        .build();
-    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
-        "op", "update",
-        "args", modified.toJsonMap()));
+    Registrar modified =
+        loadRegistrar(CLIENT_ID)
+            .asBuilder()
+            .setEmailAddress("hello.kitty@example.com")
+            .setPhoneNumber("+1.2125650000")
+            .setFaxNumber("+1.2125650001")
+            .setReferralUrl("http://acme.com/")
+            .setWhoisServer("ns1.foo.bar")
+            .setLocalizedAddress(
+                new RegistrarAddress.Builder()
+                    .setStreet(ImmutableList.of("76 Ninth Avenue", "Eleventh Floor"))
+                    .setCity("New York")
+                    .setState("NY")
+                    .setZip("10009")
+                    .setCountryCode("US")
+                    .build())
+            .build();
+    Map<String, Object> response =
+        action.handleJsonRequest(ImmutableMap.of("op", "update", "args", modified.toJsonMap()));
     assertThat(response.get("status")).isEqualTo("SUCCESS");
     assertThat(response.get("results")).isEqualTo(asList(modified.toJsonMap()));
-    assertThat(Registrar.loadByClientId(CLIENT_ID)).isEqualTo(modified);
+    assertThat(loadRegistrar(CLIENT_ID)).isEqualTo(modified);
   }
 
   @Test
   public void testPost_badUsStateCode_returnsFormFieldError() throws Exception {
-    Registrar modified = Registrar.loadByClientId(CLIENT_ID).asBuilder()
-        .setEmailAddress("hello.kitty@example.com")
-        .setPhoneNumber("+1.2125650000")
-        .setFaxNumber("+1.2125650001")
-        .setLocalizedAddress(new RegistrarAddress.Builder()
-            .setStreet(ImmutableList.of("76 Ninth Avenue", "Eleventh Floor"))
-            .setCity("New York")
-            .setState("ZZ")
-            .setZip("10009")
-            .setCountryCode("US")
-            .build())
-        .build();
-    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
-        "op", "update",
-        "args", modified.toJsonMap()));
+    Registrar modified =
+        loadRegistrar(CLIENT_ID)
+            .asBuilder()
+            .setEmailAddress("hello.kitty@example.com")
+            .setPhoneNumber("+1.2125650000")
+            .setFaxNumber("+1.2125650001")
+            .setLocalizedAddress(
+                new RegistrarAddress.Builder()
+                    .setStreet(ImmutableList.of("76 Ninth Avenue", "Eleventh Floor"))
+                    .setCity("New York")
+                    .setState("ZZ")
+                    .setZip("10009")
+                    .setCountryCode("US")
+                    .build())
+            .build();
+    Map<String, Object> response =
+        action.handleJsonRequest(ImmutableMap.of("op", "update", "args", modified.toJsonMap()));
     assertThat(response.get("status")).isEqualTo("ERROR");
     assertThat(response.get("field")).isEqualTo("localizedAddress.state");
     assertThat(response.get("message")).isEqualTo("Unknown US state code.");
-    assertThat(Registrar.loadByClientId(CLIENT_ID)).isNotEqualTo(modified);
+    assertThat(loadRegistrar(CLIENT_ID)).isNotEqualTo(modified);
   }
 
   @Test
   public void testPost_badAddress_returnsFormFieldError() throws Exception {
-    Registrar modified = Registrar.loadByClientId(CLIENT_ID).asBuilder()
-        .setEmailAddress("hello.kitty@example.com")
-        .setPhoneNumber("+1.2125650000")
-        .setFaxNumber("+1.2125650001")
-        .setLocalizedAddress(new RegistrarAddress.Builder()
-            .setStreet(ImmutableList.of("76 Ninth Avenue", repeat("lol", 200)))
-            .setCity("New York")
-            .setState("NY")
-            .setZip("10009")
-            .setCountryCode("US")
-            .build())
-        .build();
-    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
-        "op", "update",
-        "args", modified.toJsonMap()));
+    Registrar modified =
+        loadRegistrar(CLIENT_ID)
+            .asBuilder()
+            .setEmailAddress("hello.kitty@example.com")
+            .setPhoneNumber("+1.2125650000")
+            .setFaxNumber("+1.2125650001")
+            .setLocalizedAddress(
+                new RegistrarAddress.Builder()
+                    .setStreet(ImmutableList.of("76 Ninth Avenue", repeat("lol", 200)))
+                    .setCity("New York")
+                    .setState("NY")
+                    .setZip("10009")
+                    .setCountryCode("US")
+                    .build())
+            .build();
+    Map<String, Object> response =
+        action.handleJsonRequest(ImmutableMap.of("op", "update", "args", modified.toJsonMap()));
     assertThat(response.get("status")).isEqualTo("ERROR");
     assertThat(response.get("field")).isEqualTo("localizedAddress.street[1]");
     assertThat((String) response.get("message"))
         .contains("Number of characters (600) not in range");
-    assertThat(Registrar.loadByClientId(CLIENT_ID)).isNotEqualTo(modified);
+    assertThat(loadRegistrar(CLIENT_ID)).isNotEqualTo(modified);
   }
 
   @Test
   public void testPost_badWhoisServer_returnsFormFieldError() throws Exception {
-    Registrar modified = Registrar.loadByClientId(CLIENT_ID).asBuilder()
-        .setWhoisServer("tears@dry.tragical.lol")
-        .build();
-    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
-        "op", "update",
-        "args", modified.toJsonMap()));
+    Registrar modified =
+        loadRegistrar(CLIENT_ID).asBuilder().setWhoisServer("tears@dry.tragical.lol").build();
+    Map<String, Object> response =
+        action.handleJsonRequest(ImmutableMap.of("op", "update", "args", modified.toJsonMap()));
     assertThat(response.get("status")).isEqualTo("ERROR");
     assertThat(response.get("field")).isEqualTo("whoisServer");
     assertThat(response.get("message")).isEqualTo("Not a valid hostname.");
-    assertThat(Registrar.loadByClientId(CLIENT_ID)).isNotEqualTo(modified);
+    assertThat(loadRegistrar(CLIENT_ID)).isNotEqualTo(modified);
   }
 }

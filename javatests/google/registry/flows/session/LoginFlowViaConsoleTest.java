@@ -15,6 +15,7 @@
 package google.registry.flows.session;
 
 
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.appengine.api.users.User;
@@ -72,7 +73,7 @@ public class LoginFlowViaConsoleTest extends LoginFlowTestCase {
   }
 
   private void persistLinkedAccount(String email, String gaeUserId) {
-    Registrar registrar = Registrar.loadByClientId("NewRegistrar");
+    Registrar registrar = loadRegistrar("NewRegistrar");
     RegistrarContact c = new RegistrarContact.Builder()
         .setParent(registrar)
         .setEmailAddress(email)

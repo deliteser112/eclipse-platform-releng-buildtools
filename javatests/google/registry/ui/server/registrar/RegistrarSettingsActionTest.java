@@ -15,6 +15,7 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
@@ -28,7 +29,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
-import google.registry.model.registrar.Registrar;
 import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.auth.AuthResult;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
@@ -88,8 +88,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   public void testRead_authorized_returnsRegistrarJson() throws Exception {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.<String, Object>of());
     assertThat(response).containsEntry("status", "SUCCESS");
-    assertThat(response).containsEntry("results", asList(
-        Registrar.loadByClientId(CLIENT_ID).toJsonMap()));
+    assertThat(response).containsEntry("results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
   }
 
   @Test

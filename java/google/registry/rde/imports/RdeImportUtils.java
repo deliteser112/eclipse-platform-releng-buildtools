@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -163,10 +164,10 @@ public class RdeImportUtils {
         // validate that all registrars exist
         while (parser.nextRegistrar()) {
           XjcRdeRegistrar registrar = parser.getRegistrar();
-          if (Registrar.loadByClientIdCached(registrar.getId()) == null) {
-            throw new IllegalArgumentException(
-                String.format("Registrar '%s' not found in the registry", registrar.getId()));
-          }
+          checkArgumentPresent(
+              Registrar.loadByClientIdCached(registrar.getId()),
+              "Registrar '%s' not found in the registry",
+              registrar.getId());
         }
       } catch (XMLStreamException | JAXBException e) {
         throw new IllegalArgumentException(

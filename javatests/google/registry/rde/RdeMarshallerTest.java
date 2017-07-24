@@ -15,9 +15,9 @@
 package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.xml.ValidationMode.STRICT;
 
-import google.registry.model.registrar.Registrar;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ShardableTestCase;
 import google.registry.xml.XmlTestUtils;
@@ -41,8 +41,7 @@ public class RdeMarshallerTest extends ShardableTestCase {
   @Test
   public void testMarshalRegistrar_validData_producesXmlFragment() throws Exception {
     DepositFragment fragment =
-        new RdeMarshaller(STRICT)
-            .marshalRegistrar(Registrar.loadByClientId("TheRegistrar"));
+        new RdeMarshaller(STRICT).marshalRegistrar(loadRegistrar("TheRegistrar"));
     assertThat(fragment.type()).isEqualTo(RdeResourceType.REGISTRAR);
     assertThat(fragment.error()).isEmpty();
     String expected = ""
@@ -85,8 +84,7 @@ public class RdeMarshallerTest extends ShardableTestCase {
   @Test
   public void testMarshalRegistrar_unicodeCharacters_dontGetMangled() throws Exception {
     DepositFragment fragment =
-        new RdeMarshaller(STRICT)
-            .marshalRegistrar(Registrar.loadByClientId("TheRegistrar"));
+        new RdeMarshaller(STRICT).marshalRegistrar(loadRegistrar("TheRegistrar"));
     assertThat(fragment.xml()).contains("123 Example Bőulevard");
   }
 }

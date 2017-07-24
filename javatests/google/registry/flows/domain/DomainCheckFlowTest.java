@@ -16,6 +16,7 @@ package google.registry.flows.domain;
 
 import static google.registry.model.eppoutput.CheckData.DomainCheck.create;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
@@ -53,11 +54,9 @@ import google.registry.flows.exceptions.TooManyResourceChecksException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchPhase;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservedList;
-import google.registry.testing.DatastoreHelper;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -285,8 +284,8 @@ public class DomainCheckFlowTest
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
-    DatastoreHelper.persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+    persistResource(
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
@@ -297,8 +296,8 @@ public class DomainCheckFlowTest
   @Test
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     persistActiveDomain("example2.tld");
-    DatastoreHelper.persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+    persistResource(
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());

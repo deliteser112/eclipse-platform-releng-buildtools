@@ -17,6 +17,7 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import static google.registry.util.X509Utils.getCertificateHash;
 import static google.registry.util.X509Utils.loadCertificate;
 import static java.nio.charset.StandardCharsets.US_ASCII;
@@ -75,7 +76,9 @@ final class ValidateLoginCredentialsCommand implements RemoteApiCommand {
       clientCertificateHash = getCertificateHash(
           loadCertificate(new String(Files.readAllBytes(clientCertificatePath), US_ASCII)));
     }
-    Registrar registrar = Registrar.loadByClientId(clientId);
+    Registrar registrar =
+        checkArgumentPresent(
+            Registrar.loadByClientId(clientId), "Registrar %s not found", clientId);
     new TlsCredentials(clientCertificateHash, Optional.of(clientIpAddress), null)
         .validate(registrar, password);
     checkState(!registrar.getState().equals(Registrar.State.PENDING), "Account pending");

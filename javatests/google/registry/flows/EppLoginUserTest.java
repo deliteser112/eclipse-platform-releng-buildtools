@@ -15,11 +15,11 @@
 package google.registry.flows;
 
 import static com.google.appengine.api.users.UserServiceFactory.getUserService;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableSet;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.UserInfo;
@@ -42,12 +42,13 @@ public class EppLoginUserTest extends EppTestCase {
   @Before
   public void initTest() throws Exception {
     User user = getUserService().getCurrentUser();
-    persistResource(new RegistrarContact.Builder()
-        .setParent(Registrar.loadByClientId("NewRegistrar"))
-        .setEmailAddress(user.getEmail())
-        .setGaeUserId(user.getUserId())
-        .setTypes(ImmutableSet.of(RegistrarContact.Type.ADMIN))
-        .build());
+    persistResource(
+        new RegistrarContact.Builder()
+            .setParent(loadRegistrar("NewRegistrar"))
+            .setEmailAddress(user.getEmail())
+            .setGaeUserId(user.getUserId())
+            .setTypes(ImmutableSet.of(RegistrarContact.Type.ADMIN))
+            .build());
     setTransportCredentials(GaeUserCredentials.forCurrentUser(getUserService()));
   }
 

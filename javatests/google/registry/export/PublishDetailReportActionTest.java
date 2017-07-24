@@ -19,6 +19,7 @@ import static google.registry.export.PublishDetailReportAction.DETAIL_REPORT_NAM
 import static google.registry.export.PublishDetailReportAction.GCS_BUCKET_PARAM;
 import static google.registry.export.PublishDetailReportAction.GCS_FOLDER_PREFIX_PARAM;
 import static google.registry.export.PublishDetailReportAction.REGISTRAR_ID_PARAM;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.any;
@@ -34,7 +35,6 @@ import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import google.registry.gcs.GcsUtils;
-import google.registry.model.registrar.Registrar;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.storage.drive.DriveConnection;
@@ -76,8 +76,7 @@ public class PublishDetailReportActionTest {
         anyString(), any(MediaType.class), anyString(), any(byte[].class)))
             .thenReturn("drive-id-123");
 
-    persistResource(
-        Registrar.loadByClientId("TheRegistrar").asBuilder().setDriveFolderId("0B-12345").build());
+    persistResource(loadRegistrar("TheRegistrar").asBuilder().setDriveFolderId("0B-12345").build());
 
     // Persist an empty GCS file to the local GCS service so that failure tests won't fail
     // prematurely on the file not existing.
@@ -156,7 +155,7 @@ public class PublishDetailReportActionTest {
   @Test
   public void testFailure_registrarHasNoDriveFolder() throws Exception {
     persistResource(
-        Registrar.loadByClientId("TheRegistrar").asBuilder().setDriveFolderId(null).build());
+        loadRegistrar("TheRegistrar").asBuilder().setDriveFolderId(null).build());
     thrown.expect(BadRequestException.class, "drive folder");
     action.handleJsonRequest(ImmutableMap.of(
         REGISTRAR_ID_PARAM, "TheRegistrar",

@@ -16,6 +16,7 @@ package google.registry.tmch;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.taskqueue.LeaseOptions;
@@ -26,6 +27,7 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.apphosting.api.DeadlineExceededException;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -150,11 +152,10 @@ public class LordnTask {
 
   /** Retrieves the IANA identifier for a registrar based on the client id. */
   private static String getIanaIdentifier(String clientId) {
-     Registrar registrar = checkNotNull(
-         Registrar.loadByClientIdCached(clientId),
-         "No registrar found for client id: %s", clientId);
+    Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
+    checkState(registrar.isPresent(), "No registrar found for client id: %s", clientId);
     // Return the string "null" for null identifiers, since some Registrar.Types such as OTE will
     // have null iana ids.
-    return String.valueOf(registrar.getIanaIdentifier());
+    return String.valueOf(registrar.get().getIanaIdentifier());
   }
 }

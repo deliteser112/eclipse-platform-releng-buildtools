@@ -16,6 +16,7 @@ package google.registry.util;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.common.base.Optional;
 import javax.annotation.Nullable;
 
 /** Utility methods related to preconditions checking. */
@@ -44,5 +45,29 @@ public class PreconditionsUtils {
       T reference, @Nullable String errorMessageTemplate, @Nullable Object... errorMessageArgs) {
     checkArgument(reference != null, errorMessageTemplate, errorMessageArgs);
     return reference;
+  }
+
+  /** Checks if the provided Optional is present, returns its value if so, and throws IAE if not. */
+  public static <T> T checkArgumentPresent(Optional<T> reference) {
+    checkArgumentNotNull(reference);
+    checkArgument(reference.isPresent());
+    return reference.get();
+  }
+
+  /** Checks if the provided Optional is present, returns its value if so, and throws IAE if not. */
+  public static <T> T checkArgumentPresent(Optional<T> reference, @Nullable Object errorMessage) {
+    checkArgumentNotNull(reference, errorMessage);
+    checkArgument(reference.isPresent(), errorMessage);
+    return reference.get();
+  }
+
+  /** Checks if the provided Optional is present, returns its value if so, and throws IAE if not. */
+  public static <T> T checkArgumentPresent(
+      Optional<T> reference,
+      @Nullable String errorMessageTemplate,
+      @Nullable Object... errorMessageArgs) {
+    checkArgumentNotNull(reference, errorMessageTemplate, errorMessageArgs);
+    checkArgument(reference.isPresent(), errorMessageTemplate, errorMessageArgs);
+    return reference.get();
   }
 }

@@ -20,6 +20,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.Iterables.transform;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.Parameter;
@@ -151,7 +152,8 @@ final class RegistrarContactCommand extends MutatingCommand {
         "Must specify exactly one client identifier: %s", ImmutableList.copyOf(mainParameters));
     String clientId = mainParameters.get(0);
     Registrar registrar =
-        checkNotNull(Registrar.loadByClientId(clientId), "Registrar %s not found", clientId);
+        checkArgumentPresent(
+            Registrar.loadByClientId(clientId), "Registrar %s not found", clientId);
     // If the contact_type parameter is not specified, we should not make any changes.
     if (contactTypeNames == null) {
       contactTypes = null;

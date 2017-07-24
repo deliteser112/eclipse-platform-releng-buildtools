@@ -21,6 +21,7 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.generateNewDomainRoid;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
@@ -69,7 +70,6 @@ import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
@@ -575,7 +575,7 @@ public class DomainApplicationUpdateFlowTest
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
@@ -588,7 +588,7 @@ public class DomainApplicationUpdateFlowTest
   @Test
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());

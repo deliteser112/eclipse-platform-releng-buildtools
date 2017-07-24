@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -31,7 +32,7 @@ final class DeleteCreditCommand extends MutatingCommand {
       names = "--registrar",
       description = "Client ID of the registrar owning the credit to delete",
       required = true)
-  private String registrarId;
+  private String clientId;
 
   @Parameter(
       names = "--credit_id",
@@ -42,13 +43,14 @@ final class DeleteCreditCommand extends MutatingCommand {
   @Override
   protected void init() throws Exception {
     Registrar registrar =
-        checkNotNull(Registrar.loadByClientId(registrarId), "Registrar %s not found", registrarId);
+        checkArgumentPresent(
+            Registrar.loadByClientId(clientId), "Registrar %s not found", clientId);
     RegistrarCredit credit = ofy().load()
         .type(RegistrarCredit.class)
         .parent(registrar)
         .id(creditId)
         .now();
-    checkNotNull(credit, "Registrar credit for %s with ID %s not found", registrarId, creditId);
+    checkNotNull(credit, "Registrar credit for %s with ID %s not found", clientId, creditId);
     stageEntityChange(credit, null);
 
     for (RegistrarCreditBalance balance :

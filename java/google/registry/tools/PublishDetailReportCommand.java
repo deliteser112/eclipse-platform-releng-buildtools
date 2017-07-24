@@ -14,7 +14,7 @@
 
 package google.registry.tools;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -34,7 +34,7 @@ public class PublishDetailReportCommand extends ConfirmingCommand
       names = "--registrar_id",
       description = "Client identifier of the registrar to publish the report for",
       required = true)
-  private String registrarId;
+  private String clientId;
 
   @Parameter(
       names = "--report_name",
@@ -73,8 +73,9 @@ public class PublishDetailReportCommand extends ConfirmingCommand
     // TODO(b/18611424): Fix PublishDetailReportAction to take fewer error-prone parameters.
     gcsFolderPrefix =
         (gcsFolder.isEmpty() || gcsFolder.endsWith("/")) ? gcsFolder : gcsFolder + "/";
-    Registrar registrar = checkNotNull(
-        Registrar.loadByClientId(registrarId), "Registrar with ID %s not found", registrarId);
+    Registrar registrar =
+        checkArgumentPresent(
+            Registrar.loadByClientId(clientId), "Registrar with ID %s not found", clientId);
     driveFolderUrl = String.format(DRIVE_FOLDER_URL_TEMPLATE, registrar.getDriveFolderId());
   }
 
@@ -82,7 +83,7 @@ public class PublishDetailReportCommand extends ConfirmingCommand
   protected String prompt() {
     String gcsFile = String.format("gs://%s/%s%s", gcsBucket, gcsFolderPrefix, reportName);
     return "Publish detail report:\n"
-        + " - Registrar: " + registrarId + "\n"
+        + " - Registrar: " + clientId + "\n"
         + " - Drive folder: " + driveFolderUrl + "\n"
         + " - GCS file: " + gcsFile;
   }
@@ -90,7 +91,7 @@ public class PublishDetailReportCommand extends ConfirmingCommand
   @Override
   protected String execute() throws Exception {
     final ImmutableMap<String, String> params = ImmutableMap.of(
-        PublishDetailReportAction.REGISTRAR_ID_PARAM, registrarId,
+        PublishDetailReportAction.REGISTRAR_ID_PARAM, clientId,
         PublishDetailReportAction.DETAIL_REPORT_NAME_PARAM, reportName,
         PublishDetailReportAction.GCS_FOLDER_PREFIX_PARAM, gcsFolderPrefix,
         PublishDetailReportAction.GCS_BUCKET_PARAM, gcsBucket);

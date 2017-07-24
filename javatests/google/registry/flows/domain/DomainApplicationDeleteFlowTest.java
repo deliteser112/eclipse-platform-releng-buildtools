@@ -20,6 +20,7 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
@@ -45,7 +46,6 @@ import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry.TldState;
 import org.junit.Before;
 import org.junit.Test;
@@ -165,7 +165,7 @@ public class DomainApplicationDeleteFlowTest
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
@@ -178,7 +178,7 @@ public class DomainApplicationDeleteFlowTest
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());

@@ -15,7 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.collect.Iterables.transform;
-import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -53,8 +53,9 @@ public class CreateRegistrarGroupsCommand extends ConfirmingCommand
   @Override
   protected void init() throws IOException {
     for (String clientId : clientIds) {
-      Registrar registrar = Registrar.loadByClientId(clientId);
-      checkArgumentNotNull(registrar, "Could not load registrar with id " + clientId);
+      Registrar registrar =
+          checkArgumentPresent(
+              Registrar.loadByClientId(clientId), "Could not load registrar with id %s", clientId);
       registrars.add(registrar);
     }
   }

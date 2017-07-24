@@ -401,7 +401,7 @@ public class RegistrarTest extends EntityTestCase {
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
-        assertThat(Registrar.loadByClientIdCached("registrar")).isNotNull();
+        assertThat(Registrar.loadByClientIdCached("registrar")).isPresent();
         // Load something as a control to make sure we are seeing loaded keys in the session cache.
         ofy().load().entity(abuseAdminContact).now();
         assertThat(ofy().getSessionKeys()).contains(Key.create(abuseAdminContact));
@@ -409,7 +409,31 @@ public class RegistrarTest extends EntityTestCase {
       }});
     ofy().clearSessionCache();
     // Conversely, loads outside of a transaction should end up in the session cache.
-    assertThat(Registrar.loadByClientIdCached("registrar")).isNotNull();
+    assertThat(Registrar.loadByClientIdCached("registrar")).isPresent();
     assertThat(ofy().getSessionKeys()).contains(Key.create(registrar));
+  }
+
+  @Test
+  public void testFailure_loadByClientId_clientIdIsNull() throws Exception {
+    thrown.expect(IllegalArgumentException.class, "clientId must be specified");
+    Registrar.loadByClientId(null);
+  }
+
+  @Test
+  public void testFailure_loadByClientId_clientIdIsEmpty() throws Exception {
+    thrown.expect(IllegalArgumentException.class, "clientId must be specified");
+    Registrar.loadByClientId("");
+  }
+
+  @Test
+  public void testFailure_loadByClientIdCached_clientIdIsNull() throws Exception {
+    thrown.expect(IllegalArgumentException.class, "clientId must be specified");
+    Registrar.loadByClientIdCached(null);
+  }
+
+  @Test
+  public void testFailure_loadByClientIdCached_clientIdIsEmpty() throws Exception {
+    thrown.expect(IllegalArgumentException.class, "clientId must be specified");
+    Registrar.loadByClientIdCached("");
   }
 }

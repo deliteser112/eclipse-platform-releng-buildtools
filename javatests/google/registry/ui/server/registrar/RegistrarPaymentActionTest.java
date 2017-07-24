@@ -15,6 +15,7 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.ReflectiveFieldExtractor.extractField;
 import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
@@ -33,7 +34,6 @@ import com.braintreegateway.ValidationErrorCode;
 import com.braintreegateway.ValidationErrors;
 import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableMap;
-import google.registry.model.registrar.Registrar;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
@@ -94,7 +94,7 @@ public class RegistrarPaymentActionTest {
     when(transactionGateway.sale(any(TransactionRequest.class))).thenReturn(result);
     when(sessionUtils.getRegistrarForAuthResult(
             any(HttpServletRequest.class), any(AuthResult.class)))
-        .thenReturn(Registrar.loadByClientId("TheRegistrar"));
+        .thenReturn(loadRegistrar("TheRegistrar"));
   }
 
   @Test

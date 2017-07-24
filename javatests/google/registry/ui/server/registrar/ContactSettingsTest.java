@@ -15,6 +15,7 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 
@@ -48,14 +49,14 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
     @SuppressWarnings("unchecked")
     List<Map<String, ?>> results = (List<Map<String, ?>>) response.get("results");
     assertThat(results.get(0).get("contacts"))
-        .isEqualTo(Registrar.loadByClientId(CLIENT_ID).toJsonMap().get("contacts"));
+        .isEqualTo(loadRegistrar(CLIENT_ID).toJsonMap().get("contacts"));
   }
 
   @Test
   public void testPost_loadSaveRegistrar_success() throws Exception {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
-        "args", Registrar.loadByClientId(CLIENT_ID).toJsonMap()));
+        "args", loadRegistrar(CLIENT_ID).toJsonMap()));
     assertThat(response).containsEntry("status", "SUCCESS");
   }
 
@@ -70,12 +71,11 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
     // Have to keep ADMIN or else expect FormException for at-least-one.
     adminContact1.put("types", "ADMIN");
 
-    Registrar registrar = Registrar.loadByClientId(CLIENT_ID);
+    Registrar registrar = loadRegistrar(CLIENT_ID);
     Map<String, Object> regMap = registrar.toJsonMap();
     regMap.put("contacts", ImmutableList.of(adminContact1));
-    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
-        "op", "update",
-        "args", regMap));
+    Map<String, Object> response =
+        action.handleJsonRequest(ImmutableMap.of("op", "update", "args", regMap));
     assertThat(response).containsEntry("status", "SUCCESS");
 
     RegistrarContact newContact = new RegistrarContact.Builder()
@@ -85,13 +85,12 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
         .setPhoneNumber((String) adminContact1.get("phoneNumber"))
         .setTypes(ImmutableList.of(RegistrarContact.Type.ADMIN))
         .build();
-    assertThat(Registrar.loadByClientId(CLIENT_ID).getContacts())
-        .containsExactlyElementsIn(ImmutableSet.of(newContact));
+    assertThat(loadRegistrar(CLIENT_ID).getContacts()).containsExactly(newContact);
   }
 
   @Test
   public void testPost_updateContacts_requiredTypes_error() throws Exception {
-    Map<String, Object> reqJson = Registrar.loadByClientId(CLIENT_ID).toJsonMap();
+    Map<String, Object> reqJson = loadRegistrar(CLIENT_ID).toJsonMap();
     reqJson.put("contacts",
         ImmutableList.of(AppEngineRule.makeRegistrarContact2()
             .asBuilder()
@@ -108,7 +107,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
   @Test
   public void testPost_updateContacts_requireTechPhone_error() throws Exception {
     // First make the contact a tech contact as well.
-    Registrar registrar = Registrar.loadByClientId(CLIENT_ID);
+    Registrar registrar = loadRegistrar(CLIENT_ID);
     RegistrarContact rc = AppEngineRule.makeRegistrarContact2()
         .asBuilder()
         .setTypes(ImmutableSet.of(RegistrarContact.Type.ADMIN, RegistrarContact.Type.TECH))
@@ -132,7 +131,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
   @Test
   public void testPost_updateContacts_cannotRemoveWhoisAbuseContact_error() throws Exception {
     // First make the contact's info visible in whois as abuse contact info.
-    Registrar registrar = Registrar.loadByClientId(CLIENT_ID);
+    Registrar registrar = loadRegistrar(CLIENT_ID);
     RegistrarContact rc =
         AppEngineRule.makeRegistrarContact2()
             .asBuilder()
@@ -158,7 +157,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
   public void testPost_updateContacts_whoisAbuseContactMustHavePhoneNumber_error()
       throws Exception {
     // First make the contact's info visible in whois as abuse contact info.
-    Registrar registrar = Registrar.loadByClientId(CLIENT_ID);
+    Registrar registrar = loadRegistrar(CLIENT_ID);
     RegistrarContact rc =
         AppEngineRule.makeRegistrarContact2()
             .asBuilder()

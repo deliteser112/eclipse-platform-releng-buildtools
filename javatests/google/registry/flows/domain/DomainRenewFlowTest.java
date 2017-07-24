@@ -20,6 +20,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
@@ -56,7 +57,6 @@ import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.Map;
@@ -622,7 +622,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
@@ -634,7 +634,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   @Test
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());

@@ -79,13 +79,18 @@ final class CreateRegistrarCommand extends CreateOrUpdateRegistrarCommand
           "Client identifier (%s) can only contain lowercase letters, numbers, and hyphens",
           clientId);
     }
-    checkState(Registrar.loadByClientId(clientId) == null, "Registrar %s already exists", clientId);
+    checkState(
+        !Registrar.loadByClientId(clientId).isPresent(), "Registrar %s already exists", clientId);
     List<Registrar> collisions =
-        newArrayList(filter(Registrar.loadAll(), new Predicate<Registrar>() {
-          @Override
-          public boolean apply(Registrar registrar) {
-            return normalizeClientId(registrar.getClientId()).equals(clientId);
-          }}));
+        newArrayList(
+            filter(
+                Registrar.loadAll(),
+                new Predicate<Registrar>() {
+                  @Override
+                  public boolean apply(Registrar registrar) {
+                    return normalizeClientId(registrar.getClientId()).equals(clientId);
+                  }
+                }));
     if (!collisions.isEmpty()) {
       throw new IllegalArgumentException(String.format(
           "The registrar client identifier %s normalizes identically to existing registrar %s",

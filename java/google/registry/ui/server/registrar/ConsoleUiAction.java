@@ -16,6 +16,7 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.HttpHeaders.X_FRAME_OPTIONS;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
@@ -118,9 +119,12 @@ public final class ConsoleUiAction implements Runnable {
               .render());
       return;
     }
-    Registrar registrar = Registrar.loadByClientIdCached(sessionUtils.getRegistrarClientId(req));
+    String clientId = sessionUtils.getRegistrarClientId(req);
+    Registrar registrar =
+        checkArgumentPresent(
+            Registrar.loadByClientIdCached(clientId), "Registrar %s does not exist", clientId);
     data.put("xsrfToken", xsrfTokenManager.generateToken(user.getEmail()));
-    data.put("clientId", registrar.getClientId());
+    data.put("clientId", clientId);
     data.put("showPaymentLink", registrar.getBillingMethod() == Registrar.BillingMethod.BRAINTREE);
 
     String payload = TOFU_SUPPLIER.get()

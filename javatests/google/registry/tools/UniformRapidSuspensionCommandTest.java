@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
@@ -25,7 +26,6 @@ import com.googlecode.objectify.Key;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
-import google.registry.model.registrar.Registrar;
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,9 +42,8 @@ public class UniformRapidSuspensionCommandTest
   @Before
   public void initResources() {
     // Since the command's history client ID must be CharlestonRoad, resave TheRegistrar that way.
-    persistResource(Registrar.loadByClientId("TheRegistrar").asBuilder()
-        .setClientId("CharlestonRoad")
-        .build());
+    persistResource(
+        loadRegistrar("TheRegistrar").asBuilder().setClientId("CharlestonRoad").build());
     ns1 = persistActiveHost("ns1.example.com");
     ns2 = persistActiveHost("ns2.example.com");
     urs1 = persistActiveHost("urs1.example.com");

@@ -15,9 +15,11 @@
 package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InetAddresses;
 import google.registry.model.host.HostResource;
@@ -53,8 +55,8 @@ final class NameserverWhoisResponse extends WhoisResponseImpl {
                   .cloneProjectedAtTime(getTimestamp())
                   .getCurrentSponsorClientId()
               : host.getPersistedCurrentSponsorClientId();
-      Registrar registrar =
-          checkNotNull(Registrar.loadByClientId(clientId), "Could not load registrar %s", clientId);
+      Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
+      checkState(registrar.isPresent(), "Could not load registrar %s", clientId);
       emitter
           .emitField(
               "Server Name", maybeFormatHostname(host.getFullyQualifiedHostName(), preferUnicode))
@@ -67,9 +69,9 @@ final class NameserverWhoisResponse extends WhoisResponseImpl {
                   return InetAddresses.toAddrString(addr);
                 }
               })
-          .emitField("Registrar", registrar.getRegistrarName())
-          .emitField("Registrar WHOIS Server", registrar.getWhoisServer())
-          .emitField("Registrar URL", registrar.getReferralUrl());
+          .emitField("Registrar", registrar.get().getRegistrarName())
+          .emitField("Registrar WHOIS Server", registrar.get().getWhoisServer())
+          .emitField("Registrar URL", registrar.get().getReferralUrl());
       if (i < hosts.size() - 1) {
         emitter.emitNewline();
       }

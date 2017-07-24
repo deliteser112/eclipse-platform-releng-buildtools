@@ -18,6 +18,7 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.DateTimeZone.UTC;
@@ -44,7 +45,7 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
 
   @Before
   public void setUp() {
-    registrar = Registrar.loadByClientId("TheRegistrar");
+    registrar = loadRegistrar("TheRegistrar");
     createTld("tld");
     assertThat(Registry.get("tld").getCurrency()).isEqualTo(USD);
     credit = persistResource(
@@ -79,7 +80,7 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
 
   @Test
   public void testFailure_nonexistentParentRegistrar() throws Exception {
-    thrown.expect(NullPointerException.class, "FakeRegistrar");
+    thrown.expect(IllegalArgumentException.class, "Registrar FakeRegistrar not found");
     runCommandForced(
         "--registrar=FakeRegistrar",
         "--credit_id=" + creditId,

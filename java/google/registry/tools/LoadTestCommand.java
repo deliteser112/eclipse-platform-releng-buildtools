@@ -92,11 +92,11 @@ class LoadTestCommand extends ConfirmingCommand implements ServerSideCommand {
 
     // Check validity of TLD and Client Id.
     if (!Registries.getTlds().contains(tld)) {
-      System.err.println("No such TLD: " + tld);
+      System.err.printf("No such TLD: %s\n", tld);
       return false;
     }
-    if (Registrar.loadByClientId(clientId) == null) {
-      System.err.println("No such client: " + clientId);
+    if (!Registrar.loadByClientId(clientId).isPresent()) {
+      System.err.printf("No such client: %s\n", clientId);
       return false;
     }
 

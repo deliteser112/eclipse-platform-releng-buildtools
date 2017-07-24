@@ -23,6 +23,7 @@ import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.getOnlyPollMessage;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
@@ -55,7 +56,6 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
@@ -415,7 +415,7 @@ public class DomainTransferApproveFlowTest
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
@@ -426,7 +426,7 @@ public class DomainTransferApproveFlowTest
   @Test
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());

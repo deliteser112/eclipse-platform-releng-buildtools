@@ -15,6 +15,7 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
@@ -45,10 +46,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class RegistrarPaymentSetupActionTest {
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .build();
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   private final BraintreeGateway braintreeGateway = mock(BraintreeGateway.class);
   private final ClientTokenGateway clientTokenGateway = mock(ClientTokenGateway.class);
@@ -65,7 +63,7 @@ public class RegistrarPaymentSetupActionTest {
     action.braintreeGateway = braintreeGateway;
     action.customerSyncer = customerSyncer;
     Registrar registrar = persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setBillingMethod(Registrar.BillingMethod.BRAINTREE)
             .build());
@@ -93,7 +91,7 @@ public class RegistrarPaymentSetupActionTest {
                     "token", blanketsOfSadness,
                     "currencies", asList("USD", "JPY"),
                     "brainframe", "/doodle")));
-    verify(customerSyncer).sync(eq(Registrar.loadByClientId("TheRegistrar")));
+    verify(customerSyncer).sync(eq(loadRegistrar("TheRegistrar")));
   }
 
   @Test
@@ -108,7 +106,7 @@ public class RegistrarPaymentSetupActionTest {
   @Test
   public void testNotOnCreditCardBillingTerms_showsErrorPage() throws Exception {
     Registrar registrar = persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setBillingMethod(Registrar.BillingMethod.EXTERNAL)
             .build());

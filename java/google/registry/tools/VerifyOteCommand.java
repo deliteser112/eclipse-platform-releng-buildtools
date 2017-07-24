@@ -16,8 +16,8 @@ package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Predicates.notNull;
-import static com.google.common.base.Verify.verifyNotNull;
 import static google.registry.model.registrar.Registrar.loadByClientId;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -79,7 +79,8 @@ final class VerifyOteCommand implements ServerSideCommand {
       // OT&E registrars are created with clientIDs of registrarName-[1-4], but this command is
       // passed registrarName.  So check the existence of the first persisted registrar to see if
       // the input is valid.
-      verifyNotNull(loadByClientId(clientId + "-1"), "Registrar %s does not exist.", clientId);
+      checkArgumentPresent(
+          loadByClientId(clientId + "-1"), "Registrar %s does not exist.", clientId);
     }
     Collection<String> registrars =
         mainParameters.isEmpty() ? getAllRegistrarNames() : mainParameters;

@@ -15,6 +15,7 @@
 package google.registry.flows.session;
 
 import static google.registry.testing.DatastoreHelper.deleteResource;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
 import google.registry.flows.EppException.UnimplementedExtensionException;
@@ -42,7 +43,7 @@ public abstract class LoginFlowTestCase extends FlowTestCase<LoginFlow> {
   @Before
   public void initRegistrar() {
     sessionMetadata.setClientId(null);  // Don't implicitly log in (all other flows need to).
-    registrar = Registrar.loadByClientId("NewRegistrar");
+    registrar = loadRegistrar("NewRegistrar");
     registrarBuilder = registrar.asBuilder();
   }
 

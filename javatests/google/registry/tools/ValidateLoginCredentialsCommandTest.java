@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import static google.registry.model.registrar.Registrar.State.ACTIVE;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.beust.jcommander.ParameterException;
@@ -23,7 +24,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.EppException;
 import google.registry.flows.TransportCredentials.BadRegistrarPasswordException;
-import google.registry.model.registrar.Registrar;
 import google.registry.testing.CertificateSamples;
 import google.registry.util.CidrAddressBlock;
 import org.junit.Before;
@@ -40,13 +40,15 @@ public class ValidateLoginCredentialsCommandTest
   @Before
   public void init() {
     createTld("tld");
-    persistResource(Registrar.loadByClientId("NewRegistrar").asBuilder()
-        .setPassword(PASSWORD)
-        .setClientCertificateHash(CERT_HASH)
-        .setIpAddressWhitelist(ImmutableList.of(new CidrAddressBlock(CLIENT_IP)))
-        .setState(ACTIVE)
-        .setAllowedTlds(ImmutableSet.of("tld"))
-        .build());
+    persistResource(
+        loadRegistrar("NewRegistrar")
+            .asBuilder()
+            .setPassword(PASSWORD)
+            .setClientCertificateHash(CERT_HASH)
+            .setIpAddressWhitelist(ImmutableList.of(new CidrAddressBlock(CLIENT_IP)))
+            .setState(ACTIVE)
+            .setAllowedTlds(ImmutableSet.of("tld"))
+            .build());
   }
 
   @Test

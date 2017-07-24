@@ -17,6 +17,7 @@ package google.registry.flows.session;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthenticationErrorClosingConnectionException;
@@ -116,14 +117,14 @@ public class LoginFlow implements Flow {
       }
       serviceExtensionUrisBuilder.add(uri);
     }
-    Registrar registrar = Registrar.loadByClientIdCached(login.getClientId());
-    if (registrar == null) {
+    Optional<Registrar> registrar = Registrar.loadByClientIdCached(login.getClientId());
+    if (!registrar.isPresent()) {
       throw new BadRegistrarClientIdException(login.getClientId());
     }
 
     // AuthenticationErrorExceptions will propagate up through here.
     try {
-      credentials.validate(registrar, login.getPassword());
+      credentials.validate(registrar.get(), login.getPassword());
     } catch (AuthenticationErrorException e) {
       sessionMetadata.incrementFailedLoginAttempts();
       if (sessionMetadata.getFailedLoginAttempts() > MAX_FAILED_LOGIN_ATTEMPTS_PER_CONNECTION) {
@@ -132,7 +133,7 @@ public class LoginFlow implements Flow {
         throw e;
       }
     }
-    if (registrar.getState().equals(Registrar.State.PENDING)) {
+    if (registrar.get().getState().equals(Registrar.State.PENDING)) {
       throw new RegistrarAccountNotActiveException();
     }
     if (login.getNewPassword() != null) {  // We don't support in-band password changes.

@@ -17,6 +17,7 @@ package google.registry.ui.server.registrar;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.AppEngineRule.THE_REGISTRAR_GAE_USER_ID;
 import static google.registry.testing.DatastoreHelper.deleteResource;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -25,7 +26,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
 import com.google.common.testing.NullPointerTester;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
@@ -85,8 +85,7 @@ public class SessionUtilsTest {
   @Test
   public void testCheckRegistrarConsoleLogin_sessionRevoked_invalidates() throws Exception {
     RegistrarContact.updateContacts(
-        Registrar.loadByClientId("TheRegistrar"),
-        new java.util.HashSet<RegistrarContact>());
+        loadRegistrar("TheRegistrar"), new java.util.HashSet<RegistrarContact>());
     when(session.getAttribute("clientId")).thenReturn("TheRegistrar");
     assertThat(sessionUtils.checkRegistrarConsoleLogin(req, jart)).isFalse();
     verify(session).invalidate();
@@ -94,7 +93,7 @@ public class SessionUtilsTest {
 
   @Test
   public void testCheckRegistrarConsoleLogin_orphanedContactIsDenied() throws Exception {
-    deleteResource(Registrar.loadByClientId("TheRegistrar"));
+    deleteResource(loadRegistrar("TheRegistrar"));
     assertThat(sessionUtils.checkRegistrarConsoleLogin(req, jart)).isFalse();
   }
 

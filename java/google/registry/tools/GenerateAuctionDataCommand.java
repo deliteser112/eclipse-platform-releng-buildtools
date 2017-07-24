@@ -132,9 +132,9 @@ final class GenerateAuctionDataCommand implements RemoteApiCommand {
 
     // Output records for the registrars of any applications we emitted above.
     for (String clientId : registrars) {
-      Registrar registrar =
-          checkNotNull(Registrar.loadByClientId(clientId), "Registrar %s does not exist", clientId);
-      result.add(emitRegistrar(registrar));
+      Optional<Registrar> registrar = Registrar.loadByClientId(clientId);
+      checkState(registrar.isPresent(), "Registrar %s does not exist", clientId);
+      result.add(emitRegistrar(registrar.get()));
     }
 
     Files.write(output, result, UTF_8);

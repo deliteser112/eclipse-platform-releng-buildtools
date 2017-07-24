@@ -21,6 +21,7 @@ import static google.registry.model.domain.launch.ApplicationStatus.PENDING_ALLO
 import static google.registry.model.domain.launch.ApplicationStatus.REJECTED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newContactResourceWithRoid;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -35,7 +36,6 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.reporting.HistoryEntry;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -52,9 +52,8 @@ public class UpdateApplicationStatusCommandTest
   public void init() {
     // Since the command's history client ID defaults to CharlestonRoad, resave TheRegistrar as
     // CharlestonRoad so we don't have to pass in --history_client_id everywhere below.
-    persistResource(Registrar.loadByClientId("TheRegistrar").asBuilder()
-        .setClientId("CharlestonRoad")
-        .build());
+    persistResource(
+        loadRegistrar("TheRegistrar").asBuilder().setClientId("CharlestonRoad").build());
 
     createTld("xn--q9jyb4c");
     domainApplication = persistResource(newDomainApplication(

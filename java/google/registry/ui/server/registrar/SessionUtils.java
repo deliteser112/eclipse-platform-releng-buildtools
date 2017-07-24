@@ -17,6 +17,7 @@ package google.registry.ui.server.registrar;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.google.appengine.api.users.User;
 import com.google.common.base.Optional;
@@ -60,7 +61,9 @@ public class SessionUtils {
     if (!checkRegistrarConsoleLogin(request, authResult.userAuthInfo().get().user())) {
       throw new ForbiddenException("Not authorized to access Registrar Console");
     }
-    return Registrar.loadByClientIdCached(getRegistrarClientId(request));
+    String clientId = getRegistrarClientId(request);
+    return checkArgumentPresent(
+        Registrar.loadByClientIdCached(clientId), "Registrar %s not found", clientId);
   }
 
   /**
@@ -129,8 +132,7 @@ public class SessionUtils {
       return Optional.absent();
     }
     String registrarClientId = contact.getParent().getName();
-    Optional<Registrar> result =
-        Optional.fromNullable(Registrar.loadByClientIdCached(registrarClientId));
+    Optional<Registrar> result = Registrar.loadByClientIdCached(registrarClientId);
     if (!result.isPresent()) {
       logger.severefmt(
           "A contact record exists for non-existent registrar: %s.", Key.create(contact));
@@ -140,12 +142,12 @@ public class SessionUtils {
 
   /** @see #hasAccessToRegistrar(Registrar, String) */
   private static boolean hasAccessToRegistrar(String clientId, final String gaeUserId) {
-    Registrar registrar = Registrar.loadByClientIdCached(clientId);
-    if (registrar == null) {
+    Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
+    if (!registrar.isPresent()) {
       logger.warningfmt("Registrar '%s' disappeared from Datastore!", clientId);
       return false;
     }
-    return hasAccessToRegistrar(registrar, gaeUserId);
+    return hasAccessToRegistrar(registrar.get(), gaeUserId);
   }
 
   /** Returns {@code true} if {@code gaeUserId} is listed in contacts. */

@@ -23,6 +23,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteTld;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
@@ -109,13 +110,11 @@ import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.domain.secdns.DelegationSignerData;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.SignedMarkRevocationList;
-import google.registry.testing.DatastoreHelper;
 import google.registry.tmch.TmchCertificateAuthority;
 import google.registry.tmch.TmchXmlSignature;
 import java.security.GeneralSecurityException;
@@ -405,9 +404,7 @@ public class DomainApplicationCreateFlowTest
     persistContactsAndHosts();
     clock.advanceOneMilli();
     // Modify the Registrar to block premium names.
-    persistResource(Registrar.loadByClientId("TheRegistrar").asBuilder()
-        .setBlockPremiumNames(true)
-        .build());
+    persistResource(loadRegistrar("TheRegistrar").asBuilder().setBlockPremiumNames(true).build());
     thrown.expect(PremiumNameBlockedException.class);
     runFlow();
   }
@@ -820,9 +817,7 @@ public class DomainApplicationCreateFlowTest
     persistContactsAndHosts();
     clock.advanceOneMilli();
     // Modify the Registrar to block premium names.
-    persistResource(Registrar.loadByClientId("TheRegistrar").asBuilder()
-        .setBlockPremiumNames(true)
-        .build());
+    persistResource(loadRegistrar("TheRegistrar").asBuilder().setBlockPremiumNames(true).build());
     runSuperuserFlow("domain_create_landrush_premium_response.xml");
   }
 
@@ -1078,10 +1073,11 @@ public class DomainApplicationCreateFlowTest
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
-    DatastoreHelper.persistResource(Registrar.loadByClientId("TheRegistrar")
-        .asBuilder()
-        .setAllowedTlds(ImmutableSet.<String>of())
-        .build());
+    persistResource(
+        loadRegistrar("TheRegistrar")
+            .asBuilder()
+            .setAllowedTlds(ImmutableSet.<String>of())
+            .build());
     persistContactsAndHosts();
     thrown.expect(NotAuthorizedForTldException.class);
     runFlow();
@@ -1133,10 +1129,11 @@ public class DomainApplicationCreateFlowTest
 
   @Test
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
-    DatastoreHelper.persistResource(Registrar.loadByClientId("TheRegistrar")
-        .asBuilder()
-        .setAllowedTlds(ImmutableSet.<String>of())
-        .build());
+    persistResource(
+        loadRegistrar("TheRegistrar")
+            .asBuilder()
+            .setAllowedTlds(ImmutableSet.<String>of())
+            .build());
     persistContactsAndHosts();
     clock.advanceOneMilli();
     runSuperuserFlow("domain_create_sunrise_encoded_signed_mark_response.xml");

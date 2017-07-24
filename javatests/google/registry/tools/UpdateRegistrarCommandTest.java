@@ -14,13 +14,12 @@
 
 package google.registry.tools;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.registrar.Registrar.loadByClientId;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
 import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -44,28 +43,28 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
 
   @Test
   public void testSuccess_password() throws Exception {
-    assertThat(loadByClientId("NewRegistrar").testPassword("some_password")).isFalse();
+    assertThat(loadRegistrar("NewRegistrar").testPassword("some_password")).isFalse();
     runCommand("--password=some_password", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").testPassword("some_password")).isTrue();
+    assertThat(loadRegistrar("NewRegistrar").testPassword("some_password")).isTrue();
   }
 
   @Test
   public void testSuccess_registrarType() throws Exception {
     persistResource(
-        loadByClientId("NewRegistrar")
+        loadRegistrar("NewRegistrar")
             .asBuilder()
             .setType(Registrar.Type.OTE)
             .setIanaIdentifier(null)
             .build());
-    assertThat(loadByClientId("NewRegistrar").getType()).isEqualTo(Type.OTE);
+    assertThat(loadRegistrar("NewRegistrar").getType()).isEqualTo(Type.OTE);
     runCommand("--registrar_type=TEST", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getType()).isEqualTo(Type.TEST);
+    assertThat(loadRegistrar("NewRegistrar").getType()).isEqualTo(Type.TEST);
   }
 
   @Test
   public void testFailure_noPasscodeOnChangeToReal() throws Exception {
     persistResource(
-        loadByClientId("NewRegistrar")
+        loadRegistrar("NewRegistrar")
             .asBuilder()
             .setType(Registrar.Type.OTE)
             .setIanaIdentifier(null)
@@ -77,21 +76,21 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
 
   @Test
   public void testSuccess_registrarState() throws Exception {
-    assertThat(loadByClientId("NewRegistrar").getState()).isEqualTo(State.ACTIVE);
+    assertThat(loadRegistrar("NewRegistrar").getState()).isEqualTo(State.ACTIVE);
     runCommand("--registrar_state=SUSPENDED", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getState()).isEqualTo(State.SUSPENDED);
+    assertThat(loadRegistrar("NewRegistrar").getState()).isEqualTo(State.SUSPENDED);
   }
 
   @Test
   public void testSuccess_allowedTlds() throws Exception {
     createTlds("xn--q9jyb4c", "foobar");
     persistResource(
-        loadByClientId("NewRegistrar")
+        loadRegistrar("NewRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.of("xn--q9jyb4c"))
             .build());
     runCommand("--allowed_tlds=xn--q9jyb4c,foobar", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getAllowedTlds())
+    assertThat(loadRegistrar("NewRegistrar").getAllowedTlds())
         .containsExactly("xn--q9jyb4c", "foobar");
   }
 
@@ -99,12 +98,12 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   public void testSuccess_addAllowedTlds() throws Exception {
     createTlds("xn--q9jyb4c", "foo", "bar");
     persistResource(
-        loadByClientId("NewRegistrar")
+        loadRegistrar("NewRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.of("xn--q9jyb4c"))
             .build());
     runCommand("--add_allowed_tlds=foo,bar", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getAllowedTlds())
+    assertThat(loadRegistrar("NewRegistrar").getAllowedTlds())
         .containsExactly("xn--q9jyb4c", "foo", "bar");
   }
 
@@ -112,20 +111,20 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   public void testSuccess_addAllowedTldsWithDupes() throws Exception {
     createTlds("xn--q9jyb4c", "foo", "bar");
     persistResource(
-        loadByClientId("NewRegistrar")
+        loadRegistrar("NewRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.of("xn--q9jyb4c"))
             .build());
     runCommand("--add_allowed_tlds=xn--q9jyb4c,foo,bar", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getAllowedTlds())
+    assertThat(loadRegistrar("NewRegistrar").getAllowedTlds())
         .isEqualTo(ImmutableSet.of("xn--q9jyb4c", "foo", "bar"));
   }
 
   @Test
   public void testSuccess_ipWhitelist() throws Exception {
-    assertThat(loadByClientId("NewRegistrar").getIpAddressWhitelist()).isEmpty();
+    assertThat(loadRegistrar("NewRegistrar").getIpAddressWhitelist()).isEmpty();
     runCommand("--ip_whitelist=192.168.1.1,192.168.0.2/16", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getIpAddressWhitelist())
+    assertThat(loadRegistrar("NewRegistrar").getIpAddressWhitelist())
         .containsExactly(
             CidrAddressBlock.create("192.168.1.1"), CidrAddressBlock.create("192.168.0.2/16"))
         .inOrder();
@@ -134,25 +133,25 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   @Test
   public void testSuccess_clearIpWhitelist() throws Exception {
     persistResource(
-        loadByClientId("NewRegistrar")
+        loadRegistrar("NewRegistrar")
             .asBuilder()
             .setIpAddressWhitelist(
                 ImmutableList.of(
                     CidrAddressBlock.create("192.168.1.1"),
                     CidrAddressBlock.create("192.168.0.2/16")))
             .build());
-    assertThat(loadByClientId("NewRegistrar").getIpAddressWhitelist()).isNotEmpty();
+    assertThat(loadRegistrar("NewRegistrar").getIpAddressWhitelist()).isNotEmpty();
     runCommand("--ip_whitelist=null", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getIpAddressWhitelist()).isEmpty();
+    assertThat(loadRegistrar("NewRegistrar").getIpAddressWhitelist()).isEmpty();
   }
 
   @Test
   public void testSuccess_certFile() throws Exception {
-    Registrar registrar = checkNotNull(loadByClientId("NewRegistrar"));
+    Registrar registrar = loadRegistrar("NewRegistrar");
     assertThat(registrar.getClientCertificate()).isNull();
     assertThat(registrar.getClientCertificateHash()).isNull();
     runCommand("--cert_file=" + getCertFilename(), "--force", "NewRegistrar");
-    registrar = checkNotNull(loadByClientId("NewRegistrar"));
+    registrar = loadRegistrar("NewRegistrar");
     // NB: Hash was computed manually using 'openssl x509 -fingerprint -sha256 -in ...' and then
     // converting the result from a hex string to non-padded base64 encoded string.
     assertThat(registrar.getClientCertificate()).isEqualTo(SAMPLE_CERT);
@@ -161,62 +160,62 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
 
   @Test
   public void testSuccess_certHash() throws Exception {
-    assertThat(loadByClientId("NewRegistrar").getClientCertificateHash()).isNull();
+    assertThat(loadRegistrar("NewRegistrar").getClientCertificateHash()).isNull();
     runCommand("--cert_hash=" + SAMPLE_CERT_HASH, "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getClientCertificateHash())
+    assertThat(loadRegistrar("NewRegistrar").getClientCertificateHash())
         .isEqualTo(SAMPLE_CERT_HASH);
   }
 
   @Test
   public void testSuccess_clearCert() throws Exception {
     persistResource(
-        loadByClientId("NewRegistrar")
+        loadRegistrar("NewRegistrar")
             .asBuilder()
             .setClientCertificate(SAMPLE_CERT, DateTime.now(UTC))
             .build());
-    assertThat(isNullOrEmpty(loadByClientId("NewRegistrar").getClientCertificate())).isFalse();
+    assertThat(isNullOrEmpty(loadRegistrar("NewRegistrar").getClientCertificate())).isFalse();
     runCommand("--cert_file=/dev/null", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getClientCertificate()).isNull();
+    assertThat(loadRegistrar("NewRegistrar").getClientCertificate()).isNull();
   }
 
   @Test
   public void testSuccess_clearCertHash() throws Exception {
     persistResource(
-        loadByClientId("NewRegistrar")
+        loadRegistrar("NewRegistrar")
             .asBuilder()
             .setClientCertificateHash(SAMPLE_CERT_HASH)
             .build());
-    assertThat(isNullOrEmpty(loadByClientId("NewRegistrar").getClientCertificateHash())).isFalse();
+    assertThat(isNullOrEmpty(loadRegistrar("NewRegistrar").getClientCertificateHash())).isFalse();
     runCommand("--cert_hash=null", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getClientCertificateHash()).isNull();
+    assertThat(loadRegistrar("NewRegistrar").getClientCertificateHash()).isNull();
   }
 
   @Test
   public void testSuccess_ianaId() throws Exception {
-    assertThat(loadByClientId("NewRegistrar").getIanaIdentifier()).isEqualTo(8);
+    assertThat(loadRegistrar("NewRegistrar").getIanaIdentifier()).isEqualTo(8);
     runCommand("--iana_id=12345", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getIanaIdentifier()).isEqualTo(12345);
+    assertThat(loadRegistrar("NewRegistrar").getIanaIdentifier()).isEqualTo(12345);
   }
 
   @Test
   public void testSuccess_billingId() throws Exception {
-    assertThat(loadByClientId("NewRegistrar").getBillingIdentifier()).isNull();
+    assertThat(loadRegistrar("NewRegistrar").getBillingIdentifier()).isNull();
     runCommand("--billing_id=12345", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getBillingIdentifier()).isEqualTo(12345);
+    assertThat(loadRegistrar("NewRegistrar").getBillingIdentifier()).isEqualTo(12345);
   }
 
   @Test
   public void testSuccess_billingAccountMap() throws Exception {
-    assertThat(loadByClientId("NewRegistrar").getBillingAccountMap()).isEmpty();
+    assertThat(loadRegistrar("NewRegistrar").getBillingAccountMap()).isEmpty();
     runCommand("--billing_account_map=USD=abc123,JPY=789xyz", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getBillingAccountMap())
+    assertThat(loadRegistrar("NewRegistrar").getBillingAccountMap())
         .containsExactly(CurrencyUnit.USD, "abc123", CurrencyUnit.JPY, "789xyz");
   }
 
   @Test
   public void testFailure_billingAccountMap_doesNotContainEntryForTldAllowed() throws Exception {
     createTlds("foo");
-    assertThat(loadByClientId("NewRegistrar").getBillingAccountMap()).isEmpty();
+    assertThat(loadRegistrar("NewRegistrar").getBillingAccountMap()).isEmpty();
     thrown.expect(IllegalArgumentException.class, "USD");
     runCommand(
         "--billing_account_map=JPY=789xyz",
@@ -229,13 +228,13 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   @Test
   public void testSuccess_billingAccountMap_onlyAppliesToRealRegistrar() throws Exception {
     createTlds("foo");
-    assertThat(loadByClientId("NewRegistrar").getBillingAccountMap()).isEmpty();
+    assertThat(loadRegistrar("NewRegistrar").getBillingAccountMap()).isEmpty();
     runCommand(
         "--billing_account_map=JPY=789xyz",
         "--allowed_tlds=foo",
         "--force",
         "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getBillingAccountMap())
+    assertThat(loadRegistrar("NewRegistrar").getBillingAccountMap())
         .containsExactly(CurrencyUnit.JPY, "789xyz");
   }
 
@@ -243,29 +242,29 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   public void testSuccess_billingAccountMap_partialUpdate() throws Exception {
     createTlds("foo");
     persistResource(
-        loadByClientId("NewRegistrar")
+        loadRegistrar("NewRegistrar")
             .asBuilder()
             .setBillingAccountMap(
                 ImmutableMap.of(CurrencyUnit.USD, "abc123", CurrencyUnit.JPY, "789xyz"))
             .build());
     runCommand("--billing_account_map=JPY=123xyz", "--allowed_tlds=foo", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getBillingAccountMap())
+    assertThat(loadRegistrar("NewRegistrar").getBillingAccountMap())
         .containsExactly(CurrencyUnit.JPY, "123xyz", CurrencyUnit.USD, "abc123");
   }
 
   @Test
   public void testSuccess_changeBillingMethodToBraintreeWhenBalanceIsZero() throws Exception {
     createTlds("xn--q9jyb4c");
-    assertThat(loadByClientId("NewRegistrar").getBillingMethod()).isEqualTo(BillingMethod.EXTERNAL);
+    assertThat(loadRegistrar("NewRegistrar").getBillingMethod()).isEqualTo(BillingMethod.EXTERNAL);
     runCommand("--billing_method=braintree", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getBillingMethod())
+    assertThat(loadRegistrar("NewRegistrar").getBillingMethod())
         .isEqualTo(BillingMethod.BRAINTREE);
   }
 
   @Test
   public void testFailure_changeBillingMethodWhenBalanceIsNonZero() throws Exception {
     createTlds("xn--q9jyb4c");
-    Registrar registrar = checkNotNull(loadByClientId("NewRegistrar"));
+    Registrar registrar = loadRegistrar("NewRegistrar");
     persistResource(
         new RegistrarBillingEntry.Builder()
             .setPrevious(null)
@@ -286,7 +285,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
     runCommand("--street=\"1234 Main St\"", "--street \"4th Floor\"", "--street \"Suite 1\"",
         "--city Brooklyn", "--state NY", "--zip 11223", "--cc US", "--force", "NewRegistrar");
 
-    Registrar registrar = checkNotNull(loadByClientId("NewRegistrar"));
+    Registrar registrar = loadRegistrar("NewRegistrar");
     assertThat(registrar.getLocalizedAddress() != null).isTrue();
     assertThat(registrar.getLocalizedAddress().getStreet()).hasSize(3);
     assertThat(registrar.getLocalizedAddress().getStreet().get(0)).isEqualTo("1234 Main St");
@@ -300,39 +299,39 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
 
   @Test
   public void testSuccess_blockPremiumNames() throws Exception {
-    assertThat(loadByClientId("NewRegistrar").getBlockPremiumNames()).isFalse();
+    assertThat(loadRegistrar("NewRegistrar").getBlockPremiumNames()).isFalse();
     runCommand("--block_premium=true", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getBlockPremiumNames()).isTrue();
+    assertThat(loadRegistrar("NewRegistrar").getBlockPremiumNames()).isTrue();
   }
 
   @Test
   public void testSuccess_resetBlockPremiumNames() throws Exception {
-    persistResource(loadByClientId("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
+    persistResource(loadRegistrar("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
     runCommand("--block_premium=false", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getBlockPremiumNames()).isFalse();
+    assertThat(loadRegistrar("NewRegistrar").getBlockPremiumNames()).isFalse();
   }
 
   @Test
   public void testSuccess_blockPremiumNamesUnspecified() throws Exception {
-    persistResource(loadByClientId("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
+    persistResource(loadRegistrar("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
     // Make some unrelated change where we don't specify "--block_premium".
     runCommand("--billing_id=12345", "--force", "NewRegistrar");
     // Make sure the field didn't get reset back to false.
-    assertThat(loadByClientId("NewRegistrar").getBlockPremiumNames()).isTrue();
+    assertThat(loadRegistrar("NewRegistrar").getBlockPremiumNames()).isTrue();
   }
 
   @Test
   public void testSuccess_updateMultiple() throws Exception {
-    assertThat(loadByClientId("TheRegistrar").getState()).isEqualTo(State.ACTIVE);
-    assertThat(loadByClientId("NewRegistrar").getState()).isEqualTo(State.ACTIVE);
+    assertThat(loadRegistrar("TheRegistrar").getState()).isEqualTo(State.ACTIVE);
+    assertThat(loadRegistrar("NewRegistrar").getState()).isEqualTo(State.ACTIVE);
     runCommand("--registrar_state=SUSPENDED", "--force", "TheRegistrar", "NewRegistrar");
-    assertThat(loadByClientId("TheRegistrar").getState()).isEqualTo(State.SUSPENDED);
-    assertThat(loadByClientId("NewRegistrar").getState()).isEqualTo(State.SUSPENDED);
+    assertThat(loadRegistrar("TheRegistrar").getState()).isEqualTo(State.SUSPENDED);
+    assertThat(loadRegistrar("NewRegistrar").getState()).isEqualTo(State.SUSPENDED);
   }
 
   @Test
   public void testSuccess_resetOptionalParamsNullString() throws Exception {
-    Registrar registrar = checkNotNull(loadByClientId("NewRegistrar"));
+    Registrar registrar = loadRegistrar("NewRegistrar");
     registrar = persistResource(registrar.asBuilder()
         .setType(Type.PDT) // for non-null IANA ID
         .setIanaIdentifier(9995L)
@@ -364,7 +363,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
         "--force",
         "NewRegistrar");
 
-    registrar = checkNotNull(loadByClientId("NewRegistrar"));
+    registrar = loadRegistrar("NewRegistrar");
     assertThat(registrar.getIanaIdentifier()).isNull();
     assertThat(registrar.getBillingIdentifier()).isNull();
     assertThat(registrar.getPhoneNumber()).isNull();
@@ -376,7 +375,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
 
   @Test
   public void testSuccess_resetOptionalParamsEmptyString() throws Exception {
-    Registrar registrar = checkNotNull(loadByClientId("NewRegistrar"));
+    Registrar registrar = loadRegistrar("NewRegistrar");
     registrar = persistResource(registrar.asBuilder()
         .setType(Type.PDT) // for non-null IANA ID
         .setIanaIdentifier(9995L)
@@ -408,7 +407,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
         "--force",
         "NewRegistrar");
 
-    registrar = checkNotNull(loadByClientId("NewRegistrar"));
+    registrar = loadRegistrar("NewRegistrar");
     assertThat(registrar.getIanaIdentifier()).isNull();
     assertThat(registrar.getBillingIdentifier()).isNull();
     assertThat(registrar.getPhoneNumber()).isNull();
@@ -421,16 +420,16 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   @Test
   public void testSuccess_setWhoisServer_works() throws Exception {
     runCommand("--whois=whois.goth.black", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getWhoisServer()).isEqualTo("whois.goth.black");
+    assertThat(loadRegistrar("NewRegistrar").getWhoisServer()).isEqualTo("whois.goth.black");
   }
 
   @Test
   public void testSuccess_triggerGroupSyncing_works() throws Exception {
     persistResource(
-        loadByClientId("NewRegistrar").asBuilder().setContactsRequireSyncing(false).build());
-    assertThat(loadByClientId("NewRegistrar").getContactsRequireSyncing()).isFalse();
+        loadRegistrar("NewRegistrar").asBuilder().setContactsRequireSyncing(false).build());
+    assertThat(loadRegistrar("NewRegistrar").getContactsRequireSyncing()).isFalse();
     runCommand("--sync_groups=true", "--force", "NewRegistrar");
-    assertThat(loadByClientId("NewRegistrar").getContactsRequireSyncing()).isTrue();
+    assertThat(loadRegistrar("NewRegistrar").getContactsRequireSyncing()).isTrue();
   }
 
   @Test
@@ -594,7 +593,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
 
   @Test
   public void testFailure_doesNotExist() throws Exception {
-    thrown.expect(NullPointerException.class);
+    thrown.expect(IllegalArgumentException.class, "Registrar ClientZ not found");
     runCommand("--force", "ClientZ");
   }
 

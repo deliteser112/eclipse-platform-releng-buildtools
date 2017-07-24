@@ -34,7 +34,7 @@ public class GetRegistrarCommandTest extends CommandTestCase<GetRegistrarCommand
 
   @Test
   public void testFailure_registrarDoesNotExist() throws Exception {
-    thrown.expect(IllegalStateException.class);
+    thrown.expect(IllegalArgumentException.class, "Registrar with id ClientZ does not exist");
     runCommand("ClientZ");
   }
 
@@ -46,7 +46,7 @@ public class GetRegistrarCommandTest extends CommandTestCase<GetRegistrarCommand
 
   @Test
   public void testFailure_oneRegistrarDoesNotExist() throws Exception {
-    thrown.expect(IllegalStateException.class);
+    thrown.expect(IllegalArgumentException.class, "Registrar with id ClientZ does not exist");
     runCommand("NewRegistrar", "ClientZ");
   }
 }

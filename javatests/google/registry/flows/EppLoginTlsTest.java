@@ -14,11 +14,11 @@
 
 package google.registry.flows;
 
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.base.Optional;
-import google.registry.model.registrar.Registrar;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.CertificateSamples;
 import org.joda.time.DateTime;
@@ -45,13 +45,17 @@ public class EppLoginTlsTest extends EppTestCase {
 
   @Before
   public void initTest() throws Exception {
-    persistResource(Registrar.loadByClientId("NewRegistrar").asBuilder()
-        .setClientCertificateHash(CertificateSamples.SAMPLE_CERT_HASH)
-        .build());
+    persistResource(
+        loadRegistrar("NewRegistrar")
+            .asBuilder()
+            .setClientCertificateHash(CertificateSamples.SAMPLE_CERT_HASH)
+            .build());
     // Set a cert for the second registrar, or else any cert will be allowed for login.
-    persistResource(Registrar.loadByClientId("TheRegistrar").asBuilder()
-        .setClientCertificateHash(CertificateSamples.SAMPLE_CERT2_HASH)
-        .build());
+    persistResource(
+        loadRegistrar("TheRegistrar")
+            .asBuilder()
+            .setClientCertificateHash(CertificateSamples.SAMPLE_CERT2_HASH)
+            .build());
   }
 
   @Test
@@ -102,10 +106,12 @@ public class EppLoginTlsTest extends EppTestCase {
   public void testGoodPrimaryCertificate() throws Exception {
     setClientCertificateHash(CertificateSamples.SAMPLE_CERT_HASH);
     DateTime now = DateTime.now(UTC);
-    persistResource(Registrar.loadByClientId("NewRegistrar").asBuilder()
-        .setClientCertificate(CertificateSamples.SAMPLE_CERT, now)
-        .setFailoverClientCertificate(CertificateSamples.SAMPLE_CERT2, now)
-        .build());
+    persistResource(
+        loadRegistrar("NewRegistrar")
+            .asBuilder()
+            .setClientCertificate(CertificateSamples.SAMPLE_CERT, now)
+            .setFailoverClientCertificate(CertificateSamples.SAMPLE_CERT2, now)
+            .build());
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
   }
 
@@ -113,10 +119,12 @@ public class EppLoginTlsTest extends EppTestCase {
   public void testGoodFailoverCertificate() throws Exception {
     setClientCertificateHash(CertificateSamples.SAMPLE_CERT2_HASH);
     DateTime now = DateTime.now(UTC);
-    persistResource(Registrar.loadByClientId("NewRegistrar").asBuilder()
-        .setClientCertificate(CertificateSamples.SAMPLE_CERT, now)
-        .setFailoverClientCertificate(CertificateSamples.SAMPLE_CERT2, now)
-        .build());
+    persistResource(
+        loadRegistrar("NewRegistrar")
+            .asBuilder()
+            .setClientCertificate(CertificateSamples.SAMPLE_CERT, now)
+            .setFailoverClientCertificate(CertificateSamples.SAMPLE_CERT2, now)
+            .build());
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
   }
 
@@ -124,10 +132,12 @@ public class EppLoginTlsTest extends EppTestCase {
   public void testMissingPrimaryCertificateButHasFailover_usesFailover() throws Exception {
     setClientCertificateHash(CertificateSamples.SAMPLE_CERT2_HASH);
     DateTime now = DateTime.now(UTC);
-    persistResource(Registrar.loadByClientId("NewRegistrar").asBuilder()
-        .setClientCertificate(null, now)
-        .setFailoverClientCertificate(CertificateSamples.SAMPLE_CERT2, now)
-        .build());
+    persistResource(
+        loadRegistrar("NewRegistrar")
+            .asBuilder()
+            .setClientCertificate(null, now)
+            .setFailoverClientCertificate(CertificateSamples.SAMPLE_CERT2, now)
+            .build());
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
   }
 
@@ -135,10 +145,12 @@ public class EppLoginTlsTest extends EppTestCase {
   public void testRegistrarHasNoCertificatesOnFile_disablesCertChecking() throws Exception {
     setClientCertificateHash("laffo");
     DateTime now = DateTime.now(UTC);
-    persistResource(Registrar.loadByClientId("NewRegistrar").asBuilder()
-        .setClientCertificate(null, now)
-        .setFailoverClientCertificate(null, now)
-        .build());
+    persistResource(
+        loadRegistrar("NewRegistrar")
+            .asBuilder()
+            .setClientCertificate(null, now)
+            .setFailoverClientCertificate(null, now)
+            .build());
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
   }
 }

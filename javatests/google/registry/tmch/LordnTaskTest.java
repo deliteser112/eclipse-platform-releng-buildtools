@@ -17,6 +17,7 @@ package google.registry.tmch;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDomainAndEnqueueLordn;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
@@ -37,7 +38,6 @@ import com.googlecode.objectify.VoidWork;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.ofy.Ofy;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.Type;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
@@ -141,7 +141,7 @@ public class LordnTaskTest {
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
-        ofy().save().entity(Registrar.loadByClientId("TheRegistrar").asBuilder()
+        ofy().save().entity(loadRegistrar("TheRegistrar").asBuilder()
             .setType(Type.OTE)
             .setIanaIdentifier(null)
             .build());
@@ -159,12 +159,13 @@ public class LordnTaskTest {
   @Test
   public void test_enqueueDomainResourceTask_throwsExceptionOnInvalidRegistrar() throws Exception {
     DateTime time = DateTime.parse("2010-05-01T10:11:12Z");
-    DomainResource domain = newDomainBuilder(time)
-        .setRepoId("9000-EXAMPLE")
-        .setCreationClientId("nonexistentRegistrar")
-        .build();
-    thrown.expect(NullPointerException.class,
-        "No registrar found for client id: nonexistentRegistrar");
+    DomainResource domain =
+        newDomainBuilder(time)
+            .setRepoId("9000-EXAMPLE")
+            .setCreationClientId("nonexistentRegistrar")
+            .build();
+    thrown.expect(
+        IllegalStateException.class, "No registrar found for client id: nonexistentRegistrar");
     persistDomainAndEnqueueLordn(domain);
   }
 

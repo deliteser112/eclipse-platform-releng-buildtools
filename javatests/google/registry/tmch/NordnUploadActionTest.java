@@ -20,6 +20,7 @@ import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.MediaType.FORM_DATA;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistDomainAndEnqueueLordn;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -42,7 +43,6 @@ import com.google.common.collect.ImmutableList;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.ofy.Ofy;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
@@ -109,8 +109,7 @@ public class NordnUploadActionTest {
     when(httpResponse.getResponseCode()).thenReturn(SC_ACCEPTED);
     when(httpResponse.getHeadersUncombined())
         .thenReturn(ImmutableList.of(new HTTPHeader(LOCATION, "http://trololol")));
-    persistResource(
-        Registrar.loadByClientId("TheRegistrar").asBuilder().setIanaIdentifier(99999L).build());
+    persistResource(loadRegistrar("TheRegistrar").asBuilder().setIanaIdentifier(99999L).build());
     createTld("tld");
     persistResource(Registry.get("tld").asBuilder().setLordnUsername("lolcat").build());
     lordnRequestInitializer.marksdbLordnPassword = Optional.of("attack");

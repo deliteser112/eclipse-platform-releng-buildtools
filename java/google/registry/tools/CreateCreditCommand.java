@@ -14,7 +14,7 @@
 
 package google.registry.tools;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
@@ -35,7 +35,7 @@ final class CreateCreditCommand extends MutatingCommand {
       names = "--registrar",
       description = "Client ID of the registrar who will be awarded this credit",
       required = true)
-  private String registrarId;
+  private String clientId;
 
   @Parameter(
       names = "--type",
@@ -70,8 +70,9 @@ final class CreateCreditCommand extends MutatingCommand {
   @Override
   protected void init() throws Exception {
     DateTime now = DateTime.now(UTC);
-    Registrar registrar = checkNotNull(
-        Registrar.loadByClientId(registrarId), "Registrar %s not found", registrarId);
+    Registrar registrar =
+        checkArgumentPresent(
+            Registrar.loadByClientId(clientId), "Registrar %s not found", clientId);
     RegistrarCredit credit = new RegistrarCredit.Builder()
         .setParent(registrar)
         .setType(type)

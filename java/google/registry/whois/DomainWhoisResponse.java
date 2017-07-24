@@ -15,6 +15,7 @@
 package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.tryFind;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
@@ -67,11 +68,13 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
 
   @Override
   public WhoisResponseResults getResponse(final boolean preferUnicode, String disclaimer) {
-    Registrar registrar =
-        checkNotNull(
-            Registrar.loadByClientId(domain.getCurrentSponsorClientId()),
-            "Could not load registrar %s",
-            domain.getCurrentSponsorClientId());
+    Optional<Registrar> registrarOptional =
+        Registrar.loadByClientIdCached(domain.getCurrentSponsorClientId());
+    checkState(
+        registrarOptional.isPresent(),
+        "Could not load registrar %s",
+        domain.getCurrentSponsorClientId());
+    Registrar registrar = registrarOptional.get();
     Optional<RegistrarContact> abuseContact =
         Iterables.tryFind(
             registrar.getContacts(),

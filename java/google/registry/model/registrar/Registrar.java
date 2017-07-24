@@ -36,8 +36,10 @@ import static google.registry.util.X509Utils.getCertificateHash;
 import static google.registry.util.X509Utils.loadCertificate;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -901,15 +903,16 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     return CACHE_BY_CLIENT_ID.get().values();
   }
 
-  /** Load a registrar entity by its client id directly from Datastore. */
-  @Nullable
-  public static Registrar loadByClientId(String clientId) {
-    return ofy().load().type(Registrar.class).parent(getCrossTldKey()).id(clientId).now();
+  /** Loads and returns a registrar entity by its client id directly from Datastore. */
+  public static Optional<Registrar> loadByClientId(String clientId) {
+    checkArgument(!Strings.isNullOrEmpty(clientId), "clientId must be specified");
+    return Optional.fromNullable(
+        ofy().load().type(Registrar.class).parent(getCrossTldKey()).id(clientId).now());
   }
 
-  /** Load a registrar entity by its client id using an in-memory cache. */
-  @Nullable
-  public static Registrar loadByClientIdCached(String clientId) {
-    return CACHE_BY_CLIENT_ID.get().get(clientId);
+  /** Loads and returns a registrar entity by its client id using an in-memory cache. */
+  public static Optional<Registrar> loadByClientIdCached(String clientId) {
+    checkArgument(!Strings.isNullOrEmpty(clientId), "clientId must be specified");
+    return Optional.fromNullable(CACHE_BY_CLIENT_ID.get().get(clientId));
   }
 }

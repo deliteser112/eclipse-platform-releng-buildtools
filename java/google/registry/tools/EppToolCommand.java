@@ -22,7 +22,7 @@ import static com.google.common.collect.Maps.filterValues;
 import static com.google.common.io.Resources.getResource;
 import static google.registry.model.registry.Registries.findTldForNameOrThrow;
 import static google.registry.tools.CommandUtilities.addHeader;
-import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import static google.registry.xml.XmlTransformer.prettyPrint;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -100,8 +100,8 @@ abstract class EppToolCommand extends ConfirmingCommand implements ServerSideCom
   }
 
   protected void addXmlCommand(String clientId, String xml) {
-    checkArgumentNotNull(Registrar.loadByClientId(clientId),
-        "Registrar with client ID %s not found", clientId);
+    checkArgumentPresent(
+        Registrar.loadByClientId(clientId), "Registrar with client ID %s not found", clientId);
     commands.add(new XmlEppParameters(clientId, xml));
   }
 

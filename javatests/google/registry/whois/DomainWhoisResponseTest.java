@@ -16,6 +16,7 @@ package google.registry.whois;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.whois.WhoisHelper.loadWhoisTestFile;
@@ -69,10 +70,7 @@ public class DomainWhoisResponseTest {
     // Update the registrar to have an IANA ID.
     Registrar registrar =
         persistResource(
-            Registrar.loadByClientId("NewRegistrar")
-                .asBuilder()
-                .setIanaIdentifier(5555555L)
-                .build());
+            loadRegistrar("NewRegistrar").asBuilder().setIanaIdentifier(5555555L).build());
 
     persistResource(
         new RegistrarContact.Builder()

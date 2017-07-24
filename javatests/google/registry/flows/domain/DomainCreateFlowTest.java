@@ -28,6 +28,7 @@ import static google.registry.testing.DatastoreHelper.assertPollMessagesForResou
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteTld;
 import static google.registry.testing.DatastoreHelper.getHistoryEntries;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newContactResource;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.newHostResource;
@@ -122,7 +123,6 @@ import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
@@ -1166,9 +1166,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_premium.xml");
     persistContactsAndHosts("net");
     // Modify the Registrar to block premium names.
-    persistResource(Registrar.loadByClientId("TheRegistrar").asBuilder()
-        .setBlockPremiumNames(true)
-        .build());
+    persistResource(loadRegistrar("TheRegistrar").asBuilder().setBlockPremiumNames(true).build());
     runFlowAssertResponse(
         CommitMode.LIVE,
         UserPrivileges.SUPERUSER,
@@ -1342,7 +1340,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_premium.xml");
     persistContactsAndHosts("net");
     // Modify the Registrar to block premium names.
-    persistResource(Registrar.loadByClientId("TheRegistrar").asBuilder()
+    persistResource(loadRegistrar("TheRegistrar").asBuilder()
         .setBlockPremiumNames(true)
         .build());
     thrown.expect(PremiumNameBlockedException.class);
@@ -1559,7 +1557,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testFailure_notAuthorizedForTld() throws Exception {
     createTld("irrelevant", "IRR");
     DatastoreHelper.persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of("irrelevant"))
             .build());

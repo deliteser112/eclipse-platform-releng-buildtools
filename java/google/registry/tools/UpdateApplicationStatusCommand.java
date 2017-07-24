@@ -20,6 +20,7 @@ import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.domain.launch.ApplicationStatus.ALLOCATED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -66,7 +67,7 @@ final class UpdateApplicationStatusCommand extends MutatingCommand {
 
   @Override
   protected void init() throws Exception {
-    checkArgumentNotNull(
+    checkArgumentPresent(
         Registrar.loadByClientId(clientId), "Registrar with client ID %s not found", clientId);
     for (final String applicationId : ids) {
       ofy().transact(new VoidWork() {

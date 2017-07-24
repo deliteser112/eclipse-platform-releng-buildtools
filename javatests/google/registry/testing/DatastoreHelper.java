@@ -35,6 +35,7 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX_REGEX;
 import static google.registry.util.DomainNameUtils.getTldFromDomainName;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.util.Arrays.asList;
 import static org.joda.money.CurrencyUnit.USD;
@@ -429,13 +430,13 @@ public class DatastoreHelper {
   }
 
   public static void allowRegistrarAccess(String clientId, String tld) {
-    Registrar registrar = Registrar.loadByClientId(clientId);
+    Registrar registrar = loadRegistrar(clientId);
     persistResource(
         registrar.asBuilder().setAllowedTlds(union(registrar.getAllowedTlds(), tld)).build());
   }
 
   private static void disallowRegistrarAccess(String clientId, String tld) {
-    Registrar registrar = Registrar.loadByClientId(clientId);
+    Registrar registrar = loadRegistrar(clientId);
     persistResource(
         registrar.asBuilder().setAllowedTlds(difference(registrar.getAllowedTlds(), tld)).build());
   }
@@ -1021,6 +1022,14 @@ public class DatastoreHelper {
       throw new RuntimeException(
           "Could not retrieve entries for premium list " + premiumList.getName(), e);
     }
+  }
+
+  /** Loads and returns the registrar with the given client ID, or throws IAE if not present. */
+  public static Registrar loadRegistrar(String clientId) {
+    return checkArgumentPresent(
+        Registrar.loadByClientId(clientId),
+        "Error in tests: Registrar %s does not exist",
+        clientId);
   }
 
   private DatastoreHelper() {}

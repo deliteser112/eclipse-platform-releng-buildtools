@@ -19,6 +19,7 @@ import static google.registry.model.registrar.Registrar.State.ACTIVE;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
@@ -94,7 +95,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
       String allowedTld,
       String password,
       ImmutableList<CidrAddressBlock> ipWhitelist) {
-    Registrar registrar = Registrar.loadByClientId(registrarName);
+    Registrar registrar = loadRegistrar(registrarName);
     assertThat(registrar).isNotNull();
     assertThat(registrar.getAllowedTlds()).containsExactlyElementsIn(ImmutableSet.of(allowedTld));
     assertThat(registrar.getRegistrarName()).isEqualTo(registrarName);
@@ -321,7 +322,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Test
   public void testFailure_registrarExists() throws Exception {
-    Registrar registrar = Registrar.loadByClientId("TheRegistrar").asBuilder()
+    Registrar registrar = loadRegistrar("TheRegistrar").asBuilder()
         .setClientId("blobio-1")
         .setRegistrarName("blobio-1")
         .build();

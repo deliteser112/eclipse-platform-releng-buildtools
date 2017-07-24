@@ -19,6 +19,7 @@ import static com.google.common.collect.Iterables.transform;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 
 import com.google.common.base.Function;
 import google.registry.model.ImmutableObject;
@@ -70,11 +71,11 @@ public class ResaveEnvironmentEntitiesCommandTest
     assertThat(savedEntities)
         .containsExactly(
             // The Registrars and RegistrarContacts are created by AppEngineRule.
-            Registrar.loadByClientId("TheRegistrar"),
-            Registrar.loadByClientId("NewRegistrar"),
+            loadRegistrar("TheRegistrar"),
+            loadRegistrar("NewRegistrar"),
             Registry.get("tld"),
-            getOnlyElement(Registrar.loadByClientId("TheRegistrar").getContacts()),
-            getOnlyElement(Registrar.loadByClientId("NewRegistrar").getContacts()));
+            getOnlyElement(loadRegistrar("TheRegistrar").getContacts()),
+            getOnlyElement(loadRegistrar("NewRegistrar").getContacts()));
   }
 
   @SafeVarargs

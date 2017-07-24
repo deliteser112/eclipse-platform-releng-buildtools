@@ -16,6 +16,7 @@ package google.registry.export;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.collect.ImmutableMap;
@@ -52,7 +53,9 @@ public final class PublishDetailReportAction implements Runnable, JsonAction {
   /** Endpoint to which JSON should be sent for this servlet.  See {@code web.xml}. */
   public static final String PATH = "/_dr/publishDetailReport";
 
-  /** Name of parameter indicating the registrar for which this report will be published. */
+  /**
+   * Name of parameter indicating the registrar client ID for which this report will be published.
+   */
   public static final String REGISTRAR_ID_PARAM = "registrar";
 
   /** Name of parameter providing a name for the report file placed in Drive (the base name). */
@@ -83,10 +86,13 @@ public final class PublishDetailReportAction implements Runnable, JsonAction {
     try {
       logger.infofmt("Publishing detail report for parameters: %s", json);
       String registrarId = getParam(json, REGISTRAR_ID_PARAM);
-      Registrar registrar = checkArgumentNotNull(Registrar.loadByClientIdCached(registrarId),
-          "Registrar %s not found", registrarId);
-      String driveFolderId = checkArgumentNotNull(registrar.getDriveFolderId(),
-          "No drive folder associated with registrar " + registrarId);
+      Registrar registrar =
+          checkArgumentPresent(
+              Registrar.loadByClientId(registrarId), "Registrar %s not found", registrarId);
+      String driveFolderId =
+          checkArgumentNotNull(
+              registrar.getDriveFolderId(),
+              "No drive folder associated with registrar " + registrarId);
       String gcsBucketName = getParam(json, GCS_BUCKET_PARAM);
       String gcsObjectName =
           getParam(json, GCS_FOLDER_PREFIX_PARAM) + getParam(json, DETAIL_REPORT_NAME_PARAM);

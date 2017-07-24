@@ -18,6 +18,7 @@ import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailAddres
 import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDisplayName;
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.security.JsonHttpTestUtils.createJsonResponseSupplier;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -29,7 +30,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.ofy.Ofy;
-import google.registry.model.registrar.Registrar;
 import google.registry.request.JsonActionRunner;
 import google.registry.request.JsonResponse;
 import google.registry.request.ResponseImpl;
@@ -107,7 +107,7 @@ public class RegistrarSettingsActionTestCase {
     when(req.getContentType()).thenReturn("application/json");
     when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of("op", "read")));
     when(sessionUtils.getRegistrarForAuthResult(req, action.authResult))
-        .thenReturn(Registrar.loadByClientId(CLIENT_ID));
+        .thenReturn(loadRegistrar(CLIENT_ID));
     when(modulesService.getVersionHostname("backend", null)).thenReturn("backend.hostname");
   }
 

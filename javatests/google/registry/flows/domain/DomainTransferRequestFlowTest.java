@@ -21,6 +21,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.getOnlyPollMessage;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
@@ -66,7 +67,6 @@ import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferResponse;
@@ -563,7 +563,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_notAuthorizedForTld() throws Exception {
     setupDomain("example", "tld");
     persistResource(
-        Registrar.loadByClientId("NewRegistrar")
+        loadRegistrar("NewRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
@@ -575,7 +575,7 @@ public class DomainTransferRequestFlowTest
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     setupDomain("example", "tld");
     persistResource(
-        Registrar.loadByClientId("NewRegistrar")
+        loadRegistrar("NewRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
@@ -694,7 +694,7 @@ public class DomainTransferRequestFlowTest
     clock.advanceOneMilli();
     // Modify the Registrar to block premium names.
     persistResource(
-        Registrar.loadByClientId("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
+        loadRegistrar("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
     // We don't verify the results; just check that the flow doesn't fail.
     runTest("domain_transfer_request_premium.xml", UserPrivileges.SUPERUSER);
   }
@@ -788,7 +788,7 @@ public class DomainTransferRequestFlowTest
     setupDomain("rich", "example");
     // Modify the Registrar to block premium names.
     persistResource(
-        Registrar.loadByClientId("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
+        loadRegistrar("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
     thrown.expect(PremiumNameBlockedException.class);
     doFailingTest("domain_transfer_request_premium.xml");
   }

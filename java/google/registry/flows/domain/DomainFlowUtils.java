@@ -231,7 +231,7 @@ public class DomainFlowUtils {
   /** Check if the registrar running the flow has access to the TLD in question. */
   public static void checkAllowedAccessToTld(String clientId, String tld)
       throws EppException {
-    if (!Registrar.loadByClientIdCached(clientId).getAllowedTlds().contains(tld)) {
+    if (!Registrar.loadByClientIdCached(clientId).get().getAllowedTlds().contains(tld)) {
       throw new DomainFlowUtils.NotAuthorizedForTldException(tld);
     }
   }
@@ -433,7 +433,7 @@ public class DomainFlowUtils {
   static void verifyPremiumNameIsNotBlocked(
       String domainName, DateTime priceTime, String clientId) throws EppException {
     if (isDomainPremium(domainName, priceTime)) {
-      if (Registrar.loadByClientIdCached(clientId).getBlockPremiumNames()) {
+      if (Registrar.loadByClientIdCached(clientId).get().getBlockPremiumNames()) {
         throw new PremiumNameBlockedException();
       }
     }

@@ -16,6 +16,7 @@ package google.registry.flows.domain;
 
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.collect.ImmutableMap;
@@ -28,7 +29,6 @@ import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException
 import google.registry.flows.domain.DomainFlowUtils.TldDoesNotExistException;
 import google.registry.flows.exceptions.TooManyResourceChecksException;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import org.junit.Before;
@@ -114,7 +114,7 @@ public class ClaimsCheckFlowTest extends ResourceFlowTestCase<ClaimsCheckFlow, D
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
@@ -127,7 +127,7 @@ public class ClaimsCheckFlowTest extends ResourceFlowTestCase<ClaimsCheckFlow, D
     persistClaimsList(
         ImmutableMap.of("example2", "2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001"));
     persistResource(
-        Registrar.loadByClientId("TheRegistrar")
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());

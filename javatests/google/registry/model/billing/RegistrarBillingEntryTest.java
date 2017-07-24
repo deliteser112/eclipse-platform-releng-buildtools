@@ -15,13 +15,13 @@
 package google.registry.model.billing;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
-import google.registry.model.registrar.Registrar;
 import google.registry.testing.ExceptionRule;
 import org.joda.money.CurrencyMismatchException;
 import org.joda.money.Money;
@@ -44,7 +44,7 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
         persistResource(
             new RegistrarBillingEntry.Builder()
                 .setPrevious(null)
-                .setParent(Registrar.loadByClientId("NewRegistrar"))
+                .setParent(loadRegistrar("NewRegistrar"))
                 .setCreated(DateTime.parse("1984-12-18TZ"))
                 .setTransactionId("goblin-market")
                 .setDescription("USD Invoice for December 1984")
@@ -59,14 +59,14 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
     RegistrarBillingEntry entry =
         new RegistrarBillingEntry.Builder()
             .setPrevious(null)
-            .setParent(Registrar.loadByClientId("NewRegistrar"))
+            .setParent(loadRegistrar("NewRegistrar"))
             .setCreated(DateTime.parse("1984-12-18TZ"))
             .setTransactionId("goblin-market")
             .setDescription("USD Invoice for December 1984")
             .setAmount(Money.parse("USD 10.00"))
             .build();
     assertThat(entry.getId()).isEqualTo(1L);
-    assertThat(entry.getParent()).isEqualTo(Key.create(Registrar.loadByClientId("NewRegistrar")));
+    assertThat(entry.getParent()).isEqualTo(Key.create(loadRegistrar("NewRegistrar")));
     assertThat(entry.getCreated()).isEqualTo(DateTime.parse("1984-12-18TZ"));
     assertThat(entry.getTransactionId()).isEqualTo("goblin-market");
     assertThat(entry.getDescription()).isEqualTo("USD Invoice for December 1984");
@@ -79,7 +79,7 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
     assertThat(
             new RegistrarBillingEntry.Builder()
                 .setPrevious(null)
-                .setParent(Registrar.loadByClientId("NewRegistrar"))
+                .setParent(loadRegistrar("NewRegistrar"))
                 .setCreated(DateTime.parse("1984-12-18TZ"))
                 .setTransactionId("goblin-market")
                 .setDescription("USD Invoice for December 1984")
@@ -105,12 +105,12 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
         .setPrevious(
             new RegistrarBillingEntry.Builder()
                 .setPrevious(null)
-                .setParent(Registrar.loadByClientId("NewRegistrar"))
+                .setParent(loadRegistrar("NewRegistrar"))
                 .setCreated(DateTime.parse("1984-12-18TZ"))
                 .setDescription("USD Invoice for December")
                 .setAmount(Money.parse("USD 10.00"))
                 .build())
-        .setParent(Registrar.loadByClientId("NewRegistrar"))
+        .setParent(loadRegistrar("NewRegistrar"))
         .setCreated(DateTime.parse("1984-12-17TZ"))
         .setTransactionId("goblin")
         .setDescription("USD Invoice for August")
@@ -125,12 +125,12 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
         .setPrevious(
             new RegistrarBillingEntry.Builder()
                 .setPrevious(null)
-                .setParent(Registrar.loadByClientId("NewRegistrar"))
+                .setParent(loadRegistrar("NewRegistrar"))
                 .setCreated(DateTime.parse("1984-12-18TZ"))
                 .setDescription("USD Invoice for December")
                 .setAmount(Money.parse("USD 10.00"))
                 .build())
-        .setParent(Registrar.loadByClientId("TheRegistrar"))
+        .setParent(loadRegistrar("TheRegistrar"))
         .setCreated(DateTime.parse("1984-12-17TZ"))
         .setTransactionId("goblin")
         .setDescription("USD Invoice for August")
@@ -145,12 +145,12 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
         .setPrevious(
             new RegistrarBillingEntry.Builder()
                 .setPrevious(null)
-                .setParent(Registrar.loadByClientId("NewRegistrar"))
+                .setParent(loadRegistrar("NewRegistrar"))
                 .setCreated(DateTime.parse("1984-12-18TZ"))
                 .setDescription("USD Invoice for December")
                 .setAmount(Money.parse("USD 10.00"))
                 .build())
-        .setParent(Registrar.loadByClientId("NewRegistrar"))
+        .setParent(loadRegistrar("NewRegistrar"))
         .setCreated(DateTime.parse("1984-12-17TZ"))
         .setTransactionId("goblin")
         .setDescription("JPY Invoice for August")
@@ -163,7 +163,7 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
     thrown.expect(IllegalArgumentException.class, "Amount can't be zero");
     new RegistrarBillingEntry.Builder()
         .setPrevious(null)
-        .setParent(Registrar.loadByClientId("NewRegistrar"))
+        .setParent(loadRegistrar("NewRegistrar"))
         .setCreated(DateTime.parse("1984-12-18TZ"))
         .setDescription("USD Invoice for December")
         .setAmount(Money.zero(USD))
@@ -175,7 +175,7 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
     assertThat(
         new RegistrarBillingEntry.Builder()
             .setPrevious(null)
-            .setParent(Registrar.loadByClientId("NewRegistrar"))
+            .setParent(loadRegistrar("NewRegistrar"))
             .setTransactionId("")
             .setCreated(DateTime.parse("1984-12-18TZ"))
             .setDescription("USD Invoice for December 1984")

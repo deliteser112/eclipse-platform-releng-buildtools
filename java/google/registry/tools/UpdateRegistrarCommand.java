@@ -14,7 +14,7 @@
 
 package google.registry.tools;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.beust.jcommander.Parameters;
 import google.registry.model.registrar.Registrar;
@@ -25,7 +25,7 @@ final class UpdateRegistrarCommand extends CreateOrUpdateRegistrarCommand {
 
   @Override
   Registrar getOldRegistrar(String clientId) {
-    return checkNotNull(
+    return checkArgumentPresent(
         Registrar.loadByClientId(clientId), "Registrar %s not found", clientId);
   }
 }

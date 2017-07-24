@@ -17,8 +17,8 @@ package google.registry.tools;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
@@ -157,13 +157,17 @@ final class CreateAuctionCreditsCommand extends MutatingCommand {
       List<String> fields = splitCsvLine(line);
       checkArgument(CsvHeader.getHeaders().size() == fields.size(), "Wrong number of fields");
       try {
-        String registrarId = fields.get(CsvHeader.AFFILIATE.ordinal());
-        Registrar registrar = checkNotNull(
-            Registrar.loadByClientId(registrarId), "Registrar %s not found", registrarId);
+        String clientId = fields.get(CsvHeader.AFFILIATE.ordinal());
+        Registrar registrar =
+            checkArgumentPresent(
+                Registrar.loadByClientId(clientId), "Registrar %s not found", clientId);
         CurrencyUnit tldCurrency = Registry.get(tld).getCurrency();
         CurrencyUnit currency = CurrencyUnit.of((fields.get(CsvHeader.CURRENCY_CODE.ordinal())));
-        checkArgument(tldCurrency.equals(currency),
-            "Credit in wrong currency (%s should be %s)", currency, tldCurrency);
+        checkArgument(
+            tldCurrency.equals(currency),
+            "Credit in wrong currency (%s should be %s)",
+            currency,
+            tldCurrency);
         // We use BigDecimal and BigMoney to preserve fractional currency units when computing the
         // total amount of each credit (since auction credits are percentages of winning bids).
         BigDecimal creditAmount = new BigDecimal(fields.get(CsvHeader.COMMISSIONS.ordinal()));

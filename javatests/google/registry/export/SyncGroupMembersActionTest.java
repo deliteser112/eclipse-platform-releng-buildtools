@@ -20,6 +20,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registrar.RegistrarContact.Type.ADMIN;
 import static google.registry.model.registrar.RegistrarContact.Type.MARKETING;
 import static google.registry.model.registrar.RegistrarContact.Type.TECH;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -103,19 +104,15 @@ public class SyncGroupMembersActionTest {
 
   @Test
   public void test_doPost_noneModified() throws Exception {
-    persistResource(Registrar.loadByClientId("NewRegistrar")
-        .asBuilder()
-        .setContactsRequireSyncing(false)
-        .build());
-    persistResource(Registrar.loadByClientId("TheRegistrar")
-        .asBuilder()
-        .setContactsRequireSyncing(false)
-        .build());
+    persistResource(
+        loadRegistrar("NewRegistrar").asBuilder().setContactsRequireSyncing(false).build());
+    persistResource(
+        loadRegistrar("TheRegistrar").asBuilder().setContactsRequireSyncing(false).build());
     runAction();
     verify(response).setStatus(SC_OK);
     verify(response).setPayload("NOT_MODIFIED No registrar contacts have been updated "
         + "since the last time servlet ran.\n");
-    assertThat(Registrar.loadByClientId("NewRegistrar").getContactsRequireSyncing()).isFalse();
+    assertThat(loadRegistrar("NewRegistrar").getContactsRequireSyncing()).isFalse();
   }
 
   @Test
@@ -127,7 +124,7 @@ public class SyncGroupMembersActionTest {
         Role.MEMBER);
     verify(response).setStatus(SC_OK);
     verify(response).setPayload("OK Group memberships successfully updated.\n");
-    assertThat(Registrar.loadByClientId("NewRegistrar").getContactsRequireSyncing()).isFalse();
+    assertThat(loadRegistrar("NewRegistrar").getContactsRequireSyncing()).isFalse();
   }
 
   @Test
@@ -138,7 +135,7 @@ public class SyncGroupMembersActionTest {
     verify(connection).removeMemberFromGroup(
         "newregistrar-primary-contacts@domain-registry.example", "defunct@example.com");
     verify(response).setStatus(SC_OK);
-    assertThat(Registrar.loadByClientId("NewRegistrar").getContactsRequireSyncing()).isFalse();
+    assertThat(loadRegistrar("NewRegistrar").getContactsRequireSyncing()).isFalse();
   }
 
   @Test
@@ -146,7 +143,7 @@ public class SyncGroupMembersActionTest {
     when(connection.getMembersOfGroup("newregistrar-primary-contacts@domain-registry.example"))
         .thenReturn(ImmutableSet.of("defunct@example.com", "janedoe@theregistrar.com"));
     ofy().deleteWithoutBackup()
-        .entities(Registrar.loadByClientId("NewRegistrar").getContacts())
+        .entities(loadRegistrar("NewRegistrar").getContacts())
         .now();
     runAction();
     verify(connection).removeMemberFromGroup(
@@ -154,7 +151,7 @@ public class SyncGroupMembersActionTest {
     verify(connection).removeMemberFromGroup(
         "newregistrar-primary-contacts@domain-registry.example", "janedoe@theregistrar.com");
     verify(response).setStatus(SC_OK);
-    assertThat(Registrar.loadByClientId("NewRegistrar").getContactsRequireSyncing()).isFalse();
+    assertThat(loadRegistrar("NewRegistrar").getContactsRequireSyncing()).isFalse();
   }
 
   @Test
@@ -169,14 +166,14 @@ public class SyncGroupMembersActionTest {
         .thenReturn(ImmutableSet.<String> of());
     persistResource(
         new RegistrarContact.Builder()
-            .setParent(Registrar.loadByClientId("NewRegistrar"))
+            .setParent(loadRegistrar("NewRegistrar"))
             .setName("Binary Star")
             .setEmailAddress("binarystar@example.tld")
             .setTypes(ImmutableSet.of(ADMIN, MARKETING))
             .build());
     persistResource(
         new RegistrarContact.Builder()
-            .setParent(Registrar.loadByClientId("TheRegistrar"))
+            .setParent(loadRegistrar("TheRegistrar"))
             .setName("Hexadecimal")
             .setEmailAddress("hexadecimal@snow.fall")
             .setTypes(ImmutableSet.of(TECH))
@@ -223,8 +220,8 @@ public class SyncGroupMembersActionTest {
         .getMembersOfGroup("theregistrar-primary-contacts@domain-registry.example");
     verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
     verify(response).setPayload("FAILED Error occurred while updating registrar contacts.\n");
-    assertThat(Registrar.loadByClientId("NewRegistrar").getContactsRequireSyncing()).isFalse();
-    assertThat(Registrar.loadByClientId("TheRegistrar").getContactsRequireSyncing()).isTrue();
+    assertThat(loadRegistrar("NewRegistrar").getContactsRequireSyncing()).isFalse();
+    assertThat(loadRegistrar("TheRegistrar").getContactsRequireSyncing()).isTrue();
   }
 
   @Test
@@ -240,6 +237,6 @@ public class SyncGroupMembersActionTest {
         Role.MEMBER);
     verify(response).setStatus(SC_OK);
     verify(response).setPayload("OK Group memberships successfully updated.\n");
-    assertThat(Registrar.loadByClientId("NewRegistrar").getContactsRequireSyncing()).isFalse();
+    assertThat(loadRegistrar("NewRegistrar").getContactsRequireSyncing()).isFalse();
   }
 }

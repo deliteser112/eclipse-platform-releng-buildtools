@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Matchers.anyString;
@@ -21,7 +22,6 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.registrar.Registrar;
@@ -48,7 +48,7 @@ public class VerifyOteCommandTest extends CommandTestCase<VerifyOteCommand> {
   @Test
   public void testSuccess_pass() throws Exception {
     Registrar registrar =
-        Registrar.loadByClientId("TheRegistrar")
+        loadRegistrar("TheRegistrar")
             .asBuilder()
             .setClientId("blobio-1")
             .setRegistrarName("blobio-1")
@@ -66,7 +66,7 @@ public class VerifyOteCommandTest extends CommandTestCase<VerifyOteCommand> {
 
   @Test
   public void testFailure_registrarDoesntExist() throws Exception {
-    thrown.expect(VerifyException.class, "Registrar blobio does not exist.");
+    thrown.expect(IllegalArgumentException.class, "Registrar blobio does not exist.");
     runCommand("blobio");
   }
 

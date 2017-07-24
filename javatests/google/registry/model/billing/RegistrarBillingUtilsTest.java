@@ -16,6 +16,7 @@ package google.registry.model.billing;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -57,7 +58,7 @@ public final class RegistrarBillingUtilsTest {
   @Before
   public void before() throws Exception {
     inject.setStaticField(Ofy.class, "clock", clock);
-    registrar = Registrar.loadByClientId("NewRegistrar");
+    registrar = loadRegistrar("NewRegistrar");
     createTlds("xn--q9jyb4c", "com", "net");
     persistResource(
         Registry.get("xn--q9jyb4c").asBuilder()

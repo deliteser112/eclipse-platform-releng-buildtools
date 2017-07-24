@@ -17,6 +17,7 @@ package google.registry.model.billing;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -53,7 +54,7 @@ public class RegistrarCreditBalanceTest extends EntityTestCase {
   @Before
   public void setUp() throws Exception {
     createTld("tld");
-    theRegistrar = Registrar.loadByClientId("TheRegistrar");
+    theRegistrar = loadRegistrar("TheRegistrar");
     unpersistedCredit = makeCredit(theRegistrar, clock.nowUtc());
     credit = persistResource(makeCredit(theRegistrar, clock.nowUtc()));
     balance = persistResource(
