@@ -23,7 +23,6 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -32,14 +31,18 @@ import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
 import google.registry.flows.domain.DomainFlowTmchUtils;
 import google.registry.model.domain.DomainApplication;
+import google.registry.model.ofy.Ofy;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMarkRevocationList;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
 import google.registry.tmch.TmchCertificateAuthority;
 import google.registry.tmch.TmchData;
 import google.registry.tmch.TmchXmlSignature;
 import org.joda.time.DateTime;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 /** Unit tests for {@link UpdateSmdCommandTest}. */
@@ -61,14 +64,24 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
       readResourceUtf8(UpdateSmdCommandTest.class,
           "testdata/TMVRevoked-Trademark-Agent-English-Active.smd");
 
+  // The test data was created by ICANN on 2013. It includes SMDs that expire sometime during 2017.
+  // We want the "current date" to be sometime between 2013 and 2017.
+  private final FakeClock clock = new FakeClock(DateTime.parse("2015-01-01TZ"));
+
+  @Rule
+  public final InjectRule inject = new InjectRule();
+
   @Before
   public void init() {
+    inject.setStaticField(Ofy.class, "clock", clock);
     createTld("xn--q9jyb4c");
+    clock.advanceOneMilli();
     domainApplication = persistResource(newDomainApplication("test-validate.xn--q9jyb4c")
         .asBuilder()
         .setPersistedCurrentSponsorClientId("TheRegistrar")
         .setEncodedSignedMarks(ImmutableList.of(EncodedSignedMark.create("base64", "garbage")))
         .build());
+    clock.advanceOneMilli();
     command.tmchUtils =
         new DomainFlowTmchUtils(new TmchXmlSignature(new TmchCertificateAuthority(PILOT)));
   }
@@ -79,7 +92,8 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
 
   @Test
   public void testSuccess() throws Exception {
-    DateTime before = new DateTime(UTC);
+    DateTime before = clock.nowUtc();
+    clock.advanceOneMilli();
     String smdFile = writeToTmpFile(ACTIVE_SMD);
     runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile, "--reason=testing");
 
@@ -104,7 +118,8 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
 
   @Test
   public void testFailure_revokedSmd() throws Exception {
-    DateTime now = new DateTime(UTC);
+    DateTime now = clock.nowUtc();
+    clock.advanceOneMilli();
     SignedMarkRevocationList.create(now, ImmutableMap.of(ACTIVE_SMD_ID, now)).save();
     String smdFile = writeToTmpFile(ACTIVE_SMD);
     thrown.expectRootCause(ParameterValuePolicyErrorException.class);
@@ -148,7 +163,8 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
 
   @Test
   public void testFailure_deletedApplication() throws Exception {
-    persistResource(domainApplication.asBuilder().setDeletionTime(new DateTime(UTC)).build());
+    persistResource(domainApplication.asBuilder().setDeletionTime(clock.nowUtc()).build());
+    clock.advanceOneMilli();
     String smdFile = writeToTmpFile(ACTIVE_SMD);
     thrown.expectRootCause(IllegalArgumentException.class);
     runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
