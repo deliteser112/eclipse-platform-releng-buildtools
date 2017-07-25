@@ -25,13 +25,15 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.Dataset;
 import com.google.api.services.bigquery.model.Table;
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import google.registry.bigquery.BigqueryFactory;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.testing.AppEngineRule;
@@ -44,6 +46,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 
 /** Unit tests for {@link UpdateSnapshotViewAction}. */
 @RunWith(JUnit4.class)
@@ -101,16 +104,31 @@ public class UpdateSnapshotViewActionTest {
   public void testSuccess_doPost() throws Exception {
     action.run();
 
+    InOrder factoryOrder = inOrder(bigqueryFactory);
     // Check that the BigQuery factory was called in such a way that the dataset would be created
     // if it didn't already exist.
-    verify(bigqueryFactory).create("myproject", "latest_snapshot");
+    factoryOrder.verify(bigqueryFactory).create("myproject", "latest_snapshot");
+    factoryOrder.verify(bigqueryFactory).create("myproject", "latest_datastore_export");
 
-    // Check that we updated the view.
+    // Check that we updated both views
+    InOrder tableOrder = inOrder(bigqueryTables);
     ArgumentCaptor<Table> tableArg = ArgumentCaptor.forClass(Table.class);
-    verify(bigqueryTables).update(
-        eq("myproject"), eq("latest_snapshot"), eq("fookind"), tableArg.capture());
-    assertThat(tableArg.getValue().getView().getQuery())
-        .isEqualTo("SELECT * FROM [myproject:some_dataset.12345_fookind]");
+    tableOrder.verify(bigqueryTables)
+        .update(eq("myproject"), eq("latest_snapshot"), eq("fookind"), tableArg.capture());
+    tableOrder.verify(bigqueryTables)
+        .update(eq("myproject"), eq("latest_datastore_export"), eq("fookind"), tableArg.capture());
+    Iterable<String> actualQueries =
+        Iterables.transform(
+            tableArg.getAllValues(),
+            new Function<Table, String>() {
+              @Override
+              public String apply(Table table) {
+                return table.getView().getQuery();
+              }
+            });
+    assertThat(actualQueries).containsExactly(
+        "#legacySQL\nSELECT * FROM [myproject:some_dataset.12345_fookind]",
+        "#standardSQL\nSELECT * FROM `myproject.some_dataset.12345_fookind`");
   }
 
   @Test
