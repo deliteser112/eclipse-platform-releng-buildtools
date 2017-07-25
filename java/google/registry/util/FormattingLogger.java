@@ -19,6 +19,7 @@ import com.google.common.collect.FluentIterable;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /** Logging wrapper. */
 public class FormattingLogger {
@@ -34,7 +35,15 @@ public class FormattingLogger {
     this.logger = Logger.getLogger(name);
   }
 
-  private void log(Level level, Throwable cause, String msg) {
+  public void logfmt(Level level, Throwable cause, String fmt, Object... args) {
+    log(level, cause, String.format(fmt, args));
+  }
+
+  public void logfmt(Level level, String fmt, Object... args) {
+    log(level, null, String.format(fmt, args));
+  }
+
+  private void log(Level level, @Nullable Throwable cause, String msg) {
     StackTraceElement callerFrame = FluentIterable
         .from(new Exception().getStackTrace())
         .firstMatch(new Predicate<StackTraceElement>() {

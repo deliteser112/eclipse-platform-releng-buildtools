@@ -31,14 +31,17 @@ import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.apphosting.api.DeadlineExceededException;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
 import google.registry.dns.DnsConstants.TargetType;
 import google.registry.model.registry.Registries;
 import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.joda.time.Duration;
@@ -66,7 +69,9 @@ public class DnsQueue {
     return new DnsQueue(getQueue(DNS_PULL_QUEUE_NAME));
   }
 
-  long writeBatchSize = QueueConstants.maxLeaseCount();
+  @NonFinalForTesting
+  @VisibleForTesting
+  long leaseTasksBatchSize = QueueConstants.maxLeaseCount();
 
   /**
    * Enqueues the given task type with the given target name to the DNS queue.
@@ -107,7 +112,13 @@ public class DnsQueue {
   /** Returns handles for a batch of tasks, leased for the specified duration. */
   public List<TaskHandle> leaseTasks(Duration leaseDuration) {
     try {
-      return queue.leaseTasks(leaseDuration.getMillis(), MILLISECONDS, writeBatchSize);
+      int numTasks = queue.fetchStatistics().getNumTasks();
+      logger.logfmt(
+          (numTasks >= leaseTasksBatchSize) ? Level.WARNING : Level.INFO,
+          "There are %d tasks in the DNS queue '%s'.",
+          numTasks,
+          DNS_PULL_QUEUE_NAME);
+      return queue.leaseTasks(leaseDuration.getMillis(), MILLISECONDS, leaseTasksBatchSize);
     } catch (TransientFailureException | DeadlineExceededException e) {
       logger.severe(e, "Failed leasing tasks too fast");
       return ImmutableList.of();

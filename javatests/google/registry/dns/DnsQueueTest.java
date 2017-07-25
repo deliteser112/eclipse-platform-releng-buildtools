@@ -45,7 +45,7 @@ public class DnsQueueTest {
   @Before
   public void init() {
     dnsQueue = DnsQueue.create();
-    dnsQueue.writeBatchSize = 10;
+    dnsQueue.leaseTasksBatchSize = 10;
   }
 
   @Test
