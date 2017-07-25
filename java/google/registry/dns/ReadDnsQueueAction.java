@@ -116,7 +116,7 @@ public final class ReadDnsQueueAction implements Runnable {
     if (tasks.isEmpty()) {
       return;
     }
-    logger.infofmt("leased %d tasks", tasks.size());
+    logger.infofmt("Leased %d DNS update tasks.", tasks.size());
     // Normally, all tasks will be deleted from the pull queue. But some might have to remain if
     // we are not interested in the associated TLD, or if the TLD is paused. Remember which these
     // are.
@@ -134,7 +134,7 @@ public final class ReadDnsQueueAction implements Runnable {
         Map<String, String> params = ImmutableMap.copyOf(task.extractParams());
         String tld = params.get(RequestParameters.PARAM_TLD);
         if (tld == null) {
-          logger.severe("discarding invalid DNS refresh request; no TLD specified");
+          logger.severe("Discarding invalid DNS refresh request; no TLD specified.");
         } else if (!tldsOfInterest.contains(tld)) {
           tasksToKeep.add(task);
         } else if (Registry.get(tld).getDnsPaused()) {
@@ -150,16 +150,16 @@ public final class ReadDnsQueueAction implements Runnable {
               refreshItemMultimap.put(tld, RefreshItem.create(type, name));
               break;
             default:
-              logger.severefmt("discarding DNS refresh request of type %s", typeString);
+              logger.severefmt("Discarding DNS refresh request of type %s.", typeString);
               break;
           }
         }
       } catch (RuntimeException | UnsupportedEncodingException e) {
-        logger.severefmt(e, "discarding invalid DNS refresh request (task %s)", task);
+        logger.severefmt(e, "Discarding invalid DNS refresh request (task %s).", task);
       }
     }
     if (!pausedTlds.isEmpty()) {
-      logger.infofmt("the dns-pull queue is paused for tlds: %s", pausedTlds);
+      logger.infofmt("The dns-pull queue is paused for TLDs: %s.", pausedTlds);
     }
     // Loop through the multimap by TLD and generate refresh tasks for the hosts and domains for
     // each configured DNS writer.
@@ -189,19 +189,19 @@ public final class ReadDnsQueueAction implements Runnable {
     Set<TaskHandle> tasksToDelete = difference(ImmutableSet.copyOf(tasks), tasksToKeep);
     // In keepTasks mode, never delete any tasks.
     if (keepTasks) {
-      logger.infofmt("would have deleted %d tasks", tasksToDelete.size());
+      logger.infofmt("Would have deleted %d DNS update tasks.", tasksToDelete.size());
       for (TaskHandle task : tasks) {
         dnsQueue.dropTaskLease(task);
       }
     // Otherwise, either delete or drop the lease of each task.
     } else {
-      logger.infofmt("deleting %d tasks", tasksToDelete.size());
+      logger.infofmt("Deleting %d DNS update tasks.", tasksToDelete.size());
       dnsQueue.deleteTasks(ImmutableList.copyOf(tasksToDelete));
-      logger.infofmt("dropping %d tasks", tasksToKeep.size());
+      logger.infofmt("Dropping %d DNS update tasks.", tasksToKeep.size());
       for (TaskHandle task : tasksToKeep) {
         dnsQueue.dropTaskLease(task);
       }
-      logger.infofmt("done");
+      logger.infofmt("Done processing DNS tasks.");
     }
   }
 }
