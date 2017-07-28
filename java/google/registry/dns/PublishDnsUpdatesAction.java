@@ -81,7 +81,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
     // false. We need to make sure to take note of this error; otherwise, a failed lock might result
     // in the update task being dequeued and dropped. A message will already have been logged
     // to indicate the problem.
-    if (!executeWithLocks(this, getClass(), tld, timeout, lockName)) {
+    if (!executeWithLocks(this, null, tld, timeout, lockName)) {
       throw new ServiceUnavailableException("Lock failure");
     }
   }
