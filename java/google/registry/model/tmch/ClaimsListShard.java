@@ -43,9 +43,12 @@ import google.registry.model.common.CrossTldSingleton;
 import google.registry.util.CollectionUtils;
 import google.registry.util.Concurrent;
 import google.registry.util.NonFinalForTesting;
+import google.registry.util.Retrier;
+import google.registry.util.SystemSleeper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
@@ -90,14 +93,12 @@ public class ClaimsListShard extends ImmutableObject {
   @Ignore
   boolean isShard = false;
 
-  /**
-   * A cached supplier that fetches the claims list shards from Datastore and recombines them
-   * into a single {@link ClaimsListShard} object.
-   */
-  private static final Supplier<ClaimsListShard> CACHE =
-      memoizeWithShortExpiration(new Supplier<ClaimsListShard>() {
+  private static final Retrier LOADER_RETRIER = new Retrier(new SystemSleeper(), 2);
+
+  private static final Callable<ClaimsListShard> LOADER_CALLABLE =
+      new Callable<ClaimsListShard>() {
         @Override
-        public ClaimsListShard get() {
+        public ClaimsListShard call() throws Exception {
           // Find the most recent revision.
           Key<ClaimsListRevision> revisionKey = getCurrentRevision();
 
@@ -109,16 +110,26 @@ public class ClaimsListShard extends ImmutableObject {
                 ofy().load().type(ClaimsListShard.class).ancestor(revisionKey).keys().list();
 
             // Load all of the shards concurrently, each in a separate transaction.
-            List<ClaimsListShard> shards = Concurrent.transform(
-                shardKeys, new Function<Key<ClaimsListShard>, ClaimsListShard>() {
-                  @Override
-                  public ClaimsListShard apply(final Key<ClaimsListShard> key) {
-                    return ofy().transactNewReadOnly(new Work<ClaimsListShard>() {
+            List<ClaimsListShard> shards =
+                Concurrent.transform(
+                    shardKeys,
+                    new Function<Key<ClaimsListShard>, ClaimsListShard>() {
                       @Override
-                      public ClaimsListShard run() {
-                        return ofy().load().key(key).now();
-                      }});
-                  }});
+                      public ClaimsListShard apply(final Key<ClaimsListShard> key) {
+                        return ofy()
+                            .transactNewReadOnly(
+                                new Work<ClaimsListShard>() {
+                                  @Override
+                                  public ClaimsListShard run() {
+                                    ClaimsListShard claimsListShard = ofy().load().key(key).now();
+                                    checkState(
+                                        claimsListShard != null,
+                                        "Key not found when loading claims list shards.");
+                                    return claimsListShard;
+                                  }
+                                });
+                      }
+                    });
 
             // Combine the shards together and return the concatenated ClaimsList.
             if (!shards.isEmpty()) {
@@ -126,12 +137,27 @@ public class ClaimsListShard extends ImmutableObject {
               for (ClaimsListShard shard : shards) {
                 combinedLabelsToKeys.putAll(shard.labelsToKeys);
                 checkState(
-                    creationTime.equals(shard.creationTime), "Inconsistent creation times.");
+                    creationTime.equals(shard.creationTime),
+                    "Inconsistent claims list shard creation times.");
               }
             }
           }
           return create(creationTime, ImmutableMap.copyOf(combinedLabelsToKeys));
-        }});
+        }
+      };
+
+  /**
+   * A cached supplier that fetches the claims list shards from Datastore and recombines them into a
+   * single {@link ClaimsListShard} object.
+   */
+  private static final Supplier<ClaimsListShard> CACHE =
+      memoizeWithShortExpiration(
+          new Supplier<ClaimsListShard>() {
+            @Override
+            public ClaimsListShard get() {
+              return LOADER_RETRIER.callWithRetry(LOADER_CALLABLE, IllegalStateException.class);
+            }
+          });
 
   public DateTime getCreationTime() {
     return creationTime;
