@@ -146,7 +146,7 @@ public class SyncRegistrarsSheetAction implements Runnable {
         return null;
       }
     };
-    if (!Lock.executeWithLocks(runner, getClass(), "", timeout, sheetLockName)) {
+    if (!Lock.executeWithLocks(runner, null, timeout, sheetLockName)) {
       // If we fail to acquire the lock, it probably means lots of updates are happening at once, in
       // which case it should be safe to not bother. The task queue definition should *not* specify
       // max-concurrent-requests for this very reason.

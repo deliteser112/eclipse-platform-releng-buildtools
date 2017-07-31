@@ -81,7 +81,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
     // false. We need to make sure to take note of this error; otherwise, a failed lock might result
     // in the update task being dequeued and dropped. A message will already have been logged
     // to indicate the problem.
-    if (!executeWithLocks(this, null, tld, timeout, lockName)) {
+    if (!executeWithLocks(this, tld, timeout, lockName)) {
       throw new ServiceUnavailableException("Lock failure");
     }
   }
@@ -109,6 +109,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
         } else {
           dnsMetrics.incrementPublishDomainRequests(tld, Status.ACCEPTED);
           writer.publishDomain(domain);
+          logger.infofmt("%s: published domain %s", tld, domain);
         }
       }
       for (String host : nullToEmpty(hosts)) {
@@ -119,6 +120,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
         } else {
           dnsMetrics.incrementPublishHostRequests(tld, Status.ACCEPTED);
           writer.publishHost(host);
+          logger.infofmt("%s: published host %s", tld, host);
         }
       }
     }

@@ -109,7 +109,7 @@ class EscrowTaskRunner {
         return null;
       }};
     String lockName = String.format("%s %s", task.getClass().getSimpleName(), registry.getTld());
-    if (!Lock.executeWithLocks(lockRunner, null, tld, timeout, lockName)) {
+    if (!Lock.executeWithLocks(lockRunner, tld, timeout, lockName)) {
       // This will happen if either: a) the task is double-executed; b) the task takes a long time
       // to run and the retry task got executed while the first one is still running. In both
       // situations the safest thing to do is to just return 503 so the task gets retried later.

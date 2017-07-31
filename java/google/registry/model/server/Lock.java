@@ -16,16 +16,10 @@ package google.registry.model.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Throwables.throwIfUnchecked;
-import static com.google.common.collect.Iterables.getFirst;
-import static com.google.common.collect.Iterables.skip;
-import static com.google.common.collect.Sets.newLinkedHashSet;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.util.CollectionUtils.nullToEmpty;
-import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
@@ -37,7 +31,6 @@ import google.registry.model.annotations.NotBackedUp.Reason;
 import google.registry.util.AppEngineTimeLimiter;
 import google.registry.util.FormattingLogger;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -66,29 +59,19 @@ public class Lock extends ImmutableObject {
   DateTime expirationTime;
 
   /**
-   * Insertion-ordered set of classes requesting access to the lock.
-   *
-   * <p>A class can only acquire the lock if the queue is empty or if it is at the top of the
-   * queue.  This allows us to prevent starvation between processes competing for the lock.
-   */
-  LinkedHashSet<String> queue = new LinkedHashSet<>();
-
-  /**
    * Create a new {@link Lock} for the given resource name in the specified tld (which can be
    * null for cross-tld locks).
    */
   private static Lock create(
       String resourceName,
       @Nullable String tld,
-      DateTime expirationTime,
-      LinkedHashSet<String> queue) {
+      DateTime expirationTime) {
     checkArgument(!Strings.isNullOrEmpty(resourceName), "resourceName cannot be null or empty");
     Lock instance = new Lock();
     // Add the tld to the Lock's id so that it is unique for locks acquiring the same resource
     // across different TLDs.
     instance.lockId = makeLockId(resourceName, tld);
     instance.expirationTime = expirationTime;
-    instance.queue = queue;
     return instance;
   }
 
@@ -96,27 +79,8 @@ public class Lock extends ImmutableObject {
     return String.format("%s-%s", tld, resourceName);
   }
 
-  /** Join the queue waiting on this lock (unless you are already in the queue). */
-  static void joinQueue(
-      final Class<?> requester,
-      final String resourceName,
-      @Nullable final String tld) {
-    // This transaction doesn't use the clock, so it's fine to use the default.
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        Lock lock = ofy().load().type(Lock.class).id(makeLockId(resourceName, tld)).now();
-        LinkedHashSet<String> queue = (lock == null)
-            ? new LinkedHashSet<String>() : newLinkedHashSet(lock.queue);
-        queue.add(requester.getCanonicalName());
-        DateTime expirationTime = (lock == null) ? START_OF_TIME : lock.expirationTime;
-        ofy().saveWithoutBackup().entity(create(resourceName, tld, expirationTime, queue));
-      }});
-  }
-
   /** Try to acquire a lock. Returns null if it can't be acquired. */
   static Lock acquire(
-      final Class<?> requester,
       final String resourceName,
       @Nullable final String tld,
       final Duration leaseLength) {
@@ -127,42 +91,38 @@ public class Lock extends ImmutableObject {
       @Override
       public Lock run() {
         String lockId = makeLockId(resourceName, tld);
+        DateTime now = ofy().getTransactionTime();
+
+        // Checking if an unexpired lock still exists - if so, the lock can't be acquired.
         Lock lock = ofy().load().type(Lock.class).id(lockId).now();
-        if (lock == null || isAtOrAfter(ofy().getTransactionTime(), lock.expirationTime)) {
-          String requesterName = (requester == null) ? "" : requester.getCanonicalName();
-          String firstInQueue =
-              getFirst(nullToEmpty((lock == null) ? null : lock.queue), requesterName);
-          if (!firstInQueue.equals(requesterName)) {
-            // Another class is at the top of the queue; we can't acquire the lock.
-            logger.infofmt(
-                "Another class %s is first in queue (size %d) instead of requested %s for lock: %s",
-                firstInQueue,
-                lock.queue.size(),
-                requesterName,
-                lockId);
-            return null;
-          }
-          Lock newLock = create(
-              resourceName,
-              tld,
-              ofy().getTransactionTime().plus(leaseLength),
-              newLinkedHashSet((lock == null)
-                  ? ImmutableList.<String>of() : skip(lock.queue, 1)));
-          // Locks are not parented under an EntityGroupRoot (so as to avoid write contention) and
-          // don't need to be backed up.
-          ofy().saveWithoutBackup().entity(newLock);
+        if (lock != null && !isAtOrAfter(now, lock.expirationTime)) {
           logger.infofmt(
-              "acquire succeeded %s lock: %s",
-              newLock,
+              "Existing lock is still valid now %s (until %s) lock: %s",
+              now,
+              lock.expirationTime,
               lockId);
-          return newLock;
+          return null;
         }
+
+        if (lock != null) {
+          logger.infofmt(
+              "Existing lock is timed out now %s (was valid until %s) lock: %s",
+              now,
+              lock.expirationTime,
+              lockId);
+        }
+        Lock newLock = create(
+            resourceName,
+            tld,
+            now.plus(leaseLength));
+        // Locks are not parented under an EntityGroupRoot (so as to avoid write contention) and
+        // don't need to be backed up.
+        ofy().saveWithoutBackup().entity(newLock);
         logger.infofmt(
-            "Existing lock is still valid now %s (until %s) lock: %s",
-            ofy().getTransactionTime(),
-            lock.expirationTime,
+            "acquire succeeded %s lock: %s",
+            newLock,
             lockId);
-        return null;
+        return newLock;
       }});
   }
 
@@ -181,6 +141,12 @@ public class Lock extends ImmutableObject {
           logger.infofmt("Deleting lock: %s", lockId);
           ofy().deleteWithoutBackup().entity(Lock.this);
         } else {
+          logger.severefmt(
+              "The lock we acquired was transferred to someone else before we"
+              + " released it! Did action take longer than lease length?"
+              + " Our lock: %s, current lock: %s",
+              Lock.this,
+              loadedLock);
           logger.infofmt("Not deleting lock: %s - someone else has it: %s", lockId, loadedLock);
         }
       }});
@@ -190,10 +156,6 @@ public class Lock extends ImmutableObject {
    * Acquire one or more locks and execute a Void {@link Callable} on a thread that will be
    * killed if it doesn't complete before the lease expires.
    *
-   * <p>If the requester isn't null, this will join each lock's queue before attempting to acquire
-   * that lock. Clients that are concerned with starvation should specify a requester and those that
-   * aren't shouldn't.
-   *
    * <p>Note that locks are specific either to a given tld or to the entire system (in which case
    * tld should be passed as null).
    *
@@ -201,14 +163,12 @@ public class Lock extends ImmutableObject {
    */
   public static boolean executeWithLocks(
       final Callable<Void> callable,
-      @Nullable Class<?> requester,
       @Nullable String tld,
       Duration leaseLength,
       String... lockNames) {
     try {
       return AppEngineTimeLimiter.create().callWithTimeout(
-          new LockingCallable(
-              callable, requester, Strings.emptyToNull(tld), leaseLength, lockNames),
+          new LockingCallable(callable, Strings.emptyToNull(tld), leaseLength, lockNames),
           leaseLength.minus(LOCK_TIMEOUT_FUDGE).getMillis(),
           TimeUnit.MILLISECONDS,
           true);
@@ -221,20 +181,17 @@ public class Lock extends ImmutableObject {
   /** A {@link Callable} that acquires and releases a lock around a delegate {@link Callable}. */
   private static class LockingCallable implements Callable<Boolean> {
     final Callable<Void> delegate;
-    final Class<?> requester;
     @Nullable final String tld;
     final Duration leaseLength;
     final Set<String> lockNames;
 
     LockingCallable(
         Callable<Void> delegate,
-        Class<?> requester,
         String tld,
         Duration leaseLength,
         String... lockNames) {
       checkArgument(leaseLength.isLongerThan(LOCK_TIMEOUT_FUDGE));
       this.delegate = delegate;
-      this.requester = requester;
       this.tld = tld;
       this.leaseLength = leaseLength;
       // Make sure we join locks in a fixed (lexicographical) order to avoid deadlock.
@@ -246,10 +203,7 @@ public class Lock extends ImmutableObject {
       Set<Lock> acquiredLocks = new HashSet<>();
       try {
         for (String lockName : lockNames) {
-          if (requester != null) {
-            joinQueue(requester, lockName, tld);
-          }
-          Lock lock = acquire(requester, lockName, tld, leaseLength);
+          Lock lock = acquire(lockName, tld, leaseLength);
           if (lock == null) {
             logger.infofmt("Couldn't acquire lock: %s", lockName);
             return false;

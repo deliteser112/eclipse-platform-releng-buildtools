@@ -120,7 +120,6 @@ public class EscrowTaskRunnerTest {
                 task, registry, standardSeconds(30), CursorType.RDE_STAGING, standardDays(1));
             return null;
           }},
-        null,
         "lol",
         standardSeconds(30),
         lockName);

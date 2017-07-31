@@ -103,7 +103,7 @@ public class SyncRegistrarsSheetActionTest {
         runAction(null, "foobar");
         return null;
       }
-    }, SyncRegistrarsSheetAction.class, "", Duration.standardHours(1), lockName);
+    }, null, Duration.standardHours(1), lockName);
     assertThat(response.getPayload()).startsWith("LOCKED");
     verifyZeroInteractions(syncRegistrarsSheet);
   }

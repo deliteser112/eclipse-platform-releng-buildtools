@@ -48,65 +48,47 @@ public class LockTest {
 
   @Test
   public void testReleasedExplicitly() throws Exception {
-    Lock lock = Lock.acquire(getClass(), RESOURCE_NAME, "", ONE_DAY);
+    Lock lock = Lock.acquire(RESOURCE_NAME, "", ONE_DAY);
     assertThat(lock).isNotNull();
     // We can't get it again at the same time.
-    assertThat(Lock.acquire(getClass(), RESOURCE_NAME, "", ONE_DAY)).isNull();
+    assertThat(Lock.acquire(RESOURCE_NAME, "", ONE_DAY)).isNull();
     // But if we release it, it's available.
     lock.release();
-    assertThat(Lock.acquire(getClass(), RESOURCE_NAME, "", ONE_DAY)).isNotNull();
+    assertThat(Lock.acquire(RESOURCE_NAME, "", ONE_DAY)).isNotNull();
   }
 
   @Test
   public void testReleasedAfterTimeout() throws Exception {
     FakeClock clock = new FakeClock();
     inject.setStaticField(Ofy.class, "clock", clock);
-    assertThat(Lock.acquire(getClass(), RESOURCE_NAME, "", TWO_MILLIS)).isNotNull();
+    assertThat(Lock.acquire(RESOURCE_NAME, "", TWO_MILLIS)).isNotNull();
     // We can't get it again at the same time.
-    assertThat(Lock.acquire(getClass(), RESOURCE_NAME, "", TWO_MILLIS)).isNull();
+    assertThat(Lock.acquire(RESOURCE_NAME, "", TWO_MILLIS)).isNull();
     // A second later we still can't get the lock.
     clock.advanceOneMilli();
-    assertThat(Lock.acquire(getClass(), RESOURCE_NAME, "", TWO_MILLIS)).isNull();
+    assertThat(Lock.acquire(RESOURCE_NAME, "", TWO_MILLIS)).isNull();
     // But two seconds later we can get it.
     clock.advanceOneMilli();
-    assertThat(Lock.acquire(getClass(), RESOURCE_NAME, "", TWO_MILLIS)).isNotNull();
+    assertThat(Lock.acquire(RESOURCE_NAME, "", TWO_MILLIS)).isNotNull();
   }
 
   @Test
   public void testTldsAreIndependent() throws Exception {
-    Lock lockA = Lock.acquire(getClass(), RESOURCE_NAME, "a", ONE_DAY);
+    Lock lockA = Lock.acquire(RESOURCE_NAME, "a", ONE_DAY);
     assertThat(lockA).isNotNull();
     // For a different tld we can still get a lock with the same name.
-    Lock lockB = Lock.acquire(getClass(), RESOURCE_NAME, "b", ONE_DAY);
+    Lock lockB = Lock.acquire(RESOURCE_NAME, "b", ONE_DAY);
     assertThat(lockB).isNotNull();
     // We can't get lockB again at the same time.
-    assertThat(Lock.acquire(getClass(), RESOURCE_NAME, "b", ONE_DAY)).isNull();
+    assertThat(Lock.acquire(RESOURCE_NAME, "b", ONE_DAY)).isNull();
     // Releasing lockA has no effect on lockB (even though we are still using the "b" tld).
     lockA.release();
-    assertThat(Lock.acquire(getClass(), RESOURCE_NAME, "b", ONE_DAY)).isNull();
-  }
-
-  @Test
-  public void testQueueing() throws Exception {
-    // This should work... there's nothing on the queue.
-    Lock lock = Lock.acquire(String.class, RESOURCE_NAME, "", TWO_MILLIS);
-    assertThat(lock).isNotNull();
-    lock.release();
-    // Queue up a request from "Object".
-    Lock.joinQueue(Object.class, RESOURCE_NAME, "");
-    // We can't get the lock because the "requester" is different than what's on the queue.
-    assertThat(Lock.acquire(String.class, RESOURCE_NAME, "", TWO_MILLIS)).isNull();
-    // But this will work because the requester is the same as what's on the queue.
-    lock = Lock.acquire(Object.class, RESOURCE_NAME, "", TWO_MILLIS);
-    assertThat(lock).isNotNull();
-    lock.release();
-    // Now the queue is empty again so we can get the lock.
-    assertThat(Lock.acquire(String.class, RESOURCE_NAME, "", TWO_MILLIS)).isNotNull();
+    assertThat(Lock.acquire(RESOURCE_NAME, "b", ONE_DAY)).isNull();
   }
 
   @Test
   public void testFailure_emptyResourceName() throws Exception {
     thrown.expect(IllegalArgumentException.class, "resourceName cannot be null or empty");
-    Lock.acquire(String.class, "", "", TWO_MILLIS);
+    Lock.acquire("", "", TWO_MILLIS);
   }
 }

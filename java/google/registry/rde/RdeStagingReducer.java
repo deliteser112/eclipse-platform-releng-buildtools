@@ -105,7 +105,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
         return null;
       }};
     String lockName = String.format("RdeStaging %s", key.tld());
-    if (!Lock.executeWithLocks(lockRunner, null, null, lockTimeout, lockName)) {
+    if (!Lock.executeWithLocks(lockRunner, null, lockTimeout, lockName)) {
       logger.warningfmt("Lock in use: %s", lockName);
     }
   }
