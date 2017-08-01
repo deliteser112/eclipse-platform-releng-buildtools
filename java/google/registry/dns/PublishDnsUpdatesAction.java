@@ -19,7 +19,6 @@ import static google.registry.request.Action.Method.POST;
 import static google.registry.request.RequestParameters.PARAM_TLD;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
-import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.dns.DnsMetrics.Status;
@@ -65,8 +64,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
    * writers configured in {@link Registry#getDnsWriters()}, as of the time the batch was written
    * out (and not necessarily currently).
    */
-  // TODO(b/63385597): Make this non-optional DNS once writers migration is complete.
-  @Inject @Parameter(PARAM_DNS_WRITER) Optional<String> dnsWriter;
+  @Inject @Parameter(PARAM_DNS_WRITER) String dnsWriter;
 
   @Inject @Parameter(PARAM_DOMAINS) Set<String> domains;
   @Inject @Parameter(PARAM_HOSTS) Set<String> hosts;
@@ -95,12 +93,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
 
   /** Steps through the domain and host refreshes contained in the parameters and processes them. */
   private void processBatch() {
-    // TODO(b/63385597): After all old DNS task queue items that did not have a DNS writer on them
-    // are finished being processed, then remove handling for when dnsWriter is absent.
-    try (DnsWriter writer =
-        (dnsWriter.isPresent())
-            ? dnsWriterProxy.getByClassNameForTld(dnsWriter.get(), tld)
-            : dnsWriterProxy.getForTld(tld)) {
+    try (DnsWriter writer = dnsWriterProxy.getByClassNameForTld(dnsWriter, tld)) {
       for (String domain : nullToEmpty(domains)) {
         if (!DomainNameUtils.isUnder(
             InternetDomainName.from(domain), InternetDomainName.from(tld))) {

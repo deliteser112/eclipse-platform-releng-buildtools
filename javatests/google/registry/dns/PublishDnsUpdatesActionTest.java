@@ -23,7 +23,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.dns.DnsMetrics.Status;
@@ -80,7 +79,7 @@ public class PublishDnsUpdatesActionTest {
     action.tld = tld;
     action.hosts = ImmutableSet.<String>of();
     action.domains = ImmutableSet.<String>of();
-    action.dnsWriter = Optional.<String>absent();
+    action.dnsWriter = "mock";
     action.dnsWriterProxy = new DnsWriterProxy(ImmutableMap.of("mock", dnsWriter));
     action.dnsMetrics = dnsMetrics;
     return action;
@@ -104,7 +103,6 @@ public class PublishDnsUpdatesActionTest {
   public void testDomain_published() throws Exception {
     action = createAction("xn--q9jyb4c");
     action.domains = ImmutableSet.of("example.xn--q9jyb4c");
-    action.dnsWriter = Optional.of("mock");
     action.run();
 
     verify(dnsWriter).publishDomain("example.xn--q9jyb4c");

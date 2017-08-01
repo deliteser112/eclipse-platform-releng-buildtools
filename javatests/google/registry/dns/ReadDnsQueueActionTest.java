@@ -33,7 +33,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
 import google.registry.dns.DnsConstants.TargetType;
@@ -123,12 +123,12 @@ public class ReadDnsQueueActionTest {
     return options.param("tld", tld);
   }
 
-  private void assertTldsEnqueuedInPushQueue(ImmutableMap<String, String> tldsToDnsWriters)
+  private void assertTldsEnqueuedInPushQueue(ImmutableMultimap<String, String> tldsToDnsWriters)
       throws Exception {
     assertTasksEnqueued(
         DNS_PUBLISH_PUSH_QUEUE_NAME,
         transform(
-            tldsToDnsWriters.entrySet().asList(),
+            tldsToDnsWriters.entries().asList(),
             new Function<Entry<String, String>, TaskMatcher>() {
               @Override
               public TaskMatcher apply(Entry<String, String> tldToDnsWriter) {
@@ -163,7 +163,20 @@ public class ReadDnsQueueActionTest {
     run(false);
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTldsEnqueuedInPushQueue(
-        ImmutableMap.of("com", "comWriter", "net", "netWriter", "example", "exampleWriter"));
+        ImmutableMultimap.of("com", "comWriter", "net", "netWriter", "example", "exampleWriter"));
+  }
+
+  @Test
+  public void testSuccess_twoDnsWriters() throws Exception {
+    persistResource(
+        Registry.get("com")
+            .asBuilder()
+            .setDnsWriters(ImmutableSet.of("comWriter", "otherWriter"))
+            .build());
+    dnsQueue.addDomainRefreshTask("domain.com");
+    run(false);
+    assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
+    assertTldsEnqueuedInPushQueue(ImmutableMultimap.of("com", "comWriter", "com", "otherWriter"));
   }
 
   @Test
@@ -175,7 +188,7 @@ public class ReadDnsQueueActionTest {
         TaskQueueHelper.getQueueInfo(DNS_PULL_QUEUE_NAME).getTaskInfo();
     run(true);
     assertTldsEnqueuedInPushQueue(
-        ImmutableMap.of("com", "comWriter", "net", "netWriter", "example", "exampleWriter"));
+        ImmutableMultimap.of("com", "comWriter", "net", "netWriter", "example", "exampleWriter"));
     // Check that keepTasks was honored and the pull queue tasks are still present in the queue.
     assertTasksEnqueued(DNS_PULL_QUEUE_NAME, preexistingTasks);
   }
@@ -189,7 +202,7 @@ public class ReadDnsQueueActionTest {
     run(false);
     assertTasksEnqueued(DNS_PULL_QUEUE_NAME, new TaskMatcher());
     assertTldsEnqueuedInPushQueue(
-        ImmutableMap.of("com", "comWriter", "example", "exampleWriter"));
+        ImmutableMultimap.of("com", "comWriter", "example", "exampleWriter"));
   }
 
   @Test
@@ -250,6 +263,4 @@ public class ReadDnsQueueActionTest {
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTasksEnqueued(DNS_PUBLISH_PUSH_QUEUE_NAME, expectedTasks);
   }
-
-  // TODO(b/63385597): Add a test that DNS tasks are processed for multiple DNS writers once allowed
 }

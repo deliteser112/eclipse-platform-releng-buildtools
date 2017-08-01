@@ -183,9 +183,12 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   }
 
   @Test
-  public void testFailure_multipleDnsWritersNotYetSupported() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Multiple DNS writers are not yet supported");
+  public void testSuccess_multipleDnsWriters() throws Exception {
+    assertThat(Registry.get("xn--q9jyb4c").getDnsWriters()).containsExactly("VoidDnsWriter");
+
     runCommandForced("--dns_writers=FooDnsWriter,VoidDnsWriter", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getDnsWriters())
+        .containsExactly("FooDnsWriter", "VoidDnsWriter");
   }
 
   @Test

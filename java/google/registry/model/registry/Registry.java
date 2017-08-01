@@ -676,8 +676,6 @@ public class Registry extends ImmutableObject implements Buildable {
     }
 
     public Builder setDnsWriters(ImmutableSet<String> dnsWriters) {
-      // TODO(b/63385597): Remove this restriction once DNS task queue migration is complete.
-      checkArgument(dnsWriters.size() == 1, "Multiple DNS writers are not yet supported");
       getInstance().dnsWriters = dnsWriters;
       return this;
     }

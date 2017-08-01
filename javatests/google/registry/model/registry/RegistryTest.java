@@ -32,6 +32,7 @@ import static org.joda.money.CurrencyUnit.USD;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
+import google.registry.dns.writer.VoidDnsWriter;
 import google.registry.model.EntityTestCase;
 import google.registry.model.registry.Registry.RegistryNotFoundException;
 import google.registry.model.registry.Registry.TldState;
@@ -227,6 +228,14 @@ public class RegistryTest extends EntityTestCase {
   public void testSettingLordnUsername() {
     Registry registry = Registry.get("tld").asBuilder().setLordnUsername("username").build();
     assertThat(registry.getLordnUsername()).isEqualTo("username");
+  }
+
+  @Test
+  public void testSettingDnsWriters() {
+    Registry registry = Registry.get("tld");
+    assertThat(registry.getDnsWriters()).containsExactly(VoidDnsWriter.NAME);
+    registry = registry.asBuilder().setDnsWriters(ImmutableSet.of("baz", "bang")).build();
+    assertThat(registry.getDnsWriters()).containsExactly("baz", "bang");
   }
 
   @Test

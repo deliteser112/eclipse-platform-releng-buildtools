@@ -22,13 +22,11 @@ import static google.registry.dns.PublishDnsUpdatesAction.PARAM_HOSTS;
 import static google.registry.dns.ReadDnsQueueAction.PARAM_KEEP_TASKS;
 import static google.registry.request.RequestParameters.extractBooleanParameter;
 import static google.registry.request.RequestParameters.extractEnumParameter;
-import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 import static google.registry.request.RequestParameters.extractSetOfParameters;
 
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
-import com.google.common.base.Optional;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
@@ -62,9 +60,8 @@ public abstract class DnsModule {
 
   @Provides
   @Parameter(PARAM_DNS_WRITER)
-  static Optional<String> provideDnsWriter(HttpServletRequest req) {
-    // TODO(b/63385597): Make this required after DNS writers migration is complete.
-    return extractOptionalParameter(req, PARAM_DNS_WRITER);
+  static String provideDnsWriter(HttpServletRequest req) {
+    return extractRequiredParameter(req, PARAM_DNS_WRITER);
   }
 
   @Provides
