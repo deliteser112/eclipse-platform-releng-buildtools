@@ -14,7 +14,9 @@
 
 package google.registry.ui.server.registrar;
 
+import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.truth.Truth.assertThat;
+import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -111,5 +113,23 @@ public class ConsoleUiActionTest {
         .thenReturn(false);
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");
+  }
+
+  @Test
+  public void testNoUser_redirect() throws Exception {
+    when(request.getRequestURI()).thenReturn("/test");
+    action.authResult = AuthResult.NOT_AUTHENTICATED;
+    action.run();
+    assertThat(response.getStatus()).isEqualTo(SC_MOVED_TEMPORARILY);
+    assertThat(response.getHeaders().get(LOCATION)).isEqualTo("/_ah/login?continue=%2Ftest");
+  }
+
+  @Test
+  public void testNoUserInformationAtAll_redirectToRoot() throws Exception {
+    when(request.getRequestURI()).thenThrow(new IllegalArgumentException());
+    action.authResult = AuthResult.NOT_AUTHENTICATED;
+    action.run();
+    assertThat(response.getStatus()).isEqualTo(SC_MOVED_TEMPORARILY);
+    assertThat(response.getHeaders().get(LOCATION)).isEqualTo("/");
   }
 }

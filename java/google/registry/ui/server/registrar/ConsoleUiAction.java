@@ -82,7 +82,19 @@ public final class ConsoleUiAction implements Runnable {
   public void run() {
     if (!authResult.userAuthInfo().isPresent()) {
       response.setStatus(SC_MOVED_TEMPORARILY);
-      response.setHeader(LOCATION, userService.createLoginURL(req.getRequestURI()));
+      String location;
+      try {
+        location = userService.createLoginURL(req.getRequestURI());
+      } catch (IllegalArgumentException e) {
+        // UserServiceImpl.createLoginURL() throws IllegalArgumentException if underlying API call
+        // returns an error code of NOT_ALLOWED. createLoginURL() assumes that the error is caused
+        // by an invalid URL. But in fact, the error can also occur if UserService doesn't have any
+        // user information, which happens when the request has been authenticated as internal. In
+        // this case, we want to avoid dying before we can send the redirect, so just redirect to
+        // the root path.
+        location = "/";
+      }
+      response.setHeader(LOCATION, location);
       return;
     }
     User user = authResult.userAuthInfo().get().user();
