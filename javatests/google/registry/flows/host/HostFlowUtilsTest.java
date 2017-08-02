@@ -14,6 +14,7 @@
 
 package google.registry.flows.host;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.host.HostFlowUtils.validateHostName;
 
 import com.google.common.base.Strings;
@@ -25,6 +26,7 @@ import google.registry.flows.host.HostFlowUtils.HostNameTooShallowException;
 import google.registry.flows.host.HostFlowUtils.InvalidHostNameException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +39,20 @@ public class HostFlowUtilsTest {
   @Rule public final ExceptionRule thrown = new ExceptionRule();
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+
+  @Test
+  public void test_validExternalHostName_validates() throws Exception {
+    assertThat(validateHostName("host.example.com").toString()).isEqualTo("host.example.com");
+  }
+
+  @Test
+  @Ignore
+  // TODO(b/63128999): Fix handling of public suffix lists so that hostnames that aren't on
+  // effective TLDs validate.
+  public void test_validExternalHostNameOnPublicSuffixList_validates() throws Exception {
+    assertThat(validateHostName("host.blogspot.com").toString()).isEqualTo("host.blogspot.com");
+  }
+
 
   @Test
   public void test_validateHostName_hostNameTooLong() throws Exception {
