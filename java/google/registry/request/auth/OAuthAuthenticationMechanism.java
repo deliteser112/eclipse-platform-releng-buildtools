@@ -84,21 +84,20 @@ public class OAuthAuthenticationMechanism implements AuthenticationMechanism {
     String rawAccessToken = header.substring(BEARER_PREFIX.length());
 
     // Get the OAuth information. The various oauthService method calls use a single cached
-    // authentication result, we can call them one by one. Unfortunately, the calls have a
-    // single-scope form, and a varargs scope list form, but no way to call them with a collection
-    // of scopes, so it will not be easy to configure multiple scopes.
+    // authentication result, so we can call them one by one.
     User currentUser;
     boolean isUserAdmin;
     String clientId;
     ImmutableSet<String> authorizedScopes;
     try {
-      currentUser = oauthService.getCurrentUser(availableOauthScopes.toArray(new String[0]));
-      isUserAdmin = oauthService.isUserAdmin(availableOauthScopes.toArray(new String[0]));
+      String[] availableOauthScopeArray = availableOauthScopes.toArray(new String[0]);
+      currentUser = oauthService.getCurrentUser(availableOauthScopeArray);
+      isUserAdmin = oauthService.isUserAdmin(availableOauthScopeArray);
       logger.infofmt("current user: %s (%s)", currentUser, isUserAdmin ? "admin" : "not admin");
-      clientId = oauthService.getClientId(availableOauthScopes.toArray(new String[0]));
+      clientId = oauthService.getClientId(availableOauthScopeArray);
       logger.infofmt("client ID: %s", clientId);
-      authorizedScopes = ImmutableSet
-          .copyOf(oauthService.getAuthorizedScopes(availableOauthScopes.toArray(new String[0])));
+      authorizedScopes =
+          ImmutableSet.copyOf(oauthService.getAuthorizedScopes(availableOauthScopeArray));
       logger.infofmt("authorized scope(s): %s", authorizedScopes);
     } catch (OAuthRequestException | OAuthServiceFailureException e) {
       logger.infofmt(e, "unable to get OAuth information");
