@@ -73,6 +73,10 @@ whether a user was found. If not, it issues a redirect to the login page.
 Likewise, other pages of the registrar console have a user policy of `PUBLIC`,
 meaning that any logged-in user can access the page. However, the code then
 looks up the user to make sure he or she is associated with a registrar.
+Admins can be granted permission to the registrar console by configuring a
+special registrar for internal admin use, using the `registryAdminClientId`
+setting. See the [global configuration
+guide](./configuration.md#global-configuration) for more details.
 
 Also note that the user policy only applies when there is actually a user. Some
 actions can be executed either by an admin user or by an internal request coming
