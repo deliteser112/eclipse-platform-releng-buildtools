@@ -931,6 +931,16 @@ public final class RegistryConfig {
       return config.registryPolicy.checkApiServletClientId;
     }
 
+    /**
+     * Returns the clientId of the registrar that admins are automatically logged in as if they
+     * aren't otherwise associated with one.
+     */
+    @Provides
+    @Config("registryAdminClientId")
+    public static String provideRegistryAdminClientId(RegistryConfigSettings config) {
+      return config.registryPolicy.registryAdminClientId;
+    }
+
     @Singleton
     @Provides
     static RegistryConfigSettings provideRegistryConfigSettings() {

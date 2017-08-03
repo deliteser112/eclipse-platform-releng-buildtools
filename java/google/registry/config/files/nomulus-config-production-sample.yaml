@@ -29,6 +29,7 @@ registryPolicy:
   tmchCrlUrl: http://crl.icann.org/tmch.crl
   tmchMarksDbUrl: https://ry.marksdb.org
   checkApiServletClientId: placeholder
+  registryAdminClientId: placeholder
   whoisDisclaimer: |
     multi-line
     placeholder

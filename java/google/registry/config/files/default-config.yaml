@@ -71,6 +71,11 @@ registryPolicy:
   # domain checks.
   checkApiServletClientId: TheRegistrar
 
+  # The registry admin's registrar. Admins are granted permission to log in
+  # using this registrar automatically if they are not associated with any
+  # registrar
+  registryAdminClientId: TheRegistrar
+
   # Disclaimer at the top of the exported reserved terms list.
   reservedTermsExportDisclaimer: |
     This list contains reserved terms for the TLD. Other terms may be reserved

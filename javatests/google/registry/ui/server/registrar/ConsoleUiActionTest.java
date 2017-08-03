@@ -70,8 +70,9 @@ public class ConsoleUiActionTest {
     action.sessionUtils = sessionUtils;
     action.userService = UserServiceFactory.getUserService();
     action.xsrfTokenManager = new XsrfTokenManager(new FakeClock(), action.userService);
-    action.authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
-    when(sessionUtils.checkRegistrarConsoleLogin(request, user)).thenReturn(true);
+    UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
+    action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
   }
 
@@ -109,7 +110,8 @@ public class ConsoleUiActionTest {
 
   @Test
   public void testUserDoesntHaveAccessToAnyRegistrar_showsWhoAreYouPage() throws Exception {
-    when(sessionUtils.checkRegistrarConsoleLogin(any(HttpServletRequest.class), any(User.class)))
+    when(sessionUtils.checkRegistrarConsoleLogin(
+            any(HttpServletRequest.class), any(UserAuthInfo.class)))
         .thenReturn(false);
     action.run();
     assertThat(response.getPayload()).contains("<h1>You need permission</h1>");

@@ -21,7 +21,6 @@ import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_MOVED_TEMPORARILY;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 
-import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
@@ -36,6 +35,7 @@ import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.UserAuthInfo;
 import google.registry.security.XsrfTokenManager;
 import google.registry.ui.server.SoyTemplateUtils;
 import google.registry.ui.soy.registrar.ConsoleSoyInfo;
@@ -97,7 +97,7 @@ public final class ConsoleUiAction implements Runnable {
       response.setHeader(LOCATION, location);
       return;
     }
-    User user = authResult.userAuthInfo().get().user();
+    UserAuthInfo userAuthInfo = authResult.userAuthInfo().get();
     response.setContentType(MediaType.HTML_UTF_8);
     response.setHeader(X_FRAME_OPTIONS, "SAMEORIGIN");  // Disallow iframing.
     response.setHeader("X-Ui-Compatible", "IE=edge");  // Ask IE not to be silly.
@@ -119,9 +119,9 @@ public final class ConsoleUiAction implements Runnable {
               .render());
       return;
     }
-    data.put("username", user.getNickname());
+    data.put("username", userAuthInfo.user().getNickname());
     data.put("logoutUrl", userService.createLogoutURL(PATH));
-    if (!sessionUtils.checkRegistrarConsoleLogin(req, user)) {
+    if (!sessionUtils.checkRegistrarConsoleLogin(req, userAuthInfo)) {
       response.setStatus(SC_FORBIDDEN);
       response.setPayload(
           TOFU_SUPPLIER.get()
@@ -135,7 +135,7 @@ public final class ConsoleUiAction implements Runnable {
     Registrar registrar =
         checkArgumentPresent(
             Registrar.loadByClientIdCached(clientId), "Registrar %s does not exist", clientId);
-    data.put("xsrfToken", xsrfTokenManager.generateToken(user.getEmail()));
+    data.put("xsrfToken", xsrfTokenManager.generateToken(userAuthInfo.user().getEmail()));
     data.put("clientId", clientId);
     data.put("showPaymentLink", registrar.getBillingMethod() == Registrar.BillingMethod.BRAINTREE);
 
