@@ -146,7 +146,6 @@ public class RequestAuthenticator {
         }
         break;
     }
-    logger.info("Authorized");
     return Optional.of(authResult);
   }
 
@@ -164,11 +163,10 @@ public class RequestAuthenticator {
         // App Engine internal authentication, using the queue name header
         case INTERNAL:
           // checkAuthConfig will have insured that the user policy is not USER.
-          logger.info("Checking internal auth");
           {
             AuthResult authResult = appEngineInternalAuthenticationMechanism.authenticate(req);
             if (authResult.isAuthenticated()) {
-              logger.infofmt("Authenticated: %s", authResult);
+              logger.infofmt("Authenticated via internal auth: %s", authResult);
               return authResult;
             }
           }
@@ -177,10 +175,10 @@ public class RequestAuthenticator {
         case API:
           // checkAuthConfig will have insured that the user policy is not IGNORED.
           for (AuthenticationMechanism authMechanism : apiAuthenticationMechanisms) {
-            logger.infofmt("Checking %s", authMechanism);
             AuthResult authResult = authMechanism.authenticate(req);
             if (authResult.isAuthenticated()) {
-              logger.infofmt("Authenticated: %s", authResult);
+              logger.infofmt(
+                  "Authenticated via %s: %s", authMechanism.getClass().getSimpleName(), authResult);
               return authResult;
             }
           }
@@ -188,10 +186,9 @@ public class RequestAuthenticator {
         // Legacy authentication via UserService
         case LEGACY:
           // checkAuthConfig will have insured that the user policy is not IGNORED.
-          logger.info("Checking legacy auth");
           AuthResult authResult = legacyAuthenticationMechanism.authenticate(req);
           if (authResult.isAuthenticated()) {
-            logger.infofmt("Authenticated: %s", authResult);
+            logger.infofmt("Authenticated via legacy auth: %s", authResult);
             return authResult;
           }
           break;
