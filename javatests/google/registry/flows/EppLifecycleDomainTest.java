@@ -130,7 +130,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "contact_create_response_jd1234.xml",
         DateTime.parse("2000-06-01T00:01:00Z"));
 
-    // Create domain example.tld.
+    // Create domain example.tld
     assertCommandAndResponse(
         "domain_create_no_hosts_or_dsdata.xml",
         "domain_create_response.xml",
@@ -167,7 +167,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "contact_create_response_jd1234.xml",
         DateTime.parse("2000-06-01T00:01:00Z"));
 
-    // Create domain example.tld.
+    // Create domain example.tld
     assertCommandAndResponse(
         "domain_create_no_hosts_or_dsdata.xml",
         "domain_create_response.xml",
@@ -265,7 +265,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
     createFakesite();
 
-    // Create domain example.tld.
+    // Create domain example.tld
     assertCommandAndResponse(
         "domain_create_no_hosts_or_dsdata.xml",
         "domain_create_response_superordinate.xml",
@@ -682,6 +682,86 @@ public class EppLifecycleDomainTest extends EppTestCase {
             "HOSTNAME", "ns3.notarealsite.external",
             "TRDATE", "2001-01-06T00:00:00.000Z"),
         DateTime.parse("2001-01-07T00:00:00Z"));
+    assertCommandAndResponse("logout.xml", "logout_response.xml");
+  }
+
+  @Test
+  public void testSuccess_multipartTldsWithSharedSuffixes() throws Exception {
+    createTlds("bar.foo.tld", "foo.tld");
+
+    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+
+    assertCommandAndResponse(
+        "contact_create_sh8013.xml",
+        null,
+        "contact_create_response_sh8013.xml",
+        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
+        DateTime.parse("2000-06-01T00:00:00Z"));
+    assertCommandAndResponse(
+        "contact_create_jd1234.xml",
+        "contact_create_response_jd1234.xml",
+        DateTime.parse("2000-06-01T00:01:00Z"));
+
+    // Create domain example.bar.foo.tld
+    assertCommandAndResponse(
+        "domain_create_wildcard.xml",
+        ImmutableMap.of("HOSTNAME", "example.bar.foo.tld"),
+        "domain_create_response_wildcard.xml",
+        ImmutableMap.of("DOMAIN", "example.bar.foo.tld"),
+        DateTime.parse("2000-06-01T00:02:00Z"));
+
+    // Create domain example.foo.tld
+    assertCommandAndResponse(
+        "domain_create_wildcard.xml",
+        ImmutableMap.of("HOSTNAME", "example.foo.tld"),
+        "domain_create_response_wildcard.xml",
+        ImmutableMap.of("DOMAIN", "example.foo.tld"),
+        DateTime.parse("2000-06-01T00:02:00Z"));
+
+    // Create domain example.tld
+    assertCommandAndResponse(
+        "domain_create_wildcard.xml",
+        ImmutableMap.of("HOSTNAME", "example.tld"),
+        "domain_create_response_wildcard.xml",
+        ImmutableMap.of("DOMAIN", "example.tld"),
+        DateTime.parse("2000-06-01T00:02:00Z"));
+
+    assertCommandAndResponse("logout.xml", "logout_response.xml");
+  }
+
+  @Test
+  public void testSuccess_multipartTldsWithSharedPrefixes() throws Exception {
+    createTld("tld.foo");
+
+    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+
+    assertCommandAndResponse(
+        "contact_create_sh8013.xml",
+        null,
+        "contact_create_response_sh8013.xml",
+        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
+        DateTime.parse("2000-06-01T00:00:00Z"));
+    assertCommandAndResponse(
+        "contact_create_jd1234.xml",
+        "contact_create_response_jd1234.xml",
+        DateTime.parse("2000-06-01T00:01:00Z"));
+
+    // Create domain example.tld.foo
+    assertCommandAndResponse(
+        "domain_create_wildcard.xml",
+        ImmutableMap.of("HOSTNAME", "example.tld.foo"),
+        "domain_create_response_wildcard.xml",
+        ImmutableMap.of("DOMAIN", "example.tld.foo"),
+        DateTime.parse("2000-06-01T00:02:00Z"));
+
+    // Create domain example.tld
+    assertCommandAndResponse(
+        "domain_create_wildcard.xml",
+        ImmutableMap.of("HOSTNAME", "example.tld"),
+        "domain_create_response_wildcard.xml",
+        ImmutableMap.of("DOMAIN", "example.tld"),
+        DateTime.parse("2000-06-01T00:02:00Z"));
+
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
 }

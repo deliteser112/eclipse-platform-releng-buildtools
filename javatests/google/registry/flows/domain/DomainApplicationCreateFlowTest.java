@@ -22,6 +22,7 @@ import static google.registry.model.index.DomainApplicationIndex.loadActiveAppli
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.deleteTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
@@ -70,6 +71,7 @@ import google.registry.flows.domain.DomainFlowUtils.CurrencyUnitMismatchExceptio
 import google.registry.flows.domain.DomainFlowUtils.CurrencyValueScaleException;
 import google.registry.flows.domain.DomainFlowUtils.DashesInThirdAndFourthException;
 import google.registry.flows.domain.DomainFlowUtils.DomainLabelTooLongException;
+import google.registry.flows.domain.DomainFlowUtils.DomainNameExistsAsTldException;
 import google.registry.flows.domain.DomainFlowUtils.DomainReservedException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
 import google.registry.flows.domain.DomainFlowUtils.EmptyDomainNamePartException;
@@ -1766,6 +1768,18 @@ public class DomainApplicationCreateFlowTest
   @Test
   public void testFailure_tooFewParts() throws Exception {
     doFailingDomainNameTest("tld", BadDomainNamePartsCountException.class);
+  }
+
+  @Test
+  public void testFailure_domainNameExistsAsTld_lowercase() throws Exception {
+    createTlds("foo.tld", "tld");
+    doFailingDomainNameTest("foo.tld", DomainNameExistsAsTldException.class);
+  }
+
+  @Test
+  public void testFailure_domainNameExistsAsTld_uppercase() throws Exception {
+    createTlds("foo.tld", "tld");
+    doFailingDomainNameTest("FOO.TLD", BadDomainNameCharacterException.class);
   }
 
   @Test

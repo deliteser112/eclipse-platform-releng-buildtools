@@ -14,12 +14,19 @@
 
 package google.registry.flows;
 
+import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.EppMetricSubject.assertThat;
+import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 
 import com.google.common.collect.ImmutableMap;
+import com.googlecode.objectify.Key;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.host.HostResource;
 import google.registry.testing.AppEngineRule;
 import org.joda.time.DateTime;
 import org.junit.Rule;
@@ -146,6 +153,108 @@ public class EppLifecycleHostTest extends EppTestCase {
         "host_info_fakesite2.xml",
         "host_info_response_fakesite2.xml",
         DateTime.parse("2000-06-11T00:08:00Z"));
+    assertCommandAndResponse("logout.xml", "logout_response.xml");
+  }
+
+  @Test
+  public void testSuccess_multipartTldsWithSharedSuffixes() throws Exception {
+    createTlds("bar.foo.tld", "foo.tld", "tld");
+
+    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+
+    assertCommandAndResponse(
+        "contact_create_sh8013.xml",
+        ImmutableMap.<String, String>of(),
+        "contact_create_response_sh8013.xml",
+        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
+        DateTime.parse("2000-06-01T00:00:00Z"));
+    assertCommandAndResponse(
+        "contact_create_jd1234.xml",
+        "contact_create_response_jd1234.xml",
+        DateTime.parse("2000-06-01T00:01:00Z"));
+
+    // Create domain example.bar.foo.tld
+    assertCommandAndResponse(
+        "domain_create_wildcard.xml",
+        ImmutableMap.of("HOSTNAME", "example.bar.foo.tld"),
+        "domain_create_response_wildcard.xml",
+        ImmutableMap.of("DOMAIN", "example.bar.foo.tld"),
+        DateTime.parse("2000-06-01T00:02:00Z"));
+
+    // Create domain example.foo.tld
+    assertCommandAndResponse(
+        "domain_create_wildcard.xml",
+        ImmutableMap.of("HOSTNAME", "example.foo.tld"),
+        "domain_create_response_wildcard.xml",
+        ImmutableMap.of("DOMAIN", "example.foo.tld"),
+        DateTime.parse("2000-06-01T00:02:00Z"));
+
+    // Create domain example.tld
+    assertCommandAndResponse(
+        "domain_create_wildcard.xml",
+        ImmutableMap.of("HOSTNAME", "example.tld"),
+        "domain_create_response_wildcard.xml",
+        ImmutableMap.of("DOMAIN", "example.tld"),
+        DateTime.parse("2000-06-01T00:02:00Z"));
+
+    // Create host ns1.example.bar.foo.tld
+    assertCommandAndResponse(
+        "host_create_with_ips.xml",
+        ImmutableMap.of("HOSTNAME", "ns1.example.bar.foo.tld"),
+        "host_create_response.xml",
+        ImmutableMap.of("HOSTNAME", "ns1.example.bar.foo.tld", "CRDATE", "2000-06-01T00:03:00Z"),
+        DateTime.parse("2000-06-01T00:03:00Z"));
+
+    // Create host ns1.example.foo.tld
+    assertCommandAndResponse(
+        "host_create_with_ips.xml",
+        ImmutableMap.of("HOSTNAME", "ns1.example.foo.tld"),
+        "host_create_response.xml",
+        ImmutableMap.of("HOSTNAME", "ns1.example.foo.tld", "CRDATE", "2000-06-01T00:04:00Z"),
+        DateTime.parse("2000-06-01T00:04:00Z"));
+
+    // Create host ns1.example.tld
+    assertCommandAndResponse(
+        "host_create_with_ips.xml",
+        ImmutableMap.of("HOSTNAME", "ns1.example.tld"),
+        "host_create_response.xml",
+        ImmutableMap.of("HOSTNAME", "ns1.example.tld", "CRDATE", "2000-06-01T00:04:00Z"),
+        DateTime.parse("2000-06-01T00:04:00Z"));
+
+    HostResource exampleBarFooTldHost =
+        loadByForeignKey(
+            HostResource.class, "ns1.example.bar.foo.tld", DateTime.parse("2000-06-01T00:05:00Z"));
+    DomainResource exampleBarFooTldDomain =
+        loadByForeignKey(
+            DomainResource.class, "example.bar.foo.tld", DateTime.parse("2000-06-01T00:05:00Z"));
+    assertAboutHosts()
+        .that(exampleBarFooTldHost)
+        .hasSuperordinateDomain(Key.create(exampleBarFooTldDomain));
+    assertThat(exampleBarFooTldDomain.getSubordinateHosts())
+        .containsExactly("ns1.example.bar.foo.tld");
+
+    HostResource exampleFooTldHost =
+        loadByForeignKey(
+            HostResource.class, "ns1.example.foo.tld", DateTime.parse("2000-06-01T00:05:00Z"));
+    DomainResource exampleFooTldDomain =
+        loadByForeignKey(
+            DomainResource.class, "example.foo.tld", DateTime.parse("2000-06-01T00:05:00Z"));
+    assertAboutHosts()
+        .that(exampleFooTldHost)
+        .hasSuperordinateDomain(Key.create(exampleFooTldDomain));
+    assertThat(exampleFooTldDomain.getSubordinateHosts())
+        .containsExactly("ns1.example.foo.tld");
+
+    HostResource exampleTldHost =
+        loadByForeignKey(
+            HostResource.class, "ns1.example.tld", DateTime.parse("2000-06-01T00:05:00Z"));
+    DomainResource exampleTldDomain =
+        loadByForeignKey(
+            DomainResource.class, "example.tld", DateTime.parse("2000-06-01T00:05:00Z"));
+    assertAboutHosts().that(exampleTldHost).hasSuperordinateDomain(Key.create(exampleTldDomain));
+    assertThat(exampleTldDomain.getSubordinateHosts())
+        .containsExactly("ns1.example.tld");
+
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
 }

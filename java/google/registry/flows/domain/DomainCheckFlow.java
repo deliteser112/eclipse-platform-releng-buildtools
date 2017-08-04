@@ -78,6 +78,7 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.exceptions.TooManyResourceChecksException}
  * @error {@link DomainFlowUtils.BadDomainNameCharacterException}
  * @error {@link DomainFlowUtils.BadDomainNamePartsCountException}
+ * @error {@link DomainFlowUtils.DomainNameExistsAsTldException}
  * @error {@link DomainFlowUtils.BadPeriodUnitException}
  * @error {@link DomainFlowUtils.BadCommandForRegistryPhaseException}
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}

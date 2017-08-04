@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
@@ -49,7 +50,6 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
 import org.joda.time.DateTime;
-import org.junit.Before;
 import org.junit.Test;
 
 /** Unit tests for {@link HostCreateFlow}. */
@@ -74,11 +74,6 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   public HostCreateFlowTest() {
     setEppHostCreateInput("ns1.example.tld", null);
     clock.setTo(DateTime.parse("1999-04-03T22:00:00.0Z"));
-  }
-
-  @Before
-  public void initHostTest() {
-    createTld("foobar");
   }
 
   private void doSuccessfulTest() throws Exception {
@@ -122,6 +117,15 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     assertAboutHosts().that(host).hasSuperordinateDomain(Key.create(superordinateDomain));
     assertThat(superordinateDomain.getSubordinateHosts()).containsExactly("ns1.example.tld");
     assertDnsTasksEnqueued("ns1.example.tld");
+  }
+
+  @Test
+  public void testFailure_multipartTLDsAndInvalidHost() throws Exception {
+    createTlds("bar.tld", "tld");
+
+    setEppHostCreateInputWithIps("ns1.bar.tld");
+    thrown.expect(HostNameTooShallowException.class);
+    runFlow();
   }
 
   @Test

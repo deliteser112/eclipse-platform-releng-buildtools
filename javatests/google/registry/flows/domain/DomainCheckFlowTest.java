@@ -16,6 +16,7 @@ package google.registry.flows.domain;
 
 import static google.registry.model.eppoutput.CheckData.DomainCheck.create;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
@@ -39,6 +40,7 @@ import google.registry.flows.domain.DomainFlowUtils.BadPeriodUnitException;
 import google.registry.flows.domain.DomainFlowUtils.CurrencyUnitMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.DashesInThirdAndFourthException;
 import google.registry.flows.domain.DomainFlowUtils.DomainLabelTooLongException;
+import google.registry.flows.domain.DomainFlowUtils.DomainNameExistsAsTldException;
 import google.registry.flows.domain.DomainFlowUtils.EmptyDomainNamePartException;
 import google.registry.flows.domain.DomainFlowUtils.FeeChecksDontSupportPhasesException;
 import google.registry.flows.domain.DomainFlowUtils.InvalidIdnDomainLabelException;
@@ -355,6 +357,18 @@ public class DomainCheckFlowTest
   @Test
   public void testFailure_tooFewParts() throws Exception {
     doFailingBadLabelTest("tld", BadDomainNamePartsCountException.class);
+  }
+
+  @Test
+  public void testFailure_domainNameExistsAsTld_lowercase() throws Exception {
+    createTlds("foo.tld", "tld");
+    doFailingBadLabelTest("foo.tld", DomainNameExistsAsTldException.class);
+  }
+
+  @Test
+  public void testFailure_domainNameExistsAsTld_uppercase() throws Exception {
+    createTlds("foo.tld", "tld");
+    doFailingBadLabelTest("FOO.TLD", BadDomainNameCharacterException.class);
   }
 
   @Test

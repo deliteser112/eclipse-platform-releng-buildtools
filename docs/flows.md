@@ -299,7 +299,8 @@ An EPP flow that creates a new application for a domain resource.
     *   The checksum in the specified TCNID does not validate.
     *   Domain name is under tld which doesn't exist.
 *   2005
-    *   Domain name must have exactly one part above the tld.
+    *   Domain name must have exactly one part above the TLD.
+    *   Domain name must not equal an existing multi-part TLD.
     *   The requested fee is expressed in a scale that is invalid for the given
         currency.
     *   The specified TCNID is invalid.
@@ -479,7 +480,8 @@ information.
     *   Domain label is not allowed by IDN table.
     *   Domain name is under tld which doesn't exist.
 *   2005
-    *   Domain name must have exactly one part above the tld.
+    *   Domain name must have exactly one part above the TLD.
+    *   Domain name must not equal an existing multi-part TLD.
 *   2201
     *   Registrar is not authorized to access this TLD.
 *   2306
@@ -530,7 +532,8 @@ An EPP flow that creates a new domain resource.
     *   The checksum in the specified TCNID does not validate.
     *   Domain name is under tld which doesn't exist.
 *   2005
-    *   Domain name must have exactly one part above the tld.
+    *   Domain name must have exactly one part above the TLD.
+    *   Domain name must not equal an existing multi-part TLD.
     *   The requested fee is expressed in a scale that is invalid for the given
         currency.
     *   The specified TCNID is invalid.

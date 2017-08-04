@@ -26,6 +26,7 @@ import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.assertPollMessagesForResource;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.deleteTld;
 import static google.registry.testing.DatastoreHelper.getHistoryEntries;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
@@ -72,6 +73,7 @@ import google.registry.flows.domain.DomainFlowUtils.CurrencyUnitMismatchExceptio
 import google.registry.flows.domain.DomainFlowUtils.CurrencyValueScaleException;
 import google.registry.flows.domain.DomainFlowUtils.DashesInThirdAndFourthException;
 import google.registry.flows.domain.DomainFlowUtils.DomainLabelTooLongException;
+import google.registry.flows.domain.DomainFlowUtils.DomainNameExistsAsTldException;
 import google.registry.flows.domain.DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException;
 import google.registry.flows.domain.DomainFlowUtils.DomainReservedException;
 import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleException;
@@ -370,6 +372,24 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     runFlowAssertResponse(CommitMode.LIVE, UserPrivileges.NORMAL, expectedResponseXml);
     assertSuccessfulCreate("foo.tld", false);
     assertNoLordn();
+  }
+
+  @Test
+  public void testFailure_domainNameExistsAsTld_lowercase() throws Exception {
+    createTlds("foo.tld", "tld");
+    setEppInput("domain_create_wildcard.xml", ImmutableMap.of("DOMAIN", "foo.tld"));
+    persistContactsAndHosts();
+    thrown.expect(DomainNameExistsAsTldException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_domainNameExistsAsTld_uppercase() throws Exception {
+    createTlds("foo.tld", "tld");
+    setEppInput("domain_create_wildcard.xml", ImmutableMap.of("DOMAIN", "FOO.TLD"));
+    persistContactsAndHosts();
+    thrown.expect(BadDomainNameCharacterException.class);
+    runFlow();
   }
 
   @Test

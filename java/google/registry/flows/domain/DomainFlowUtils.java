@@ -25,6 +25,7 @@ import static google.registry.flows.domain.DomainPricingLogic.getMatchingLrpToke
 import static google.registry.model.domain.DomainResource.MAX_REGISTRATION_YEARS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
+import static google.registry.model.registry.Registries.getTlds;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
 import static google.registry.model.registry.label.ReservationType.NAMESERVER_RESTRICTED;
 import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_ANCHOR_TENANT;
@@ -181,6 +182,9 @@ public class DomainFlowUtils {
     }
     validateFirstLabel(parts.get(0));
     InternetDomainName domainName = InternetDomainName.from(name);
+    if (getTlds().contains(domainName.toString())) {
+      throw new DomainNameExistsAsTldException();
+    }
     Optional<InternetDomainName> tldParsed = findTldForName(domainName);
     if (!tldParsed.isPresent()) {
       throw new TldDoesNotExistException(domainName.parent().toString());
@@ -1055,10 +1059,17 @@ public class DomainFlowUtils {
     }
   }
 
-  /** Domain name must have exactly one part above the tld. */
+  /** Domain name must have exactly one part above the TLD. */
   static class BadDomainNamePartsCountException extends ParameterValueSyntaxErrorException {
     public BadDomainNamePartsCountException() {
-      super("Domain name must have exactly one part above the tld");
+      super("Domain name must have exactly one part above the TLD");
+    }
+  }
+
+  /** Domain name must not equal an existing multi-part TLD. */
+  static class DomainNameExistsAsTldException extends ParameterValueSyntaxErrorException {
+    public DomainNameExistsAsTldException() {
+      super("Domain name must not equal an existing multi-part TLD");
     }
   }
 
