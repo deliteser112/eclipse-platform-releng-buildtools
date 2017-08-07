@@ -75,4 +75,10 @@ public class CommitLogCheckpointTest {
     thrown.expect(IllegalArgumentException.class, "Bucket ids are incorrect");
     CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(0, T1, 1, T2, 2, T3));
   }
+
+  @Test
+  public void test_create_wrongBucketIdOrder_throws() {
+    thrown.expect(IllegalArgumentException.class, "Bucket ids are incorrect");
+    CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(2, T2, 1, T1, 3, T3));
+  }
 }
