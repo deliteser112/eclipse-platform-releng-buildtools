@@ -75,7 +75,9 @@ public class CloudDnsWriter implements DnsWriter {
   // TODO(shikhman): This uses @Named("transientFailureRetries") which may not be tuned for this
   // application.
   private final Retrier retrier;
-  private final Duration defaultTtl;
+  private final Duration defaultATtl;
+  private final Duration defaultNsTtl;
+  private final Duration defaultDsTtl;
   private final String projectId;
   private final String zoneName;
   private final Dns dnsConnection;
@@ -87,14 +89,18 @@ public class CloudDnsWriter implements DnsWriter {
       Dns dnsConnection,
       @Config("projectId") String projectId,
       @DnsWriterZone String zoneName,
-      @Config("dnsDefaultTtl") Duration defaultTtl,
+      @Config("dnsDefaultATtl") Duration defaultATtl,
+      @Config("dnsDefaultNsTtl") Duration defaultNsTtl,
+      @Config("dnsDefaultDsTtl") Duration defaultDsTtl,
       @Named("cloudDns") RateLimiter rateLimiter,
       Clock clock,
       Retrier retrier) {
     this.dnsConnection = dnsConnection;
     this.projectId = projectId;
     this.zoneName = zoneName;
-    this.defaultTtl = defaultTtl;
+    this.defaultATtl = defaultATtl;
+    this.defaultNsTtl = defaultNsTtl;
+    this.defaultDsTtl = defaultDsTtl;
     this.rateLimiter = rateLimiter;
     this.clock = clock;
     this.retrier = retrier;
@@ -132,7 +138,7 @@ public class CloudDnsWriter implements DnsWriter {
         domainRecords.add(
             new ResourceRecordSet()
                 .setName(absoluteDomainName)
-                .setTtl((int) defaultTtl.getStandardSeconds())
+                .setTtl((int) defaultDsTtl.getStandardSeconds())
                 .setType("DS")
                 .setKind("dns#resourceRecordSet")
                 .setRrdatas(ImmutableList.copyOf(dsRrData)));
@@ -157,7 +163,7 @@ public class CloudDnsWriter implements DnsWriter {
         domainRecords.add(
             new ResourceRecordSet()
                 .setName(absoluteDomainName)
-                .setTtl((int) defaultTtl.getStandardSeconds())
+                .setTtl((int) defaultNsTtl.getStandardSeconds())
                 .setType("NS")
                 .setKind("dns#resourceRecordSet")
                 .setRrdatas(ImmutableList.copyOf(nsRrData)));
@@ -204,7 +210,7 @@ public class CloudDnsWriter implements DnsWriter {
       domainRecords.add(
           new ResourceRecordSet()
               .setName(absoluteHostName)
-              .setTtl((int) defaultTtl.getStandardSeconds())
+              .setTtl((int) defaultATtl.getStandardSeconds())
               .setType("A")
               .setKind("dns#resourceRecordSet")
               .setRrdatas(ImmutableList.copyOf(aRrData)));
@@ -214,7 +220,7 @@ public class CloudDnsWriter implements DnsWriter {
       domainRecords.add(
           new ResourceRecordSet()
               .setName(absoluteHostName)
-              .setTtl((int) defaultTtl.getStandardSeconds())
+              .setTtl((int) defaultATtl.getStandardSeconds())
               .setType("AAAA")
               .setKind("dns#resourceRecordSet")
               .setRrdatas(ImmutableList.copyOf(aaaaRrData)));

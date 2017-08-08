@@ -286,13 +286,35 @@ public final class RegistryConfig {
     }
 
     /**
-     * Returns the default time to live for DNS records.
+     * Returns the default time to live for DNS A and AAAA records.
      *
      * @see google.registry.dns.writer.clouddns.CloudDnsWriter
      */
     @Provides
-    @Config("dnsDefaultTtl")
-    public static Duration provideDnsDefaultTtl() {
+    @Config("dnsDefaultATtl")
+    public static Duration provideDnsDefaultATtl() {
+      return Duration.standardSeconds(180);
+    }
+
+    /**
+     * Returns the default time to live for DNS NS records.
+     *
+     * @see google.registry.dns.writer.clouddns.CloudDnsWriter
+     */
+    @Provides
+    @Config("dnsDefaultNsTtl")
+    public static Duration provideDnsDefaultNsTtl() {
+      return Duration.standardSeconds(180);
+    }
+
+    /**
+     * Returns the default time to live for DNS DS records.
+     *
+     * @see google.registry.dns.writer.clouddns.CloudDnsWriter
+     */
+    @Provides
+    @Config("dnsDefaultDsTtl")
+    public static Duration provideDnsDefaultDsTtl() {
       return Duration.standardSeconds(180);
     }
 

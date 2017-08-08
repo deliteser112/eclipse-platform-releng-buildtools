@@ -81,7 +81,9 @@ public class DnsUpdateWriter implements DnsWriter {
    */
   public static final String NAME = "DnsUpdateWriter";
 
-  private final Duration dnsTimeToLive;
+  private final Duration dnsDefaultATtl;
+  private final Duration dnsDefaultNsTtl;
+  private final Duration dnsDefaultDsTtl;
   private final DnsMessageTransport transport;
   private final Clock clock;
 
@@ -94,10 +96,14 @@ public class DnsUpdateWriter implements DnsWriter {
    */
   @Inject
   public DnsUpdateWriter(
-      @Config("dnsUpdateTimeToLive") Duration dnsTimeToLive,
+      @Config("dnsDefaultATtl") Duration dnsDefaultATtl,
+      @Config("dnsDefaultNsTtl") Duration dnsDefaultNsTtl,
+      @Config("dnsDefaultDsTtl") Duration dnsDefaultDsTtl,
       DnsMessageTransport transport,
       Clock clock) {
-    this.dnsTimeToLive = dnsTimeToLive;
+    this.dnsDefaultATtl = dnsDefaultATtl;
+    this.dnsDefaultNsTtl = dnsDefaultNsTtl;
+    this.dnsDefaultDsTtl = dnsDefaultDsTtl;
     this.transport = transport;
     this.clock = clock;
   }
@@ -175,7 +181,7 @@ public class DnsUpdateWriter implements DnsWriter {
           new DSRecord(
               toAbsoluteName(domain.getFullyQualifiedDomainName()),
               DClass.IN,
-              dnsTimeToLive.getStandardSeconds(),
+              dnsDefaultDsTtl.getStandardSeconds(),
               signerData.getKeyTag(),
               signerData.getAlgorithm(),
               signerData.getDigestType(),
@@ -215,7 +221,7 @@ public class DnsUpdateWriter implements DnsWriter {
           new NSRecord(
               toAbsoluteName(domain.getFullyQualifiedDomainName()),
               DClass.IN,
-              dnsTimeToLive.getStandardSeconds(),
+              dnsDefaultNsTtl.getStandardSeconds(),
               toAbsoluteName(hostName));
       nameServerSet.addRR(record);
     }
@@ -230,7 +236,7 @@ public class DnsUpdateWriter implements DnsWriter {
             new ARecord(
                 toAbsoluteName(host.getFullyQualifiedHostName()),
                 DClass.IN,
-                dnsTimeToLive.getStandardSeconds(),
+                dnsDefaultATtl.getStandardSeconds(),
                 address);
         addressSet.addRR(record);
       }
@@ -246,7 +252,7 @@ public class DnsUpdateWriter implements DnsWriter {
             new AAAARecord(
                 toAbsoluteName(host.getFullyQualifiedHostName()),
                 DClass.IN,
-                dnsTimeToLive.getStandardSeconds(),
+                dnsDefaultATtl.getStandardSeconds(),
                 address);
         addressSet.addRR(record);
       }

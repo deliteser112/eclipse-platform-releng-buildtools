@@ -97,7 +97,7 @@ public class DnsUpdateWriterTest {
     createTld("tld");
     when(mockResolver.send(any(Update.class))).thenReturn(messageWithResponseCode(Rcode.NOERROR));
 
-    writer = new DnsUpdateWriter(Duration.ZERO, mockResolver, clock);
+    writer = new DnsUpdateWriter(Duration.ZERO, Duration.ZERO, Duration.ZERO, mockResolver, clock);
   }
 
   @Test

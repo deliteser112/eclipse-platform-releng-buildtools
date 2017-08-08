@@ -41,13 +41,4 @@ public class DnsUpdateConfigModule {
   public static Duration provideDnsUpdateTimeout() {
     return Duration.standardSeconds(30);
   }
-
-  /**
-   * The DNS time-to-live (TTL) for resource records created by the registry.
-   */
-  @Provides
-  @Config("dnsUpdateTimeToLive")
-  public static Duration provideDnsUpdateTimeToLive() {
-    return Duration.standardHours(2);
-  }
 }

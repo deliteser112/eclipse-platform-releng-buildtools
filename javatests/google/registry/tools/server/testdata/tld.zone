@@ -1,14 +1,14 @@
 $ORIGIN tld.
 
-ns.bar.tld 3600 IN A 127.0.0.1
-ns.bar.tld 3600 IN AAAA 0:0:0:0:0:0:0:1
+ns.bar.tld 11 IN A 127.0.0.1
+ns.bar.tld 11 IN AAAA 0:0:0:0:0:0:0:1
 
-ns-only.tld 180 IN NS ns.foo.tld.
-ns-only.tld 180 IN NS ns.bar.tld.
+ns-only.tld 222 IN NS ns.foo.tld.
+ns-only.tld 222 IN NS ns.bar.tld.
 
-ns-and-ds.tld 180 IN NS ns.foo.tld.
-ns-and-ds.tld 180 IN NS ns.bar.tld.
-ns-and-ds.tld 86400 IN DS 1 2 3 000102
+ns-and-ds.tld 222 IN NS ns.foo.tld.
+ns-and-ds.tld 222 IN NS ns.bar.tld.
+ns-and-ds.tld 3333 IN DS 1 2 3 000102
 
-ns.foo.tld 3600 IN A 127.0.0.1
-ns.foo.tld 3600 IN AAAA 0:0:0:0:0:0:0:1
+ns.foo.tld 11 IN A 127.0.0.1
+ns.foo.tld 11 IN AAAA 0:0:0:0:0:0:0:1

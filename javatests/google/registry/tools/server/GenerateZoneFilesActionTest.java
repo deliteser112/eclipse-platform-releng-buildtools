@@ -45,6 +45,7 @@ import java.net.InetAddress;
 import java.util.Map;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Duration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -112,6 +113,9 @@ public class GenerateZoneFilesActionTest extends MapreduceTestCase<GenerateZoneF
     action.bucket = "zonefiles-bucket";
     action.gcsBufferSize = 123;
     action.datastoreRetention = standardDays(29);
+    action.dnsDefaultATtl = Duration.standardSeconds(11);
+    action.dnsDefaultNsTtl = Duration.standardSeconds(222);
+    action.dnsDefaultDsTtl = Duration.standardSeconds(3333);
     action.clock = new FakeClock(now.plusMinutes(2));  // Move past the actions' 2 minute check.
 
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.<String, Object>of(

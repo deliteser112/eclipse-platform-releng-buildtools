@@ -76,7 +76,9 @@ public class CloudDnsWriterTest {
   private static final Inet6Address IPv6 = (Inet6Address) InetAddresses.forString("::1");
   private static final DelegationSignerData DS_DATA =
       DelegationSignerData.create(12345, 3, 1, base16().decode("1234567890ABCDEF"));
-  private static final Duration DEFAULT_TTL = Duration.standardSeconds(180);
+  private static final Duration DEFAULT_A_TTL = Duration.standardSeconds(11);
+  private static final Duration DEFAULT_NS_TTL = Duration.standardSeconds(222);
+  private static final Duration DEFAULT_DS_TTL = Duration.standardSeconds(3333);
 
   @Mock private Dns dnsConnection;
   @Mock private Dns.ResourceRecordSets resourceRecordSets;
@@ -101,7 +103,9 @@ public class CloudDnsWriterTest {
             dnsConnection,
             "projectId",
             "zoneName",
-            DEFAULT_TTL,
+            DEFAULT_A_TTL,
+            DEFAULT_NS_TTL,
+            DEFAULT_DS_TTL,
             RateLimiter.create(20),
             new SystemClock(),
             new Retrier(new SystemSleeper(), 5));
@@ -196,7 +200,7 @@ public class CloudDnsWriterTest {
               .setKind("dns#resourceRecordSet")
               .setType("NS")
               .setName(domainName + ".")
-              .setTtl((int) DEFAULT_TTL.getStandardSeconds())
+              .setTtl((int) DEFAULT_NS_TTL.getStandardSeconds())
               .setRrdatas(nameserverHostnames.build()));
 
       // Add glue for IPv4 in-bailiwick nameservers
@@ -206,7 +210,7 @@ public class CloudDnsWriterTest {
                 .setKind("dns#resourceRecordSet")
                 .setType("A")
                 .setName(i + ".ip4." + domainName + ".")
-                .setTtl((int) DEFAULT_TTL.getStandardSeconds())
+                .setTtl((int) DEFAULT_A_TTL.getStandardSeconds())
                 .setRrdatas(ImmutableList.of(IPv4.toString())));
       }
     }
@@ -223,7 +227,7 @@ public class CloudDnsWriterTest {
               .setKind("dns#resourceRecordSet")
               .setType("NS")
               .setName(domainName + ".")
-              .setTtl((int) DEFAULT_TTL.getStandardSeconds())
+              .setTtl((int) DEFAULT_NS_TTL.getStandardSeconds())
               .setRrdatas(nameserverHostnames.build()));
 
       // Add glue for IPv6 in-bailiwick nameservers
@@ -233,7 +237,7 @@ public class CloudDnsWriterTest {
                 .setKind("dns#resourceRecordSet")
                 .setType("AAAA")
                 .setName(i + ".ip6." + domainName + ".")
-                .setTtl((int) DEFAULT_TTL.getStandardSeconds())
+                .setTtl((int) DEFAULT_A_TTL.getStandardSeconds())
                 .setRrdatas(ImmutableList.of(IPv6.toString())));
       }
     }
@@ -250,7 +254,7 @@ public class CloudDnsWriterTest {
               .setKind("dns#resourceRecordSet")
               .setType("NS")
               .setName(domainName + ".")
-              .setTtl((int) DEFAULT_TTL.getStandardSeconds())
+              .setTtl((int) DEFAULT_NS_TTL.getStandardSeconds())
               .setRrdatas(nameserverHostnames.build()));
     }
 
@@ -269,7 +273,7 @@ public class CloudDnsWriterTest {
               .setKind("dns#resourceRecordSet")
               .setType("DS")
               .setName(domainName + ".")
-              .setTtl((int) DEFAULT_TTL.getStandardSeconds())
+              .setTtl((int) DEFAULT_DS_TTL.getStandardSeconds())
               .setRrdatas(dsRecordData.build()));
     }
 

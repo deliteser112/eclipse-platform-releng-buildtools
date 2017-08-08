@@ -97,21 +97,14 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
   /** Format for A and AAAA records. */
   private static final String A_FORMAT = "%s\t%d\tIN\t%s\t%s\n";
 
-  // TODO(b/20454352): Overhaul TTL configuration mechanism.
-  /** The time to live for exported NS record, in seconds. */
-  private static final int TTL_NS = 180;
-
-  /** The time to live for exported DS record, in seconds. */
-  private static final int TTL_DS = 86400;
-
-  /** The time to live for exported A/AAAA record, in seconds. */
-  private static final int TTL_A = 3600;
-
   @Inject MapreduceRunner mrRunner;
   @Inject JsonActionRunner jsonActionRunner;
   @Inject @Config("zoneFilesBucket") String bucket;
   @Inject @Config("gcsBufferSize") int gcsBufferSize;
   @Inject @Config("commitLogDatastoreRetention") Duration datastoreRetention;
+  @Inject @Config("dnsDefaultATtl") Duration dnsDefaultATtl;
+  @Inject @Config("dnsDefaultNsTtl") Duration dnsDefaultNsTtl;
+  @Inject @Config("dnsDefaultDsTtl") Duration dnsDefaultDsTtl;
   @Inject Clock clock;
   @Inject GenerateZoneFilesAction() {}
 
@@ -145,7 +138,8 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
         .setModuleName("tools")
         .setDefaultReduceShards(tlds.size())
         .runMapreduce(
-            new GenerateBindFileMapper(tlds, exportTime),
+            new GenerateBindFileMapper(
+                tlds, exportTime, dnsDefaultATtl, dnsDefaultNsTtl, dnsDefaultDsTtl),
             new GenerateBindFileReducer(bucket, exportTime, gcsBufferSize),
             ImmutableList.of(
                 new NullInput<EppResource>(),
@@ -173,10 +167,21 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
 
     private final ImmutableSet<String> tlds;
     private final DateTime exportTime;
+    private final Duration dnsDefaultATtl;
+    private final Duration dnsDefaultNsTtl;
+    private final Duration dnsDefaultDsTtl;
 
-    GenerateBindFileMapper(ImmutableSet<String> tlds, DateTime exportTime) {
+    GenerateBindFileMapper(
+        ImmutableSet<String> tlds,
+        DateTime exportTime,
+        Duration dnsDefaultATtl,
+        Duration dnsDefaultNsTtl,
+        Duration dnsDefaultDsTtl) {
       this.tlds = tlds;
       this.exportTime = exportTime;
+      this.dnsDefaultATtl = dnsDefaultATtl;
+      this.dnsDefaultNsTtl = dnsDefaultNsTtl;
+      this.dnsDefaultDsTtl = dnsDefaultDsTtl;
     }
 
     @Override
@@ -198,7 +203,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
         domain = loadAtPointInTime(domain, exportTime).now();
         // A null means the domain was deleted (or not created) at this time.
         if (domain != null && domain.shouldPublishToDns()) {
-          String stanza = domainStanza(domain, exportTime);
+          String stanza = domainStanza(domain, exportTime, dnsDefaultNsTtl, dnsDefaultDsTtl);
           if (!stanza.isEmpty()) {
             emit(domain.getTld(), stanza);
             getContext().incrementCounter(domain.getTld() + " domains");
@@ -214,7 +219,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
         String fullyQualifiedHostName = host.getFullyQualifiedHostName();
         for (String tld : tlds) {
           if (fullyQualifiedHostName.endsWith("." + tld)) {
-            String stanza = hostStanza(host);
+            String stanza = hostStanza(host, dnsDefaultATtl);
             if (!stanza.isEmpty()) {
               emit(tld, stanza);
               getContext().incrementCounter(tld + " hosts");
@@ -272,13 +277,17 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
    *   foo.tld 86400 IN DS 1 2 3 000102
    * }
    */
-  private static String domainStanza(DomainResource domain, DateTime exportTime) {
+  private static String domainStanza(
+      DomainResource domain,
+      DateTime exportTime,
+      Duration dnsDefaultNsTtl,
+      Duration dnsDefaultDsTtl) {
     StringBuilder result = new StringBuilder();
     for (HostResource nameserver : ofy().load().keys(domain.getNameservers()).values()) {
       result.append(String.format(
           NS_FORMAT,
           domain.getFullyQualifiedDomainName(),
-          TTL_NS,
+          dnsDefaultNsTtl.getStandardSeconds(),
           // Load the nameservers at the export time in case they've been renamed or deleted.
           loadAtPointInTime(nameserver, exportTime).now().getFullyQualifiedHostName()));
     }
@@ -286,7 +295,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
       result.append(String.format(
           DS_FORMAT,
           domain.getFullyQualifiedDomainName(),
-          TTL_DS,
+          dnsDefaultDsTtl.getStandardSeconds(),
           dsData.getKeyTag(),
           dsData.getAlgorithm(),
           dsData.getDigestType(),
@@ -304,7 +313,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
    *   ns.foo.tld 3600 IN AAAA 0:0:0:0:0:0:0:1
    * }
    */
-  private static String hostStanza(HostResource host) {
+  private static String hostStanza(HostResource host, Duration dnsDefaultATtl) {
     StringBuilder result = new StringBuilder();
     for (InetAddress addr : host.getInetAddresses()) {
       // must be either IPv4 or IPv6
@@ -312,7 +321,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
       result.append(String.format(
           A_FORMAT,
           host.getFullyQualifiedHostName(),
-          TTL_A,
+          dnsDefaultATtl.getStandardSeconds(),
           rrSetClass,
           addr.getHostAddress()));
     }
