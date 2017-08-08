@@ -1,3 +1,4 @@
+#standardSQL
   -- Copyright 2017 The Nomulus Authors. All Rights Reserved.
   --
   -- Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +17,7 @@
   -- report csv, via a table transpose and sum over all activity report fields.
 
 SELECT
-  Tld.tld AS tld,
+  RealTlds.tld AS tld,
   SUM(IF(metricName = 'operational-registrars', count, 0)) AS operational_registrars,
   SUM(IF(metricName = 'ramp-up-registrars', count, 0)) AS ramp_up_registrars,
   SUM(IF(metricName = 'pre-ramp-up-registrars', count, 0)) AS pre_ramp_up_registrars,
@@ -59,37 +60,41 @@ SELECT
   SUM(IF(metricName = 'srs-cont-transfer-query', count, 0)) AS srs_cont_transfer_query,
   SUM(IF(metricName = 'srs-cont-transfer-reject', count, 0)) AS srs_cont_transfer_reject,
   SUM(IF(metricName = 'srs-cont-transfer-request', count, 0)) AS srs_cont_transfer_request,
-  SUM(IF(metricName = 'srs-cont-update', count, 0)) AS srs_cont_update,
+  SUM(IF(metricName = 'srs-cont-update', count, 0)) AS srs_cont_update
   -- Cross join a list of all TLDs against TLD-specific metrics and then
   -- filter so that only metrics with that TLD or a NULL TLD are counted
   -- towards a given TLD.
 FROM (
-  SELECT
-    tldStr AS tld
-  FROM
-    [%LATEST_SNAPSHOT_DATA_SET%.%REGISTRY_TABLE%]
-    -- Include all real TLDs that are not in pre-delegation testing.
-  WHERE
-    tldType = 'REAL'
-  OMIT
-    RECORD IF SOME(tldStateTransitions.tldState = 'PDT') ) AS Tld
-  -- TODO(larryruili): Use LEFT JOIN on Tld.tld = TldMetrics.tld instead.
-  -- Also obsoletes dummy data.
-LEFT OUTER JOIN (
-  SELECT
+SELECT tldStr as tld
+FROM `%PROJECT_ID%.%LATEST_DATASTORE_EXPORT%.%REGISTRY_TABLE%`
+WHERE tldType = 'REAL'
+) as RealTlds
+CROSS JOIN(
+   SELECT
     tld,
     metricName,
-    count FROM
+    count
+    FROM
+    (
     -- BEGIN INTERMEDIARY DATA SOURCES --
-    [%ICANN_REPORTING_DATA_SET%.%REGISTRAR_OPERATING_STATUS_TABLE%],
-    [%ICANN_REPORTING_DATA_SET%.%DNS_COUNTS_TABLE%],
-    [%ICANN_REPORTING_DATA_SET%.%EPP_METRICS_TABLE%],
-    [%ICANN_REPORTING_DATA_SET%.%WHOIS_COUNTS_TABLE%],
+    -- Dummy data source to ensure all TLDs appear in report, even if
+    -- they have no recorded metrics for the month.
+    SELECT STRING(NULL) AS tld, STRING(NULL) AS metricName, 0 as count
+    UNION ALL
+    SELECT * FROM
+    `%PROJECT_ID%.%ICANN_REPORTING_DATA_SET%.%REGISTRAR_OPERATING_STATUS_TABLE%`
+    UNION ALL
+    SELECT * FROM
+    `%PROJECT_ID%.%ICANN_REPORTING_DATA_SET%.%DNS_COUNTS_TABLE%`
+    UNION ALL
+    SELECT * FROM
+    `%PROJECT_ID%.%ICANN_REPORTING_DATA_SET%.%EPP_METRICS_TABLE%`
+    UNION ALL
+    SELECT * FROM
+    `%PROJECT_ID%.%ICANN_REPORTING_DATA_SET%.%WHOIS_COUNTS_TABLE%`
     -- END INTERMEDIARY DATA SOURCES --
-    ) AS TldMetrics
-ON
-  Tld.tld = TldMetrics.tld
-GROUP BY
-  tld
-ORDER BY
-  tld
+    )) AS TldMetrics
+WHERE RealTlds.tld = TldMetrics.tld OR TldMetrics.tld IS NULL
+GROUP BY tld
+ORDER BY tld
+

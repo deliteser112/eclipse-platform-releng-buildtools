@@ -1,3 +1,4 @@
+#standardSQL
   -- Copyright 2017 The Nomulus Authors. All Rights Reserved.
   --
   -- Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +39,7 @@ FROM (
       -- Extract the logged JSON payload.
       REGEXP_EXTRACT(logMessage, r'FLOW-LOG-SIGNATURE-METADATA: (.*)\n?$')
       AS json
-    FROM `domain-registry-alpha.icann_reporting.monthly_logs` AS logs
+    FROM `domain-registry-alpha.icann_reporting.monthly_logs_201705` AS logs
     JOIN
       UNNEST(logs.logMessage) AS logMessage
     WHERE

@@ -12,11 +12,13 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["testdata/*"]),
     deps = [
+        "//java/google/registry/bigquery",
         "//java/google/registry/gcs",
         "//java/google/registry/reporting",
         "//java/google/registry/request",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
+        "@com_google_apis_google_api_services_bigquery",
         "@com_google_appengine_tools_appengine_gcs_client",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",

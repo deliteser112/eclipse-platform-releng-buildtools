@@ -56,15 +56,15 @@ public final class IcannReportingUploadAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @Inject GcsUtils gcsUtils;
-  @Inject IcannHttpReporter icannReporter;
-  @Inject Retrier retrier;
+  @Inject @Config("icannReportingBucket") String icannReportingBucket;
   @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
   @Inject @Parameter(IcannReportingModule.PARAM_YEAR_MONTH) String yearMonth;
   @Inject @Parameter(IcannReportingModule.PARAM_REPORT_TYPE) ReportType reportType;
   @Inject @Parameter(IcannReportingModule.PARAM_SUBDIR) Optional<String> subdir;
-  @Inject @Config("icannReportingBucket") String reportingBucket;
+  @Inject GcsUtils gcsUtils;
+  @Inject IcannHttpReporter icannReporter;
   @Inject Response response;
+  @Inject Retrier retrier;
 
   @Inject
   IcannReportingUploadAction() {}
@@ -73,11 +73,9 @@ public final class IcannReportingUploadAction implements Runnable {
   public void run() {
     validateParams();
     String reportFilename = createFilename(tld, yearMonth, reportType);
-    logger.infofmt("Reading ICANN report %s from bucket %s", reportFilename, reportingBucket);
-    final GcsFilename gcsFilename =
-        new GcsFilename(
-            reportingBucket + "/" + (subdir.isPresent() ? subdir.get() : DEFAULT_SUBDIR),
-            reportFilename);
+    String reportBucketname = createReportingBucketName(icannReportingBucket, subdir, yearMonth);
+    logger.infofmt("Reading ICANN report %s from bucket %s", reportFilename, reportBucketname);
+    final GcsFilename gcsFilename = new GcsFilename(reportBucketname, reportFilename);
     checkState(
         gcsUtils.existsAndNotEmpty(gcsFilename),
         "ICANN report object %s in bucket %s not found",
@@ -103,10 +101,17 @@ public final class IcannReportingUploadAction implements Runnable {
   }
 
   static String createFilename(String tld, String yearMonth, ReportType reportType) {
-    // TODO(b/62585428): Change file naming date format to YYYY-MM for consistency with URL.
-    // Report files use YYYYMM naming instead of standard YYYY-MM.
+    // Report files use YYYYMM naming instead of standard YYYY-MM, per ICANN requirements.
     String fileYearMonth = yearMonth.substring(0, 4) + yearMonth.substring(5, 7);
     return String.format("%s-%s-%s.csv", tld, reportType.toString().toLowerCase(), fileYearMonth);
+  }
+
+  static String createReportingBucketName(
+      String reportingBucket, Optional<String> subdir, String yearMonth) {
+    return subdir.isPresent()
+        ? String.format("%s/%s", reportingBucket, subdir.get())
+        : String.format("%s/%s/%s", reportingBucket, DEFAULT_SUBDIR, yearMonth);
+
   }
 
   private void validateParams() {

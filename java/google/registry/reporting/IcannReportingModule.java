@@ -18,11 +18,18 @@ import static google.registry.request.RequestParameters.extractEnumParameter;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.bigquery.BigqueryConnection;
 import google.registry.request.Parameter;
+import java.util.concurrent.Executors;
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.Duration;
 
 /** Module for dependencies required by ICANN monthly transactions/activity reporting. */
 @Module
@@ -37,6 +44,8 @@ public final class IcannReportingModule {
   static final String PARAM_YEAR_MONTH = "yearMonth";
   static final String PARAM_REPORT_TYPE = "reportType";
   static final String PARAM_SUBDIR = "subdir";
+  private static final String BIGQUERY_SCOPE =  "https://www.googleapis.com/auth/bigquery";
+  private static final String DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
 
   @Provides
   @Parameter(PARAM_YEAR_MONTH)
@@ -54,5 +63,32 @@ public final class IcannReportingModule {
   @Parameter(PARAM_SUBDIR)
   static Optional<String> provideSubdir(HttpServletRequest req) {
     return extractOptionalParameter(req, PARAM_SUBDIR);
+  }
+
+  /**
+   * Constructs a BigqueryConnection with default settings.
+   *
+   * <p> We use Bigquery to generate activity reports via large aggregate SQL queries.
+   *
+   * @see ActivityReportingQueryBuilder
+   * @see google.registry.tools.BigqueryParameters for justifications of defaults.
+   */
+  @Provides
+  static BigqueryConnection provideBigqueryConnection(HttpTransport transport) {
+    try {
+      GoogleCredential credential = GoogleCredential
+          .getApplicationDefault(transport, new JacksonFactory());
+      BigqueryConnection connection = new BigqueryConnection.Builder()
+          .setExecutorService(Executors.newFixedThreadPool(20))
+          .setCredential(credential.createScoped(ImmutableList.of(BIGQUERY_SCOPE, DRIVE_SCOPE)))
+          .setDatasetId(ActivityReportingQueryBuilder.ICANN_REPORTING_DATA_SET)
+          .setOverwrite(true)
+          .setPollInterval(Duration.standardSeconds(1))
+          .build();
+      connection.initialize();
+      return connection;
+    } catch (Throwable e) {
+      throw new RuntimeException("Could not initialize BigqueryConnection!", e);
+    }
   }
 }

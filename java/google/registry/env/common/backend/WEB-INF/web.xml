@@ -58,6 +58,17 @@
   </servlet-mapping>
 
   <!--
+    Monthly ICANN transaction and activity reports. This task generates report
+    files (in CSV format) and stores them in GCS under
+    gs://domain-registry-reporting/icann/monthly/YYYY-MM
+    by default.
+  -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/icannReportingStaging</url-pattern>
+  </servlet-mapping>
+
+  <!--
     Monthly ICANN transaction and activity reports. This task uploads the generated
     report files (in CSV format) via an HTTP PUT to ICANN's endpoint.
   -->

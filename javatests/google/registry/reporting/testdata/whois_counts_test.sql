@@ -1,3 +1,4 @@
+#standardSQL
   -- Copyright 2017 The Nomulus Authors. All Rights Reserved.
   --
   -- Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +26,7 @@ SELECT
   END AS metricName,
   COUNT(requestPath) AS count
 FROM
-  `domain-registry-alpha.monthly_logs.monthly_logs`
+  `domain-registry-alpha.icann_reporting.monthly_logs_201705`
 GROUP BY
   metricName
 HAVING

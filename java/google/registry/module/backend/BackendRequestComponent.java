@@ -64,6 +64,7 @@ import google.registry.rde.imports.RdeHostImportAction;
 import google.registry.rde.imports.RdeHostLinkAction;
 import google.registry.rde.imports.RdeImportsModule;
 import google.registry.reporting.IcannReportingModule;
+import google.registry.reporting.IcannReportingStagingAction;
 import google.registry.reporting.IcannReportingUploadAction;
 import google.registry.request.RequestComponentBuilder;
 import google.registry.request.RequestModule;
@@ -112,6 +113,7 @@ interface BackendRequestComponent {
   ExportDomainListsAction exportDomainListsAction();
   ExportReservedTermsAction exportReservedTermsAction();
   ExportSnapshotAction exportSnapshotAction();
+  IcannReportingStagingAction icannReportingStagingAction();
   IcannReportingUploadAction icannReportingUploadAction();
   LoadSnapshotAction loadSnapshotAction();
   MapreduceEntityCleanupAction mapreduceEntityCleanupAction();

@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
-import org.joda.time.LocalDate;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -28,28 +27,43 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class ActivityReportingQueryBuilderTest {
 
+  private ActivityReportingQueryBuilder getQueryBuilder() {
+    ActivityReportingQueryBuilder queryBuilder = new ActivityReportingQueryBuilder();
+    queryBuilder.yearMonth = "2017-05";
+    queryBuilder.projectId = "domain-registry-alpha";
+    return queryBuilder;
+  }
+
   @Test
-  public void testQueryMatch() throws IOException {
+  public void testAggregateQueryMatch() throws IOException {
+    ActivityReportingQueryBuilder queryBuilder = getQueryBuilder();
+    assertThat(queryBuilder.getActivityReportQuery())
+        .isEqualTo(
+            "#standardSQL\nSELECT * FROM "
+                + "`domain-registry-alpha.icann_reporting.activity_report_aggregation_201705`");
+  }
+
+  @Test
+  public void testIntermediaryQueryMatch() throws IOException {
+    ActivityReportingQueryBuilder queryBuilder = getQueryBuilder();
     ImmutableList<String> queryNames =
         ImmutableList.of(
             ActivityReportingQueryBuilder.REGISTRAR_OPERATING_STATUS,
             ActivityReportingQueryBuilder.DNS_COUNTS,
-            ActivityReportingQueryBuilder.MONTHLY_LOGS_TABLE,
+            ActivityReportingQueryBuilder.MONTHLY_LOGS,
             ActivityReportingQueryBuilder.EPP_METRICS,
             ActivityReportingQueryBuilder.WHOIS_COUNTS,
-            "activity_report_aggregation");
+            ActivityReportingQueryBuilder.ACTIVITY_REPORT_AGGREGATION);
 
     ImmutableMap.Builder<String, String> testQueryBuilder = ImmutableMap.builder();
     for (String queryName : queryNames) {
       String testFilename = String.format("%s_test.sql", queryName);
-      testQueryBuilder.put(queryName, ReportingTestData.getString(testFilename));
+      testQueryBuilder.put(
+          String.format("%s_201705", queryName), ReportingTestData.getString(testFilename));
     }
-    ImmutableMap<String, String> testQueries = testQueryBuilder.build();
-    ImmutableMap<String, String> queries =
-        ActivityReportingQueryBuilder.getQueryMap(
-            new LocalDate(2017, 05, 15), "domain-registry-alpha");
-    for (String query : queryNames) {
-      assertThat(queries.get(query)).isEqualTo(testQueries.get(query));
-    }
+    ImmutableMap<String, String> expectedQueries = testQueryBuilder.build();
+    ImmutableMap<String, String> actualQueries = queryBuilder.getViewQueryMap();
+    assertThat(actualQueries).isEqualTo(expectedQueries);
   }
 }
+
