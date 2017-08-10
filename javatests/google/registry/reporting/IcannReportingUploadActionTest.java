@@ -172,7 +172,7 @@ public class IcannReportingUploadActionTest {
   public void testSuccess_CreateBucketname() throws Exception{
     assertThat(
         IcannReportingUploadAction
-            .createReportingBucketName("gs://my-reporting", Optional.absent(), "2017-05"))
+            .createReportingBucketName("gs://my-reporting", Optional.<String>absent(), "2017-05"))
         .isEqualTo("gs://my-reporting/icann/monthly/2017-05");
     assertThat(
         IcannReportingUploadAction

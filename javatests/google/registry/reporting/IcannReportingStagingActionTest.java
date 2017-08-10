@@ -77,13 +77,13 @@ public class IcannReportingStagingActionTest {
 
   @Test
   public void testRunSuccess() throws Exception {
-    when(bigquery.query(any(), any())).thenReturn(fakeFuture());
+    when(bigquery.query(any(String.class), any(DestinationTable.class))).thenReturn(fakeFuture());
     DestinationTable.Builder tableBuilder = new DestinationTable.Builder()
         .datasetId("testdataset")
         .type(TableType.TABLE)
         .name("tablename")
         .overwrite(true);
-    when(bigquery.buildDestinationTable(any())).thenReturn(tableBuilder);
+    when(bigquery.buildDestinationTable(any(String.class))).thenReturn(tableBuilder);
 
     ImmutableTable<Integer, TableFieldSchema, Object> reportTable =
         new ImmutableTable.Builder<Integer, TableFieldSchema, Object>()
@@ -94,7 +94,7 @@ public class IcannReportingStagingActionTest {
             .put(2, new TableFieldSchema().setName("fooField"), "56")
             .put(2, new TableFieldSchema().setName("barField"), "78")
             .build();
-    when(bigquery.queryToLocalTableSync(any())).thenReturn(reportTable);
+    when(bigquery.queryToLocalTableSync(any(String.class))).thenReturn(reportTable);
     IcannReportingStagingAction action = createAction();
     action.run();
 
