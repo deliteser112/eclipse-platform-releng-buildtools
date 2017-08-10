@@ -23,29 +23,29 @@
   {@param? clientCertificateHash: string}
   {@param? failoverClientCertificate: string}
   {@param readonly: bool}
-  <form name="item" class="{css item} {css registrar}">
+  <form name="item" class="{css('item')} {css('registrar')}">
     <h1>Security settings</h1>
     {if $readonly}
       <p>Use the 'Edit' button above to switch to enable editing the information below.
     {/if}
     <table>
-      <tr class="{css kd-settings-pane-section}">
+      <tr class="{css('kd-settings-pane-section')}">
         <td>
-          <label class="{css setting-label}">Web console access</label>
-        <td class="{css setting}">
+          <label class="{css('setting-label')}">Web console access</label>
+        <td class="{css('setting')}">
           <p>Your web console account is managed through&nbsp;
             <a href="https://www.google.com/accounts"
                target="_blank" rel="noopener">Google account settings</a>.
 
-      <tr class="{css kd-settings-pane-section}">
+      <tr class="{css('kd-settings-pane-section')}">
         <td>
-          <label class="{css setting-label}">IP whitelist</label>
-          <span class="{css description}">Restrict access to EPP
+          <label class="{css('setting-label')}">IP whitelist</label>
+          <span class="{css('description')}">Restrict access to EPP
             production servers to the following IP/IPv6 addresses, or
             ranges like 1.1.1.1/24</span>
         </td>
-        <td class="{css setting}">
-          <div class="{css info} {css summary}">
+        <td class="{css('setting')}">
+          <div class="{css('info')} {css('summary')}">
             <div id="ips">
               {foreach $ip in $ipAddressWhitelist}
                 {call .ip}
@@ -54,20 +54,20 @@
                 {/call}
               {/foreach}
             </div>
-            <div class="{css hidden}">
+            <div class="{css('hidden')}">
               <input id="newIp" value="" placeholder="Enter IP address..."/>
               <button id="btn-add-ip" type="button"
-                      class="{css kd-button} {css btn-add}">Add</button>
+                      class="{css('kd-button')} {css('btn-add')}">Add</button>
             </div>
           </div>
         </td>
 
-      <tr class="{css kd-settings-pane-section}">
+      <tr class="{css('kd-settings-pane-section')}">
         <td>
-          <label class="{css setting-label}">Telephone passcode</label>
-          <span class="{css description}">Use this for support calls to the Registry.</span>
+          <label class="{css('setting-label')}">Telephone passcode</label>
+          <span class="{css('description')}">Use this for support calls to the Registry.</span>
         </td>
-        <td class="{css setting}">
+        <td class="{css('setting')}">
           <div id="domain-registrar-phone-passcode">
             {if isNonnull($phonePasscode)}
               <input id="phonePasscode"
@@ -79,12 +79,12 @@
           </div>
         </td>
 
-      <tr class="{css kd-settings-pane-section}">
+      <tr class="{css('kd-settings-pane-section')}">
         <td>
-          <label class="{css setting-label}">SSL Certificate</label>
-          <span class="{css description}">X.509 PEM certificate for EPP production access.</span>
+          <label class="{css('setting-label')}">SSL Certificate</label>
+          <span class="{css('description')}">X.509 PEM certificate for EPP production access.</span>
         </td>
-        <td class="{css setting}">
+        <td class="{css('setting')}">
           {if isNonnull($clientCertificate)}
             <textarea
                name="clientCertificate"
@@ -99,8 +99,8 @@
                 be viewed.  Please re-submit or update your certificate by
                 using the Edit button on the top of this page.
 
-              <p class="{css certhash}">
-                <span class="{css description}">Existing certificate SHA256 base64 hash:</span>
+              <p class="{css('certhash')}">
+                <span class="{css('description')}">Existing certificate SHA256 base64 hash:</span>
                 {$clientCertificateHash}
             {else}
               <textarea name="clientCertificate" rows="16" cols="64"></textarea>
@@ -113,7 +113,7 @@
               <textarea id="clientCertificate"
                         name="clientCertificate"
                         rows="16" cols="64"></textarea>
-              <div class="{css description}">
+              <div class="{css('description')}">
                 Example format:
                 <textarea id="exampleCert" rows="17" cols="64" readonly>
                   -----BEGIN CERTIFICATE-----{\n}
@@ -145,15 +145,15 @@
           {/if}
         </td>
 
-      <tr class="{css kd-settings-pane-section}">
+      <tr class="{css('kd-settings-pane-section')}">
         <td>
-          <label class="{css setting-label}">
+          <label class="{css('setting-label')}">
             Failover SSL Certificate
           </label>
-          <span class="{css description}">
+          <span class="{css('description')}">
             X.509 PEM backup certificate for EPP Production Access.
           </span>
-        <td class="{css setting}">
+        <td class="{css('setting')}">
           {if $readonly and not isNonnull($failoverClientCertificate)}
             <p>No failover certificate on file.
           {else}
@@ -175,9 +175,9 @@
 {template .ip}
   {@param name: string}
   {@param ip: string}
-  <div class="{css ip}">
-    <button type="button" class="{css kd-button} {css btn-remove} {css hidden}">
-      <i class="{css icon-remove} {css edit}">x</i>
+  <div class="{css('ip')}">
+    <button type="button" class="{css('kd-button')} {css('btn-remove')} {css('hidden')}">
+      <i class="{css('icon-remove')} {css('edit')}">x</i>
     </button>
     <input name="{$name}" value="{$ip}" readonly>
   </div>

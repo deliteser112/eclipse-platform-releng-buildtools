@@ -19,7 +19,7 @@
  * Set view for hosts.
  */
 {template .set}
-  <div class="{css set} {css host}">
+  <div class="{css('set')} {css('host')}">
     <p>Please enter a query for a single host in the form "host/[hostname]".
   </div>
 {/template}
@@ -31,7 +31,7 @@
  * @param? readonly passed through to field rendering.
  */
 {template .item}
-  <form name="item" class="{css item} {css host}">
+  <form name="item" class="{css('item')} {css('host')}">
     <h1>
       {if isNonnull($item['host:name'])}
         {$item['host:name']['keyValue']}
@@ -40,7 +40,7 @@
       {/if}
     </h1>
     <table>
-      <tr class="{css section-lead}">
+      <tr class="{css('section-lead')}">
         <th colspan="2"><h2>Host</h2></th>
       </tr>
       {call registry.soy.forms.inputFieldRowWithValue data="all"}
@@ -48,11 +48,11 @@
         {param name: isNonnull($item['host:name']) ? 'host:chgName' : 'host:name' /}
         {param value: $item['host:name'] /}
       {/call}
-      <tr class="{css section-lead}">
+      <tr class="{css('section-lead')}">
         <th colspan="2">
           <h3>Addresses</h3>
           <button id="domain-host-addr-add-button" type="button"
-                  class="{css kd-button} {css reg-add}"
+                  class="{css('kd-button')} {css('reg-add')}"
                   {if $readonly}disabled{/if}>
             Add Address
           </button>
@@ -89,10 +89,10 @@
  * @param? readonly passed through to field rendering.
  */
 {template .update}
-  <form name="item" class="{css item} {css host}">
+  <form name="item" class="{css('item')} {css('host')}">
     <h1>{$item['host:name']['keyValue']}</h1>
     <table>
-      <tr class="{css section-lead}">
+      <tr class="{css('section-lead')}">
         <th colspan="2"><h2>Host</h2></th>
       </tr>
       {call registry.soy.forms.inputFieldRowWithValue data="all"}

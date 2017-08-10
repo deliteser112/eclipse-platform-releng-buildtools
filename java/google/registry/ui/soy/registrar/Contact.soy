@@ -19,7 +19,7 @@
  * Set view for contacts.
  */
 {template .set}
-  <div class="{css set} {css contact}">
+  <div class="{css('set')} {css('contact')}">
     <p>Please enter a query for a single contact in the form "contact/[contact id]".
   </div>
 {/template}
@@ -31,7 +31,7 @@
  * @param? readonly passed through to field rendering.
  */
 {template .item}
-  <form name="item" class="{css item} {css contact}">
+  <form name="item" class="{css('item')} {css('contact')}">
     <h1>
       {if isNonnull($item['contact:id'])}
         {$item['contact:id']['keyValue']}
@@ -40,7 +40,7 @@
       {/if}
     </h1>
     <table>
-      <tr class="{css section-lead}">
+      <tr class="{css('section-lead')}">
         <th colspan="2"><h2>Authentication</h2></th>
       </tr>
       {if not isNonnull($item['contact:id'])}
@@ -55,7 +55,7 @@
         {param value: isNonnull($item['contact:authInfo']) ?
           $item['contact:authInfo']['contact:pw'] : '' /}
       {/call}
-      <tr class="{css section-lead}">
+      <tr class="{css('section-lead')}">
         <th colspan="2"><h2>Contacts</h2></th>
       </tr>
       {call registry.soy.forms.inputFieldRowWithValue data="all"}
@@ -75,11 +75,11 @@
         {param value: $item['contact:fax'] /}
         {param placeholder: 'e.g. +1.2125552638' /}
       {/call}
-      <tr class="{css section-lead} {css subsection}">
+      <tr class="{css('section-lead')} {css('subsection')}">
         <th id="contact-postalInfoHeader" colspan="2">
           <h3>Postal address(es)</h3>
           <button id="domain-contact-postalInfo-add-button" type="button"
-                  class="{css kd-button} {css reg-add}"
+                  class="{css('kd-button')} {css('reg-add')}"
                   {if $readonly}disabled{/if}>
             Add Localized Address
           </button>
@@ -126,10 +126,10 @@
     <tr><th colspan=2>
       {if $localized}
         <strong>Localized address</strong><br>
-        <span class="{css info}">Full UTF-8 charsets allowed</span>
+        <span class="{css('info')}">Full UTF-8 charsets allowed</span>
       {else}
         <strong>Internationalized address</strong><br>
-        <span class="{css info}">Only 7-bit ASCII allowed</span>
+        <span class="{css('info')}">Only 7-bit ASCII allowed</span>
       {/if}
     </th></tr>
   {call registry.soy.forms.inputFieldRowWithValue data="all"}

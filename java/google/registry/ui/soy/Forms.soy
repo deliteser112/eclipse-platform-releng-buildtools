@@ -53,10 +53,10 @@
  * @param? readonly
  */
 {template .inputFieldRow}
-  <tr class="{css kd-settings-pane-section}">
+  <tr class="{css('kd-settings-pane-section')}">
     <td>
       <label for="{if isNonnull($namePrefix)}{$namePrefix + $name}{else}{$name}{/if}"
-             class="{css setting-label}">
+             class="{css('setting-label')}">
         {if isNonnull($label)}
           {$label}
         {else}
@@ -64,10 +64,10 @@
         {/if}
       </label>
       {if isNonnull($description)}
-        <span class="{css description}">{$description}</span>
+        <span class="{css('description')}">{$description}</span>
       {/if}
     </td>
-    <td class="{css setting}">
+    <td class="{css('setting')}">
       <input id="{if isNonnull($namePrefix)}{$namePrefix + $name}{else}{$name}{/if}"
              name="{if isNonnull($namePrefix)}{$namePrefix + $name}{else}{$name}{/if}"
              {if isNonnull($item)}
@@ -94,11 +94,11 @@
   {@param label: string}
   {@param? forId: string}
   {@param? description: string}
-  <label {if isNonnull($forId)}for="{$forId}"{/if} class="{css setting-label}">
+  <label {if isNonnull($forId)}for="{$forId}"{/if} class="{css('setting-label')}">
     {$label}
   </label>
   {if isNonnull($description)}
-    <span class="{css description}">{$description}</span>
+    <span class="{css('description')}">{$description}</span>
   {/if}
 {/template}
 
@@ -134,13 +134,13 @@
   {@param? placeholder: string}
   {@param? clazz: string}
   {let $forId: isNonnull($namePrefix) ? $namePrefix + $name : $name /}
-  <tr class="{css kd-settings-pane-section}">
+  <tr class="{css('kd-settings-pane-section')}">
     <td>
       {call .inputFieldLabel data="all"}
         {param forId: $forId /}
       {/call}
     </td>
-    <td class="{css setting}">
+    <td class="{css('setting')}">
       {call .inputFieldValue data="all" /}
     </td>
   </tr>
@@ -242,7 +242,7 @@
     <td>
       <select id="{$name}"
               name="{$name}"
-              class="{css kd-button} {css reg-select}"
+              class="{css('kd-button')} {css('reg-select')}"
               {if $readonly}disabled{/if}>
         {foreach $option in $options}
           <option value="{$option}" {if $selected == $option}selected{/if}>
@@ -303,16 +303,16 @@
   {@param id: string} /** ID for button. */
   {@param selected: string} /** Selected item. */
   {@param items: list<string>} /** Selectable items. */
-  <div id="{$id}" class="{css kd-button} {css kd-menubutton} {css kd-select}">
-    <span class="{css label}">
+  <div id="{$id}" class="{css('kd-button')} {css('kd-menubutton')} {css('kd-select')}">
+    <span class="{css('label')}">
       {$selected}
     </span>
-    <span class="{css kd-disclosureindicator}"></span>
-    <ul class="{css kd-menulist}">
+    <span class="{css('kd-disclosureindicator')}"></span>
+    <ul class="{css('kd-menulist')}">
       {foreach $item in $items}
-        <li class="{css kd-menulistitem}
+        <li class="{css('kd-menulistitem')}
                    {if $item == $selected}
-                     {sp}{css selected}
+                     {sp}{css('selected')}
                    {/if}">
           {$item}
       {/foreach}

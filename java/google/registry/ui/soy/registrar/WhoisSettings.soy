@@ -31,7 +31,7 @@
   {@param? faxNumber: string}
   {let $whoisServerNonNull: $whoisServer ?: 'None' /}
   {let $referralUrlNonNull: $referralUrl ?: 'None' /}
-  <form name="item" class="{css item} {css registrar} {css kd-settings-pane}">
+  <form name="item" class="{css('item')} {css('registrar')} {css('kd-settings-pane')}">
     <h1>WHOIS Settings</h1>
     {if $readonly}
       <p>General registrar information for your WHOIS record.  This
@@ -85,9 +85,9 @@
   {@param? phoneNumber: string}
   {@param? faxNumber: string}
   {if $readonly}
-    <tr class="{css kd-settings-pane-section}">
-      <td><label class="{css setting-label}">Contact info</label></td>
-      <td class="{css setting-group-compact}">
+    <tr class="{css('kd-settings-pane-section')}">
+      <td><label class="{css('setting-label')}">Contact info</label></td>
+      <td class="{css('setting-group-compact')}">
         {if isNonnull($localizedAddress)}
           {call .viewAddress_ data="$localizedAddress"}
             {param id: 'localizedAddress' /}
@@ -98,20 +98,20 @@
                  name="phoneNumber"
                  id="phoneNumber"
                  value="{$phoneNumber}">
-          <div class="{css contact-phone-number}">{$phoneNumber}</div>
+          <div class="{css('contact-phone-number')}">{$phoneNumber}</div>
         {/if}
         {if isNonnull($faxNumber)}
           <input type="hidden"
                  name="faxNumber"
                  id="faxNumber"
                  value="{$faxNumber}">
-          <div class="{css contact-fax-number}">{$faxNumber} (Fax)</div>
+          <div class="{css('contact-fax-number')}">{$faxNumber} (Fax)</div>
         {/if}
         <input type="hidden"
                name="emailAddress"
                id="emailAddress"
                value="{$emailAddress}">
-        <div class="{css contact-fax-number}">{$emailAddress}</div>
+        <div class="{css('contact-fax-number')}">{$emailAddress}</div>
       </td>
   {else}
     {call registry.soy.forms.inputFieldRowWithValue}
@@ -154,7 +154,7 @@
            name="{$id}.street[{index($line)}]"
            id="{$id}.street[{index($line)}]"
            value="{$street[index($line)]}">
-    <div class="{css contact-address-street}">{$street[index($line)]}</div>
+    <div class="{css('contact-address-street')}">{$street[index($line)]}</div>
   {/foreach}
   <input type="hidden" name="{$id}.city" id="{$id}.city" value="{$city}">
   <input type="hidden" name="{$id}.state" id="{$id}.state" value="{$state}">
@@ -163,14 +163,14 @@
          name="{$id}.countryCode"
          id="{$id}.countryCode"
          value="{$countryCode}">
-  <div class="{css contact-address-city}">{$city},</div>
+  <div class="{css('contact-address-city')}">{$city},</div>
   {if isNonnull($state)}
-    {sp}<div class="{css contact-address-state}">{$state}</div>
+    {sp}<div class="{css('contact-address-state')}">{$state}</div>
   {/if}
   {if isNonnull($zip)}
-    {sp}<div class="{css contact-address-zip}">{$zip}</div>
+    {sp}<div class="{css('contact-address-zip')}">{$zip}</div>
   {/if}
-  {sp}<div class="{css contact-address-cc}">{$countryCode}</div>
+  {sp}<div class="{css('contact-address-cc')}">{$countryCode}</div>
 {/template}
 
 
@@ -189,11 +189,11 @@
   {let $state2: $state ?: '' /}
   {let $zip2: $zip ?: '' /}
   {let $countryCode2: $countryCode ?: '' /}
-  <tr class="{css kd-settings-pane-section}">
+  <tr class="{css('kd-settings-pane-section')}">
     <td>
       <label for="{$id}.street[0]"
-             class="{css setting-label}">Street Address</label>
-    <td class="{css setting}">
+             class="{css('setting-label')}">Street Address</label>
+    <td class="{css('setting')}">
       <input id="{$id}.street[0]"
              name="{$id}.street[0]"
              value="{if isNonnull($street2[0])}{$street2[0]}{/if}">

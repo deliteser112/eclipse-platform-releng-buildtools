@@ -19,7 +19,7 @@
 {template .form}
   {@param currencies: list<string>} /** Currencies in which customer can remit payment. */
   {@param brainframe: uri} /** Location of Braintree iframe sandbox iframe HTML. */
-  <div class="{css reg-payment}">
+  <div class="{css('reg-payment')}">
     <h1>Make a Payment</h1>
     <p>
       Please use the form below to pay your monthly invoice by credit card.
@@ -27,7 +27,7 @@
       The bill you received from the registry should list an outstanding balance
       for each currency. If you hold an outstanding balance in multiple currencies,
       this form should be filled out and submitted separately for each one.
-    <form method="post" action="#" class="{css reg-payment-form}">
+    <form method="post" action="#" class="{css('reg-payment-form')}">
       <fieldset>
         <ul>
         <li>
@@ -48,20 +48,20 @@
           <label>Payment Method</label>
           <iframe src="{$brainframe}"
                   id="method"
-                  class="{css reg-payment-form-method}"
+                  class="{css('reg-payment-form-method')}"
                   height="0"
                   width="100%"
                   frameBorder="0"
                   scrolling="no"></iframe>
-          <div class="{css reg-payment-form-method-info} {css hidden}"></div>
+          <div class="{css('reg-payment-form-method-info')} {css('hidden')}"></div>
         </ul>
         <input type="submit" value="Submit Payment"
-               class="{css reg-payment-form-submit}{sp}
-                      {css kd-button}{sp}
-                      {css kd-button-submit}{sp}
-                      {css disabled}">
+               class="{css('reg-payment-form-submit')}{sp}
+                      {css('kd-button')}{sp}
+                      {css('kd-button-submit')}{sp}
+                      {css('disabled')}">
         <img alt="[Processing...]"
-             class="{css reg-payment-form-loader}"
+             class="{css('reg-payment-form-loader')}"
              src="/assets/images/loader1x.gif"
              width="22" height="22">
       </fieldset>
@@ -74,13 +74,13 @@
 {template .success}
   {@param id: string} /** Transaction ID from payment gateway. */
   {@param formattedAmount: string} /** Amount in which payment was made. */
-  <div class="{css reg-payment}">
+  <div class="{css('reg-payment')}">
     <h1>Payment Processed</h1>
     <p>
       Your payment of {$formattedAmount} was successfully processed with
       the Transaction ID {$id}.
     <p>
-      <button class="{css reg-payment-again} {css kd-button} {css kd-button-submit}">
+      <button class="{css('reg-payment-again')} {css('kd-button')} {css('kd-button-submit')}">
         Make Another Payment
       </button>
   </div>
@@ -108,9 +108,9 @@
 
 /** Page used to block browsers without necessary features. */
 {template .unsupported}
-  <div class="{css reg-payment}">
+  <div class="{css('reg-payment')}">
     <img alt="[Crying Android]"
-         class="{css reg-cryingAndroid}"
+         class="{css('reg-cryingAndroid')}"
          src="/assets/images/android_sad.png"
          width="183"
          height="275">
@@ -118,7 +118,7 @@
     <p>
       The Payment page requires features which are not present in your
       browser. Please use one of the following compatible browsers:
-    <ul class="{css reg-bullets}">
+    <ul class="{css('reg-bullets')}">
       <li>Chrome
       <li>Android
       <li>Safari
@@ -131,7 +131,7 @@
 
 /** Page indicating customer is not on credit card billing terms. */
 {template .notUsingCcBilling}
-  <div class="{css reg-payment}">
+  <div class="{css('reg-payment')}">
     <h1>Payment Page Disabled</h1>
     <p>
       Your customer account is not on credit card billing terms. Please{sp}

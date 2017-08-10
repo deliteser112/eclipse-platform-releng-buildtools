@@ -2,11 +2,11 @@ workspace(name = "domain_registry")
 
 http_archive(
     name = "io_bazel_rules_closure",
-    sha256 = "c104d30b4aaf23d72afe327b4478d1c08cf1ff75c6db2060682bb7ad0591e19b",
-    strip_prefix = "rules_closure-962d929bc769fc320dd395f54fef3e9db62c3920",
+    sha256 = "286e9169d478c4549199e862d63b24aa8530e0fe1c1fd44524d307f3a56b0fa0",
+    strip_prefix = "rules_closure-c8e68361db0875f6fabb23abed16f1cebbb8b5d5",
     urls = [
-        "http://mirror.bazel.build/github.com/bazelbuild/rules_closure/archive/962d929bc769fc320dd395f54fef3e9db62c3920.tar.gz",  # 2016-12-28
-        "https://github.com/bazelbuild/rules_closure/archive/962d929bc769fc320dd395f54fef3e9db62c3920.tar.gz",
+        "http://mirror.bazel.build/github.com/bazelbuild/rules_closure/archive/c8e68361db0875f6fabb23abed16f1cebbb8b5d5.tar.gz", # 2017-08-08
+        "https://github.com/bazelbuild/rules_closure/archive/c8e68361db0875f6fabb23abed16f1cebbb8b5d5.tar.gz",
     ],
 )
 
@@ -17,10 +17,8 @@ closure_repositories(
     omit_com_google_guava = True,
     omit_com_ibm_icu_icu4j = True,
     omit_javax_inject = True,
-    omit_org_apache_tomcat_servlet_api = True,
     omit_org_json = True,
-    omit_org_mortbay_jetty = True,
-    omit_org_mortbay_jetty_util = True,
+    omit_com_google_template_soy = True,
 )
 
 load("//java/google/registry:repositories.bzl", "domain_registry_repositories")

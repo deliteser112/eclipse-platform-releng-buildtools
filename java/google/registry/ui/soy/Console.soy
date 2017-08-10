@@ -68,7 +68,7 @@
   {@param logoFilename: string}
   {@param productName: string}
   <div id="kd-googlebar" role="banner">
-    <a class="{css logo}" href="/registrar">
+    <a class="{css('logo')}" href="/registrar">
       <img src="/assets/images/{$logoFilename}" alt="{$productName}">
     </a>
     <div id="kd-search">
@@ -78,20 +78,20 @@
              placeholder="Search using format 'contact/id'"
              x-webkit-speech>
       <a id="kd-searchbutton"
-         class="{css kd-button} {css kd-button-submit}"
+         class="{css('kd-button')} {css('kd-button-submit')}"
          style="-webkit-user-select: none;">
         <img width="21" height="21" alt="Search White"
              src="/assets/images/icons/svg/search.svg">
       </a>
     </div>
-    <div class="{css kd-butterbar}">
+    <div class="{css('kd-butterbar')}">
       <p>
-        <span class="{css kd-butterbar-text}"></span>{sp}
-        <a class="{css kd-butterbar-dismiss}">Dismiss</a>
+        <span class="{css('kd-butterbar-text')}"></span>{sp}
+        <a class="{css('kd-butterbar-dismiss')}">Dismiss</a>
       </p>
     </div>
-    <div id="kd-social" class="{css kd-buttonbar} {css right}">
-      <span class="{css kd-name} {css mobile-hide} {css x-crush-hide}">
+    <div id="kd-social" class="{css('kd-buttonbar')} {css('right')}">
+      <span class="{css('kd-name')} {css('mobile-hide')} {css('x-crush-hide')}">
         {$username}{sp}
         <a href="{$logoutUrl}" tabindex="-1">Sign out</a>
       </span>
@@ -102,25 +102,25 @@
 
 /** Appbar add/back, edit/cancel appbar. */
 {template .appbarButtons}
-  <div id="reg-app-buttons" class="{css kd-buttonbar} {css left}">
+  <div id="reg-app-buttons" class="{css('kd-buttonbar')} {css('left')}">
     <button id="reg-app-btn-add"
             type="button"
-            class="{css kd-button} {css kd-button-submit} {css hidden}">
+            class="{css('kd-button')} {css('kd-button-submit')} {css('hidden')}">
       Add</button>
-    <div id="reg-app-btns-edit" class="{css hidden}">
+    <div id="reg-app-btns-edit" class="{css('hidden')}">
       <button id="reg-app-btn-edit"
               type="button"
-              class="{css kd-button} {css kd-button-submit}">
+              class="{css('kd-button')} {css('kd-button-submit')}">
         Edit</button>
-      <button id="reg-app-btn-back" type="button" class="{css kd-button}">
+      <button id="reg-app-btn-back" type="button" class="{css('kd-button')}">
         Back</button>
     </div>
-    <div id="reg-app-btns-save" class="{css hidden}">
+    <div id="reg-app-btns-save" class="{css('hidden')}">
       <button id="reg-app-btn-save"
               type="button"
-              class="{css kd-button} {css kd-button-submit}">
+              class="{css('kd-button')} {css('kd-button-submit')}">
         Save</button>
-      <button id="reg-app-btn-cancel" type="button" class="{css kd-button}">
+      <button id="reg-app-btn-cancel" type="button" class="{css('kd-button')}">
         Cancel</button>
     </div>
   </div>
@@ -132,18 +132,18 @@
  */
 {template .navCreateButton}
   <a id="reg-create-button"
-     class="{css kd-button} {css kd-button-action} {css kd-menubutton}"
+     class="{css('kd-button')} {css('kd-button-action')} {css('kd-menubutton')}"
      style="-webkit-user-select: none;">
-    <span class="{css label}">Create</span>
-    <span class="{css kd-disclosureindicator}"></span>
-    <ul class="{css kd-menulist}" style="top: 27px;">
-      <li class="{css kd-menulistitem}"
+    <span class="{css('label')}">Create</span>
+    <span class="{css('kd-disclosureindicator')}"></span>
+    <ul class="{css('kd-menulist')}" style="top: 27px;">
+      <li class="{css('kd-menulistitem')}"
           style="-webkit-user-select: none;"
           id="reg-menu-domain-create">Domain
-      <li class="{css kd-menulistitem}"
+      <li class="{css('kd-menulistitem')}"
           style="-webkit-user-select: none;"
           id="reg-menu-contact-create">Contact
-      <li class="{css kd-menulistitem}"
+      <li class="{css('kd-menulistitem')}"
           style="-webkit-user-select: none;"
           id="reg-menu-host-create">Host
     </ul>
@@ -155,8 +155,8 @@
  * Legal notices included as footer.
  */
 {template .footer}
-  <div class="{css pageFooter} {css clearfix}">
-    <ul class="{css linklist} {css right}">
+  <div class="{css('pageFooter')} {css('clearfix')}">
+    <ul class="{css('linklist')} {css('right')}">
       <li>
         <a href="https://www.registry.google/about/privacy.html">Privacy</a>
       <li>

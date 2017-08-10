@@ -39,7 +39,7 @@
   {/call}
   {call registry.soy.console.googlebar data="all" /}
   <div id="reg-app">
-    <div id="reg-appbar" class="{css kd-appbar}"></div>
+    <div id="reg-appbar" class="{css('kd-appbar')}"></div>
     {call .navbar_ data="all" /}
     <div id="reg-content-and-footer">
       <div id="reg-content">
@@ -77,7 +77,7 @@
 /** Sidebar nav. Ids on each elt for testing only. */
 {template .navbar_ visibility="private"}
   {@param showPaymentLink: bool}
-  <div id="reg-nav" class="{css kd-content-sidebar}">
+  <div id="reg-nav" class="{css('kd-content-sidebar')}">
     <ul id="reg-navlist">
       <li>
         <a href="/registrar#">Home</a>
@@ -89,7 +89,7 @@
       {/if}
       <li>
         <ul>
-          <span class="{css reg-navlist-sub}">Settings</span>
+          <span class="{css('reg-navlist-sub')}">Settings</span>
           <li>
             <a href="/registrar#whois-settings">WHOIS</a>
           <li>
@@ -114,8 +114,8 @@
     {param app: 'registrar' /}
     {param subtitle: 'Console Disabled' /}
   {/call}
-  <div class="{css whoAreYou-disabled}">
-    <a class="{css logo}" href="/registrar">
+  <div class="{css('whoAreYou-disabled')}">
+    <a class="{css('logo')}" href="/registrar">
       <img src="/assets/images/{$logoFilename}" alt="{$productName}">
     </a>
     <h1>Console is disabled</h1>
@@ -140,8 +140,8 @@
     {param app: 'registrar' /}
     {param subtitle: 'Please Login' /}
   {/call}
-  <div class="{css whoAreYou}">
-    <a class="{css logo}" href="/registrar">
+  <div class="{css('whoAreYou')}">
+    <a class="{css('logo')}" href="/registrar">
       <img src="/assets/images/{$logoFilename}" alt="{$productName}">
     </a>
     <h1>You need permission</h1>
@@ -153,7 +153,7 @@
       You are signed in as <strong>{$username}</strong>.
     <div>
       <a href="{$logoutUrl}"
-         class="{css kd-button} {css kd-button-submit}"
+         class="{css('kd-button')} {css('kd-button-submit')}"
          tabindex="-1">Logout and switch to another account</a>
     </div>
   </div>
@@ -170,7 +170,7 @@
     <table>
       <tr>
         <td>
-          <div class="{css dashbox}">
+          <div class="{css('dashbox')}">
             <img src="/assets/images/homeResources.png">
             <h2>Access Resources</h2>
             Use Google Drive to view<br>
@@ -178,14 +178,14 @@
             documentation &amp; billing reports.
           </div>
         <td>
-          <div class="{css dashbox}">
+          <div class="{css('dashbox')}">
             <img id="gear" src="/assets/images/homeSettings.png">
             <h2>Manage Settings</h2>
             Security, WHOIS &amp; contact<br>
             settings are easy to view and edit.
           </div>
         <td>
-          <div class="{css dashbox}">
+          <div class="{css('dashbox')}">
             <img src="/assets/images/homeContact.png">
             <h2>Contact Us</h2>
             View important phone &amp; email<br>
@@ -208,17 +208,17 @@
   {@param supportEmail: string}
   {@param announcementsEmail: string}
   {@param supportPhoneNumber: string}
-  <div id="domain-registrar-contact-us" class="{css item}">
+  <div id="domain-registrar-contact-us" class="{css('item')}">
     <h1>Contact us</h1>
     <p>Our support team can assist you with any technical or operational
       questions you may have regarding our registry services.
 
     <table>
-      <tr class="{css kd-settings-pane-section}">
+      <tr class="{css('kd-settings-pane-section')}">
         <td>
-          <label class="{css setting-label}">Email</label>
+          <label class="{css('setting-label')}">Email</label>
         </td>
-        <td class="{css setting}">
+        <td class="{css('setting')}">
           <p>
             <a href="mailto:{$integrationEmail}">{$integrationEmail}</a><br>
           For help with OT&amp;E sandbox and certification, or new
@@ -230,18 +230,18 @@
             with our registry system.  If the issue is urgent, please put
             &quot;Urgent&quot; in the email title.
 
-          <p class="{css description}">Note: You may receive occasional service
+          <p class="{css('description')}">Note: You may receive occasional service
             announcements
             via <strong>{$announcementsEmail}</strong>.  You
             will not be able to reply to those messages.
 
       <tr><td colspan="2"><hr>
-      <tr class="{css kd-settings-pane-section}">
+      <tr class="{css('kd-settings-pane-section')}">
         <td>
-          <label class="{css setting-label}">Phone</label>
-          <span class="{css description}">For general support inquiries 24x7</span>
+          <label class="{css('setting-label')}">Phone</label>
+          <span class="{css('description')}">For general support inquiries 24x7</span>
         </td>
-        <td class="{css setting}">
+        <td class="{css('setting')}">
           <p>Please be ready with your account name and telephone passcode
             when contacting us by phone.
 
@@ -275,7 +275,7 @@
     <p>
       Find onboarding FAQs &amp; technical documentation here:
       <br><br>
-      <a class="{css kd-button} {css kd-button-submit}"
+      <a class="{css('kd-button')} {css('kd-button-submit')}"
          href="{$technicalDocsUrl}"
          target="_blank" rel="noopener">View TLD information on Google Drive</a>
     <h2><img src="/assets/images/folder.png">Billing details</h2>
@@ -284,7 +284,7 @@
     <p>
       {if (isNonnull($driveFolderId))}
         <a id="reg-resources-driveLink"
-           class="{css kd-button} {css kd-button-submit}"
+           class="{css('kd-button')} {css('kd-button-submit')}"
            href="https://drive.google.com/drive/folders/{$driveFolderId}"
            target="_blank" rel="noopener">View billing details on Google Drive</a>
       {else}

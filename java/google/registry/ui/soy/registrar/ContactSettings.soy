@@ -27,19 +27,19 @@
       ['abuse', 'Abuse', 'Contact for abuse complaints.'],
       ['whois', 'WHOIS-Inquiry', 'Contact for inquiries about WHOIS accuracy.'],
       ['other', 'Other', 'Contact that is none of the above types']] /}
-  <div class="{css set}">
+  <div class="{css('set')}">
   <h1>Contact settings</h1>
   <table>
     {foreach $type in $possibleTypesLookup}
       {if isNonnull($contactsByType[$type[0]])}
-        <tr class="{css kd-settings-pane-section}">
+        <tr class="{css('kd-settings-pane-section')}">
           <td>
-            <label class="{css setting-label}">{$type[1]}
+            <label class="{css('setting-label')}">{$type[1]}
               {sp}contact{if length($contactsByType[$type[0]]) > 1}s{/if}</label>
-            <span class="{css description}">{$type[2]}</span>
+            <span class="{css('description')}">{$type[2]}</span>
           </td>
           <td id="{$type[0]}-contacts"
-              class="{css info} {css summary} {css domain-registrar-contacts}">
+              class="{css('info')} {css('summary')} {css('domain-registrar-contacts')}">
             {foreach $c in $contactsByType[$type[0]]}
               {call .contactInfoCompact}
                 {param namePrefix: 'contacts[' + index($c) + '].' /}
@@ -70,29 +70,29 @@
   {@param visibleInWhois: bool}
   {@param? phoneNumber: string}
   {@param? faxNumber: string}
-  <div class="{css domain-registrar-contact}">
-    <div class="{css domain-registrar-contact-name}"
+  <div class="{css('domain-registrar-contact')}">
+    <div class="{css('domain-registrar-contact-name')}"
          id="{$namePrefix}name">
       {$name}
       {if $visibleInWhois}
-        <i class="{css domain-registrar-contact-visible-in-whois}"
+        <i class="{css('domain-registrar-contact-visible-in-whois')}"
            onmouseover="this.childNodes[0].style.visibility = 'visible'"
            onmouseout="this.childNodes[0].style.visibility = 'hidden'">
-          <div class="{css tooltip}">
-            Visible in WHOIS <span class="{css pointer}"></span>
+          <div class="{css('tooltip')}">
+            Visible in WHOIS <span class="{css('pointer')}"></span>
           </div>
         </i>
       {/if}
     </div>
     {if isNonnull($phoneNumber)}
-      <div class="{css domain-registrar-contact-phoneNumber}"
+      <div class="{css('domain-registrar-contact-phoneNumber')}"
            id="{$namePrefix}phoneNumber">{$phoneNumber}</div>
     {/if}
     {if isNonnull($faxNumber)}
-      <div class="{css domain-registrar-contact-faxNumber}"
+      <div class="{css('domain-registrar-contact-faxNumber')}"
            id="{$namePrefix}faxNumber">{$faxNumber} (Fax)</div>
     {/if}
-    <div class="{css domain-registrar-contact-emailAddress}"
+    <div class="{css('domain-registrar-contact-emailAddress')}"
          id="{$namePrefix}emailAddress">{$emailAddress}</div>
     <a href="#contact-settings/{$emailAddress}">View/Edit</a>
   </div>
@@ -105,7 +105,7 @@
   {@param item: map<string, ?>}
   {@param actualTypesLookup: map<string, bool>}
   {@param readonly: bool}
-  <form name="item" class="{css item} {css registrar}">
+  <form name="item" class="{css('item')} {css('registrar')}">
     <h1>Contact Details</h1>
     {call .contactInfo data="all"}
       {param namePrefix: $namePrefix /}
@@ -180,11 +180,11 @@
   {@param item: map<string, ?>}
   {@param possibleTypesLookup: list<list<string>>}
   {@param actualTypesLookup: map<string, bool>}
-  <tr class="{css kd-settings-pane-section}">
+  <tr class="{css('kd-settings-pane-section')}">
     <td>
-      <label class="{css setting-label}">Contact type</label>
-    <td class="{css setting}">
-      <div class="{css setting-item-list}">
+      <label class="{css('setting-label')}">Contact type</label>
+    <td class="{css('setting')}">
+      <div class="{css('setting-item-list')}">
         {foreach $type in $possibleTypesLookup}
           {if $actualTypesLookup[$type[0]]}
             <div>{$type[1]} contact</div>
@@ -193,17 +193,17 @@
       </div>
     </td>
   <tr><td colspan="2"><hr></tr>
-  <tr class="{css kd-settings-pane-section}">
+  <tr class="{css('kd-settings-pane-section')}">
     <td>
-      <label class="{css setting-label}">Show in WHOIS</label>
+      <label class="{css('setting-label')}">Show in WHOIS</label>
     </td>
-    <td class="{css setting}">
-      <p class="{css setting-item-list}">
+    <td class="{css('setting')}">
+      <p class="{css('setting-item-list')}">
         {let $visibleAsAdmin: $item['visibleInWhoisAsAdmin'] == true /}
         {let $visibleAsTech: $item['visibleInWhoisAsTech'] == true /}
         {let $visibleAsDomainAbuse: $item['visibleInDomainWhoisAsAbuse'] == true /}
         {if (not $visibleAsAdmin) and (not $visibleAsTech) and (not $visibleAsDomainAbuse)}
-          <span class="{css whois-not-visible}">Not visible in WHOIS</span>
+          <span class="{css('whois-not-visible')}">Not visible in WHOIS</span>
         {else}
           {if $visibleAsAdmin}Registrar Admin{/if}
           {if $visibleAsAdmin and $visibleAsTech},{sp}{/if}
@@ -222,14 +222,14 @@
   {@param namePrefix: string}
   {@param possibleTypesLookup: list<list<string>>}
   {@param actualTypesLookup: map<string, bool>}
-  <tr class="{css kd-settings-pane-section}">
+  <tr class="{css('kd-settings-pane-section')}">
     <td>
-      <label class="{css setting-label}">Contact type</label>
-      <span class="{css description}">
+      <label class="{css('setting-label')}">Contact type</label>
+      <span class="{css('description')}">
         Subscribe this contact to the checked mailing lists.
       </span>
     </td>
-    <td class="{css setting}">
+    <td class="{css('setting')}">
       {call .contactCheckboxes_}
         {param namePrefix: $namePrefix /}
         {param possibleTypesLookup: $possibleTypesLookup /}
@@ -268,14 +268,14 @@
   {@param? note: string}
   {@param fieldName: string}
   {@param visible: bool}
-  <tr class="{css kd-settings-pane-section}">
+  <tr class="{css('kd-settings-pane-section')}">
     <td>
       <label for="{$fieldName}">{$description}</label>
       {if $note}
-        <span class="{css description}">{$note}</span>
+        <span class="{css('description')}">{$note}</span>
       {/if}
     </td>
-    <td class="{css setting}">
+    <td class="{css('setting')}">
       <label for="{$fieldName}">
         <input
           name="{$fieldName}"
@@ -304,14 +304,14 @@
   {foreach $type in $possibleTypesLookup}
     {let $name: $namePrefix + 'type.' + $type[0] /}
     {let $checked: $actualTypesLookup[$type[0]] /}
-    <div class="{css checkbox-with-label}">
+    <div class="{css('checkbox-with-label')}">
       <input type="checkbox"
              name="{$name}"
              id="{$name}"
              {if $checked} checked{/if}>
       <label for="{$name}">
         {$type[1]} contact
-        <span class="{css description}">{$type[2]}</span>
+        <span class="{css('description')}">{$type[2]}</span>
       </label>
     </div>
   {/foreach}
@@ -322,10 +322,10 @@
 {template .ip}
   {@param name: string}
   {@param ip: string}
-  <div class="{css ip}">
+  <div class="{css('ip')}">
     <input name="{$name}" value="{$ip}" readonly>
-    <button type="button" class="{css kd-button} {css btn-remove} {css hidden}">
-      <i class="{css icon-remove} {css edit}">x</i>
+    <button type="button" class="{css('kd-button')} {css('btn-remove')} {css('hidden')}">
+      <i class="{css('icon-remove')} {css('edit')}">x</i>
     </button>
   </div>
 {/template}

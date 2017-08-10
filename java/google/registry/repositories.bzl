@@ -107,7 +107,8 @@ def domain_registry_repositories(
     omit_org_mortbay_jetty_servlet_api=False,
     omit_org_mortbay_jetty_util=False,
     omit_org_slf4j_api=False,
-    omit_org_yaml_snakeyaml=False):
+    omit_org_yaml_snakeyaml=False,
+    omit_com_google_template_soy=False):
   """Imports dependencies for Nomulus."""
   domain_registry_bazel_check()
   if not omit_com_beust_jcommander:
@@ -282,6 +283,8 @@ def domain_registry_repositories(
     org_slf4j_api()
   if not omit_org_yaml_snakeyaml:
     org_yaml_snakeyaml()
+  if not omit_com_google_template_soy:
+    com_google_template_soy()
 
 def com_beust_jcommander():
   java_import_external(
@@ -1650,6 +1653,48 @@ def org_yaml_snakeyaml():
           "http://repo1.maven.org/maven2/org/yaml/snakeyaml/1.17/snakeyaml-1.17.jar",
       ],
   )
+
+def com_google_template_soy():
+  java_import_external(
+      name = "com_google_template_soy",
+      jar_sha256 = "3c4e61234e9ee9f79411da997e23b201bcf281255469c76d162dac07a67dbb78",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/com/google/template/soy/2017-06-22/soy-2017-06-22.jar",
+          "http://central.maven.org/maven2/com/google/template/soy/2017-06-22/soy-2017-06-22.jar",
+      ],
+      deps = [
+          "@args4j",
+          "@org_ow2_asm",
+          "@org_ow2_asm_analysis",
+          "@org_ow2_asm_commons",
+          "@org_ow2_asm_util",
+          "@com_google_guava",
+          "@com_google_inject_guice",
+          "@com_google_inject_extensions_guice_assistedinject",
+          "@com_google_inject_extensions_guice_multibindings",
+          "@com_ibm_icu_icu4j",
+          "@org_json",
+          "@com_google_code_findbugs_jsr305",
+          "@javax_inject",
+          "@com_google_common_html_types",
+      ],
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      extra_build_file_content = "\n".join([
+          ("java_binary(\n" +
+           "    name = \"%s\",\n" +
+           "    main_class = \"com.google.template.soy.%s\",\n" +
+           "    output_licenses = [\"unencumbered\"],\n" +
+           "    runtime_deps = [\":com_google_template_soy\"],\n" +
+           ")\n") % (name, name)
+          for name in ("SoyParseInfoGenerator",
+                       "SoyToJbcSrcCompiler",
+                       "SoyToJsSrcCompiler",
+                       "SoyToPySrcCompiler",
+                       "SoyToIncrementalDomSrcCompiler")
+      ]),
+  )
+
+
 
 def _check_bazel_version(project, bazel_version):
   if "bazel_version" not in dir(native):
