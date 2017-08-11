@@ -40,6 +40,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.utils.SystemProperty;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
@@ -146,7 +147,6 @@ public class RdeUploadActionTest {
   private final FakeResponse response = new FakeResponse();
   private final EscrowTaskRunner runner = mock(EscrowTaskRunner.class);
   private final FakeClock clock = new FakeClock(DateTime.parse("2010-10-17TZ"));
-  private final GcsService gcsService = GcsServiceFactory.createGcsService();
 
   private final RydeTarOutputStreamFactory tarFactory =
       new RydeTarOutputStreamFactory() {
@@ -230,8 +230,14 @@ public class RdeUploadActionTest {
     return jschSpy;
   }
 
+  private GcsService gcsService;
+
   @Before
   public void before() throws Exception {
+    // Force "development" mode so we don't try to really connect to GCS.
+    SystemProperty.environment.set(SystemProperty.Environment.Value.Development);
+    gcsService = GcsServiceFactory.createGcsService();
+
     createTld("tld");
     PGPPublicKey encryptKey = new FakeKeyringModule().get().getRdeStagingEncryptionKey();
     writeGcsFile(gcsService, GHOSTRYDE_FILE,
