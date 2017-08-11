@@ -301,7 +301,9 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     xmlInput = DEPOSIT_XML.openBufferedStream();
     when(gcsUtils.openInputStream(any(GcsFilename.class))).thenReturn(xmlInput);
     rdeImportUtils.validateEscrowFileForImport("valid-deposit-file.xml");
-    verify(gcsUtils).openInputStream(new GcsFilename("import-bucket", "valid-deposit-file.xml"));
+    // stored to avoid an error in FOSS build, marked "CheckReturnValue"
+    InputStream unusedResult = verify(gcsUtils).openInputStream(
+        new GcsFilename("import-bucket", "valid-deposit-file.xml"));
   }
 
   /** Verifies thrown error when tld in escrow file is not in the registry */
