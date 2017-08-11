@@ -77,6 +77,10 @@ public class DnsQueue {
    * Enqueues the given task type with the given target name to the DNS queue.
    */
   private TaskHandle addToQueue(TargetType targetType, String targetName, String tld) {
+    int numTasks = queue.fetchStatistics().getNumTasks();
+    logger.infofmt(
+        "Adding task type=%s, target=%s, tld=%s to pull queue %s (%d tasks currently on queue)",
+        targetType, targetName, tld, DNS_PULL_QUEUE_NAME, numTasks);
     return queue.add(TaskOptions.Builder
         .withDefaults()
         .method(Method.PULL)
