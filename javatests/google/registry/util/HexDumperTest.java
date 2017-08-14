@@ -15,21 +15,17 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.StringWriter;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link HexDumper}. */
 @RunWith(JUnit4.class)
 public class HexDumperTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testEmpty() throws Exception {
@@ -169,37 +165,32 @@ public class HexDumperTest {
   @Test
   public void testBadArgumentPerLineZero() throws Exception {
     HexDumper.dumpHex(new byte[1], 1, 0);
-    thrown.expect(IllegalArgumentException.class);
-    HexDumper.dumpHex(new byte[1], 0, 0);
+    assertThrows(IllegalArgumentException.class, () -> HexDumper.dumpHex(new byte[1], 0, 0));
   }
 
   @Test
   public void testBadArgumentPerLineNegative() throws Exception {
     HexDumper.dumpHex(new byte[1], 1, 0);
-    thrown.expect(IllegalArgumentException.class);
-    HexDumper.dumpHex(new byte[1], -1, 0);
+    assertThrows(IllegalArgumentException.class, () -> HexDumper.dumpHex(new byte[1], -1, 0));
   }
 
   @Test
   public void testBadArgumentPerGroupNegative() throws Exception {
     HexDumper.dumpHex(new byte[1], 1, 0);
-    thrown.expect(IllegalArgumentException.class);
-    HexDumper.dumpHex(new byte[1], 1, -1);
+    assertThrows(IllegalArgumentException.class, () -> HexDumper.dumpHex(new byte[1], 1, -1));
   }
 
   @Test
   public void testBadArgumentPerGroupGreaterThanOrEqualToPerLine() throws Exception {
     HexDumper.dumpHex(new byte[1], 1, 0);
     HexDumper.dumpHex(new byte[1], 2, 1);
-    thrown.expect(IllegalArgumentException.class);
-    HexDumper.dumpHex(new byte[1], 1, 1);
+    assertThrows(IllegalArgumentException.class, () -> HexDumper.dumpHex(new byte[1], 1, 1));
   }
 
   @Test
   public void testBadArgumentBytesIsNull() throws Exception {
     HexDumper.dumpHex(new byte[1]);
-    thrown.expect(NullPointerException.class);
-    HexDumper.dumpHex(null);
+    assertThrows(NullPointerException.class, () -> HexDumper.dumpHex(null));
   }
 
   @Test

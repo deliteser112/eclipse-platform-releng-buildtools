@@ -17,6 +17,8 @@ package google.registry.rde;
 import static com.google.common.base.Strings.repeat;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.keyring.api.PgpHelper.KeyRequirement.ENCRYPT;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
@@ -42,16 +44,12 @@ import org.junit.Test;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 /** Unit tests for {@link Ghostryde}. */
 @RunWith(Theories.class)
 @SuppressWarnings("resource")
 public class GhostrydeTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
@@ -194,11 +192,15 @@ public class GhostrydeTest {
     korruption(ciphertext, ciphertext.length / 2);
 
     ByteArrayInputStream bsIn = new ByteArrayInputStream(ciphertext);
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("tampering");
-    try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {
-      ByteStreams.copy(decryptor, ByteStreams.nullOutputStream());
-    }
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () -> {
+              try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {
+                ByteStreams.copy(decryptor, ByteStreams.nullOutputStream());
+              }
+            });
+    assertThat(thrown).hasMessageThat().contains("tampering");
   }
 
   @Theory
@@ -223,10 +225,13 @@ public class GhostrydeTest {
     korruption(ciphertext, ciphertext.length / 2);
 
     ByteArrayInputStream bsIn = new ByteArrayInputStream(ciphertext);
-    thrown.expect(PGPException.class);
-    try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {
-      ByteStreams.copy(decryptor, ByteStreams.nullOutputStream());
-    }
+    assertThrows(
+        PGPException.class,
+        () -> {
+          try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {
+            ByteStreams.copy(decryptor, ByteStreams.nullOutputStream());
+          }
+        });
   }
 
   @Test
@@ -248,12 +253,17 @@ public class GhostrydeTest {
     }
 
     ByteArrayInputStream bsIn = new ByteArrayInputStream(bsOut.toByteArray());
-    thrown.expect(PGPException.class);
-    thrown.expectMessage(
-        "Message was encrypted for keyid a59c132f3589a1d5 but ours is c9598c84ec70b9fd");
-    try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {
-      ByteStreams.copy(decryptor, ByteStreams.nullOutputStream());
-    }
+    PGPException thrown =
+        expectThrows(
+            PGPException.class,
+            () -> {
+              try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {
+                ByteStreams.copy(decryptor, ByteStreams.nullOutputStream());
+              }
+            });
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Message was encrypted for keyid a59c132f3589a1d5 but ours is c9598c84ec70b9fd");
   }
 
   @Test

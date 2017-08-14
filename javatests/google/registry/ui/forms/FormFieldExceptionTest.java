@@ -15,21 +15,16 @@
 package google.registry.ui.forms;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.testing.NullPointerTester;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link FormFieldException}. */
 @RunWith(JUnit4.class)
 public class FormFieldExceptionTest {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testGetFieldName_multiplePropagations_joinsUsingJsonNotation() throws Exception {
     assertThat(
@@ -53,8 +48,9 @@ public class FormFieldExceptionTest {
 
   @Test
   public void testGetFieldName_noPropagations_throwsIse() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    new FormFieldException("This field is required.").getFieldName();
+    assertThrows(
+        IllegalStateException.class,
+        () -> new FormFieldException("This field is required.").getFieldName());
   }
 
   @Test

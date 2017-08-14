@@ -24,6 +24,7 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistEppResourceInFirstBucket;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -51,7 +52,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -63,10 +63,6 @@ public class ChildEntityInputTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   DomainResource domainA;
   DomainResource domainB;
   HistoryEntry domainHistoryEntryA;
@@ -173,9 +169,12 @@ public class ChildEntityInputTest {
       reader = serializeAndDeserialize(reader);
       reader.beginSlice();
       if (i == 7) {
-        thrown.expect(NoSuchElementException.class);
+        // This final readerCopy is needed for the assertThrows lambda.
+        final InputReader<ImmutableObject> readerCopy = reader;
+        assertThrows(NoSuchElementException.class, () -> seen.add(readerCopy.next()));
+      } else {
+        seen.add(reader.next());
       }
-      seen.add(reader.next());
     }
     assertThat(seen).containsExactly(
         domainHistoryEntryA,
@@ -300,7 +299,6 @@ public class ChildEntityInputTest {
     assertThat(seen).containsExactlyElementsIn(historyEntries);
   }
 
-
   @Test
   public void testSuccess_childEntityReader_survivesAcrossSerialization() throws Exception {
     setupResources();
@@ -315,13 +313,12 @@ public class ChildEntityInputTest {
     seen.add(reader.next());
     seen.add(reader.next());
     reader.endSlice();
-    reader = serializeAndDeserialize(reader);
-    reader.beginSlice();
-    seen.add(reader.next());
-    seen.add(reader.next());
-    assertThat(seen).containsExactly(
-        domainHistoryEntryA, contactHistoryEntry, oneTimeA, recurringA);
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    InputReader<ImmutableObject> deserializedReader = serializeAndDeserialize(reader);
+    deserializedReader.beginSlice();
+    seen.add(deserializedReader.next());
+    seen.add(deserializedReader.next());
+    assertThat(seen)
+        .containsExactly(domainHistoryEntryA, contactHistoryEntry, oneTimeA, recurringA);
+    assertThrows(NoSuchElementException.class, deserializedReader::next);
   }
 }

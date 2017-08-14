@@ -15,23 +15,19 @@
 package google.registry.tmch;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import google.registry.tmch.LordnLog.Result;
 import java.util.Map.Entry;
 import org.joda.time.DateTime;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link LordnLog}. */
 @RunWith(JUnit4.class)
 public class LordnLogTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   public static final ImmutableList<String> EXAMPLE_FROM_RFC =
       ImmutableList.of(
@@ -89,29 +85,33 @@ public class LordnLogTest {
 
   @Test
   public void testFailure_noDnLineMismatch() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    LordnLog.parse(ImmutableList.of(
-        "1,2012-08-16T02:15:00.0Z,2012-08-16T00:00:00.0Z,lolcat,accepted,no-warnings,1",
-        "roid,result-code"));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            LordnLog.parse(
+                ImmutableList.of(
+                    "1,2012-08-16T02:15:00.0Z,2012-08-16T00:00:00.0Z,lolcat,accepted,no-warnings,1",
+                    "roid,result-code")));
   }
 
   @Test
   public void testFailure_parseNull() throws Exception {
-    thrown.expect(NullPointerException.class);
-    LordnLog.parse(null);
+    assertThrows(NullPointerException.class, () -> LordnLog.parse(null));
   }
 
   @Test
   public void testFailure_parseEmpty() throws Exception {
-    thrown.expect(Exception.class);
-    LordnLog.parse(ImmutableList.of());
+    assertThrows(Exception.class, () -> LordnLog.parse(ImmutableList.of()));
   }
 
   @Test
   public void testFailure_parseMissingHeaderLine() throws Exception {
-    thrown.expect(Exception.class);
-    LordnLog.parse(ImmutableList.of(
-        "1,2012-08-16T02:15:00.0Z,2012-08-16T00:00:00.0Z,lolcat,accepted,no-warnings,0"));
+    assertThrows(
+        Exception.class,
+        () ->
+            LordnLog.parse(
+                ImmutableList.of(
+                    "1,2012-08-16T02:15:00.0Z,2012-08-16T00:00:00.0Z,lolcat,accepted,no-warnings,0")));
   }
 
   @Test

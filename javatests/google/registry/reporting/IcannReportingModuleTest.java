@@ -15,6 +15,7 @@
 package google.registry.reporting;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,9 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.joda.time.YearMonth;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -39,9 +38,6 @@ public class IcannReportingModuleTest {
 
   HttpServletRequest req = mock(HttpServletRequest.class);
   Clock clock;
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   @Before
   public void setUp() {
     clock = new FakeClock(DateTime.parse("2017-07-01TZ"));
@@ -56,9 +52,12 @@ public class IcannReportingModuleTest {
   @Test
   public void testInvalidYearMonthParameter_throwsException() {
     when(req.getParameter("yearMonth")).thenReturn("201705");
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("yearMonth must be in yyyy-MM format, got 201705 instead");
-    IcannReportingModule.provideYearMonthOptional(req);
+    BadRequestException thrown =
+        expectThrows(
+            BadRequestException.class, () -> IcannReportingModule.provideYearMonthOptional(req));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("yearMonth must be in yyyy-MM format, got 201705 instead");
   }
 
   @Test
@@ -88,9 +87,14 @@ public class IcannReportingModuleTest {
 
   @Test
   public void testInvalidSubdir_throwsException() {
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("subdir must not start or end with a \"/\", got /whoops instead.");
-    IcannReportingModule.provideSubdir(Optional.of("/whoops"), new YearMonth(2017, 6));
+    BadRequestException thrown =
+        expectThrows(
+            BadRequestException.class,
+            () ->
+                IcannReportingModule.provideSubdir(Optional.of("/whoops"), new YearMonth(2017, 6)));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("subdir must not start or end with a \"/\", got /whoops instead.");
   }
 
   @Test

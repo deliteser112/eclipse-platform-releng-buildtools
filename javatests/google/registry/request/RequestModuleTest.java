@@ -16,23 +16,19 @@ package google.registry.request;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.request.RequestModule.provideJsonPayload;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.net.MediaType;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.UnsupportedMediaTypeException;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RequestModule}. */
 @RunWith(JUnit4.class)
 public final class RequestModuleTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testProvideJsonPayload() throws Exception {
     assertThat(provideJsonPayload(MediaType.JSON_UTF_8, "{\"k\":\"v\"}"))
@@ -47,27 +43,30 @@ public final class RequestModuleTest {
 
   @Test
   public void testProvideJsonPayload_malformedInput_throws500() throws Exception {
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("Malformed JSON");
-    provideJsonPayload(MediaType.JSON_UTF_8, "{\"k\":");
+    BadRequestException thrown =
+        expectThrows(
+            BadRequestException.class, () -> provideJsonPayload(MediaType.JSON_UTF_8, "{\"k\":"));
+    assertThat(thrown).hasMessageThat().contains("Malformed JSON");
   }
 
   @Test
   public void testProvideJsonPayload_emptyInput_throws500() throws Exception {
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("Malformed JSON");
-    provideJsonPayload(MediaType.JSON_UTF_8, "");
+    BadRequestException thrown =
+        expectThrows(BadRequestException.class, () -> provideJsonPayload(MediaType.JSON_UTF_8, ""));
+    assertThat(thrown).hasMessageThat().contains("Malformed JSON");
   }
 
   @Test
   public void testProvideJsonPayload_nonJsonContentType_throws415() throws Exception {
-    thrown.expect(UnsupportedMediaTypeException.class);
-    provideJsonPayload(MediaType.PLAIN_TEXT_UTF_8, "{}");
+    assertThrows(
+        UnsupportedMediaTypeException.class,
+        () -> provideJsonPayload(MediaType.PLAIN_TEXT_UTF_8, "{}"));
   }
 
   @Test
   public void testProvideJsonPayload_contentTypeWithWeirdParam_throws415() throws Exception {
-    thrown.expect(UnsupportedMediaTypeException.class);
-    provideJsonPayload(MediaType.JSON_UTF_8.withParameter("omg", "handel"), "{}");
+    assertThrows(
+        UnsupportedMediaTypeException.class,
+        () -> provideJsonPayload(MediaType.JSON_UTF_8.withParameter("omg", "handel"), "{}"));
   }
 }

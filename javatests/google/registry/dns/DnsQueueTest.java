@@ -14,7 +14,9 @@
 
 package google.registry.dns;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 
@@ -23,7 +25,6 @@ import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -36,10 +37,6 @@ public class DnsQueueTest {
       .withDatastore()
       .withTaskQueue()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private DnsQueue dnsQueue;
 
   @Before
@@ -62,13 +59,19 @@ public class DnsQueueTest {
 
   @Test
   public void test_addHostRefreshTask_failsOnUnknownTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("octopus.notatld is not a subordinate host to a known tld");
-    try {
-      dnsQueue.addHostRefreshTask("octopus.notatld");
-    } finally {
-      assertNoTasksEnqueued("dns-pull");
-    }
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> {
+              try {
+                dnsQueue.addHostRefreshTask("octopus.notatld");
+              } finally {
+                assertNoTasksEnqueued("dns-pull");
+              }
+            });
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("octopus.notatld is not a subordinate host to a known tld");
   }
 
   @Test
@@ -85,13 +88,17 @@ public class DnsQueueTest {
 
   @Test
   public void test_addDomainRefreshTask_failsOnUnknownTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("TLD notatld does not exist");
-    try {
-      dnsQueue.addDomainRefreshTask("fake.notatld");
-    } finally {
-      assertNoTasksEnqueued("dns-pull");
-    }
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> {
+              try {
+                dnsQueue.addDomainRefreshTask("fake.notatld");
+              } finally {
+                assertNoTasksEnqueued("dns-pull");
+              }
+            });
+    assertThat(thrown).hasMessageThat().contains("TLD notatld does not exist");
   }
 }
 

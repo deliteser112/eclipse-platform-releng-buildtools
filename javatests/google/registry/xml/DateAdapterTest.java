@@ -15,21 +15,16 @@
 package google.registry.xml;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import org.joda.time.LocalDate;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link DateAdapter}. */
 @RunWith(JUnit4.class)
 public class DateAdapterTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testMarshal() {
     assertThat(new DateAdapter().marshal(
@@ -61,7 +56,8 @@ public class DateAdapterTest {
 
   @Test
   public void testUnmarshalInvalid() {
-    thrown.expect(IllegalArgumentException.class);
-    assertThat((new DateAdapter()).unmarshal("oh my goth")).isNull();
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> assertThat((new DateAdapter()).unmarshal("oh my goth")).isNull());
   }
 }

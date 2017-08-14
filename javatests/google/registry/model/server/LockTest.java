@@ -14,11 +14,13 @@
 
 package google.registry.model.server;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.server.Lock.LockState.FREE;
 import static google.registry.model.server.Lock.LockState.IN_USE;
 import static google.registry.model.server.Lock.LockState.OWNER_DIED;
 import static google.registry.model.server.Lock.LockState.TIMED_OUT;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -35,7 +37,6 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -56,10 +57,6 @@ public class LockTest {
 
   @Rule
   public final InjectRule inject = new InjectRule();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private Optional<Lock> acquire(String tld, Duration leaseLength, LockState expectedLockState) {
     Lock.lockMetrics = mock(LockMetrics.class);
     Optional<Lock> lock = Lock.acquire(RESOURCE_NAME, tld, leaseLength, requestStatusChecker);
@@ -138,8 +135,10 @@ public class LockTest {
 
   @Test
   public void testFailure_emptyResourceName() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("resourceName cannot be null or empty");
-    Lock.acquire("", "", TWO_MILLIS, requestStatusChecker);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> Lock.acquire("", "", TWO_MILLIS, requestStatusChecker));
+    assertThat(thrown).hasMessageThat().contains("resourceName cannot be null or empty");
   }
 }

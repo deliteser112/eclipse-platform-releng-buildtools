@@ -21,6 +21,7 @@ import static google.registry.export.PublishDetailReportAction.GCS_FOLDER_PREFIX
 import static google.registry.export.PublishDetailReportAction.REGISTRAR_ID_PARAM;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -45,17 +46,12 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link PublishDetailReportAction}. */
 @RunWith(JUnit4.class)
 public class PublishDetailReportActionTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
@@ -108,88 +104,120 @@ public class PublishDetailReportActionTest {
 
   @Test
   public void testFailure_noRegistrarParameter() throws Exception {
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage(REGISTRAR_ID_PARAM);
-    action.handleJsonRequest(ImmutableMap.of(
-        GCS_BUCKET_PARAM, "mah-buckit",
-        GCS_FOLDER_PREFIX_PARAM, "some/folder/",
-        DETAIL_REPORT_NAME_PARAM, "detail_report.csv"));
+    BadRequestException thrown =
+        expectThrows(
+            BadRequestException.class,
+            () ->
+                action.handleJsonRequest(
+                    ImmutableMap.of(
+                        GCS_BUCKET_PARAM, "mah-buckit",
+                        GCS_FOLDER_PREFIX_PARAM, "some/folder/",
+                        DETAIL_REPORT_NAME_PARAM, "detail_report.csv")));
+    assertThat(thrown).hasMessageThat().contains(REGISTRAR_ID_PARAM);
   }
 
   @Test
   public void testFailure_noGcsBucketParameter() throws Exception {
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage(GCS_BUCKET_PARAM);
-    action.handleJsonRequest(ImmutableMap.of(
-        REGISTRAR_ID_PARAM, "TheRegistrar",
-        GCS_FOLDER_PREFIX_PARAM, "some/folder/",
-        DETAIL_REPORT_NAME_PARAM, "detail_report.csv"));
+    BadRequestException thrown =
+        expectThrows(
+            BadRequestException.class,
+            () ->
+                action.handleJsonRequest(
+                    ImmutableMap.of(
+                        REGISTRAR_ID_PARAM, "TheRegistrar",
+                        GCS_FOLDER_PREFIX_PARAM, "some/folder/",
+                        DETAIL_REPORT_NAME_PARAM, "detail_report.csv")));
+    assertThat(thrown).hasMessageThat().contains(GCS_BUCKET_PARAM);
   }
 
   @Test
   public void testFailure_noGcsFolderPrefixParameter() throws Exception {
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage(GCS_FOLDER_PREFIX_PARAM);
-    action.handleJsonRequest(ImmutableMap.of(
-        REGISTRAR_ID_PARAM, "TheRegistrar",
-        GCS_BUCKET_PARAM, "mah-buckit",
-        DETAIL_REPORT_NAME_PARAM, "detail_report.csv"));
+    BadRequestException thrown =
+        expectThrows(
+            BadRequestException.class,
+            () ->
+                action.handleJsonRequest(
+                    ImmutableMap.of(
+                        REGISTRAR_ID_PARAM, "TheRegistrar",
+                        GCS_BUCKET_PARAM, "mah-buckit",
+                        DETAIL_REPORT_NAME_PARAM, "detail_report.csv")));
+    assertThat(thrown).hasMessageThat().contains(GCS_FOLDER_PREFIX_PARAM);
   }
 
   @Test
   public void testFailure_noReportNameParameter() throws Exception {
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage(DETAIL_REPORT_NAME_PARAM);
-    action.handleJsonRequest(ImmutableMap.of(
-        REGISTRAR_ID_PARAM, "TheRegistrar",
-        GCS_BUCKET_PARAM, "mah-buckit",
-        GCS_FOLDER_PREFIX_PARAM, "some/folder/"));
+    BadRequestException thrown =
+        expectThrows(
+            BadRequestException.class,
+            () ->
+                action.handleJsonRequest(
+                    ImmutableMap.of(
+                        REGISTRAR_ID_PARAM, "TheRegistrar",
+                        GCS_BUCKET_PARAM, "mah-buckit",
+                        GCS_FOLDER_PREFIX_PARAM, "some/folder/")));
+    assertThat(thrown).hasMessageThat().contains(DETAIL_REPORT_NAME_PARAM);
   }
 
   @Test
   public void testFailure_registrarNotFound() throws Exception {
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("FakeRegistrar");
-    action.handleJsonRequest(ImmutableMap.of(
-        REGISTRAR_ID_PARAM, "FakeRegistrar",
-        GCS_BUCKET_PARAM, "mah-buckit",
-        GCS_FOLDER_PREFIX_PARAM, "some/folder/",
-        DETAIL_REPORT_NAME_PARAM, "detail_report.csv"));
+    BadRequestException thrown =
+        expectThrows(
+            BadRequestException.class,
+            () ->
+                action.handleJsonRequest(
+                    ImmutableMap.of(
+                        REGISTRAR_ID_PARAM, "FakeRegistrar",
+                        GCS_BUCKET_PARAM, "mah-buckit",
+                        GCS_FOLDER_PREFIX_PARAM, "some/folder/",
+                        DETAIL_REPORT_NAME_PARAM, "detail_report.csv")));
+    assertThat(thrown).hasMessageThat().contains("FakeRegistrar");
   }
 
   @Test
   public void testFailure_registrarHasNoDriveFolder() throws Exception {
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setDriveFolderId(null).build());
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("drive folder");
-    action.handleJsonRequest(ImmutableMap.of(
-        REGISTRAR_ID_PARAM, "TheRegistrar",
-        GCS_BUCKET_PARAM, "mah-buckit",
-        GCS_FOLDER_PREFIX_PARAM, "some/folder/",
-        DETAIL_REPORT_NAME_PARAM, "detail_report.csv"));
+    BadRequestException thrown =
+        expectThrows(
+            BadRequestException.class,
+            () ->
+                action.handleJsonRequest(
+                    ImmutableMap.of(
+                        REGISTRAR_ID_PARAM, "TheRegistrar",
+                        GCS_BUCKET_PARAM, "mah-buckit",
+                        GCS_FOLDER_PREFIX_PARAM, "some/folder/",
+                        DETAIL_REPORT_NAME_PARAM, "detail_report.csv")));
+    assertThat(thrown).hasMessageThat().contains("drive folder");
   }
 
   @Test
   public void testFailure_gcsBucketNotFound() throws Exception {
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("fake-buckit");
-    action.handleJsonRequest(ImmutableMap.of(
-        REGISTRAR_ID_PARAM, "TheRegistrar",
-        GCS_BUCKET_PARAM, "fake-buckit",
-        GCS_FOLDER_PREFIX_PARAM, "some/folder/",
-        DETAIL_REPORT_NAME_PARAM, "detail_report.csv"));
+    BadRequestException thrown =
+        expectThrows(
+            BadRequestException.class,
+            () ->
+                action.handleJsonRequest(
+                    ImmutableMap.of(
+                        REGISTRAR_ID_PARAM, "TheRegistrar",
+                        GCS_BUCKET_PARAM, "fake-buckit",
+                        GCS_FOLDER_PREFIX_PARAM, "some/folder/",
+                        DETAIL_REPORT_NAME_PARAM, "detail_report.csv")));
+    assertThat(thrown).hasMessageThat().contains("fake-buckit");
   }
 
   @Test
   public void testFailure_gcsFileNotFound() throws Exception {
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("some/folder/fake_file.csv");
-    action.handleJsonRequest(ImmutableMap.of(
-        REGISTRAR_ID_PARAM, "TheRegistrar",
-        GCS_BUCKET_PARAM, "mah-buckit",
-        GCS_FOLDER_PREFIX_PARAM, "some/folder/",
-        DETAIL_REPORT_NAME_PARAM, "fake_file.csv"));
+    BadRequestException thrown =
+        expectThrows(
+            BadRequestException.class,
+            () ->
+                action.handleJsonRequest(
+                    ImmutableMap.of(
+                        REGISTRAR_ID_PARAM, "TheRegistrar",
+                        GCS_BUCKET_PARAM, "mah-buckit",
+                        GCS_FOLDER_PREFIX_PARAM, "some/folder/",
+                        DETAIL_REPORT_NAME_PARAM, "fake_file.csv")));
+    assertThat(thrown).hasMessageThat().contains("some/folder/fake_file.csv");
   }
 
   @Test
@@ -197,12 +225,16 @@ public class PublishDetailReportActionTest {
     when(driveConnection.createFile(
         anyString(), any(MediaType.class), anyString(), any(byte[].class)))
             .thenThrow(new IOException("Drive is down"));
-    thrown.expect(InternalServerErrorException.class);
-    thrown.expectMessage("Drive is down");
-    action.handleJsonRequest(ImmutableMap.of(
-        REGISTRAR_ID_PARAM, "TheRegistrar",
-        GCS_BUCKET_PARAM, "mah-buckit",
-        GCS_FOLDER_PREFIX_PARAM, "some/folder/",
-        DETAIL_REPORT_NAME_PARAM, "detail_report.csv"));
+    InternalServerErrorException thrown =
+        expectThrows(
+            InternalServerErrorException.class,
+            () ->
+                action.handleJsonRequest(
+                    ImmutableMap.of(
+                        REGISTRAR_ID_PARAM, "TheRegistrar",
+                        GCS_BUCKET_PARAM, "mah-buckit",
+                        GCS_FOLDER_PREFIX_PARAM, "some/folder/",
+                        DETAIL_REPORT_NAME_PARAM, "detail_report.csv")));
+    assertThat(thrown).hasMessageThat().contains("Drive is down");
   }
 }

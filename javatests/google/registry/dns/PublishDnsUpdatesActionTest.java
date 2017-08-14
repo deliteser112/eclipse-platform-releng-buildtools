@@ -14,10 +14,12 @@
 
 package google.registry.dns;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -40,7 +42,6 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -56,10 +57,6 @@ public class PublishDnsUpdatesActionTest {
 
   @Rule
   public final InjectRule inject = new InjectRule();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private final FakeClock clock = new FakeClock(DateTime.parse("1971-01-01TZ"));
   private final FakeLockHandler lockHandler = new FakeLockHandler(true);
   private final DnsWriter dnsWriter = mock(DnsWriter.class);
@@ -187,19 +184,24 @@ public class PublishDnsUpdatesActionTest {
 
   @Test
   public void testLockIsntAvailable() throws Exception {
-    thrown.expect(ServiceUnavailableException.class);
-    thrown.expectMessage("Lock failure");
-    action = createAction("xn--q9jyb4c");
-    action.domains = ImmutableSet.of("example.com", "example2.com");
-    action.hosts = ImmutableSet.of("ns1.example.com", "ns2.example.com", "ns1.example2.com");
-    action.lockHandler = new FakeLockHandler(false);
-    action.run();
+    ServiceUnavailableException thrown =
+        expectThrows(
+            ServiceUnavailableException.class,
+            () -> {
+              action = createAction("xn--q9jyb4c");
+              action.domains = ImmutableSet.of("example.com", "example2.com");
+              action.hosts =
+                  ImmutableSet.of("ns1.example.com", "ns2.example.com", "ns1.example2.com");
+              action.lockHandler = new FakeLockHandler(false);
+              action.run();
 
-    verifyNoMoreInteractions(dnsWriter);
+              verifyNoMoreInteractions(dnsWriter);
 
-    verifyNoMoreInteractions(dnsMetrics);
+              verifyNoMoreInteractions(dnsMetrics);
 
-    verifyNoMoreInteractions(dnsQueue);
+              verifyNoMoreInteractions(dnsQueue);
+            });
+    assertThat(thrown).hasMessageThat().contains("Lock failure");
   }
 
   @Test

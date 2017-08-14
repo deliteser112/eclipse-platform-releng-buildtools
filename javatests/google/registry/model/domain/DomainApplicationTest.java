@@ -41,15 +41,10 @@ import google.registry.model.host.HostResource;
 import google.registry.model.smd.EncodedSignedMark;
 import org.joda.money.Money;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link DomainApplication}. */
 public class DomainApplicationTest extends EntityTestCase {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   DomainApplication domainApplication;
 

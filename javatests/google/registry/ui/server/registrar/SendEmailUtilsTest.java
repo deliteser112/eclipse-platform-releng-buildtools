@@ -37,16 +37,12 @@ import javax.mail.internet.MimeMessage;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link SendEmailUtils}. */
 @RunWith(JUnit4.class)
 public class SendEmailUtilsTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final InjectRule inject = new InjectRule();

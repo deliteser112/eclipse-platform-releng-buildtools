@@ -56,7 +56,6 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -84,8 +83,6 @@ public class CloudDnsWriterTest {
   @Captor ArgumentCaptor<Change> changeCaptor;
   private CloudDnsWriter writer;
   private ImmutableSet<ResourceRecordSet> stubZone;
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 

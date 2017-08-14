@@ -15,6 +15,7 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DateTimeUtils.earliestOf;
@@ -25,9 +26,7 @@ import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.collect.ImmutableList;
 import org.joda.time.DateTime;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -37,9 +36,6 @@ public class DateTimeUtilsTest {
 
   ImmutableList<DateTime> sampleDates = ImmutableList.of(
       START_OF_TIME, START_OF_TIME.plusDays(1), END_OF_TIME, END_OF_TIME);
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testSuccess_earliestOf() {
@@ -76,13 +72,11 @@ public class DateTimeUtilsTest {
 
   @Test
   public void testFailure_earliestOfEmpty() {
-    thrown.expect(IllegalArgumentException.class);
-    earliestOf(ImmutableList.of());
+    assertThrows(IllegalArgumentException.class, () -> earliestOf(ImmutableList.of()));
   }
 
   @Test
   public void testFailure_latestOfEmpty() {
-    thrown.expect(IllegalArgumentException.class);
-    earliestOf(ImmutableList.of());
+    assertThrows(IllegalArgumentException.class, () -> earliestOf(ImmutableList.of()));
   }
 }

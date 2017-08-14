@@ -26,18 +26,13 @@ import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
 import google.registry.model.reporting.HistoryEntry;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link LrpTokenEntity}. */
 public class LrpTokenEntityTest extends EntityTestCase {
 
   LrpTokenEntity unredeemedToken;
   LrpTokenEntity redeemedToken;
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Before
   public void setUp() throws Exception {

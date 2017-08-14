@@ -15,6 +15,8 @@
 package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -31,7 +33,6 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermissions;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -39,10 +40,6 @@ import org.junit.runners.JUnit4;
 /** Unit tests for {@link PathParameter}. */
 @RunWith(JUnit4.class)
 public class PathParameterTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Rule
   public final TemporaryFolder folder = new TemporaryFolder();
 
@@ -57,14 +54,12 @@ public class PathParameterTest {
 
   @Test
   public void testConvert_null_throws() throws Exception {
-    thrown.expect(NullPointerException.class);
-    vanilla.convert(null);
+    assertThrows(NullPointerException.class, () -> vanilla.convert(null));
   }
 
   @Test
   public void testConvert_empty_throws() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    vanilla.convert("");
+    assertThrows(IllegalArgumentException.class, () -> vanilla.convert(""));
   }
 
   @Test
@@ -86,8 +81,7 @@ public class PathParameterTest {
 
   @Test
   public void testConvert_uriNotProvided() throws Exception {
-    thrown.expect(FileSystemNotFoundException.class);
-    vanilla.convert("bog://bucket/lolcat");
+    assertThrows(FileSystemNotFoundException.class, () -> vanilla.convert("bog://bucket/lolcat"));
   }
 
   // =========================== Test InputFile Validate ========================================
@@ -101,25 +95,29 @@ public class PathParameterTest {
 
   @Test
   public void testInputFileValidate_missingFile_throws() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("not found");
-    inputFile.validate("input", new File(folder.getRoot(), "foo").toString());
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () -> inputFile.validate("input", new File(folder.getRoot(), "foo").toString()));
+    assertThat(thrown).hasMessageThat().contains("not found");
   }
 
   @Test
   public void testInputFileValidate_directory_throws() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("is a directory");
-    inputFile.validate("input", folder.getRoot().toString());
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () -> inputFile.validate("input", folder.getRoot().toString()));
+    assertThat(thrown).hasMessageThat().contains("is a directory");
   }
 
   @Test
   public void testInputFileValidate_unreadableFile_throws() throws Exception {
     Path file = Paths.get(folder.newFile().toString());
     Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("-w-------"));
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("not readable");
-    inputFile.validate("input", file.toString());
+    ParameterException thrown =
+        expectThrows(ParameterException.class, () -> inputFile.validate("input", file.toString()));
+    assertThat(thrown).hasMessageThat().contains("not readable");
   }
 
   // =========================== Test OutputFile Validate ========================================
@@ -144,33 +142,35 @@ public class PathParameterTest {
 
   @Test
   public void testOutputFileValidate_directory_throws() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("is a directory");
-    outputFile.validate("input", folder.getRoot().toString());
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () -> outputFile.validate("input", folder.getRoot().toString()));
+    assertThat(thrown).hasMessageThat().contains("is a directory");
   }
 
   @Test
   public void testOutputFileValidate_notWritable_throws() throws Exception {
     Path file = Paths.get(folder.newFile().toString());
     Files.setPosixFilePermissions(file, PosixFilePermissions.fromString("r--------"));
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("not writable");
-    outputFile.validate("input", file.toString());
+    ParameterException thrown =
+        expectThrows(ParameterException.class, () -> outputFile.validate("input", file.toString()));
+    assertThat(thrown).hasMessageThat().contains("not writable");
   }
 
   @Test
   public void testOutputFileValidate_parentDirMissing_throws() throws Exception {
     Path file = Paths.get(folder.getRoot().toString(), "MISSINGNO", "foo.txt");
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("parent dir doesn't exist");
-    outputFile.validate("input", file.toString());
+    ParameterException thrown =
+        expectThrows(ParameterException.class, () -> outputFile.validate("input", file.toString()));
+    assertThat(thrown).hasMessageThat().contains("parent dir doesn't exist");
   }
 
   @Test
   public void testOutputFileValidate_parentDirIsFile_throws() throws Exception {
     Path file = Paths.get(folder.newFile().toString(), "foo.txt");
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("parent is non-directory");
-    outputFile.validate("input", file.toString());
+    ParameterException thrown =
+        expectThrows(ParameterException.class, () -> outputFile.validate("input", file.toString()));
+    assertThat(thrown).hasMessageThat().contains("parent is non-directory");
   }
 }

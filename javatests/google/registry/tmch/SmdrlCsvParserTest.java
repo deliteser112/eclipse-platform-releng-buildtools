@@ -15,6 +15,7 @@
 package google.registry.tmch;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static org.joda.time.Duration.millis;
 import static org.joda.time.Duration.standardDays;
@@ -27,7 +28,6 @@ import google.registry.testing.FakeClock;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -38,10 +38,6 @@ public class SmdrlCsvParserTest {
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private final FakeClock clock = new FakeClock();
 
   private static final CharSource SMDRL_LATEST_CSV =
@@ -110,31 +106,43 @@ public class SmdrlCsvParserTest {
 
   @Test
   public void testFail_badVersion() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("version");
-    SmdrlCsvParser.parse(ImmutableList.of(
-        "666,2013-11-24T23:30:04.3Z",
-        "smd-id,insertion-datetime",
-        "0000001681375789102250-65535,2013-08-09T12:00:00.0Z"));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                SmdrlCsvParser.parse(
+                    ImmutableList.of(
+                        "666,2013-11-24T23:30:04.3Z",
+                        "smd-id,insertion-datetime",
+                        "0000001681375789102250-65535,2013-08-09T12:00:00.0Z")));
+    assertThat(thrown).hasMessageThat().contains("version");
   }
 
   @Test
   public void testFail_badHeader() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("header");
-    SmdrlCsvParser.parse(ImmutableList.of(
-        "1,2013-11-24T23:30:04.3Z",
-        "lol,cat",
-        "0000001681375789102250-65535,2013-08-09T12:00:00.0Z"));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                SmdrlCsvParser.parse(
+                    ImmutableList.of(
+                        "1,2013-11-24T23:30:04.3Z",
+                        "lol,cat",
+                        "0000001681375789102250-65535,2013-08-09T12:00:00.0Z")));
+    assertThat(thrown).hasMessageThat().contains("header");
   }
 
   @Test
   public void testFail_tooManyColumns() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("elements");
-    SmdrlCsvParser.parse(ImmutableList.of(
-        "1,2013-11-24T23:30:04.3Z",
-        "smd-id,insertion-datetime",
-        "0000001681375789102250-65535,haha,2013-08-09T12:00:00.0Z"));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                SmdrlCsvParser.parse(
+                    ImmutableList.of(
+                        "1,2013-11-24T23:30:04.3Z",
+                        "smd-id,insertion-datetime",
+                        "0000001681375789102250-65535,haha,2013-08-09T12:00:00.0Z")));
+    assertThat(thrown).hasMessageThat().contains("elements");
   }
 }

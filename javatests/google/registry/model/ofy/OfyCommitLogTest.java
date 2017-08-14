@@ -20,6 +20,7 @@ import static com.googlecode.objectify.ObjectifyService.register;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -37,7 +38,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -49,9 +49,6 @@ public class OfyCommitLogTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final InjectRule inject = new InjectRule();
@@ -163,74 +160,91 @@ public class OfyCommitLogTest {
   public void testTransactNew_deleteNotBackedUpKind_throws() throws Exception {
     final CommitLogManifest backupsArentAllowedOnMe =
         CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.<Key<?>>of());
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Can't save/delete a @NotBackedUp");
-    ofy().transactNew(() -> ofy().delete().entity(backupsArentAllowedOnMe));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> ofy().transactNew(() -> ofy().delete().entity(backupsArentAllowedOnMe)));
+    assertThat(thrown).hasMessageThat().contains("Can't save/delete a @NotBackedUp");
   }
 
   @Test
   public void testTransactNew_saveNotBackedUpKind_throws() throws Exception {
     final CommitLogManifest backupsArentAllowedOnMe =
         CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.<Key<?>>of());
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Can't save/delete a @NotBackedUp");
-    ofy().transactNew(() -> ofy().save().entity(backupsArentAllowedOnMe));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> ofy().transactNew(() -> ofy().save().entity(backupsArentAllowedOnMe)));
+    assertThat(thrown).hasMessageThat().contains("Can't save/delete a @NotBackedUp");
   }
 
   @Test
   public void testTransactNew_deleteVirtualEntityKey_throws() throws Exception {
     final Key<TestVirtualObject> virtualEntityKey = TestVirtualObject.createKey("virtual");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Can't save/delete a @VirtualEntity");
-    ofy().transactNew(() -> ofy().delete().key(virtualEntityKey));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> ofy().transactNew(() -> ofy().delete().key(virtualEntityKey)));
+    assertThat(thrown).hasMessageThat().contains("Can't save/delete a @VirtualEntity");
   }
 
   @Test
   public void testTransactNew_saveVirtualEntity_throws() throws Exception {
     final TestVirtualObject virtualEntity = TestVirtualObject.create("virtual");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Can't save/delete a @VirtualEntity");
-    ofy().transactNew(() -> ofy().save().entity(virtualEntity));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> ofy().transactNew(() -> ofy().save().entity(virtualEntity)));
+    assertThat(thrown).hasMessageThat().contains("Can't save/delete a @VirtualEntity");
   }
 
   @Test
   public void test_deleteWithoutBackup_withVirtualEntityKey_throws() throws Exception {
     final Key<TestVirtualObject> virtualEntityKey = TestVirtualObject.createKey("virtual");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Can't save/delete a @VirtualEntity");
-    ofy().deleteWithoutBackup().key(virtualEntityKey);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> ofy().deleteWithoutBackup().key(virtualEntityKey));
+    assertThat(thrown).hasMessageThat().contains("Can't save/delete a @VirtualEntity");
   }
 
   @Test
   public void test_saveWithoutBackup_withVirtualEntity_throws() throws Exception {
     final TestVirtualObject virtualEntity = TestVirtualObject.create("virtual");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Can't save/delete a @VirtualEntity");
-    ofy().saveWithoutBackup().entity(virtualEntity);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class, () -> ofy().saveWithoutBackup().entity(virtualEntity));
+    assertThat(thrown).hasMessageThat().contains("Can't save/delete a @VirtualEntity");
   }
 
   @Test
   public void testTransact_twoSavesOnSameKey_throws() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Multiple entries with same key");
-    ofy()
-        .transact(
-            () -> {
-              ofy().save().entity(Root.create(1, getCrossTldKey()));
-              ofy().save().entity(Root.create(1, getCrossTldKey()));
-            });
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                ofy()
+                    .transact(
+                        () -> {
+                          ofy().save().entity(Root.create(1, getCrossTldKey()));
+                          ofy().save().entity(Root.create(1, getCrossTldKey()));
+                        }));
+    assertThat(thrown).hasMessageThat().contains("Multiple entries with same key");
   }
 
   @Test
   public void testTransact_saveAndDeleteSameKey_throws() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Multiple entries with same key");
-    ofy()
-        .transact(
-            () -> {
-              ofy().save().entity(Root.create(1, getCrossTldKey()));
-              ofy().delete().entity(Root.create(1, getCrossTldKey()));
-            });
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                ofy()
+                    .transact(
+                        () -> {
+                          ofy().save().entity(Root.create(1, getCrossTldKey()));
+                          ofy().delete().entity(Root.create(1, getCrossTldKey()));
+                        }));
+    assertThat(thrown).hasMessageThat().contains("Multiple entries with same key");
   }
 
   @Test

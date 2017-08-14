@@ -19,6 +19,7 @@ import static google.registry.bigquery.BigqueryUtils.fromBigqueryTimestampString
 import static google.registry.bigquery.BigqueryUtils.toBigqueryTimestamp;
 import static google.registry.bigquery.BigqueryUtils.toBigqueryTimestampString;
 import static google.registry.bigquery.BigqueryUtils.toJobReferenceString;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
@@ -26,19 +27,13 @@ import com.google.api.services.bigquery.model.JobReference;
 import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link BigqueryUtils}. */
 @RunWith(JUnit4.class)
 public class BigqueryUtilsTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private static final DateTime DATE_0 = DateTime.parse("2014-07-17T20:35:42Z");
   private static final DateTime DATE_1 = DateTime.parse("2014-07-17T20:35:42.1Z");
   private static final DateTime DATE_2 = DateTime.parse("2014-07-17T20:35:42.12Z");
@@ -84,20 +79,22 @@ public class BigqueryUtilsTest {
 
   @Test
   public void testFailure_fromBigqueryTimestampString_nonUtcTimeZone() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    fromBigqueryTimestampString("2014-01-01 01:01:01 +05:00");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> fromBigqueryTimestampString("2014-01-01 01:01:01 +05:00"));
   }
 
   @Test
   public void testFailure_fromBigqueryTimestampString_noTimeZone() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    fromBigqueryTimestampString("2014-01-01 01:01:01");
+    assertThrows(
+        IllegalArgumentException.class, () -> fromBigqueryTimestampString("2014-01-01 01:01:01"));
   }
 
   @Test
   public void testFailure_fromBigqueryTimestampString_tooManyMillisecondDigits() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    fromBigqueryTimestampString("2014-01-01 01:01:01.1234 UTC");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> fromBigqueryTimestampString("2014-01-01 01:01:01.1234 UTC"));
   }
 
   @Test
@@ -142,7 +139,6 @@ public class BigqueryUtilsTest {
 
   @Test
   public void test_toJobReferenceString_nullThrowsNpe() throws Exception {
-    thrown.expect(NullPointerException.class);
-    toJobReferenceString(null);
+    assertThrows(NullPointerException.class, () -> toJobReferenceString(null));
   }
 }

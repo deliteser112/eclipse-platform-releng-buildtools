@@ -41,7 +41,6 @@ import java.util.Optional;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -52,9 +51,6 @@ public class TldFanoutActionTest {
   private static final String ENDPOINT = "/the/servlet";
   private static final String QUEUE = "the-queue";
   private final FakeResponse response = new FakeResponse();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()

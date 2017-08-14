@@ -20,6 +20,7 @@ import static google.registry.testing.ContactResourceSubject.assertAboutContacts
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
@@ -37,16 +38,10 @@ import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link ContactResource}. */
 public class ContactResourceTest extends EntityTestCase {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   ContactResource contactResource;
 
   @Before
@@ -206,9 +201,11 @@ public class ContactResourceTest extends EntityTestCase {
 
   @Test
   public void testSetCreationTime_cantBeCalledTwice() {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("creationTime can only be set once");
-    contactResource.asBuilder().setCreationTime(END_OF_TIME);
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () -> contactResource.asBuilder().setCreationTime(END_OF_TIME));
+    assertThat(thrown).hasMessageThat().contains("creationTime can only be set once");
   }
 
   @Test

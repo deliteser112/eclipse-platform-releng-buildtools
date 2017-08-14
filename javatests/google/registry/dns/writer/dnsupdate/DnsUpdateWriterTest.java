@@ -26,6 +26,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHo
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -52,7 +53,6 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -75,9 +75,6 @@ public class DnsUpdateWriterTest {
   @Rule
   public final AppEngineRule appEngine =
       AppEngineRule.builder().withDatastore().withTaskQueue().build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final InjectRule inject = new InjectRule();
@@ -390,11 +387,14 @@ public class DnsUpdateWriterTest {
             .build();
     persistResource(domain);
     when(mockResolver.send(any(Message.class))).thenReturn(messageWithResponseCode(Rcode.SERVFAIL));
-    thrown.expect(VerifyException.class);
-    thrown.expectMessage("SERVFAIL");
-
-    writer.publishDomain("example.tld");
-    writer.commit();
+    VerifyException thrown =
+        expectThrows(
+            VerifyException.class,
+            () -> {
+              writer.publishDomain("example.tld");
+              writer.commit();
+            });
+    assertThat(thrown).hasMessageThat().contains("SERVFAIL");
   }
 
   @Test
@@ -406,11 +406,14 @@ public class DnsUpdateWriterTest {
             .build();
     persistResource(host);
     when(mockResolver.send(any(Message.class))).thenReturn(messageWithResponseCode(Rcode.SERVFAIL));
-    thrown.expect(VerifyException.class);
-    thrown.expectMessage("SERVFAIL");
-
-    writer.publishHost("ns1.example.tld");
-    writer.commit();
+    VerifyException thrown =
+        expectThrows(
+            VerifyException.class,
+            () -> {
+              writer.publishHost("ns1.example.tld");
+              writer.commit();
+            });
+    assertThat(thrown).hasMessageThat().contains("SERVFAIL");
   }
 
   private void assertThatUpdatedZoneIs(Update update, String zoneName) {

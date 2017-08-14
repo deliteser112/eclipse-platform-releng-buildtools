@@ -21,21 +21,17 @@ import static google.registry.model.common.Cursor.CursorType.RECURRING_BILLING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import google.registry.model.EntityTestCase;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.registry.Registry;
 import org.joda.time.DateTime;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link Cursor}. */
 public class CursorTest extends EntityTestCase {
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testSuccess_persistScopedCursor() {
     createTld("tld");
@@ -74,54 +70,72 @@ public class CursorTest extends EntityTestCase {
     clock.advanceOneMilli();
     final DateTime time = DateTime.parse("2012-07-12T03:30:00.000Z");
     final DomainResource domain = persistActiveDomain("notaregistry.tld");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Class required for cursor does not match scope class");
-    ofy().transact(() -> ofy().save().entity(Cursor.create(RDE_UPLOAD, time, domain)));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                ofy().transact(() -> ofy().save().entity(Cursor.create(RDE_UPLOAD, time, domain))));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Class required for cursor does not match scope class");
   }
 
   @Test
   public void testFailure_invalidScopeOnKeyCreate() throws Exception {
     createTld("tld");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Class required for cursor does not match scope class");
-    Cursor.createKey(RDE_UPLOAD, persistActiveDomain("notaregistry.tld"));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> Cursor.createKey(RDE_UPLOAD, persistActiveDomain("notaregistry.tld")));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Class required for cursor does not match scope class");
   }
 
   @Test
   public void testFailure_createGlobalKeyForScopedCursorType() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Cursor type is not a global cursor");
-    Cursor.createGlobalKey(RDE_UPLOAD);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> Cursor.createGlobalKey(RDE_UPLOAD));
+    assertThat(thrown).hasMessageThat().contains("Cursor type is not a global cursor");
   }
 
   @Test
   public void testFailure_invalidScopeOnGlobalKeyCreate() throws Exception {
     createTld("tld");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Class required for cursor does not match scope class");
-    Cursor.createKey(RECURRING_BILLING, persistActiveDomain("notaregistry.tld"));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> Cursor.createKey(RECURRING_BILLING, persistActiveDomain("notaregistry.tld")));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Class required for cursor does not match scope class");
   }
 
   @Test
   public void testFailure_nullScope() throws Exception {
-    thrown.expect(NullPointerException.class);
-    thrown.expectMessage("Cursor scope cannot be null");
-    Cursor.create(RECURRING_BILLING, START_OF_TIME, null);
+    NullPointerException thrown =
+        expectThrows(
+            NullPointerException.class,
+            () -> Cursor.create(RECURRING_BILLING, START_OF_TIME, null));
+    assertThat(thrown).hasMessageThat().contains("Cursor scope cannot be null");
   }
 
   @Test
   public void testFailure_nullCursorType() throws Exception {
     createTld("tld");
-    thrown.expect(NullPointerException.class);
-    thrown.expectMessage("Cursor type cannot be null");
-    Cursor.create(null, START_OF_TIME, Registry.get("tld"));
+    NullPointerException thrown =
+        expectThrows(
+            NullPointerException.class,
+            () -> Cursor.create(null, START_OF_TIME, Registry.get("tld")));
+    assertThat(thrown).hasMessageThat().contains("Cursor type cannot be null");
   }
 
   @Test
   public void testFailure_nullTime() throws Exception {
     createTld("tld");
-    thrown.expect(NullPointerException.class);
-    thrown.expectMessage("Cursor time cannot be null");
-    Cursor.create(RDE_UPLOAD, null, Registry.get("tld"));
+    NullPointerException thrown =
+        expectThrows(
+            NullPointerException.class, () -> Cursor.create(RDE_UPLOAD, null, Registry.get("tld")));
+    assertThat(thrown).hasMessageThat().contains("Cursor time cannot be null");
   }
 }

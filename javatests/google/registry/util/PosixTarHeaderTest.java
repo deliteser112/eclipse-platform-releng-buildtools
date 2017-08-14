@@ -17,6 +17,7 @@ package google.registry.util;
 import static com.google.common.io.BaseEncoding.base64;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.testing.EqualsTester;
@@ -27,19 +28,13 @@ import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link PosixTarHeader}. */
 @RunWith(JUnit4.class)
 public class PosixTarHeaderTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testGnuTarBlob() throws Exception {
     // This data was generated as follows:
@@ -206,9 +201,9 @@ public class PosixTarHeaderTest {
     byte[] bytes = header.getBytes();
     bytes[150] = '0';
     bytes[151] = '0';
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("chksum invalid");
-    PosixTarHeader.from(bytes);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> PosixTarHeader.from(bytes));
+    assertThat(thrown).hasMessageThat().contains("chksum invalid");
   }
 
   @Test

@@ -19,21 +19,16 @@ import static google.registry.model.rde.RdeMode.FULL;
 import static google.registry.model.rde.RdeMode.THIN;
 import static google.registry.model.rde.RdeNamingUtils.makePartialName;
 import static google.registry.model.rde.RdeNamingUtils.makeRydeFilename;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import org.joda.time.DateTime;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdeNamingUtils}. */
 @RunWith(JUnit4.class)
 public class RdeNamingUtilsTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testMakeRydeFilename_rdeDeposit() throws Exception {
     assertThat(makeRydeFilename("numbness", DateTime.parse("1984-12-18TZ"), FULL, 1, 0))
@@ -54,8 +49,9 @@ public class RdeNamingUtilsTest {
 
   @Test
   public void testMakeRydeFilename_timestampNotAtTheWitchingHour_throwsIae() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    makeRydeFilename("wretched", DateTime.parse("2000-12-18T04:20Z"), THIN, 1, 0);
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> makeRydeFilename("wretched", DateTime.parse("2000-12-18T04:20Z"), THIN, 1, 0));
   }
 
   @Test

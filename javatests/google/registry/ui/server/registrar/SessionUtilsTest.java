@@ -19,6 +19,7 @@ import static google.registry.testing.AppEngineRule.THE_REGISTRAR_GAE_USER_ID;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.LogsSubject.assertAboutLogs;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -41,7 +42,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -50,9 +50,6 @@ import org.junit.runners.JUnit4;
 public class SessionUtilsTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   @Rule public final InjectRule inject = new InjectRule();
 
   private final HttpServletRequest req = mock(HttpServletRequest.class);
@@ -96,9 +93,12 @@ public class SessionUtilsTest {
   @Test
   public void testCheckRegistrarConsoleLogin_notLoggedIn_throwsIllegalStateException()
       throws Exception {
-    thrown.expect(IllegalStateException.class);
-    @SuppressWarnings("unused")
-    boolean unused = sessionUtils.checkRegistrarConsoleLogin(req, null);
+    assertThrows(
+        IllegalStateException.class,
+        () -> {
+          @SuppressWarnings("unused")
+          boolean unused = sessionUtils.checkRegistrarConsoleLogin(req, null);
+        });
   }
 
   /**

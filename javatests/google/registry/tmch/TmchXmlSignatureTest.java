@@ -32,7 +32,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -48,9 +47,6 @@ public class TmchXmlSignatureTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final InjectRule inject = new InjectRule();
@@ -291,36 +287,31 @@ public class TmchXmlSignatureTest {
   @Test
   public void testInvalidInvalidsignatureCourtAgentFrenchActive() throws Exception {
     smdData = loadSmd("invalid/InvalidSignature-Court-Agent-French-Active.smd");
-    thrown.expect(XMLSignatureException.class);
-    tmchXmlSignature.verify(smdData);
+    assertThrows(XMLSignatureException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test
   public void testInvalidInvalidsignatureTrademarkAgentEnglishActive() throws Exception {
     smdData = loadSmd("invalid/InvalidSignature-Trademark-Agent-English-Active.smd");
-    thrown.expect(XMLSignatureException.class);
-    tmchXmlSignature.verify(smdData);
+    assertThrows(XMLSignatureException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test
   public void testInvalidInvalidsignatureTrademarkAgentRussianActive() throws Exception {
     smdData = loadSmd("invalid/InvalidSignature-Trademark-Agent-Russian-Active.smd");
-    thrown.expect(XMLSignatureException.class);
-    tmchXmlSignature.verify(smdData);
+    assertThrows(XMLSignatureException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test
   public void testInvalidInvalidsignatureTreatystatuteAgentChineseActive() throws Exception {
     smdData = loadSmd("invalid/InvalidSignature-TreatyStatute-Agent-Chinese-Active.smd");
-    thrown.expect(XMLSignatureException.class);
-    tmchXmlSignature.verify(smdData);
+    assertThrows(XMLSignatureException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test
   public void testInvalidInvalidsignatureTreatystatuteAgentEnglishActive() throws Exception {
     smdData = loadSmd("invalid/InvalidSignature-TreatyStatute-Agent-English-Active.smd");
-    thrown.expect(XMLSignatureException.class);
-    tmchXmlSignature.verify(smdData);
+    assertThrows(XMLSignatureException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test

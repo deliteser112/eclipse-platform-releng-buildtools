@@ -15,20 +15,16 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.request.HttpException.UnprocessableEntityException;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdapSearchPattern}. */
 @RunWith(JUnit4.class)
 public class RdapSearchPatternTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testNoWildcards_ok() throws Exception {
@@ -56,20 +52,19 @@ public class RdapSearchPatternTest {
 
   @Test
   public void testMultipleWildcards_unprocessable() throws Exception {
-    thrown.expect(UnprocessableEntityException.class);
-    RdapSearchPattern.create("ex*am*.lol", true);
+    assertThrows(
+        UnprocessableEntityException.class, () -> RdapSearchPattern.create("ex*am*.lol", true));
   }
 
   @Test
   public void testWildcardNotAtEnd_unprocessable() throws Exception {
-    thrown.expect(UnprocessableEntityException.class);
-    RdapSearchPattern.create("ex*am", true);
+    assertThrows(UnprocessableEntityException.class, () -> RdapSearchPattern.create("ex*am", true));
   }
 
   @Test
   public void testWildcardNotAtEndWithTld_unprocessable() throws Exception {
-    thrown.expect(UnprocessableEntityException.class);
-    RdapSearchPattern.create("ex*am.lol", true);
+    assertThrows(
+        UnprocessableEntityException.class, () -> RdapSearchPattern.create("ex*am.lol", true));
   }
 
   @Test
@@ -82,14 +77,14 @@ public class RdapSearchPatternTest {
 
   @Test
   public void testZeroLengthSuffix_unprocessable() throws Exception {
-    thrown.expect(UnprocessableEntityException.class);
-    RdapSearchPattern.create("exam*.", true);
+    assertThrows(
+        UnprocessableEntityException.class, () -> RdapSearchPattern.create("exam*.", true));
   }
 
   @Test
   public void testDisallowedSuffix_unprocessable() throws Exception {
-    thrown.expect(UnprocessableEntityException.class);
-    RdapSearchPattern.create("exam*.lol", false);
+    assertThrows(
+        UnprocessableEntityException.class, () -> RdapSearchPattern.create("exam*.lol", false));
   }
 
   @Test

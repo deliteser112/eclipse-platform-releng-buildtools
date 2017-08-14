@@ -20,6 +20,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
@@ -33,16 +34,10 @@ import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link RegistrarCreditBalance}. */
 public class RegistrarCreditBalanceTest extends EntityTestCase {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   private DateTime then = clock.nowUtc().plusDays(1);
 
   private Registrar theRegistrar;
@@ -100,19 +95,21 @@ public class RegistrarCreditBalanceTest extends EntityTestCase {
 
   @Test
   public void testFailure_balanceNotInCreditCurrency() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    balance.asBuilder()
-        .setAmount(Money.parse("JPY 1"))
-        .build();
+    assertThrows(
+        IllegalStateException.class,
+        () -> balance.asBuilder().setAmount(Money.parse("JPY 1")).build());
   }
 
   @Test
   public void testFailure_balanceNotInCreditCurrencyWithUnpersistedCredit() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    balance.asBuilder()
-        .setParent(unpersistedCredit)
-        .setAmount(Money.parse("JPY 1"))
-        .build();
+    assertThrows(
+        IllegalStateException.class,
+        () ->
+            balance
+                .asBuilder()
+                .setParent(unpersistedCredit)
+                .setAmount(Money.parse("JPY 1"))
+                .build());
   }
 
   @Test

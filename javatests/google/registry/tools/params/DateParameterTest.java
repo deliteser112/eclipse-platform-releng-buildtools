@@ -15,20 +15,16 @@
 package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import org.joda.time.DateTime;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link DateParameter}. */
 @RunWith(JUnit4.class)
 public class DateParameterTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   private final DateParameter instance = new DateParameter();
 
@@ -40,61 +36,52 @@ public class DateParameterTest {
 
   @Test
   public void testConvert_numeric_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("1234");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("1234"));
   }
 
   @Test
   public void testConvert_validDateAndTime_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("2014-01-01T01:02:03.004Z");
+    assertThrows(
+        IllegalArgumentException.class, () -> instance.convert("2014-01-01T01:02:03.004Z"));
   }
 
   @Test
   public void testConvert_invalidDate_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("2014-13-33");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("2014-13-33"));
   }
 
   @Test
   public void testConvert_null_throwsException() throws Exception {
-    thrown.expect(NullPointerException.class);
-    instance.convert(null);
+    assertThrows(NullPointerException.class, () -> instance.convert(null));
   }
 
   @Test
   public void testConvert_empty_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert(""));
   }
 
   @Test
   public void testConvert_sillyString_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("foo");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("foo"));
   }
 
   @Test
   public void testConvert_partialDate_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("2014-01");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("2014-01"));
   }
 
   @Test
   public void testConvert_onlyTime_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("T01:02:03");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("T01:02:03"));
   }
 
   @Test
   public void testConvert_partialDateAndPartialTime_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("9T9");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("9T9"));
   }
 
   @Test
   public void testConvert_dateAndPartialTime_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("2014-01-01T01:02");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("2014-01-01T01:02"));
   }
 }

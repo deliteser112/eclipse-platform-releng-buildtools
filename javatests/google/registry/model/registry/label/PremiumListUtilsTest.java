@@ -34,6 +34,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadPremiumListEntries;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.Duration.standardMinutes;
 
 import com.google.common.collect.ImmutableList;
@@ -52,7 +53,6 @@ import org.joda.money.Money;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -60,7 +60,6 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class PremiumListUtilsTest {
 
-  @Rule public final ExpectedException thrown = ExpectedException.none();
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Before
@@ -112,9 +111,10 @@ public class PremiumListUtilsTest {
   public void testGetPremiumPrice_throwsExceptionWhenNonExistentPremiumListConfigured()
       throws Exception {
     deletePremiumList(PremiumList.get("tld").get());
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Could not load premium list 'tld'");
-    getPremiumPrice("blah", Registry.get("tld"));
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class, () -> getPremiumPrice("blah", Registry.get("tld")));
+    assertThat(thrown).hasMessageThat().contains("Could not load premium list 'tld'");
   }
 
   @Test

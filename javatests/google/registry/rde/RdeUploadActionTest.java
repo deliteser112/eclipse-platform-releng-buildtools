@@ -24,6 +24,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static google.registry.testing.GcsTestingUtils.readGcsFile;
 import static google.registry.testing.GcsTestingUtils.writeGcsFile;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.SystemInfo.hasCommand;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
@@ -86,7 +87,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -113,10 +113,6 @@ public class RdeUploadActionTest {
       new GcsFilename("bucket", "tld_2010-10-17_full_S1_R1.xml.length");
   private static final GcsFilename REPORT_R1_FILE =
       new GcsFilename("bucket", "tld_2010-10-17_full_S1_R1-report.xml.ghostryde");
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Rule
   public final SftpServerRule sftpd = new SftpServerRule();
 
@@ -312,9 +308,9 @@ public class RdeUploadActionTest {
         Cursor.create(CursorType.RDE_STAGING, stagingCursor, Registry.get("tld")));
     RdeUploadAction action = createAction(uploadUrl);
     action.lazyJsch = Lazies.of(createThrowingJSchSpy(action.lazyJsch.get(), 3));
-    thrown.expect(RuntimeException.class);
-    thrown.expectMessage("The crow flies in square circles.");
-    action.runWithLock(uploadCursor);
+    RuntimeException thrown =
+        expectThrows(RuntimeException.class, () -> action.runWithLock(uploadCursor));
+    assertThat(thrown).hasMessageThat().contains("The crow flies in square circles.");
   }
 
   @Test
@@ -387,9 +383,10 @@ public class RdeUploadActionTest {
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, stagingCursor, Registry.get("tld")));
-    thrown.expect(ServiceUnavailableException.class);
-    thrown.expectMessage("Waiting for RdeStagingAction to complete");
-    createAction(null).runWithLock(uploadCursor);
+    ServiceUnavailableException thrown =
+        expectThrows(
+            ServiceUnavailableException.class, () -> createAction(null).runWithLock(uploadCursor));
+    assertThat(thrown).hasMessageThat().contains("Waiting for RdeStagingAction to complete");
   }
 
   private String slurp(InputStream is) throws FileNotFoundException, IOException {

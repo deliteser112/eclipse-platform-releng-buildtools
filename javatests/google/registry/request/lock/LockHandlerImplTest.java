@@ -29,7 +29,6 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -42,9 +41,6 @@ public final class LockHandlerImplTest {
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   private static class CountingCallable implements Callable<Void> {
     int numCalled = 0;

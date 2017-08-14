@@ -21,6 +21,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
@@ -36,16 +37,10 @@ import google.registry.model.transfer.TransferStatus;
 import java.net.InetAddress;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link HostResource}. */
 public class HostResourceTest extends EntityTestCase {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   final DateTime day3 = clock.nowUtc();
   final DateTime day2 = day3.minusDays(1);
   final DateTime day1 = day2.minusDays(1);
@@ -163,16 +158,24 @@ public class HostResourceTest extends EntityTestCase {
 
   @Test
   public void testFailure_uppercaseHostName() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Host name must be in puny-coded, lower-case form");
-    host.asBuilder().setFullyQualifiedHostName("AAA.BBB.CCC");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> host.asBuilder().setFullyQualifiedHostName("AAA.BBB.CCC"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Host name must be in puny-coded, lower-case form");
   }
 
   @Test
   public void testFailure_utf8HostName() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Host name must be in puny-coded, lower-case form");
-    host.asBuilder().setFullyQualifiedHostName("みんな.みんな.みんな");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> host.asBuilder().setFullyQualifiedHostName("みんな.みんな.みんな"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Host name must be in puny-coded, lower-case form");
   }
 
   @Test

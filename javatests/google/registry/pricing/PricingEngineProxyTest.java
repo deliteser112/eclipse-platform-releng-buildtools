@@ -21,6 +21,7 @@ import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -35,17 +36,12 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Tests for {@link PricingEngineProxy}. */
 @RunWith(JUnit4.class)
 public class PricingEngineProxyTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
@@ -148,8 +144,12 @@ public class PricingEngineProxyTest {
             .asBuilder()
             .setPremiumPricingEngine("fake")
             .build());
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Could not load pricing engine fake for TLD example");
-    getDomainCreateCost("bad.example", clock.nowUtc(), 1);
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () -> getDomainCreateCost("bad.example", clock.nowUtc(), 1));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Could not load pricing engine fake for TLD example");
   }
 }

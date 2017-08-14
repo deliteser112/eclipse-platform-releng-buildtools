@@ -14,21 +14,17 @@
 
 package google.registry.xml;
 
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TestDataHelper.loadFile;
 import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link XmlTestUtils}. */
 @RunWith(JUnit4.class)
 public class XmlTestUtilsTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   void runTest(String file1, String file2) throws Exception {
     assertXmlEquals(loadFile(getClass(), file1), loadFile(getClass(), file2));
@@ -41,8 +37,8 @@ public class XmlTestUtilsTest {
 
   @Test
   public void testInequality() throws Exception {
-    thrown.expect(AssertionError.class);
-    runTest("simple.xml", "twoextensions_feeThenLaunch.xml");
+    assertThrows(
+        AssertionError.class, () -> runTest("simple.xml", "twoextensions_feeThenLaunch.xml"));
   }
 
   @Test
@@ -52,7 +48,8 @@ public class XmlTestUtilsTest {
 
   @Test
   public void testMultipleElementsInDifferentNamespaces_differentValues() throws Exception {
-    thrown.expect(AssertionError.class);
-    runTest("twoextensions_feeThenLaunch.xml", "twoextensions_feeThenLaunch2.xml");
+    assertThrows(
+        AssertionError.class,
+        () -> runTest("twoextensions_feeThenLaunch.xml", "twoextensions_feeThenLaunch2.xml"));
   }
 }

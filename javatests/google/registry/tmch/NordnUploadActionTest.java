@@ -25,6 +25,8 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistDomainAndEnqueueLordn;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.util.UrlFetchUtils.getHeaderFirst;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -55,7 +57,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -86,10 +87,6 @@ public class NordnUploadActionTest {
 
   @Rule
   public final InjectRule inject = new InjectRule();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Mock
   private URLFetchService fetchService;
 
@@ -202,17 +199,15 @@ public class NordnUploadActionTest {
   public void testFailure_nullRegistryUser() throws Exception {
     persistClaimsModeDomain();
     persistResource(Registry.get("tld").asBuilder().setLordnUsername(null).build());
-    thrown.expect(VerifyException.class);
-    thrown.expectMessage("lordnUsername is not set for tld.");
-    action.run();
+    VerifyException thrown = expectThrows(VerifyException.class, () -> action.run());
+    assertThat(thrown).hasMessageThat().contains("lordnUsername is not set for tld.");
   }
 
   @Test
   public void testFetchFailure() throws Exception {
     persistClaimsModeDomain();
     when(httpResponse.getResponseCode()).thenReturn(SC_INTERNAL_SERVER_ERROR);
-    thrown.expect(UrlFetchException.class);
-    action.run();
+    assertThrows(UrlFetchException.class, () -> action.run());
   }
 
   private HTTPRequest getCapturedHttpRequest() throws Exception {

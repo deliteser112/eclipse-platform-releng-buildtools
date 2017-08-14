@@ -15,6 +15,7 @@
 package google.registry.model.ofy;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -23,7 +24,6 @@ import google.registry.testing.AppEngineRule;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -35,9 +35,6 @@ public class CommitLogCheckpointTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   private static final DateTime T1 = START_OF_TIME;
   private static final DateTime T2 = START_OF_TIME.plusMillis(1);
@@ -60,29 +57,43 @@ public class CommitLogCheckpointTest {
 
   @Test
   public void test_create_notEnoughBucketTimestamps_throws() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Bucket ids are incorrect");
-    CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(1, T1, 2, T2));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(1, T1, 2, T2)));
+    assertThat(thrown).hasMessageThat().contains("Bucket ids are incorrect");
   }
 
   @Test
   public void test_create_tooManyBucketTimestamps_throws() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Bucket ids are incorrect");
-    CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(1, T1, 2, T2, 3, T3, 4, T1));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                CommitLogCheckpoint.create(
+                    DateTime.now(UTC), ImmutableMap.of(1, T1, 2, T2, 3, T3, 4, T1)));
+    assertThat(thrown).hasMessageThat().contains("Bucket ids are incorrect");
   }
 
   @Test
   public void test_create_wrongBucketIds_throws() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Bucket ids are incorrect");
-    CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(0, T1, 1, T2, 2, T3));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                CommitLogCheckpoint.create(
+                    DateTime.now(UTC), ImmutableMap.of(0, T1, 1, T2, 2, T3)));
+    assertThat(thrown).hasMessageThat().contains("Bucket ids are incorrect");
   }
 
   @Test
   public void test_create_wrongBucketIdOrder_throws() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Bucket ids are incorrect");
-    CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(2, T2, 1, T1, 3, T3));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                CommitLogCheckpoint.create(
+                    DateTime.now(UTC), ImmutableMap.of(2, T2, 1, T1, 3, T3)));
+    assertThat(thrown).hasMessageThat().contains("Bucket ids are incorrect");
   }
 }

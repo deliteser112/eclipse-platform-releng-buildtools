@@ -21,6 +21,8 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.GcsTestingUtils.writeGcsFile;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.joda.time.DateTimeZone.UTC;
@@ -65,7 +67,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
@@ -77,10 +78,6 @@ public class RdeReportActionTest {
   private static final ByteSource REPORT_XML = RdeTestData.loadBytes("report.xml");
   private static final ByteSource IIRDEA_BAD_XML = RdeTestData.loadBytes("iirdea_bad.xml");
   private static final ByteSource IIRDEA_GOOD_XML = RdeTestData.loadBytes("iirdea_good.xml");
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Rule
   public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
 
@@ -175,17 +172,19 @@ public class RdeReportActionTest {
     when(httpResponse.getResponseCode()).thenReturn(SC_BAD_REQUEST);
     when(httpResponse.getContent()).thenReturn(IIRDEA_BAD_XML.read());
     when(urlFetchService.fetch(request.capture())).thenReturn(httpResponse);
-    thrown.expect(InternalServerErrorException.class);
-    thrown.expectMessage("The structure of the report is invalid.");
-    createAction().runWithLock(loadRdeReportCursor());
+    InternalServerErrorException thrown =
+        expectThrows(
+            InternalServerErrorException.class,
+            () -> createAction().runWithLock(loadRdeReportCursor()));
+    assertThat(thrown).hasMessageThat().contains("The structure of the report is invalid.");
   }
 
   @Test
   public void testRunWithLock_fetchFailed_throwsRuntimeException() throws Exception {
     class ExpectedThrownException extends RuntimeException {}
     when(urlFetchService.fetch(any(HTTPRequest.class))).thenThrow(new ExpectedThrownException());
-    thrown.expect(ExpectedThrownException.class);
-    createAction().runWithLock(loadRdeReportCursor());
+    assertThrows(
+        ExpectedThrownException.class, () -> createAction().runWithLock(loadRdeReportCursor()));
   }
 
   @Test

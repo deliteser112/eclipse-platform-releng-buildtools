@@ -17,6 +17,8 @@ package google.registry.model.billing;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableMap;
@@ -25,18 +27,13 @@ import google.registry.model.EntityTestCase;
 import org.joda.money.CurrencyMismatchException;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RegistrarBillingEntry}. */
 @RunWith(JUnit4.class)
 public final class RegistrarBillingEntryTest extends EntityTestCase {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testIndexing() throws Exception {
@@ -100,77 +97,88 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
 
   @Test
   public void testBadTimeOrdering_causesError() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Created timestamp not after previous");
-    new RegistrarBillingEntry.Builder()
-        .setPrevious(
-            new RegistrarBillingEntry.Builder()
-                .setPrevious(null)
-                .setParent(loadRegistrar("NewRegistrar"))
-                .setCreated(DateTime.parse("1984-12-18TZ"))
-                .setDescription("USD Invoice for December")
-                .setAmount(Money.parse("USD 10.00"))
-                .build())
-        .setParent(loadRegistrar("NewRegistrar"))
-        .setCreated(DateTime.parse("1984-12-17TZ"))
-        .setTransactionId("goblin")
-        .setDescription("USD Invoice for August")
-        .setAmount(Money.parse("USD 3.50"))
-        .build();
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () ->
+                new RegistrarBillingEntry.Builder()
+                    .setPrevious(
+                        new RegistrarBillingEntry.Builder()
+                            .setPrevious(null)
+                            .setParent(loadRegistrar("NewRegistrar"))
+                            .setCreated(DateTime.parse("1984-12-18TZ"))
+                            .setDescription("USD Invoice for December")
+                            .setAmount(Money.parse("USD 10.00"))
+                            .build())
+                    .setParent(loadRegistrar("NewRegistrar"))
+                    .setCreated(DateTime.parse("1984-12-17TZ"))
+                    .setTransactionId("goblin")
+                    .setDescription("USD Invoice for August")
+                    .setAmount(Money.parse("USD 3.50"))
+                    .build());
+    assertThat(thrown).hasMessageThat().contains("Created timestamp not after previous");
   }
 
   @Test
   public void testRegistrarMismatch_causesError() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Parent not same as previous");
-    new RegistrarBillingEntry.Builder()
-        .setPrevious(
-            new RegistrarBillingEntry.Builder()
-                .setPrevious(null)
-                .setParent(loadRegistrar("NewRegistrar"))
-                .setCreated(DateTime.parse("1984-12-18TZ"))
-                .setDescription("USD Invoice for December")
-                .setAmount(Money.parse("USD 10.00"))
-                .build())
-        .setParent(loadRegistrar("TheRegistrar"))
-        .setCreated(DateTime.parse("1984-12-17TZ"))
-        .setTransactionId("goblin")
-        .setDescription("USD Invoice for August")
-        .setAmount(Money.parse("USD 3.50"))
-        .build();
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () ->
+                new RegistrarBillingEntry.Builder()
+                    .setPrevious(
+                        new RegistrarBillingEntry.Builder()
+                            .setPrevious(null)
+                            .setParent(loadRegistrar("NewRegistrar"))
+                            .setCreated(DateTime.parse("1984-12-18TZ"))
+                            .setDescription("USD Invoice for December")
+                            .setAmount(Money.parse("USD 10.00"))
+                            .build())
+                    .setParent(loadRegistrar("TheRegistrar"))
+                    .setCreated(DateTime.parse("1984-12-17TZ"))
+                    .setTransactionId("goblin")
+                    .setDescription("USD Invoice for August")
+                    .setAmount(Money.parse("USD 3.50"))
+                    .build());
+    assertThat(thrown).hasMessageThat().contains("Parent not same as previous");
   }
 
   @Test
   public void testCurrencyMismatch_causesError() throws Exception {
-    thrown.expect(CurrencyMismatchException.class);
-    new RegistrarBillingEntry.Builder()
-        .setPrevious(
+    assertThrows(
+        CurrencyMismatchException.class,
+        () ->
             new RegistrarBillingEntry.Builder()
-                .setPrevious(null)
+                .setPrevious(
+                    new RegistrarBillingEntry.Builder()
+                        .setPrevious(null)
+                        .setParent(loadRegistrar("NewRegistrar"))
+                        .setCreated(DateTime.parse("1984-12-18TZ"))
+                        .setDescription("USD Invoice for December")
+                        .setAmount(Money.parse("USD 10.00"))
+                        .build())
                 .setParent(loadRegistrar("NewRegistrar"))
-                .setCreated(DateTime.parse("1984-12-18TZ"))
-                .setDescription("USD Invoice for December")
-                .setAmount(Money.parse("USD 10.00"))
-                .build())
-        .setParent(loadRegistrar("NewRegistrar"))
-        .setCreated(DateTime.parse("1984-12-17TZ"))
-        .setTransactionId("goblin")
-        .setDescription("JPY Invoice for August")
-        .setAmount(Money.parse("JPY 350"))
-        .build();
+                .setCreated(DateTime.parse("1984-12-17TZ"))
+                .setTransactionId("goblin")
+                .setDescription("JPY Invoice for August")
+                .setAmount(Money.parse("JPY 350"))
+                .build());
   }
 
   @Test
   public void testZeroAmount_causesError() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Amount can't be zero");
-    new RegistrarBillingEntry.Builder()
-        .setPrevious(null)
-        .setParent(loadRegistrar("NewRegistrar"))
-        .setCreated(DateTime.parse("1984-12-18TZ"))
-        .setDescription("USD Invoice for December")
-        .setAmount(Money.zero(USD))
-        .build();
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                new RegistrarBillingEntry.Builder()
+                    .setPrevious(null)
+                    .setParent(loadRegistrar("NewRegistrar"))
+                    .setCreated(DateTime.parse("1984-12-18TZ"))
+                    .setDescription("USD Invoice for December")
+                    .setAmount(Money.zero(USD))
+                    .build());
+    assertThat(thrown).hasMessageThat().contains("Amount can't be zero");
   }
 
   @Test

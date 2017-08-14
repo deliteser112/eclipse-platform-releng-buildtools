@@ -14,10 +14,13 @@
 
 package google.registry.dns;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -31,7 +34,6 @@ import google.registry.testing.FakeClock;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -44,10 +46,6 @@ public class RefreshDnsActionTest {
       .withDatastore()
       .withTaskQueue()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private final DnsQueue dnsQueue = mock(DnsQueue.class);
   private final FakeClock clock = new FakeClock();
 
@@ -78,13 +76,19 @@ public class RefreshDnsActionTest {
   public void testSuccess_externalHostNotEnqueued() throws Exception {
     persistActiveDomain("example.xn--q9jyb4c");
     persistActiveHost("ns1.example.xn--q9jyb4c");
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("ns1.example.xn--q9jyb4c isn't a subordinate hostname");
-    try {
-      run(TargetType.HOST, "ns1.example.xn--q9jyb4c");
-    } finally {
-      verifyNoMoreInteractions(dnsQueue);
-    }
+    BadRequestException thrown =
+        expectThrows(
+            BadRequestException.class,
+            () -> {
+              try {
+                run(TargetType.HOST, "ns1.example.xn--q9jyb4c");
+              } finally {
+                verifyNoMoreInteractions(dnsQueue);
+              }
+            });
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("ns1.example.xn--q9jyb4c isn't a subordinate hostname");
   }
 
   @Test
@@ -97,19 +101,16 @@ public class RefreshDnsActionTest {
 
   @Test
   public void testFailure_unqualifiedName() throws Exception {
-    thrown.expect(BadRequestException.class);
-    run(TargetType.DOMAIN, "example");
+    assertThrows(BadRequestException.class, () -> run(TargetType.DOMAIN, "example"));
   }
 
   @Test
   public void testFailure_hostDoesNotExist() throws Exception {
-    thrown.expect(NotFoundException.class);
-    run(TargetType.HOST, "ns1.example.xn--q9jyb4c");
+    assertThrows(NotFoundException.class, () -> run(TargetType.HOST, "ns1.example.xn--q9jyb4c"));
   }
 
   @Test
   public void testFailure_domainDoesNotExist() throws Exception {
-    thrown.expect(NotFoundException.class);
-    run(TargetType.DOMAIN, "example.xn--q9jyb4c");
+    assertThrows(NotFoundException.class, () -> run(TargetType.DOMAIN, "example.xn--q9jyb4c"));
   }
 }

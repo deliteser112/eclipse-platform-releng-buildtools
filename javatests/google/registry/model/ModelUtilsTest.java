@@ -24,16 +24,12 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link ModelUtils}. */
 @RunWith(JUnit4.class)
 public class ModelUtilsTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public AppEngineRule appEngineRule = new AppEngineRule.Builder().build();

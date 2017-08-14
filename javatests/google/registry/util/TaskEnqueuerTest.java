@@ -16,6 +16,8 @@ package google.registry.util;
 
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,7 +34,6 @@ import google.registry.testing.FakeSleeper;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -41,10 +42,6 @@ import org.junit.runners.JUnit4;
 public final class TaskEnqueuerTest {
 
   private static final int MAX_RETRIES = 3;
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
@@ -95,9 +92,9 @@ public final class TaskEnqueuerTest {
         .thenThrow(new TransientFailureException("two"))
         .thenThrow(new TransientFailureException("three"))
         .thenThrow(new TransientFailureException("four"));
-    thrown.expect(TransientFailureException.class);
-    thrown.expectMessage("three");
-    taskEnqueuer.enqueue(queue, task);
+    TransientFailureException thrown =
+        expectThrows(TransientFailureException.class, () -> taskEnqueuer.enqueue(queue, task));
+    assertThat(thrown).hasMessageThat().contains("three");
   }
 
   @Test
@@ -105,8 +102,7 @@ public final class TaskEnqueuerTest {
     when(queue.add(ImmutableList.of(task))).thenThrow(new TransientFailureException(""));
     try {
       Thread.currentThread().interrupt();
-      thrown.expect(TransientFailureException.class);
-      taskEnqueuer.enqueue(queue, task);
+      assertThrows(TransientFailureException.class, () -> taskEnqueuer.enqueue(queue, task));
     } finally {
       Thread.interrupted();  // Clear interrupt state so it doesn't pwn other tests.
     }

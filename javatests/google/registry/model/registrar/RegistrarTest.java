@@ -26,6 +26,8 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -40,16 +42,10 @@ import google.registry.model.registrar.Registrar.Type;
 import google.registry.util.CidrAddressBlock;
 import org.joda.money.CurrencyUnit;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link Registrar}. */
 public class RegistrarTest extends EntityTestCase {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   private Registrar registrar;
   private RegistrarContact abuseAdminContact;
 
@@ -143,23 +139,27 @@ public class RegistrarTest extends EntityTestCase {
 
   @Test
   public void testFailure_passwordNull() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Password must be 6-16 characters long.");
-    new Registrar.Builder().setPassword(null);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class, () -> new Registrar.Builder().setPassword(null));
+    assertThat(thrown).hasMessageThat().contains("Password must be 6-16 characters long.");
   }
 
   @Test
   public void testFailure_passwordTooShort() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Password must be 6-16 characters long.");
-    new Registrar.Builder().setPassword("abcde");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class, () -> new Registrar.Builder().setPassword("abcde"));
+    assertThat(thrown).hasMessageThat().contains("Password must be 6-16 characters long.");
   }
 
   @Test
   public void testFailure_passwordTooLong() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Password must be 6-16 characters long.");
-    new Registrar.Builder().setPassword("abcdefghijklmnopq");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> new Registrar.Builder().setPassword("abcdefghijklmnopq"));
+    assertThat(thrown).hasMessageThat().contains("Password must be 6-16 characters long.");
   }
 
   @Test
@@ -172,14 +172,14 @@ public class RegistrarTest extends EntityTestCase {
 
   @Test
   public void testFailure_clientId_tooShort() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    new Registrar.Builder().setClientId("ab");
+    assertThrows(IllegalArgumentException.class, () -> new Registrar.Builder().setClientId("ab"));
   }
 
   @Test
   public void testFailure_clientId_tooLong() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    new Registrar.Builder().setClientId("abcdefghijklmnopq");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new Registrar.Builder().setClientId("abcdefghijklmnopq"));
   }
 
   @Test
@@ -318,87 +318,103 @@ public class RegistrarTest extends EntityTestCase {
 
   @Test
   public void testFailure_missingRegistrarType() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrar type cannot be null");
-    new Registrar.Builder().setRegistrarName("blah").build();
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> new Registrar.Builder().setRegistrarName("blah").build());
+    assertThat(thrown).hasMessageThat().contains("Registrar type cannot be null");
   }
 
   @Test
   public void testFailure_missingRegistrarName() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrar name cannot be null");
-    new Registrar.Builder().setClientId("blahid").setType(Registrar.Type.TEST).build();
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                new Registrar.Builder().setClientId("blahid").setType(Registrar.Type.TEST).build());
+    assertThat(thrown).hasMessageThat().contains("Registrar name cannot be null");
   }
 
   @Test
   public void testFailure_missingAddress() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Must specify at least one of localized or internationalized address");
-    new Registrar.Builder()
-        .setClientId("blahid")
-        .setType(Registrar.Type.TEST)
-        .setRegistrarName("Blah Co")
-        .build();
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                new Registrar.Builder()
+                    .setClientId("blahid")
+                    .setType(Registrar.Type.TEST)
+                    .setRegistrarName("Blah Co")
+                    .build());
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Must specify at least one of localized or internationalized address");
   }
 
   @Test
   public void testFailure_badIanaIdForInternal() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    new Registrar.Builder().setType(Type.INTERNAL).setIanaIdentifier(8L).build();
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new Registrar.Builder().setType(Type.INTERNAL).setIanaIdentifier(8L).build());
   }
 
   @Test
   public void testFailure_badIanaIdForPdt() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    new Registrar.Builder().setType(Type.PDT).setIanaIdentifier(8L).build();
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new Registrar.Builder().setType(Type.PDT).setIanaIdentifier(8L).build());
   }
 
   @Test
   public void testFailure_badIanaIdForExternalMonitoring() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    registrar.asBuilder().setType(Type.EXTERNAL_MONITORING).setIanaIdentifier(8L).build();
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            registrar.asBuilder().setType(Type.EXTERNAL_MONITORING).setIanaIdentifier(8L).build());
   }
 
   @Test
   public void testFailure_missingIanaIdForReal() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    new Registrar.Builder().setType(Type.REAL).build();
+    assertThrows(
+        IllegalArgumentException.class, () -> new Registrar.Builder().setType(Type.REAL).build());
   }
 
   @Test
   public void testFailure_missingIanaIdForInternal() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    new Registrar.Builder().setType(Type.INTERNAL).build();
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new Registrar.Builder().setType(Type.INTERNAL).build());
   }
 
   @Test
   public void testFailure_missingIanaIdForPdt() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    new Registrar.Builder().setType(Type.PDT).build();
+    assertThrows(
+        IllegalArgumentException.class, () -> new Registrar.Builder().setType(Type.PDT).build());
   }
 
   @Test
   public void testFailure_missingIanaIdForExternalMonitoring() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    new Registrar.Builder().setType(Type.EXTERNAL_MONITORING).build();
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new Registrar.Builder().setType(Type.EXTERNAL_MONITORING).build());
   }
 
   @Test
   public void testFailure_phonePasscodeTooShort() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    new Registrar.Builder().setPhonePasscode("0123");
+    assertThrows(
+        IllegalArgumentException.class, () -> new Registrar.Builder().setPhonePasscode("0123"));
   }
 
   @Test
   public void testFailure_phonePasscodeTooLong() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    new Registrar.Builder().setPhonePasscode("012345");
+    assertThrows(
+        IllegalArgumentException.class, () -> new Registrar.Builder().setPhonePasscode("012345"));
   }
 
   @Test
   public void testFailure_phonePasscodeInvalidCharacters() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    new Registrar.Builder().setPhonePasscode("code1");
+    assertThrows(
+        IllegalArgumentException.class, () -> new Registrar.Builder().setPhonePasscode("code1"));
   }
 
   @Test
@@ -420,29 +436,29 @@ public class RegistrarTest extends EntityTestCase {
 
   @Test
   public void testFailure_loadByClientId_clientIdIsNull() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("clientId must be specified");
-    Registrar.loadByClientId(null);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> Registrar.loadByClientId(null));
+    assertThat(thrown).hasMessageThat().contains("clientId must be specified");
   }
 
   @Test
   public void testFailure_loadByClientId_clientIdIsEmpty() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("clientId must be specified");
-    Registrar.loadByClientId("");
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> Registrar.loadByClientId(""));
+    assertThat(thrown).hasMessageThat().contains("clientId must be specified");
   }
 
   @Test
   public void testFailure_loadByClientIdCached_clientIdIsNull() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("clientId must be specified");
-    Registrar.loadByClientIdCached(null);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> Registrar.loadByClientIdCached(null));
+    assertThat(thrown).hasMessageThat().contains("clientId must be specified");
   }
 
   @Test
   public void testFailure_loadByClientIdCached_clientIdIsEmpty() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("clientId must be specified");
-    Registrar.loadByClientIdCached("");
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> Registrar.loadByClientIdCached(""));
+    assertThat(thrown).hasMessageThat().contains("clientId must be specified");
   }
 }

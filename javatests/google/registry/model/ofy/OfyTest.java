@@ -23,6 +23,8 @@ import static google.registry.model.ofy.Ofy.getBaseEntityClassFromEntityOrKey;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newContactResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -55,7 +57,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -67,10 +68,6 @@ public class OfyTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   /** An entity to use in save and delete tests. */
   private HistoryEntry someObject;
 
@@ -92,13 +89,15 @@ public class OfyTest {
         .getUpdateAutoTimestamp().getTimestamp();
     // Set the clock in Ofy to the same time as the backup group root's save time.
     Ofy ofy = new Ofy(new FakeClock(groupTimestamp));
-    thrown.expect(TimestampInversionException.class);
-    thrown.expectMessage(String.format(
-            "Timestamp inversion between transaction time (%s) and entities rooted under:\n"
-                + "{Key<?>(ContactResource(\"2-ROID\"))=%s}",
-            groupTimestamp,
-            groupTimestamp));
-    ofy.transact(work);
+    TimestampInversionException thrown =
+        expectThrows(TimestampInversionException.class, () -> ofy.transact(work));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            String.format(
+                "Timestamp inversion between transaction time (%s) and entities rooted under:\n"
+                    + "{Key<?>(ContactResource(\"2-ROID\"))=%s}",
+                groupTimestamp, groupTimestamp));
   }
 
   @Test
@@ -121,60 +120,89 @@ public class OfyTest {
 
   @Test
   public void testSavingKeyTwice() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Multiple entries with same key");
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(someObject);
-        ofy().save().entity(someObject);
-      }});
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                ofy()
+                    .transact(
+                        new VoidWork() {
+                          @Override
+                          public void vrun() {
+                            ofy().save().entity(someObject);
+                            ofy().save().entity(someObject);
+                          }
+                        }));
+    assertThat(thrown).hasMessageThat().contains("Multiple entries with same key");
   }
 
   @Test
   public void testDeletingKeyTwice() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Multiple entries with same key");
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().delete().entity(someObject);
-        ofy().delete().entity(someObject);
-      }});
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                ofy()
+                    .transact(
+                        new VoidWork() {
+                          @Override
+                          public void vrun() {
+                            ofy().delete().entity(someObject);
+                            ofy().delete().entity(someObject);
+                          }
+                        }));
+    assertThat(thrown).hasMessageThat().contains("Multiple entries with same key");
   }
 
   @Test
   public void testSaveDeleteKey() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Multiple entries with same key");
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(someObject);
-        ofy().delete().entity(someObject);
-      }});
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                ofy()
+                    .transact(
+                        new VoidWork() {
+                          @Override
+                          public void vrun() {
+                            ofy().save().entity(someObject);
+                            ofy().delete().entity(someObject);
+                          }
+                        }));
+    assertThat(thrown).hasMessageThat().contains("Multiple entries with same key");
   }
 
   @Test
   public void testDeleteSaveKey() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Multiple entries with same key");
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().delete().entity(someObject);
-        ofy().save().entity(someObject);
-      }});
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                ofy()
+                    .transact(
+                        new VoidWork() {
+                          @Override
+                          public void vrun() {
+                            ofy().delete().entity(someObject);
+                            ofy().save().entity(someObject);
+                          }
+                        }));
+    assertThat(thrown).hasMessageThat().contains("Multiple entries with same key");
   }
 
   @Test
   public void testSavingKeyTwiceInOneCall() {
-    thrown.expect(IllegalArgumentException.class);
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entities(someObject, someObject);
-      }});
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            ofy()
+                .transact(
+                    new VoidWork() {
+                      @Override
+                      public void vrun() {
+                        ofy().save().entities(someObject, someObject);
+                      }
+                    }));
   }
 
   /** Simple entity class with lifecycle callbacks. */
@@ -375,17 +403,24 @@ public class OfyTest {
 
   @Test
   public void test_getBaseEntityClassFromEntityOrKey_unregisteredEntity() {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("SystemClock");
-    getBaseEntityClassFromEntityOrKey(new SystemClock());
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () -> getBaseEntityClassFromEntityOrKey(new SystemClock()));
+    assertThat(thrown).hasMessageThat().contains("SystemClock");
   }
 
   @Test
   public void test_getBaseEntityClassFromEntityOrKey_unregisteredEntityKey() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("UnknownKind");
-    getBaseEntityClassFromEntityOrKey(Key.create(
-        com.google.appengine.api.datastore.KeyFactory.createKey("UnknownKind", 1)));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                getBaseEntityClassFromEntityOrKey(
+                    Key.create(
+                        com.google.appengine.api.datastore.KeyFactory.createKey(
+                            "UnknownKind", 1))));
+    assertThat(thrown).hasMessageThat().contains("UnknownKind");
   }
 
   @Test

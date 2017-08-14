@@ -21,6 +21,8 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableList;
 import google.registry.model.registry.Registry;
@@ -29,7 +31,6 @@ import google.registry.testing.AppEngineRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -37,7 +38,6 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class PremiumListTest {
 
-  @Rule public final ExpectedException thrown = ExpectedException.none();
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Before
@@ -56,14 +56,15 @@ public class PremiumListTest {
 
   @Test
   public void testSave_badSyntax() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    persistPremiumList("gtld1", "lol,nonsense USD,e,e # yup");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> persistPremiumList("gtld1", "lol,nonsense USD,e,e # yup"));
   }
 
   @Test
   public void testSave_invalidCurrencySymbol() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    persistReservedList("gtld1", "lol,XBTC 200");
+    assertThrows(
+        IllegalArgumentException.class, () -> persistReservedList("gtld1", "lol,XBTC 200"));
   }
 
   @Test
@@ -80,13 +81,22 @@ public class PremiumListTest {
 
   @Test
   public void testParse_cannotIncludeDuplicateLabels() {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage(
-        "List 'tld' cannot contain duplicate labels. Dupes (with counts) were: [lol x 2]");
-    PremiumList.get("tld")
-        .get()
-        .parse(
-            ImmutableList.of(
-                "lol,USD 100", "rofl,USD 90", "paper,USD 80", "wood,USD 70", "lol,USD 200"));
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () ->
+                PremiumList.get("tld")
+                    .get()
+                    .parse(
+                        ImmutableList.of(
+                            "lol,USD 100",
+                            "rofl,USD 90",
+                            "paper,USD 80",
+                            "wood,USD 70",
+                            "lol,USD 200")));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "List 'tld' cannot contain duplicate labels. Dupes (with counts) were: [lol x 2]");
   }
 }

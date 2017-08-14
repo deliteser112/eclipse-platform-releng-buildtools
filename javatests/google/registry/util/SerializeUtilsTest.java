@@ -15,12 +15,11 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.SerializeUtils.deserialize;
 import static google.registry.util.SerializeUtils.serialize;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -34,10 +33,6 @@ public class SerializeUtilsTest {
       return "LOL_VALUE";
     }
   }
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testSerialize_nullValue_returnsNull() throws Exception {
     assertThat(serialize(null)).isNull();
@@ -55,15 +50,17 @@ public class SerializeUtilsTest {
 
   @Test
   public void testSerialize_objectDoesntImplementSerialize_hasInformativeError() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Unable to serialize: LOL_VALUE");
-    serialize(new Lol());
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> serialize(new Lol()));
+    assertThat(thrown).hasMessageThat().contains("Unable to serialize: LOL_VALUE");
   }
 
   @Test
   public void testDeserialize_badValue_hasInformativeError() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Unable to deserialize: objectBytes=FF");
-    deserialize(String.class, new byte[] { (byte) 0xff });
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> deserialize(String.class, new byte[] {(byte) 0xff}));
+    assertThat(thrown).hasMessageThat().contains("Unable to deserialize: objectBytes=FF");
   }
 }

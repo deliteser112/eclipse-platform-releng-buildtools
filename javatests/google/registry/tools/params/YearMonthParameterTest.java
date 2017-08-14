@@ -15,22 +15,18 @@
 package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import org.joda.time.YearMonth;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link YearMonthParameter}. */
 @RunWith(JUnit4.class)
 public class YearMonthParameterTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private final YearMonthParameter instance = new YearMonthParameter();
 
   @Test
@@ -40,39 +36,34 @@ public class YearMonthParameterTest {
 
   @Test
   public void testConvert_null_throwsException() throws Exception {
-    thrown.expect(NullPointerException.class);
-    instance.convert(null);
+    assertThrows(NullPointerException.class, () -> instance.convert(null));
   }
 
   @Test
   public void testConvert_empty_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert(""));
   }
 
   @Test
   public void testConvert_sillyString_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("foo");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("foo"));
   }
 
   @Test
   public void testConvert_wrongOrder() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("12-1984");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("12-1984"));
   }
 
   @Test
   public void testConvert_noHyphen() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("198412");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("198412"));
   }
 
   @Test
   public void testValidate_sillyString_throwsParameterException() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--time=foo not a valid");
-    instance.validate("--time", "foo");
+    ParameterException thrown =
+        expectThrows(ParameterException.class, () -> instance.validate("--time", "foo"));
+    assertThat(thrown).hasMessageThat().contains("--time=foo not a valid");
   }
 
   @Test

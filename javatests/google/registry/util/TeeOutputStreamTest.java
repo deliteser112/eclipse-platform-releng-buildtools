@@ -15,25 +15,21 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
 import com.google.common.collect.ImmutableSet;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link TeeOutputStream}. */
 @RunWith(JUnit4.class)
 public class TeeOutputStreamTest {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   private final ByteArrayOutputStream outputA = new ByteArrayOutputStream();
   private final ByteArrayOutputStream outputB = new ByteArrayOutputStream();
   private final ByteArrayOutputStream outputC = new ByteArrayOutputStream();
@@ -60,34 +56,32 @@ public class TeeOutputStreamTest {
   @Test
   @SuppressWarnings("resource")
   public void testConstructor_failsWithEmptyIterable() {
-    thrown.expect(IllegalArgumentException.class);
-    new TeeOutputStream(ImmutableSet.of());
+    assertThrows(IllegalArgumentException.class, () -> new TeeOutputStream(ImmutableSet.of()));
   }
 
   @Test
   public void testWriteInteger_failsAfterClose() throws Exception {
     OutputStream tee = new TeeOutputStream(asList(outputA));
     tee.close();
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("outputstream closed");
-    tee.write(1);
+    IllegalStateException thrown = expectThrows(IllegalStateException.class, () -> tee.write(1));
+    assertThat(thrown).hasMessageThat().contains("outputstream closed");
   }
 
   @Test
   public void testWriteByteArray_failsAfterClose() throws Exception {
     OutputStream tee = new TeeOutputStream(asList(outputA));
     tee.close();
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("outputstream closed");
-    tee.write("hello".getBytes(UTF_8));
+    IllegalStateException thrown =
+        expectThrows(IllegalStateException.class, () -> tee.write("hello".getBytes(UTF_8)));
+    assertThat(thrown).hasMessageThat().contains("outputstream closed");
   }
 
   @Test
   public void testWriteByteSubarray_failsAfterClose() throws Exception {
     OutputStream tee = new TeeOutputStream(asList(outputA));
     tee.close();
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("outputstream closed");
-    tee.write("hello".getBytes(UTF_8), 1, 3);
+    IllegalStateException thrown =
+        expectThrows(IllegalStateException.class, () -> tee.write("hello".getBytes(UTF_8), 1, 3));
+    assertThat(thrown).hasMessageThat().contains("outputstream closed");
   }
 }

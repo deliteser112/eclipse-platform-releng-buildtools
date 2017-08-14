@@ -21,18 +21,13 @@ import com.google.common.collect.ImmutableMap;
 import google.registry.testing.FakeResponse;
 import java.util.Map;
 import org.json.simple.JSONValue;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link JsonResponse}. */
 @RunWith(JUnit4.class)
 public class JsonResponseTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   FakeResponse fakeResponse = new FakeResponse();
   JsonResponse jsonResponse = new JsonResponse(fakeResponse);

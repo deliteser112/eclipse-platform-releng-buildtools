@@ -18,6 +18,8 @@ import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.logging.Level.INFO;
@@ -55,7 +57,6 @@ import java.util.logging.Logger;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -68,10 +69,6 @@ public class BigqueryPollJobActionTest {
       .withDatastore()
       .withTaskQueue()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private static final String PROJECT_ID = "project_id";
   private static final String JOB_ID = "job_id";
   private static final String CHAINED_QUEUE_NAME = UpdateSnapshotViewAction.QUEUE;
@@ -192,15 +189,13 @@ public class BigqueryPollJobActionTest {
   public void testJobPending() throws Exception {
     when(bigqueryJobsGet.execute()).thenReturn(
         new Job().setStatus(new JobStatus().setState("PENDING")));
-    thrown.expect(NotModifiedException.class);
-    action.run();
+    assertThrows(NotModifiedException.class, () -> action.run());
   }
 
   @Test
   public void testJobStatusUnreadable() throws Exception {
     when(bigqueryJobsGet.execute()).thenThrow(IOException.class);
-    thrown.expect(NotModifiedException.class);
-    action.run();
+    assertThrows(NotModifiedException.class, () -> action.run());
   }
 
   @Test
@@ -208,8 +203,7 @@ public class BigqueryPollJobActionTest {
     when(bigqueryJobsGet.execute()).thenReturn(
         new Job().setStatus(new JobStatus().setState("DONE")));
     action.payload = "payload".getBytes(UTF_8);
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("Cannot deserialize task from payload");
-    action.run();
+    BadRequestException thrown = expectThrows(BadRequestException.class, () -> action.run());
+    assertThat(thrown).hasMessageThat().contains("Cannot deserialize task from payload");
   }
 }

@@ -18,6 +18,7 @@ import static com.google.common.net.MediaType.CSV_UTF_8;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.api.client.http.LowLevelHttpRequest;
@@ -35,7 +36,6 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -50,9 +50,6 @@ public class IcannHttpReporterTest {
   private static final byte[] FAKE_PAYLOAD = "test,csv\n1,2".getBytes(UTF_8);
 
   private MockLowLevelHttpRequest mockRequest;
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   @Rule public AppEngineRule appEngineRule = new AppEngineRule.Builder().withDatastore().build();
 
   private MockHttpTransport createMockTransport (final ByteSource iirdeaResponse) {
@@ -127,36 +124,60 @@ public class IcannHttpReporterTest {
 
   @Test
   public void testFail_invalidFilename_nonSixDigitYearMonth() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(
-        "Expected file format: tld-reportType-yyyyMM.csv, got test-transactions-20176.csv instead");
-    IcannHttpReporter reporter = createReporter();
-    reporter.send(FAKE_PAYLOAD, "test-transactions-20176.csv");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> {
+              IcannHttpReporter reporter = createReporter();
+              reporter.send(FAKE_PAYLOAD, "test-transactions-20176.csv");
+            });
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Expected file format: tld-reportType-yyyyMM.csv, "
+                + "got test-transactions-20176.csv instead");
   }
 
   @Test
   public void testFail_invalidFilename_notActivityOrTransactions() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(
-        "Expected file format: tld-reportType-yyyyMM.csv, got test-invalid-201706.csv instead");
-    IcannHttpReporter reporter = createReporter();
-    reporter.send(FAKE_PAYLOAD, "test-invalid-201706.csv");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> {
+              IcannHttpReporter reporter = createReporter();
+              reporter.send(FAKE_PAYLOAD, "test-invalid-201706.csv");
+            });
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Expected file format: tld-reportType-yyyyMM.csv, got test-invalid-201706.csv instead");
   }
 
   @Test
   public void testFail_invalidFilename_invalidTldName() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(
-        "Expected file format: tld-reportType-yyyyMM.csv, got n!-n-activity-201706.csv instead");
-    IcannHttpReporter reporter = createReporter();
-    reporter.send(FAKE_PAYLOAD, "n!-n-activity-201706.csv");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> {
+              IcannHttpReporter reporter = createReporter();
+              reporter.send(FAKE_PAYLOAD, "n!-n-activity-201706.csv");
+            });
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Expected file format: tld-reportType-yyyyMM.csv, "
+                + "got n!-n-activity-201706.csv instead");
   }
 
   @Test
   public void testFail_invalidFilename_tldDoesntExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("TLD hello does not exist");
-    IcannHttpReporter reporter = createReporter();
-    reporter.send(FAKE_PAYLOAD, "hello-activity-201706.csv");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> {
+              IcannHttpReporter reporter = createReporter();
+              reporter.send(FAKE_PAYLOAD, "hello-activity-201706.csv");
+            });
+    assertThat(thrown).hasMessageThat().contains("TLD hello does not exist");
   }
 }

@@ -17,6 +17,7 @@ package google.registry.request.auth;
 import static com.google.common.net.HttpHeaders.AUTHORIZATION;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -38,7 +39,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -48,10 +48,6 @@ public class RequestAuthenticatorTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder().build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private static final AuthSettings AUTH_NONE = AuthSettings.create(
       ImmutableList.of(AuthMethod.INTERNAL),
       AuthLevel.NONE,
@@ -391,44 +387,55 @@ public class RequestAuthenticatorTest {
 
   @Test
   public void testCheckAuthConfig_NoMethods_failure() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Must specify at least one auth method");
-
-    RequestAuthenticator.checkAuthConfig(AUTH_NO_METHODS);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> RequestAuthenticator.checkAuthConfig(AUTH_NO_METHODS));
+    assertThat(thrown).hasMessageThat().contains("Must specify at least one auth method");
   }
 
   @Test
   public void testCheckAuthConfig_WrongMethodOrdering_failure() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown
-        .expectMessage("Auth methods must be unique and strictly in order - INTERNAL, API, LEGACY");
-
-    RequestAuthenticator.checkAuthConfig(AUTH_WRONG_METHOD_ORDERING);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> RequestAuthenticator.checkAuthConfig(AUTH_WRONG_METHOD_ORDERING));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Auth methods must be unique and strictly in order - INTERNAL, API, LEGACY");
   }
 
   @Test
   public void testCheckAuthConfig_DuplicateMethods_failure() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown
-        .expectMessage("Auth methods must be unique and strictly in order - INTERNAL, API, LEGACY");
-
-    RequestAuthenticator.checkAuthConfig(AUTH_DUPLICATE_METHODS);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> RequestAuthenticator.checkAuthConfig(AUTH_DUPLICATE_METHODS));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Auth methods must be unique and strictly in order - INTERNAL, API, LEGACY");
   }
 
   @Test
   public void testCheckAuthConfig_InternalWithUser_failure() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Actions with INTERNAL auth method may not require USER auth level");
-
-    RequestAuthenticator.checkAuthConfig(AUTH_INTERNAL_WITH_USER);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> RequestAuthenticator.checkAuthConfig(AUTH_INTERNAL_WITH_USER));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Actions with INTERNAL auth method may not require USER auth level");
   }
 
   @Test
   public void testCheckAuthConfig_WronglyIgnoringUser_failure() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(
-        "Actions with auth methods beyond INTERNAL must not specify the IGNORED user policy");
-
-    RequestAuthenticator.checkAuthConfig(AUTH_WRONGLY_IGNORING_USER);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> RequestAuthenticator.checkAuthConfig(AUTH_WRONGLY_IGNORING_USER));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Actions with auth methods beyond INTERNAL must not specify the IGNORED user policy");
   }
 }

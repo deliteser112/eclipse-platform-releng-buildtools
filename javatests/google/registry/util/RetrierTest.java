@@ -15,23 +15,19 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
 import google.registry.util.Retrier.FailureReporter;
 import java.util.concurrent.Callable;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link Retrier}. */
 @RunWith(JUnit4.class)
 public class RetrierTest {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
 
   Retrier retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
 
@@ -86,16 +82,20 @@ public class RetrierTest {
 
   @Test
   public void testRetryableException() throws Exception {
-    thrown.expect(CountingException.class);
-    thrown.expectMessage("3");
-    retrier.callWithRetry(new CountingThrower(3), CountingException.class);
+    CountingException thrown =
+        expectThrows(
+            CountingException.class,
+            () -> retrier.callWithRetry(new CountingThrower(3), CountingException.class));
+    assertThat(thrown).hasMessageThat().contains("3");
   }
 
   @Test
   public void testUnretryableException() throws Exception {
-    thrown.expect(CountingException.class);
-    thrown.expectMessage("1");
-    retrier.callWithRetry(new CountingThrower(5), IllegalArgumentException.class);
+    CountingException thrown =
+        expectThrows(
+            CountingException.class,
+            () -> retrier.callWithRetry(new CountingThrower(5), IllegalArgumentException.class));
+    assertThat(thrown).hasMessageThat().contains("1");
   }
 
   @Test
@@ -106,15 +106,19 @@ public class RetrierTest {
 
   @Test
   public void testRetryFailed_withReporter() throws Exception {
-    thrown.expect(CountingException.class);
-    thrown.expectMessage("3");
-    TestReporter reporter = new TestReporter();
-    try {
-      retrier.callWithRetry(new CountingThrower(3), reporter, CountingException.class);
-    } catch (CountingException expected) {
-      reporter.assertNumbers(2, 1);
-      throw expected;
-    }
+    CountingException thrown =
+        expectThrows(
+            CountingException.class,
+            () -> {
+              TestReporter reporter = new TestReporter();
+              try {
+                retrier.callWithRetry(new CountingThrower(3), reporter, CountingException.class);
+              } catch (CountingException expected) {
+                reporter.assertNumbers(2, 1);
+                throw expected;
+              }
+            });
+    assertThat(thrown).hasMessageThat().contains("3");
   }
 
   @Test

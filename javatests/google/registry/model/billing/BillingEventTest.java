@@ -19,6 +19,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.DateTimeZone.UTC;
@@ -35,16 +36,10 @@ import google.registry.model.reporting.HistoryEntry;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link BillingEvent}. */
 public class BillingEventTest extends EntityTestCase {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private final DateTime now = DateTime.now(UTC);
 
   HistoryEntry historyEntry;
@@ -182,44 +177,64 @@ public class BillingEventTest extends EntityTestCase {
 
   @Test
   public void testFailure_syntheticFlagWithoutCreationTime() {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage(
-        "Synthetic creation time must be set if and only if the SYNTHETIC flag is set.");
-    oneTime.asBuilder()
-        .setFlags(ImmutableSet.of(BillingEvent.Flag.SYNTHETIC))
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .build();
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () ->
+                oneTime
+                    .asBuilder()
+                    .setFlags(ImmutableSet.of(BillingEvent.Flag.SYNTHETIC))
+                    .setCancellationMatchingBillingEvent(Key.create(recurring))
+                    .build());
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Synthetic creation time must be set if and only if the SYNTHETIC flag is set.");
   }
 
   @Test
   public void testFailure_syntheticCreationTimeWithoutFlag() {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage(
-        "Synthetic creation time must be set if and only if the SYNTHETIC flag is set");
-    oneTime.asBuilder()
-        .setSyntheticCreationTime(now.plusDays(10))
-        .build();
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () -> oneTime.asBuilder().setSyntheticCreationTime(now.plusDays(10)).build());
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Synthetic creation time must be set if and only if the SYNTHETIC flag is set");
   }
 
   @Test
   public void testFailure_syntheticFlagWithoutCancellationMatchingKey() {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage(
-        "Cancellation matching billing event must be set if and only if the SYNTHETIC flag is set");
-    oneTime.asBuilder()
-        .setFlags(ImmutableSet.of(BillingEvent.Flag.SYNTHETIC))
-        .setSyntheticCreationTime(END_OF_TIME)
-        .build();
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () ->
+                oneTime
+                    .asBuilder()
+                    .setFlags(ImmutableSet.of(BillingEvent.Flag.SYNTHETIC))
+                    .setSyntheticCreationTime(END_OF_TIME)
+                    .build());
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Cancellation matching billing event must be set "
+                + "if and only if the SYNTHETIC flag is set");
   }
 
   @Test
   public void testFailure_cancellationMatchingKeyWithoutFlag() {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage(
-        "Cancellation matching billing event must be set if and only if the SYNTHETIC flag is set");
-    oneTime.asBuilder()
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .build();
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () ->
+                oneTime
+                    .asBuilder()
+                    .setCancellationMatchingBillingEvent(Key.create(recurring))
+                    .build());
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Cancellation matching billing event must be set "
+                + "if and only if the SYNTHETIC flag is set");
   }
 
   @Test
@@ -250,32 +265,44 @@ public class BillingEventTest extends EntityTestCase {
 
   @Test
   public void testFailure_cancellation_forGracePeriodWithoutBillingEvent() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("grace period without billing event");
-    BillingEvent.Cancellation.forGracePeriod(
-        GracePeriod.createWithoutBillingEvent(
-            GracePeriodStatus.REDEMPTION,
-            now.plusDays(1),
-            "a registrar"),
-        historyEntry,
-        "foo.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                BillingEvent.Cancellation.forGracePeriod(
+                    GracePeriod.createWithoutBillingEvent(
+                        GracePeriodStatus.REDEMPTION, now.plusDays(1), "a registrar"),
+                    historyEntry,
+                    "foo.tld"));
+    assertThat(thrown).hasMessageThat().contains("grace period without billing event");
   }
 
   @Test
   public void testFailure_cancellationWithNoBillingEvent() {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("exactly one billing event");
-    cancellationOneTime.asBuilder().setOneTimeEventKey(null).setRecurringEventKey(null).build();
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () ->
+                cancellationOneTime
+                    .asBuilder()
+                    .setOneTimeEventKey(null)
+                    .setRecurringEventKey(null)
+                    .build());
+    assertThat(thrown).hasMessageThat().contains("exactly one billing event");
   }
 
   @Test
   public void testFailure_cancellationWithBothBillingEvents() {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("exactly one billing event");
-    cancellationOneTime.asBuilder()
-        .setOneTimeEventKey(Key.create(oneTime))
-        .setRecurringEventKey(Key.create(recurring))
-        .build();
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () ->
+                cancellationOneTime
+                    .asBuilder()
+                    .setOneTimeEventKey(Key.create(oneTime))
+                    .setRecurringEventKey(Key.create(recurring))
+                    .build());
+    assertThat(thrown).hasMessageThat().contains("exactly one billing event");
   }
 
   @Test

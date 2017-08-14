@@ -38,7 +38,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -53,9 +52,6 @@ public class PollMessageExternalKeyConverterTest {
 
   @Rule
   public InjectRule inject = new InjectRule();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   HistoryEntry historyEntry;
   FakeClock clock = new FakeClock(DateTime.parse("2007-07-07T01:01:01Z"));

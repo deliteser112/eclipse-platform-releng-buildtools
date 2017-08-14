@@ -34,7 +34,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -49,10 +48,6 @@ public class TmchCertificateAuthorityTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Rule
   public final InjectRule inject = new InjectRule();
 
@@ -113,8 +108,10 @@ public class TmchCertificateAuthorityTest {
   @Test
   public void testFailure_verifyRevoked() throws Exception {
     TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PILOT);
-    thrown.expect(CertificateRevokedException.class);
-    thrown.expectMessage("revoked, reason: KEY_COMPROMISE");
-    tmchCertificateAuthority.verify(loadCertificate(REVOKED_TEST_CERTIFICATE));
+    CertificateRevokedException thrown =
+        expectThrows(
+            CertificateRevokedException.class,
+            () -> tmchCertificateAuthority.verify(loadCertificate(REVOKED_TEST_CERTIFICATE)));
+    assertThat(thrown).hasMessageThat().contains("revoked, reason: KEY_COMPROMISE");
   }
 }

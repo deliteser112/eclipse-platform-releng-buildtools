@@ -15,23 +15,19 @@
 package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link IntervalParameter}. */
 @RunWith(JUnit4.class)
 public class IntervalParameterTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private final IntervalParameter instance = new IntervalParameter();
 
   @Test
@@ -44,38 +40,35 @@ public class IntervalParameterTest {
 
   @Test
   public void testConvert_singleDate() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("2004-06-09T12:30:00Z");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("2004-06-09T12:30:00Z"));
   }
 
   @Test
   public void testConvert_backwardsInterval() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("2004-07-10T13:30:00Z/2004-06-09T12:30:00Z");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> instance.convert("2004-07-10T13:30:00Z/2004-06-09T12:30:00Z"));
   }
 
   @Test
   public void testConvert_empty_throws() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert(""));
   }
 
   @Test
   public void testConvert_null_throws() throws Exception {
-    thrown.expect(NullPointerException.class);
-    instance.convert(null);
+    assertThrows(NullPointerException.class, () -> instance.convert(null));
   }
 
   @Test
   public void testConvert_sillyString_throws() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("foo");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("foo"));
   }
 
   @Test
   public void testValidate_sillyString_throws() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--time=foo not an");
-    instance.validate("--time", "foo");
+    ParameterException thrown =
+        expectThrows(ParameterException.class, () -> instance.validate("--time", "foo"));
+    assertThat(thrown).hasMessageThat().contains("--time=foo not an");
   }
 }

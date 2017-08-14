@@ -19,6 +19,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.UrlFetchUtils.getHeaderFirst;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
@@ -40,7 +42,6 @@ import java.util.Optional;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -86,10 +87,6 @@ public class NordnVerifyActionTest {
       .withDatastore()
       .withTaskQueue()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Mock
   private URLFetchService fetchService;
 
@@ -168,15 +165,13 @@ public class NordnVerifyActionTest {
   @Test
   public void failureVerifyUnauthorized() throws Exception {
     when(httpResponse.getResponseCode()).thenReturn(SC_UNAUTHORIZED);
-    thrown.expect(Exception.class);
-    action.run();
+    assertThrows(Exception.class, () -> action.run());
   }
 
   @Test
   public void failureVerifyNotReady() throws Exception {
     when(httpResponse.getResponseCode()).thenReturn(SC_NO_CONTENT);
-    thrown.expect(ConflictException.class);
-    thrown.expectMessage("Not ready");
-    action.run();
+    ConflictException thrown = expectThrows(ConflictException.class, () -> action.run());
+    assertThat(thrown).hasMessageThat().contains("Not ready");
   }
 }

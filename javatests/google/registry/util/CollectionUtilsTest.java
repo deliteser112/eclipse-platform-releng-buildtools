@@ -15,6 +15,7 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.CollectionUtils.partitionMap;
 
@@ -22,18 +23,13 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link CollectionUtils} */
 @RunWith(JUnit4.class)
 public class CollectionUtilsTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testNullToEmptyMap_leavesNonNullAlone() {
@@ -65,14 +61,12 @@ public class CollectionUtilsTest {
 
   @Test
   public void testPartitionMap_negativePartitionSize() {
-    thrown.expect(IllegalArgumentException.class);
-    partitionMap(ImmutableMap.of("A", "b"), -2);
+    assertThrows(IllegalArgumentException.class, () -> partitionMap(ImmutableMap.of("A", "b"), -2));
   }
 
   @Test
   public void testPartitionMap_nullMap() {
-    thrown.expect(NullPointerException.class);
-    partitionMap(null, 100);
+    assertThrows(NullPointerException.class, () -> partitionMap(null, 100));
   }
 
   @Test

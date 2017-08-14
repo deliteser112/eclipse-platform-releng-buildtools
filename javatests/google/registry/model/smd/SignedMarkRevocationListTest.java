@@ -17,6 +17,7 @@ package google.registry.model.smd;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.smd.SignedMarkRevocationList.SHARD_SIZE;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.Duration.standardDays;
 
@@ -26,7 +27,6 @@ import google.registry.testing.FakeClock;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -38,25 +38,24 @@ public class SignedMarkRevocationListTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private final FakeClock clock = new FakeClock(DateTime.parse("2013-01-01T00:00:00Z"));
 
   @Test
   public void testUnshardedSaveFails() throws Exception {
-    thrown.expect(SignedMarkRevocationList.UnshardedSaveException.class);
     // Our @Entity's @OnSave method will notice that this shouldn't be saved.
-    ofy()
-        .transact(
-            () -> {
-              SignedMarkRevocationList smdrl =
-                  SignedMarkRevocationList.create(
-                      ofy().getTransactionTime(), ImmutableMap.of("a", ofy().getTransactionTime()));
-              smdrl.id = 1; // Without an id this won't save anyways.
-              ofy().saveWithoutBackup().entity(smdrl).now();
-            });
+    assertThrows(
+        SignedMarkRevocationList.UnshardedSaveException.class,
+        () ->
+            ofy()
+                .transact(
+                    () -> {
+                      SignedMarkRevocationList smdrl =
+                          SignedMarkRevocationList.create(
+                              ofy().getTransactionTime(),
+                              ImmutableMap.of("a", ofy().getTransactionTime()));
+                      smdrl.id = 1; // Without an id this won't save anyways.
+                      ofy().saveWithoutBackup().entity(smdrl).now();
+                    }));
   }
 
   @Test
@@ -112,9 +111,11 @@ public class SignedMarkRevocationListTest {
 
   @Test
   public void test_isSmdRevoked_null() throws Exception {
-    thrown.expect(NullPointerException.class);
-    SignedMarkRevocationList.create(START_OF_TIME, ImmutableMap.<String, DateTime>of())
-        .isSmdRevoked(null, clock.nowUtc());
+    assertThrows(
+        NullPointerException.class,
+        () ->
+            SignedMarkRevocationList.create(START_OF_TIME, ImmutableMap.<String, DateTime>of())
+                .isSmdRevoked(null, clock.nowUtc()));
   }
 
   @Test

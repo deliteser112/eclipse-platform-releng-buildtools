@@ -20,6 +20,8 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDomainAndEnqueueLordn;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -49,7 +51,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -64,10 +65,6 @@ public class LordnTaskTest {
       .withDatastore()
       .withTaskQueue()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Rule
   public final InjectRule inject = new InjectRule();
 
@@ -97,8 +94,9 @@ public class LordnTaskTest {
 
   @Test
   public void test_convertTasksToCsv_throwsNpeOnNullTasks() throws Exception {
-    thrown.expect(NullPointerException.class);
-    LordnTask.convertTasksToCsv(null, clock.nowUtc(), "header");
+    assertThrows(
+        NullPointerException.class,
+        () -> LordnTask.convertTasksToCsv(null, clock.nowUtc(), "header"));
   }
 
   private DomainResource.Builder newDomainBuilder(DateTime applicationTime) {
@@ -166,19 +164,26 @@ public class LordnTaskTest {
             .setRepoId("9000-EXAMPLE")
             .setCreationClientId("nonexistentRegistrar")
             .build();
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("No registrar found for client id: nonexistentRegistrar");
-    persistDomainAndEnqueueLordn(domain);
+    IllegalStateException thrown =
+        expectThrows(IllegalStateException.class, () -> persistDomainAndEnqueueLordn(domain));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("No registrar found for client id: nonexistentRegistrar");
   }
 
   @Test
   public void test_enqueueDomainResourceTask_throwsNpeOnNullDomain() throws Exception {
-    thrown.expect(NullPointerException.class);
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        LordnTask.enqueueDomainResourceTask(null);
-      }});
+    assertThrows(
+        NullPointerException.class,
+        () ->
+            ofy()
+                .transactNew(
+                    new VoidWork() {
+                      @Override
+                      public void vrun() {
+                        LordnTask.enqueueDomainResourceTask(null);
+                      }
+                    }));
   }
 
   @SuppressWarnings("unchecked")
@@ -198,9 +203,9 @@ public class LordnTaskTest {
   public void test_loadAllTasks_retryLogic_allFailures() throws Exception {
     Queue queue = mock(Queue.class);
     when(queue.leaseTasks(any(LeaseOptions.class))).thenThrow(TransientFailureException.class);
-    thrown.expect(RuntimeException.class);
-    thrown.expectMessage("Error leasing tasks");
-    LordnTask.loadAllTasks(queue, "tld");
+    RuntimeException thrown =
+        expectThrows(RuntimeException.class, () -> LordnTask.loadAllTasks(queue, "tld"));
+    assertThat(thrown).hasMessageThat().contains("Error leasing tasks");
   }
 
   private static TaskHandle makeTaskHandle(

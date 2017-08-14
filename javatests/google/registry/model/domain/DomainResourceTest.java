@@ -24,6 +24,7 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -55,16 +56,10 @@ import java.util.stream.Stream;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link DomainResource}. */
 public class DomainResourceTest extends EntityTestCase {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   DomainResource domain;
 
   @Before
@@ -445,15 +440,23 @@ public class DomainResourceTest extends EntityTestCase {
 
   @Test
   public void testFailure_uppercaseDomainName() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Domain name must be in puny-coded, lower-case form");
-    domain.asBuilder().setFullyQualifiedDomainName("AAA.BBB");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> domain.asBuilder().setFullyQualifiedDomainName("AAA.BBB"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Domain name must be in puny-coded, lower-case form");
   }
 
   @Test
   public void testFailure_utf8DomainName() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Domain name must be in puny-coded, lower-case form");
-    domain.asBuilder().setFullyQualifiedDomainName("みんな.みんな");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> domain.asBuilder().setFullyQualifiedDomainName("みんな.みんな"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Domain name must be in puny-coded, lower-case form");
   }
 }

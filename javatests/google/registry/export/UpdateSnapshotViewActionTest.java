@@ -21,6 +21,7 @@ import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_DA
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_KIND_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_TABLE_ID_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.createViewUpdateTask;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -41,7 +42,6 @@ import java.io.IOException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
@@ -55,10 +55,6 @@ public class UpdateSnapshotViewActionTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withTaskQueue()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private final BigqueryFactory bigqueryFactory = mock(BigqueryFactory.class);
   private final Bigquery bigquery = mock(Bigquery.class);
   private final Bigquery.Datasets bigqueryDatasets = mock(Bigquery.Datasets.class);
@@ -127,8 +123,8 @@ public class UpdateSnapshotViewActionTest {
   public void testFailure_bigqueryConnectionThrowsError() throws Exception {
     when(bigqueryTables.update(anyString(), anyString(), anyString(), any(Table.class)))
         .thenThrow(new IOException("I'm sorry Dave, I can't let you do that"));
-    thrown.expect(InternalServerErrorException.class);
-    thrown.expectMessage("Error in update snapshot view action");
-    action.run();
+    InternalServerErrorException thrown =
+        expectThrows(InternalServerErrorException.class, () -> action.run());
+    assertThat(thrown).hasMessageThat().contains("Error in update snapshot view action");
   }
 }

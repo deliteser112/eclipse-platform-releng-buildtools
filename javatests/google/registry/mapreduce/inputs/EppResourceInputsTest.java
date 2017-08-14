@@ -28,6 +28,8 @@ import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistEppResourceInFirstBucket;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.googlecode.objectify.Key;
@@ -48,7 +50,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -60,10 +61,6 @@ public class EppResourceInputsTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @SuppressWarnings("unchecked")
   private <T> T serializeAndDeserialize(T obj) throws Exception {
     try (ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
@@ -83,16 +80,18 @@ public class EppResourceInputsTest {
 
   @Test
   public void testFailure_keyInputType_polymorphicSubclass() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("non-polymorphic");
-    createKeyInput(DomainResource.class);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> createKeyInput(DomainResource.class));
+    assertThat(thrown).hasMessageThat().contains("non-polymorphic");
   }
 
   @Test
   public void testFailure_keyInputType_noInheritanceBetweenTypes_eppResource() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("inheritance");
-    createKeyInput(EppResource.class, DomainBase.class);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> createKeyInput(EppResource.class, DomainBase.class));
+    assertThat(thrown).hasMessageThat().contains("inheritance");
   }
 
   @Test
@@ -104,16 +103,20 @@ public class EppResourceInputsTest {
 
   @Test
   public void testFailure_entityInputType_noInheritanceBetweenTypes_eppResource() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("inheritance");
-    createEntityInput(EppResource.class, DomainResource.class);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> createEntityInput(EppResource.class, DomainResource.class));
+    assertThat(thrown).hasMessageThat().contains("inheritance");
   }
 
   @Test
   public void testFailure_entityInputType_noInheritanceBetweenTypes_subclasses() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("inheritance");
-    createEntityInput(DomainBase.class, DomainResource.class);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> createEntityInput(DomainBase.class, DomainResource.class));
+    assertThat(thrown).hasMessageThat().contains("inheritance");
   }
 
   @Test
@@ -191,8 +194,7 @@ public class EppResourceInputsTest {
     seen.add(reader.next());
     assertThat(reader.getProgress()).isWithin(EPSILON).of(1);
     assertThat(seen).containsExactly(Key.create(domainA), Key.create(domainB));
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   @Test
@@ -211,16 +213,15 @@ public class EppResourceInputsTest {
     seen.add(reader.next());
     assertThat(reader.getProgress()).isWithin(EPSILON).of(0.5);
     reader.endSlice();
-    reader = serializeAndDeserialize(reader);
-    reader.beginSlice();
-    assertThat(reader.getProgress()).isWithin(EPSILON).of(0.5);
-    seen.add(reader.next());
-    assertThat(reader.getProgress()).isWithin(EPSILON).of(1);
-    reader.endSlice();
-    reader.endShard();
+    InputReader<DomainResource> deserializedReader = serializeAndDeserialize(reader);
+    deserializedReader.beginSlice();
+    assertThat(deserializedReader.getProgress()).isWithin(EPSILON).of(0.5);
+    seen.add(deserializedReader.next());
+    assertThat(deserializedReader.getProgress()).isWithin(EPSILON).of(1);
+    deserializedReader.endSlice();
+    deserializedReader.endShard();
     assertThat(seen).containsExactly(domainA, domainB);
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, deserializedReader::next);
   }
 
   @Test
@@ -238,8 +239,7 @@ public class EppResourceInputsTest {
     seen.add(reader.next());
     assertThat(reader.getProgress()).isWithin(EPSILON).of(1.0);
     assertThat(seen).containsExactly(domain, application);
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   @Test
@@ -256,8 +256,7 @@ public class EppResourceInputsTest {
     // We can't reliably assert getProgress() here, since it counts before the postfilter that weeds
     // out polymorphic mismatches, and so depending on whether the domain or the application was
     // seen first it will be 0.5 or 1.0. However, there should be nothing left when we call next().
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   @Test
@@ -278,8 +277,7 @@ public class EppResourceInputsTest {
     seen.add(reader.next());
     assertThat(reader.getProgress()).isWithin(EPSILON).of(1.0);
     assertThat(seen).containsExactly(domain, host);
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   @Test
@@ -305,7 +303,6 @@ public class EppResourceInputsTest {
     seen.add(reader.next());
     assertThat(reader.getProgress()).isWithin(EPSILON).of(1.0);
     assertThat(seen).containsExactly(domain, host, application, contact);
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 }

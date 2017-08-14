@@ -52,17 +52,13 @@ import google.registry.testing.mapreduce.MapreduceTestCase;
 import java.util.List;
 import java.util.Optional;
 import org.joda.time.DateTime;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public class MapreduceEntityCleanupActionTest
     extends MapreduceTestCase<MapreduceEntityCleanupAction> {
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   private static final DatastoreService datastore = getDatastoreService();
   private static final FetchOptions FETCH_OPTIONS = FetchOptions.Builder.withChunkSize(200);

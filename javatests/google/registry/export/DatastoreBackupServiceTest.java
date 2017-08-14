@@ -17,6 +17,7 @@ package google.registry.export;
 import static com.google.appengine.api.datastore.DatastoreServiceFactory.getDatastoreService;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -33,16 +34,12 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link DatastoreBackupService}. */
 @RunWith(JUnit4.class)
 public class DatastoreBackupServiceTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final InjectRule inject = new InjectRule();
@@ -119,13 +116,11 @@ public class DatastoreBackupServiceTest {
 
   @Test
   public void testFailure_findByName_multipleMatchingBackups() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    backupService.findByName("backupA");
+    assertThrows(IllegalArgumentException.class, () -> backupService.findByName("backupA"));
   }
 
   @Test
   public void testFailure_findByName_noMatchingBackups() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    backupService.findByName("backupX");
+    assertThrows(IllegalArgumentException.class, () -> backupService.findByName("backupX"));
   }
 }

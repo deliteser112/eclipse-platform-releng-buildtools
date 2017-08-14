@@ -27,15 +27,10 @@ import google.registry.model.EntityTestCase;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.ForeignKeyIndex.ForeignKeyHostIndex;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link ForeignKeyIndex}. */
 public class ForeignKeyIndexTest extends EntityTestCase {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Before
   public void setUp() throws Exception {

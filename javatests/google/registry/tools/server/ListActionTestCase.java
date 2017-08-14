@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import org.junit.Rule;
-import org.junit.rules.ExpectedException;
 
 /**
  * Base class for tests of list actions.
@@ -34,9 +33,6 @@ public class ListActionTestCase {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   private FakeJsonResponse response;
 

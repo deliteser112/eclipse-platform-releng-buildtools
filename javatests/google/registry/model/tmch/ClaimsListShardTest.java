@@ -16,6 +16,7 @@ package google.registry.model.tmch;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -32,7 +33,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -46,9 +46,6 @@ public class ClaimsListShardTest {
       .build();
 
   @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
-  @Rule
   public final InjectRule inject = new InjectRule();
 
   @Before
@@ -58,16 +55,19 @@ public class ClaimsListShardTest {
 
   @Test
   public void test_unshardedSaveFails() throws Exception {
-    thrown.expect(UnshardedSaveException.class);
-    ofy()
-        .transact(
-            () -> {
-              ClaimsListShard claimsList =
-                  ClaimsListShard.create(ofy().getTransactionTime(), ImmutableMap.of("a", "b"));
-              claimsList.id = 1; // Without an id this won't save anyways.
-              claimsList.parent = ClaimsListRevision.createKey();
-              ofy().saveWithoutBackup().entity(claimsList).now();
-            });
+    assertThrows(
+        UnshardedSaveException.class,
+        () ->
+            ofy()
+                .transact(
+                    () -> {
+                      ClaimsListShard claimsList =
+                          ClaimsListShard.create(
+                              ofy().getTransactionTime(), ImmutableMap.of("a", "b"));
+                      claimsList.id = 1; // Without an id this won't save anyways.
+                      claimsList.parent = ClaimsListRevision.createKey();
+                      ofy().saveWithoutBackup().entity(claimsList).now();
+                    }));
   }
 
   @Test

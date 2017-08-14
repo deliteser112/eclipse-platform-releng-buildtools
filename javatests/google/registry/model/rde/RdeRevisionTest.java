@@ -19,6 +19,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.rde.RdeMode.FULL;
 import static google.registry.model.rde.RdeRevision.getNextRevision;
 import static google.registry.model.rde.RdeRevision.saveRevision;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.base.VerifyException;
 import com.googlecode.objectify.VoidWork;
@@ -26,7 +27,6 @@ import google.registry.testing.AppEngineRule;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -36,10 +36,6 @@ public class RdeRevisionTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testGetNextRevision_objectDoesntExist_returnsZero() throws Exception {
     assertThat(getNextRevision("torment", DateTime.parse("1984-12-18TZ"), FULL))
@@ -70,25 +66,37 @@ public class RdeRevisionTest {
 
   @Test
   public void testSaveRevision_objectDoesntExist_newRevisionIsOne_throwsVe() throws Exception {
-    thrown.expect(VerifyException.class);
-    thrown.expectMessage("object missing");
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        saveRevision("despondency", DateTime.parse("1984-12-18TZ"), FULL, 1);
-      }});
+    VerifyException thrown =
+        expectThrows(
+            VerifyException.class,
+            () ->
+                ofy()
+                    .transact(
+                        new VoidWork() {
+                          @Override
+                          public void vrun() {
+                            saveRevision("despondency", DateTime.parse("1984-12-18TZ"), FULL, 1);
+                          }
+                        }));
+    assertThat(thrown).hasMessageThat().contains("object missing");
   }
 
   @Test
   public void testSaveRevision_objectExistsAtZero_newRevisionIsZero_throwsVe() throws Exception {
     save("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 0);
-    thrown.expect(VerifyException.class);
-    thrown.expectMessage("object already created");
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        saveRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 0);
-      }});
+    VerifyException thrown =
+        expectThrows(
+            VerifyException.class,
+            () ->
+                ofy()
+                    .transact(
+                        new VoidWork() {
+                          @Override
+                          public void vrun() {
+                            saveRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 0);
+                          }
+                        }));
+    assertThat(thrown).hasMessageThat().contains("object already created");
   }
 
   @Test
@@ -110,31 +118,45 @@ public class RdeRevisionTest {
   @Test
   public void testSaveRevision_objectExistsAtZero_newRevisionIsTwo_throwsVe() throws Exception {
     save("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 0);
-    thrown.expect(VerifyException.class);
-    thrown.expectMessage("should be at 1 ");
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        saveRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 2);
-      }});
+    VerifyException thrown =
+        expectThrows(
+            VerifyException.class,
+            () ->
+                ofy()
+                    .transact(
+                        new VoidWork() {
+                          @Override
+                          public void vrun() {
+                            saveRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 2);
+                          }
+                        }));
+    assertThat(thrown).hasMessageThat().contains("should be at 1 ");
   }
 
   @Test
   public void testSaveRevision_negativeRevision_throwsIae() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Negative revision");
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        saveRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL, -1);
-      }});
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                ofy()
+                    .transact(
+                        new VoidWork() {
+                          @Override
+                          public void vrun() {
+                            saveRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL, -1);
+                          }
+                        }));
+    assertThat(thrown).hasMessageThat().contains("Negative revision");
   }
 
   @Test
   public void testSaveRevision_callerNotInTransaction_throwsIse() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("transaction");
-    saveRevision("frenzy", DateTime.parse("1984-12-18TZ"), FULL, 1);
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () -> saveRevision("frenzy", DateTime.parse("1984-12-18TZ"), FULL, 1));
+    assertThat(thrown).hasMessageThat().contains("transaction");
   }
 
   public static void save(String tld, DateTime date, RdeMode mode, int revision) {

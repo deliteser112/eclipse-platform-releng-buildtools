@@ -15,20 +15,16 @@
 package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import google.registry.model.registry.Registry.TldState;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link EnumParameter}. */
 @RunWith(JUnit4.class)
 public class EnumParameterTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   // There's no additional functionality exposed by this (or any other) EnumParameter, but using
   // this in the test as EnumParameter is abstract.
@@ -41,9 +37,11 @@ public class EnumParameterTest {
 
   @Test
   public void testFailure_badValue() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(
-        "No enum constant google.registry.model.registry.Registry.TldState.GENERAL_SUNRUSH");
-    instance.convert("GENERAL_SUNRUSH");
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> instance.convert("GENERAL_SUNRUSH"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "No enum constant google.registry.model.registry.Registry.TldState.GENERAL_SUNRUSH");
   }
 }

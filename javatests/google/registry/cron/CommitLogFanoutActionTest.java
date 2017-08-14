@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -38,9 +37,6 @@ public class CommitLogFanoutActionTest {
 
   private static final String ENDPOINT = "/the/servlet";
   private static final String QUEUE = "the-queue";
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()

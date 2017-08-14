@@ -29,7 +29,6 @@ import org.joda.money.Money;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -43,9 +42,6 @@ public class UpdatePremiumListActionTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   UpdatePremiumListAction action;
   FakeJsonResponse response;

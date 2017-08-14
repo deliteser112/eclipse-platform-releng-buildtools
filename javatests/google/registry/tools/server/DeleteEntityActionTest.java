@@ -18,6 +18,7 @@ import static com.google.appengine.api.datastore.DatastoreServiceFactory.getData
 import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.Key.create;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -28,7 +29,6 @@ import google.registry.testing.FakeResponse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -38,10 +38,6 @@ public class DeleteEntityActionTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   FakeResponse response = new FakeResponse();
   DeleteEntityAction action = new DeleteEntityAction();
 
@@ -89,9 +85,8 @@ public class DeleteEntityActionTest {
     Entity entity = new Entity("not", "here");
     String rawKey = KeyFactory.keyToString(entity.getKey());
     action.rawKeys = rawKey;
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("Could not find entity with key " + rawKey);
-    action.run();
+    BadRequestException thrown = expectThrows(BadRequestException.class, () -> action.run());
+    assertThat(thrown).hasMessageThat().contains("Could not find entity with key " + rawKey);
   }
 
   @Test
@@ -102,8 +97,7 @@ public class DeleteEntityActionTest {
     Entity entity = new Entity("non", "existent");
     String rawKey = KeyFactory.keyToString(entity.getKey());
     action.rawKeys = String.format("%s,%s", ofyKey, rawKey);
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("Could not find entity with key " + rawKey);
-    action.run();
+    BadRequestException thrown = expectThrows(BadRequestException.class, () -> action.run());
+    assertThat(thrown).hasMessageThat().contains("Could not find entity with key " + rawKey);
   }
 }

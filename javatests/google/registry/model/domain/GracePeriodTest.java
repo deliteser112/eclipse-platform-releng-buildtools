@@ -15,6 +15,7 @@
 package google.registry.model.domain;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.googlecode.objectify.Key;
@@ -30,7 +31,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -42,10 +42,6 @@ public class GracePeriodTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()  // Needed to be able to construct Keys.
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private final DateTime now = DateTime.now(UTC);
   private BillingEvent.OneTime onetime;
 
@@ -96,19 +92,24 @@ public class GracePeriodTest {
 
   @Test
   public void testFailure_forBillingEvent_autoRenew() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("autorenew");
-    GracePeriod.forBillingEvent(GracePeriodStatus.AUTO_RENEW, onetime);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> GracePeriod.forBillingEvent(GracePeriodStatus.AUTO_RENEW, onetime));
+    assertThat(thrown).hasMessageThat().contains("autorenew");
   }
 
   @Test
   public void testFailure_createForRecurring_notAutoRenew() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("autorenew");
-    GracePeriod.createForRecurring(
-        GracePeriodStatus.RENEW,
-        now.plusDays(1),
-        "TheRegistrar",
-        Key.create(Recurring.class, 12345));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                GracePeriod.createForRecurring(
+                    GracePeriodStatus.RENEW,
+                    now.plusDays(1),
+                    "TheRegistrar",
+                    Key.create(Recurring.class, 12345)));
+    assertThat(thrown).hasMessageThat().contains("autorenew");
   }
 }

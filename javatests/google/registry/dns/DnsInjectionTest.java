@@ -14,9 +14,11 @@
 
 package google.registry.dns;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 import static org.mockito.Mockito.mock;
@@ -36,7 +38,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -49,9 +50,6 @@ public final class DnsInjectionTest {
       .withDatastore()
       .withTaskQueue()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final InjectRule inject = new InjectRule();
@@ -97,9 +95,9 @@ public final class DnsInjectionTest {
   public void testRefreshDns_missingDomain_throwsNotFound() throws Exception {
     when(req.getParameter("type")).thenReturn("domain");
     when(req.getParameter("name")).thenReturn("example.lol");
-    thrown.expect(NotFoundException.class);
-    thrown.expectMessage("domain example.lol not found");
-    component.refreshDns().run();
+    NotFoundException thrown =
+        expectThrows(NotFoundException.class, () -> component.refreshDns().run());
+    assertThat(thrown).hasMessageThat().contains("domain example.lol not found");
   }
 
   @Test
@@ -115,8 +113,8 @@ public final class DnsInjectionTest {
   public void testRefreshDns_missingHost_throwsNotFound() throws Exception {
     when(req.getParameter("type")).thenReturn("host");
     when(req.getParameter("name")).thenReturn("ns1.example.lol");
-    thrown.expect(NotFoundException.class);
-    thrown.expectMessage("host ns1.example.lol not found");
-    component.refreshDns().run();
+    NotFoundException thrown =
+        expectThrows(NotFoundException.class, () -> component.refreshDns().run());
+    assertThat(thrown).hasMessageThat().contains("host ns1.example.lol not found");
   }
 }

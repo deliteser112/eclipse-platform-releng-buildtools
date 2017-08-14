@@ -60,7 +60,6 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -68,9 +67,6 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class RefreshDnsOnHostRenameActionTest
     extends MapreduceTestCase<RefreshDnsOnHostRenameAction> {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public InjectRule inject = new InjectRule();

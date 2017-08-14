@@ -16,6 +16,8 @@ package google.registry.groups;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.groups.DirectoryGroupsConnection.getDefaultGroupPermissions;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
@@ -50,9 +52,7 @@ import google.registry.groups.GroupsConnection.Role;
 import java.io.IOException;
 import java.util.Set;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -61,10 +61,6 @@ import org.junit.runners.JUnit4;
  */
 @RunWith(JUnit4.class)
 public class DirectoryGroupsConnectionTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private final Directory directory = mock(Directory.class);
   private final Groupssettings groupsSettings = mock(Groupssettings.class);
   private final Directory.Members members = mock(Directory.Members.class);
@@ -118,18 +114,22 @@ public class DirectoryGroupsConnectionTest {
   public void test_addMemberToGroup_handlesExceptionThrownByDirectoryService() throws Exception {
     when(membersInsert.execute()).thenThrow(
         makeResponseException(SC_INTERNAL_SERVER_ERROR, "Could not contact Directory server."));
-    thrown.expect(GoogleJsonResponseException.class);
-    runAddMemberTest();
+    assertThrows(GoogleJsonResponseException.class, () -> runAddMemberTest());
   }
 
   @Test
   public void test_addMemberToGroup_handlesMemberKeyNotFoundException() throws Exception {
     when(membersInsert.execute()).thenThrow(
         makeResponseException(SC_NOT_FOUND, "Resource Not Found: memberKey"));
-    thrown.expect(RuntimeException.class);
-    thrown.expectMessage("Adding member jim@example.com to group spam@example.com "
-            + "failed because the member wasn't found.");
-    connection.addMemberToGroup("spam@example.com", "jim@example.com", Role.MEMBER);
+    RuntimeException thrown =
+        expectThrows(
+            RuntimeException.class,
+            () -> connection.addMemberToGroup("spam@example.com", "jim@example.com", Role.MEMBER));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Adding member jim@example.com to group spam@example.com "
+                + "failed because the member wasn't found.");
   }
 
   @Test
@@ -178,8 +178,7 @@ public class DirectoryGroupsConnectionTest {
   public void test_createGroup_handlesExceptionThrownByDirectoryService() throws Exception {
     when(groupsInsert.execute()).thenThrow(
         makeResponseException(SC_INTERNAL_SERVER_ERROR, "Could not contact Directory server."));
-    thrown.expect(GoogleJsonResponseException.class);
-    runCreateGroupTest();
+    assertThrows(GoogleJsonResponseException.class, () -> runCreateGroupTest());
   }
 
   @Test

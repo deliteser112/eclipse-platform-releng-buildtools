@@ -23,6 +23,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableList;
@@ -32,16 +33,10 @@ import google.registry.model.EntityTestCase;
 import google.registry.model.domain.DomainApplication;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link DomainApplicationIndex}. */
 public class DomainApplicationIndexTest extends EntityTestCase {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Before
   public void init() throws Exception {
     createTld("com");
@@ -49,16 +44,20 @@ public class DomainApplicationIndexTest extends EntityTestCase {
 
   @Test
   public void testFailure_create_nullReferences() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Keys must not be null or empty.");
-    DomainApplicationIndex.createWithSpecifiedKeys("blah.com", null);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> DomainApplicationIndex.createWithSpecifiedKeys("blah.com", null));
+    assertThat(thrown).hasMessageThat().contains("Keys must not be null or empty.");
   }
 
   @Test
   public void testFailure_create_emptyReferences() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Keys must not be null or empty.");
-    createWithSpecifiedKeys("blah.com", ImmutableSet.<Key<DomainApplication>>of());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> createWithSpecifiedKeys("blah.com", ImmutableSet.<Key<DomainApplication>>of()));
+    assertThat(thrown).hasMessageThat().contains("Keys must not be null or empty.");
   }
 
   @Test

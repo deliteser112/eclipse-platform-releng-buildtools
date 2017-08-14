@@ -17,6 +17,7 @@ package google.registry.export;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.export.CheckSnapshotAction.CHECK_SNAPSHOT_KINDS_TO_LOAD_PARAM;
 import static google.registry.export.CheckSnapshotAction.CHECK_SNAPSHOT_NAME_PARAM;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Mockito.mock;
@@ -40,7 +41,6 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -53,8 +53,6 @@ public class CheckSnapshotActionTest {
 
   @Rule public final InjectRule inject = new InjectRule();
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withTaskQueue().build();
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   private final DatastoreBackupService backupService = mock(DatastoreBackupService.class);
 
   private DatastoreBackupInfo backupInfo;
@@ -124,9 +122,8 @@ public class CheckSnapshotActionTest {
   public void testPost_forPendingBackup_returnsNotModified() throws Exception {
     setPendingBackup();
 
-    thrown.expect(NotModifiedException.class);
-    thrown.expectMessage("Datastore backup some_backup still pending");
-    action.run();
+    NotModifiedException thrown = expectThrows(NotModifiedException.class, () -> action.run());
+    assertThat(thrown).hasMessageThat().contains("Datastore backup some_backup still pending");
   }
 
   @Test
@@ -141,11 +138,12 @@ public class CheckSnapshotActionTest {
             .plus(Duration.standardMinutes(3))
             .plus(Duration.millis(1234)));
 
-    thrown.expect(NoContentException.class);
-    thrown.expectMessage("Datastore backup some_backup abandoned - "
-            + "not complete after 20 hours, 3 minutes and 1 second");
-
-    action.run();
+    NoContentException thrown = expectThrows(NoContentException.class, () -> action.run());
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Datastore backup some_backup abandoned - "
+                + "not complete after 20 hours, 3 minutes and 1 second");
   }
 
   @Test
@@ -188,10 +186,8 @@ public class CheckSnapshotActionTest {
     when(backupService.findByName("some_backup"))
         .thenThrow(new IllegalArgumentException("No backup found"));
 
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("Bad backup name some_backup: No backup found");
-
-    action.run();
+    BadRequestException thrown = expectThrows(BadRequestException.class, () -> action.run());
+    assertThat(thrown).hasMessageThat().contains("Bad backup name some_backup: No backup found");
   }
 
   @Test
@@ -220,9 +216,7 @@ public class CheckSnapshotActionTest {
     when(backupService.findByName("some_backup"))
         .thenThrow(new IllegalArgumentException("No backup found"));
 
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("Bad backup name some_backup: No backup found");
-
-    action.run();
+    BadRequestException thrown = expectThrows(BadRequestException.class, () -> action.run());
+    assertThat(thrown).hasMessageThat().contains("Bad backup name some_backup: No backup found");
   }
 }

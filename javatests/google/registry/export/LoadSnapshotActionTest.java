@@ -22,6 +22,7 @@ import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_KINDS_PARA
 import static google.registry.export.LoadSnapshotAction.PATH;
 import static google.registry.export.LoadSnapshotAction.QUEUE;
 import static google.registry.export.LoadSnapshotAction.enqueueLoadSnapshotTask;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Matchers.any;
@@ -52,7 +53,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
@@ -65,10 +65,6 @@ public class LoadSnapshotActionTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withTaskQueue()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private final BigqueryFactory bigqueryFactory = mock(BigqueryFactory.class);
   private final Bigquery bigquery = mock(Bigquery.class);
   private final Bigquery.Jobs bigqueryJobs = mock(Bigquery.Jobs.class);
@@ -186,16 +182,19 @@ public class LoadSnapshotActionTest {
   @Test
   public void testFailure_doPost_badGcsFilename() throws Exception {
     action.snapshotFile = "gs://bucket/snapshot";
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("Error calling load snapshot: backup info file extension missing");
-    action.run();
+    BadRequestException thrown = expectThrows(BadRequestException.class, () -> action.run());
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Error calling load snapshot: backup info file extension missing");
   }
 
   @Test
   public void testFailure_doPost_bigqueryThrowsException() throws Exception {
     when(bigqueryJobsInsert.execute()).thenThrow(new IOException("The Internet has gone missing"));
-    thrown.expect(InternalServerErrorException.class);
-    thrown.expectMessage("Error loading snapshot: The Internet has gone missing");
-    action.run();
+    InternalServerErrorException thrown =
+        expectThrows(InternalServerErrorException.class, () -> action.run());
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Error loading snapshot: The Internet has gone missing");
   }
 }

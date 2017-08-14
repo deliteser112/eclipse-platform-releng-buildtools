@@ -15,22 +15,17 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link TypeUtils}. */
 @RunWith(JUnit4.class)
 public class TypeUtilsTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void test_getClassFromString_validClass() {
     Class<? extends Serializable> clazz =
@@ -40,15 +35,21 @@ public class TypeUtilsTest {
 
   @Test
   public void test_getClassFromString_notAssignableFrom() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("ArrayList does not implement/extend Integer");
-    TypeUtils.getClassFromString("java.util.ArrayList", Integer.class);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> TypeUtils.getClassFromString("java.util.ArrayList", Integer.class));
+    assertThat(thrown).hasMessageThat().contains("ArrayList does not implement/extend Integer");
   }
 
   @Test
   public void test_getClassFromString_unknownClass() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Failed to load class com.fake.company.nonexistent.Class");
-    TypeUtils.getClassFromString("com.fake.company.nonexistent.Class", Object.class);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> TypeUtils.getClassFromString("com.fake.company.nonexistent.Class", Object.class));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Failed to load class com.fake.company.nonexistent.Class");
   }
 }

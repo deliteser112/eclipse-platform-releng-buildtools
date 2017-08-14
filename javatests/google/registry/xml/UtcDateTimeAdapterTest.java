@@ -15,23 +15,18 @@
 package google.registry.xml;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link UtcDateTimeAdapter}. */
 @RunWith(JUnit4.class)
 public class UtcDateTimeAdapterTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testMarshal() {
     assertThat(new UtcDateTimeAdapter().marshal(new DateTime(2010, 10, 17, 4, 20, 0, UTC)))
@@ -70,7 +65,8 @@ public class UtcDateTimeAdapterTest {
 
   @Test
   public void testUnmarshalInvalid() {
-    thrown.expect(IllegalArgumentException.class);
-    assertThat((new UtcDateTimeAdapter()).unmarshal("oh my goth")).isNull();
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> assertThat((new UtcDateTimeAdapter()).unmarshal("oh my goth")).isNull());
   }
 }

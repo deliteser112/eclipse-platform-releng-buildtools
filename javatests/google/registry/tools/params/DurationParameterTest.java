@@ -15,23 +15,19 @@
 package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import org.joda.time.Duration;
 import org.joda.time.Period;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link DurationParameter}. */
 @RunWith(JUnit4.class)
 public class DurationParameterTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private final DurationParameter instance = new DurationParameter();
 
   @Test
@@ -51,50 +47,43 @@ public class DurationParameterTest {
 
   @Test
   public void testIsoMissingP_notAllowed() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    Period.parse("T36H");
+    assertThrows(IllegalArgumentException.class, () -> Period.parse("T36H"));
   }
 
   @Test
   public void testIsoMissingPT_notAllowed() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    Period.parse("36H");
+    assertThrows(IllegalArgumentException.class, () -> Period.parse("36H"));
   }
 
   @Test
   public void testConvert_isoMissingP_notAllowed() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("T36H");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("T36H"));
   }
 
   @Test
   public void testConvert_null_throws() throws Exception {
-    thrown.expect(NullPointerException.class);
-    instance.convert(null);
+    assertThrows(NullPointerException.class, () -> instance.convert(null));
   }
 
   @Test
   public void testConvert_empty_throws() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert(""));
   }
 
   @Test
   public void testConvert_numeric_throws() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("1234");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("1234"));
   }
 
   @Test
   public void testConvert_sillyString_throws() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    instance.convert("foo");
+    assertThrows(IllegalArgumentException.class, () -> instance.convert("foo"));
   }
 
   @Test
   public void testValidate_sillyString_throws() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--time=foo not an");
-    instance.validate("--time", "foo");
+    ParameterException thrown =
+        expectThrows(ParameterException.class, () -> instance.validate("--time", "foo"));
+    assertThat(thrown).hasMessageThat().contains("--time=foo not an");
   }
 }

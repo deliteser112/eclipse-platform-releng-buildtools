@@ -33,6 +33,8 @@ import static google.registry.monitoring.metrics.contrib.LongMetricSubject.asser
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -49,7 +51,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -59,9 +60,6 @@ public class ReservedListTest {
 
   @Rule
   public final InjectRule inject = new InjectRule();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -269,9 +267,13 @@ public class ReservedListTest {
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "foo")).isTrue();
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "bar")).isFalse();
     persistReservedList("reserved2", "lol,RESERVED_FOR_ANCHOR_TENANT,bar");
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("There are conflicting auth codes for domain: lol.tld");
-    matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "bar");
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () -> matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "bar"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("There are conflicting auth codes for domain: lol.tld");
   }
 
   @Test
@@ -468,88 +470,120 @@ public class ReservedListTest {
 
   @Test
   public void testSave_badSyntax() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Could not parse line in reserved list");
-    persistReservedList("tld", "lol,FULLY_BLOCKED,e,e # yup");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> persistReservedList("tld", "lol,FULLY_BLOCKED,e,e # yup"));
+    assertThat(thrown).hasMessageThat().contains("Could not parse line in reserved list");
   }
 
   @Test
   public void testSave_badReservationType() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    persistReservedList("tld", "lol,FULLY_BLOCKZ # yup");
+    assertThrows(
+        IllegalArgumentException.class, () -> persistReservedList("tld", "lol,FULLY_BLOCKZ # yup"));
   }
 
   @Test
   public void testSave_additionalRestrictionWithIncompatibleReservationType() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Only anchor tenant and nameserver restricted reservations "
-            + "should have restrictions imposed");
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                ImmutableSet.of(persistReservedList("reserved1", "lol,FULLY_BLOCKED,foobar1")))
-            .build());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                persistResource(
+                    Registry.get("tld")
+                        .asBuilder()
+                        .setReservedLists(
+                            ImmutableSet.of(
+                                persistReservedList("reserved1", "lol,FULLY_BLOCKED,foobar1")))
+                        .build()));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Only anchor tenant and nameserver restricted reservations "
+                + "should have restrictions imposed");
   }
 
   @Test
   public void testSave_badNameservers_invalidSyntax() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Not a valid domain name: 'ns@.domain.tld'");
-    persistReservedList(
-        "reserved1",
-        "lol,NAMESERVER_RESTRICTED,ns1.domain.tld:ns2.domain.tld",
-        "lol1,NAMESERVER_RESTRICTED,ns1.domain.tld:ns@.domain.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                persistReservedList(
+                    "reserved1",
+                    "lol,NAMESERVER_RESTRICTED,ns1.domain.tld:ns2.domain.tld",
+                    "lol1,NAMESERVER_RESTRICTED,ns1.domain.tld:ns@.domain.tld"));
+    assertThat(thrown).hasMessageThat().contains("Not a valid domain name: 'ns@.domain.tld'");
   }
 
   @Test
   public void testSave_badNameservers_tooFewPartsForHostname() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("domain.tld is not a valid nameserver hostname");
-    persistReservedList(
-        "reserved1",
-        "lol,NAMESERVER_RESTRICTED,ns1.domain.tld:ns2.domain.tld",
-        "lol1,NAMESERVER_RESTRICTED,ns1.domain.tld:domain.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                persistReservedList(
+                    "reserved1",
+                    "lol,NAMESERVER_RESTRICTED,ns1.domain.tld:ns2.domain.tld",
+                    "lol1,NAMESERVER_RESTRICTED,ns1.domain.tld:domain.tld"));
+    assertThat(thrown).hasMessageThat().contains("domain.tld is not a valid nameserver hostname");
   }
 
   @Test
   public void testSave_noPasswordWithAnchorTenantReservation() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Anchor tenant reservations must have an auth code configured");
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                ImmutableSet.of(persistReservedList("reserved1", "lol,RESERVED_FOR_ANCHOR_TENANT")))
-            .build());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                persistResource(
+                    Registry.get("tld")
+                        .asBuilder()
+                        .setReservedLists(
+                            ImmutableSet.of(
+                                persistReservedList("reserved1", "lol,RESERVED_FOR_ANCHOR_TENANT")))
+                        .build()));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Anchor tenant reservations must have an auth code configured");
   }
 
   @Test
   public void testSave_noNameserversWithNameserverRestrictedReservation() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(
-        "Nameserver restricted reservations must have at least one nameserver configured");
-    persistResource(
-        Registry.get("tld")
-            .asBuilder()
-            .setReservedLists(
-                ImmutableSet.of(persistReservedList("reserved1", "lol,NAMESERVER_RESTRICTED")))
-            .build());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                persistResource(
+                    Registry.get("tld")
+                        .asBuilder()
+                        .setReservedLists(
+                            ImmutableSet.of(
+                                persistReservedList("reserved1", "lol,NAMESERVER_RESTRICTED")))
+                        .build()));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Nameserver restricted reservations must have at least one nameserver configured");
   }
 
   @Test
   public void testParse_cannotIncludeDuplicateLabels() {
     ReservedList rl = new ReservedList.Builder().setName("blah").build();
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage(
-        "List 'blah' cannot contain duplicate labels. Dupes (with counts) were: [lol x 2]");
-    rl.parse(
-        ImmutableList.of(
-            "lol,FULLY_BLOCKED",
-            "rofl,FULLY_BLOCKED",
-            "paper,FULLY_BLOCKED",
-            "wood,FULLY_BLOCKED",
-            "lol,FULLY_BLOCKED"));
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () ->
+                rl.parse(
+                    ImmutableList.of(
+                        "lol,FULLY_BLOCKED",
+                        "rofl,FULLY_BLOCKED",
+                        "paper,FULLY_BLOCKED",
+                        "wood,FULLY_BLOCKED",
+                        "lol,FULLY_BLOCKED")));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "List 'blah' cannot contain duplicate labels. Dupes (with counts) were: [lol x 2]");
   }
 
   /** Gets the name of a reserved list. */

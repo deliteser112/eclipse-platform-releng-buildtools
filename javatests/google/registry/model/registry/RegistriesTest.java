@@ -17,12 +17,12 @@ package google.registry.model.registry;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.net.InternetDomainName;
 import google.registry.testing.AppEngineRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -32,10 +32,6 @@ public class RegistriesTest {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   private void initTestTlds() {
     createTlds("foo", "a.b.c"); // Test a multipart tld.
   }
@@ -61,8 +57,7 @@ public class RegistriesTest {
   @Test
   public void testAssertTldExists_doesntExist() {
     initTestTlds();
-    thrown.expect(IllegalArgumentException.class);
-    Registries.assertTldExists("baz");
+    assertThrows(IllegalArgumentException.class, () -> Registries.assertTldExists("baz"));
   }
 
   @Test

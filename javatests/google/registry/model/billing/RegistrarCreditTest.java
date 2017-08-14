@@ -19,6 +19,7 @@ import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.money.CurrencyUnit.JPY;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -28,16 +29,10 @@ import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import org.joda.money.CurrencyUnit;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link RegistrarCredit}. */
 public class RegistrarCreditTest extends EntityTestCase {
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   private RegistrarCredit auctionCredit;
   private RegistrarCredit promoCredit;
 
@@ -81,23 +76,28 @@ public class RegistrarCreditTest extends EntityTestCase {
 
   @Test
   public void testFailure_missingTld() throws Exception {
-    thrown.expect(NullPointerException.class);
-    thrown.expectMessage("tld");
-    promoCredit.asBuilder().setTld(null).build();
+    NullPointerException thrown =
+        expectThrows(
+            NullPointerException.class, () -> promoCredit.asBuilder().setTld(null).build());
+    assertThat(thrown).hasMessageThat().contains("tld");
   }
 
   @Test
   public void testFailure_NonexistentTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("example");
-    promoCredit.asBuilder().setTld("example").build();
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> promoCredit.asBuilder().setTld("example").build());
+    assertThat(thrown).hasMessageThat().contains("example");
   }
 
   @Test
   public void testFailure_CurrencyDoesNotMatchTldCurrency() throws Exception {
     assertThat(Registry.get("tld").getCurrency()).isEqualTo(USD);
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("currency");
-    promoCredit.asBuilder().setTld("tld").setCurrency(JPY).build();
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> promoCredit.asBuilder().setTld("tld").setCurrency(JPY).build());
+    assertThat(thrown).hasMessageThat().contains("currency");
   }
 }

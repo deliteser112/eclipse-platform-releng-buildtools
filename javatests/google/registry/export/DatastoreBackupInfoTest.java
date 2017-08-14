@@ -17,6 +17,7 @@ package google.registry.export;
 import static com.google.appengine.api.datastore.DatastoreServiceFactory.getDatastoreService;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
@@ -32,17 +33,12 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link DatastoreBackupInfo}. */
 @RunWith(JUnit4.class)
 public class DatastoreBackupInfoTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Rule
   public final InjectRule inject = new InjectRule();
 
@@ -107,28 +103,28 @@ public class DatastoreBackupInfoTest {
   @Test
   public void testFailure_missingName() throws Exception {
     backupEntity.removeProperty("name");
-    thrown.expect(NullPointerException.class);
-    new DatastoreBackupInfo(persistEntity(backupEntity));
+    assertThrows(
+        NullPointerException.class, () -> new DatastoreBackupInfo(persistEntity(backupEntity)));
   }
 
   @Test
   public void testFailure_missingKinds() throws Exception {
     backupEntity.removeProperty("kinds");
-    thrown.expect(NullPointerException.class);
-    new DatastoreBackupInfo(persistEntity(backupEntity));
+    assertThrows(
+        NullPointerException.class, () -> new DatastoreBackupInfo(persistEntity(backupEntity)));
   }
 
   @Test
   public void testFailure_missingStartTime() throws Exception {
     backupEntity.removeProperty("start_time");
-    thrown.expect(NullPointerException.class);
-    new DatastoreBackupInfo(persistEntity(backupEntity));
+    assertThrows(
+        NullPointerException.class, () -> new DatastoreBackupInfo(persistEntity(backupEntity)));
   }
 
   @Test
   public void testFailure_badGcsFilenameFormat() throws Exception {
     backupEntity.setProperty("gs_handle", new Text("foo"));
-    thrown.expect(IllegalArgumentException.class);
-    new DatastoreBackupInfo(persistEntity(backupEntity));
+    assertThrows(
+        IllegalArgumentException.class, () -> new DatastoreBackupInfo(persistEntity(backupEntity)));
   }
 }

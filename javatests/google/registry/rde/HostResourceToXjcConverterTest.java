@@ -17,6 +17,7 @@ package google.registry.rde;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.xjc.XjcXmlTransformer.marshalStrict;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -36,7 +37,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -53,9 +53,6 @@ public class HostResourceToXjcConverterTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Before
   public void init() {
@@ -192,20 +189,22 @@ public class HostResourceToXjcConverterTest {
 
   @Test
   public void testHostStatusValueIsInvalid() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    HostResourceToXjcConverter.convertExternalHost(
-        new HostResource.Builder()
-            .setCreationClientId("LawyerCat")
-            .setCreationTimeForTest(DateTime.parse("1900-01-01T00:00:00Z"))
-            .setPersistedCurrentSponsorClientId("BusinessCat")
-            .setFullyQualifiedHostName("ns1.love.lol")
-            .setInetAddresses(ImmutableSet.of(InetAddresses.forString("cafe::abba")))
-            .setLastTransferTime(DateTime.parse("1910-01-01T00:00:00Z"))
-            .setLastEppUpdateClientId("CeilingCat")
-            .setLastEppUpdateTime(DateTime.parse("1920-01-01T00:00:00Z"))
-            .setRepoId("2-LOL")
-            .setStatusValues(ImmutableSet.of(StatusValue.SERVER_HOLD))  // <-- OOPS
-            .build());
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            HostResourceToXjcConverter.convertExternalHost(
+                new HostResource.Builder()
+                    .setCreationClientId("LawyerCat")
+                    .setCreationTimeForTest(DateTime.parse("1900-01-01T00:00:00Z"))
+                    .setPersistedCurrentSponsorClientId("BusinessCat")
+                    .setFullyQualifiedHostName("ns1.love.lol")
+                    .setInetAddresses(ImmutableSet.of(InetAddresses.forString("cafe::abba")))
+                    .setLastTransferTime(DateTime.parse("1910-01-01T00:00:00Z"))
+                    .setLastEppUpdateClientId("CeilingCat")
+                    .setLastEppUpdateTime(DateTime.parse("1920-01-01T00:00:00Z"))
+                    .setRepoId("2-LOL")
+                    .setStatusValues(ImmutableSet.of(StatusValue.SERVER_HOLD)) // <-- OOPS
+                    .build()));
   }
 
   @Test

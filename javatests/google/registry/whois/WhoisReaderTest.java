@@ -16,6 +16,7 @@ package google.registry.whois;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.LogsSubject.assertAboutLogs;
 
 import com.google.common.testing.TestLogHandler;
@@ -26,7 +27,6 @@ import java.util.logging.Level;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -35,9 +35,6 @@ import org.junit.runners.JUnit4;
 public class WhoisReaderTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   private final FakeClock clock = new FakeClock();
   private final TestLogHandler testLogHandler = new TestLogHandler();
 
@@ -143,20 +140,17 @@ public class WhoisReaderTest {
 
   @Test
   public void testTooManyArgsDomainLookup() throws Exception {
-    thrown.expect(WhoisException.class);
-    readCommand("domain example.tld foo.bar");
+    assertThrows(WhoisException.class, () -> readCommand("domain example.tld foo.bar"));
   }
 
   @Test
   public void testTooFewArgsDomainLookup() throws Exception {
-    thrown.expect(WhoisException.class);
-    readCommand("domain");
+    assertThrows(WhoisException.class, () -> readCommand("domain"));
   }
 
   @Test
   public void testIllegalArgDomainLookup() throws Exception {
-    thrown.expect(WhoisException.class);
-    readCommand("domain 1.1");
+    assertThrows(WhoisException.class, () -> readCommand("domain 1.1"));
   }
 
   @Test
@@ -218,20 +212,17 @@ public class WhoisReaderTest {
 
   @Test
   public void testTooManyArgsNameserverLookup() throws Exception {
-    thrown.expect(WhoisException.class);
-    readCommand("nameserver ns.example.tld foo.bar");
+    assertThrows(WhoisException.class, () -> readCommand("nameserver ns.example.tld foo.bar"));
   }
 
   @Test
   public void testTooFewArgsNameserverLookup() throws Exception {
-    thrown.expect(WhoisException.class);
-    readCommand("nameserver");
+    assertThrows(WhoisException.class, () -> readCommand("nameserver"));
   }
 
   @Test
   public void testIllegalArgNameserverLookup() throws Exception {
-    thrown.expect(WhoisException.class);
-    readCommand("nameserver 1.1");
+    assertThrows(WhoisException.class, () -> readCommand("nameserver 1.1"));
   }
 
   @Test
@@ -261,8 +252,7 @@ public class WhoisReaderTest {
 
   @Test
   public void testRegistrarLookupNoArgs() throws Exception {
-    thrown.expect(WhoisException.class);
-    readCommand("registrar");
+    assertThrows(WhoisException.class, () -> readCommand("registrar"));
   }
 
   @Test
@@ -312,8 +302,7 @@ public class WhoisReaderTest {
 
   @Test
   public void testNameserverLookupByIpTooManyArgs() throws Exception {
-    thrown.expect(WhoisException.class);
-    readCommand("nameserver 43.34.12.213 43.34.12.213");
+    assertThrows(WhoisException.class, () -> readCommand("nameserver 43.34.12.213 43.34.12.213"));
   }
 
   @Test
@@ -342,8 +331,7 @@ public class WhoisReaderTest {
 
   @Test
   public void testNoArgs() throws Exception {
-    thrown.expect(WhoisException.class);
-    readCommand("");
+    assertThrows(WhoisException.class, () -> readCommand(""));
   }
 
   @Test

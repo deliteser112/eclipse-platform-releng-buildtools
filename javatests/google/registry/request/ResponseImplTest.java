@@ -24,18 +24,13 @@ import static org.mockito.Mockito.when;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import javax.servlet.http.HttpServletResponse;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link ResponseImpl}. */
 @RunWith(JUnit4.class)
 public class ResponseImplTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   private final HttpServletResponse rsp = mock(HttpServletResponse.class);
 

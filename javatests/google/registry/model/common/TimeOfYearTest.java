@@ -21,9 +21,7 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import org.joda.time.DateTime;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -34,9 +32,6 @@ public class TimeOfYearTest {
   private static final DateTime february28 = DateTime.parse("2012-02-28T01:02:03.0Z");
   private static final DateTime february29 = DateTime.parse("2012-02-29T01:02:03.0Z");
   private static final DateTime march1 = DateTime.parse("2012-03-01T01:02:03.0Z");
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testSuccess_fromDateTime() throws Exception {

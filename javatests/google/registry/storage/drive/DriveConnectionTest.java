@@ -16,6 +16,7 @@ package google.registry.storage.drive;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
@@ -37,9 +38,7 @@ import com.google.common.net.MediaType;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentMatcher;
@@ -47,10 +46,6 @@ import org.mockito.ArgumentMatcher;
 /** Tests for {@link DriveConnection}.*/
 @RunWith(JUnit4.class)
 public class DriveConnectionTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   private final Drive drive = mock(Drive.class);
   private final Files files = mock(Files.class);
   private final Children children = mock(Children.class);
@@ -215,10 +210,17 @@ public class DriveConnectionTest {
           new ChildReference().setId("id2")))
       .setNextPageToken(null);
     when(childrenList.execute()).thenReturn(childList);
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Could not update file 'title' in Drive folder id 'driveFolderId' "
-            + "because multiple files with that name already exist.");
-    driveConnection.createOrUpdateFile("title", MediaType.WEBM_VIDEO, "driveFolderId", DATA);
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () ->
+                driveConnection.createOrUpdateFile(
+                    "title", MediaType.WEBM_VIDEO, "driveFolderId", DATA));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Could not update file 'title' in Drive folder id 'driveFolderId' "
+                + "because multiple files with that name already exist.");
   }
 
   @Test

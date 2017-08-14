@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardSeconds;
 import static org.mockito.Mockito.mock;
@@ -37,16 +38,12 @@ import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link EscrowTaskRunner}. */
 @RunWith(JUnit4.class)
 public class EscrowTaskRunnerTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -99,10 +96,13 @@ public class EscrowTaskRunnerTest {
     clock.setTo(DateTime.parse("2006-06-06T00:30:00Z"));
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, DateTime.parse("2006-06-07TZ"), registry));
-    thrown.expect(NoContentException.class);
-    thrown.expectMessage("Already completed");
-    runner.lockRunAndRollForward(
-        task, registry, standardSeconds(30), CursorType.RDE_STAGING, standardDays(1));
+    NoContentException thrown =
+        expectThrows(
+            NoContentException.class,
+            () ->
+                runner.lockRunAndRollForward(
+                    task, registry, standardSeconds(30), CursorType.RDE_STAGING, standardDays(1)));
+    assertThat(thrown).hasMessageThat().contains("Already completed");
   }
 
   @Test
@@ -111,10 +111,14 @@ public class EscrowTaskRunnerTest {
     clock.setTo(DateTime.parse("2006-06-06T00:30:00Z"));
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, DateTime.parse("2006-06-06TZ"), registry));
-    thrown.expect(ServiceUnavailableException.class);
-    thrown.expectMessage("Lock in use: " + lockName + " for TLD: lol");
-    runner.lockHandler = new FakeLockHandler(false);
-    runner.lockRunAndRollForward(
-        task, registry, standardSeconds(30), CursorType.RDE_STAGING, standardDays(1));
+    ServiceUnavailableException thrown =
+        expectThrows(
+            ServiceUnavailableException.class,
+            () -> {
+              runner.lockHandler = new FakeLockHandler(false);
+              runner.lockRunAndRollForward(
+                  task, registry, standardSeconds(30), CursorType.RDE_STAGING, standardDays(1));
+            });
+    assertThat(thrown).hasMessageThat().contains("Lock in use: " + lockName + " for TLD: lol");
   }
 }

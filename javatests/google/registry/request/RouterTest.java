@@ -17,13 +17,12 @@ package google.registry.request;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.request.auth.Auth.AUTH_INTERNAL_ONLY;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.base.Function;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -31,18 +30,17 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public final class RouterTest {
 
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   ////////////////////////////////////////////////////////////////////////////////////////////////
 
   public interface Empty {}
 
   @Test
   public void testRoute_noRoutes_throws() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("No routes found for class: google.registry.request.RouterTest.Empty");
-    Router.create(Empty.class);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> Router.create(Empty.class));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("No routes found for class: google.registry.request.RouterTest.Empty");
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,10 +142,13 @@ public final class RouterTest {
 
   @Test
   public void testRoute_methodsInComponentAreIgnored_throws() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(
-        "No routes found for class: google.registry.request.RouterTest.WeirdMethodsComponent");
-    Router.create(WeirdMethodsComponent.class);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class, () -> Router.create(WeirdMethodsComponent.class));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "No routes found for class: google.registry.request.RouterTest.WeirdMethodsComponent");
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -171,8 +172,8 @@ public final class RouterTest {
 
   @Test
   public void testCreate_twoTasksWithSameMethodAndPath_resultsInError() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Multiple entries with same key");
-    Router.create(DuplicateComponent.class);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> Router.create(DuplicateComponent.class));
+    assertThat(thrown).hasMessageThat().contains("Multiple entries with same key");
   }
 }

@@ -15,23 +15,18 @@
 package google.registry.tldconfig.idn;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableList;
 import java.net.URI;
 import java.util.Optional;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link IdnTable}. */
 @RunWith(JUnit4.class)
 public class IdnTableTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testDigits() {
     ImmutableList<String> of = ImmutableList.<String>of(
@@ -108,17 +103,21 @@ public class IdnTableTest {
   public void testMissingUrl_throwsNpe() {
     ImmutableList<String> of = ImmutableList.<String>of(
         "# Policy: https://love.example/policy.html");
-    thrown.expect(NullPointerException.class);
-    thrown.expectMessage("sloth missing '# URL:");
-    IdnTable.createFrom("sloth", of, Optional.<LanguageValidator>empty());
+    NullPointerException thrown =
+        expectThrows(
+            NullPointerException.class,
+            () -> IdnTable.createFrom("sloth", of, Optional.<LanguageValidator>empty()));
+    assertThat(thrown).hasMessageThat().contains("sloth missing '# URL:");
   }
 
   @Test
   public void testMissingPolicy_throwsNpe() {
     ImmutableList<String> of = ImmutableList.<String>of(
         "# URL: https://love.example/sloth.txt");
-    thrown.expect(NullPointerException.class);
-    thrown.expectMessage("sloth missing '# Policy:");
-    IdnTable.createFrom("sloth", of, Optional.<LanguageValidator>empty());
+    NullPointerException thrown =
+        expectThrows(
+            NullPointerException.class,
+            () -> IdnTable.createFrom("sloth", of, Optional.<LanguageValidator>empty()));
+    assertThat(thrown).hasMessageThat().contains("sloth missing '# Policy:");
   }
 }

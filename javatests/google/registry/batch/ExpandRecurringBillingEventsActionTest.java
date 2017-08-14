@@ -28,6 +28,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
@@ -60,7 +61,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -68,10 +68,6 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class ExpandRecurringBillingEventsActionTest
     extends MapreduceTestCase<ExpandRecurringBillingEventsAction> {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Rule
   public final InjectRule inject = new InjectRule();
 
@@ -649,18 +645,22 @@ public class ExpandRecurringBillingEventsActionTest
   @Test
   public void testFailure_cursorAfterExecutionTime() throws Exception {
     action.cursorTimeParam = Optional.of(clock.nowUtc().plusYears(1));
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Cursor time must be earlier than execution time.");
-    runMapreduce();
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> runMapreduce());
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Cursor time must be earlier than execution time.");
   }
 
   @Test
   public void testFailure_cursorAtExecutionTime() throws Exception {
     // The clock advances one milli on runMapreduce.
     action.cursorTimeParam = Optional.of(clock.nowUtc().plusMillis(1));
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Cursor time must be earlier than execution time.");
-    runMapreduce();
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> runMapreduce());
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Cursor time must be earlier than execution time.");
   }
 
   @Test

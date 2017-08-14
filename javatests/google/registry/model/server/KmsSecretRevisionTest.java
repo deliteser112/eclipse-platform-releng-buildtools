@@ -17,13 +17,13 @@ package google.registry.model.server;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.base.Strings;
 import google.registry.testing.AppEngineRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -31,9 +31,6 @@ import org.junit.runners.JUnit4;
 public class KmsSecretRevisionTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   private KmsSecretRevision secretRevision;
 
   @Before
@@ -49,15 +46,18 @@ public class KmsSecretRevisionTest {
 
   @Test
   public void test_setEncryptedValue_tooLong_throwsException() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Secret is greater than 67108864 bytes");
-    secretRevision =
-        persistResource(
-            new KmsSecretRevision.Builder()
-                .setKmsCryptoKeyVersionName("foo")
-                .setParent("bar")
-                .setEncryptedValue(Strings.repeat("a", 64 * 1024 * 1024 + 1))
-                .build());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                secretRevision =
+                    persistResource(
+                        new KmsSecretRevision.Builder()
+                            .setKmsCryptoKeyVersionName("foo")
+                            .setParent("bar")
+                            .setEncryptedValue(Strings.repeat("a", 64 * 1024 * 1024 + 1))
+                            .build()));
+    assertThat(thrown).hasMessageThat().contains("Secret is greater than 67108864 bytes");
   }
 
   @Test

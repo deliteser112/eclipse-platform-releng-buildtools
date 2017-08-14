@@ -32,7 +32,6 @@ import google.registry.testing.InjectRule;
 import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -46,10 +45,6 @@ public class CreateGroupsActionTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Rule
   public final InjectRule inject = new InjectRule();
 
@@ -67,17 +62,21 @@ public class CreateGroupsActionTest {
 
   @Test
   public void test_invalidRequest_missingClientId() throws Exception {
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("Error creating Google Groups, missing parameter: clientId");
-    runAction(null);
+    BadRequestException thrown = expectThrows(BadRequestException.class, () -> runAction(null));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Error creating Google Groups, missing parameter: clientId");
   }
 
   @Test
   public void test_invalidRequest_invalidClientId() throws Exception {
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage(
-        "Error creating Google Groups; could not find registrar with id completelyMadeUpClientId");
-    runAction("completelyMadeUpClientId");
+    BadRequestException thrown =
+        expectThrows(BadRequestException.class, () -> runAction("completelyMadeUpClientId"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Error creating Google Groups; "
+                + "could not find registrar with id completelyMadeUpClientId");
   }
 
   @Test

@@ -19,6 +19,7 @@ import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
 import static google.registry.model.ofy.CommitLogBucket.loadAllBuckets;
 import static google.registry.model.ofy.CommitLogBucket.loadBucket;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Suppliers;
@@ -29,7 +30,6 @@ import google.registry.testing.InjectRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -44,10 +44,6 @@ public class CommitLogBucketTest {
 
   @Rule
   public final InjectRule inject = new InjectRule();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   CommitLogBucket bucket;
 
   @Before
@@ -69,16 +65,16 @@ public class CommitLogBucketTest {
 
   @Test
   public void test_getBucketKey_bucketNumberTooLow_throws() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("0 not in [");
-    getBucketKey(0);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> getBucketKey(0));
+    assertThat(thrown).hasMessageThat().contains("0 not in [");
   }
 
   @Test
   public void test_getBucketKey_bucketNumberTooHigh_throws() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("11 not in [");
-    getBucketKey(11);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> getBucketKey(11));
+    assertThat(thrown).hasMessageThat().contains("11 not in [");
   }
 
   @Test
