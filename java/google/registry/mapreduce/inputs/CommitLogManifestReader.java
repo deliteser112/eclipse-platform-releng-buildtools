@@ -14,9 +14,11 @@
 
 package google.registry.mapreduce.inputs;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.datastore.Cursor;
+import com.google.appengine.api.datastore.DatastoreTimeoutException;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.base.Optional;
@@ -24,13 +26,19 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogManifest;
+import google.registry.util.FormattingLogger;
+import google.registry.util.Retrier;
+import google.registry.util.SystemSleeper;
 import java.util.NoSuchElementException;
+import java.util.concurrent.Callable;
 import org.joda.time.DateTime;
 
 /** {@link InputReader} that maps over {@link CommitLogManifest}. */
 class CommitLogManifestReader extends InputReader<Key<CommitLogManifest>> {
 
   private static final long serialVersionUID = 5117046535590539778L;
+
+  static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   /**
    * Memory estimation for this reader.
@@ -39,6 +47,8 @@ class CommitLogManifestReader extends InputReader<Key<CommitLogManifest>> {
    * more than enough.
    */
   private static final long MEMORY_ESTIMATE = 100 * 1024;
+
+  private static final Retrier retrier = new Retrier(new SystemSleeper(), 3);
 
   private final Key<CommitLogBucket> bucketKey;
 
@@ -125,8 +135,31 @@ class CommitLogManifestReader extends InputReader<Key<CommitLogManifest>> {
   @Override
   public Key<CommitLogManifest> next() {
     loaded++;
+    final Cursor currentCursor = queryIterator.getCursor();
     try {
-      return queryIterator.next();
+      return retrier.callWithRetry(
+          new Callable<Key<CommitLogManifest>>() {
+            @Override
+            public Key<CommitLogManifest> call() {
+              return queryIterator.next();
+            }
+          },
+          new Retrier.FailureReporter() {
+            @Override
+            public void beforeRetry(Throwable thrown, int failures, int maxAttempts) {
+              checkNotNull(currentCursor, "Can't retry because cursor is null. Giving up.");
+              queryIterator = query().startAt(currentCursor).keys().iterator();
+            }
+
+            @Override
+            public void afterFinalFailure(Throwable thrown, int failures) {
+              logger.severefmt(
+                  "Max retry attempts reached trying to read item %d/%d. Giving up.",
+                  loaded,
+                  total);
+            }
+          },
+          DatastoreTimeoutException.class);
     } finally {
       ofy().clearSessionCache();  // Try not to leak memory.
     }
