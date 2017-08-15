@@ -39,20 +39,18 @@ import javax.servlet.http.HttpServletRequest;
  * Container and validation for TLS certificate and ip-whitelisting.
  *
  * <p>Credentials are based on the following headers:
+ *
  * <dl>
- *   <dt>X-GFE-SSL-Certificate
- *   <dd>
- *     This field should contain a base64 encoded digest of the client's TLS certificate. It is
- *     validated during an EPP login command against a known good value that is transmitted out of
- *     band.
+ *   <dt>X-SSL-Certificate
+ *   <dd>This field should contain a base64 encoded digest of the client's TLS certificate. It is
+ *       validated during an EPP login command against a known good value that is transmitted out of
+ *       band.
  *   <dt>X-Forwarded-For
- *   <dd>
- *     This field should contain the host and port of the connecting client. It is validated during
- *     an EPP login command against an IP whitelist that is transmitted out of band.
+ *   <dd>This field should contain the host and port of the connecting client. It is validated
+ *       during an EPP login command against an IP whitelist that is transmitted out of band.
  *   <dt>X-GFE-Requested-Servername-SNI
- *   <dd>
- *     This field should contain the servername that the client requested during the TLS handshake.
- *     It is unused, but expected to be present in the GFE-proxied configuration.
+ *   <dd>This field should contain the servername that the client requested during the TLS
+ *       handshake. It is unused, but expected to be present in the GFE-proxied configuration.
  * </dl>
  */
 public class TlsCredentials implements TransportCredentials {
@@ -66,9 +64,9 @@ public class TlsCredentials implements TransportCredentials {
   @Inject
   @VisibleForTesting
   public TlsCredentials(
-      @Header("X-GFE-SSL-Certificate") String clientCertificateHash,
+      @Header("X-SSL-Certificate") String clientCertificateHash,
       @Header("X-Forwarded-For") Optional<String> clientAddress,
-      @Header("X-GFE-Requested-Servername-SNI") String sni) {
+      @Header("X-Requested-Servername-SNI") String sni) {
     this.clientCertificateHash = clientCertificateHash;
     this.clientInetAddr = clientAddress.isPresent() ? parseInetAddress(clientAddress.get()) : null;
     this.sni = sni;
@@ -102,7 +100,8 @@ public class TlsCredentials implements TransportCredentials {
   private void validateIp(Registrar registrar) throws AuthenticationErrorException {
     ImmutableList<CidrAddressBlock> ipWhitelist = registrar.getIpAddressWhitelist();
     if (ipWhitelist.isEmpty()) {
-      logger.infofmt("Skipping IP whitelist check because %s doesn't have an IP whitelist",
+      logger.infofmt(
+          "Skipping IP whitelist check because %s doesn't have an IP whitelist",
           registrar.getClientId());
       return;
     }
@@ -112,8 +111,9 @@ public class TlsCredentials implements TransportCredentials {
         return;
       }
     }
-    logger.infofmt("%s not in %s's CIDR whitelist: %s",
-        clientInetAddr, registrar.getClientId(), ipWhitelist);
+    logger.infofmt(
+        "Authentication error: IP address %s is not whitelisted for registrar %s.",
+        clientInetAddr, registrar.getClientId());
     throw new BadRegistrarIpAddressException();
   }
 
@@ -138,12 +138,13 @@ public class TlsCredentials implements TransportCredentials {
       if (!hasSni()) {
         throw new NoSniException();
       }
-      logger.infofmt("Request did not include %s", "X-GFE-SSL-Certificate");
+      logger.info("Request did not include X-SSL-Certificate");
       throw new MissingRegistrarCertificateException();
     }
     if (!clientCertificateHash.equals(registrar.getClientCertificateHash())
         && !clientCertificateHash.equals(registrar.getFailoverClientCertificateHash())) {
-      logger.warningfmt("bad certificate hash (%s) for %s, wanted either %s or %s",
+      logger.warningfmt(
+          "bad certificate hash (%s) for %s, wanted either %s or %s",
           clientCertificateHash,
           registrar.getClientId(),
           registrar.getClientCertificateHash(),
@@ -200,9 +201,9 @@ public class TlsCredentials implements TransportCredentials {
   @Module
   public static final class EppTlsModule {
     @Provides
-    @Header("X-GFE-SSL-Certificate")
+    @Header("X-SSL-Certificate")
     static String provideClientCertificateHash(HttpServletRequest req) {
-      return extractRequiredHeader(req, "X-GFE-SSL-Certificate");
+      return extractRequiredHeader(req, "X-SSL-Certificate");
     }
 
     @Provides
@@ -212,9 +213,9 @@ public class TlsCredentials implements TransportCredentials {
     }
 
     @Provides
-    @Header("X-GFE-Requested-Servername-SNI")
+    @Header("X-Requested-Servername-SNI")
     static String provideRequestedServername(HttpServletRequest req) {
-      return extractRequiredHeader(req, "X-GFE-Requested-Servername-SNI");
+      return extractRequiredHeader(req, "X-Requested-Servername-SNI");
     }
   }
 }
