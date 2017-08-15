@@ -26,6 +26,7 @@ import org.junit.runners.Suite.SuiteClasses;
   GhostrydeTest.class,
   HostResourceToXjcConverterTest.class,
   RdeStagingActionTest.class,
+  RdeUploadActionTest.class,
   RdeReportActionTest.class,
   RegistrarToXjcConverterTest.class,
   RydeGpgIntegrationTest.class,

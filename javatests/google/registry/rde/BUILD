@@ -9,10 +9,7 @@ load("//java/com/google/testing/builddefs:GenTestRules.bzl", "GenTestRules")
 
 java_library(
     name = "rde",
-    srcs = glob(
-        ["*.java"],
-        exclude = ["RdeUploadActionTest.java"],
-    ),
+    srcs = glob(["*.java"]),
     resources = glob(["testdata/*"]),
     deps = [
         "//java/google/registry/config",
@@ -53,9 +50,6 @@ java_library(
 GenTestRules(
     name = "GeneratedTestRules",
     default_test_size = "large",
-    test_files = glob(
-        ["*.java"],
-        exclude = ["RdeUploadActionTest.java"],
-    ),
+    test_files = glob(["*Test.java"]),
     deps = [":rde"],
 )
