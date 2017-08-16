@@ -55,14 +55,14 @@ public class IcannReportingUploadActionTest {
   private final FakeResponse response = new FakeResponse();
   private final GcsService gcsService = GcsServiceFactory.createGcsService();
   private final GcsFilename reportFile =
-      new GcsFilename("basin/icann/monthly/2017-05", "test-transactions-201705.csv");
+      new GcsFilename("basin/icann/monthly/2017-06", "test-transactions-201706.csv");
 
   private IcannReportingUploadAction createAction() {
     IcannReportingUploadAction action = new IcannReportingUploadAction();
     action.icannReporter = mockReporter;
     action.gcsUtils = new GcsUtils(gcsService, 1024);
     action.retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
-    action.yearMonth = "2017-05";
+    action.yearMonth = "2017-06";
     action.reportType = TRANSACTIONS;
     action.subdir = Optional.absent();
     action.tld = "test";
@@ -81,7 +81,7 @@ public class IcannReportingUploadActionTest {
   public void testSuccess() throws Exception {
     IcannReportingUploadAction action = createAction();
     action.run();
-    verify(mockReporter).send(FAKE_PAYLOAD, "test", "2017-05", TRANSACTIONS);
+    verify(mockReporter).send(FAKE_PAYLOAD, "test", "2017-06", TRANSACTIONS);
     verifyNoMoreInteractions(mockReporter);
     assertThat(((FakeResponse) action.response).getPayload())
         .isEqualTo("OK, sending: test,csv\n13,37");
@@ -93,9 +93,9 @@ public class IcannReportingUploadActionTest {
     doThrow(new IOException("Expected exception."))
         .doNothing()
         .when(mockReporter)
-        .send(FAKE_PAYLOAD, "test", "2017-05", TRANSACTIONS);
+        .send(FAKE_PAYLOAD, "test", "2017-06", TRANSACTIONS);
     action.run();
-    verify(mockReporter, times(2)).send(FAKE_PAYLOAD, "test", "2017-05", TRANSACTIONS);
+    verify(mockReporter, times(2)).send(FAKE_PAYLOAD, "test", "2017-06", TRANSACTIONS);
     verifyNoMoreInteractions(mockReporter);
     assertThat(((FakeResponse) action.response).getPayload())
         .isEqualTo("OK, sending: test,csv\n13,37");
@@ -162,8 +162,8 @@ public class IcannReportingUploadActionTest {
 
   @Test
   public void testSuccess_CreateFilename() throws Exception{
-    assertThat(IcannReportingUploadAction.createFilename("test", "2017-05", ACTIVITY))
-        .isEqualTo("test-activity-201705.csv");
+    assertThat(IcannReportingUploadAction.createFilename("test", "2017-06", ACTIVITY))
+        .isEqualTo("test-activity-201706.csv");
     assertThat(IcannReportingUploadAction.createFilename("foo", "1234-56", TRANSACTIONS))
         .isEqualTo("foo-transactions-123456.csv");
   }
@@ -172,11 +172,11 @@ public class IcannReportingUploadActionTest {
   public void testSuccess_CreateBucketname() throws Exception{
     assertThat(
         IcannReportingUploadAction
-            .createReportingBucketName("gs://my-reporting", Optional.<String>absent(), "2017-05"))
-        .isEqualTo("gs://my-reporting/icann/monthly/2017-05");
+            .createReportingBucketName("gs://my-reporting", Optional.<String>absent(), "2017-06"))
+        .isEqualTo("gs://my-reporting/icann/monthly/2017-06");
     assertThat(
         IcannReportingUploadAction
-            .createReportingBucketName("gs://my-reporting", Optional.of("manual"), "2017-05"))
+            .createReportingBucketName("gs://my-reporting", Optional.of("manual"), "2017-06"))
         .isEqualTo("gs://my-reporting/manual");
   }
 }

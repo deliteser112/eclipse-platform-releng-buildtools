@@ -26,7 +26,7 @@ SELECT
   END AS metricName,
   COUNT(requestPath) AS count
 FROM
-  `domain-registry-alpha.icann_reporting.monthly_logs_201705`
+  `domain-registry-alpha.icann_reporting.monthly_logs_201706`
 GROUP BY
   metricName
 HAVING

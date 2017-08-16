@@ -27,4 +27,4 @@ SELECT
 FROM
   `domain-registry-alpha.appengine_logs.appengine_googleapis_com_request_log_*`
 WHERE
-  _TABLE_SUFFIX BETWEEN '20170501' AND '20170601'
+  _TABLE_SUFFIX BETWEEN '20170601' AND '20170701'

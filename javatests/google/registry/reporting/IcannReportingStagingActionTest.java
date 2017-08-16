@@ -64,9 +64,9 @@ public class IcannReportingStagingActionTest {
     IcannReportingStagingAction action = new IcannReportingStagingAction();
     queryBuilder = new ActivityReportingQueryBuilder();
     queryBuilder.projectId = "test-project";
-    queryBuilder.yearMonth = "2017-05";
+    queryBuilder.yearMonth = "2017-06";
     action.reportingBucket = "test-bucket";
-    action.yearMonth = "2017-05";
+    action.yearMonth = "2017-06";
     action.subdir = Optional.absent();
     action.queryBuilder = queryBuilder;
     action.bigquery = bigquery;
@@ -103,12 +103,12 @@ public class IcannReportingStagingActionTest {
     byte[] generatedFile1 =
         readGcsFile(
             gcsService,
-            new GcsFilename("test-bucket/icann/monthly/2017-05", "fooTld-activity-201705.csv"));
+            new GcsFilename("test-bucket/icann/monthly/2017-06", "fooTld-activity-201706.csv"));
     assertThat(new String(generatedFile1, UTF_8)).isEqualTo(expectedReport1);
     byte[] generatedFile2 =
         readGcsFile(
             gcsService,
-            new GcsFilename("test-bucket/icann/monthly/2017-05", "barTld-activity-201705.csv"));
+            new GcsFilename("test-bucket/icann/monthly/2017-06", "barTld-activity-201706.csv"));
     assertThat(new String(generatedFile2, UTF_8)).isEqualTo(expectedReport2);
   }
 

@@ -82,9 +82,9 @@ public class IcannHttpReporterTest {
   @Test
   public void testSuccess() throws Exception {
     IcannHttpReporter reporter = createReporter();
-    reporter.send(FAKE_PAYLOAD, "test", "2016-06", ReportType.TRANSACTIONS);
+    reporter.send(FAKE_PAYLOAD, "test", "2017-06", ReportType.TRANSACTIONS);
 
-    assertThat(mockRequest.getUrl()).isEqualTo("https://fake-transactions.url/test/2016-06");
+    assertThat(mockRequest.getUrl()).isEqualTo("https://fake-transactions.url/test/2017-06");
     Map<String, List<String>> headers = mockRequest.getHeaders();
     String userPass = "test_ry:fakePass";
     String expectedAuth =
@@ -98,7 +98,7 @@ public class IcannHttpReporterTest {
     IcannHttpReporter reporter = createReporter();
     reporter.httpTransport = createMockTransport(IIRDEA_BAD_XML);
     try {
-      reporter.send(FAKE_PAYLOAD, "test", "2016-06", ReportType.TRANSACTIONS);
+      reporter.send(FAKE_PAYLOAD, "test", "2017-06", ReportType.TRANSACTIONS);
       assertWithMessage("Expected InternalServerErrorException to be thrown").fail();
     } catch (InternalServerErrorException expected) {
       assertThat(expected).hasMessageThat().isEqualTo("The structure of the report is invalid.");

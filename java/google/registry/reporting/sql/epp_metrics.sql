@@ -43,7 +43,7 @@ FROM (
     JOIN
       UNNEST(logs.logMessage) AS logMessage
     WHERE
-      logMessage LIKE "%FLOW-LOG-SIGNATURE-METADATA%")) AS regexes
+      STARTS_WITH(logMessage, "%METADATA_LOG_PREFIX%"))) AS regexes
 JOIN
   -- Unnest the JSON-parsed tlds.
   UNNEST(regexes.tlds) AS tld

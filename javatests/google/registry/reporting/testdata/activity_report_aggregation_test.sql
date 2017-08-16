@@ -82,16 +82,16 @@ CROSS JOIN(
     SELECT STRING(NULL) AS tld, STRING(NULL) AS metricName, 0 as count
     UNION ALL
     SELECT * FROM
-    `domain-registry-alpha.icann_reporting.registrar_operating_status_201705`
+    `domain-registry-alpha.icann_reporting.registrar_operating_status_201706`
     UNION ALL
     SELECT * FROM
-    `domain-registry-alpha.icann_reporting.dns_counts_201705`
+    `domain-registry-alpha.icann_reporting.dns_counts_201706`
     UNION ALL
     SELECT * FROM
-    `domain-registry-alpha.icann_reporting.epp_metrics_201705`
+    `domain-registry-alpha.icann_reporting.epp_metrics_201706`
     UNION ALL
     SELECT * FROM
-    `domain-registry-alpha.icann_reporting.whois_counts_201705`
+    `domain-registry-alpha.icann_reporting.whois_counts_201706`
     -- END INTERMEDIARY DATA SOURCES --
     )) AS TldMetrics
 WHERE RealTlds.tld = TldMetrics.tld OR TldMetrics.tld IS NULL

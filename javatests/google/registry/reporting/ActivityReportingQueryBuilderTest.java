@@ -29,7 +29,7 @@ public class ActivityReportingQueryBuilderTest {
 
   private ActivityReportingQueryBuilder getQueryBuilder() {
     ActivityReportingQueryBuilder queryBuilder = new ActivityReportingQueryBuilder();
-    queryBuilder.yearMonth = "2017-05";
+    queryBuilder.yearMonth = "2017-06";
     queryBuilder.projectId = "domain-registry-alpha";
     return queryBuilder;
   }
@@ -40,7 +40,7 @@ public class ActivityReportingQueryBuilderTest {
     assertThat(queryBuilder.getActivityReportQuery())
         .isEqualTo(
             "#standardSQL\nSELECT * FROM "
-                + "`domain-registry-alpha.icann_reporting.activity_report_aggregation_201705`");
+                + "`domain-registry-alpha.icann_reporting.activity_report_aggregation_201706`");
   }
 
   @Test
@@ -59,7 +59,7 @@ public class ActivityReportingQueryBuilderTest {
     for (String queryName : queryNames) {
       String testFilename = String.format("%s_test.sql", queryName);
       testQueryBuilder.put(
-          String.format("%s_201705", queryName), ReportingTestData.getString(testFilename));
+          String.format("%s_201706", queryName), ReportingTestData.getString(testFilename));
     }
     ImmutableMap<String, String> expectedQueries = testQueryBuilder.build();
     ImmutableMap<String, String> actualQueries = queryBuilder.getViewQueryMap();

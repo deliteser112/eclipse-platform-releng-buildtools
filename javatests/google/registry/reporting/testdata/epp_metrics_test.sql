@@ -39,11 +39,11 @@ FROM (
       -- Extract the logged JSON payload.
       REGEXP_EXTRACT(logMessage, r'FLOW-LOG-SIGNATURE-METADATA: (.*)\n?$')
       AS json
-    FROM `domain-registry-alpha.icann_reporting.monthly_logs_201705` AS logs
+    FROM `domain-registry-alpha.icann_reporting.monthly_logs_201706` AS logs
     JOIN
       UNNEST(logs.logMessage) AS logMessage
     WHERE
-      logMessage LIKE "%FLOW-LOG-SIGNATURE-METADATA%")) AS regexes
+      STARTS_WITH(logMessage, "google.registry.flows.FlowReporter recordToLogs: FLOW-LOG-SIGNATURE-METADATA"))) AS regexes
 JOIN
   -- Unnest the JSON-parsed tlds.
   UNNEST(regexes.tlds) AS tld

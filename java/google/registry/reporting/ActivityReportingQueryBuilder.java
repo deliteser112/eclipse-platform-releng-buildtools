@@ -103,6 +103,10 @@ public final class ActivityReportingQueryBuilder {
             .put("PROJECT_ID", projectId)
             .put("ICANN_REPORTING_DATA_SET", ICANN_REPORTING_DATA_SET)
             .put("MONTHLY_LOGS_TABLE", getTableName(MONTHLY_LOGS))
+            // All metadata logs for reporting come from google.registry.flows.FlowReporter.
+            .put(
+                "METADATA_LOG_PREFIX",
+                "google.registry.flows.FlowReporter recordToLogs: FLOW-LOG-SIGNATURE-METADATA")
             .build();
     queriesBuilder.put(getTableName(EPP_METRICS), eppQuery);
 
