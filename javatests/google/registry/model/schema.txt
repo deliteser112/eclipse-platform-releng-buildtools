@@ -781,6 +781,44 @@ class google.registry.model.registry.label.ReservedList$ReservedListEntry {
   java.lang.String authCode;
   java.lang.String comment;
 }
+class google.registry.model.reporting.DomainTransactionRecord {
+  java.lang.String tld;
+  java.util.Set<google.registry.model.reporting.DomainTransactionRecord$TransactionFieldAmount> transactionFieldAmounts;
+  org.joda.time.DateTime reportingTime;
+}
+class google.registry.model.reporting.DomainTransactionRecord$TransactionFieldAmount {
+  google.registry.model.reporting.DomainTransactionRecord$TransactionFieldAmount$TransactionReportField reportField;
+  int reportAmount;
+}
+enum google.registry.model.reporting.DomainTransactionRecord$TransactionFieldAmount$TransactionReportField {
+  DELETED_DOMAINS_GRACE;
+  DELETED_DOMAINS_NOGRACE;
+  NET_ADDS_10_YR;
+  NET_ADDS_1_YR;
+  NET_ADDS_2_YR;
+  NET_ADDS_3_YR;
+  NET_ADDS_4_YR;
+  NET_ADDS_5_YR;
+  NET_ADDS_6_YR;
+  NET_ADDS_7_YR;
+  NET_ADDS_8_YR;
+  NET_ADDS_9_YR;
+  NET_RENEWS_10_YR;
+  NET_RENEWS_1_YR;
+  NET_RENEWS_2_YR;
+  NET_RENEWS_3_YR;
+  NET_RENEWS_4_YR;
+  NET_RENEWS_5_YR;
+  NET_RENEWS_6_YR;
+  NET_RENEWS_7_YR;
+  NET_RENEWS_8_YR;
+  NET_RENEWS_9_YR;
+  RESTORED_DOMAINS;
+  TRANSFER_GAINING_NACKED;
+  TRANSFER_GAINING_SUCCESSFUL;
+  TRANSFER_LOSING_NACKED;
+  TRANSFER_LOSING_SUCCESSFUL;
+}
 class google.registry.model.reporting.HistoryEntry {
   @Id long id;
   @Parent com.googlecode.objectify.Key<? extends google.registry.model.EppResource> parent;
@@ -788,6 +826,7 @@ class google.registry.model.reporting.HistoryEntry {
   byte[] xmlBytes;
   google.registry.model.domain.Period period;
   google.registry.model.eppcommon.Trid trid;
+  google.registry.model.reporting.DomainTransactionRecord domainTransactionRecord;
   google.registry.model.reporting.HistoryEntry$Type type;
   java.lang.Boolean requestedByRegistrar;
   java.lang.String clientId;
