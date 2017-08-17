@@ -130,6 +130,10 @@ public class DomainTransactionRecord extends ImmutableObject implements Buildabl
     return tld;
   }
 
+  public Set<TransactionFieldAmount> getTransactionFieldAmounts() {
+    return transactionFieldAmounts;
+  }
+
   @Override
   public Builder asBuilder() {
     return new Builder(clone(this));

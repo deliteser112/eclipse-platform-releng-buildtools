@@ -26,6 +26,7 @@ import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount.TransactionReportField.RESTORED_DOMAINS;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Optional;
@@ -63,6 +64,8 @@ import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
+import google.registry.model.reporting.DomainTransactionRecord;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import javax.inject.Inject;
@@ -170,10 +173,18 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
   }
 
   private HistoryEntry buildHistory(DomainResource existingDomain, DateTime now) {
+    DomainTransactionRecord transactionRecord =
+        new DomainTransactionRecord.Builder()
+            .setTld(existingDomain.getTld())
+            .setReportingTime(now)
+            .setTransactionFieldAmounts(
+                ImmutableSet.of(TransactionFieldAmount.create(RESTORED_DOMAINS, 1)))
+            .build();
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_RESTORE)
         .setModificationTime(now)
         .setParent(Key.create(existingDomain))
+        .setDomainTransactionRecord(transactionRecord)
         .build();
   }
 
