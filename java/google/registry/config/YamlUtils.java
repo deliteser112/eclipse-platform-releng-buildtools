@@ -41,26 +41,36 @@ public final class YamlUtils {
       readResourceUtf8(RegistryConfig.class, "files/default-config.yaml");
 
   /**
+   * Loads the POJO of type {@code T} from merged YAML configuration files.
+   *
+   * @param defaultYaml content of the default YAML file.
+   * @param customYaml content of the custom YAML file, to override default values.
+   * @param clazz type of the POJO loaded from the merged YAML files.
+   * @throws IllegalStateException if the configuration files don't exist or are invalid
+   */
+  public static <T> T getConfigSettings(String defaultYaml, String customYaml, Class<T> clazz) {
+    try {
+      String mergedYaml = mergeYaml(defaultYaml, customYaml);
+      return new Yaml().loadAs(mergedYaml, clazz);
+    } catch (Exception e) {
+      throw new IllegalStateException(
+          "Fatal error: Environment configuration YAML file is invalid", e);
+    }
+  }
+
+  /**
    * Loads the {@link RegistryConfigSettings} POJO from the YAML configuration files.
    *
    * <p>The {@code default-config.yaml} file in this directory is loaded first, and a fatal error is
    * thrown if it cannot be found or if there is an error parsing it. Separately, the
    * environment-specific config file named {@code nomulus-config-ENVIRONMENT.yaml} is also loaded
    * and those values merged into the POJO.
-   *
-   * @throws IllegalStateException if the configuration files don't exist or are invalid
    */
   static RegistryConfigSettings getConfigSettings() {
     String configFilePath =
         String.format(ENVIRONMENT_CONFIG_FORMAT, toLowerCase(RegistryEnvironment.get().name()));
     String customYaml = readResourceUtf8(RegistryConfig.class, configFilePath);
-    try {
-      String mergedYaml = mergeYaml(YAML_CONFIG_PROD, customYaml);
-      return new Yaml().loadAs(mergedYaml, RegistryConfigSettings.class);
-    } catch (Exception e) {
-      throw new IllegalStateException(
-          "Fatal error: Environment configuration YAML file is invalid", e);
-    }
+    return getConfigSettings(YAML_CONFIG_PROD, customYaml, RegistryConfigSettings.class);
   }
 
   /**
