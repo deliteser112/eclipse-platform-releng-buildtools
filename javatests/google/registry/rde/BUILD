@@ -50,6 +50,9 @@ java_library(
 GenTestRules(
     name = "GeneratedTestRules",
     default_test_size = "large",
-    test_files = glob(["*Test.java"]),
+    test_files = glob(
+        ["*Test.java"],
+        exclude = ["RdeUploadActionTest.java"],
+    ),
     deps = [":rde"],
 )
