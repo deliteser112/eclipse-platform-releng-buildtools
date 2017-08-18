@@ -72,6 +72,16 @@ public class GenerateZoneFilesActionTest extends MapreduceTestCase<GenerateZoneF
 
     ImmutableSet<Key<HostResource>> nameservers =
         ImmutableSet.of(Key.create(host1), Key.create(host2));
+    // This domain will have glue records, because it has a subordinate host which is its own
+    // nameserver. None of the other domains should have glue records, because their nameservers are
+    // subordinate to different domains.
+    persistResource(newDomainResource("bar.tld").asBuilder()
+        .addNameservers(nameservers)
+        .addSubordinateHost("ns.bar.tld")
+        .build());
+    persistResource(newDomainResource("foo.tld").asBuilder()
+        .addSubordinateHost("ns.foo.tld")
+        .build());
     persistResource(newDomainResource("ns-and-ds.tld").asBuilder()
         .addNameservers(nameservers)
         .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2})))

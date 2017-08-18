@@ -143,7 +143,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
             new GenerateBindFileReducer(bucket, exportTime, gcsBufferSize),
             ImmutableList.of(
                 new NullInput<EppResource>(),
-                createEntityInput(DomainResource.class, HostResource.class)));
+                createEntityInput(DomainResource.class)));
     ImmutableList<String> filenames = FluentIterable.from(tlds)
         .transform(
             new Function<String, String>() {
@@ -160,7 +160,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
         "filenames", filenames);
   }
 
-  /** Mapper to find domains and hosts that were active at a given time. */
+  /** Mapper to find domains that were active at a given time. */
   static class GenerateBindFileMapper extends Mapper<EppResource, String, String> {
 
     private static final long serialVersionUID = 4647941823789859913L;
@@ -190,13 +190,16 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
         for (String tld : tlds) {
           emit(tld, null);
         }
-      } else if (resource instanceof DomainResource) {
-        mapDomain((DomainResource) resource);
       } else {
-        mapHost((HostResource) resource);
+        mapDomain((DomainResource) resource);
       }
     }
 
+    // Originally, we mapped over domains and hosts separately, emitting the necessary information
+    // for each. But that doesn't work. All subordinate hosts in the specified TLD(s) would always
+    // be emitted in the final file, which is incorrect. Rather, to match the actual DNS glue
+    // records, we only want to emit host information for in-bailiwick hosts in the specified
+    // TLD(s), meaning those that act as nameservers for their respective superordinate domains.
     private void mapDomain(DomainResource domain) {
       // Domains never change their tld, so we can check if it's from the wrong tld right away.
       if (tlds.contains(domain.getTld())) {
@@ -208,23 +211,23 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
             emit(domain.getTld(), stanza);
             getContext().incrementCounter(domain.getTld() + " domains");
           }
+          emitForSubordinateHosts(domain);
         }
       }
     }
 
-    private void mapHost(HostResource host) {
-      host = loadAtPointInTime(host, exportTime).now();
-      if (host != null) {  // A null means the host was deleted (or not created) at this time.
-        // Find a matching tld. Hosts might change their tld, so check after the point-in-time load.
-        String fullyQualifiedHostName = host.getFullyQualifiedHostName();
-        for (String tld : tlds) {
-          if (fullyQualifiedHostName.endsWith("." + tld)) {
+    private void emitForSubordinateHosts(DomainResource domain) {
+      ImmutableSet<String> subordinateHosts = domain.getSubordinateHosts();
+      if (!subordinateHosts.isEmpty()) {
+        for (HostResource unprojectedHost : ofy().load().keys(domain.getNameservers()).values()) {
+          HostResource host = loadAtPointInTime(unprojectedHost, exportTime).now();
+          // A null means the host was deleted (or not created) at this time.
+          if ((host != null) && subordinateHosts.contains(host.getFullyQualifiedHostName())) {
             String stanza = hostStanza(host, dnsDefaultATtl);
             if (!stanza.isEmpty()) {
-              emit(tld, stanza);
-              getContext().incrementCounter(tld + " hosts");
+              emit(domain.getTld(), stanza);
+              getContext().incrementCounter(domain.getTld() + " hosts");
             }
-            return;
           }
         }
       }
