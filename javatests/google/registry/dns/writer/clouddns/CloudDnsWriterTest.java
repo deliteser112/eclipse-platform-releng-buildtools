@@ -174,7 +174,7 @@ public class CloudDnsWriterTest {
 
   private void verifyZone(ImmutableSet<ResourceRecordSet> expectedRecords) throws Exception {
     // Trigger zone changes
-    writer.close();
+    writer.commit();
 
     assertThat(stubZone).containsExactlyElementsIn(expectedRecords);
   }
@@ -416,12 +416,12 @@ public class CloudDnsWriterTest {
   @Test
   @SuppressWarnings("unchecked")
   public void retryMutateZoneOnError() throws Exception {
-    try (CloudDnsWriter spyWriter = spy(writer)) {
-      when(mutateZoneCallable.call()).thenThrow(ZoneStateException.class).thenReturn(null);
-      when(spyWriter.getMutateZoneCallback(
-              Matchers.<ImmutableMap<String, ImmutableSet<ResourceRecordSet>>>any()))
-          .thenReturn(mutateZoneCallable);
-    }
+    CloudDnsWriter spyWriter = spy(writer);
+    when(mutateZoneCallable.call()).thenThrow(ZoneStateException.class).thenReturn(null);
+    when(spyWriter.getMutateZoneCallback(
+        Matchers.<ImmutableMap<String, ImmutableSet<ResourceRecordSet>>>any()))
+        .thenReturn(mutateZoneCallable);
+    spyWriter.commit();
 
     verify(mutateZoneCallable, times(2)).call();
   }

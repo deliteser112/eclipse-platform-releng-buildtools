@@ -15,6 +15,7 @@
 package google.registry.dns.writer.clouddns;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 
 import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo;
@@ -83,6 +84,8 @@ public class CloudDnsWriter implements DnsWriter {
   private final Dns dnsConnection;
   private final ImmutableMap.Builder<String, ImmutableSet<ResourceRecordSet>>
       desiredRecordsBuilder = new ImmutableMap.Builder<>();
+
+  private boolean committed = false;
 
   @Inject
   CloudDnsWriter(
@@ -270,12 +273,14 @@ public class CloudDnsWriter implements DnsWriter {
    * representation built via this writer.
    */
   @Override
-  public void close() {
-    close(desiredRecordsBuilder.build());
+  public void commit() {
+    checkState(!committed, "commit() has already been called");
+    committed = true;
+    commit(desiredRecordsBuilder.build());
   }
 
   @VisibleForTesting
-  void close(ImmutableMap<String, ImmutableSet<ResourceRecordSet>> desiredRecords) {
+  void commit(ImmutableMap<String, ImmutableSet<ResourceRecordSet>> desiredRecords) {
     retrier.callWithRetry(getMutateZoneCallback(desiredRecords), ZoneStateException.class);
     logger.info("Wrote to Cloud DNS");
   }

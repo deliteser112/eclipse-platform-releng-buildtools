@@ -92,7 +92,7 @@ public class PublishDnsUpdatesActionTest {
     action.run();
 
     verify(dnsWriter).publishHost("ns1.example.xn--q9jyb4c");
-    verify(dnsWriter).close();
+    verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
 
     verify(dnsMetrics).incrementPublishHostRequests("xn--q9jyb4c", Status.ACCEPTED);
@@ -106,7 +106,7 @@ public class PublishDnsUpdatesActionTest {
     action.run();
 
     verify(dnsWriter).publishDomain("example.xn--q9jyb4c");
-    verify(dnsWriter).close();
+    verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
 
     verify(dnsMetrics).incrementPublishDomainRequests("xn--q9jyb4c", Status.ACCEPTED);
@@ -126,7 +126,7 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsWriter).publishHost("ns1.example.xn--q9jyb4c");
     verify(dnsWriter).publishHost("ns2.example.xn--q9jyb4c");
     verify(dnsWriter).publishHost("ns1.example2.xn--q9jyb4c");
-    verify(dnsWriter).close();
+    verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
 
     verify(dnsMetrics, times(2)).incrementPublishDomainRequests("xn--q9jyb4c", Status.ACCEPTED);
@@ -141,7 +141,7 @@ public class PublishDnsUpdatesActionTest {
     action.hosts = ImmutableSet.of("ns1.example.com", "ns2.example.com", "ns1.example2.com");
     action.run();
 
-    verify(dnsWriter).close();
+    verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
 
     verify(dnsMetrics, times(2)).incrementPublishDomainRequests("xn--q9jyb4c", Status.REJECTED);

@@ -93,29 +93,30 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
 
   /** Steps through the domain and host refreshes contained in the parameters and processes them. */
   private void processBatch() {
-    try (DnsWriter writer = dnsWriterProxy.getByClassNameForTld(dnsWriter, tld)) {
-      for (String domain : nullToEmpty(domains)) {
-        if (!DomainNameUtils.isUnder(
-            InternetDomainName.from(domain), InternetDomainName.from(tld))) {
-          dnsMetrics.incrementPublishDomainRequests(tld, Status.REJECTED);
-          logger.severefmt("%s: skipping domain %s not under tld", tld, domain);
-        } else {
-          dnsMetrics.incrementPublishDomainRequests(tld, Status.ACCEPTED);
-          writer.publishDomain(domain);
-          logger.infofmt("%s: published domain %s", tld, domain);
-        }
-      }
-      for (String host : nullToEmpty(hosts)) {
-        if (!DomainNameUtils.isUnder(
-            InternetDomainName.from(host), InternetDomainName.from(tld))) {
-          dnsMetrics.incrementPublishHostRequests(tld, Status.REJECTED);
-          logger.severefmt("%s: skipping host %s not under tld", tld, host);
-        } else {
-          dnsMetrics.incrementPublishHostRequests(tld, Status.ACCEPTED);
-          writer.publishHost(host);
-          logger.infofmt("%s: published host %s", tld, host);
-        }
+    DnsWriter writer = dnsWriterProxy.getByClassNameForTld(dnsWriter, tld);
+    for (String domain : nullToEmpty(domains)) {
+      if (!DomainNameUtils.isUnder(
+          InternetDomainName.from(domain), InternetDomainName.from(tld))) {
+        dnsMetrics.incrementPublishDomainRequests(tld, Status.REJECTED);
+        logger.severefmt("%s: skipping domain %s not under tld", tld, domain);
+      } else {
+        dnsMetrics.incrementPublishDomainRequests(tld, Status.ACCEPTED);
+        writer.publishDomain(domain);
+        logger.infofmt("%s: published domain %s", tld, domain);
       }
     }
+    for (String host : nullToEmpty(hosts)) {
+      if (!DomainNameUtils.isUnder(
+          InternetDomainName.from(host), InternetDomainName.from(tld))) {
+        dnsMetrics.incrementPublishHostRequests(tld, Status.REJECTED);
+        logger.severefmt("%s: skipping host %s not under tld", tld, host);
+      } else {
+        dnsMetrics.incrementPublishHostRequests(tld, Status.ACCEPTED);
+        writer.publishHost(host);
+        logger.infofmt("%s: published host %s", tld, host);
+      }
+    }
+    // If we got here it means we managed to stage the entire batch without any errors.
+    writer.commit();
   }
 }

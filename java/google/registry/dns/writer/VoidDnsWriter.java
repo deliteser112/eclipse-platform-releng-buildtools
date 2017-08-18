@@ -14,6 +14,8 @@
 
 package google.registry.dns.writer;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.common.base.Joiner;
 import java.util.HashSet;
 import java.util.Set;
@@ -35,6 +37,8 @@ public final class VoidDnsWriter implements DnsWriter {
 
   private static final Logger logger = Logger.getLogger(VoidDnsWriter.class.getName());
 
+  private boolean committed = false;
+
   private final Set<String> names = new HashSet<>();
 
   @Inject
@@ -51,7 +55,10 @@ public final class VoidDnsWriter implements DnsWriter {
   }
 
   @Override
-  public void close() {
+  public void commit() {
+    checkState(!committed, "commit() has already been called");
+    committed = true;
+
     logger.warning("Ignoring DNS zone updates! No DnsWriterFactory implementation specified!\n"
         + Joiner.on('\n').join(names));
   }
