@@ -163,7 +163,7 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
     verifyNoDisallowedStatuses(existingApplication, UPDATE_DISALLOWED_STATUSES);
     verifyOptionalAuthInfo(authInfo, existingApplication);
     verifyUpdateAllowed(existingApplication, command, now);
-    HistoryEntry historyEntry = buildHistory(existingApplication, now);
+    HistoryEntry historyEntry = buildHistoryEntry(existingApplication, now);
     DomainApplication newApplication = updateApplication(existingApplication, command, now);
     validateNewApplication(newApplication);
     ofy().save().<ImmutableObject>entities(newApplication, historyEntry);
@@ -215,7 +215,7 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
         domainName, nullToEmpty(add.getNameserverFullyQualifiedHostNames()));
   }
 
-  private HistoryEntry buildHistory(DomainApplication existingApplication, DateTime now) {
+  private HistoryEntry buildHistoryEntry(DomainApplication existingApplication, DateTime now) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_APPLICATION_UPDATE)
         .setModificationTime(now)

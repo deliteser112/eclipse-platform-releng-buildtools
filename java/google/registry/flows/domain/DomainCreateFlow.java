@@ -258,7 +258,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
     String repoId = createDomainRepoId(ObjectifyService.allocateId(), registry.getTldStr());
     DateTime registrationExpirationTime = leapSafeAddYears(now, years);
-    HistoryEntry historyEntry = buildHistory(repoId, period, now);
+    HistoryEntry historyEntry = buildHistoryEntry(repoId, period, now);
     // Bill for the create.
     BillingEvent.OneTime createBillingEvent =
         createOneTimeBillingEvent(
@@ -360,7 +360,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     }
   }
 
-  private HistoryEntry buildHistory(String repoId, Period period, DateTime now) {
+  private HistoryEntry buildHistoryEntry(String repoId, Period period, DateTime now) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_CREATE)
         .setPeriod(period)

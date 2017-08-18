@@ -267,7 +267,8 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
               }})
             .toList())
         .build();
-    HistoryEntry historyEntry = buildHistory(newApplication.getRepoId(), command.getPeriod(), now);
+    HistoryEntry historyEntry =
+        buildHistoryEntry(newApplication.getRepoId(), command.getPeriod(), now);
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
     entitiesToSave.add(
         newApplication,
@@ -364,7 +365,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     }
   }
 
-  private HistoryEntry buildHistory(String repoId, Period period, DateTime now) {
+  private HistoryEntry buildHistoryEntry(String repoId, Period period, DateTime now) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_APPLICATION_CREATE)
         .setPeriod(period)

@@ -141,7 +141,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
         eppInput.getSingleExtension(FeeTransferCommandExtension.class);
     FeesAndCredits feesAndCredits = pricingLogic.getTransferPrice(registry, targetId, now);
     validateFeeChallenge(targetId, tld, now, feeTransfer, feesAndCredits);
-    HistoryEntry historyEntry = buildHistory(period, existingDomain, now);
+    HistoryEntry historyEntry = buildHistoryEntry(period, existingDomain, now);
     DateTime automaticTransferTime = now.plus(registry.getAutomaticTransferLength());
  
     // If the domain will be in the auto-renew grace period at the moment of transfer, the transfer
@@ -251,13 +251,14 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     }
   }
 
-  private HistoryEntry buildHistory(Period period, DomainResource existingResource, DateTime now) {
+  private HistoryEntry buildHistoryEntry(
+      Period period, DomainResource existingDomain, DateTime now) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST)
-        .setOtherClientId(existingResource.getCurrentSponsorClientId())
+        .setOtherClientId(existingDomain.getCurrentSponsorClientId())
         .setPeriod(period)
         .setModificationTime(now)
-        .setParent(Key.create(existingResource))
+        .setParent(Key.create(existingDomain))
         .build();
   }
 

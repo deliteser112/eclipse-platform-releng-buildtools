@@ -138,7 +138,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
     FeeUpdateCommandExtension feeUpdate =
         eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
     verifyRestoreAllowed(command, existingDomain, feeUpdate, feesAndCredits, now);
-    HistoryEntry historyEntry = buildHistory(existingDomain, now);
+    HistoryEntry historyEntry = buildHistoryEntry(existingDomain, now);
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
     entitiesToSave.addAll(
         createRestoreAndRenewBillingEvents(
@@ -172,7 +172,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
         .build();
   }
 
-  private HistoryEntry buildHistory(DomainResource existingDomain, DateTime now) {
+  private HistoryEntry buildHistoryEntry(DomainResource existingDomain, DateTime now) {
     DomainTransactionRecord transactionRecord =
         new DomainTransactionRecord.Builder()
             .setTld(existingDomain.getTld())
