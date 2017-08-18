@@ -254,7 +254,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
     fail("Expected transfer request poll message");
   }
 
-  /** Verifies the existence of a transfer request poll message */
+  /** Verifies the existence of a transfer server approved poll message */
   private static void checkTransferServerApprovalPollMessage(
       DomainResource domain, String clientId, DateTime expectedAt) {
     for (PollMessage message : getPollMessages(domain)) {
@@ -264,7 +264,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
         return;
       }
     }
-    fail("Expected transfer request poll message");
+    fail("Expected transfer server approved poll message");
   }
 
   /** Verifies autorenew {@link PollMessage} is correct */
