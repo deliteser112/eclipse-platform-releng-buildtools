@@ -14,6 +14,7 @@
 
 package google.registry.model.reporting;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.collect.ImmutableSet;
@@ -118,7 +119,28 @@ public class DomainTransactionRecord extends ImmutableObject implements Buildabl
       TRANSFER_LOSING_NACKED,
       DELETED_DOMAINS_GRACE,
       DELETED_DOMAINS_NOGRACE,
-      RESTORED_DOMAINS
+      RESTORED_DOMAINS;
+
+      /** Boilerplate to simplify getting the NET_ADDS_#_YR enum from a number of years. */
+      public static TransactionReportField netAddsFieldFromYears(int years) {
+        return nameToField("NET_ADDS_%d_YR", years);
+      }
+
+      /** Boilerplate to simplify getting the NET_RENEWS_#_YR enum from a number of years. */
+      public static TransactionReportField netRenewsFieldFromYears(int years) {
+        return nameToField("NET_RENEWS_%d_YR", years);
+      }
+
+      private static TransactionReportField nameToField(String enumTemplate, int years) {
+        checkArgument(
+            years >= 1 && years <= 10, "domain add and renew years must be between 1 and 10");
+        try {
+          return TransactionReportField.valueOf(String.format(enumTemplate, years));
+        } catch (IllegalArgumentException e) {
+          throw new IllegalArgumentException(
+              "Unexpected error converting add/renew years to enum TransactionReportField", e);
+        }
+      }
     }
   }
 
@@ -132,6 +154,19 @@ public class DomainTransactionRecord extends ImmutableObject implements Buildabl
 
   public Set<TransactionFieldAmount> getTransactionFieldAmounts() {
     return transactionFieldAmounts;
+  }
+
+  /** An alternative construction method when the builder is not necessary. */
+  public static DomainTransactionRecord create(
+      String tld,
+      DateTime reportingTime,
+      TransactionFieldAmount... transactionFieldAmounts) {
+    return new DomainTransactionRecord.Builder()
+        .setTld(tld)
+        // We report this event when the grace period ends, if applicable
+        .setReportingTime(reportingTime)
+        .setTransactionFieldAmounts(ImmutableSet.copyOf(transactionFieldAmounts))
+        .build();
   }
 
   @Override

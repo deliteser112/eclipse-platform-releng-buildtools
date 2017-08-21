@@ -18,6 +18,7 @@ import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount.TransactionReportField.netAddsFieldFromYears;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
@@ -71,6 +72,8 @@ import google.registry.model.poll.PendingActionNotificationResponse.DomainPendin
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
+import google.registry.model.reporting.DomainTransactionRecord;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
@@ -106,10 +109,14 @@ public class DomainAllocateFlowTest
 
   private void setupDomainApplication(String tld, TldState tldState) throws Exception {
     createTld(tld, tldState);
-    persistResource(Registry.get(tld).asBuilder().setReservedLists(persistReservedList(
-        tld + "-reserved",
-        "reserved-label,FULLY_BLOCKED",
-        "collision-label,NAME_COLLISION")).build());
+    persistResource(Registry.get(tld).asBuilder()
+        .setReservedLists(
+            persistReservedList(
+                tld + "-reserved",
+                "reserved-label,FULLY_BLOCKED",
+                "collision-label,NAME_COLLISION"))
+        .setAddGracePeriodLength(Duration.standardMinutes(9))
+        .build());
     String domainName = getUniqueIdFromCommand();
     application = persistResource(newDomainApplication(domainName).asBuilder()
         .setCreationTrid(TRID)
@@ -586,7 +593,7 @@ public class DomainAllocateFlowTest
   }
 
   @Test
-  public void testSucess_quietPeriod() throws Exception {
+  public void testSuccess_quietPeriod() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     createTld("tld", TldState.QUIET_PERIOD);
     doSuccessfulTest(2);
@@ -654,5 +661,26 @@ public class DomainAllocateFlowTest
     assertTldsFieldLogged("tld");
     // Ensure we log the client ID for srs-dom-create so we can also use it for attempted-adds.
     assertClientIdFieldLogged("TheRegistrar");
+  }
+
+  @Test
+  public void testIcannTransactionRecord_getsStored() throws Exception {
+    setupDomainApplication("tld", TldState.QUIET_PERIOD);
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setRenewGracePeriodLength(Duration.standardMinutes(9))
+            .build());
+    runFlow(CommitMode.LIVE, UserPrivileges.SUPERUSER);
+    DomainResource domain = reloadResourceByForeignKey();
+    HistoryEntry historyEntry =
+        getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_ALLOCATE);
+    DomainTransactionRecord transactionRecord = historyEntry.getDomainTransactionRecord();
+
+    assertThat(transactionRecord.getTld()).isEqualTo("tld");
+    assertThat(transactionRecord.getReportingTime())
+        .isEqualTo(historyEntry.getModificationTime().plusMinutes(9));
+    assertThat(transactionRecord.getTransactionFieldAmounts())
+        .containsExactly(TransactionFieldAmount.create(netAddsFieldFromYears(2), 1));
   }
 }

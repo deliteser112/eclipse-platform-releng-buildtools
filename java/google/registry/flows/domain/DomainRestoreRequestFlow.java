@@ -173,18 +173,13 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
   }
 
   private HistoryEntry buildHistoryEntry(DomainResource existingDomain, DateTime now) {
-    DomainTransactionRecord transactionRecord =
-        new DomainTransactionRecord.Builder()
-            .setTld(existingDomain.getTld())
-            .setReportingTime(now)
-            .setTransactionFieldAmounts(
-                ImmutableSet.of(TransactionFieldAmount.create(RESTORED_DOMAINS, 1)))
-            .build();
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_RESTORE)
         .setModificationTime(now)
         .setParent(Key.create(existingDomain))
-        .setDomainTransactionRecord(transactionRecord)
+        .setDomainTransactionRecord(
+            DomainTransactionRecord.create(
+                existingDomain.getTld(), now, TransactionFieldAmount.create(RESTORED_DOMAINS, 1)))
         .build();
   }
 

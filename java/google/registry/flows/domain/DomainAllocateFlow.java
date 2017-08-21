@@ -32,6 +32,7 @@ import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount.TransactionReportField.netAddsFieldFromYears;
 import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -85,12 +86,15 @@ import google.registry.model.poll.PendingActionNotificationResponse.DomainPendin
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservationType;
+import google.registry.model.reporting.DomainTransactionRecord;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.tmch.LordnTask;
 import java.util.Set;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * An EPP flow that allocates a new domain resource from a domain application.
@@ -156,7 +160,8 @@ public class DomainAllocateFlow implements TransactionalFlow {
         loadAndValidateApplication(allocateCreate.getApplicationRoid(), now);
     String repoId = createDomainRepoId(ObjectifyService.allocateId(), registry.getTldStr());
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
-    HistoryEntry historyEntry = buildHistoryEntry(repoId, period, now);
+    HistoryEntry historyEntry = buildHistoryEntry(
+        repoId, period, now, registry.getAddGracePeriodLength(), registry.getTldStr());
     entitiesToSave.add(historyEntry);
     ImmutableSet<? extends ImmutableObject> billsAndPolls = createBillingEventsAndPollMessages(
         domainName, application, historyEntry, isSunrushAddGracePeriod, registry, now, years);
@@ -229,12 +234,18 @@ public class DomainAllocateFlow implements TransactionalFlow {
     return application;
   }
 
-  private HistoryEntry buildHistoryEntry(String repoId, Period period, DateTime now) {
+  private HistoryEntry buildHistoryEntry(
+      String repoId, Period period, DateTime now, Duration addGracePeriod, String tld) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_ALLOCATE)
         .setPeriod(period)
         .setModificationTime(now)
         .setParent(Key.create(DomainResource.class, repoId))
+        .setDomainTransactionRecord(
+            DomainTransactionRecord.create(
+                tld,
+                now.plus(addGracePeriod),
+                TransactionFieldAmount.create(netAddsFieldFromYears(period.getValue()), 1)))
         .build();
   }
 

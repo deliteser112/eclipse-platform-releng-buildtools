@@ -42,6 +42,7 @@ import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBIT
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount.TransactionReportField.netAddsFieldFromYears;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
@@ -98,11 +99,14 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.poll.PollMessage.Autorenew;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
+import google.registry.model.reporting.DomainTransactionRecord;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.tmch.LordnTask;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * An EPP flow that creates a new domain resource.
@@ -258,7 +262,8 @@ public class DomainCreateFlow implements TransactionalFlow {
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
     String repoId = createDomainRepoId(ObjectifyService.allocateId(), registry.getTldStr());
     DateTime registrationExpirationTime = leapSafeAddYears(now, years);
-    HistoryEntry historyEntry = buildHistoryEntry(repoId, period, now);
+    HistoryEntry historyEntry = buildHistoryEntry(
+        repoId, period, now, registry.getAddGracePeriodLength(), registry.getTldStr());
     // Bill for the create.
     BillingEvent.OneTime createBillingEvent =
         createOneTimeBillingEvent(
@@ -360,12 +365,18 @@ public class DomainCreateFlow implements TransactionalFlow {
     }
   }
 
-  private HistoryEntry buildHistoryEntry(String repoId, Period period, DateTime now) {
+  private HistoryEntry buildHistoryEntry(
+      String repoId, Period period, DateTime now, Duration addGracePeriod, String tld) {
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_CREATE)
         .setPeriod(period)
         .setModificationTime(now)
         .setParent(Key.create(DomainResource.class, repoId))
+        .setDomainTransactionRecord(
+            DomainTransactionRecord.create(
+                tld,
+                now.plus(addGracePeriod),
+                TransactionFieldAmount.create(netAddsFieldFromYears(period.getValue()), 1)))
         .build();
   }
 

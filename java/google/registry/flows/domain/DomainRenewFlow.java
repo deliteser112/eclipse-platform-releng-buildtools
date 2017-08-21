@@ -28,6 +28,7 @@ import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.validateRegistrationPeriod;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount.TransactionReportField.netRenewsFieldFromYears;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.base.Optional;
@@ -56,6 +57,7 @@ import google.registry.model.domain.DomainCommand.Renew;
 import google.registry.model.domain.DomainRenewData;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.domain.fee.FeeRenewCommandExtension;
@@ -69,11 +71,14 @@ import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
+import google.registry.model.reporting.DomainTransactionRecord;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import javax.inject.Inject;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * An EPP flow that renews a domain.
@@ -150,12 +155,9 @@ public final class DomainRenewFlow implements TransactionalFlow {
             .setNow(now)
             .setYears(years)
             .build());
-    HistoryEntry historyEntry = historyBuilder
-        .setType(HistoryEntry.Type.DOMAIN_RENEW)
-        .setPeriod(command.getPeriod())
-        .setModificationTime(now)
-        .setParent(Key.create(existingDomain))
-        .build();
+    Registry registry = Registry.get(existingDomain.getTld());
+    HistoryEntry historyEntry = buildHistoryEntry(
+        existingDomain, command.getPeriod(), now, registry.getRenewGracePeriodLength());
     String tld = existingDomain.getTld();
     // Bill for this explicit renew itself.
     BillingEvent.OneTime explicitRenewEvent =
@@ -208,6 +210,21 @@ public final class DomainRenewFlow implements TransactionalFlow {
     return responseBuilder
         .setResData(responseData.resData())
         .setExtensions(responseData.responseExtensions())
+        .build();
+  }
+
+  private HistoryEntry buildHistoryEntry(
+      DomainResource existingDomain, Period period, DateTime now, Duration renewGracePeriod) {
+    return historyBuilder
+        .setType(HistoryEntry.Type.DOMAIN_RENEW)
+        .setPeriod(period)
+        .setModificationTime(now)
+        .setParent(Key.create(existingDomain))
+        .setDomainTransactionRecord(
+            DomainTransactionRecord.create(
+                existingDomain.getTld(),
+                now.plus(renewGracePeriod),
+                TransactionFieldAmount.create(netRenewsFieldFromYears(period.getValue()), 1)))
         .build();
   }
 
