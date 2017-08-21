@@ -42,7 +42,7 @@ def collect_runfiles(targets):
   Returns:
     A list of Bazel files.
   """
-  data = set()
+  data = depset()
   for target in targets:
     if hasattr(target, "runfiles"):
       data += target.runfiles.files

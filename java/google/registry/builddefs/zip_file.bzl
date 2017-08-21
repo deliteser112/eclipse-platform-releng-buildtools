@@ -132,7 +132,7 @@ def _zip_file(ctx):
     if (s.startswith('/') or s.endswith('/') or
         d.startswith('/') or d.endswith('/')):
       fail('mappings should not begin or end with slash')
-  srcs = set()
+  srcs = depset()
   srcs += ctx.files.srcs
   srcs += ctx.files.data
   srcs += collect_runfiles(ctx.attr.data)
@@ -150,7 +150,7 @@ def _zip_file(ctx):
           for dep in ctx.attr.deps]
   cmd += ['rm %s' % filename for filename in ctx.attr.exclude]
   cmd += ['mkdir -p "${tmp}/%s"' % zip_path
-          for zip_path in set(
+          for zip_path in depset(
               [zip_path[:zip_path.rindex('/')]
                for _, zip_path in mapped if '/' in zip_path])]
   cmd += ['ln -sf "${repo}/%s" "${tmp}/%s"' % (path, zip_path)
@@ -177,7 +177,7 @@ def _zip_file(ctx):
       mnemonic='zip',
       progress_message='Creating zip with %d inputs %s' % (
           len(inputs), ctx.label))
-  return struct(files=set([ctx.outputs.out]), zip_file=ctx.outputs.out)
+  return struct(files=depset([ctx.outputs.out]), zip_file=ctx.outputs.out)
 
 def _map_sources(ctx, srcs, mappings):
   """Calculates paths in zip file for srcs."""
