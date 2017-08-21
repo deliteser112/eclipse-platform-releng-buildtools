@@ -12,6 +12,7 @@ closure_js_library(
     suppress = [
         "JSC_UNKNOWN_EXPR_TYPE",
         "JSC_IMPLICITLY_NULLABLE_JSDOC",
+        "JSC_DEPRECATED_PROP_REASON",
     ],
     deps = [
         "//java/google/registry/ui/js",
