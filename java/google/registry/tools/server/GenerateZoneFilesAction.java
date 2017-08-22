@@ -223,7 +223,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
           HostResource host = loadAtPointInTime(unprojectedHost, exportTime).now();
           // A null means the host was deleted (or not created) at this time.
           if ((host != null) && subordinateHosts.contains(host.getFullyQualifiedHostName())) {
-            String stanza = hostStanza(host, dnsDefaultATtl);
+            String stanza = hostStanza(host, dnsDefaultATtl, domain.getTld());
             if (!stanza.isEmpty()) {
               emit(domain.getTld(), stanza);
               getContext().incrementCounter(domain.getTld() + " hosts");
@@ -274,10 +274,10 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
   /**
    * Generates DNS records for a domain (NS and DS).
    *
-   * These look like this:
+   * For domain foo.tld, these look like this:
    * {@code
-   *   foo.tld 180 IN NS ns.example.com.
-   *   foo.tld 86400 IN DS 1 2 3 000102
+   *   foo 180 IN NS ns.example.com.
+   *   foo 86400 IN DS 1 2 3 000102
    * }
    */
   private static String domainStanza(
@@ -286,10 +286,11 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
       Duration dnsDefaultNsTtl,
       Duration dnsDefaultDsTtl) {
     StringBuilder result = new StringBuilder();
+    String domainLabel = stripTld(domain.getFullyQualifiedDomainName(), domain.getTld());
     for (HostResource nameserver : ofy().load().keys(domain.getNameservers()).values()) {
       result.append(String.format(
           NS_FORMAT,
-          domain.getFullyQualifiedDomainName(),
+          domainLabel,
           dnsDefaultNsTtl.getStandardSeconds(),
           // Load the nameservers at the export time in case they've been renamed or deleted.
           loadAtPointInTime(nameserver, exportTime).now().getFullyQualifiedHostName()));
@@ -297,7 +298,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
     for (DelegationSignerData dsData : domain.getDsData()) {
       result.append(String.format(
           DS_FORMAT,
-          domain.getFullyQualifiedDomainName(),
+          domainLabel,
           dnsDefaultDsTtl.getStandardSeconds(),
           dsData.getKeyTag(),
           dsData.getAlgorithm(),
@@ -316,18 +317,34 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
    *   ns.foo.tld 3600 IN AAAA 0:0:0:0:0:0:0:1
    * }
    */
-  private static String hostStanza(HostResource host, Duration dnsDefaultATtl) {
+  private static String hostStanza(HostResource host, Duration dnsDefaultATtl, String tld) {
     StringBuilder result = new StringBuilder();
     for (InetAddress addr : host.getInetAddresses()) {
       // must be either IPv4 or IPv6
       String rrSetClass = (addr instanceof Inet4Address) ? "A" : "AAAA";
       result.append(String.format(
           A_FORMAT,
-          host.getFullyQualifiedHostName(),
+          stripTld(host.getFullyQualifiedHostName(), tld),
           dnsDefaultATtl.getStandardSeconds(),
           rrSetClass,
           addr.getHostAddress()));
     }
     return result.toString();
+  }
+
+  /**
+   * Removes the TLD, if present, from a fully-qualified name.
+   *
+   * <p>This would not work if a fully qualified host name in a different TLD were passed. But
+   * we only generate glue records for in-bailiwick name servers, meaning that the TLD will always
+   * match.
+   *
+   * If, for some unforeseen reason, the TLD is not present, indicate an error condition, so that
+   * our process for comparing Datastore and DNS data will realize that something is amiss.
+   */
+  private static String stripTld(String fullyQualifiedName, String tld) {
+    return fullyQualifiedName.endsWith(tld)
+        ? fullyQualifiedName.substring(0, fullyQualifiedName.length() - tld.length() - 1)
+        : (fullyQualifiedName + "***");
   }
 }
