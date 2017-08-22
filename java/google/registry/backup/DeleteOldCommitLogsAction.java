@@ -25,6 +25,7 @@ import static java.lang.Boolean.FALSE;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -168,13 +169,31 @@ public final class DeleteOldCommitLogsAction implements Runnable {
    * OK to delete this manifestKey. If even one source returns "false" (meaning "it's not OK to
    * delete this manifest") then it won't be deleted.
    */
-  private static class DeleteOldCommitLogsReducer
+  static class DeleteOldCommitLogsReducer
       extends Reducer<Key<CommitLogManifest>, Boolean, Void> {
 
     private static final long serialVersionUID = -4918760187627937268L;
 
     private final DateTime deletionThreshold;
     private final boolean isDryRun;
+
+    @AutoValue
+    abstract static class DeletionResult {
+      enum Status {
+        ALREADY_DELETED,
+        AFTER_THRESHOLD,
+        SUCCESS;
+      }
+
+      public abstract Status status();
+      public abstract int numDeleted();
+
+      static DeletionResult create(Status status, int numDeleted) {
+        return
+            new AutoValue_DeleteOldCommitLogsAction_DeleteOldCommitLogsReducer_DeletionResult(
+                status, numDeleted);
+      }
+    }
 
     DeleteOldCommitLogsReducer(DateTime deletionThreshold, boolean isDryRun) {
       this.deletionThreshold = deletionThreshold;
@@ -190,15 +209,22 @@ public final class DeleteOldCommitLogsAction implements Runnable {
         return;
       }
 
-      Integer deletedCount = ofy().transactNew(new Work<Integer>() {
+      DeletionResult deletionResult = ofy().transactNew(new Work<DeletionResult>() {
         @Override
-        public Integer run() {
-          // Doing a sanity check on the date. This is the only place we load the CommitLogManifest,
+        public DeletionResult run() {
+          CommitLogManifest manifest = ofy().load().key(manifestKey).now();
+          // It is possible that the same manifestKey was run twice, if a shard had to be restarted
+          // or some weird failure. If this happens, we want to exit immediately.
+          // Note that this can never happen in dryRun.
+          if (manifest == null) {
+            return DeletionResult.create(DeletionResult.Status.ALREADY_DELETED, 0);
+          }
+          // Doing a sanity check on the date. This is the only place we use the CommitLogManifest,
           // so maybe removing this test will improve performance. However, unless it's proven that
           // the performance boost is significant (and we've tested this enough to be sure it never
           // happens)- the safty of "let's not delete stuff we need from prod" is more important.
-          if (ofy().load().key(manifestKey).now().getCommitTime().isAfter(deletionThreshold)) {
-            return 0;
+          if (manifest.getCommitTime().isAfter(deletionThreshold)) {
+            return DeletionResult.create(DeletionResult.Status.AFTER_THRESHOLD, 0);
           }
           Iterable<Key<CommitLogMutation>> commitLogMutationKeys = ofy().load()
               .type(CommitLogMutation.class)
@@ -214,16 +240,22 @@ public final class DeleteOldCommitLogsAction implements Runnable {
           if (!isDryRun) {
             ofy().deleteWithoutBackup().keys(keysToDelete);
           }
-          return keysToDelete.size();
+          return DeletionResult.create(DeletionResult.Status.SUCCESS, keysToDelete.size());
         }
       });
 
-      if (deletedCount > 0) {
-        getContext().incrementCounter("old commit log manifests deleted");
-        getContext().incrementCounter("total entities deleted", deletedCount);
-      } else {
-        logger.severefmt("Won't delete CommitLogManifest %s that is too recent.", manifestKey);
-        getContext().incrementCounter("manifests incorrectly assigned for deletion (SEE LOGS)");
+      switch (deletionResult.status()) {
+        case SUCCESS:
+          getContext().incrementCounter("old commit log manifests deleted");
+          getContext().incrementCounter("total entities deleted", deletionResult.numDeleted());
+          break;
+        case ALREADY_DELETED:
+          getContext().incrementCounter("attempts to delete an already deleted manifest");
+          break;
+        case AFTER_THRESHOLD:
+          logger.severefmt("Won't delete CommitLogManifest %s that is too recent.", manifestKey);
+          getContext().incrementCounter("manifests incorrectly assigned for deletion (SEE LOGS)");
+          break;
       }
     }
   }
