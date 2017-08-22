@@ -579,7 +579,7 @@ public final class RegistryConfig {
     @Provides
     @Config("rdeStagingLockTimeout")
     public static Duration provideRdeStagingLockTimeout() {
-      return Duration.standardHours(5);
+      return Duration.standardHours(2);
     }
 
     /**
