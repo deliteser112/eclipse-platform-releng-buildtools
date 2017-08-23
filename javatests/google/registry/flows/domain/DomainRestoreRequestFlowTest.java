@@ -16,7 +16,6 @@ package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount.TransactionReportField.RESTORED_DOMAINS;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
@@ -62,7 +61,7 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.DomainTransactionRecord;
-import google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.Map;
 import org.joda.money.Money;
@@ -579,13 +578,12 @@ public class DomainRestoreRequestFlowTest extends
     DomainResource domain = reloadResourceByForeignKey();
     HistoryEntry historyEntryDomainRestore =
         getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_RESTORE);
-    DomainTransactionRecord transactionRecord =
-        historyEntryDomainRestore.getDomainTransactionRecord();
-
-    assertThat(transactionRecord.getTld()).isEqualTo("tld");
-    assertThat(transactionRecord.getReportingTime())
-        .isEqualTo(historyEntryDomainRestore.getModificationTime());
-    assertThat(transactionRecord.getTransactionFieldAmounts())
-        .containsExactly(TransactionFieldAmount.create(RESTORED_DOMAINS, 1));
+    assertThat(historyEntryDomainRestore.getDomainTransactionRecords())
+        .containsExactly(
+            DomainTransactionRecord.create(
+                "tld",
+                historyEntryDomainRestore.getModificationTime(),
+                TransactionReportField.RESTORED_DOMAINS,
+                1));
   }
 }

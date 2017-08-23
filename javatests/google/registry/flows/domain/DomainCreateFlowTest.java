@@ -22,7 +22,6 @@ import static google.registry.model.eppcommon.StatusValue.OK;
 import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIBITED;
 import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount.TransactionReportField.netAddsFieldFromYears;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.assertPollMessagesForResource;
@@ -129,7 +128,7 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.DomainTransactionRecord;
-import google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.DatastoreHelper;
@@ -2003,14 +2002,12 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     runFlow();
     DomainResource domain = reloadResourceByForeignKey();
     HistoryEntry historyEntry = getHistoryEntries(domain).get(0);
-    DomainTransactionRecord transactionRecord =
-        historyEntry.getDomainTransactionRecord();
-
-    assertThat(transactionRecord.getTld()).isEqualTo("tld");
-    assertThat(transactionRecord.getReportingTime())
-        .isEqualTo(historyEntry.getModificationTime().plusMinutes(9));
-    assertThat(transactionRecord.getTransactionFieldAmounts())
-        .containsExactly(TransactionFieldAmount.create(netAddsFieldFromYears(2), 1));
+    assertThat(historyEntry.getDomainTransactionRecords()).containsExactly(
+        DomainTransactionRecord.create(
+            "tld",
+            historyEntry.getModificationTime().plusMinutes(9),
+            TransactionReportField.netAddsFieldFromYears(2),
+            1));
   }
 
   @Test

@@ -42,7 +42,6 @@ import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBIT
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
-import static google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount.TransactionReportField.netAddsFieldFromYears;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
@@ -100,7 +99,7 @@ import google.registry.model.poll.PollMessage.Autorenew;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.DomainTransactionRecord;
-import google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.tmch.LordnTask;
@@ -372,11 +371,13 @@ public class DomainCreateFlow implements TransactionalFlow {
         .setPeriod(period)
         .setModificationTime(now)
         .setParent(Key.create(DomainResource.class, repoId))
-        .setDomainTransactionRecord(
-            DomainTransactionRecord.create(
-                tld,
-                now.plus(addGracePeriod),
-                TransactionFieldAmount.create(netAddsFieldFromYears(period.getValue()), 1)))
+        .setDomainTransactionRecords(
+            ImmutableSet.of(
+                DomainTransactionRecord.create(
+                    tld,
+                    now.plus(addGracePeriod),
+                    TransactionReportField.netAddsFieldFromYears(period.getValue()),
+                    1)))
         .build();
   }
 

@@ -32,7 +32,6 @@ import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
-import static google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount.TransactionReportField.netAddsFieldFromYears;
 import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -87,7 +86,7 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservationType;
 import google.registry.model.reporting.DomainTransactionRecord;
-import google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.tmch.LordnTask;
@@ -241,11 +240,13 @@ public class DomainAllocateFlow implements TransactionalFlow {
         .setPeriod(period)
         .setModificationTime(now)
         .setParent(Key.create(DomainResource.class, repoId))
-        .setDomainTransactionRecord(
-            DomainTransactionRecord.create(
-                tld,
-                now.plus(addGracePeriod),
-                TransactionFieldAmount.create(netAddsFieldFromYears(period.getValue()), 1)))
+        .setDomainTransactionRecords(
+            ImmutableSet.of(
+                DomainTransactionRecord.create(
+                    tld,
+                    now.plus(addGracePeriod),
+                    TransactionReportField.netAddsFieldFromYears(period.getValue()),
+                    1)))
         .build();
   }
 

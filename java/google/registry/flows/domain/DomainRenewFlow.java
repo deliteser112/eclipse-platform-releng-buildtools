@@ -28,7 +28,6 @@ import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
 import static google.registry.flows.domain.DomainFlowUtils.validateRegistrationPeriod;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount.TransactionReportField.netRenewsFieldFromYears;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.base.Optional;
@@ -72,7 +71,7 @@ import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.DomainTransactionRecord;
-import google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import javax.inject.Inject;
@@ -220,11 +219,13 @@ public final class DomainRenewFlow implements TransactionalFlow {
         .setPeriod(period)
         .setModificationTime(now)
         .setParent(Key.create(existingDomain))
-        .setDomainTransactionRecord(
-            DomainTransactionRecord.create(
-                existingDomain.getTld(),
-                now.plus(renewGracePeriod),
-                TransactionFieldAmount.create(netRenewsFieldFromYears(period.getValue()), 1)))
+        .setDomainTransactionRecords(
+            ImmutableSet.of(
+                DomainTransactionRecord.create(
+                    existingDomain.getTld(),
+                    now.plus(renewGracePeriod),
+                    TransactionReportField.netRenewsFieldFromYears(period.getValue()),
+                    1)))
         .build();
   }
 

@@ -782,15 +782,12 @@ class google.registry.model.registry.label.ReservedList$ReservedListEntry {
   java.lang.String comment;
 }
 class google.registry.model.reporting.DomainTransactionRecord {
+  google.registry.model.reporting.DomainTransactionRecord$TransactionReportField reportField;
+  int reportAmount;
   java.lang.String tld;
-  java.util.Set<google.registry.model.reporting.DomainTransactionRecord$TransactionFieldAmount> transactionFieldAmounts;
   org.joda.time.DateTime reportingTime;
 }
-class google.registry.model.reporting.DomainTransactionRecord$TransactionFieldAmount {
-  google.registry.model.reporting.DomainTransactionRecord$TransactionFieldAmount$TransactionReportField reportField;
-  int reportAmount;
-}
-enum google.registry.model.reporting.DomainTransactionRecord$TransactionFieldAmount$TransactionReportField {
+enum google.registry.model.reporting.DomainTransactionRecord$TransactionReportField {
   DELETED_DOMAINS_GRACE;
   DELETED_DOMAINS_NOGRACE;
   NET_ADDS_10_YR;
@@ -826,12 +823,12 @@ class google.registry.model.reporting.HistoryEntry {
   byte[] xmlBytes;
   google.registry.model.domain.Period period;
   google.registry.model.eppcommon.Trid trid;
-  google.registry.model.reporting.DomainTransactionRecord domainTransactionRecord;
   google.registry.model.reporting.HistoryEntry$Type type;
   java.lang.Boolean requestedByRegistrar;
   java.lang.String clientId;
   java.lang.String otherClientId;
   java.lang.String reason;
+  java.util.Set<google.registry.model.reporting.DomainTransactionRecord> domainTransactionRecords;
   org.joda.time.DateTime modificationTime;
 }
 enum google.registry.model.reporting.HistoryEntry$Type {

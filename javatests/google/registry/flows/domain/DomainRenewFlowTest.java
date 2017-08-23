@@ -17,7 +17,6 @@ package google.registry.flows.domain;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.domain.DomainTransferFlowTestCase.persistWithPendingTransfer;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount.TransactionReportField.netRenewsFieldFromYears;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
@@ -60,7 +59,7 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.DomainTransactionRecord;
-import google.registry.model.reporting.DomainTransactionRecord.TransactionFieldAmount;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.Map;
 import org.joda.money.Money;
@@ -677,12 +676,11 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     DomainResource domain = reloadResourceByForeignKey();
     HistoryEntry historyEntry =
         getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_RENEW);
-    DomainTransactionRecord transactionRecord = historyEntry.getDomainTransactionRecord();
-
-    assertThat(transactionRecord.getTld()).isEqualTo("tld");
-    assertThat(transactionRecord.getReportingTime())
-        .isEqualTo(historyEntry.getModificationTime().plusMinutes(9));
-    assertThat(transactionRecord.getTransactionFieldAmounts())
-        .containsExactly(TransactionFieldAmount.create(netRenewsFieldFromYears(5), 1));
+    assertThat(historyEntry.getDomainTransactionRecords()).containsExactly(
+        DomainTransactionRecord.create(
+            "tld",
+            historyEntry.getModificationTime().plusMinutes(9),
+            TransactionReportField.netRenewsFieldFromYears(5),
+            1));
   }
 }

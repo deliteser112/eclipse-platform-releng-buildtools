@@ -14,6 +14,9 @@
 
 package google.registry.model.reporting;
 
+import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
+
+import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -27,7 +30,7 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.ReportedOn;
 import google.registry.model.domain.Period;
 import google.registry.model.eppcommon.Trid;
-import javax.annotation.Nullable;
+import java.util.Set;
 import org.joda.time.DateTime;
 
 /** A record of an EPP command that mutated a resource. */
@@ -128,12 +131,11 @@ public class HistoryEntry extends ImmutableObject implements Buildable {
   /**
    * Logging field for transaction reporting.
    *
-   * <p>This will be null for any HistoryEntry generated before this field was added. This will
-   * also be null if the HistoryEntry refers to an EPP mutation that does not affect domain
+   * <p>This will be empty for any HistoryEntry generated before this field was added. This will
+   * also be empty if the HistoryEntry refers to an EPP mutation that does not affect domain
    * transaction counts (such as contact or host mutations).
    */
-  @Nullable
-  DomainTransactionRecord domainTransactionRecord;
+  Set<DomainTransactionRecord> domainTransactionRecords;
 
   public Key<? extends EppResource> getParent() {
     return parent;
@@ -179,9 +181,8 @@ public class HistoryEntry extends ImmutableObject implements Buildable {
     return requestedByRegistrar;
   }
 
-  @Nullable
-  public DomainTransactionRecord getDomainTransactionRecord() {
-    return domainTransactionRecord;
+  public ImmutableSet<DomainTransactionRecord> getDomainTransactionRecords() {
+    return nullToEmptyImmutableCopy(domainTransactionRecords);
   }
 
   @Override
@@ -257,8 +258,9 @@ public class HistoryEntry extends ImmutableObject implements Buildable {
       return this;
     }
 
-    public Builder setDomainTransactionRecord(DomainTransactionRecord domainTransactionRecord) {
-      getInstance().domainTransactionRecord = domainTransactionRecord;
+    public Builder setDomainTransactionRecords(
+        ImmutableSet<DomainTransactionRecord> domainTransactionRecords) {
+      getInstance().domainTransactionRecords = domainTransactionRecords;
       return this;
     }
   }
