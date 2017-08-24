@@ -783,7 +783,7 @@ class google.registry.model.registry.label.ReservedList$ReservedListEntry {
 }
 class google.registry.model.reporting.DomainTransactionRecord {
   google.registry.model.reporting.DomainTransactionRecord$TransactionReportField reportField;
-  int reportAmount;
+  java.lang.Integer reportAmount;
   java.lang.String tld;
   org.joda.time.DateTime reportingTime;
 }
