@@ -18,6 +18,7 @@ import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain
 import static google.registry.mapreduce.MapreduceRunner.PARAM_MAP_SHARDS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PipelineUtils.createJobPath;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.base.Optional;
@@ -105,7 +106,7 @@ public class RdeHostLinkAction implements Runnable {
       try {
         InternetDomainName hostName = InternetDomainName.from(xjcHost.getName());
         Optional<DomainResource> superordinateDomain =
-            lookupSuperordinateDomain(hostName, DateTime.now());
+            lookupSuperordinateDomain(hostName, DateTime.now(UTC));
         // if suporordinateDomain is null, this is an out of zone host and can't be linked
         if (!superordinateDomain.isPresent()) {
           getContext().incrementCounter("post-import hosts out of zone");

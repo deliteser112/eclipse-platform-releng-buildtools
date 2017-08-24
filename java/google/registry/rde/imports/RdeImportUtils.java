@@ -21,6 +21,7 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.collect.ImmutableSet;
@@ -220,7 +221,7 @@ public class RdeImportUtils {
             .setType(HistoryEntry.Type.RDE_IMPORT)
             .setClientId(domain.getClID())
             .setTrid(generateTridForImport())
-            .setModificationTime(DateTime.now())
+            .setModificationTime(DateTime.now(UTC))
             .setXmlBytes(getObjectXml(element))
             .setBySuperuser(true)
             .setReason("RDE Import")

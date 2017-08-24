@@ -26,6 +26,7 @@ import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
+import static org.joda.time.DateTimeZone.UTC;
 import static org.junit.Assert.fail;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
@@ -341,7 +342,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
         .setType(HistoryEntry.Type.RDE_IMPORT)
         .setClientId(clid)
         .setTrid(Trid.create("client-trid", "server-trid"))
-        .setModificationTime(DateTime.now())
+        .setModificationTime(DateTime.now(UTC))
         .setXmlBytes(objectXml)
         .setBySuperuser(true)
         .setReason("RDE Import")

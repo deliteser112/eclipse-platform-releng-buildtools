@@ -19,6 +19,7 @@ import static com.google.common.base.Predicates.not;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.rde.imports.RdeImportUtils.generateTridForImport;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -65,7 +66,7 @@ public class XjcToHostResourceConverter extends XjcToEppResourceConverter {
             .setType(HistoryEntry.Type.RDE_IMPORT)
             .setClientId(host.getClID())
             .setTrid(generateTridForImport())
-            .setModificationTime(DateTime.now())
+            .setModificationTime(DateTime.now(UTC))
             .setXmlBytes(getObjectXml(new XjcRdeHostElement(host)))
             .setBySuperuser(true)
             .setReason("RDE Import")

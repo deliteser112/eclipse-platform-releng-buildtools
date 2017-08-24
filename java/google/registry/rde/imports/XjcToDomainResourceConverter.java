@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Iterables.transform;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Function;
@@ -95,7 +96,7 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
           fullyQualifiedHostName = canonicalizeDomainName(fullyQualifiedHostName);
           Key<HostResource> key =
               ForeignKeyIndex.loadAndGetKey(
-                  HostResource.class, fullyQualifiedHostName, DateTime.now());
+                  HostResource.class, fullyQualifiedHostName, DateTime.now(UTC));
           checkState(
               key != null,
               String.format("HostResource not found with name '%s'", fullyQualifiedHostName));
@@ -221,7 +222,7 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
   /** Returns {@link Key} for registrant from foreign key */
   private static Key<ContactResource> convertRegistrant(String contactId) {
     Key<ContactResource> key =
-        ForeignKeyIndex.loadAndGetKey(ContactResource.class, contactId, DateTime.now());
+        ForeignKeyIndex.loadAndGetKey(ContactResource.class, contactId, DateTime.now(UTC));
     checkState(key != null, "Registrant not found: '%s'", contactId);
     return key;
   }
@@ -269,7 +270,7 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
   private static DesignatedContact convertContactType(XjcDomainContactType contact) {
     String contactId = contact.getValue();
     Key<ContactResource> key =
-        ForeignKeyIndex.loadAndGetKey(ContactResource.class, contactId, DateTime.now());
+        ForeignKeyIndex.loadAndGetKey(ContactResource.class, contactId, DateTime.now(UTC));
     checkState(key != null, "Contact not found: '%s'", contactId);
     DesignatedContact.Type type =
         DesignatedContact.Type.valueOf(Ascii.toUpperCase(contact.getType().toString()));

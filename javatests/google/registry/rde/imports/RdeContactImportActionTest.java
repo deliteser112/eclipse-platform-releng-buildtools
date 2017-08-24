@@ -20,6 +20,7 @@ import static google.registry.testing.DatastoreHelper.getHistoryEntries;
 import static google.registry.testing.DatastoreHelper.newContactResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
@@ -128,7 +129,7 @@ public class RdeContactImportActionTest extends MapreduceTestCase<RdeContactImpo
           .setType(HistoryEntry.Type.RDE_IMPORT)
           .setClientId(clid)
           .setTrid(Trid.create("client-trid", "server-trid"))
-          .setModificationTime(DateTime.now())
+          .setModificationTime(DateTime.now(UTC))
           .setXmlBytes(objectXml)
           .setBySuperuser(true)
           .setReason("RDE Import")
