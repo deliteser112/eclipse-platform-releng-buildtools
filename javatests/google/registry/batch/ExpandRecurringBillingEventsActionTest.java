@@ -16,10 +16,14 @@ package google.registry.batch;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.common.Cursor.CursorType.RECURRING_BILLING;
+import static google.registry.model.domain.Period.Unit.YEARS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_AUTORENEW;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.assertBillingEventsForResource;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.getHistoryEntriesOfType;
+import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
@@ -36,11 +40,15 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
+import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.common.Cursor;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.Period;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
+import google.registry.model.reporting.DomainTransactionRecord;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
@@ -118,24 +126,49 @@ public class ExpandRecurringBillingEventsActionTest
     assertThat(cursor.getCursorTime()).isEqualTo(expectedCursorTime);
   }
 
-  @Test
-  public void testSuccess_expandSingleEvent() throws Exception {
-    persistResource(recurring);
-    action.cursorTimeParam = Optional.of(START_OF_TIME);
-    runMapreduce();
-    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
-        // Default renew grace period of 45 days.
+  void assertHistoryEntryMatches(
+      DomainResource domain, HistoryEntry actual, String clientId, DateTime billingTime) {
+    assertThat(actual.getBySuperuser()).isFalse();
+    assertThat(actual.getClientId()).isEqualTo(clientId);
+    assertThat(actual.getParent()).isEqualTo(Key.create(domain));
+    assertThat(actual.getPeriod()).isEqualTo(Period.create(1, YEARS));
+    assertThat(actual.getReason())
+        .isEqualTo("Domain autorenewal by ExpandRecurringBillingEventsAction");
+    assertThat(actual.getRequestedByRegistrar()).isFalse();
+    assertThat(actual.getType()).isEqualTo(DOMAIN_AUTORENEW);
+    assertThat(actual.getDomainTransactionRecords())
+        .containsExactly(
+            DomainTransactionRecord.create(
+                "tld",
+                billingTime,
+                TransactionReportField.NET_RENEWS_1_YR,
+                1));
+  }
+
+  private OneTime.Builder defaultOneTimeBuilder() {
+    return new BillingEvent.OneTime.Builder()
         .setBillingTime(DateTime.parse("2000-02-19T00:00:00Z"))
         .setClientId("TheRegistrar")
         .setCost(Money.of(USD, 11))
         .setEventTime(DateTime.parse("2000-01-05T00:00:00Z"))
         .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
         .setPeriodYears(1)
         .setReason(Reason.RENEW)
         .setSyntheticCreationTime(beginningOfTest)
         .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
+        .setTargetId(domain.getFullyQualifiedDomainName());
+  }
+
+  @Test
+  public void testSuccess_expandSingleEvent() throws Exception {
+    persistResource(recurring);
+    action.cursorTimeParam = Optional.of(START_OF_TIME);
+    runMapreduce();
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_AUTORENEW);
+    assertHistoryEntryMatches(
+        domain, persistedEntry, "TheRegistrar", DateTime.parse("2000-02-19T00:00:00Z"));
+    BillingEvent.OneTime expected = defaultOneTimeBuilder()
+        .setParent(persistedEntry)
         .build();
     assertBillingEventsForResource(domain, expected, recurring);
     assertCursorAt(beginningOfTest);
@@ -158,18 +191,11 @@ public class ExpandRecurringBillingEventsActionTest
         .build());
     action.cursorTimeParam = Optional.of(START_OF_TIME);
     runMapreduce();
-    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
-        // Default renew grace period of 45 days.
-        .setBillingTime(DateTime.parse("2000-02-19T00:00:00Z"))
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11))
-        .setEventTime(DateTime.parse("2000-01-05T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
-        .setSyntheticCreationTime(beginningOfTest)
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(deletedDomain, DOMAIN_AUTORENEW);
+    assertHistoryEntryMatches(
+        deletedDomain, persistedEntry, "TheRegistrar", DateTime.parse("2000-02-19T00:00:00Z"));
+    BillingEvent.OneTime expected = defaultOneTimeBuilder()
+        .setParent(persistedEntry)
         .setTargetId(deletedDomain.getFullyQualifiedDomainName())
         .build();
     assertBillingEventsForResource(deletedDomain, expected, recurring);
@@ -181,20 +207,10 @@ public class ExpandRecurringBillingEventsActionTest
     persistResource(recurring);
     action.cursorTimeParam = Optional.of(START_OF_TIME);
     runMapreduce();
-    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
-        // Default renew grace period of 45 days.
-        .setBillingTime(DateTime.parse("2000-02-19T00:00:00Z"))
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11))
-        .setEventTime(DateTime.parse("2000-01-05T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
-        .setSyntheticCreationTime(beginningOfTest)
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
-        .build();
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_AUTORENEW);
+    assertHistoryEntryMatches(
+        domain, persistedEntry, "TheRegistrar", DateTime.parse("2000-02-19T00:00:00Z"));
+    BillingEvent.OneTime expected = defaultOneTimeBuilder().setParent(persistedEntry).build();
     assertCursorAt(beginningOfTest);
     DateTime beginningOfSecondRun = clock.nowUtc();
     action.response = new FakeResponse();
@@ -206,50 +222,33 @@ public class ExpandRecurringBillingEventsActionTest
   @Test
   public void testSuccess_expandSingleEvent_idempotentForExistingOneTime() throws Exception {
     persistResource(recurring);
-    BillingEvent.OneTime persisted = persistResource(new BillingEvent.OneTime.Builder()
-        // Default renew grace period of 45 days.
-        .setBillingTime(DateTime.parse("2000-02-19T00:00:00Z"))
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11))
-        .setEventTime(DateTime.parse("2000-01-05T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
+    BillingEvent.OneTime persisted = persistResource(defaultOneTimeBuilder()
         .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
-        .setSyntheticCreationTime(beginningOfTest)
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
         .build());
     action.cursorTimeParam = Optional.of(START_OF_TIME);
     runMapreduce();
+    // No new history entries should be generated
+    assertThat(getHistoryEntriesOfType(domain, DOMAIN_AUTORENEW)).isEmpty();
     assertCursorAt(beginningOfTest);
-    assertBillingEventsForResource(domain, persisted, recurring); // no additional billing events
+    // No additional billing events should be generated
+    assertBillingEventsForResource(domain, persisted, recurring);
   }
 
   @Test
   public void testSuccess_expandSingleEvent_notIdempotentForDifferentBillingTime()
       throws Exception {
     persistResource(recurring);
-    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
-        .setBillingTime(DateTime.parse("2000-02-19T00:00:00Z"))
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11))
-        .setEventTime(DateTime.parse("2000-01-05T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
-        .setSyntheticCreationTime(beginningOfTest)
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
-        .build();
+    action.cursorTimeParam = Optional.of(START_OF_TIME);
+    runMapreduce();
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_AUTORENEW);
+    assertHistoryEntryMatches(
+        domain, persistedEntry, "TheRegistrar", DateTime.parse("2000-02-19T00:00:00Z"));
+    BillingEvent.OneTime expected = defaultOneTimeBuilder().setParent(persistedEntry).build();
     // Persist an otherwise identical billing event that differs only in billing time.
     BillingEvent.OneTime persisted = persistResource(expected.asBuilder()
         .setBillingTime(DateTime.parse("1999-02-19T00:00:00Z"))
         .setEventTime(DateTime.parse("1999-01-05T00:00:00Z"))
         .build());
-    action.cursorTimeParam = Optional.of(START_OF_TIME);
-    runMapreduce();
     assertCursorAt(beginningOfTest);
     assertBillingEventsForResource(domain, persisted, expected, recurring);
   }
@@ -261,25 +260,23 @@ public class ExpandRecurringBillingEventsActionTest
     BillingEvent.Recurring recurring2 = persistResource(recurring.asBuilder()
         .setId(3L)
         .build());
-    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
-        .setBillingTime(DateTime.parse("2000-02-19T00:00:00Z"))
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11))
-        .setEventTime(DateTime.parse("2000-01-05T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
-        .setSyntheticCreationTime(beginningOfTest)
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
-        .build();
-    // Persist an otherwise identical billing event that differs only in recurring event key.
-    BillingEvent.OneTime persisted = persistResource(expected.asBuilder()
-        .setCancellationMatchingBillingEvent(Key.create(recurring2))
-        .build());
     action.cursorTimeParam = Optional.of(START_OF_TIME);
     runMapreduce();
+    List<HistoryEntry> persistedEntries =
+        getHistoryEntriesOfType(domain, DOMAIN_AUTORENEW);
+    for (HistoryEntry persistedEntry : persistedEntries) {
+      assertHistoryEntryMatches(
+          domain, persistedEntry, "TheRegistrar", DateTime.parse("2000-02-19T00:00:00Z"));
+    }
+    assertThat(persistedEntries).hasSize(2);
+    BillingEvent.OneTime expected = defaultOneTimeBuilder()
+        .setParent(persistedEntries.get(0))
+        .build();
+    // Persist an otherwise identical billing event that differs only in recurring event key.
+    BillingEvent.OneTime persisted = expected.asBuilder()
+        .setParent(persistedEntries.get(1))
+        .setCancellationMatchingBillingEvent(Key.create(recurring2))
+        .build();
     assertCursorAt(beginningOfTest);
     assertBillingEventsForResource(domain, persisted, expected, recurring, recurring2);
   }
@@ -292,6 +289,8 @@ public class ExpandRecurringBillingEventsActionTest
         .build());
     action.cursorTimeParam = Optional.of(DateTime.parse("2000-01-01T00:00:00Z"));
     runMapreduce();
+    // No new history entries should be generated
+    assertThat(getHistoryEntriesOfType(domain, DOMAIN_AUTORENEW)).isEmpty();
     assertBillingEventsForResource(domain, recurring);
     assertCursorAt(beginningOfTest);
   }
@@ -303,6 +302,8 @@ public class ExpandRecurringBillingEventsActionTest
         .build());
     action.cursorTimeParam = Optional.of(START_OF_TIME);
     runMapreduce();
+    // No new history entries should be generated
+    assertThat(getHistoryEntriesOfType(domain, DOMAIN_AUTORENEW)).isEmpty();
     assertBillingEventsForResource(domain, recurring);
   }
 
@@ -311,20 +312,10 @@ public class ExpandRecurringBillingEventsActionTest
     persistResource(recurring);
     action.cursorTimeParam = Optional.of(DateTime.parse("2000-02-19T00:00:00Z"));
     runMapreduce();
-    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
-        // Default renew grace period of 45 days.
-        .setBillingTime(DateTime.parse("2000-02-19T00:00:00Z"))
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11))
-        .setEventTime(DateTime.parse("2000-01-05T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
-        .setSyntheticCreationTime(beginningOfTest)
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
-        .build();
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_AUTORENEW);
+    assertHistoryEntryMatches(
+        domain, persistedEntry, "TheRegistrar", DateTime.parse("2000-02-19T00:00:00Z"));
+    BillingEvent.OneTime expected = defaultOneTimeBuilder().setParent(persistedEntry).build();
     assertBillingEventsForResource(domain, expected, recurring);
     assertCursorAt(beginningOfTest);
   }
@@ -335,20 +326,10 @@ public class ExpandRecurringBillingEventsActionTest
     persistResource(recurring);
     action.cursorTimeParam = Optional.of(DateTime.parse("2000-01-12T00:00:00Z"));
     runMapreduce();
-    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
-        // Default renew grace period of 45 days.
-        .setBillingTime(DateTime.parse("2000-02-19T00:00:00Z"))
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11))
-        .setEventTime(DateTime.parse("2000-01-05T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
-        .setSyntheticCreationTime(beginningOfTest)
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
-        .build();
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_AUTORENEW);
+    assertHistoryEntryMatches(
+        domain, persistedEntry, "TheRegistrar", DateTime.parse("2000-02-19T00:00:00Z"));
+    BillingEvent.OneTime expected = defaultOneTimeBuilder().setParent(persistedEntry).build();
     assertBillingEventsForResource(domain, expected, recurring);
     assertCursorAt(beginningOfTest);
   }
@@ -361,6 +342,8 @@ public class ExpandRecurringBillingEventsActionTest
     // Clock is advanced one milli in runMapreduce()
     clock.setTo(testTime);
     runMapreduce();
+    // No new history entries should be generated
+    assertThat(getHistoryEntriesOfType(domain, DOMAIN_AUTORENEW)).isEmpty();
     // A candidate billing event is set to be billed exactly on 2/19/00 @ 00:00,
     // but these should not be generated as the interval is closed on cursorTime, open on
     // executeTime.
@@ -377,19 +360,14 @@ public class ExpandRecurringBillingEventsActionTest
             recurring.asBuilder().setEventTime(recurring.getEventTime().plusYears(2)).build());
     clock.setTo(testTime);
     runMapreduce();
-    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
-        // Default renew grace period of 45 days.
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_AUTORENEW);
+    assertHistoryEntryMatches(
+        domain, persistedEntry, "TheRegistrar", DateTime.parse("2002-02-19T00:00:00Z"));
+    BillingEvent.OneTime expected = defaultOneTimeBuilder()
         .setBillingTime(DateTime.parse("2002-02-19T00:00:00Z"))
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11))
         .setEventTime(DateTime.parse("2002-01-05T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
+        .setParent(persistedEntry)
         .setSyntheticCreationTime(testTime)
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
         .build();
     assertBillingEventsForResource(domain, expected, recurring);
     assertCursorAt(testTime);
@@ -400,20 +378,10 @@ public class ExpandRecurringBillingEventsActionTest
     persistResource(recurring);
     saveCursor(START_OF_TIME);
     runMapreduce();
-    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
-        // Default renew grace period of 45 days.
-        .setBillingTime(DateTime.parse("2000-02-19T00:00:00Z"))
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11))
-        .setEventTime(DateTime.parse("2000-01-05T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
-        .setSyntheticCreationTime(beginningOfTest)
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
-        .build();
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_AUTORENEW);
+    assertHistoryEntryMatches(
+        domain, persistedEntry, "TheRegistrar", DateTime.parse("2000-02-19T00:00:00Z"));
+    BillingEvent.OneTime expected = defaultOneTimeBuilder().setParent(persistedEntry).build();
     assertBillingEventsForResource(domain, expected, recurring);
     assertCursorAt(beginningOfTest);
   }
@@ -424,6 +392,8 @@ public class ExpandRecurringBillingEventsActionTest
     // Simulate a quick second run of the mapreduce (this should be a no-op).
     saveCursor(clock.nowUtc().minusSeconds(1));
     runMapreduce();
+    // No new history entries should be generated
+    assertThat(getHistoryEntriesOfType(domain, DOMAIN_AUTORENEW)).isEmpty();
     assertBillingEventsForResource(domain, recurring);
     assertCursorAt(beginningOfTest);
   }
@@ -436,6 +406,8 @@ public class ExpandRecurringBillingEventsActionTest
         .build());
     action.cursorTimeParam = Optional.of(START_OF_TIME);
     runMapreduce();
+    // No new history entries should be generated
+    assertThat(getHistoryEntriesOfType(domain, DOMAIN_AUTORENEW)).isEmpty();
     assertBillingEventsForResource(domain, recurring);
     assertCursorAt(beginningOfTest);
   }
@@ -446,6 +418,8 @@ public class ExpandRecurringBillingEventsActionTest
     action.isDryRun = true;
     saveCursor(START_OF_TIME); // Need a saved cursor to verify that it didn't move.
     runMapreduce();
+    // No new history entries should be generated
+    assertThat(getHistoryEntriesOfType(domain, DOMAIN_AUTORENEW)).isEmpty();
     assertBillingEventsForResource(domain, recurring);
     assertCursorAt(START_OF_TIME); // Cursor doesn't move on a dry run.
   }
@@ -458,23 +432,23 @@ public class ExpandRecurringBillingEventsActionTest
     expectedEvents.add(persistResource(recurring));
     action.cursorTimeParam = Optional.of(START_OF_TIME);
     runMapreduce();
+    List<HistoryEntry> persistedEntries =
+        getHistoryEntriesOfType(domain, DOMAIN_AUTORENEW);
+    assertThat(persistedEntries).hasSize(6);
     DateTime eventDate = DateTime.parse("2000-01-05T00:00:00Z");
-    // Default renew grace period of 45 days.
     DateTime billingDate = DateTime.parse("2000-02-19T00:00:00Z");
     // Expecting events for '00, '01, '02, '03, '04, '05.
     for (int year = 0; year < 6; year++) {
-      expectedEvents.add(new BillingEvent.OneTime.Builder()
+      assertHistoryEntryMatches(
+          domain,
+          persistedEntries.get(year),
+          "TheRegistrar",
+          billingDate.plusYears(year));
+      expectedEvents.add(defaultOneTimeBuilder()
           .setBillingTime(billingDate.plusYears(year))
-          .setClientId("TheRegistrar")
-          .setCost(Money.of(USD, 11))
           .setEventTime(eventDate.plusYears(year))
-          .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-          .setParent(historyEntry)
-          .setPeriodYears(1)
-          .setReason(Reason.RENEW)
+          .setParent(persistedEntries.get(year))
           .setSyntheticCreationTime(testTime)
-          .setCancellationMatchingBillingEvent(Key.create(recurring))
-          .setTargetId(domain.getFullyQualifiedDomainName())
           .build());
     }
     assertBillingEventsForResource(domain, Iterables.toArray(expectedEvents, BillingEvent.class));
@@ -489,26 +463,24 @@ public class ExpandRecurringBillingEventsActionTest
     expectedEvents.add(persistResource(recurring));
     saveCursor(DateTime.parse("2003-10-02T00:00:00Z"));
     runMapreduce();
+    List<HistoryEntry> persistedEntries =
+        getHistoryEntriesOfType(domain, DOMAIN_AUTORENEW);
+    assertThat(persistedEntries).hasSize(2);
     DateTime eventDate = DateTime.parse("2004-01-05T00:00:00Z");
-    // Default renew grace period of 45 days.
     DateTime billingDate = DateTime.parse("2004-02-19T00:00:00Z");
     // Only expect the last two years' worth of billing events.
     for (int year = 0; year < 2; year++) {
-      expectedEvents.add(new BillingEvent.OneTime.Builder()
+      assertHistoryEntryMatches(
+          domain, persistedEntries.get(year), "TheRegistrar", billingDate.plusYears(year));
+      expectedEvents.add(defaultOneTimeBuilder()
           .setBillingTime(billingDate.plusYears(year))
-          .setClientId("TheRegistrar")
-          .setCost(Money.of(USD, 11))
+          .setParent(persistedEntries.get(year))
           .setEventTime(eventDate.plusYears(year))
-          .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-          .setParent(historyEntry)
-          .setPeriodYears(1)
-          .setReason(Reason.RENEW)
           .setSyntheticCreationTime(testTime)
-          .setCancellationMatchingBillingEvent(Key.create(recurring))
-          .setTargetId(domain.getFullyQualifiedDomainName())
           .build());
     }
-    assertBillingEventsForResource(domain, Iterables.toArray(expectedEvents, BillingEvent.class));
+    assertBillingEventsForResource(
+        domain, Iterables.toArray(expectedEvents, BillingEvent.class));
     assertCursorAt(testTime);
   }
 
@@ -519,6 +491,8 @@ public class ExpandRecurringBillingEventsActionTest
     persistResource(recurring);
     action.cursorTimeParam = Optional.of(START_OF_TIME);
     runMapreduce();
+    // No new history entries should be generated
+    assertThat(getHistoryEntriesOfType(domain, DOMAIN_AUTORENEW)).isEmpty();
     assertBillingEventsForResource(domain, recurring);
     assertCursorAt(testTime);
   }
@@ -534,18 +508,13 @@ public class ExpandRecurringBillingEventsActionTest
         .build());
     action.cursorTimeParam = Optional.of(START_OF_TIME);
     runMapreduce();
-    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_AUTORENEW);
+    assertHistoryEntryMatches(
+        domain, persistedEntry, "TheRegistrar", DateTime.parse("2000-02-19T00:00:00Z"));
+    BillingEvent.OneTime expected = defaultOneTimeBuilder()
         .setBillingTime(DateTime.parse("2000-02-19T00:00:00Z"))
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11))
-        .setEventTime(DateTime.parse("2000-01-05T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
+        .setParent(persistedEntry)
         .setSyntheticCreationTime(testTime)
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
         .build();
     assertBillingEventsForResource(domain, recurring, expected);
     assertCursorAt(testTime);
@@ -558,19 +527,13 @@ public class ExpandRecurringBillingEventsActionTest
             recurring.asBuilder().setEventTime(DateTime.parse("2000-01-15T00:00:00Z")).build());
     action.cursorTimeParam = Optional.of(START_OF_TIME);
     runMapreduce();
-    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
-        // Default renew grace period of 45 days.
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_AUTORENEW);
+    assertHistoryEntryMatches(
+        domain, persistedEntry, "TheRegistrar", DateTime.parse("2000-02-29T00:00:00Z"));
+    BillingEvent.OneTime expected = defaultOneTimeBuilder()
         .setBillingTime(DateTime.parse("2000-02-29T00:00:00Z"))
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11))
         .setEventTime(DateTime.parse("2000-01-15T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
-        .setSyntheticCreationTime(beginningOfTest)
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
+        .setParent(persistedEntry)
         .build();
     assertBillingEventsForResource(domain, expected, recurring);
     assertCursorAt(beginningOfTest);
@@ -585,19 +548,14 @@ public class ExpandRecurringBillingEventsActionTest
     action.cursorTimeParam = Optional.of(START_OF_TIME);
     clock.setTo(testTime);
     runMapreduce();
-    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
-        // Default renew grace period of 45 days.
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_AUTORENEW);
+    assertHistoryEntryMatches(
+        domain, persistedEntry, "TheRegistrar", DateTime.parse("2001-03-01T00:00:00Z"));
+    BillingEvent.OneTime expected = defaultOneTimeBuilder()
         .setBillingTime(DateTime.parse("2001-03-01T00:00:00Z"))
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11))
         .setEventTime(DateTime.parse("2001-01-15T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
+        .setParent(persistedEntry)
         .setSyntheticCreationTime(testTime)
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
         .build();
     assertBillingEventsForResource(domain, expected, recurring);
     assertCursorAt(testTime);
@@ -612,33 +570,21 @@ public class ExpandRecurringBillingEventsActionTest
         .build());
     action.cursorTimeParam = Optional.of(START_OF_TIME);
     runMapreduce();
-    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
-        // Default renew grace period of 45 days.
-        .setBillingTime(DateTime.parse("2000-02-19T00:00:00Z"))
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11))
-        .setEventTime(DateTime.parse("2000-01-05T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
-        .setSyntheticCreationTime(beginningOfTest)
+    List<HistoryEntry> persistedEntries = getHistoryEntriesOfType(domain, DOMAIN_AUTORENEW);
+    assertThat(persistedEntries).hasSize(2);
+    assertHistoryEntryMatches(
+        domain, persistedEntries.get(0), "TheRegistrar", DateTime.parse("2000-02-19T00:00:00Z"));
+    BillingEvent.OneTime expected = defaultOneTimeBuilder()
+        .setParent(persistedEntries.get(0))
         .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
         .build();
-    BillingEvent.OneTime expected2 = new BillingEvent.OneTime.Builder()
-        // Default renew grace period of 45 days.
+    assertHistoryEntryMatches(
+        domain, persistedEntries.get(1), "TheRegistrar", DateTime.parse("2000-05-20T00:00:00Z"));
+    BillingEvent.OneTime expected2 = defaultOneTimeBuilder()
         .setBillingTime(DateTime.parse("2000-05-20T00:00:00Z"))
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 11))
         .setEventTime(DateTime.parse("2000-04-05T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
-        .setSyntheticCreationTime(beginningOfTest)
+        .setParent(persistedEntries.get(1))
         .setCancellationMatchingBillingEvent(Key.create(recurring2))
-        .setTargetId(domain.getFullyQualifiedDomainName())
         .build();
     assertBillingEventsForResource(domain, expected, expected2, recurring, recurring2);
     assertCursorAt(beginningOfTest);
@@ -654,19 +600,12 @@ public class ExpandRecurringBillingEventsActionTest
     persistResource(recurring);
     action.cursorTimeParam = Optional.of(START_OF_TIME);
     runMapreduce();
-    BillingEvent.OneTime expected = new BillingEvent.OneTime.Builder()
-        // Default renew grace period of 45 days.
-        .setBillingTime(DateTime.parse("2000-02-19T00:00:00Z"))
-        .setClientId("TheRegistrar")
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_AUTORENEW);
+    assertHistoryEntryMatches(
+        domain, persistedEntry, "TheRegistrar", DateTime.parse("2000-02-19T00:00:00Z"));
+    BillingEvent.OneTime expected = defaultOneTimeBuilder()
+        .setParent(persistedEntry)
         .setCost(Money.of(USD, 100))
-        .setEventTime(DateTime.parse("2000-01-05T00:00:00Z"))
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
-        .setSyntheticCreationTime(beginningOfTest)
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
         .build();
     assertBillingEventsForResource(domain, expected, recurring);
     assertCursorAt(beginningOfTest);
@@ -687,26 +626,26 @@ public class ExpandRecurringBillingEventsActionTest
     persistResource(recurring);
     action.cursorTimeParam = Optional.of(START_OF_TIME);
     runMapreduce();
+    List<HistoryEntry> persistedEntries =
+        getHistoryEntriesOfType(domain, DOMAIN_AUTORENEW);
+    assertThat(persistedEntries).hasSize(2);
     DateTime eventDate = DateTime.parse("2000-01-05T00:00:00Z");
-    // Default renew grace period of 45 days.
     DateTime billingDate = DateTime.parse("2000-02-19T00:00:00Z");
-    BillingEvent.OneTime cheaper = new BillingEvent.OneTime.Builder()
+    assertHistoryEntryMatches(domain, persistedEntries.get(0), "TheRegistrar", billingDate);
+    BillingEvent.OneTime cheaper = defaultOneTimeBuilder()
         .setBillingTime(billingDate)
-        .setClientId("TheRegistrar")
-        .setCost(Money.of(USD, 8))
         .setEventTime(eventDate)
-        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW, Flag.SYNTHETIC))
-        .setParent(historyEntry)
-        .setPeriodYears(1)
-        .setReason(Reason.RENEW)
+        .setParent(persistedEntries.get(0))
+        .setCost(Money.of(USD, 8))
         .setSyntheticCreationTime(testTime)
-        .setCancellationMatchingBillingEvent(Key.create(recurring))
-        .setTargetId(domain.getFullyQualifiedDomainName())
         .build();
+    assertHistoryEntryMatches(
+        domain, persistedEntries.get(1), "TheRegistrar", billingDate.plusYears(1));
     BillingEvent.OneTime expensive = cheaper.asBuilder()
         .setCost(Money.of(USD, 10))
         .setBillingTime(billingDate.plusYears(1))
         .setEventTime(eventDate.plusYears(1))
+        .setParent(persistedEntries.get(1))
         .build();
     assertBillingEventsForResource(domain, recurring, cheaper, expensive);
     assertCursorAt(testTime);
@@ -735,6 +674,8 @@ public class ExpandRecurringBillingEventsActionTest
     // Set target to a TLD that doesn't exist.
     recurring = persistResource(recurring.asBuilder().setTargetId("domain.junk").build());
     runMapreduce();
+    // No new history entries should be generated
+    assertThat(getHistoryEntriesOfType(domain, DOMAIN_AUTORENEW)).isEmpty();
     assertBillingEvents(recurring); // only the bogus one in Datastore
     assertCursorAt(START_OF_TIME); // Cursor doesn't move on a failure.
   }

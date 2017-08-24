@@ -19,7 +19,9 @@ import static com.google.common.collect.Sets.difference;
 import static google.registry.mapreduce.MapreduceRunner.PARAM_DRY_RUN;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createChildEntityInput;
 import static google.registry.model.common.Cursor.CursorType.RECURRING_BILLING;
+import static google.registry.model.domain.Period.Unit.YEARS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_AUTORENEW;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -42,13 +44,18 @@ import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.NullInput;
+import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.Recurring;
 import google.registry.model.common.Cursor;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.Period;
 import google.registry.model.registry.Registry;
+import google.registry.model.reporting.DomainTransactionRecord;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
+import google.registry.model.reporting.HistoryEntry;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
@@ -59,6 +66,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 /**
  * A mapreduce that expands {@link Recurring} billing events into synthetic {@link OneTime} events.
@@ -174,9 +182,32 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
             ImmutableSet<DateTime> existingBillingTimes =
                 getExistingBillingTimes(oneTimesForDomain, recurring);
 
+            ImmutableSet.Builder<HistoryEntry> historyEntriesBuilder =
+                new ImmutableSet.Builder<>();
             // Create synthetic OneTime events for all billing times that do not yet have an event
             // persisted.
             for (DateTime billingTime : difference(billingTimes, existingBillingTimes)) {
+              // Construct a new HistoryEntry that parents over the OneTime
+              HistoryEntry historyEntry = new HistoryEntry.Builder()
+                  .setBySuperuser(false)
+                  .setClientId(recurring.getClientId())
+                  .setModificationTime(DateTime.now(DateTimeZone.UTC))
+                  .setParent(recurring.getParentKey().getParent())
+                  .setPeriod(Period.create(1, YEARS))
+                  .setReason("Domain autorenewal by ExpandRecurringBillingEventsAction")
+                  .setRequestedByRegistrar(false)
+                  .setType(DOMAIN_AUTORENEW)
+                  .setDomainTransactionRecords(
+                      ImmutableSet.of(
+                          DomainTransactionRecord.create(
+                              tld.getTldStr(),
+                              // We report this when the autorenew grace period ends
+                              billingTime,
+                              TransactionReportField.netRenewsFieldFromYears(1),
+                              1)))
+                  .build();
+              historyEntriesBuilder.add(historyEntry);
+
               DateTime eventTime = billingTime.minus(tld.getAutoRenewGracePeriodLength());
               // Determine the cost for a one-year renewal.
               Money renewCost = getDomainRenewCost(recurring.getTargetId(), eventTime, 1);
@@ -186,7 +217,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
                   .setCost(renewCost)
                   .setEventTime(eventTime)
                   .setFlags(union(recurring.getFlags(), Flag.SYNTHETIC))
-                  .setParent(recurring.getParentKey())
+                  .setParent(historyEntry)
                   .setPeriodYears(1)
                   .setReason(recurring.getReason())
                   .setSyntheticCreationTime(executeTime)
@@ -194,9 +225,15 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
                   .setTargetId(recurring.getTargetId())
                   .build());
             }
+            Set<HistoryEntry> historyEntries = historyEntriesBuilder.build();
             Set<OneTime> syntheticOneTimes = syntheticOneTimesBuilder.build();
             if (!isDryRun) {
-              ofy().save().entities(syntheticOneTimes).now();
+              ImmutableSet<ImmutableObject> entitiesToSave =
+                  new ImmutableSet.Builder<ImmutableObject>()
+                      .addAll(historyEntries)
+                      .addAll(syntheticOneTimes)
+                      .build();
+              ofy().save().entities(entitiesToSave).now();
             }
             return syntheticOneTimes.size();
           }

@@ -255,6 +255,7 @@ public class RdapJsonFormatter {
                   .put(HistoryEntry.Type.CONTACT_TRANSFER_APPROVE, RdapEventAction.TRANSFER)
                   .put(HistoryEntry.Type.DOMAIN_APPLICATION_CREATE, RdapEventAction.REGISTRATION)
                   .put(HistoryEntry.Type.DOMAIN_APPLICATION_DELETE, RdapEventAction.DELETION)
+                  .put(HistoryEntry.Type.DOMAIN_AUTORENEW, RdapEventAction.REREGISTRATION)
                   .put(HistoryEntry.Type.DOMAIN_CREATE, RdapEventAction.REGISTRATION)
                   .put(HistoryEntry.Type.DOMAIN_DELETE, RdapEventAction.DELETION)
                   .put(HistoryEntry.Type.DOMAIN_RENEW, RdapEventAction.REREGISTRATION)

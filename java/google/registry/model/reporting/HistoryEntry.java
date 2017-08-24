@@ -54,6 +54,11 @@ public class HistoryEntry extends ImmutableObject implements Buildable {
     DOMAIN_APPLICATION_DELETE,
     DOMAIN_APPLICATION_UPDATE,
     DOMAIN_APPLICATION_STATUS_UPDATE,
+    /**
+     * Used for domain registration autorenews explicitly logged by
+     * {@link google.registry.batch.ExpandRecurringBillingEventsAction}.
+     */
+    DOMAIN_AUTORENEW,
     DOMAIN_CREATE,
     DOMAIN_DELETE,
     DOMAIN_RENEW,
