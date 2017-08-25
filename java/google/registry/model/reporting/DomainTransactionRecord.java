@@ -17,6 +17,7 @@ package google.registry.model.reporting;
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
+import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
@@ -112,6 +113,42 @@ public class DomainTransactionRecord extends ImmutableObject implements Buildabl
     /** Boilerplate to simplify getting the NET_RENEWS_#_YR enum from a number of years. */
     public static TransactionReportField netRenewsFieldFromYears(int years) {
       return nameToField("NET_RENEWS_%d_YR", years);
+    }
+
+    private static final ImmutableSet<TransactionReportField> ADD_FIELDS =
+        ImmutableSet.of(
+            NET_ADDS_1_YR,
+            NET_ADDS_2_YR,
+            NET_ADDS_3_YR,
+            NET_ADDS_4_YR,
+            NET_ADDS_5_YR,
+            NET_ADDS_6_YR,
+            NET_ADDS_7_YR,
+            NET_ADDS_8_YR,
+            NET_ADDS_9_YR,
+            NET_ADDS_10_YR);
+
+    private static final ImmutableSet<TransactionReportField> RENEW_FIELDS =
+        ImmutableSet.of(
+            NET_RENEWS_1_YR,
+            NET_RENEWS_2_YR,
+            NET_RENEWS_3_YR,
+            NET_RENEWS_4_YR,
+            NET_RENEWS_5_YR,
+            NET_RENEWS_6_YR,
+            NET_RENEWS_7_YR,
+            NET_RENEWS_8_YR,
+            NET_RENEWS_9_YR,
+            NET_RENEWS_10_YR);
+
+
+    /** Boilerplate to determine if a field is one of the NET_ADDS fields. */
+    public static boolean isAddsField(TransactionReportField field) {
+      return ADD_FIELDS.contains(field);
+    }
+    /** Boilerplate to determine if a field is one of the NET_ADDS fields. */
+    public static boolean isRenewsField(TransactionReportField field) {
+      return RENEW_FIELDS.contains(field);
     }
 
     private static TransactionReportField nameToField(String enumTemplate, int years) {

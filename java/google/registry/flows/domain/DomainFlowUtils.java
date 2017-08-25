@@ -42,7 +42,9 @@ import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -105,6 +107,7 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservationType;
 import google.registry.model.registry.label.ReservedList;
+import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.tmch.ClaimsListShard;
 import google.registry.util.FormattingLogger;
@@ -118,6 +121,7 @@ import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /** Static utility functions for domain flows. */
 public class DomainFlowUtils {
@@ -907,6 +911,56 @@ public class DomainFlowUtils {
           ofy().load().key(contact.getContactKey()).now().getContactId()));
     }
     return builder.build();
+  }
+
+  /**
+   * Returns a set of DomainTransactionRecords which negate the most recent HistoryEntry's records.
+   *
+   * <p>Domain deletes and transfers use this function to account for previous records negated by
+   * their flow. For example, if a grace period delete occurs, we must add -1 counters for the
+   * associated NET_ADDS_#_YRS field, if it exists.
+   *
+   * <p>The steps are as follows: 1. Find all HistoryEntries under the domain modified in the past,
+   * up to the maxSearchPeriod. 2. Only keep HistoryEntries with a DomainTransactionRecord that a)
+   * hasn't been reported yet and b) matches the predicate 3. Return the transactionRecords under
+   * the most recent HistoryEntry that fits the above criteria, with negated reportAmounts.
+   */
+  static ImmutableSet<DomainTransactionRecord> createCancellingRecords(
+      DomainResource domainResource,
+      final DateTime now,
+      Duration maxSearchPeriod,
+      final Predicate<DomainTransactionRecord> isCancellable) {
+
+    List<HistoryEntry> recentHistoryEntries =  ofy().load()
+        .type(HistoryEntry.class)
+        .ancestor(domainResource)
+        .filter("modificationTime >=", now.minus(maxSearchPeriod))
+        .order("modificationTime")
+        .list();
+    Optional<HistoryEntry> entryToCancel = FluentIterable.from(recentHistoryEntries)
+        .filter(
+            new Predicate<HistoryEntry>() {
+              @Override
+              public boolean apply(HistoryEntry historyEntry) {
+                // Look for add and renew transaction records that have yet to be reported
+                for (DomainTransactionRecord record : historyEntry.getDomainTransactionRecords()) {
+                  if (isCancellable.apply(record) && record.getReportingTime().isAfter(now)) {
+                    return true;
+                  }
+                }
+                return false;
+              }
+            })
+        // We only want to cancel out the most recent add or renewal
+        .last();
+    ImmutableSet.Builder<DomainTransactionRecord> recordsBuilder = new ImmutableSet.Builder<>();
+    if (entryToCancel.isPresent()) {
+      for (DomainTransactionRecord record : entryToCancel.get().getDomainTransactionRecords()) {
+        int cancelledAmount = -1 * record.getReportAmount();
+        recordsBuilder.add(record.asBuilder().setReportAmount(cancelledAmount).build());
+      }
+    }
+    return recordsBuilder.build();
   }
 
   /** Resource linked to this domain does not exist. */

@@ -24,15 +24,20 @@ import static google.registry.flows.ResourceFlowUtils.verifyNoDisallowedStatuses
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
+import static google.registry.flows.domain.DomainFlowUtils.createCancellingRecords;
 import static google.registry.flows.domain.DomainFlowUtils.updateAutorenewRecurrenceEndTime;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.isAddsField;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.isRenewsField;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.CollectionUtils.nullToEmpty;
+import static google.registry.util.CollectionUtils.union;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -77,14 +82,18 @@ import google.registry.model.poll.PendingActionNotificationResponse.DomainPendin
 import google.registry.model.poll.PollMessage;
 import google.registry.model.poll.PollMessage.OneTime;
 import google.registry.model.registry.Registry;
+import google.registry.model.reporting.DomainTransactionRecord;
+import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.transfer.TransferStatus;
+import java.util.Collections;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * An EPP flow that deletes a domain.
@@ -133,24 +142,30 @@ public final class DomainDeleteFlow implements TransactionalFlow {
     customLogic.afterValidation(
         AfterValidationParameters.newBuilder().setExistingDomain(existingDomain).build());
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
-    HistoryEntry historyEntry = buildHistoryEntry(existingDomain, now);
     Builder builder = existingDomain.getStatusValues().contains(StatusValue.PENDING_TRANSFER)
         ? ResourceFlowUtils.<DomainResource, DomainResource.Builder>resolvePendingTransfer(
             existingDomain, TransferStatus.SERVER_CANCELLED, now)
         : existingDomain.asBuilder();
-    builder.setDeletionTime(now).setStatusValues(null);
-    // If the domain is in the Add Grace Period, we delete it immediately, which is already
-    // reflected in the builder we just prepared. Otherwise we give it a PENDING_DELETE status.
-    if (!existingDomain.getGracePeriodStatuses().contains(GracePeriodStatus.ADD)) {
-      // By default, this should be 30 days of grace, and 5 days of pending delete.
-      DateTime deletionTime = now
-          .plus(registry.getRedemptionGracePeriodLength())
-          .plus(registry.getPendingDeleteLength());
+    boolean inAddGracePeriod =
+        existingDomain.getGracePeriodStatuses().contains(GracePeriodStatus.ADD);
+    // If the domain is in the Add Grace Period, we delete it immediately.
+    // Otherwise, we give it a PENDING_DELETE status.
+    Duration durationUntilDelete =
+        inAddGracePeriod
+            ? Duration.ZERO
+            // By default, this should be 30 days of grace, and 5 days of pending delete.
+            : registry.getRedemptionGracePeriodLength().plus(registry.getPendingDeleteLength());
+    HistoryEntry historyEntry = buildHistoryEntry(
+        existingDomain, registry, now, durationUntilDelete, inAddGracePeriod);
+    if (inAddGracePeriod) {
+      builder.setDeletionTime(now).setStatusValues(null);
+    } else {
+      DateTime deletionTime = now.plus(durationUntilDelete);
       PollMessage.OneTime deletePollMessage =
           createDeletePollMessage(existingDomain, historyEntry, deletionTime);
       entitiesToSave.add(deletePollMessage);
-      builder.setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
-          .setDeletionTime(deletionTime)
+      builder.setDeletionTime(deletionTime)
+          .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
           // Clear out all old grace periods and add REDEMPTION, which does not include a key to a
           // billing event because there isn't one for a domain delete.
           .setGracePeriods(ImmutableSet.of(GracePeriod.createWithoutBillingEvent(
@@ -218,11 +233,43 @@ public final class DomainDeleteFlow implements TransactionalFlow {
     }
   }
 
-  private HistoryEntry buildHistoryEntry(DomainResource existingResource, DateTime now) {
+  private HistoryEntry buildHistoryEntry(
+      DomainResource existingResource,
+      Registry registry,
+      DateTime now,
+      Duration durationUntilDelete,
+      boolean inAddGracePeriod) {
+    Duration maxGracePeriod = Collections.max(
+        ImmutableSet.of(
+            registry.getAddGracePeriodLength(),
+            registry.getAutoRenewGracePeriodLength(),
+            registry.getRenewGracePeriodLength()));
+    ImmutableSet<DomainTransactionRecord> cancelledRecords =
+        createCancellingRecords(
+            existingResource,
+            now,
+            maxGracePeriod,
+            new Predicate<DomainTransactionRecord>() {
+              @Override
+              public boolean apply(@Nullable DomainTransactionRecord domainTransactionRecord) {
+                return isAddsField(domainTransactionRecord.getReportField())
+                    || isRenewsField(domainTransactionRecord.getReportField());
+              }
+            });
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_DELETE)
         .setModificationTime(now)
         .setParent(Key.create(existingResource))
+        .setDomainTransactionRecords(
+            union(
+                cancelledRecords,
+                DomainTransactionRecord.create(
+                    existingResource.getTld(),
+                    now.plus(durationUntilDelete),
+                    inAddGracePeriod
+                        ? TransactionReportField.DELETED_DOMAINS_GRACE
+                        : TransactionReportField.DELETED_DOMAINS_NOGRACE,
+                    1)))
         .build();
   }
 
