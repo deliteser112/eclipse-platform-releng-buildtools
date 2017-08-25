@@ -285,7 +285,7 @@ registry.registrar.Payment.prototype.onMessage_ = function(e) {
   }
   var data;
   try {
-    data = goog.json.parse(msg.data);
+    data = /** @type {!Object} */ (JSON.parse(msg.data));
   } catch (ex) {
     // TODO(b/26876003): Figure out why it's possible that the Braintree iframe
     //                   is able to propagate messages up to our level.

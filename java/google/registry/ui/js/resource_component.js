@@ -119,7 +119,7 @@ registry.ResourceComponent.prototype.handleFetchItem = function(id, rsp) {
 /** @override */
 registry.ResourceComponent.prototype.sendUpdate = function() {
   var modelCopy = /** @type {!Object}
-                   */ (goog.json.parse(goog.json.serialize(this.model)));
+                   */ (JSON.parse(goog.json.serialize(this.model)));
   this.prepareUpdate(modelCopy);
   if (this.id) {
     this.resource.update(modelCopy, goog.bind(this.handleUpdateResponse, this));

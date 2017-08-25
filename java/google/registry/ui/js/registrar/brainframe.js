@@ -123,7 +123,7 @@ registry.registrar.BrainFrame.prototype.onMessage_ = function(e) {
     throw new Error(
         'Message origin is "' + msg.origin + '" but wanted: ' + this.origin_);
   }
-  var data = goog.json.parse(msg.data);
+  var data = /** @type {!Object} */ (JSON.parse(msg.data));
   switch (goog.object.get(data, 'type')) {
     case registry.registrar.BrainFrame.MessageType.TOKEN_RESPONSE:
       goog.global.braintree.setup(goog.object.get(data, 'token'), 'dropin', {

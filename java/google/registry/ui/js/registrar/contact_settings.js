@@ -165,7 +165,7 @@ registry.registrar.ContactSettings.prototype.sendDelete = function() {
     throw new Error('Email to delete does not match model.');
   }
   var modelCopy = /** @type {!Object}
-                   */ (goog.json.parse(goog.json.serialize(this.model)));
+                   */ (JSON.parse(goog.json.serialize(this.model)));
   goog.array.removeAt(modelCopy.contacts, ndxToDel);
   this.resource.update(modelCopy, goog.bind(this.handleDeleteResponse, this));
 };

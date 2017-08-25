@@ -131,7 +131,7 @@ registry.testing.assertReqMockRsp =
   // XXX: XHR header checking should probably be added. Was inconsistent
   //      between admin and registrar consoles.
   registry.testing.assertObjectEqualsPretty(
-      expectReqJson, goog.json.parse(xhr.getLastContent()));
+      expectReqJson, JSON.parse(xhr.getLastContent()));
   xhr.simulateResponse(200, goog.json.serialize(mockRspJson));
 };
 
