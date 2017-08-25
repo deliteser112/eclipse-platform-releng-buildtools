@@ -44,6 +44,7 @@ import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.NullInput;
+import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -174,9 +175,9 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
             final ImmutableSet<DateTime> billingTimes =
                 getBillingTimesInScope(eventTimes, cursorTime, executeTime, tld);
 
-            Iterable<OneTime> oneTimesForDomain = ofy().load()
-                .type(OneTime.class)
-                .ancestor(recurring.getParentKey().getParent());
+            Key<? extends EppResource> domainKey = recurring.getParentKey().getParent();
+            Iterable<OneTime> oneTimesForDomain =
+                ofy().load().type(OneTime.class).ancestor(domainKey);
 
             // Determine the billing times that already have OneTime events persisted.
             ImmutableSet<DateTime> existingBillingTimes =
@@ -192,7 +193,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
                   .setBySuperuser(false)
                   .setClientId(recurring.getClientId())
                   .setModificationTime(DateTime.now(DateTimeZone.UTC))
-                  .setParent(recurring.getParentKey().getParent())
+                  .setParent(domainKey)
                   .setPeriod(Period.create(1, YEARS))
                   .setReason("Domain autorenewal by ExpandRecurringBillingEventsAction")
                   .setRequestedByRegistrar(false)
