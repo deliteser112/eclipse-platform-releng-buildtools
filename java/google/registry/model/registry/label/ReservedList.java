@@ -226,7 +226,7 @@ public final class ReservedList
 
   /**
    * Returns true if the given label and TLD is reserved for an anchor tenant, and the given auth
-   * code matches the one set on the reservation. If there are multiple anchor tenant entries fo
+   * code matches the one set on the reservation. If there are multiple anchor tenant entries for
    * this label, all the auth codes need to be the same and match the given one, otherwise an
    * exception is thrown.
    */
