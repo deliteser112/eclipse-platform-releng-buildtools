@@ -76,6 +76,7 @@ import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
+import google.registry.model.registry.Registry.TldType;
 import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
@@ -785,6 +786,29 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-delete");
     assertTldsFieldLogged("tld");
+  }
+
+  @Test
+  public void testIcannTransactionRecord_testTld_notStored() throws Exception {
+    setUpSuccessfulTest();
+    setUpGracePeriodDurations();
+    persistResource(Registry.get("tld").asBuilder().setTldType(TldType.TEST).build());
+    clock.advanceOneMilli();
+    earlierHistoryEntry =
+        persistResource(
+            earlierHistoryEntry
+                .asBuilder()
+                .setType(DOMAIN_CREATE)
+                .setModificationTime(TIME_BEFORE_FLOW.minusDays(2))
+                .setDomainTransactionRecords(
+                    ImmutableSet.of(
+                        DomainTransactionRecord.create(
+                            "tld", TIME_BEFORE_FLOW.plusDays(1), NET_ADDS_1_YR, 1)))
+                .build());
+    runFlow();
+    HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_DELETE);
+    // No transaction records should be recorded for test TLDs
+    assertThat(persistedEntry.getDomainTransactionRecords()).isEmpty();
   }
 
   @Test

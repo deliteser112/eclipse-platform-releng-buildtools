@@ -82,6 +82,7 @@ import google.registry.model.poll.PendingActionNotificationResponse.DomainPendin
 import google.registry.model.poll.PollMessage;
 import google.registry.model.poll.PollMessage.OneTime;
 import google.registry.model.registry.Registry;
+import google.registry.model.registry.Registry.TldType;
 import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
@@ -239,31 +240,35 @@ public final class DomainDeleteFlow implements TransactionalFlow {
       DateTime now,
       Duration durationUntilDelete,
       boolean inAddGracePeriod) {
-    Duration maxGracePeriod = Collections.max(
-        ImmutableSet.of(
-            registry.getAddGracePeriodLength(),
-            registry.getAutoRenewGracePeriodLength(),
-            registry.getRenewGracePeriodLength()));
-    ImmutableSet<DomainTransactionRecord> cancelledRecords =
-        createCancelingRecords(
-            existingResource,
-            now,
-            maxGracePeriod,
-            Sets.immutableEnumSet(Sets.union(ADD_FIELDS, RENEW_FIELDS)));
+    // We ignore prober transactions
+    if (registry.getTldType() == TldType.REAL) {
+      Duration maxGracePeriod = Collections.max(
+          ImmutableSet.of(
+              registry.getAddGracePeriodLength(),
+              registry.getAutoRenewGracePeriodLength(),
+              registry.getRenewGracePeriodLength()));
+      ImmutableSet<DomainTransactionRecord> cancelledRecords =
+          createCancelingRecords(
+              existingResource,
+              now,
+              maxGracePeriod,
+              Sets.immutableEnumSet(Sets.union(ADD_FIELDS, RENEW_FIELDS)));
+      historyBuilder
+          .setDomainTransactionRecords(
+              union(
+                  cancelledRecords,
+                  DomainTransactionRecord.create(
+                      existingResource.getTld(),
+                      now.plus(durationUntilDelete),
+                      inAddGracePeriod
+                          ? TransactionReportField.DELETED_DOMAINS_GRACE
+                          : TransactionReportField.DELETED_DOMAINS_NOGRACE,
+                      1)));
+    }
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_DELETE)
         .setModificationTime(now)
         .setParent(Key.create(existingResource))
-        .setDomainTransactionRecords(
-            union(
-                cancelledRecords,
-                DomainTransactionRecord.create(
-                    existingResource.getTld(),
-                    now.plus(durationUntilDelete),
-                    inAddGracePeriod
-                        ? TransactionReportField.DELETED_DOMAINS_GRACE
-                        : TransactionReportField.DELETED_DOMAINS_NOGRACE,
-                    1)))
         .build();
   }
 

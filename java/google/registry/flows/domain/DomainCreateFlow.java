@@ -98,6 +98,7 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.poll.PollMessage.Autorenew;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
+import google.registry.model.registry.Registry.TldType;
 import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
@@ -262,7 +263,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     String repoId = createDomainRepoId(ObjectifyService.allocateId(), registry.getTldStr());
     DateTime registrationExpirationTime = leapSafeAddYears(now, years);
     HistoryEntry historyEntry = buildHistoryEntry(
-        repoId, registry.getTldStr(), now, period, registry.getAddGracePeriodLength());
+        repoId, registry, now, period, registry.getAddGracePeriodLength());
     // Bill for the create.
     BillingEvent.OneTime createBillingEvent =
         createOneTimeBillingEvent(
@@ -365,19 +366,23 @@ public class DomainCreateFlow implements TransactionalFlow {
   }
 
   private HistoryEntry buildHistoryEntry(
-      String repoId, String tld, DateTime now, Period period, Duration addGracePeriod) {
+      String repoId, Registry registry, DateTime now, Period period, Duration addGracePeriod) {
+    // We ignore prober transactions
+    if (registry.getTldType() == TldType.REAL) {
+      historyBuilder
+          .setDomainTransactionRecords(
+              ImmutableSet.of(
+                  DomainTransactionRecord.create(
+                      registry.getTldStr(),
+                      now.plus(addGracePeriod),
+                      TransactionReportField.netAddsFieldFromYears(period.getValue()),
+                      1)));
+    }
     return historyBuilder
         .setType(HistoryEntry.Type.DOMAIN_CREATE)
         .setPeriod(period)
         .setModificationTime(now)
         .setParent(Key.create(DomainResource.class, repoId))
-        .setDomainTransactionRecords(
-            ImmutableSet.of(
-                DomainTransactionRecord.create(
-                    tld,
-                    now.plus(addGracePeriod),
-                    TransactionReportField.netAddsFieldFromYears(period.getValue()),
-                    1)))
         .build();
   }
 

@@ -127,6 +127,7 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
+import google.registry.model.registry.Registry.TldType;
 import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
@@ -2008,6 +2009,17 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             historyEntry.getModificationTime().plusMinutes(9),
             TransactionReportField.netAddsFieldFromYears(2),
             1));
+  }
+
+  @Test
+  public void testIcannTransactionRecord_testTld_notStored() throws Exception {
+    persistContactsAndHosts();
+    persistResource(Registry.get("tld").asBuilder().setTldType(TldType.TEST).build());
+    runFlow();
+    DomainResource domain = reloadResourceByForeignKey();
+    HistoryEntry historyEntry = getHistoryEntries(domain).get(0);
+    // No transaction records should be stored for test TLDs
+    assertThat(historyEntry.getDomainTransactionRecords()).isEmpty();
   }
 
   @Test
