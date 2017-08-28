@@ -92,13 +92,13 @@ public class UpdateSnapshotViewAction implements Runnable {
           SqlTemplate.create(
               "#legacySQL\nSELECT * FROM [%PROJECT%:%SOURCE_DATASET%.%SOURCE_TABLE%]");
       updateSnapshotView(
-          datasetId, tableId, kindName, LEGACY_LATEST_SNAPSHOT_DATASET, legacyTemplate);
+          datasetId, tableId, kindName, LEGACY_LATEST_SNAPSHOT_DATASET, legacyTemplate, true);
 
       SqlTemplate standardTemplate =
           SqlTemplate.create(
               "#standardSQL\nSELECT * FROM `%PROJECT%.%SOURCE_DATASET%.%SOURCE_TABLE%`");
       updateSnapshotView(
-          datasetId, tableId, kindName, STANDARD_LATEST_SNAPSHOT_DATASET, standardTemplate);
+          datasetId, tableId, kindName, STANDARD_LATEST_SNAPSHOT_DATASET, standardTemplate, false);
 
     } catch (Throwable e) {
       logger.severefmt(e, "Could not update snapshot view for table %s", tableId);
@@ -111,7 +111,8 @@ public class UpdateSnapshotViewAction implements Runnable {
       String sourceTableId,
       String kindName,
       String viewDataset,
-      SqlTemplate viewQueryTemplate)
+      SqlTemplate viewQueryTemplate,
+      boolean useLegacySql)
       throws IOException {
 
     Bigquery bigquery = bigqueryFactory.create(projectId, viewDataset);
@@ -125,6 +126,7 @@ public class UpdateSnapshotViewAction implements Runnable {
                     .setTableId(kindName))
             .setView(
                 new ViewDefinition()
+                    .setUseLegacySql(useLegacySql)
                     .setQuery(
                         viewQueryTemplate
                             .put("PROJECT", projectId)
@@ -148,6 +150,8 @@ public class UpdateSnapshotViewAction implements Runnable {
     } catch (GoogleJsonResponseException e) {
       if (e.getDetails().getCode() == 404) {
         bigquery.tables().insert(ref.getProjectId(), ref.getDatasetId(), table).execute();
+      } else {
+        logger.warningfmt("UpdateSnapshotViewAction failed, caught exception %s", e.getDetails());
       }
     }
   }
