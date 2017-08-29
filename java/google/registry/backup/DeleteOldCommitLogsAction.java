@@ -21,6 +21,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.util.PipelineUtils.createJobPath;
 import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
@@ -28,7 +29,7 @@ import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMultiset;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
 import google.registry.config.RegistryConfig.Config;
@@ -204,8 +205,21 @@ public final class DeleteOldCommitLogsAction implements Runnable {
     public void reduce(
         final Key<CommitLogManifest> manifestKey,
         ReducerInput<Boolean> canDeleteVerdicts) {
-      if (ImmutableSet.copyOf(canDeleteVerdicts).contains(FALSE)) {
-        getContext().incrementCounter("old commit log manifests still referenced");
+      ImmutableMultiset<Boolean> canDeleteMultiset = ImmutableMultiset.copyOf(canDeleteVerdicts);
+      if (canDeleteMultiset.count(TRUE) > 1) {
+        getContext().incrementCounter("commit log manifests incorrectly mapped multiple times");
+      }
+      if (canDeleteMultiset.count(FALSE) > 1) {
+        getContext().incrementCounter("commit log manifests referenced multiple times");
+      }
+      if (canDeleteMultiset.contains(FALSE)) {
+        getContext().incrementCounter(
+            canDeleteMultiset.contains(TRUE)
+            ? "old commit log manifests still referenced"
+            : "new (or nonexistent) commit log manifests referenced");
+        getContext().incrementCounter(
+            "EPP resource revisions handled",
+            canDeleteMultiset.count(FALSE));
         return;
       }
 
