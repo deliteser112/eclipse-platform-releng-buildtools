@@ -8,6 +8,7 @@ java_library(
     name = "sheet",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/com/google/gdata:spreadsheet",
         "//java/google/registry/config",
         "//java/google/registry/model",
         "//java/google/registry/request",

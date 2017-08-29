@@ -9,6 +9,7 @@ java_library(
     name = "sheet",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/com/google/gdata:spreadsheet",
         "//java/google/registry/config",
         "//java/google/registry/export/sheet",
         "//java/google/registry/model",
@@ -16,7 +17,6 @@ java_library(
         "//javatests/google/registry/testing",
         "//third_party/java/objectify:objectify-v4_1",
         "@com_google_code_findbugs_jsr305",
-        "@com_google_gdata_core",
         "@com_google_guava",
         "@com_google_truth",
         "@javax_servlet_api",
