@@ -79,6 +79,10 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
     createTld("oa-canary.test", "OACANT");
     persistResource(Registry.get("oa-canary.test").asBuilder().setTldType(TldType.TEST).build());
 
+    resetAction();
+  }
+
+  private void resetAction() {
     action = new DeleteProberDataAction();
     action.mrRunner = makeDefaultRunner();
     action.response = new FakeResponse();
@@ -134,6 +138,23 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
             .build());
     runMapreduce();
     DateTime timeAfterDeletion = DateTime.now(UTC);
+    assertThat(loadByForeignKey(DomainResource.class, "blah.ib-any.test", timeAfterDeletion))
+        .isNull();
+    assertThat(ofy().load().entity(domain).now().getDeletionTime()).isLessThan(timeAfterDeletion);
+    assertDnsTasksEnqueued("blah.ib-any.test");
+  }
+
+  @Test
+  public void testSuccess_activeDomain_doubleMapSoftDeletes() throws Exception {
+    DomainResource domain = persistResource(
+        newDomainResource("blah.ib-any.test")
+            .asBuilder()
+            .setCreationTimeForTest(DateTime.now(UTC).minusYears(1))
+            .build());
+    runMapreduce();
+    DateTime timeAfterDeletion = DateTime.now(UTC);
+    resetAction();
+    runMapreduce();
     assertThat(loadByForeignKey(DomainResource.class, "blah.ib-any.test", timeAfterDeletion))
         .isNull();
     assertThat(ofy().load().entity(domain).now().getDeletionTime()).isLessThan(timeAfterDeletion);

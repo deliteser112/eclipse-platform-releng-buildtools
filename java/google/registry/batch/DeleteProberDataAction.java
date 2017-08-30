@@ -57,6 +57,7 @@ import google.registry.util.PipelineUtils;
 import java.util.List;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * Deletes all prober DomainResources and their subordinate history entries, poll messages, and
@@ -116,6 +117,23 @@ public class DeleteProberDataAction implements Runnable {
     private static final DnsQueue dnsQueue = DnsQueue.create();
     private static final long serialVersionUID = -7724537393697576369L;
 
+    /**
+     * The maximum amount of time we allow a prober domain to be in use.
+     *
+     * In practice, the prober's connection will time out well before this duration. This includes a
+     * decent buffer.
+     *
+     */
+    private static final Duration DOMAIN_USED_DURATION = Duration.standardHours(1);
+
+    /**
+     * The minimum amount of time we want a domain to be "soft deleted".
+     *
+     * The domain has to remain soft deleted for at least enough time for the DNS task to run and
+     * remove it from DNS itself. This is probably on the order of minutes.
+     */
+    private static final Duration SOFT_DELETE_DELAY = Duration.standardHours(1);
+
     private final ImmutableSet<String> proberRoidSuffixes;
     private final Boolean isDryRun;
     private final String registryAdminClientId;
@@ -144,6 +162,9 @@ public class DeleteProberDataAction implements Runnable {
 
     private void deleteDomain(final Key<DomainBase> domainKey) {
       final DomainBase domainBase = ofy().load().key(domainKey).now();
+
+      DateTime now = DateTime.now(UTC);
+
       if (domainBase == null) {
         // Depending on how stale Datastore indexes are, we can get keys to resources that are
         // already deleted (e.g. by a recent previous invocation of this mapreduce). So ignore them.
@@ -161,7 +182,7 @@ public class DeleteProberDataAction implements Runnable {
         getContext().incrementCounter("skipped, NIC domain");
         return;
       }
-      if (domain.getCreationTime().isAfter(DateTime.now(UTC).minusHours(1))) {
+      if (now.isBefore(domain.getCreationTime().plus(DOMAIN_USED_DURATION))) {
         getContext().incrementCounter("skipped, domain too new");
         return;
       }
@@ -175,13 +196,20 @@ public class DeleteProberDataAction implements Runnable {
       // successfully soft-delete the domain (thus leaving its DNS entry published). We soft-delete
       // it now so that the DNS entry can be handled. The domain will then be hard-deleted the next
       // time the mapreduce is run.
-      if (EppResourceUtils.isActive(domain, DateTime.now(UTC))) {
+      if (EppResourceUtils.isActive(domain, now)) {
         if (isDryRun) {
           logger.infofmt("Would soft-delete the active domain: %s", domainKey);
         } else {
           softDeleteDomain(domain);
         }
         getContext().incrementCounter("domains soft-deleted");
+        return;
+      }
+      // If the domain isn't active, we want to make sure it hasn't been active for "a while" before
+      // deleting it. This prevents accidental double-map with the same key from immediately
+      // deleting active domains
+      if (now.isBefore(domain.getDeletionTime().plus(SOFT_DELETE_DELAY))) {
+        getContext().incrementCounter("skipped, domain too recently soft deleted");
         return;
       }
 
