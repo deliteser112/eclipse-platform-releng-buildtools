@@ -17,6 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.NET_ADDS_4_YR;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;
 import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_CREATE;
 import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_TRANSFER_APPROVE;
@@ -480,17 +481,20 @@ public class DomainTransferApproveFlowTest
     DomainTransactionRecord previousSuccessRecord =
         DomainTransactionRecord.create(
             "tld", clock.nowUtc().plusDays(1), TRANSFER_SUCCESSFUL, 1);
+    // We only want to cancel TRANSFER_SUCCESSFUL records
+    DomainTransactionRecord notCancellableRecord =
+        DomainTransactionRecord.create("tld", clock.nowUtc().plusDays(1), NET_ADDS_4_YR, 5);
     persistResource(
         new HistoryEntry.Builder()
             .setType(DOMAIN_TRANSFER_REQUEST)
             .setParent(domain)
             .setModificationTime(clock.nowUtc().minusDays(4))
             .setDomainTransactionRecords(
-                ImmutableSet.of(previousSuccessRecord))
+                ImmutableSet.of(previousSuccessRecord, notCancellableRecord))
             .build());
     runFlow();
     HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_APPROVE);
-    // We should produce cancellation records for the original reporting date (now + 1 day) and
+    // We should only produce cancellation records for the original reporting date (now + 1 day) and
     // success records for the new reporting date (now + transferGracePeriod=3 days)
     assertThat(persistedEntry.getDomainTransactionRecords())
         .containsExactly(

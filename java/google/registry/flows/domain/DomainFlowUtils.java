@@ -960,8 +960,11 @@ public class DomainFlowUtils {
     ImmutableSet.Builder<DomainTransactionRecord> recordsBuilder = new ImmutableSet.Builder<>();
     if (entryToCancel.isPresent()) {
       for (DomainTransactionRecord record : entryToCancel.get().getDomainTransactionRecords()) {
-        int cancelledAmount = -1 * record.getReportAmount();
-        recordsBuilder.add(record.asBuilder().setReportAmount(cancelledAmount).build());
+        // Only cancel fields which are cancelable
+        if (cancelableFields.contains(record.getReportField())) {
+          int cancelledAmount = -1 * record.getReportAmount();
+          recordsBuilder.add(record.asBuilder().setReportAmount(cancelledAmount).build());
+        }
       }
     }
     return recordsBuilder.build();

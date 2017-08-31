@@ -15,6 +15,7 @@
 package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.NET_RENEWS_3_YR;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_NACKED;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;
 import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_CREATE;
@@ -317,17 +318,20 @@ public class DomainTransferRejectFlowTest
     DomainTransactionRecord previousSuccessRecord =
         DomainTransactionRecord.create(
             "tld", clock.nowUtc().plusDays(1), TRANSFER_SUCCESSFUL, 1);
+    // We only want to cancel TRANSFER_SUCCESSFUL records
+    DomainTransactionRecord notCancellableRecord =
+        DomainTransactionRecord.create("tld", clock.nowUtc().plusDays(1), NET_RENEWS_3_YR, 5);
     persistResource(
         new HistoryEntry.Builder()
             .setType(DOMAIN_TRANSFER_REQUEST)
             .setParent(domain)
             .setModificationTime(clock.nowUtc().minusDays(4))
             .setDomainTransactionRecords(
-                ImmutableSet.of(previousSuccessRecord))
+                ImmutableSet.of(previousSuccessRecord, notCancellableRecord))
             .build());
     runFlow();
     HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REJECT);
-    // We should produce cancellation records for the original success records and nack records
+    // We should only produce cancellation records for the original success records and nack records
     assertThat(persistedEntry.getDomainTransactionRecords())
         .containsExactly(
             previousSuccessRecord.asBuilder().setReportAmount(-1).build(),

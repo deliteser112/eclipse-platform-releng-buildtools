@@ -870,17 +870,20 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     clock.advanceOneMilli();
     DomainTransactionRecord renewRecord =
         DomainTransactionRecord.create("tld", TIME_BEFORE_FLOW.plusDays(1), NET_RENEWS_3_YR, 1);
+    // We don't want to cancel non-add or renew records
+    DomainTransactionRecord notCancellableRecord =
+        DomainTransactionRecord.create("tld", TIME_BEFORE_FLOW.plusDays(1), RESTORED_DOMAINS, 5);
     earlierHistoryEntry =
         persistResource(
             earlierHistoryEntry
                 .asBuilder()
                 .setType(DOMAIN_CREATE)
                 .setModificationTime(TIME_BEFORE_FLOW.minusDays(2))
-                .setDomainTransactionRecords(ImmutableSet.of(renewRecord))
+                .setDomainTransactionRecords(ImmutableSet.of(renewRecord, notCancellableRecord))
                 .build());
     runFlow();
     HistoryEntry persistedEntry = getOnlyHistoryEntryOfType(domain, DOMAIN_DELETE);
-    // Transaction record should be the non-grace period delete, and the renew cancellation record
+    // We should only see the non-grace period delete record and the renew cancellation record
     assertThat(persistedEntry.getDomainTransactionRecords())
         .containsExactly(
             DomainTransactionRecord.create(
