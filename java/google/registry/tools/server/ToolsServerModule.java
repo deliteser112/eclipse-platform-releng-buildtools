@@ -95,4 +95,10 @@ public class ToolsServerModule {
   static String provideRawKeys(HttpServletRequest req) {
     return extractRequiredParameter(req, "rawKeys");
   }
+
+  @Provides
+  @Parameter("jobId")
+  String provideJobId(HttpServletRequest req) {
+    return extractRequiredParameter(req, "jobId");
+  }
 }

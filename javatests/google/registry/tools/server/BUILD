@@ -26,6 +26,7 @@ java_library(
         "@com_google_appengine_api_1_0_sdk//:testonly",
         "@com_google_appengine_tools_appengine_gcs_client",
         "@com_google_appengine_tools_appengine_mapreduce",
+        "@com_google_appengine_tools_appengine_pipeline",
         "@com_google_guava",
         "@com_google_re2j",
         "@com_google_truth",
