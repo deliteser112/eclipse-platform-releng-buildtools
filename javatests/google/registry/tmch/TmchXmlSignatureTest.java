@@ -52,7 +52,27 @@ public class TmchXmlSignatureTest {
   @Rule
   public final InjectRule inject = new InjectRule();
 
-  private final FakeClock clock = new FakeClock(DateTime.parse("2013-11-24T23:15:37.4Z"));
+  // This should be a date which falls within the validity range of the test files contained in the
+  // testdata/active directory. Note that test files claiming to be valid for a particular date
+  // range in the file header may not actually be valid the whole time, because they contain an
+  // embedded certificate which might have a shorter validity range.
+  //
+  // New versions of the test files are published every few years by ICANN, and available at in the
+  // Signed Mark Data Files section of:
+  //
+  // https://newgtlds.icann.org/en/about/trademark-clearinghouse/registries-registrars
+  //
+  // The link labeled "Set of IDN test-SMDs" leads to a .tar.gz file containing the test files which
+  // in our directory structure reside in testdata/active and testdata/revoked/smd (it is not clear
+  // where the files in testdata/invalid and testdata/revoked/tmv come from; we probably made them
+  // ourselves, since there aren't as many of them). For purposes of testing, we could probably keep
+  // using old test files forever, and keep a corresponding old date, but it seems like a good idea
+  // to keep up to date if possible.
+  //
+  // When updating this date, also update the dates below, which test to make sure that dates before
+  // and after the validity window result in rejection.
+  private final FakeClock clock = new FakeClock(DateTime.parse("2017-11-24T23:15:37.4Z"));
+
   private byte[] smdData;
   private TmchXmlSignature tmchXmlSignature;
 
