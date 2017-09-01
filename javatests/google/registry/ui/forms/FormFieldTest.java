@@ -28,7 +28,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Range;
 import com.google.common.testing.NullPointerTester;
 import com.google.re2j.Pattern;
 import java.util.List;
@@ -478,9 +477,6 @@ public class FormFieldTest {
         .setDefault(Class.class, Object.class)
         .setDefault(Function.class, Functions.identity())
         .setDefault(Pattern.class, Pattern.compile("."))
-        .setDefault(Range.class, Range.all())
-        .setDefault(Map.class, ImmutableMap.of())
-        .setDefault(Set.class, ImmutableSet.of())
         .setDefault(String.class, "hello.com");
     tester.testAllPublicStaticMethods(FormField.class);
     tester.testAllPublicInstanceMethods(FormField.named("lol"));
