@@ -15,10 +15,12 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.tools.LevelDbLogReader.ChunkType;
+import static google.registry.tools.LevelDbUtil.MAX_RECORD;
+import static google.registry.tools.LevelDbUtil.addRecord;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Bytes;
+import google.registry.tools.LevelDbLogReader.ChunkType;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
@@ -30,8 +32,6 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public final class LevelDbLogReaderTest {
 
-  private static final int MAX_RECORD = LevelDbLogReader.BLOCK_SIZE - LevelDbLogReader.HEADER_SIZE;
-
   // Size of the test record.  Any value < 256 will do.
   private static final int TEST_RECORD_SIZE = 231;
 
@@ -40,51 +40,12 @@ public final class LevelDbLogReaderTest {
   private static final int MAX_TEST_RECORD_OFFSET =
       LevelDbLogReader.BLOCK_SIZE - (LevelDbLogReader.HEADER_SIZE + TEST_RECORD_SIZE);
 
-  /**
-   * Adds a record of bytes of 'val' of the given size to bytes.
-   *
-   * <p>This currently doesn't write a real checksum since we're not doing anything with that in the
-   * leveldb reader.
-   *
-   * <p>Returns the new offset for the next block.
-   */
-  private static int addRecord(
-      byte[] bytes, int pos, ChunkType type, int size, int val) {
-
-    // Write a bogus checksum.
-    for (int i = 0; i < 4; ++i) {
-      bytes[pos++] = -1;
-    }
-
-    // Write size and type.
-    bytes[pos++] = (byte) size;
-    bytes[pos++] = (byte) (size >> 8);
-    bytes[pos++] = (byte) type.getCode();
-
-    // Write "size" bytes of data.
-    for (int i = 0; i < size; ++i) {
-      bytes[pos + i] = (byte) val;
-
-      // Swap the least significant bytes in val so we can have more than 256 different same-sized
-      // records.
-      val = (val >> 8) | ((val & 0xff) << 8);
-    }
-
-    return pos + size;
-  }
-
   private TestBlock makeBlockOfRepeatingBytes(int startVal) {
     byte[] block = new byte[LevelDbLogReader.BLOCK_SIZE];
     int pos = 0;
     int recordCount = 0;
     while (pos < MAX_TEST_RECORD_OFFSET) {
-      pos =
-          addRecord(
-              block,
-              pos,
-              ChunkType.FULL,
-              TEST_RECORD_SIZE,
-              0xffff & (pos + startVal));
+      pos = addRecord(block, pos, ChunkType.FULL, TEST_RECORD_SIZE, 0xffff & (pos + startVal));
       ++recordCount;
     }
     return new TestBlock(block, recordCount);

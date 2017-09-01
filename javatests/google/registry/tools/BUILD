@@ -41,6 +41,7 @@ java_library(
         "@com_google_api_client",
         "@com_google_appengine_api_1_0_sdk//:testonly",
         "@com_google_appengine_remote_api//:link",
+        "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",
         "@com_google_guava",
         "@com_google_http_client",
