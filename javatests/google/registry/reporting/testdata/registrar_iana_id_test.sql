@@ -13,18 +13,18 @@
   -- See the License for the specific language governing permissions and
   -- limitations under the License.
 
-  -- Query to fetch AppEngine request logs for the report month.
+  -- Gather a list of all tld-registrar pairs, with their IANA IDs.
 
-  -- START_OF_MONTH and END_OF_MONTH should be in YYYYMM01 format.
+  -- This establishes which registrars will appear in the reports.
 
 SELECT
-  protoPayload.resource AS requestPath,
-  ARRAY(
-  SELECT
-    logMessage
-  FROM
-    UNNEST(protoPayload.line)) AS logMessage
+  allowed_tlds AS tld,
+  registrarName AS registrar_name,
+  ianaIdentifier AS iana_id
 FROM
-  `domain-registry-alpha.appengine_logs.appengine_googleapis_com_request_log_*`
-WHERE
-  _TABLE_SUFFIX BETWEEN '20170601' AND '20170630'
+  `domain-registry-alpha.latest_datastore_export.Registrar`,
+  UNNEST(allowedTlds) as allowed_tlds
+WHERE (type = 'REAL' OR type = 'INTERNAL')
+-- Filter out prober data
+AND NOT ENDS_WITH(allowed_tlds, "test")
+ORDER BY tld, registrarName

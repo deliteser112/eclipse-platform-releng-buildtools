@@ -25,10 +25,10 @@ import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link ActivityReportingQueryBuilder}. */
 @RunWith(JUnit4.class)
-public class ActivityReportingQueryBuilderTest {
+public class TransactionsReportingQueryBuilderTest {
 
-  private ActivityReportingQueryBuilder getQueryBuilder() {
-    ActivityReportingQueryBuilder queryBuilder = new ActivityReportingQueryBuilder();
+  private TransactionsReportingQueryBuilder getQueryBuilder() {
+    TransactionsReportingQueryBuilder queryBuilder = new TransactionsReportingQueryBuilder();
     queryBuilder.yearMonth = "2017-06";
     queryBuilder.projectId = "domain-registry-alpha";
     return queryBuilder;
@@ -36,24 +36,25 @@ public class ActivityReportingQueryBuilderTest {
 
   @Test
   public void testAggregateQueryMatch() throws IOException {
-    ActivityReportingQueryBuilder queryBuilder = getQueryBuilder();
+    TransactionsReportingQueryBuilder queryBuilder = getQueryBuilder();
     assertThat(queryBuilder.getReportQuery())
         .isEqualTo(
             "#standardSQL\nSELECT * FROM "
-                + "`domain-registry-alpha.icann_reporting.activity_report_aggregation_201706`");
+                + "`domain-registry-alpha.icann_reporting.transactions_report_aggregation_201706`");
   }
 
   @Test
   public void testIntermediaryQueryMatch() throws IOException {
-    ActivityReportingQueryBuilder queryBuilder = getQueryBuilder();
+    TransactionsReportingQueryBuilder queryBuilder = getQueryBuilder();
     ImmutableList<String> queryNames =
         ImmutableList.of(
-            ActivityReportingQueryBuilder.REGISTRAR_OPERATING_STATUS,
-            ActivityReportingQueryBuilder.DNS_COUNTS,
-            ActivityReportingQueryBuilder.MONTHLY_LOGS,
-            ActivityReportingQueryBuilder.EPP_METRICS,
-            ActivityReportingQueryBuilder.WHOIS_COUNTS,
-            ActivityReportingQueryBuilder.ACTIVITY_REPORT_AGGREGATION);
+            TransactionsReportingQueryBuilder.TRANSACTIONS_REPORT_AGGREGATION,
+            TransactionsReportingQueryBuilder.REGISTRAR_IANA_ID,
+            TransactionsReportingQueryBuilder.TOTAL_DOMAINS,
+            TransactionsReportingQueryBuilder.TOTAL_NAMESERVERS,
+            TransactionsReportingQueryBuilder.TRANSACTION_COUNTS,
+            TransactionsReportingQueryBuilder.TRANSACTION_TRANSFER_LOSING,
+            TransactionsReportingQueryBuilder.ATTEMPTED_ADDS);
 
     ImmutableMap<String, String> actualQueries = queryBuilder.getViewQueryMap();
     for (String queryName : queryNames) {
@@ -64,4 +65,5 @@ public class ActivityReportingQueryBuilderTest {
     }
   }
 }
+
 

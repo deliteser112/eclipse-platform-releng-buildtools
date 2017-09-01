@@ -44,6 +44,8 @@ public final class IcannReportingModule {
   static final String PARAM_YEAR_MONTH = "yearMonth";
   static final String PARAM_REPORT_TYPE = "reportType";
   static final String PARAM_SUBDIR = "subdir";
+  static final String ICANN_REPORTING_DATA_SET = "icann_reporting";
+  static final String DATASTORE_EXPORT_DATA_SET = "latest_datastore_export";
   private static final String BIGQUERY_SCOPE =  "https://www.googleapis.com/auth/bigquery";
   private static final String DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
 
@@ -65,6 +67,14 @@ public final class IcannReportingModule {
     return extractOptionalParameter(req, PARAM_SUBDIR);
   }
 
+  @Provides
+  static QueryBuilder provideQueryBuilder(
+      @Parameter(PARAM_REPORT_TYPE) ReportType reportType,
+      ActivityReportingQueryBuilder activityBuilder,
+      TransactionsReportingQueryBuilder transactionsBuilder) {
+    return reportType == ReportType.ACTIVITY ? activityBuilder : transactionsBuilder;
+  }
+
   /**
    * Constructs a BigqueryConnection with default settings.
    *
@@ -81,7 +91,7 @@ public final class IcannReportingModule {
       BigqueryConnection connection = new BigqueryConnection.Builder()
           .setExecutorService(Executors.newFixedThreadPool(20))
           .setCredential(credential.createScoped(ImmutableList.of(BIGQUERY_SCOPE, DRIVE_SCOPE)))
-          .setDatasetId(ActivityReportingQueryBuilder.ICANN_REPORTING_DATA_SET)
+          .setDatasetId(ICANN_REPORTING_DATA_SET)
           .setOverwrite(true)
           .setPollInterval(Duration.standardSeconds(1))
           .build();

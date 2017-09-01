@@ -14,6 +14,9 @@
 
 package google.registry.reporting;
 
+import static google.registry.reporting.IcannReportingModule.DATASTORE_EXPORT_DATA_SET;
+import static google.registry.reporting.IcannReportingModule.ICANN_REPORTING_DATA_SET;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import google.registry.config.RegistryConfig.Config;
@@ -30,10 +33,9 @@ import org.joda.time.format.DateTimeFormatter;
 /**
  * Utility class that produces SQL queries used to generate activity reports from Bigquery.
  */
-public final class ActivityReportingQueryBuilder {
+public final class ActivityReportingQueryBuilder implements QueryBuilder {
 
   // Names for intermediary tables for overall activity reporting query.
-  static final String ICANN_REPORTING_DATA_SET = "icann_reporting";
   static final String ACTIVITY_REPORT_AGGREGATION = "activity_report_aggregation";
   static final String MONTHLY_LOGS = "monthly_logs";
   static final String REGISTRAR_OPERATING_STATUS = "registrar_operating_status";
@@ -46,7 +48,8 @@ public final class ActivityReportingQueryBuilder {
   @Inject ActivityReportingQueryBuilder() {}
 
   /** Returns the aggregate query which generates the activity report from the saved view. */
-  String getActivityReportQuery() throws IOException {
+  @Override
+  public String getReportQuery() throws IOException {
     return String.format(
         "#standardSQL\nSELECT * FROM `%s.%s.%s`",
         projectId,
@@ -54,24 +57,20 @@ public final class ActivityReportingQueryBuilder {
         getTableName(ACTIVITY_REPORT_AGGREGATION));
   }
 
-  /** Returns the table name of the query, suffixed with the yearMonth in _YYYYMM format. */
-  private String getTableName(String queryName) {
-    return String.format("%s_%s", queryName, yearMonth.replace("-", ""));
-  }
-
   /** Sets the month we're doing activity reporting for, and returns the view query map. */
-  ImmutableMap<String, String> getViewQueryMap() throws IOException {
-    LocalDate reportDate = DateTimeFormat.forPattern("yyyy-MM").parseLocalDate(yearMonth);
-    // Convert reportingMonth into YYYYMM01 format for Bigquery table partition pattern-matching.
-    DateTimeFormatter formatter = DateTimeFormat.forPattern("YYYYMM01");
-    String startOfMonth = formatter.print(reportDate);
-    String endOfMonth = formatter.print(reportDate.plusMonths(1));
-    return createQueryMap(startOfMonth, endOfMonth);
+  @Override
+  public ImmutableMap<String, String> getViewQueryMap() throws IOException {
+    LocalDate reportDate =
+        DateTimeFormat.forPattern("yyyy-MM").parseLocalDate(yearMonth).withDayOfMonth(1);
+    LocalDate firstDayOfMonth = reportDate;
+    // The pattern-matching is inclusive, so we subtract 1 day to only report that month's data.
+    LocalDate lastDayOfMonth = reportDate.plusMonths(1).minusDays(1);
+    return createQueryMap(firstDayOfMonth, lastDayOfMonth);
   }
 
   /** Returns a map from view name to its associated SQL query. */
   private ImmutableMap<String, String> createQueryMap(
-      String startOfMonth, String endOfMonth) throws IOException {
+      LocalDate firstDayOfMonth, LocalDate lastDayOfMonth) throws IOException {
 
     ImmutableMap.Builder<String, String> queriesBuilder = ImmutableMap.builder();
     String operationalRegistrarsQuery =
@@ -87,14 +86,16 @@ public final class ActivityReportingQueryBuilder {
         SqlTemplate.create(getQueryFromFile("dns_counts.sql")).build();
     queriesBuilder.put(getTableName(DNS_COUNTS), dnsCountsQuery);
 
-    // The monthly logs query is a shared dependency for epp counts and whois metrics
+    // Convert reportingMonth into YYYYMMDD format for Bigquery table partition pattern-matching.
+    DateTimeFormatter logTableFormatter = DateTimeFormat.forPattern("yyyyMMdd");
+    // The monthly logs are a shared dependency for epp counts and whois metrics
     String monthlyLogsQuery =
         SqlTemplate.create(getQueryFromFile("monthly_logs.sql"))
             .put("PROJECT_ID", projectId)
             .put("APPENGINE_LOGS_DATA_SET", "appengine_logs")
             .put("REQUEST_TABLE", "appengine_googleapis_com_request_log_")
-            .put("START_OF_MONTH", startOfMonth)
-            .put("END_OF_MONTH", endOfMonth)
+            .put("FIRST_DAY_OF_MONTH", logTableFormatter.print(firstDayOfMonth))
+            .put("LAST_DAY_OF_MONTH", logTableFormatter.print(lastDayOfMonth))
             .build();
     queriesBuilder.put(getTableName(MONTHLY_LOGS), monthlyLogsQuery);
 
@@ -126,13 +127,17 @@ public final class ActivityReportingQueryBuilder {
             .put("DNS_COUNTS_TABLE", getTableName(DNS_COUNTS))
             .put("EPP_METRICS_TABLE", getTableName(EPP_METRICS))
             .put("WHOIS_COUNTS_TABLE", getTableName(WHOIS_COUNTS))
-            // TODO(larryruili): Change to "latest_datastore_export" when cl/163124895 in prod.
-            .put("LATEST_DATASTORE_EXPORT", "latest_datastore_views")
+            .put("DATASTORE_EXPORT_DATA_SET", DATASTORE_EXPORT_DATA_SET)
             .put("REGISTRY_TABLE", "Registry")
             .build();
     queriesBuilder.put(getTableName(ACTIVITY_REPORT_AGGREGATION), aggregateQuery);
 
     return queriesBuilder.build();
+  }
+
+  /** Returns the table name of the query, suffixed with the yearMonth in _YYYYMM format. */
+  private String getTableName(String queryName) {
+    return String.format("%s_%s", queryName, yearMonth.replace("-", ""));
   }
 
   /** Returns {@link String} for file in {@code reporting/sql/} directory. */

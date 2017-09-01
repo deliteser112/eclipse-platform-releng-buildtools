@@ -25,10 +25,14 @@ import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.ListMultimap;
 import com.google.common.net.MediaType;
 import google.registry.bigquery.BigqueryConnection;
 import google.registry.bigquery.BigqueryUtils.TableType;
@@ -42,7 +46,9 @@ import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
@@ -68,7 +74,8 @@ public final class IcannReportingStagingAction implements Runnable {
   @Inject @Config("icannReportingBucket") String reportingBucket;
   @Inject @Parameter(IcannReportingModule.PARAM_YEAR_MONTH) String yearMonth;
   @Inject @Parameter(IcannReportingModule.PARAM_SUBDIR) Optional<String> subdir;
-  @Inject ActivityReportingQueryBuilder queryBuilder;
+  @Inject @Parameter(IcannReportingModule.PARAM_REPORT_TYPE) ReportType reportType;
+  @Inject QueryBuilder queryBuilder;
   @Inject BigqueryConnection bigquery;
   @Inject GcsUtils gcsUtils;
   @Inject Response response;
@@ -77,29 +84,24 @@ public final class IcannReportingStagingAction implements Runnable {
   @Override
   public void run() {
     try {
+      ImmutableMap<String, String> viewQueryMap = queryBuilder.getViewQueryMap();
       // Generate intermediary views
-      ImmutableMap<String, String> activityQueries =
-          queryBuilder.getViewQueryMap();
-      for (Entry<String, String> entry : activityQueries.entrySet()) {
+      for (Entry<String, String> entry : viewQueryMap.entrySet()) {
         createIntermediaryTableView(entry.getKey(), entry.getValue());
       }
 
-      // Get an in-memory table of the activity report query
+      // Get an in-memory table of the aggregate query's result
       ImmutableTable<Integer, TableFieldSchema, Object> reportTable =
-          bigquery.queryToLocalTableSync(queryBuilder.getActivityReportQuery());
+          bigquery.queryToLocalTableSync(queryBuilder.getReportQuery());
 
       // Get report headers from the table schema and convert into CSV format
-      String headerRow = constructActivityReportRow(getHeaders(reportTable.columnKeySet()));
+      String headerRow = constructRow(getHeaders(reportTable.columnKeySet()));
       logger.infofmt("Headers: %s", headerRow);
 
-      // Create a report csv for each tld from query table, and upload to GCS
-      for (Map<TableFieldSchema, Object> row : reportTable.rowMap().values()) {
-        // Get the tld (first cell in each row)
-        String tld = row.values().iterator().next().toString();
-        if (isNullOrEmpty(tld)) {
-          throw new RuntimeException("Found an empty row in the activity report table!");
-        }
-        uploadReport(tld, createReport(headerRow, row));
+      if (reportType == ReportType.ACTIVITY) {
+        stageActivityReports(headerRow, reportTable.rowMap().values());
+      } else {
+        stageTransactionsReports(headerRow, reportTable.rowMap().values());
       }
       response.setStatus(SC_OK);
       response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
@@ -108,7 +110,9 @@ public final class IcannReportingStagingAction implements Runnable {
       logger.warning(Throwables.getStackTraceAsString(e));
       response.setStatus(SC_INTERNAL_SERVER_ERROR);
       response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
-      response.setPayload("Caught exception:\n" + e.getMessage());
+      response.setPayload(
+          String.format("Caught exception:\n%s\n%s", e.getMessage(),
+              Arrays.toString(e.getStackTrace())));
     }
   }
 
@@ -118,7 +122,8 @@ public final class IcannReportingStagingAction implements Runnable {
     bigquery.query(
         query,
         bigquery.buildDestinationTable(queryName)
-            .description("An intermediary view to generate activity reports for this month.")
+            .description(String.format(
+                "An intermediary view to generate %s reports for this month.", reportType))
             .type(TableType.VIEW)
             .build()
     ).get();
@@ -137,13 +142,48 @@ public final class IcannReportingStagingAction implements Runnable {
     );
   }
 
+  private void stageActivityReports (
+      String headerRow, ImmutableCollection<Map<TableFieldSchema, Object>> rows)
+      throws IOException {
+    // Create a report csv for each tld from query table, and upload to GCS
+    for (Map<TableFieldSchema, Object> row : rows) {
+      // Get the tld (first cell in each row)
+      String tld = row.values().iterator().next().toString();
+      if (isNullOrEmpty(tld)) {
+        throw new RuntimeException("Found an empty row in the activity report table!");
+      }
+      ImmutableList<String> rowStrings = ImmutableList.of(constructRow(row.values()));
+      // Create and upload the activity report with a single row
+      uploadReport(tld, createReport(headerRow, rowStrings));
+    }
+  }
+
+  private void stageTransactionsReports(
+      String headerRow, ImmutableCollection<Map<TableFieldSchema, Object>> rows)
+      throws IOException {
+    // Map from tld to rows
+    ListMultimap<String, String> tldToRows = ArrayListMultimap.create();
+    for (Map<TableFieldSchema, Object> row : rows) {
+      // Get the tld (first cell in each row)
+      String tld = row.values().iterator().next().toString();
+      if (isNullOrEmpty(tld)) {
+        throw new RuntimeException("Found an empty row in the activity report table!");
+      }
+      tldToRows.put(tld, constructRow(row.values()));
+    }
+    // Create and upload a transactions report for each tld via its rows
+    for (String tld : tldToRows.keySet()) {
+      uploadReport(tld, createReport(headerRow, tldToRows.get(tld)));
+    }
+  }
+
   /**
    * Makes a row of the report by appending the string representation of all objects in an iterable
    * with commas separating individual fields.
    *
    * <p>This discards the first object, which is assumed to be the TLD field.
    * */
-  private String constructActivityReportRow(Iterable<? extends Object> iterable) {
+  private String constructRow(Iterable<? extends Object> iterable) {
     Iterator<? extends Object> rowIter = iterable.iterator();
     StringBuilder rowString = new StringBuilder();
     // Skip the TLD column
@@ -156,13 +196,20 @@ public final class IcannReportingStagingAction implements Runnable {
     return rowString.toString();
   }
 
-  private String createReport(String headers, Map<TableFieldSchema, Object> row) {
+  /**
+   * Constructs a report given its headers and rows as a string.
+   *
+   * <p>Note that activity reports will only have one row, while transactions reports may have
+   * multiple rows.
+   */
+  private String createReport(String headers, List<String> rows) {
     StringBuilder reportCsv = new StringBuilder(headers);
-    // Add CRLF between rows per ICANN specification
-    reportCsv.append("\r\n");
-    String valuesRow = constructActivityReportRow(row.values());
-    reportCsv.append(valuesRow);
-    logger.infofmt("Created report %s", reportCsv.toString());
+    for (String row : rows) {
+      // Add CRLF between rows per ICANN specification
+      reportCsv.append("\r\n");
+      reportCsv.append(row);
+    }
+    logger.infofmt("Created %s report:\n%s", reportType, reportCsv.toString());
     return reportCsv.toString();
   }
 
@@ -170,7 +217,7 @@ public final class IcannReportingStagingAction implements Runnable {
     // Upload resulting CSV file to GCS
     byte[] reportBytes = reportCsv.getBytes(UTF_8);
     String reportFilename =
-        IcannReportingUploadAction.createFilename(tld, yearMonth, ReportType.ACTIVITY);
+        IcannReportingUploadAction.createFilename(tld, yearMonth, reportType);
     String reportBucketname =
         IcannReportingUploadAction.createReportingBucketName(reportingBucket, subdir, yearMonth);
     final GcsFilename gcsFilename = new GcsFilename(reportBucketname, reportFilename);

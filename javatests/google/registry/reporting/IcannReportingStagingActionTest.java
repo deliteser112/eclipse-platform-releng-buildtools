@@ -32,6 +32,7 @@ import google.registry.bigquery.BigqueryConnection;
 import google.registry.bigquery.BigqueryConnection.DestinationTable;
 import google.registry.bigquery.BigqueryUtils.TableType;
 import google.registry.gcs.GcsUtils;
+import google.registry.reporting.IcannReportingModule.ReportType;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeResponse;
 import java.util.concurrent.ExecutionException;
@@ -51,7 +52,6 @@ public class IcannReportingStagingActionTest {
 
   BigqueryConnection bigquery = mock(BigqueryConnection.class);
   FakeResponse response = new FakeResponse();
-  ActivityReportingQueryBuilder queryBuilder;
   GcsService gcsService = GcsServiceFactory.createGcsService();
 
   @Rule
@@ -60,23 +60,31 @@ public class IcannReportingStagingActionTest {
       .withLocalModules()
       .build();
 
-  private IcannReportingStagingAction createAction() {
+  private IcannReportingStagingAction createAction(ReportType reportType) {
     IcannReportingStagingAction action = new IcannReportingStagingAction();
-    queryBuilder = new ActivityReportingQueryBuilder();
-    queryBuilder.projectId = "test-project";
-    queryBuilder.yearMonth = "2017-06";
+    if (reportType == ReportType.ACTIVITY) {
+      ActivityReportingQueryBuilder activityBuilder = new ActivityReportingQueryBuilder();
+      activityBuilder.projectId = "test-project";
+      activityBuilder.yearMonth = "2017-06";
+      action.queryBuilder = activityBuilder;
+    } else {
+      TransactionsReportingQueryBuilder transactionsBuilder =
+          new TransactionsReportingQueryBuilder();
+      transactionsBuilder.projectId = "test-project";
+      transactionsBuilder.yearMonth = "2017-06";
+      action.queryBuilder = transactionsBuilder;
+    }
+    action.reportType = reportType;
     action.reportingBucket = "test-bucket";
     action.yearMonth = "2017-06";
     action.subdir = Optional.absent();
-    action.queryBuilder = queryBuilder;
     action.bigquery = bigquery;
     action.gcsUtils = new GcsUtils(gcsService, 1024);
     action.response = response;
     return action;
   }
 
-  @Test
-  public void testRunSuccess() throws Exception {
+  private void setUpBigquery() {
     when(bigquery.query(any(String.class), any(DestinationTable.class))).thenReturn(fakeFuture());
     DestinationTable.Builder tableBuilder = new DestinationTable.Builder()
         .datasetId("testdataset")
@@ -84,8 +92,12 @@ public class IcannReportingStagingActionTest {
         .name("tablename")
         .overwrite(true);
     when(bigquery.buildDestinationTable(any(String.class))).thenReturn(tableBuilder);
+  }
 
-    ImmutableTable<Integer, TableFieldSchema, Object> reportTable =
+  @Test
+  public void testRunSuccess_activityReport() throws Exception {
+    setUpBigquery();
+    ImmutableTable<Integer, TableFieldSchema, Object> activityReportTable =
         new ImmutableTable.Builder<Integer, TableFieldSchema, Object>()
             .put(1, new TableFieldSchema().setName("tld"), "fooTld")
             .put(1, new TableFieldSchema().setName("fooField"), "12")
@@ -94,8 +106,8 @@ public class IcannReportingStagingActionTest {
             .put(2, new TableFieldSchema().setName("fooField"), "56")
             .put(2, new TableFieldSchema().setName("barField"), "78")
             .build();
-    when(bigquery.queryToLocalTableSync(any(String.class))).thenReturn(reportTable);
-    IcannReportingStagingAction action = createAction();
+    when(bigquery.queryToLocalTableSync(any(String.class))).thenReturn(activityReportTable);
+    IcannReportingStagingAction action = createAction(ReportType.ACTIVITY);
     action.run();
 
     String expectedReport1 = "fooField,barField\r\n12,34";
@@ -109,6 +121,47 @@ public class IcannReportingStagingActionTest {
         readGcsFile(
             gcsService,
             new GcsFilename("test-bucket/icann/monthly/2017-06", "barTld-activity-201706.csv"));
+    assertThat(new String(generatedFile2, UTF_8)).isEqualTo(expectedReport2);
+  }
+
+  @Test
+  public void testRunSuccess_transactionsReport() throws Exception {
+    setUpBigquery();
+    /*
+       The fake table result looks like:
+          tld     registrar  field
+        1 fooTld  reg1       10
+        2 fooTld  reg2       20
+        3 barTld  reg1       30
+     */
+    ImmutableTable<Integer, TableFieldSchema, Object> transactionReportTable =
+        new ImmutableTable.Builder<Integer, TableFieldSchema, Object>()
+            .put(1, new TableFieldSchema().setName("tld"), "fooTld")
+            .put(1, new TableFieldSchema().setName("registrar"), "reg1")
+            .put(1, new TableFieldSchema().setName("field"), "10")
+            .put(2, new TableFieldSchema().setName("tld"), "fooTld")
+            .put(2, new TableFieldSchema().setName("registrar"), "reg2")
+            .put(2, new TableFieldSchema().setName("field"), "20")
+            .put(3, new TableFieldSchema().setName("tld"), "barTld")
+            .put(3, new TableFieldSchema().setName("registrar"), "reg1")
+            .put(3, new TableFieldSchema().setName("field"), "30")
+            .build();
+    when(bigquery.queryToLocalTableSync(any(String.class))).thenReturn(transactionReportTable);
+    IcannReportingStagingAction action = createAction(ReportType.TRANSACTIONS);
+    action.reportType = ReportType.TRANSACTIONS;
+    action.run();
+
+    String expectedReport1 = "registrar,field\r\nreg1,10\r\nreg2,20";
+    String expectedReport2 = "registrar,field\r\nreg1,30";
+    byte[] generatedFile1 =
+        readGcsFile(
+            gcsService,
+            new GcsFilename("test-bucket/icann/monthly/2017-06", "fooTld-transactions-201706.csv"));
+    assertThat(new String(generatedFile1, UTF_8)).isEqualTo(expectedReport1);
+    byte[] generatedFile2 =
+        readGcsFile(
+            gcsService,
+            new GcsFilename("test-bucket/icann/monthly/2017-06", "barTld-transactions-201706.csv"));
     assertThat(new String(generatedFile2, UTF_8)).isEqualTo(expectedReport2);
   }
 

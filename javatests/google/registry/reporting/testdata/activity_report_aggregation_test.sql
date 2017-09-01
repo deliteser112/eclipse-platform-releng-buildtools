@@ -27,7 +27,7 @@ SELECT
   SUM(IF(metricName = 'web-whois-queries', count, 0)) AS web_whois_queries,
   -- We don't support searchable WHOIS.
   0 AS searchable_whois_queries,
-  -- DNS queries for UDP/TCP are all assumed to be recevied/responded.
+  -- DNS queries for UDP/TCP are all assumed to be received/responded.
   SUM(IF(metricName = 'dns-udp-queries', count, 0)) AS dns_udp_queries_received,
   SUM(IF(metricName = 'dns-udp-queries', count, 0)) AS dns_udp_queries_responded,
   SUM(IF(metricName = 'dns-tcp-queries', count, 0)) AS dns_tcp_queries_received,
@@ -66,7 +66,7 @@ SELECT
   -- towards a given TLD.
 FROM (
 SELECT tldStr as tld
-FROM `domain-registry-alpha.latest_datastore_views.Registry`
+FROM `domain-registry-alpha.latest_datastore_export.Registry`
 WHERE tldType = 'REAL'
 ) as RealTlds
 CROSS JOIN(
@@ -97,4 +97,3 @@ CROSS JOIN(
 WHERE RealTlds.tld = TldMetrics.tld OR TldMetrics.tld IS NULL
 GROUP BY tld
 ORDER BY tld
-
