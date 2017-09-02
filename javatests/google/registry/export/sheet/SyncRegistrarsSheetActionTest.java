@@ -24,12 +24,12 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Optional;
-import google.registry.model.server.Lock;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeLockHandler;
 import google.registry.testing.FakeResponse;
-import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 import org.joda.time.Duration;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,14 +48,21 @@ public class SyncRegistrarsSheetActionTest {
   private final FakeResponse response = new FakeResponse();
   private final SyncRegistrarsSheet syncRegistrarsSheet = mock(SyncRegistrarsSheet.class);
 
+  private SyncRegistrarsSheetAction action;
+
   private void runAction(@Nullable String idConfig, @Nullable String idParam) {
-    SyncRegistrarsSheetAction action = new SyncRegistrarsSheetAction();
-    action.response = response;
-    action.syncRegistrarsSheet = syncRegistrarsSheet;
     action.idConfig = Optional.fromNullable(idConfig);
     action.idParam = Optional.fromNullable(idParam);
-    action.timeout = Duration.standardHours(1);
     action.run();
+  }
+
+  @Before
+  public void setUp() {
+    action = new SyncRegistrarsSheetAction();
+    action.response = response;
+    action.syncRegistrarsSheet = syncRegistrarsSheet;
+    action.timeout = Duration.standardHours(1);
+    action.lockHandler = new FakeLockHandler(true);
   }
 
   @Test
@@ -96,14 +103,8 @@ public class SyncRegistrarsSheetActionTest {
 
   @Test
   public void testPost_failToAquireLock_servletDoesNothingAndReturns() throws Exception {
-    String lockName = "Synchronize registrars sheet: foobar";
-    Lock.executeWithLocks(new Callable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        runAction(null, "foobar");
-        return null;
-      }
-    }, null, Duration.standardHours(1), lockName);
+    action.lockHandler = new FakeLockHandler(false);
+    runAction(null, "foobar");
     assertThat(response.getPayload()).startsWith("LOCKED");
     verifyZeroInteractions(syncRegistrarsSheet);
   }

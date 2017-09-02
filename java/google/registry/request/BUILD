@@ -12,7 +12,7 @@ java_library(
     ),
     deps = [
         "//java/google/registry/request/auth",
-        "//java/google/registry/security",
+        "//java/google/registry/request/lock",
         "//java/google/registry/util",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_auto_value",

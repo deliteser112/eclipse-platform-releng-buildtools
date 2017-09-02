@@ -27,6 +27,8 @@ import dagger.Provides;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.UnsupportedMediaTypeException;
 import google.registry.request.auth.AuthResult;
+import google.registry.request.lock.LockHandler;
+import google.registry.request.lock.LockHandlerPassthrough;
 import java.io.IOException;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -120,6 +122,11 @@ public final class RequestModule {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Provides
+  static LockHandler provideLockHandler(LockHandlerPassthrough lockHandler) {
+    return lockHandler;
   }
 
   @Provides

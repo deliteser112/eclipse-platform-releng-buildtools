@@ -30,11 +30,11 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.base.Optional;
 import com.google.gdata.util.ServiceException;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.model.server.Lock;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
+import google.registry.request.lock.LockHandler;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
 import java.io.IOException;
@@ -117,6 +117,7 @@ public class SyncRegistrarsSheetAction implements Runnable {
   @Inject @Config("sheetLockTimeout") Duration timeout;
   @Inject @Config("sheetRegistrarId") Optional<String> idConfig;
   @Inject @Parameter("id") Optional<String> idParam;
+  @Inject LockHandler lockHandler;
   @Inject SyncRegistrarsSheetAction() {}
 
   @Override
@@ -146,7 +147,7 @@ public class SyncRegistrarsSheetAction implements Runnable {
         return null;
       }
     };
-    if (!Lock.executeWithLocks(runner, null, timeout, sheetLockName)) {
+    if (!lockHandler.executeWithLocks(runner, null, timeout, sheetLockName)) {
       // If we fail to acquire the lock, it probably means lots of updates are happening at once, in
       // which case it should be safe to not bother. The task queue definition should *not* specify
       // max-concurrent-requests for this very reason.
