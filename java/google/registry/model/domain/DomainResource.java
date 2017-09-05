@@ -277,7 +277,7 @@ public class DomainResource extends DomainBase
                     transferData.getServerApproveBillingEvent())));
       } else {
         // There won't be a billing event, so we don't need a grace period
-        builder.setGracePeriods(ImmutableSet.of());
+        builder.setGracePeriods(ImmutableSet.<GracePeriod>of());
       }
       // Set all remaining transfer properties.
       setAutomaticTransferSuccessProperties(builder, transferData);

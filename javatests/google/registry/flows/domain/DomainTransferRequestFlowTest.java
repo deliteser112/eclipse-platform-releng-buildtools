@@ -183,7 +183,7 @@ public class DomainTransferRequestFlowTest
     final HistoryEntry historyEntryTransferRequest =
         getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REQUEST);
     subordinateHost = reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc());
-    assertTransferRequested(domain, Optional.absent());
+    assertTransferRequested(domain, Optional.<Duration>absent());
     assertAboutDomains().that(domain)
         .hasPendingTransferExpirationTime(implicitTransferTime).and()
         .hasOneHistoryEntryEachOfTypes(DOMAIN_CREATE, DOMAIN_TRANSFER_REQUEST);
@@ -201,10 +201,11 @@ public class DomainTransferRequestFlowTest
         originalGracePeriods,
         extraExpectedBillingEvents);
 
-    assertPollMessagesEmitted(expectedExpirationTime, implicitTransferTime, Optional.absent());
+    assertPollMessagesEmitted(
+        expectedExpirationTime, implicitTransferTime, Optional.<Duration>absent());
 
     assertAboutDomainAfterAutomaticTransfer(
-        expectedExpirationTime, implicitTransferTime, Optional.absent());
+        expectedExpirationTime, implicitTransferTime, Optional.<Duration>absent());
   }
 
   private void assertHistoryEntriesContainBillingEventsAndGracePeriods(

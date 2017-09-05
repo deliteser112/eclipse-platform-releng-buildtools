@@ -119,7 +119,7 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
     // the transfer period to zero. There is not a transfer cost if the transfer period is zero.
     Optional<BillingEvent.OneTime> billingEvent =
         (transferData.getTransferPeriod().getValue() == 0)
-            ? Optional.absent()
+            ? Optional.<BillingEvent.OneTime>absent()
             : Optional.of(
                 new BillingEvent.OneTime.Builder()
                     .setReason(Reason.TRANSFER)

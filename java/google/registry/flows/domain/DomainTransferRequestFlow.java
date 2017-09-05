@@ -75,6 +75,7 @@ import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.model.transfer.TransferStatus;
 import javax.inject.Inject;
+import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 /**
@@ -162,7 +163,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     // If the period is zero, then there is no fee for the transfer.
     Optional<FeesAndCredits> feesAndCredits =
         (period.getValue() == 0)
-            ? Optional.absent()
+            ? Optional.<FeesAndCredits>absent()
             : Optional.of(pricingLogic.getTransferPrice(registry, targetId, now));
     if (feesAndCredits.isPresent()) {
       validateFeeChallenge(targetId, tld, now, feeTransfer, feesAndCredits.get());
@@ -206,7 +207,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
             gainingClientId,
             (feesAndCredits.isPresent())
                 ? Optional.of(feesAndCredits.get().getTotalCost())
-                : Optional.absent(),
+                : Optional.<Money>absent(),
             now);
     // Create the transfer data that represents the pending transfer.
     TransferData pendingTransferData =
