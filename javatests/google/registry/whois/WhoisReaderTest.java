@@ -16,11 +16,14 @@ package google.registry.whois;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.LogsSubject.assertAboutLogs;
 
+import com.google.common.testing.TestLogHandler;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import java.io.StringReader;
+import java.util.logging.Level;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,13 +39,15 @@ public class WhoisReaderTest {
   @Rule public final ExceptionRule thrown = new ExceptionRule();
 
   private final FakeClock clock = new FakeClock();
+  private final TestLogHandler testLogHandler = new TestLogHandler();
 
   @Before
   public void init() {
     createTlds("tld", "xn--kgbechtv", "1.test");
+    WhoisReader.logger.addHandler(testLogHandler);
   }
 
-  @SuppressWarnings("unchecked") // XXX: Generic abuse ftw.
+  @SuppressWarnings("TypeParameterUnusedInFormals") // XXX: Generic abuse ftw.
   <T> T readCommand(String commandStr) throws Exception {
     return (T)
         new WhoisReader(new WhoisCommandFactory())
@@ -333,5 +338,94 @@ public class WhoisReaderTest {
     this.<RegistrarLookupCommand>readCommand("ns.example.2.test");
     this.<RegistrarLookupCommand>readCommand("test");
     this.<RegistrarLookupCommand>readCommand("tld");
+  }
+
+  @Test
+  public void testNoArgs() throws Exception {
+    thrown.expect(WhoisException.class);
+    readCommand("");
+  }
+
+  @Test
+  public void testLogsDomainLookupCommand() throws Exception {
+    readCommand("domain example.tld");
+    assertAboutLogs()
+        .that(testLogHandler)
+        .hasLogAtLevelWithMessage(
+            Level.INFO, "Attempting domain lookup command using domain name example.tld");
+  }
+
+  @Test
+  public void testLogsNameserverLookupCommandWithIpAddress() throws Exception {
+    readCommand("nameserver 43.34.12.213");
+    assertAboutLogs()
+        .that(testLogHandler)
+        .hasLogAtLevelWithMessage(
+            Level.INFO, "Attempting nameserver lookup command using 43.34.12.213 as an IP address");
+  }
+
+  @Test
+  public void testLogsNameserverLookupCommandWithHostname() throws Exception {
+    readCommand("nameserver ns.example.tld");
+    assertAboutLogs()
+        .that(testLogHandler)
+        .hasLogAtLevelWithMessage(
+            Level.INFO, "Attempting nameserver lookup command using ns.example.tld as a hostname");
+  }
+
+  @Test
+  public void testLogsRegistrarLookupCommand() throws Exception {
+    readCommand("registrar Example Registrar, Inc.");
+    assertAboutLogs()
+        .that(testLogHandler)
+        .hasLogAtLevelWithMessage(
+            Level.INFO,
+            "Attempting registrar lookup command using registrar Example Registrar, Inc.");
+  }
+
+  @Test
+  public void testLogsSingleArgumentNameserverLookupUsingIpAddress() throws Exception {
+    readCommand("43.34.12.213");
+    assertAboutLogs()
+        .that(testLogHandler)
+        .hasLogAtLevelWithMessage(
+            Level.INFO, "Attempting nameserver lookup using 43.34.12.213 as an IP address");
+  }
+
+  @Test
+  public void testLogsSingleArgumentRegistrarLookup() throws Exception {
+    readCommand("test");
+    assertAboutLogs()
+        .that(testLogHandler)
+        .hasLogAtLevelWithMessage(
+            Level.INFO, "Attempting registrar lookup using test as a registrar");
+  }
+
+  @Test
+  public void testLogsSingleArgumentDomainLookup() throws Exception {
+    readCommand("example.tld");
+    assertAboutLogs()
+        .that(testLogHandler)
+        .hasLogAtLevelWithMessage(
+            Level.INFO, "Attempting domain lookup using example.tld as a domain name");
+  }
+
+  @Test
+  public void testLogsSingleArgumentNameserverLookupUsingHostname() throws Exception {
+    readCommand("ns.example.tld");
+    assertAboutLogs()
+        .that(testLogHandler)
+        .hasLogAtLevelWithMessage(
+            Level.INFO, "Attempting nameserver lookup using ns.example.tld as a hostname");
+  }
+
+  @Test
+  public void testLogsMultipleArgumentsButNoParticularCommand() throws Exception {
+    readCommand("Example Registrar, Inc.");
+    assertAboutLogs()
+        .that(testLogHandler)
+        .hasLogAtLevelWithMessage(
+            Level.INFO,
+            "Attempting registrar lookup employing Example Registrar, Inc. as a registrar");
   }
 }

@@ -23,6 +23,7 @@ java_library(
         "@com_google_appengine_testing",
         "@com_google_dagger",
         "@com_google_guava",
+        "@com_google_guava_testlib",
         "@com_google_truth",
         "@javax_servlet_api",
         "@joda_time",
