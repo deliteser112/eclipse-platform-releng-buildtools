@@ -29,6 +29,8 @@ import google.registry.request.HttpException.UnsupportedMediaTypeException;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.lock.LockHandler;
 import google.registry.request.lock.LockHandlerPassthrough;
+import google.registry.util.RequestStatusChecker;
+import google.registry.util.RequestStatusCheckerImpl;
 import java.io.IOException;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -127,6 +129,18 @@ public final class RequestModule {
   @Provides
   static LockHandler provideLockHandler(LockHandlerPassthrough lockHandler) {
     return lockHandler;
+  }
+
+  @Provides
+  static RequestStatusChecker provideRequestStatusChecker(
+      RequestStatusCheckerImpl requestStatusChecker) {
+    return requestStatusChecker;
+  }
+
+  @Provides
+  @RequestLogId
+  static String provideRequestLogId(RequestStatusChecker requestStatusChecker) {
+    return requestStatusChecker.getLogId();
   }
 
   @Provides
