@@ -25,6 +25,8 @@ import com.googlecode.objectify.condition.IfNull;
 import google.registry.model.Buildable;
 import google.registry.model.EppResource;
 import google.registry.model.billing.BillingEvent;
+import google.registry.model.domain.Period;
+import google.registry.model.domain.Period.Unit;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PollMessage;
 import java.util.Set;
@@ -81,6 +83,14 @@ public class TransferData extends BaseTransferObject implements Buildable {
   /** The transaction id of the most recent transfer request (or null if there never was one). */
   Trid transferRequestTrid;
 
+  /**
+   * The period to extend the registration upon completion of the transfer.
+   *
+   * <p>By default, domain transfers are for one year. This can be changed to zero by using the
+   * superuser EPP extension.
+   */
+  Period transferPeriod = Period.create(1, Unit.YEARS);
+
   public ImmutableSet<Key<? extends TransferServerApproveEntity>> getServerApproveEntities() {
     return nullToEmptyImmutableCopy(serverApproveEntities);
   }
@@ -99,6 +109,10 @@ public class TransferData extends BaseTransferObject implements Buildable {
 
   public Trid getTransferRequestTrid() {
     return transferRequestTrid;
+  }
+
+  public Period getTransferPeriod() {
+    return transferPeriod;
   }
 
   @Override
@@ -143,6 +157,11 @@ public class TransferData extends BaseTransferObject implements Buildable {
 
     public Builder setTransferRequestTrid(Trid transferRequestTrid) {
       getInstance().transferRequestTrid = transferRequestTrid;
+      return this;
+    }
+
+    public Builder setTransferPeriod(Period transferPeriod) {
+      getInstance().transferPeriod = transferPeriod;
       return this;
     }
   }

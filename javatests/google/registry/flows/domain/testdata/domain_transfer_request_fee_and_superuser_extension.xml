@@ -1,0 +1,24 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <transfer op="request">
+      <domain:transfer
+          xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>example.tld</domain:name>
+        <domain:authInfo>
+          <domain:pw roid="JD1234-REP">2fooBAR</domain:pw>
+        </domain:authInfo>
+      </domain:transfer>
+    </transfer>
+    <extension>
+      <fee:transfer xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
+        <fee:currency>USD</fee:currency>
+        <fee:fee>11</fee:fee>
+      </fee:transfer>
+      <superuser:domainTransferRequest xmlns:superuser="urn:google:params:xml:ns:superuser-1.0">
+        <superuser:renewalPeriod unit="y">0</superuser:renewalPeriod>
+        <superuser:automaticTransferLength>0</superuser:automaticTransferLength>
+      </superuser:domainTransferRequest>
+    </extension>
+    <clTRID>ABC-12345</clTRID>
+  </command>
+</epp>

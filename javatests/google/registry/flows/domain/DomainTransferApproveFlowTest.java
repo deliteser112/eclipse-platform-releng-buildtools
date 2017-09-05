@@ -50,11 +50,14 @@ import google.registry.flows.exceptions.NotPendingTransferException;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Cancellation;
 import google.registry.model.billing.BillingEvent.Cancellation.Builder;
+import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.Period;
+import google.registry.model.domain.Period.Unit;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
@@ -64,6 +67,7 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.model.transfer.TransferStatus;
 import org.joda.money.Money;
@@ -128,6 +132,20 @@ public class DomainTransferApproveFlowTest
       DateTime expectedExpirationTime,
       int expectedYearsToCharge,
       BillingEvent.Cancellation.Builder... expectedCancellationBillingEvents) throws Exception {
+    runSuccessfulFlowWithAssertions(
+        tld,
+        commandFilename,
+        expectedXmlFilename,
+        expectedExpirationTime);
+    assertHistoryEntriesContainBillingEventsAndGracePeriods(
+        tld, expectedYearsToCharge, expectedCancellationBillingEvents);
+  }
+
+  private void runSuccessfulFlowWithAssertions(
+      String tld,
+      String commandFilename,
+      String expectedXmlFilename,
+      DateTime expectedExpirationTime) throws Exception {
     setEppLoader(commandFilename);
     Registry registry = Registry.get(tld);
     // Make sure the implicit billing event is there; it will be deleted by the flow.
@@ -157,46 +175,6 @@ public class DomainTransferApproveFlowTest
     assertAboutDomains().that(domain).hasRegistrationExpirationTime(expectedExpirationTime);
     assertThat(ofy().load().key(domain.getAutorenewBillingEvent()).now().getEventTime())
         .isEqualTo(expectedExpirationTime);
-    // We expect three billing events: one for the transfer, a closed autorenew for the losing
-    // client and an open autorenew for the gaining client that begins at the new expiration time.
-    BillingEvent.OneTime transferBillingEvent = new BillingEvent.OneTime.Builder()
-        .setReason(Reason.TRANSFER)
-        .setTargetId(domain.getFullyQualifiedDomainName())
-        .setEventTime(clock.nowUtc())
-        .setBillingTime(clock.nowUtc().plus(registry.getTransferGracePeriodLength()))
-        .setClientId("NewRegistrar")
-        .setCost(Money.of(USD, 11).multipliedBy(expectedYearsToCharge))
-        .setPeriodYears(expectedYearsToCharge)
-        .setParent(historyEntryTransferApproved)
-        .build();
-    assertBillingEventsForResource(
-        domain,
-        FluentIterable.from(expectedCancellationBillingEvents)
-            .transform(new Function<BillingEvent.Cancellation.Builder, BillingEvent>() {
-              @Override
-              public Cancellation apply(Builder builder) {
-                return builder.setParent(historyEntryTransferApproved).build();
-              }})
-            .append(
-                transferBillingEvent,
-                getLosingClientAutorenewEvent().asBuilder()
-                    .setRecurrenceEndTime(clock.nowUtc())
-                    .build(),
-                getGainingClientAutorenewEvent().asBuilder()
-                    .setEventTime(domain.getRegistrationExpirationTime())
-                    .setParent(historyEntryTransferApproved)
-                    .build())
-            .toArray(BillingEvent.class));
-    // There should be a grace period for the new transfer billing event.
-    assertGracePeriods(
-        domain.getGracePeriods(),
-        ImmutableMap.of(
-            GracePeriod.create(
-                GracePeriodStatus.TRANSFER,
-                clock.nowUtc().plus(registry.getTransferGracePeriodLength()),
-                "NewRegistrar",
-                null),
-            transferBillingEvent));
     // The poll message (in the future) to the losing registrar for implicit ack should be gone.
     assertThat(getPollMessages(domain, "TheRegistrar", clock.nowUtc().plusMonths(1))).isEmpty();
 
@@ -234,6 +212,97 @@ public class DomainTransferApproveFlowTest
     assertThat(
         domain.cloneProjectedAtTime(clock.nowUtc().plus(registry.getTransferGracePeriodLength()))
             .getGracePeriods()).isEmpty();
+  }
+
+  private void assertHistoryEntriesContainBillingEventsAndGracePeriods(
+      String tld,
+      int expectedYearsToCharge,
+      BillingEvent.Cancellation.Builder... expectedCancellationBillingEvents)
+      throws Exception {
+    Registry registry = Registry.get(tld);
+    domain = reloadResourceByForeignKey();
+    final HistoryEntry historyEntryTransferApproved =
+        getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_APPROVE);
+    // We expect three billing events: one for the transfer, a closed autorenew for the losing
+    // client and an open autorenew for the gaining client that begins at the new expiration time.
+    OneTime transferBillingEvent =
+        new BillingEvent.OneTime.Builder()
+            .setReason(Reason.TRANSFER)
+            .setTargetId(domain.getFullyQualifiedDomainName())
+            .setEventTime(clock.nowUtc())
+            .setBillingTime(clock.nowUtc().plus(registry.getTransferGracePeriodLength()))
+            .setClientId("NewRegistrar")
+            .setCost(Money.of(USD, 11).multipliedBy(expectedYearsToCharge))
+            .setPeriodYears(expectedYearsToCharge)
+            .setParent(historyEntryTransferApproved)
+            .build();
+    assertBillingEventsForResource(
+        domain,
+        FluentIterable.from(expectedCancellationBillingEvents)
+            .transform(
+                new Function<BillingEvent.Cancellation.Builder, BillingEvent>() {
+                  @Override
+                  public Cancellation apply(Builder builder) {
+                    return builder.setParent(historyEntryTransferApproved).build();
+                  }
+                })
+            .append(
+                transferBillingEvent,
+                getLosingClientAutorenewEvent()
+                    .asBuilder()
+                    .setRecurrenceEndTime(clock.nowUtc())
+                    .build(),
+                getGainingClientAutorenewEvent()
+                    .asBuilder()
+                    .setEventTime(domain.getRegistrationExpirationTime())
+                    .setParent(historyEntryTransferApproved)
+                    .build())
+            .toArray(BillingEvent.class));
+    // There should be a grace period for the new transfer billing event.
+    assertGracePeriods(
+        domain.getGracePeriods(),
+        ImmutableMap.of(
+            GracePeriod.create(
+                GracePeriodStatus.TRANSFER,
+                clock.nowUtc().plus(registry.getTransferGracePeriodLength()),
+                "NewRegistrar",
+                null),
+            transferBillingEvent));
+  }
+
+  private void assertHistoryEntriesDoNotContainTransferBillingEventsOrGracePeriods(
+      BillingEvent.Cancellation.Builder... expectedCancellationBillingEvents)
+      throws Exception {
+    domain = reloadResourceByForeignKey();
+    final HistoryEntry historyEntryTransferApproved =
+        getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_APPROVE);
+    // We expect two billing events: a closed autorenew for the losing client and an open autorenew
+    // for the gaining client that begins at the new expiration time.
+    assertBillingEventsForResource(
+        domain,
+        FluentIterable.from(expectedCancellationBillingEvents)
+            .transform(
+                new Function<BillingEvent.Cancellation.Builder, BillingEvent>() {
+                  @Override
+                  public Cancellation apply(Builder builder) {
+                    return builder.setParent(historyEntryTransferApproved).build();
+                  }
+                })
+            .append(
+                getLosingClientAutorenewEvent()
+                    .asBuilder()
+                    .setRecurrenceEndTime(clock.nowUtc())
+                    .build(),
+                getGainingClientAutorenewEvent()
+                    .asBuilder()
+                    .setEventTime(domain.getRegistrationExpirationTime())
+                    .setParent(historyEntryTransferApproved)
+                    .build())
+            .toArray(BillingEvent.class));
+    // There should be no grace period.
+    assertGracePeriods(
+        domain.getGracePeriods(),
+        ImmutableMap.of());
   }
 
   private void doSuccessfulTest(String tld, String commandFilename, String expectedXmlFilename)
@@ -502,5 +571,24 @@ public class DomainTransferApproveFlowTest
             DomainTransactionRecord.create(
                 "tld", clock.nowUtc().plusDays(3), TRANSFER_SUCCESSFUL, 1));
 
+  }
+
+  @Test
+  public void testSuccess_superuserExtension_transferPeriodZero() throws Exception {
+    DomainResource domain = reloadResourceByForeignKey();
+    TransferData.Builder transferDataBuilder = domain.getTransferData().asBuilder();
+    persistResource(
+        domain
+            .asBuilder()
+            .setTransferData(
+                transferDataBuilder.setTransferPeriod(Period.create(0, Unit.YEARS)).build())
+            .build());
+    clock.advanceOneMilli();
+    runSuccessfulFlowWithAssertions(
+        "tld",
+        "domain_transfer_approve.xml",
+        "domain_transfer_approve_response_zero_period.xml",
+        domain.getRegistrationExpirationTime().plusYears(0));
+    assertHistoryEntriesDoNotContainTransferBillingEventsOrGracePeriods();
   }
 }

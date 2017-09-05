@@ -44,8 +44,11 @@ import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
+import google.registry.flows.exceptions.InvalidTransferPeriodValueException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
+import google.registry.flows.exceptions.SuperuserExtensionAndAutorenewGracePeriodException;
 import google.registry.flows.exceptions.TransferPeriodMustBeOneYearException;
+import google.registry.flows.exceptions.TransferPeriodZeroAndFeeTransferExtensionException;
 import google.registry.model.domain.DomainCommand.Transfer;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.Period;
@@ -53,6 +56,7 @@ import google.registry.model.domain.fee.FeeTransferCommandExtension;
 import google.registry.model.domain.fee.FeeTransformResponseExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.domain.superuser.DomainTransferRequestSuperuserExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
@@ -94,7 +98,10 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.exceptions.MissingTransferRequestAuthInfoException}
  * @error {@link google.registry.flows.exceptions.ObjectAlreadySponsoredException}
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
+ * @error {@link google.registry.flows.exceptions.SuperuserExtensionAndAutorenewGracePeriodException}
  * @error {@link google.registry.flows.exceptions.TransferPeriodMustBeOneYearException}
+ * @error {@link InvalidTransferPeriodValueException}
+ * @error {@link google.registry.flows.exceptions.TransferPeriodZeroAndFeeTransferExtensionException}
  * @error {@link DomainFlowUtils.BadPeriodUnitException}
  * @error {@link DomainFlowUtils.CurrencyUnitMismatchException}
  * @error {@link DomainFlowUtils.CurrencyValueScaleException}
@@ -128,24 +135,43 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   @Override
   public final EppResponse run() throws EppException {
     extensionManager.register(
+        DomainTransferRequestSuperuserExtension.class,
         FeeTransferCommandExtension.class,
         MetadataExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(gainingClientId);
-    Period period = ((Transfer) resourceCommand).getPeriod();
     DateTime now = ofy().getTransactionTime();
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
-    verifyTransferAllowed(existingDomain, period, now);
+    DomainTransferRequestSuperuserExtension superuserExtension =
+        eppInput.getSingleExtension(DomainTransferRequestSuperuserExtension.class);
+    Period period =
+        (superuserExtension == null)
+            ? ((Transfer) resourceCommand).getPeriod()
+            : superuserExtension.getRenewalPeriod();
+    verifyTransferAllowed(existingDomain, period, now, superuserExtension);
     String tld = existingDomain.getTld();
     Registry registry = Registry.get(tld);
     // An optional extension from the client specifying what they think the transfer should cost.
     FeeTransferCommandExtension feeTransfer =
         eppInput.getSingleExtension(FeeTransferCommandExtension.class);
-    FeesAndCredits feesAndCredits = pricingLogic.getTransferPrice(registry, targetId, now);
-    validateFeeChallenge(targetId, tld, now, feeTransfer, feesAndCredits);
+    if (period.getValue() == 0 && feeTransfer != null) {
+      // If the period is zero, then there is no transfer billing event, so using the fee transfer
+      // extension does not make sense.
+      throw new TransferPeriodZeroAndFeeTransferExtensionException();
+    }
+    // If the period is zero, then there is no fee for the transfer.
+    Optional<FeesAndCredits> feesAndCredits =
+        (period.getValue() == 0)
+            ? Optional.absent()
+            : Optional.of(pricingLogic.getTransferPrice(registry, targetId, now));
+    if (feesAndCredits.isPresent()) {
+      validateFeeChallenge(targetId, tld, now, feeTransfer, feesAndCredits.get());
+    }
     HistoryEntry historyEntry = buildHistoryEntry(existingDomain, registry, now, period);
-    DateTime automaticTransferTime = now.plus(registry.getAutomaticTransferLength());
- 
+    DateTime automaticTransferTime =
+        (superuserExtension == null)
+            ? now.plus(registry.getAutomaticTransferLength())
+            : now.plusDays(superuserExtension.getAutomaticTransferLength());
     // If the domain will be in the auto-renew grace period at the moment of transfer, the transfer
     // will subsume the autorenew, so we don't add the normal extra year from the transfer.
     // The gaining registrar is still billed for the extra year; the losing registrar will get a
@@ -153,11 +179,15 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     //
     // See b/19430703#comment17 and https://www.icann.org/news/advisory-2002-06-06-en for the
     // policy documentation for transfers subsuming autorenews within the autorenew grace period.
-    int extraYears = 1;
+    int extraYears = period.getValue();
     DomainResource domainAtTransferTime =
         existingDomain.cloneProjectedAtTime(automaticTransferTime);
     if (!domainAtTransferTime.getGracePeriodsOfType(GracePeriodStatus.AUTO_RENEW).isEmpty()) {
-      extraYears--;
+      if (superuserExtension != null) {
+        // We don't allow the superuser extension for domains in the auto renew grace period
+        throw new SuperuserExtensionAndAutorenewGracePeriodException();
+      }
+      extraYears = 0;
     }
     // The new expiration time if there is a server approval.
     DateTime serverApproveNewExpirationTime =
@@ -174,12 +204,16 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
             existingDomain,
             trid,
             gainingClientId,
-            feesAndCredits.getTotalCost(),
+            (feesAndCredits.isPresent())
+                ? Optional.of(feesAndCredits.get().getTotalCost())
+                : Optional.absent(),
             now);
     // Create the transfer data that represents the pending transfer.
-    TransferData pendingTransferData = createPendingTransferData(
-        createTransferDataBuilder(existingDomain, automaticTransferTime, now),
-        serverApproveEntities);
+    TransferData pendingTransferData =
+        createPendingTransferData(
+            createTransferDataBuilder(existingDomain, automaticTransferTime, now),
+            serverApproveEntities,
+            period);
     // Create a poll message to notify the losing registrar that a transfer was requested.
     PollMessage requestPollMessage = createLosingTransferPollMessage(
         targetId, pendingTransferData, serverApproveNewExpirationTime, historyEntry)
@@ -206,7 +240,11 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
         .build();
   }
 
-  private void verifyTransferAllowed(DomainResource existingDomain, Period period, DateTime now)
+  private void verifyTransferAllowed(
+      DomainResource existingDomain,
+      Period period,
+      DateTime now,
+      final DomainTransferRequestSuperuserExtension superuserExtension)
       throws EppException {
     verifyNoDisallowedStatuses(existingDomain, DISALLOWED_STATUSES);
     verifyAuthInfoPresentForResourceTransfer(authInfo);
@@ -219,7 +257,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     if (gainingClientId.equals(existingDomain.getCurrentSponsorClientId())) {
       throw new ObjectAlreadySponsoredException();
     }
-    verifyTransferPeriodIsOneYear(period);
+    verifyTransferPeriod(period, superuserExtension);
     if (!isSuperuser) {
       checkAllowedAccessToTld(gainingClientId, existingDomain.getTld());
       verifyPremiumNameIsNotBlocked(targetId, now, gainingClientId);
@@ -227,7 +265,8 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   }
 
   /**
-   * Verify that the transfer period is one year.
+   * Verify that the transfer period is one year. If the superuser extension is being used, then it
+   * can be zero.
    *
    * <p>Restricting transfers to one year is seemingly required by ICANN's <a
    * href="https://www.icann.org/resources/pages/policy-2012-03-07-en">Policy on Transfer of
@@ -246,10 +285,20 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
    * <p>Note that clients can omit the period element from the transfer EPP entirely, but then it
    * will simply default to one year.
    */
-  private static void verifyTransferPeriodIsOneYear(Period period) throws EppException {
+  private static void verifyTransferPeriod(
+      Period period, DomainTransferRequestSuperuserExtension superuserExtension)
+      throws EppException {
     verifyUnitIsYears(period);
-    if (period.getValue() != 1) {
-      throw new TransferPeriodMustBeOneYearException();
+    if (superuserExtension == null) {
+      // If the superuser extension is not being used, then the period can only be one.
+      if (period.getValue() != 1) {
+        throw new TransferPeriodMustBeOneYearException();
+      }
+    } else {
+      // If the superuser extension is being used, then the period can be one or zero.
+      if (period.getValue() != 1 && period.getValue() != 0) {
+        throw new InvalidTransferPeriodValueException();
+      }
     }
   }
 
@@ -296,13 +345,13 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   }
 
   private static ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
-      FeesAndCredits feesAndCredits, FeeTransferCommandExtension feeTransfer) {
-    return feeTransfer == null
+      Optional<FeesAndCredits> feesAndCredits, FeeTransferCommandExtension feeTransfer) {
+    return (feeTransfer == null || !feesAndCredits.isPresent())
         ? ImmutableList.<FeeTransformResponseExtension>of()
         : ImmutableList.of(feeTransfer.createResponseBuilder()
-            .setFees(feesAndCredits.getFees())
-            .setCredits(feesAndCredits.getCredits())
-            .setCurrency(feesAndCredits.getCurrency())
+            .setFees(feesAndCredits.get().getFees())
+            .setCredits(feesAndCredits.get().getCredits())
+            .setCurrency(feesAndCredits.get().getCurrency())
             .build());
   }
 }

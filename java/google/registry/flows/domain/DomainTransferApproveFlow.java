@@ -115,24 +115,29 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
     String gainingClientId = transferData.getGainingClientId();
     Registry registry = Registry.get(existingDomain.getTld());
     HistoryEntry historyEntry = buildHistoryEntry(existingDomain, registry, now, gainingClientId);
-    // Bill for the transfer.
-    BillingEvent.OneTime billingEvent = new BillingEvent.OneTime.Builder()
-        .setReason(Reason.TRANSFER)
-        .setTargetId(targetId)
-        .setClientId(gainingClientId)
-        .setPeriodYears(1)
-        .setCost(getDomainRenewCost(targetId, transferData.getTransferRequestTime(), 1))
-        .setEventTime(now)
-        .setBillingTime(now.plus(Registry.get(tld).getTransferGracePeriodLength()))
-        .setParent(historyEntry)
-        .build();
+    // Create a transfer billing event for 1 year, unless the superuser extension was used to set
+    // the transfer period to zero. There is not a transfer cost if the transfer period is zero.
+    Optional<BillingEvent.OneTime> billingEvent =
+        (transferData.getTransferPeriod().getValue() == 0)
+            ? Optional.absent()
+            : Optional.of(
+                new BillingEvent.OneTime.Builder()
+                    .setReason(Reason.TRANSFER)
+                    .setTargetId(targetId)
+                    .setClientId(gainingClientId)
+                    .setPeriodYears(1)
+                    .setCost(getDomainRenewCost(targetId, transferData.getTransferRequestTime(), 1))
+                    .setEventTime(now)
+                    .setBillingTime(now.plus(Registry.get(tld).getTransferGracePeriodLength()))
+                    .setParent(historyEntry)
+                    .build());
     // If we are within an autorenew grace period, cancel the autorenew billing event and don't
     // increase the registration time, since the transfer subsumes the autorenew's extra year.
-    int extraYears = 1;  // All transfers are one year.
     GracePeriod autorenewGrace =
         getOnlyElement(existingDomain.getGracePeriodsOfType(GracePeriodStatus.AUTO_RENEW), null);
+    int extraYears = transferData.getTransferPeriod().getValue();
     if (autorenewGrace != null) {
-      extraYears--;
+      extraYears = 0;
       ofy().save().entity(
           BillingEvent.Cancellation.forGracePeriod(autorenewGrace, historyEntry, targetId));
     }
@@ -167,8 +172,11 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
             .setAutorenewBillingEvent(Key.create(autorenewEvent))
             .setAutorenewPollMessage(Key.create(gainingClientAutorenewPollMessage))
             // Remove all the old grace periods and add a new one for the transfer.
-            .setGracePeriods(ImmutableSet.of(
-                GracePeriod.forBillingEvent(GracePeriodStatus.TRANSFER, billingEvent)))
+            .setGracePeriods(
+                (billingEvent.isPresent())
+                    ? ImmutableSet.of(
+                        GracePeriod.forBillingEvent(GracePeriodStatus.TRANSFER, billingEvent.get()))
+                    : ImmutableSet.of())
             .build();
     // Create a poll message for the gaining client.
     PollMessage gainingClientPollMessage = createGainingTransferPollMessage(
@@ -176,13 +184,17 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
         newDomain.getTransferData(),
         newExpirationTime,
         historyEntry);
-    ofy().save().<ImmutableObject>entities(
+    ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
+    entitiesToSave.add(
         newDomain,
         historyEntry,
-        billingEvent,
         autorenewEvent,
         gainingClientPollMessage,
         gainingClientAutorenewPollMessage);
+    if (billingEvent.isPresent()) {
+      entitiesToSave.add(billingEvent.get());
+    }
+    ofy().save().entities(entitiesToSave.build());
     // Delete the billing event and poll messages that were written in case the transfer would have
     // been implicitly server approved.
     ofy().delete().keys(existingDomain.getTransferData().getServerApproveEntities());

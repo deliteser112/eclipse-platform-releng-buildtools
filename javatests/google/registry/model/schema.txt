@@ -920,6 +920,7 @@ class google.registry.model.transfer.TransferData {
   com.googlecode.objectify.Key<google.registry.model.billing.BillingEvent$OneTime> serverApproveBillingEvent;
   com.googlecode.objectify.Key<google.registry.model.billing.BillingEvent$Recurring> serverApproveAutorenewEvent;
   com.googlecode.objectify.Key<google.registry.model.poll.PollMessage$Autorenew> serverApproveAutorenewPollMessage;
+  google.registry.model.domain.Period transferPeriod;
   google.registry.model.eppcommon.Trid transferRequestTrid;
   google.registry.model.transfer.TransferStatus transferStatus;
   java.lang.String gainingClientId;

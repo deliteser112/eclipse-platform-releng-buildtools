@@ -245,9 +245,11 @@ public class DomainResource extends DomainBase
       // If we are within an autorenew grace period, the transfer will subsume the autorenew. There
       // will already be a cancellation written in advance by the transfer request flow, so we don't
       // need to worry about billing, but we do need to cancel out the expiration time increase.
-      int extraYears = 1;  // All transfers are one year.
+      // The transfer period saved in the transfer data will be one year, unless the superuser
+      // extension set the transfer period to zero.
+      int extraYears = transferData.getTransferPeriod().getValue();
       if (domainAtTransferTime.getGracePeriodStatuses().contains(GracePeriodStatus.AUTO_RENEW)) {
-        extraYears--;
+        extraYears = 0;
       }
       // Set the expiration, autorenew events, and grace period for the transfer. (Transfer ends
       // all other graces).
@@ -261,14 +263,22 @@ public class DomainResource extends DomainBase
               extraYears))
           // Set the speculatively-written new autorenew events as the domain's autorenew events.
           .setAutorenewBillingEvent(transferData.getServerApproveAutorenewEvent())
-          .setAutorenewPollMessage(transferData.getServerApproveAutorenewPollMessage())
-          // Set the grace period using a key to the prescheduled transfer billing event.  Not using
-          // GracePeriod.forBillingEvent() here in order to avoid the actual Datastore fetch.
-          .setGracePeriods(ImmutableSet.of(GracePeriod.create(
-              GracePeriodStatus.TRANSFER,
-              transferExpirationTime.plus(Registry.get(getTld()).getTransferGracePeriodLength()),
-              transferData.getGainingClientId(),
-              transferData.getServerApproveBillingEvent())));
+          .setAutorenewPollMessage(transferData.getServerApproveAutorenewPollMessage());
+      if (transferData.getTransferPeriod().getValue() == 1) {
+        // Set the grace period using a key to the prescheduled transfer billing event.  Not using
+        // GracePeriod.forBillingEvent() here in order to avoid the actual Datastore fetch.
+        builder.setGracePeriods(
+            ImmutableSet.of(
+                GracePeriod.create(
+                    GracePeriodStatus.TRANSFER,
+                    transferExpirationTime.plus(
+                        Registry.get(getTld()).getTransferGracePeriodLength()),
+                    transferData.getGainingClientId(),
+                    transferData.getServerApproveBillingEvent())));
+      } else {
+        // There won't be a billing event, so we don't need a grace period
+        builder.setGracePeriods(ImmutableSet.of());
+      }
       // Set all remaining transfer properties.
       setAutomaticTransferSuccessProperties(builder, transferData);
       // Finish projecting to now.

@@ -23,10 +23,12 @@ import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException;
 import google.registry.flows.ExtensionManager.UnsupportedRepeatedExtensionException;
 import google.registry.flows.exceptions.OnlyToolCanPassMetadataException;
+import google.registry.flows.exceptions.UnauthorizedForSuperuserExtensionException;
 import google.registry.flows.session.HelloFlow;
 import google.registry.model.domain.fee06.FeeInfoCommandExtensionV06;
 import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.domain.superuser.DomainTransferRequestSuperuserExtension;
 import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.EppInput.CommandExtension;
@@ -134,6 +136,44 @@ public class ExtensionManagerTest {
   }
 
   @Test
+  public void testSuperuserExtension_allowedForToolSource() throws Exception {
+    ExtensionManager manager = new TestInstanceBuilder()
+        .setEppRequestSource(EppRequestSource.TOOL)
+        .setDeclaredUris()
+        .setSuppliedExtensions(DomainTransferRequestSuperuserExtension.class)
+        .setIsSuperuser(true)
+        .build();
+    manager.register(DomainTransferRequestSuperuserExtension.class);
+    manager.validate();
+  }
+
+  @Test
+  public void testSuperuserExtension_forbiddenWhenNotSuperuser() throws Exception {
+    ExtensionManager manager = new TestInstanceBuilder()
+        .setEppRequestSource(EppRequestSource.TOOL)
+        .setDeclaredUris()
+        .setSuppliedExtensions(DomainTransferRequestSuperuserExtension.class)
+        .setIsSuperuser(false)
+        .build();
+    manager.register(DomainTransferRequestSuperuserExtension.class);
+    thrown.expect(UnauthorizedForSuperuserExtensionException.class);
+    manager.validate();
+  }
+
+  @Test
+  public void testSuperuserExtension_forbiddenWhenNotToolSource() throws Exception {
+    ExtensionManager manager = new TestInstanceBuilder()
+        .setEppRequestSource(EppRequestSource.CONSOLE)
+        .setDeclaredUris()
+        .setSuppliedExtensions(DomainTransferRequestSuperuserExtension.class)
+        .setIsSuperuser(true)
+        .build();
+    manager.register(DomainTransferRequestSuperuserExtension.class);
+    thrown.expect(UnauthorizedForSuperuserExtensionException.class);
+    manager.validate();
+  }
+
+  @Test
   public void testUnimplementedExtensionsForbidden() throws Exception {
     ExtensionManager manager = new TestInstanceBuilder()
         .setEppRequestSource(EppRequestSource.TOOL)
@@ -157,6 +197,11 @@ public class ExtensionManagerTest {
     TestInstanceBuilder setDeclaredUris(String... declaredUris) {
       manager.sessionMetadata =
           new StatelessRequestSessionMetadata("clientId", ImmutableSet.copyOf(declaredUris));
+      return this;
+    }
+
+    TestInstanceBuilder setIsSuperuser(boolean isSuperuser) {
+      manager.isSuperuser = isSuperuser;
       return this;
     }
 

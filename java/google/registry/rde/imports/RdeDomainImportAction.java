@@ -42,6 +42,8 @@ import google.registry.gcs.GcsUtils;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.Period;
+import google.registry.model.domain.Period.Unit;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
@@ -203,10 +205,13 @@ public class RdeDomainImportAction implements Runnable {
                       domain,
                       historyEntry.getTrid(),
                       transferData.getGainingClientId(),
-                      transferCost,
+                      Optional.of(transferCost),
                       transferData.getTransferRequestTime());
               transferData =
-                  createPendingTransferData(transferData.asBuilder(), serverApproveEntities);
+                  createPendingTransferData(
+                      transferData.asBuilder(),
+                      serverApproveEntities,
+                      Period.create(1, Unit.YEARS));
               // Create a poll message to notify the losing registrar that a transfer was requested.
               PollMessage requestPollMessage = createLosingTransferPollMessage(domain.getRepoId(),
                   transferData, transferData.getPendingTransferExpirationTime(), historyEntry)

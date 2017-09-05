@@ -27,6 +27,7 @@ import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.Period;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
@@ -47,26 +48,29 @@ import org.joda.time.DateTime;
  */
 public final class DomainTransferUtils {
 
-  /**
-   * Sets up {@link TransferData} for a domain with links to entities for server approval.
-   */
+  /** Sets up {@link TransferData} for a domain with links to entities for server approval. */
   public static TransferData createPendingTransferData(
       TransferData.Builder transferDataBuilder,
-      ImmutableSet<TransferServerApproveEntity> serverApproveEntities) {
+      ImmutableSet<TransferServerApproveEntity> serverApproveEntities,
+      Period transferPeriod) {
     ImmutableSet.Builder<Key<? extends TransferServerApproveEntity>> serverApproveEntityKeys =
         new ImmutableSet.Builder<>();
     for (TransferServerApproveEntity entity : serverApproveEntities) {
       serverApproveEntityKeys.add(Key.create(entity));
     }
+    if (transferPeriod.getValue() != 0) {
+      // Unless superuser sets period to 0, add a transfer billing event.
+      transferDataBuilder.setServerApproveBillingEvent(
+          Key.create(getOnlyElement(filter(serverApproveEntities, BillingEvent.OneTime.class))));
+    }
     return transferDataBuilder
         .setTransferStatus(TransferStatus.PENDING)
-        .setServerApproveBillingEvent(Key.create(
-            getOnlyElement(filter(serverApproveEntities, BillingEvent.OneTime.class))))
         .setServerApproveAutorenewEvent(Key.create(
             getOnlyElement(filter(serverApproveEntities, BillingEvent.Recurring.class))))
         .setServerApproveAutorenewPollMessage(Key.create(
             getOnlyElement(filter(serverApproveEntities, PollMessage.Autorenew.class))))
         .setServerApproveEntities(serverApproveEntityKeys.build())
+        .setTransferPeriod(transferPeriod)
         .build();
   }
 
@@ -91,7 +95,7 @@ public final class DomainTransferUtils {
       DomainResource existingDomain,
       Trid trid,
       String gainingClientId,
-      Money transferCost,
+      Optional<Money> transferCost,
       DateTime now) {
     String targetId = existingDomain.getFullyQualifiedDomainName();
     // Create a TransferData for the server-approve case to use for the speculative poll messages.
@@ -101,15 +105,18 @@ public final class DomainTransferUtils {
             .setTransferStatus(TransferStatus.SERVER_APPROVED)
             .build();
     Registry registry = Registry.get(existingDomain.getTld());
-    return new ImmutableSet.Builder<TransferServerApproveEntity>()
-        .add(
-            createTransferBillingEvent(
-                automaticTransferTime,
-                historyEntry,
-                targetId,
-                gainingClientId,
-                registry,
-                transferCost))
+    ImmutableSet.Builder<TransferServerApproveEntity> builder = new ImmutableSet.Builder<>();
+    if (transferCost.isPresent()) {
+      builder.add(
+          createTransferBillingEvent(
+              automaticTransferTime,
+              historyEntry,
+              targetId,
+              gainingClientId,
+              registry,
+              transferCost.get()));
+    }
+    return builder
         .addAll(
             createOptionalAutorenewCancellation(
                     automaticTransferTime, historyEntry, targetId, existingDomain)

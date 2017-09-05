@@ -36,6 +36,7 @@ import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
@@ -43,6 +44,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
+import google.registry.flows.EppRequestSource;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.BadPeriodUnitException;
@@ -54,10 +56,13 @@ import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException
 import google.registry.flows.domain.DomainFlowUtils.PremiumNameBlockedException;
 import google.registry.flows.domain.DomainFlowUtils.UnsupportedFeeAttributeException;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
+import google.registry.flows.exceptions.InvalidTransferPeriodValueException;
 import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
+import google.registry.flows.exceptions.SuperuserExtensionAndAutorenewGracePeriodException;
 import google.registry.flows.exceptions.TransferPeriodMustBeOneYearException;
+import google.registry.flows.exceptions.TransferPeriodZeroAndFeeTransferExtensionException;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Cancellation.Builder;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -65,6 +70,8 @@ import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.Period;
+import google.registry.model.domain.Period.Unit;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
@@ -117,26 +124,33 @@ public class DomainTransferRequestFlowTest
     setClientIdForFlow("NewRegistrar");
   }
 
-  private void assertTransferRequested(DomainResource domain) throws Exception {
+  private void assertTransferRequested(
+      DomainResource domain, Optional<Duration> expectedAutomaticTransferLength) throws Exception {
+    DateTime afterAutoAckTime =
+        (expectedAutomaticTransferLength.isPresent())
+            ? clock.nowUtc().plus(expectedAutomaticTransferLength.get())
+            : clock.nowUtc().plus(Registry.get(domain.getTld()).getAutomaticTransferLength());
     assertAboutDomains().that(domain)
         .hasTransferStatus(TransferStatus.PENDING).and()
         .hasTransferGainingClientId("NewRegistrar").and()
         .hasTransferLosingClientId("TheRegistrar").and()
         .hasTransferRequestClientTrid(getClientTrid()).and()
         .hasCurrentSponsorClientId("TheRegistrar").and()
-        .hasPendingTransferExpirationTime(
-            clock.nowUtc().plus(Registry.get(domain.getTld()).getAutomaticTransferLength())).and()
+        .hasPendingTransferExpirationTime(afterAutoAckTime).and()
         .hasStatusValue(StatusValue.PENDING_TRANSFER);
   }
 
-  private void assertTransferApproved(DomainResource domain) {
-    DateTime afterAutoAck =
-        clock.nowUtc().plus(Registry.get(domain.getTld()).getAutomaticTransferLength());
+  private void assertTransferApproved(
+      DomainResource domain, Optional<Duration> expectedAutomaticTransferLength) {
+    DateTime afterAutoAckTime =
+        (expectedAutomaticTransferLength.isPresent())
+            ? clock.nowUtc().plus(expectedAutomaticTransferLength.get())
+            : clock.nowUtc().plus(Registry.get(domain.getTld()).getAutomaticTransferLength());
     assertAboutDomains().that(domain)
         .hasTransferStatus(TransferStatus.SERVER_APPROVED).and()
         .hasCurrentSponsorClientId("NewRegistrar").and()
-        .hasLastTransferTime(afterAutoAck).and()
-        .hasPendingTransferExpirationTime(afterAutoAck).and()
+        .hasLastTransferTime(afterAutoAckTime).and()
+        .hasPendingTransferExpirationTime(afterAutoAckTime).and()
         .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER);
   }
 
@@ -169,7 +183,7 @@ public class DomainTransferRequestFlowTest
     final HistoryEntry historyEntryTransferRequest =
         getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REQUEST);
     subordinateHost = reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc());
-    assertTransferRequested(domain);
+    assertTransferRequested(domain, Optional.absent());
     assertAboutDomains().that(domain)
         .hasPendingTransferExpirationTime(implicitTransferTime).and()
         .hasOneHistoryEntryEachOfTypes(DOMAIN_CREATE, DOMAIN_TRANSFER_REQUEST);
@@ -179,7 +193,30 @@ public class DomainTransferRequestFlowTest
         .and()
         .hasOtherClientId("TheRegistrar");
     assertAboutHosts().that(subordinateHost).hasNoHistoryEntries();
-    assertThat(getPollMessages("TheRegistrar", clock.nowUtc())).hasSize(1);
+
+    assertHistoryEntriesContainBillingEventsAndGracePeriods(
+        expectedExpirationTime,
+        implicitTransferTime,
+        transferCost,
+        originalGracePeriods,
+        extraExpectedBillingEvents);
+
+    assertPollMessagesEmitted(expectedExpirationTime, implicitTransferTime, Optional.absent());
+
+    assertAboutDomainAfterAutomaticTransfer(
+        expectedExpirationTime, implicitTransferTime, Optional.absent());
+  }
+
+  private void assertHistoryEntriesContainBillingEventsAndGracePeriods(
+      DateTime expectedExpirationTime,
+      DateTime implicitTransferTime,
+      Optional<Money> transferCost,
+      ImmutableSet<GracePeriod> originalGracePeriods,
+      BillingEvent.Cancellation.Builder... extraExpectedBillingEvents)
+      throws Exception {
+    Registry registry = Registry.get(domain.getTld());
+    final HistoryEntry historyEntryTransferRequest =
+        getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REQUEST);
 
     // A BillingEvent should be created AUTOMATIC_TRANSFER_DAYS in the future, for the case when the
     // transfer is implicitly acked, but there should be no grace period yet. There should also be
@@ -235,7 +272,69 @@ public class DomainTransferRequestFlowTest
                 "NewRegistrar",
                 null),
             transferBillingEvent));
-    assertTransferApproved(domainAfterAutomaticTransfer);
+  }
+
+  public void assertHistoryEntriesDoNotContainTransferBillingEventsOrGracePeriods(
+      DateTime expectedExpirationTime,
+      DateTime implicitTransferTime,
+      ImmutableSet<GracePeriod> originalGracePeriods,
+      BillingEvent.Cancellation.Builder... extraExpectedBillingEvents)
+      throws Exception {
+    final HistoryEntry historyEntryTransferRequest =
+        getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REQUEST);
+
+    // There should also be two autorenew billing events, one for the losing client that ends at the
+    // transfer time, and one for the gaining client that starts at that time.
+    // All of the other transfer flow tests happen on day 3 of the transfer, but the initial
+    // request by definition takes place on day 1, so we need to edit the times in the
+    // autorenew events from the base test case.
+    assertBillingEvents(
+        FluentIterable.from(extraExpectedBillingEvents)
+            .transform(
+                new Function<BillingEvent.Cancellation.Builder, BillingEvent>() {
+                  @Override
+                  public BillingEvent apply(Builder builder) {
+                    return builder.setParent(historyEntryTransferRequest).build();
+                  }
+                })
+            .append(
+                getLosingClientAutorenewEvent()
+                    .asBuilder()
+                    .setRecurrenceEndTime(implicitTransferTime)
+                    .build(),
+                getGainingClientAutorenewEvent()
+                    .asBuilder()
+                    .setEventTime(expectedExpirationTime)
+                    .build())
+            .toArray(BillingEvent.class));
+    // The domain's autorenew billing event should still point to the losing client's event.
+    BillingEvent.Recurring domainAutorenewEvent =
+        ofy().load().key(domain.getAutorenewBillingEvent()).now();
+    assertThat(domainAutorenewEvent.getClientId()).isEqualTo("TheRegistrar");
+    assertThat(domainAutorenewEvent.getRecurrenceEndTime()).isEqualTo(implicitTransferTime);
+    // The original grace periods should remain untouched.
+    assertThat(domain.getGracePeriods()).containsExactlyElementsIn(originalGracePeriods);
+    // If we fast forward AUTOMATIC_TRANSFER_DAYS, we should see the grace period appear, the
+    // transfer should have happened, and all other grace periods should be gone. Also, both the
+    // gaining and losing registrars should have a new poll message.
+    DomainResource domainAfterAutomaticTransfer = domain.cloneProjectedAtTime(implicitTransferTime);
+    // There should be no grace period.
+    assertGracePeriods(domainAfterAutomaticTransfer.getGracePeriods(), ImmutableMap.of());
+  }
+
+  private void assertPollMessagesEmitted(
+      DateTime expectedExpirationTime,
+      DateTime implicitTransferTime,
+      Optional<Duration> expectedAutomaticTransferLength) {
+    // Assert that there exists a poll message to notify the losing registrar that a transfer was
+    // requested. If the expected automatic transfer length is zero, then also expect a server
+    // approved poll message.
+    assertThat(getPollMessages("TheRegistrar", clock.nowUtc()))
+        .hasSize(
+            (expectedAutomaticTransferLength.isPresent()
+                    && expectedAutomaticTransferLength.get().equals(Duration.ZERO))
+                ? 2
+                : 1);
 
     // Two poll messages on the gaining registrar's side at the expected expiration time: a
     // (OneTime) transfer approved message, and an Autorenew poll message.
@@ -261,8 +360,15 @@ public class DomainTransferRequestFlowTest
     // Two poll messages on the losing registrar's side at the implicit transfer time: a
     // transfer pending message, and a transfer approved message (both OneTime messages).
     assertThat(getPollMessages("TheRegistrar", implicitTransferTime)).hasSize(2);
-    PollMessage losingTransferPendingPollMessage =
-        getOnlyPollMessage("TheRegistrar", clock.nowUtc());
+    PollMessage losingTransferPendingPollMessage = Iterables.getOnlyElement(
+        FluentIterable.from(getPollMessages("TheRegistrar", clock.nowUtc()))
+            .filter(
+                new Predicate<PollMessage>() {
+                  @Override
+                  public boolean apply(PollMessage pollMessage) {
+                    return TransferStatus.PENDING.getMessage().equals(pollMessage.getMsg());
+                  }
+                }));
     PollMessage losingTransferApprovedPollMessage = Iterables.getOnlyElement(FluentIterable
         .from(getPollMessages("TheRegistrar", implicitTransferTime))
         .filter(Predicates.not(Predicates.equalTo(losingTransferPendingPollMessage))));
@@ -280,7 +386,15 @@ public class DomainTransferRequestFlowTest
             .filter(TransferResponse.class))
                 .getTransferStatus())
                 .isEqualTo(TransferStatus.SERVER_APPROVED);
+  }
 
+  private void assertAboutDomainAfterAutomaticTransfer(
+      DateTime expectedExpirationTime,
+      DateTime implicitTransferTime,
+      Optional<Duration> expectedAutomaticTransferLength) {
+    Registry registry = Registry.get(domain.getTld());
+    DomainResource domainAfterAutomaticTransfer = domain.cloneProjectedAtTime(implicitTransferTime);
+    assertTransferApproved(domainAfterAutomaticTransfer, expectedAutomaticTransferLength);
     assertAboutDomains().that(domainAfterAutomaticTransfer)
         .hasRegistrationExpirationTime(expectedExpirationTime);
     assertThat(ofy().load().key(domainAfterAutomaticTransfer.getAutorenewBillingEvent()).now()
@@ -325,6 +439,76 @@ public class DomainTransferRequestFlowTest
     clock.advanceOneMilli();
     doSuccessfulTest(
         commandFilename, expectedXmlFilename, domain.getRegistrationExpirationTime().plusYears(1));
+  }
+
+  private void doSuccessfulSuperuserExtensionTest(
+      String commandFilename,
+      String expectedXmlFilename,
+      DateTime expectedExpirationTime,
+      Map<String, String> substitutions,
+      Optional<Money> transferCost,
+      Period expectedPeriod,
+      Duration expectedAutomaticTransferLength,
+      BillingEvent.Cancellation.Builder... extraExpectedBillingEvents) throws Exception {
+    setEppInput(commandFilename, substitutions);
+    ImmutableSet<GracePeriod> originalGracePeriods = domain.getGracePeriods();
+    // Replace the ROID in the xml file with the one generated in our test.
+    eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
+    // For all of the other transfer flow tests, 'now' corresponds to day 3 of the transfer, but
+    // for the request test we want that same 'now' to be the initial request time, so we shift
+    // the transfer timeline 3 days later by adjusting the implicit transfer time here.
+    DateTime implicitTransferTime = clock.nowUtc().plus(expectedAutomaticTransferLength);
+    // Setup done; run the test.
+    assertTransactionalFlow(true);
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile(expectedXmlFilename, substitutions));
+
+    if (expectedAutomaticTransferLength.equals(Duration.ZERO)) {
+      // The transfer is going to happen immediately. To observe the domain in the pending transfer
+      // state, grab it directly from the database.
+      domain = Iterables.getOnlyElement(ofy().load().type(DomainResource.class).list());
+      assertThat(domain.getFullyQualifiedDomainName()).isEqualTo("example.tld");
+    } else {
+      // Transfer should have been requested.
+      domain = reloadResourceByForeignKey();
+    }
+    // Verify correct fields were set.
+    subordinateHost = reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc());
+    assertTransferRequested(domain, Optional.of(expectedAutomaticTransferLength));
+    assertAboutDomains().that(domain)
+        .hasPendingTransferExpirationTime(implicitTransferTime).and()
+        .hasOneHistoryEntryEachOfTypes(DOMAIN_CREATE, DOMAIN_TRANSFER_REQUEST);
+    final HistoryEntry historyEntryTransferRequest =
+        getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REQUEST);
+    assertAboutHistoryEntries()
+        .that(historyEntryTransferRequest)
+        .hasPeriodYears(expectedPeriod.getValue())
+        .and()
+        .hasOtherClientId("TheRegistrar");
+    assertAboutHosts().that(subordinateHost).hasNoHistoryEntries();
+
+    if (expectedPeriod.getValue() == 0) {
+      assertHistoryEntriesDoNotContainTransferBillingEventsOrGracePeriods(
+          expectedExpirationTime,
+          implicitTransferTime,
+          originalGracePeriods,
+          extraExpectedBillingEvents);
+    } else {
+      assertHistoryEntriesContainBillingEventsAndGracePeriods(
+          expectedExpirationTime,
+          implicitTransferTime,
+          transferCost,
+          originalGracePeriods,
+          extraExpectedBillingEvents);
+    }
+
+    assertPollMessagesEmitted(
+        expectedExpirationTime,
+        implicitTransferTime,
+        Optional.of(expectedAutomaticTransferLength));
+
+    assertAboutDomainAfterAutomaticTransfer(
+        expectedExpirationTime, implicitTransferTime, Optional.of(expectedAutomaticTransferLength));
   }
 
   private void runTest(
@@ -515,6 +699,95 @@ public class DomainTransferRequestFlowTest
     clock.advanceOneMilli();
     thrown.expect(TransferPeriodMustBeOneYearException.class);
     doFailingTest("domain_transfer_request_2_years.xml");
+  }
+
+  @Test
+  public void testSuccess_superuserExtension_zeroPeriod_nonZeroAutomaticTransferLength()
+      throws Exception {
+    setupDomain("example", "tld");
+    eppRequestSource = EppRequestSource.TOOL;
+    clock.advanceOneMilli();
+    doSuccessfulSuperuserExtensionTest(
+        "domain_transfer_request_superuser_extension.xml",
+        "domain_transfer_request_response_su_ext_zero_period_nonzero_transfer_length.xml",
+        domain.getRegistrationExpirationTime().plusYears(0),
+        ImmutableMap.of("PERIOD", "0", "AUTOMATIC_TRANSFER_LENGTH", "5"),
+        Optional.<Money>absent(),
+        Period.create(0, Unit.YEARS),
+        Duration.standardDays(5));
+  }
+
+  @Test
+  public void testSuccess_superuserExtension_zeroPeriod_zeroAutomaticTransferLength()
+      throws Exception {
+    setupDomain("example", "tld");
+    eppRequestSource = EppRequestSource.TOOL;
+    clock.advanceOneMilli();
+    doSuccessfulSuperuserExtensionTest(
+        "domain_transfer_request_superuser_extension.xml",
+        "domain_transfer_request_response_su_ext_zero_period_zero_transfer_length.xml",
+        domain.getRegistrationExpirationTime().plusYears(0),
+        ImmutableMap.of("PERIOD", "0", "AUTOMATIC_TRANSFER_LENGTH", "0"),
+        Optional.<Money>absent(),
+        Period.create(0, Unit.YEARS),
+        Duration.standardDays(0));
+  }
+
+  @Test
+  public void testSuccess_superuserExtension_nonZeroPeriod_nonZeroAutomaticTransferLength()
+      throws Exception {
+    setupDomain("example", "tld");
+    eppRequestSource = EppRequestSource.TOOL;
+    clock.advanceOneMilli();
+    doSuccessfulSuperuserExtensionTest(
+        "domain_transfer_request_superuser_extension.xml",
+        "domain_transfer_request_response_su_ext_one_year_period_nonzero_transfer_length.xml",
+        domain.getRegistrationExpirationTime().plusYears(1),
+        ImmutableMap.of("PERIOD", "1", "AUTOMATIC_TRANSFER_LENGTH", "5"),
+        Optional.<Money>absent(),
+        Period.create(1, Unit.YEARS),
+        Duration.standardDays(5));
+  }
+
+  @Test
+  public void testFailure_superuserExtension_duringAutorenewGracePeriod() throws Exception {
+    setupDomain("example", "tld");
+    eppRequestSource = EppRequestSource.TOOL;
+    DomainResource domain = reloadResourceByForeignKey();
+    DateTime oldExpirationTime = clock.nowUtc().minusDays(1);
+    persistResource(domain.asBuilder()
+        .setRegistrationExpirationTime(oldExpirationTime)
+        .build());
+    clock.advanceOneMilli();
+    thrown.expect(SuperuserExtensionAndAutorenewGracePeriodException.class);
+    runTest(
+        "domain_transfer_request_superuser_extension.xml",
+        UserPrivileges.SUPERUSER,
+        ImmutableMap.of("PERIOD", "1", "AUTOMATIC_TRANSFER_LENGTH", "5"));
+  }
+
+  @Test
+  public void testFailure_superuserExtension_twoYearPeriod() throws Exception {
+    setupDomain("example", "tld");
+    eppRequestSource = EppRequestSource.TOOL;
+    clock.advanceOneMilli();
+    thrown.expect(InvalidTransferPeriodValueException.class);
+    runTest(
+        "domain_transfer_request_superuser_extension.xml",
+        UserPrivileges.SUPERUSER,
+        ImmutableMap.of("PERIOD", "2", "AUTOMATIC_TRANSFER_LENGTH", "5"));
+  }
+
+  @Test
+  public void testFailure_superuserExtension_zeroPeriod_feeTransferExtension() throws Exception {
+    setupDomain("example", "tld");
+    eppRequestSource = EppRequestSource.TOOL;
+    clock.advanceOneMilli();
+    thrown.expect(TransferPeriodZeroAndFeeTransferExtensionException.class);
+    runTest(
+        "domain_transfer_request_fee_and_superuser_extension.xml",
+        UserPrivileges.SUPERUSER,
+        ImmutableMap.of("PERIOD", "0", "AUTOMATIC_TRANSFER_LENGTH", "5"));
   }
 
   @Test

@@ -29,8 +29,11 @@ import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.SyntaxErrorException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.FlowModule.ClientId;
+import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.exceptions.OnlyToolCanPassMetadataException;
+import google.registry.flows.exceptions.UnauthorizedForSuperuserExtensionException;
 import google.registry.model.domain.metadata.MetadataExtension;
+import google.registry.model.domain.superuser.SuperuserExtension;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.EppInput.CommandExtension;
 import google.registry.util.FormattingLogger;
@@ -56,6 +59,7 @@ public final class ExtensionManager {
   @Inject EppInput eppInput;
   @Inject SessionMetadata sessionMetadata;
   @Inject @ClientId String clientId;
+  @Inject @Superuser boolean isSuperuser;
   @Inject Class<? extends Flow> flowClass;
   @Inject EppRequestSource eppRequestSource;
   @Inject ExtensionManager() {}
@@ -107,10 +111,17 @@ public final class ExtensionManager {
 
   private void checkForRestrictedExtensions(
       ImmutableSet<Class<? extends CommandExtension>> suppliedExtensions)
-          throws OnlyToolCanPassMetadataException {
+      throws OnlyToolCanPassMetadataException, UnauthorizedForSuperuserExtensionException {
     if (suppliedExtensions.contains(MetadataExtension.class)
         && !eppRequestSource.equals(EppRequestSource.TOOL)) {
       throw new OnlyToolCanPassMetadataException();
+    }
+    // Can't use suppliedExtension.contains() here because the SuperuserExtension has child classes.
+    for (Class<? extends CommandExtension> suppliedExtension : suppliedExtensions) {
+      if (SuperuserExtension.class.isAssignableFrom(suppliedExtension)
+          && (!eppRequestSource.equals(EppRequestSource.TOOL) || !isSuperuser)) {
+        throw new UnauthorizedForSuperuserExtensionException();
+      }
     }
   }
 
