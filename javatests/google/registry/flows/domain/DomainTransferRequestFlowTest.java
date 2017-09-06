@@ -320,7 +320,9 @@ public class DomainTransferRequestFlowTest
     // gaining and losing registrars should have a new poll message.
     DomainResource domainAfterAutomaticTransfer = domain.cloneProjectedAtTime(implicitTransferTime);
     // There should be no grace period.
-    assertGracePeriods(domainAfterAutomaticTransfer.getGracePeriods(), ImmutableMap.of());
+    assertGracePeriods(
+        domainAfterAutomaticTransfer.getGracePeriods(),
+        ImmutableMap.<GracePeriod, BillingEvent>of());
   }
 
   private void assertPollMessagesEmitted(

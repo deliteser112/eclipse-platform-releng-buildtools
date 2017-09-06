@@ -300,9 +300,7 @@ public class DomainTransferApproveFlowTest
                     .build())
             .toArray(BillingEvent.class));
     // There should be no grace period.
-    assertGracePeriods(
-        domain.getGracePeriods(),
-        ImmutableMap.of());
+    assertGracePeriods(domain.getGracePeriods(), ImmutableMap.<GracePeriod, BillingEvent>of());
   }
 
   private void doSuccessfulTest(String tld, String commandFilename, String expectedXmlFilename)
