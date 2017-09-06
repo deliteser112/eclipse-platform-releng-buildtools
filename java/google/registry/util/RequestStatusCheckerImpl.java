@@ -20,6 +20,7 @@ import com.google.appengine.api.log.LogServiceFactory;
 import com.google.appengine.api.log.RequestLogs;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.Environment;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import java.util.Collections;
 import javax.inject.Inject;
@@ -29,14 +30,16 @@ public class RequestStatusCheckerImpl implements RequestStatusChecker {
 
   private static final long serialVersionUID = -8161977032130865437L;
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  @VisibleForTesting
+  static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+
+  @VisibleForTesting
+  static LogService logService = LogServiceFactory.getLogService();
 
   /**
    * The key to {@link Environment#getAttributes}'s request_log_id value.
    */
   private static final String REQUEST_LOG_ID_KEY = "com.google.appengine.runtime.request_log_id";
-
-  private static final LogService LOG_SERVICE = LogServiceFactory.getLogService();
 
   @Inject public RequestStatusCheckerImpl() {}
 
@@ -53,6 +56,12 @@ public class RequestStatusCheckerImpl implements RequestStatusChecker {
     String requestLogId =
         ApiProxy.getCurrentEnvironment().getAttributes().get(REQUEST_LOG_ID_KEY).toString();
     logger.infofmt("Current requestLogId: %s", requestLogId);
+    // We want to make sure there actually is a log to query for this request, even if the request
+    // dies right after this call.
+    //
+    // flushLogs() is synchronous, so once the function returns, no matter what happens next, the
+    // returned requestLogId will point to existing logs.
+    ApiProxy.flushLogs();
     return requestLogId;
   }
 
@@ -65,16 +74,19 @@ public class RequestStatusCheckerImpl implements RequestStatusChecker {
   public boolean isRunning(String requestLogId) {
     RequestLogs requestLogs =
         Iterables.getOnlyElement(
-            LOG_SERVICE.fetch(
-                LogQuery.Builder.withRequestIds(
-                    Collections.singletonList(requestLogId))),
+            logService.fetch(
+                LogQuery.Builder
+                    .withRequestIds(Collections.singletonList(requestLogId))
+                    .includeAppLogs(false)
+                    .includeIncomplete(true)),
             null);
-    // requestLogs will be null if that requestLogId isn't found at all, which also implies it's not
-    // running.
+    // requestLogs will be null if that requestLogId isn't found at all, which can happen if the
+    // request is too new (it can take several seconds until the logs are available for "fetch").
+    // So we have to assume it's "running" in that case.
     if (requestLogs == null) {
       logger.infofmt(
-          "Queried an unrecognized requestLogId %s - assume it isn't running", requestLogId);
-      return false;
+          "Queried an unrecognized requestLogId %s - assume it's running", requestLogId);
+      return true;
     }
     logger.infofmt(
         "Found logs for requestLogId %s - isFinished: %s", requestLogId, requestLogs.isFinished());
