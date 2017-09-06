@@ -26,14 +26,13 @@ import static org.mockito.Mockito.verify;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registry;
-import google.registry.model.server.Lock;
 import google.registry.rde.EscrowTaskRunner.EscrowTask;
 import google.registry.request.HttpException.NoContentException;
 import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
-import java.util.concurrent.Callable;
+import google.registry.testing.FakeLockHandler;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Before;
@@ -68,6 +67,7 @@ public class EscrowTaskRunnerTest {
     runner = new EscrowTaskRunner();
     runner.clock = clock;
     runner.tld = "lol";
+    runner.lockHandler = new FakeLockHandler(true);
     DateTimeZone.setDefault(DateTimeZone.forID("America/New_York"));  // Make sure UTC stuff works.
   }
 
@@ -112,16 +112,8 @@ public class EscrowTaskRunnerTest {
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, DateTime.parse("2006-06-06TZ"), registry));
     thrown.expect(ServiceUnavailableException.class, "Lock in use: " + lockName);
-    Lock.executeWithLocks(
-        new Callable<Void>() {
-          @Override
-          public Void call() throws Exception {
-            runner.lockRunAndRollForward(
-                task, registry, standardSeconds(30), CursorType.RDE_STAGING, standardDays(1));
-            return null;
-          }},
-        "lol",
-        standardSeconds(30),
-        lockName);
+    runner.lockHandler = new FakeLockHandler(false);
+    runner.lockRunAndRollForward(
+        task, registry, standardSeconds(30), CursorType.RDE_STAGING, standardDays(1));
   }
 }

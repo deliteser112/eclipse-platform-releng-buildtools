@@ -32,6 +32,7 @@ java_library(
         "//java/google/registry/monitoring/whitebox",
         "//java/google/registry/pricing",
         "//java/google/registry/request",
+        "//java/google/registry/request/lock",
         "//java/google/registry/tmch",
         "//java/google/registry/util",
         "//java/google/registry/xml",

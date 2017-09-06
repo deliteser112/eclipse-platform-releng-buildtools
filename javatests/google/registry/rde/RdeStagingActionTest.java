@@ -59,6 +59,7 @@ import google.registry.request.RequestParameters;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeKeyringModule;
+import google.registry.testing.FakeLockHandler;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
@@ -137,6 +138,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.lenient = false;
     action.reducer = new RdeStagingReducer(
         new TaskEnqueuer(new Retrier(new SystemSleeper(), 1)), // taskEnqueuer
+        new FakeLockHandler(true),
         0, // gcsBufferSize
         "rde-bucket", // bucket
         31337, // ghostrydeBufferSize

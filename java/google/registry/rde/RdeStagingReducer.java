@@ -40,9 +40,9 @@ import google.registry.model.rde.RdeMode;
 import google.registry.model.rde.RdeNamingUtils;
 import google.registry.model.rde.RdeRevision;
 import google.registry.model.registry.Registry;
-import google.registry.model.server.Lock;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
+import google.registry.request.lock.LockHandler;
 import google.registry.tldconfig.idn.IdnTableEnum;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TaskEnqueuer;
@@ -66,11 +66,12 @@ import org.joda.time.Duration;
 /** Reducer for {@link RdeStagingAction}. */
 public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFragment, Void> {
 
-  private static final long serialVersionUID = -3366189042770402345L;
+  private static final long serialVersionUID = 60326234579091203L;
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   private final TaskEnqueuer taskEnqueuer;
+  private final LockHandler lockHandler;
   private final int gcsBufferSize;
   private final String bucket;
   private final int ghostrydeBufferSize;
@@ -81,6 +82,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
   @Inject
   RdeStagingReducer(
       TaskEnqueuer taskEnqueuer,
+      LockHandler lockHandler,
       @Config("gcsBufferSize") int gcsBufferSize,
       @Config("rdeBucket") String bucket,
       @Config("rdeGhostrydeBufferSize") int ghostrydeBufferSize,
@@ -88,6 +90,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
       @KeyModule.Key("rdeStagingEncryptionKey") byte[] stagingKeyBytes,
       @Parameter(RdeModule.PARAM_LENIENT) boolean lenient) {
     this.taskEnqueuer = taskEnqueuer;
+    this.lockHandler = lockHandler;
     this.gcsBufferSize = gcsBufferSize;
     this.bucket = bucket;
     this.ghostrydeBufferSize = ghostrydeBufferSize;
@@ -105,7 +108,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
         return null;
       }};
     String lockName = String.format("RdeStaging %s", key.tld());
-    if (!Lock.executeWithLocks(lockRunner, null, lockTimeout, lockName)) {
+    if (!lockHandler.executeWithLocks(lockRunner, null, lockTimeout, lockName)) {
       logger.warningfmt("Lock in use: %s", lockName);
     }
   }

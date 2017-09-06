@@ -14,7 +14,6 @@
 
 package google.registry.dns;
 
-import static google.registry.model.server.Lock.executeWithLocks;
 import static google.registry.request.Action.Method.POST;
 import static google.registry.request.RequestParameters.PARAM_TLD;
 import static google.registry.util.CollectionUtils.nullToEmpty;
@@ -28,6 +27,7 @@ import google.registry.request.Action;
 import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
+import google.registry.request.lock.LockHandler;
 import google.registry.util.DomainNameUtils;
 import google.registry.util.FormattingLogger;
 import java.util.Set;
@@ -69,6 +69,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
   @Inject @Parameter(PARAM_DOMAINS) Set<String> domains;
   @Inject @Parameter(PARAM_HOSTS) Set<String> hosts;
   @Inject @Parameter(PARAM_TLD) String tld;
+  @Inject LockHandler lockHandler;
   @Inject PublishDnsUpdatesAction() {}
 
   /** Runs the task. */
@@ -79,7 +80,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
     // false. We need to make sure to take note of this error; otherwise, a failed lock might result
     // in the update task being dequeued and dropped. A message will already have been logged
     // to indicate the problem.
-    if (!executeWithLocks(this, tld, timeout, lockName)) {
+    if (!lockHandler.executeWithLocks(this, tld, timeout, lockName)) {
       throw new ServiceUnavailableException("Lock failure");
     }
   }

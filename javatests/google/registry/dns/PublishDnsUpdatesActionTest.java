@@ -30,8 +30,11 @@ import google.registry.dns.writer.DnsWriter;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
+import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
+import google.registry.testing.FakeLockHandler;
 import google.registry.testing.InjectRule;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -54,7 +57,11 @@ public class PublishDnsUpdatesActionTest {
   @Rule
   public final InjectRule inject = new InjectRule();
 
+  @Rule
+  public final ExceptionRule thrown = new ExceptionRule();
+
   private final FakeClock clock = new FakeClock(DateTime.parse("1971-01-01TZ"));
+  private final FakeLockHandler lockHandler = new FakeLockHandler(true);
   private final DnsWriter dnsWriter = mock(DnsWriter.class);
   private final DnsMetrics dnsMetrics = mock(DnsMetrics.class);
   private PublishDnsUpdatesAction action;
@@ -82,6 +89,7 @@ public class PublishDnsUpdatesActionTest {
     action.dnsWriter = "mock";
     action.dnsWriterProxy = new DnsWriterProxy(ImmutableMap.of("mock", dnsWriter));
     action.dnsMetrics = dnsMetrics;
+    action.lockHandler = lockHandler;
     return action;
   }
 
@@ -147,5 +155,15 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsMetrics, times(2)).incrementPublishDomainRequests("xn--q9jyb4c", Status.REJECTED);
     verify(dnsMetrics, times(3)).incrementPublishHostRequests("xn--q9jyb4c", Status.REJECTED);
     verifyNoMoreInteractions(dnsMetrics);
+  }
+
+  @Test
+  public void testLockIsntAvailable() throws Exception {
+    thrown.expect(ServiceUnavailableException.class, "Lock failure");
+    action = createAction("xn--q9jyb4c");
+    action.domains = ImmutableSet.of("example.com", "example2.com");
+    action.hosts = ImmutableSet.of("ns1.example.com", "ns2.example.com", "ns1.example2.com");
+    action.lockHandler = new FakeLockHandler(false);
+    action.run();
   }
 }

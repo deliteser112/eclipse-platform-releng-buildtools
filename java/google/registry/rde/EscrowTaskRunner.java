@@ -20,11 +20,11 @@ import com.googlecode.objectify.VoidWork;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registry;
-import google.registry.model.server.Lock;
 import google.registry.request.HttpException.NoContentException;
 import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
+import google.registry.request.lock.LockHandler;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import java.util.concurrent.Callable;
@@ -38,7 +38,7 @@ import org.joda.time.Duration;
  * <p>This class implements the <i>Locking Rolling Cursor</i> pattern, which solves the problem of
  * how to reliably execute App Engine tasks which can't be made idempotent.
  *
- * <p>{@link Lock} is used to ensure only one task executes at a time for a given
+ * <p>{@link LockHandler} is used to ensure only one task executes at a time for a given
  * {@code LockedCursorTask} subclass + TLD combination. This is necessary because App Engine tasks
  * might double-execute. Normally tasks solve this by being idempotent, but that's not possible for
  * RDE, which writes to a GCS filename with a deterministic name. So Datastore is used to to
@@ -71,6 +71,7 @@ class EscrowTaskRunner {
 
   @Inject Clock clock;
   @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
+  @Inject LockHandler lockHandler;
   @Inject EscrowTaskRunner() {}
 
   /**
@@ -109,7 +110,7 @@ class EscrowTaskRunner {
         return null;
       }};
     String lockName = String.format("%s %s", task.getClass().getSimpleName(), registry.getTld());
-    if (!Lock.executeWithLocks(lockRunner, tld, timeout, lockName)) {
+    if (!lockHandler.executeWithLocks(lockRunner, tld, timeout, lockName)) {
       // This will happen if either: a) the task is double-executed; b) the task takes a long time
       // to run and the retry task got executed while the first one is still running. In both
       // situations the safest thing to do is to just return 503 so the task gets retried later.

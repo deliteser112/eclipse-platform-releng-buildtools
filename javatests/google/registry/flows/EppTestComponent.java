@@ -30,7 +30,9 @@ import google.registry.flows.domain.DomainFlowTmchUtils;
 import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.request.RequestScope;
+import google.registry.request.lock.LockHandler;
 import google.registry.testing.FakeClock;
+import google.registry.testing.FakeLockHandler;
 import google.registry.testing.FakeSleeper;
 import google.registry.tmch.TmchCertificateAuthority;
 import google.registry.tmch.TmchXmlSignature;
@@ -58,6 +60,7 @@ interface EppTestComponent {
     private DomainFlowTmchUtils domainFlowTmchUtils;
     private EppMetric.Builder metricBuilder;
     private FakeClock clock;
+    private FakeLockHandler lockHandler;
     private ModulesService modulesService;
     private Sleeper sleeper;
 
@@ -85,6 +88,7 @@ interface EppTestComponent {
       instance.metricBuilder = eppMetricBuilder;
       instance.modulesService = mock(ModulesService.class);
       instance.metricsEnqueuer = mock(BigQueryMetricsEnqueuer.class);
+      instance.lockHandler = new FakeLockHandler(true);
       return instance;
     }
 
@@ -96,6 +100,11 @@ interface EppTestComponent {
     @Provides
     Clock provideClock() {
       return clock;
+    }
+
+    @Provides
+    LockHandler provideLockHandler() {
+      return lockHandler;
     }
 
     @Provides

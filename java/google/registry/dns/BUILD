@@ -26,6 +26,7 @@ java_library(
         "//java/google/registry/monitoring/metrics",
         "//java/google/registry/request",
         "//java/google/registry/request/auth",
+        "//java/google/registry/request/lock",
         "//java/google/registry/util",
         "//third_party/java/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk",
