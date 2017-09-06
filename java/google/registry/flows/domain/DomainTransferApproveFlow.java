@@ -176,7 +176,7 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
                 (billingEvent.isPresent())
                     ? ImmutableSet.of(
                         GracePeriod.forBillingEvent(GracePeriodStatus.TRANSFER, billingEvent.get()))
-                    : ImmutableSet.of())
+                    : ImmutableSet.<GracePeriod>of())
             .build();
     // Create a poll message for the gaining client.
     PollMessage gainingClientPollMessage = createGainingTransferPollMessage(
