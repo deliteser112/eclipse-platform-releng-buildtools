@@ -15,13 +15,21 @@
 package google.registry.batch;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assert_;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
+import static google.registry.testing.DatastoreHelper.persistDomainAsDeleted;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
+import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
+import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -75,6 +83,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
     action.mrRunner = makeDefaultRunner();
     action.response = new FakeResponse();
     action.isDryRun = false;
+    action.registryAdminClientId = "TheRegistrar";
   }
 
   private void runMapreduce() throws Exception {
@@ -107,12 +116,88 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
   }
 
   @Test
-  public void testSuccess_dryRunDoesntDeleteData() throws Exception {
+  public void testDryRun_doesntDeleteData() throws Exception {
     Set<ImmutableObject> tldEntities = persistLotsOfDomains("tld");
     Set<ImmutableObject> oaEntities = persistLotsOfDomains("oa-canary.test");
     action.isDryRun = true;
+    runMapreduce();
     assertNotDeleted(tldEntities);
     assertNotDeleted(oaEntities);
+  }
+
+  @Test
+  public void testSuccess_activeDomain_isSoftDeleted() throws Exception {
+    DomainResource domain = persistResource(
+        newDomainResource("blah.ib-any.test")
+            .asBuilder()
+            .setCreationTimeForTest(DateTime.now(UTC).minusYears(1))
+            .build());
+    runMapreduce();
+    DateTime timeAfterDeletion = DateTime.now(UTC);
+    assertThat(loadByForeignKey(DomainResource.class, "blah.ib-any.test", timeAfterDeletion))
+        .isNull();
+    assertThat(ofy().load().entity(domain).now().getDeletionTime()).isLessThan(timeAfterDeletion);
+    assertDnsTasksEnqueued("blah.ib-any.test");
+  }
+
+  @Test
+  public void test_recentlyCreatedDomain_isntDeletedYet() throws Exception {
+    persistResource(
+        newDomainResource("blah.ib-any.test")
+            .asBuilder()
+            .setCreationTimeForTest(DateTime.now(UTC).minusSeconds(1))
+            .build());
+    runMapreduce();
+    DomainResource domain =
+        loadByForeignKey(DomainResource.class, "blah.ib-any.test", DateTime.now(UTC));
+    assertThat(domain).isNotNull();
+    assertThat(domain.getDeletionTime()).isEqualTo(END_OF_TIME);
+  }
+
+  @Test
+  public void testDryRun_doesntSoftDeleteData() throws Exception {
+    DomainResource domain = persistResource(
+        newDomainResource("blah.ib-any.test")
+            .asBuilder()
+            .setCreationTimeForTest(DateTime.now(UTC).minusYears(1))
+            .build());
+    action.isDryRun = true;
+    runMapreduce();
+    assertThat(ofy().load().entity(domain).now().getDeletionTime()).isEqualTo(END_OF_TIME);
+  }
+
+  @Test
+  public void test_domainWithSubordinateHosts_isSkipped() throws Exception {
+    persistActiveHost("ns1.blah.ib-any.test");
+    DomainResource nakedDomain =
+        persistDeletedDomain("todelete.ib-any.test", DateTime.now(UTC).minusYears(1));
+    DomainResource domainWithSubord =
+        persistDomainAsDeleted(
+            newDomainResource("blah.ib-any.test")
+                .asBuilder()
+                .setSubordinateHosts(ImmutableSet.of("ns1.blah.ib-any.test"))
+                .build(),
+            DateTime.now(UTC).minusYears(1));
+    runMapreduce();
+    assertThat(ofy().load().entity(domainWithSubord).now()).isNotNull();
+    assertThat(ofy().load().entity(nakedDomain).now()).isNull();
+  }
+
+  @Test
+  public void testFailure_registryAdminClientId_isRequiredForSoftDeletion() throws Exception {
+    persistResource(
+        newDomainResource("blah.ib-any.test")
+            .asBuilder()
+            .setCreationTimeForTest(DateTime.now(UTC).minusYears(1))
+            .build());
+    action.registryAdminClientId = null;
+    try {
+      runMapreduce();
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessageThat().contains("Registry admin client ID must be configured");
+      return;
+    }
+    assert_().fail("Expected IllegalStateException");
   }
 
   /**
