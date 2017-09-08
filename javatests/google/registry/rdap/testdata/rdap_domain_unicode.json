@@ -109,16 +109,16 @@
         "active",
         "associated"
       ],
-      "handle": "4-ROID",
+      "handle": "%CONTACT1ROID%",
       "roles": [
         "administrative"
       ],
       "links": [
         {
-          "href": "https://example.com/rdap/entity/4-ROID",
+          "href": "https://example.com/rdap/entity/%CONTACT1ROID%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/entity/4-ROID"
+          "value": "https://example.com/rdap/entity/%CONTACT1ROID%"
         }
       ],
       "events": [
@@ -202,16 +202,16 @@
         "active",
         "associated"
       ],
-      "handle": "6-ROID",
+      "handle": "%CONTACT2ROID%",
       "roles": [
         "technical"
       ],
       "links": [
         {
-          "href": "https://example.com/rdap/entity/6-ROID",
+          "href": "https://example.com/rdap/entity/%CONTACT2ROID%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/entity/6-ROID"
+          "value": "https://example.com/rdap/entity/%CONTACT2ROID%"
         }
       ],
       "events": [
@@ -295,16 +295,16 @@
         "active",
         "associated"
       ],
-      "handle": "2-ROID",
+      "handle": "%CONTACT3ROID%",
       "roles": [
         "registrant"
       ],
       "links": [
         {
-          "href": "https://example.com/rdap/entity/2-ROID",
+          "href": "https://example.com/rdap/entity/%CONTACT3ROID%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/entity/2-ROID"
+          "value": "https://example.com/rdap/entity/%CONTACT3ROID%"
         }
       ],
       "events": [

@@ -104,4 +104,24 @@ public class RdapIcannStandardInformation {
   /** Truncation notice as a singleton list, for easy use. */
   static final ImmutableList<ImmutableMap<String, Object>> TRUNCATION_NOTICES =
       ImmutableList.of(TRUNCATED_RESULT_SET_NOTICE);
+
+  /** Included when the requester is not logged in as the owner of the domain being returned. */
+  static final ImmutableMap<String, Object> DOMAIN_CONTACTS_HIDDEN_DATA_REMARK =
+      ImmutableMap.<String, Object> of(
+          "title",
+          "Contacts Hidden",
+          "description",
+          ImmutableList.of("Domain contacts are visible only to the owning registrar."),
+          "type",
+          "object truncated due to unexplainable reasons");
+
+  /** Included when requester is not logged in as the owner of the contact being returned. */
+  static final ImmutableMap<String, Object> CONTACT_PERSONAL_DATA_HIDDEN_DATA_REMARK =
+      ImmutableMap.<String, Object> of(
+          "title",
+          "Contact Personal Data Hidden",
+          "description",
+          ImmutableList.of("Contact personal data is visible only to the owning registrar."),
+          "type",
+          "object truncated due to unexplainable reasons");
 }

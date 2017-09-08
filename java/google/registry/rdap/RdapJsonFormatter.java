@@ -444,6 +444,8 @@ public class RdapJsonFormatter {
    *        port43 field; if null, port43 is not added to the object
    * @param now the as-date
    * @param outputDataType whether to generate full or summary data
+   * @param loggedInClientId the logged-in client ID (or null if not logged in); if the requester is
+   *        not logged in as the registrar owning the domain, no contact information is included
    */
   ImmutableMap<String, Object> makeRdapJsonForDomain(
       DomainResource domainResource,
@@ -451,7 +453,8 @@ public class RdapJsonFormatter {
       @Nullable String linkBase,
       @Nullable String whoisServer,
       DateTime now,
-      OutputDataType outputDataType) {
+      OutputDataType outputDataType,
+      Optional<String> loggedInClientId) {
     // Start with the domain-level information.
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     jsonBuilder.put("objectClassName", "domain");
@@ -464,6 +467,8 @@ public class RdapJsonFormatter {
     jsonBuilder.put("status", makeStatusValueList(domainResource.getStatusValues()));
     jsonBuilder.put("links", ImmutableList.of(
         makeLink("domain", domainResource.getFullyQualifiedDomainName(), linkBase)));
+    boolean displayContacts = loggedInClientId.isPresent()
+        && loggedInClientId.get().equals(domainResource.getCurrentSponsorClientId());
     // If we are outputting all data (not just summary data), also add information about hosts,
     // contacts and events (history entries). If we are outputting summary data, instead add a
     // remark indicating that fact.
@@ -471,18 +476,43 @@ public class RdapJsonFormatter {
     if (outputDataType == OutputDataType.SUMMARY) {
       remarks = ImmutableList.of(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
     } else {
-      remarks = ImmutableList.of();
+      remarks = displayContacts
+        ? ImmutableList.<ImmutableMap<String, Object>>of()
+        : ImmutableList.of(RdapIcannStandardInformation.DOMAIN_CONTACTS_HIDDEN_DATA_REMARK);
       ImmutableList<Object> events = makeEvents(domainResource, now);
       if (!events.isEmpty()) {
         jsonBuilder.put("events", events);
       }
-      // Kick off the database loads of the nameservers that we will need.
+      // Kick off the database loads of the nameservers that we will need, so it can load
+      // asynchronously while we load and process the contacts.
       Map<Key<HostResource>, HostResource> loadedHosts =
           ofy().load().keys(domainResource.getNameservers());
-      // And the registrant and other contacts.
-      Map<Key<ContactResource>, ContactResource> loadedContacts =
-          ofy().load().keys(domainResource.getReferencedContacts());
-      // Nameservers
+      // Load the registrant and other contacts and add them to the data.
+      if (displayContacts) {
+        Map<Key<ContactResource>, ContactResource> loadedContacts =
+            ofy().load().keys(domainResource.getReferencedContacts());
+        ImmutableList.Builder<Object> entitiesBuilder = new ImmutableList.Builder<>();
+        for (DesignatedContact designatedContact :
+            FluentIterable.from(domainResource.getContacts())
+                .append(DesignatedContact.create(Type.REGISTRANT, domainResource.getRegistrant()))
+                .toSortedList(DESIGNATED_CONTACT_ORDERING)) {
+          ContactResource loadedContact = loadedContacts.get(designatedContact.getContactKey());
+          entitiesBuilder.add(makeRdapJsonForContact(
+              loadedContact,
+              false,
+              Optional.of(designatedContact.getType()),
+              linkBase,
+              null,
+              now,
+              outputDataType,
+              loggedInClientId));
+        }
+        ImmutableList<Object> entities = entitiesBuilder.build();
+        if (!entities.isEmpty()) {
+          jsonBuilder.put("entities", entities);
+        }
+      }
+      // Add the nameservers to the data; the load was kicked off above for efficiency.
       ImmutableList.Builder<Object> nsBuilder = new ImmutableList.Builder<>();
       for (HostResource hostResource
           : HOST_RESOURCE_ORDERING.immutableSortedCopy(loadedHosts.values())) {
@@ -492,25 +522,6 @@ public class RdapJsonFormatter {
       ImmutableList<Object> ns = nsBuilder.build();
       if (!ns.isEmpty()) {
         jsonBuilder.put("nameservers", ns);
-      }
-      // Contacts
-      ImmutableList.Builder<Object> entitiesBuilder = new ImmutableList.Builder<>();
-      for (DesignatedContact designatedContact : FluentIterable.from(domainResource.getContacts())
-          .append(DesignatedContact.create(Type.REGISTRANT, domainResource.getRegistrant()))
-          .toSortedList(DESIGNATED_CONTACT_ORDERING)) {
-        ContactResource loadedContact = loadedContacts.get(designatedContact.getContactKey());
-        entitiesBuilder.add(makeRdapJsonForContact(
-            loadedContact,
-            false,
-            Optional.of(designatedContact.getType()),
-            linkBase,
-            null,
-            now,
-            outputDataType));
-      }
-      ImmutableList<Object> entities = entitiesBuilder.build();
-      if (!entities.isEmpty()) {
-        jsonBuilder.put("entities", entities);
       }
     }
     if (whoisServer != null) {
@@ -633,6 +644,8 @@ public class RdapJsonFormatter {
    *        port43 field; if null, port43 is not added to the object
    * @param now the as-date
    * @param outputDataType whether to generate full or summary data
+   * @param loggedInClientId the logged-in client ID (or null if not logged in); personal contact
+   *        data is only shown if the contact is owned by the logged-in client
    */
   ImmutableMap<String, Object> makeRdapJsonForContact(
       ContactResource contactResource,
@@ -641,8 +654,11 @@ public class RdapJsonFormatter {
       @Nullable String linkBase,
       @Nullable String whoisServer,
       DateTime now,
-      OutputDataType outputDataType) {
+      OutputDataType outputDataType,
+      Optional<String> loggedInClientId) {
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
+    ImmutableList.Builder<ImmutableMap<String, Object>> remarksBuilder
+        = new ImmutableList.Builder<>();
     jsonBuilder.put("objectClassName", "entity");
     jsonBuilder.put("handle", contactResource.getRepoId());
     jsonBuilder.put("status", makeStatusValueList(
@@ -655,45 +671,48 @@ public class RdapJsonFormatter {
     }
     jsonBuilder.put("links",
         ImmutableList.of(makeLink("entity", contactResource.getRepoId(), linkBase)));
-    // Create the vCard.
-    ImmutableList.Builder<Object> vcardBuilder = new ImmutableList.Builder<>();
-    vcardBuilder.add(VCARD_ENTRY_VERSION);
-    PostalInfo postalInfo = contactResource.getInternationalizedPostalInfo();
-    if (postalInfo == null) {
-      postalInfo = contactResource.getLocalizedPostalInfo();
-    }
-    if (postalInfo != null) {
-      if (postalInfo.getName() != null) {
-        vcardBuilder.add(ImmutableList.of("fn", ImmutableMap.of(), "text", postalInfo.getName()));
+    // If we are logged in as the owner of this contact, create the vCard.
+    if (loggedInClientId.isPresent()
+        && loggedInClientId.get().equals(contactResource.getCurrentSponsorClientId())) {
+      ImmutableList.Builder<Object> vcardBuilder = new ImmutableList.Builder<>();
+      vcardBuilder.add(VCARD_ENTRY_VERSION);
+      PostalInfo postalInfo = contactResource.getInternationalizedPostalInfo();
+      if (postalInfo == null) {
+        postalInfo = contactResource.getLocalizedPostalInfo();
       }
-      if (postalInfo.getOrg() != null) {
-        vcardBuilder.add(ImmutableList.of("org", ImmutableMap.of(), "text", postalInfo.getOrg()));
+      if (postalInfo != null) {
+        if (postalInfo.getName() != null) {
+          vcardBuilder.add(ImmutableList.of("fn", ImmutableMap.of(), "text", postalInfo.getName()));
+        }
+        if (postalInfo.getOrg() != null) {
+          vcardBuilder.add(ImmutableList.of("org", ImmutableMap.of(), "text", postalInfo.getOrg()));
+        }
+        ImmutableList<Object> addressEntry = makeVCardAddressEntry(postalInfo.getAddress());
+        if (addressEntry != null) {
+          vcardBuilder.add(addressEntry);
+        }
       }
-      ImmutableList<Object> addressEntry = makeVCardAddressEntry(postalInfo.getAddress());
-      if (addressEntry != null) {
-        vcardBuilder.add(addressEntry);
+      ContactPhoneNumber voicePhoneNumber = contactResource.getVoiceNumber();
+      if (voicePhoneNumber != null) {
+        vcardBuilder.add(makePhoneEntry(PHONE_TYPE_VOICE, makePhoneString(voicePhoneNumber)));
       }
+      ContactPhoneNumber faxPhoneNumber = contactResource.getFaxNumber();
+      if (faxPhoneNumber != null) {
+        vcardBuilder.add(makePhoneEntry(PHONE_TYPE_FAX, makePhoneString(faxPhoneNumber)));
+      }
+      String emailAddress = contactResource.getEmailAddress();
+      if (emailAddress != null) {
+        vcardBuilder.add(ImmutableList.of("email", ImmutableMap.of(), "text", emailAddress));
+      }
+      jsonBuilder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
+    } else {
+      remarksBuilder.add(RdapIcannStandardInformation.CONTACT_PERSONAL_DATA_HIDDEN_DATA_REMARK);
     }
-    ContactPhoneNumber voicePhoneNumber = contactResource.getVoiceNumber();
-    if (voicePhoneNumber != null) {
-      vcardBuilder.add(makePhoneEntry(PHONE_TYPE_VOICE, makePhoneString(voicePhoneNumber)));
-    }
-    ContactPhoneNumber faxPhoneNumber = contactResource.getFaxNumber();
-    if (faxPhoneNumber != null) {
-      vcardBuilder.add(makePhoneEntry(PHONE_TYPE_FAX, makePhoneString(faxPhoneNumber)));
-    }
-    String emailAddress = contactResource.getEmailAddress();
-    if (emailAddress != null) {
-      vcardBuilder.add(ImmutableList.of("email", ImmutableMap.of(), "text", emailAddress));
-    }
-    jsonBuilder.put("vcardArray", ImmutableList.of("vcard", vcardBuilder.build()));
     // If we are outputting all data (not just summary data), also add events taken from the history
     // entries. If we are outputting summary data, instead add a remark indicating that fact.
-    List<ImmutableMap<String, Object>> remarks;
     if (outputDataType == OutputDataType.SUMMARY) {
-      remarks = ImmutableList.of(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
+      remarksBuilder.add(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
     } else {
-      remarks = ImmutableList.of();
       ImmutableList<Object> events = makeEvents(contactResource, now);
       if (!events.isEmpty()) {
         jsonBuilder.put("events", events);
@@ -706,11 +725,14 @@ public class RdapJsonFormatter {
       addTopLevelEntries(
           jsonBuilder,
           BoilerplateType.ENTITY,
-          remarks,
+          remarksBuilder.build(),
           ImmutableList.<ImmutableMap<String, Object>>of(),
           linkBase);
-    } else if (!remarks.isEmpty()) {
-      jsonBuilder.put(REMARKS, remarks);
+    } else {
+      ImmutableList<ImmutableMap<String, Object>> remarks = remarksBuilder.build();
+      if (!remarks.isEmpty()) {
+        jsonBuilder.put(REMARKS, remarks);
+      }
     }
     return jsonBuilder.build();
   }

@@ -25,7 +25,10 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntr
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.contact.ContactResource;
@@ -36,11 +39,18 @@ import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.request.auth.AuthLevel;
+import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
+import google.registry.ui.server.registrar.SessionUtils;
+import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;
@@ -62,8 +72,11 @@ public class RdapDomainActionTest {
   @Rule
   public final InjectRule inject = new InjectRule();
 
+  private final HttpServletRequest request = mock(HttpServletRequest.class);
   private final FakeResponse response = new FakeResponse();
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
+  private final SessionUtils sessionUtils = mock(SessionUtils.class);
+  private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
 
   private RdapDomainAction action;
 
@@ -75,57 +88,111 @@ public class RdapDomainActionTest {
     Registrar registrarLol = persistResource(makeRegistrar(
         "evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
     persistSimpleResources(makeRegistrarContacts(registrarLol));
-    ContactResource registrant = makeAndPersistContactResource(
-        "5372808-ERL", "Goblin Market", "lol@cat.lol", clock.nowUtc().minusYears(1));
-    ContactResource adminContact = makeAndPersistContactResource(
-        "5372808-IRL", "Santa Claus", "BOFH@cat.lol", clock.nowUtc().minusYears(2));
-    ContactResource techContact = makeAndPersistContactResource(
-        "5372808-TRL", "The Raven", "bog@cat.lol", clock.nowUtc().minusYears(3));
+    ContactResource registrantLol =
+        makeAndPersistContactResource(
+            "5372808-ERL",
+            "Goblin Market",
+            "lol@cat.lol",
+            clock.nowUtc().minusYears(1),
+            registrarLol);
+    ContactResource adminContactLol =
+        makeAndPersistContactResource(
+            "5372808-IRL",
+            "Santa Claus",
+            "BOFH@cat.lol",
+            clock.nowUtc().minusYears(2),
+            registrarLol);
+    ContactResource techContactLol =
+        makeAndPersistContactResource(
+            "5372808-TRL",
+            "The Raven",
+            "bog@cat.lol",
+            clock.nowUtc().minusYears(3),
+            registrarLol);
     HostResource host1 = makeAndPersistHostResource(
-        "ns1.cat.lol", "1.2.3.4", clock.nowUtc().minusYears(1));
+        "ns1.cat.lol", "1.2.3.4", null, clock.nowUtc().minusYears(1));
     HostResource host2 = makeAndPersistHostResource(
         "ns2.cat.lol", "bad:f00d:cafe:0:0:0:15:beef", clock.nowUtc().minusYears(2));
     DomainBase domainCatLol =
         persistResource(makeDomainResource("cat.lol",
-            registrant, adminContact, techContact, host1, host2, registrarLol));
+            registrantLol, adminContactLol, techContactLol, host1, host2, registrarLol));
 
     // deleted domain in lol
     DomainBase domainDeleted = persistResource(makeDomainResource("dodo.lol",
-        registrant,
-        adminContact,
-        techContact,
+        registrantLol,
+        adminContactLol,
+        techContactLol,
         host1,
         host2,
         registrarLol).asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
+
     // xn--q9jyb4c
     createTld("xn--q9jyb4c");
     Registrar registrarIdn =
         persistResource(makeRegistrar("idnregistrar", "IDN Registrar", Registrar.State.ACTIVE));
     persistSimpleResources(makeRegistrarContacts(registrarIdn));
+    ContactResource registrantIdn =
+        makeAndPersistContactResource(
+            "5372808-ERL",
+            "Goblin Market",
+            "lol@cat.lol",
+            clock.nowUtc().minusYears(1),
+            registrarIdn);
+    ContactResource adminContactIdn =
+        makeAndPersistContactResource(
+            "5372808-IRL",
+            "Santa Claus",
+            "BOFH@cat.lol",
+            clock.nowUtc().minusYears(2),
+            registrarIdn);
+    ContactResource techContactIdn =
+        makeAndPersistContactResource(
+            "5372808-TRL",
+            "The Raven",
+            "bog@cat.lol",
+            clock.nowUtc().minusYears(3),
+            registrarIdn);
     DomainBase domainCatIdn = persistResource(makeDomainResource("cat.みんな",
-        registrant,
-        adminContact,
-        techContact,
+        registrantIdn,
+        adminContactIdn,
+        techContactIdn,
         host1,
         host2,
         registrarIdn));
+
+    // 1.tld
     createTld("1.tld");
-    Registrar registrar1tld = persistResource(
+    Registrar registrar1Tld = persistResource(
         makeRegistrar("1tldregistrar", "Multilevel Registrar", Registrar.State.ACTIVE));
-    persistSimpleResources(makeRegistrarContacts(registrar1tld));
+    persistSimpleResources(makeRegistrarContacts(registrar1Tld));
+    ContactResource registrant1Tld =
+        makeAndPersistContactResource(
+            "5372808-ERL",
+            "Goblin Market",
+            "lol@cat.lol",
+            clock.nowUtc().minusYears(1),
+            registrar1Tld);
+    ContactResource adminContact1Tld =
+        makeAndPersistContactResource(
+            "5372808-IRL",
+            "Santa Claus",
+            "BOFH@cat.lol",
+            clock.nowUtc().minusYears(2),
+            registrar1Tld);
+    ContactResource techContact1Tld =
+        makeAndPersistContactResource(
+            "5372808-TRL",
+            "The Raven",
+            "bog@cat.lol",
+            clock.nowUtc().minusYears(3),
+            registrar1Tld);
     DomainBase domainCat1Tld = persistResource(makeDomainResource("cat.1.tld",
-        registrant,
-        adminContact,
-        techContact,
+        registrant1Tld,
+        adminContact1Tld,
+        techContact1Tld,
         host1,
         host2,
-        registrar1tld));
-    action = new RdapDomainAction();
-    action.clock = clock;
-    action.response = response;
-    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
-    action.rdapLinkBase = "https://example.com/rdap/";
-    action.rdapWhoisServer = null;
+        registrar1Tld));
 
     // history entries
     persistResource(
@@ -156,6 +223,19 @@ public class RdapDomainActionTest {
             Period.create(1, Period.Unit.YEARS),
             "created",
             clock.nowUtc()));
+
+    action = new RdapDomainAction();
+    action.clock = clock;
+    action.request = request;
+    action.response = response;
+    action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
+    action.rdapLinkBase = "https://example.com/rdap/";
+    action.rdapWhoisServer = null;
+    action.sessionUtils = sessionUtils;
+    UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
+    action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("evilregistrar");
   }
 
   private Object generateActualJson(String domainName) {
@@ -169,23 +249,38 @@ public class RdapDomainActionTest {
       String punycodeName,
       String handle,
       String expectedOutputFile) {
-    return JSONValue.parse(loadFileWithSubstitutions(
-        this.getClass(),
-        expectedOutputFile,
-        ImmutableMap.of(
-            "NAME", name,
-            "PUNYCODENAME", (punycodeName == null) ? name : punycodeName,
-            "HANDLE", handle,
-            "TYPE", "domain name")));
+    return generateExpectedJson(name, punycodeName, handle, null, expectedOutputFile);
+  }
+
+  private Object generateExpectedJson(
+      String name,
+      String punycodeName,
+      String handle,
+      @Nullable List<String> contactRoids,
+      String expectedOutputFile) {
+    ImmutableMap.Builder<String, String> substitutionsBuilder = new ImmutableMap.Builder<>();
+    substitutionsBuilder.put("NAME", name);
+    substitutionsBuilder.put("PUNYCODENAME", (punycodeName == null) ? name : punycodeName);
+    substitutionsBuilder.put("HANDLE", handle);
+    substitutionsBuilder.put("TYPE", "domain name");
+    if (contactRoids != null) {
+      for (int i = 0; i < contactRoids.size(); i++) {
+        substitutionsBuilder.put("CONTACT" + (i + 1) + "ROID", contactRoids.get(i));
+      }
+    }
+    return JSONValue.parse(
+        loadFileWithSubstitutions(
+            this.getClass(), expectedOutputFile, substitutionsBuilder.build()));
   }
 
   private Object generateExpectedJsonWithTopLevelEntries(
       String name,
       String punycodeName,
       String handle,
+      @Nullable List<String> contactRoids,
       String expectedOutputFile) {
     Object obj = generateExpectedJson(
-        name, punycodeName, handle, expectedOutputFile);
+        name, punycodeName, handle, contactRoids, expectedOutputFile);
     if (obj instanceof Map) {
       @SuppressWarnings("unchecked")
       Map<String, Object> map = (Map<String, Object>) obj;
@@ -205,9 +300,20 @@ public class RdapDomainActionTest {
     return obj;
   }
 
+  private void assertJsonEqual(Object json1, Object json2) {
+    if (json1 instanceof Map) {
+      @SuppressWarnings("unchecked")
+      Map<String, Object> map = (Map<String, Object>) json1;
+      assertThat(map).isEqualTo(json2);
+    } else {
+      assertThat(json1).isEqualTo(json2);
+    }
+  }
+
   @Test
   public void testInvalidDomain_returns400() throws Exception {
-    assertThat(generateActualJson("invalid/domain/name")).isEqualTo(
+    assertJsonEqual(
+        generateActualJson("invalid/domain/name"),
         generateExpectedJson(
             "invalid/domain/name is not a valid domain name", null, "1", "rdap_error_400.json"));
     assertThat(response.getStatus()).isEqualTo(400);
@@ -215,67 +321,112 @@ public class RdapDomainActionTest {
 
   @Test
   public void testUnknownDomain_returns404() throws Exception {
-    assertThat(generateActualJson("missingdomain.com")).isEqualTo(
+    assertJsonEqual(
+        generateActualJson("missingdomain.com"),
         generateExpectedJson("missingdomain.com not found", null, "1", "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
   public void testDeletedDomain_returns404() throws Exception {
-    assertThat(generateActualJson("dodo.lol")).isEqualTo(
+    assertJsonEqual(
+        generateActualJson("dodo.lol"),
         generateExpectedJson("dodo.lol not found", null, "1", "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
   public void testValidDomain_works() throws Exception {
-    assertThat(generateActualJson("cat.lol")).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries("cat.lol", null, "C-LOL", "rdap_domain.json"));
+    assertJsonEqual(
+        generateActualJson("cat.lol"),
+        generateExpectedJsonWithTopLevelEntries(
+            "cat.lol",
+            null,
+            "C-LOL",
+            ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
+            "rdap_domain.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testTrailingDot_ignored() throws Exception {
-    assertThat(generateActualJson("cat.lol.")).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries("cat.lol", null, "C-LOL", "rdap_domain.json"));
+    assertJsonEqual(
+        generateActualJson("cat.lol."),
+        generateExpectedJsonWithTopLevelEntries(
+            "cat.lol",
+            null,
+            "C-LOL",
+            ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
+            "rdap_domain.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testQueryParameter_ignored() throws Exception {
-    assertThat(generateActualJson("cat.lol?key=value")).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries("cat.lol", null, "C-LOL", "rdap_domain.json"));
+    assertJsonEqual(
+        generateActualJson("cat.lol?key=value"),
+        generateExpectedJsonWithTopLevelEntries(
+            "cat.lol",
+            null,
+            "C-LOL",
+            ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
+            "rdap_domain.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testIdnDomain_works() throws Exception {
-    assertThat(generateActualJson("cat.みんな")).isEqualTo(
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("idnregistrar");
+    assertJsonEqual(
+        generateActualJson("cat.みんな"),
         generateExpectedJsonWithTopLevelEntries(
-            "cat.みんな", "cat.xn--q9jyb4c", "F-Q9JYB4C", "rdap_domain_unicode.json"));
+            "cat.みんな",
+            "cat.xn--q9jyb4c",
+            "15-Q9JYB4C",
+            ImmutableList.of("11-ROID", "13-ROID", "F-ROID"),
+            "rdap_domain_unicode.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testIdnDomainWithPercentEncoding_works() throws Exception {
-    assertThat(generateActualJson("cat.%E3%81%BF%E3%82%93%E3%81%AA")).isEqualTo(
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("idnregistrar");
+    assertJsonEqual(
+        generateActualJson("cat.%E3%81%BF%E3%82%93%E3%81%AA"),
         generateExpectedJsonWithTopLevelEntries(
-            "cat.みんな", "cat.xn--q9jyb4c", "F-Q9JYB4C", "rdap_domain_unicode.json"));
+            "cat.みんな",
+            "cat.xn--q9jyb4c",
+            "15-Q9JYB4C",
+            ImmutableList.of("11-ROID", "13-ROID", "F-ROID"),
+            "rdap_domain_unicode.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testPunycodeDomain_works() throws Exception {
-    assertThat(generateActualJson("cat.xn--q9jyb4c")).isEqualTo(
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("idnregistrar");
+    assertJsonEqual(
+        generateActualJson("cat.xn--q9jyb4c"),
         generateExpectedJsonWithTopLevelEntries(
-            "cat.みんな", "cat.xn--q9jyb4c", "F-Q9JYB4C", "rdap_domain_unicode.json"));
+            "cat.みんな",
+            "cat.xn--q9jyb4c",
+            "15-Q9JYB4C",
+            ImmutableList.of("11-ROID", "13-ROID", "F-ROID"),
+            "rdap_domain_unicode.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testMultilevelDomain_works() throws Exception {
-    assertThat(generateActualJson("cat.1.tld")).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries("cat.1.tld", null, "11-1.TLD", "rdap_domain.json"));
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("1tldregistrar");
+    assertJsonEqual(
+        generateActualJson("cat.1.tld"),
+        generateExpectedJsonWithTopLevelEntries(
+            "cat.1.tld",
+            null,
+            "1D-1.TLD",
+            ImmutableList.of("19-ROID", "1B-ROID", "17-ROID"),
+            "rdap_domain.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 

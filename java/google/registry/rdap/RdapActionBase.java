@@ -33,6 +33,7 @@ import com.google.re2j.Pattern;
 import com.googlecode.objectify.cmd.Query;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.EppResource;
+import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
 import google.registry.request.HttpException;
 import google.registry.request.HttpException.BadRequestException;
@@ -41,11 +42,15 @@ import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.RequestMethod;
 import google.registry.request.RequestPath;
 import google.registry.request.Response;
+import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.UserAuthInfo;
+import google.registry.ui.server.registrar.SessionUtils;
 import google.registry.util.FormattingLogger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONValue;
 
 /**
@@ -66,9 +71,12 @@ public abstract class RdapActionBase implements Runnable {
 
   private static final MediaType RESPONSE_MEDIA_TYPE = MediaType.create("application", "rdap+json");
 
+  @Inject HttpServletRequest request;
   @Inject Response response;
   @Inject @RequestMethod Action.Method requestMethod;
   @Inject @RequestPath String requestPath;
+  @Inject AuthResult authResult;
+  @Inject SessionUtils sessionUtils;
   @Inject RdapJsonFormatter rdapJsonFormatter;
   @Inject @Config("rdapLinkBase") String rdapLinkBase;
   @Inject @Config("rdapWhoisServer") @Nullable String rdapWhoisServer;
@@ -140,6 +148,22 @@ public abstract class RdapActionBase implements Runnable {
         response.setPayload("");
       }
     }
+  }
+
+  Optional<String> getLoggedInClientId() {
+    if (!authResult.userAuthInfo().isPresent()) {
+      return Optional.<String>absent();
+    }
+    UserAuthInfo userAuthInfo = authResult.userAuthInfo().get();
+    if (!sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)) {
+      return Optional.<String>absent();
+    }
+    String clientId = sessionUtils.getRegistrarClientId(request);
+    Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
+    if (!registrar.isPresent()) {
+      return Optional.<String>absent();
+    }
+    return Optional.of(clientId);
   }
 
   void validateDomainName(String name) {

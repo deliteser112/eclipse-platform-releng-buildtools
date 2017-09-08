@@ -113,10 +113,11 @@ public class RdapNameserverSearchActionTest {
         makeDomainResource(
                 "cat.lol",
                 persistResource(
-                    makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol")),
+                    makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol", registrar)),
                 persistResource(
-                    makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.lol")),
-                persistResource(makeContactResource("5372808-TRL", "The Raven", "bog@cat.lol")),
+                    makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.lol", registrar)),
+                persistResource(
+                    makeContactResource("5372808-TRL", "The Raven", "bog@cat.lol", registrar)),
                 hostNs1CatLol,
                 hostNs2CatLol,
                 registrar)

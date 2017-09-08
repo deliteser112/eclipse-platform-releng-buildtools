@@ -163,11 +163,21 @@ public final class FullFieldsTestEntityHelper {
   public static ContactResource makeContactResource(
       String id, String name, @Nullable String email) {
     return makeContactResource(
-        id, name, email, ImmutableList.of("123 Example Boulevard <script>"));
+        id, name, email, ImmutableList.of("123 Example Boulevard <script>"), null);
   }
 
   public static ContactResource makeContactResource(
-      String id, String name, @Nullable String email, @Nullable List<String> street) {
+      String id, String name, @Nullable String email, @Nullable Registrar registrar) {
+    return makeContactResource(
+        id, name, email, ImmutableList.of("123 Example Boulevard <script>"), registrar);
+  }
+
+  public static ContactResource makeContactResource(
+      String id,
+      String name,
+      @Nullable String email,
+      @Nullable List<String> street,
+      @Nullable Registrar registrar) {
     PostalInfo.Builder postalBuilder = new PostalInfo.Builder()
         .setType(PostalInfo.Type.INTERNATIONALIZED)
         .setName(name)
@@ -197,13 +207,27 @@ public final class FullFieldsTestEntityHelper {
     if (email != null) {
       builder.setEmailAddress(email);
     }
+    if (registrar != null) {
+      builder
+          .setCreationClientId(registrar.getClientId())
+          .setPersistedCurrentSponsorClientId(registrar.getClientId());
+    }
     return builder.build();
   }
 
   public static ContactResource makeAndPersistContactResource(
-      String id, String name, @Nullable String email, @Nullable DateTime creationTime) {
+      String id,
+      String name,
+      @Nullable String email,
+      @Nullable DateTime creationTime,
+      @Nullable Registrar registrar) {
     return makeAndPersistContactResource(
-        id, name, email, ImmutableList.of("123 Example Boulevard <script>"), creationTime);
+        id,
+        name,
+        email,
+        ImmutableList.of("123 Example Boulevard <script>"),
+        creationTime,
+        registrar);
   }
 
   public static ContactResource makeAndPersistContactResource(
@@ -212,7 +236,18 @@ public final class FullFieldsTestEntityHelper {
       @Nullable String email,
       @Nullable List<String> street,
       @Nullable DateTime creationTime) {
-    ContactResource contactResource = persistResource(makeContactResource(id, name, email, street));
+    return makeAndPersistContactResource(id, name, email, street, creationTime, null);
+  }
+
+  public static ContactResource makeAndPersistContactResource(
+      String id,
+      String name,
+      @Nullable String email,
+      @Nullable List<String> street,
+      @Nullable DateTime creationTime,
+      @Nullable Registrar registrar) {
+    ContactResource contactResource =
+        persistResource(makeContactResource(id, name, email, street, registrar));
     if (creationTime != null) {
       persistResource(makeHistoryEntry(
           contactResource, HistoryEntry.Type.CONTACT_CREATE, null, "created", creationTime));

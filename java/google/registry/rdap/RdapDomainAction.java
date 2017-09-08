@@ -33,7 +33,7 @@ import org.joda.time.DateTime;
   path = RdapDomainAction.PATH,
   method = {GET, HEAD},
   isPrefix = true,
-  auth = Auth.AUTH_PUBLIC_ANONYMOUS
+  auth = Auth.AUTH_PUBLIC
 )
 public class RdapDomainAction extends RdapActionBase {
 
@@ -64,6 +64,12 @@ public class RdapDomainAction extends RdapActionBase {
       throw new NotFoundException(pathSearchString + " not found");
     }
     return rdapJsonFormatter.makeRdapJsonForDomain(
-        domainResource, true, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL);
+        domainResource,
+        true,
+        rdapLinkBase,
+        rdapWhoisServer,
+        now,
+        OutputDataType.FULL,
+        getLoggedInClientId());
   }
 }

@@ -25,18 +25,26 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResourc
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
+import google.registry.request.auth.AuthLevel;
+import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
+import google.registry.ui.server.registrar.SessionUtils;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;
@@ -57,8 +65,11 @@ public class RdapEntityActionTest {
   @Rule
   public final InjectRule inject = new InjectRule();
 
+  private final HttpServletRequest request = mock(HttpServletRequest.class);
   private final FakeResponse response = new FakeResponse();
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
+  private final SessionUtils sessionUtils = mock(SessionUtils.class);
+  private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
 
   private RdapEntityAction action;
 
@@ -82,19 +93,22 @@ public class RdapEntityActionTest {
         "(◕‿◕)",
         "lol@cat.みんな",
         ImmutableList.of("1 Smiley Row", "Suite みんな"),
-        clock.nowUtc());
+        clock.nowUtc(),
+        registrarLol);
     adminContact = makeAndPersistContactResource(
         "8372808-ADM",
         "(◕‿◕)",
         "lol@cat.みんな",
         ImmutableList.of("1 Smiley Row", "Suite みんな"),
-        clock.nowUtc());
+        clock.nowUtc(),
+        registrarLol);
     techContact = makeAndPersistContactResource(
         "8372808-TEC",
         "(◕‿◕)",
         "lol@cat.みんな",
         ImmutableList.of("1 Smiley Row", "Suite みんな"),
-        clock.nowUtc());
+        clock.nowUtc(),
+        registrarLol);
     HostResource host1 =
         persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     HostResource host2 =
@@ -111,42 +125,38 @@ public class RdapEntityActionTest {
     Registrar registrarIdn = persistResource(
         makeRegistrar("idnregistrar", "IDN Registrar", Registrar.State.ACTIVE, 102L));
     persistSimpleResources(makeRegistrarContacts(registrarIdn));
-    persistResource(makeDomainResource("cat.みんな",
-        registrant,
-        adminContact,
-        techContact,
-        host1,
-        host2,
-        registrarIdn));
+    // 1.tld
     createTld("1.tld");
     Registrar registrar1tld = persistResource(
         makeRegistrar("1tldregistrar", "Multilevel Registrar", Registrar.State.ACTIVE, 103L));
     persistSimpleResources(makeRegistrarContacts(registrar1tld));
-    persistResource(makeDomainResource("cat.1.tld",
-        registrant,
-        adminContact,
-        techContact,
-        host1,
-        host2,
-        registrar1tld));
+    // other contacts
     disconnectedContact = makeAndPersistContactResource(
         "8372808-DIS",
         "(◕‿◕)",
         "lol@cat.みんな",
         ImmutableList.of("1 Smiley Row", "Suite みんな"),
-        clock.nowUtc());
+        clock.nowUtc(),
+        registrarLol);
     deletedContact = persistResource(makeContactResource(
             "8372808-DEL",
             "(◕‿◕)",
             "lol@cat.みんな",
-            ImmutableList.of("1 Smiley Row", "Suite みんな"))
+            ImmutableList.of("1 Smiley Row", "Suite みんな"),
+            registrarLol)
         .asBuilder().setDeletionTime(clock.nowUtc()).build());
     action = new RdapEntityAction();
     action.clock = clock;
+    action.request = request;
     action.response = response;
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
+    action.sessionUtils = sessionUtils;
+    UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
+    action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("evilregistrar");
   }
 
   private Object generateActualJson(String name) {

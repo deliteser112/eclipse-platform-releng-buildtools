@@ -1,0 +1,115 @@
+{
+  "objectClassName" : "domain",
+  "handle" : "17-Q9JYB4C",
+  "ldhName" : "cat.xn--q9jyb4c",
+  "unicodeName" : "cat.みんな",
+  "status" :
+    [
+      "client delete prohibited",
+      "client renew prohibited",
+      "client transfer prohibited",
+      "server update prohibited"
+    ],
+  "links" :
+  [
+    {
+      "value" : "http://myserver.example.com/domain/cat.xn--q9jyb4c",
+      "rel" : "self",
+      "href" : "http://myserver.example.com/domain/cat.xn--q9jyb4c",
+      "type" : "application/rdap+json"
+    }
+  ],
+  "events": [
+    {
+      "eventAction": "registration",
+      "eventActor": "foo",
+      "eventDate": "2000-01-01T00:00:00.000Z"
+    },
+    {
+      "eventAction": "expiration",
+      "eventDate": "2110-10-08T00:44:59.000Z"
+    },
+    {
+      "eventAction": "last changed",
+      "eventDate": "2009-05-29T20:13:00.000Z"
+    },
+    {
+      "eventAction": "last update of RDAP database",
+      "eventDate": "2000-01-01T00:00:00.000Z"
+    }
+  ],
+  "nameservers" :
+  [
+    {
+      "objectClassName" : "nameserver",
+      "handle" : "A-ROID",
+      "ldhName" : "ns1.cat.xn--q9jyb4c",
+      "unicodeName" : "ns1.cat.みんな",
+      "status" : ["active", "associated"],
+      "links" :
+      [
+        {
+          "value" : "http://myserver.example.com/nameserver/ns1.cat.xn--q9jyb4c",
+          "rel" : "self",
+          "href" : "http://myserver.example.com/nameserver/ns1.cat.xn--q9jyb4c",
+          "type" : "application/rdap+json"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "foo",
+          "eventDate": "1999-01-01T00:00:00.000Z"
+        },
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        }
+      ],
+      "ipAddresses" :
+      {
+        "v4" : ["1.2.3.4"]
+      }
+    },
+    {
+      "objectClassName" : "nameserver",
+      "handle" : "C-ROID",
+      "ldhName" : "ns2.cat.xn--q9jyb4c",
+      "unicodeName" : "ns2.cat.みんな",
+      "status" : ["active", "associated"],
+      "links" :
+      [
+        {
+          "value" : "http://myserver.example.com/nameserver/ns2.cat.xn--q9jyb4c",
+          "rel" : "self",
+          "href" : "http://myserver.example.com/nameserver/ns2.cat.xn--q9jyb4c",
+          "type" : "application/rdap+json"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "foo",
+          "eventDate": "1998-01-01T00:00:00.000Z"
+        },
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        }
+      ],
+      "ipAddresses" :
+      {
+        "v6" : ["bad:f00d:cafe::15:beef"]
+      }
+    }
+  ],
+  "remarks": [
+    {
+      "title": "Contacts Hidden",
+      "description": [
+        "Domain contacts are visible only to the owning registrar."
+      ],
+      "type": "object truncated due to unexplainable reasons"
+    }
+  ]
+}

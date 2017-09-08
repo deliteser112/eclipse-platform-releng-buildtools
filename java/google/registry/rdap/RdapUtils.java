@@ -32,7 +32,8 @@ public final class RdapUtils {
         new Predicate<Registrar>() {
           @Override
           public boolean apply(Registrar registrar) {
-            return registrar.getIanaIdentifier() == ianaIdentifier;
+            Long registrarIanaIdentifier = registrar.getIanaIdentifier();
+            return (registrarIanaIdentifier != null) && (registrarIanaIdentifier == ianaIdentifier);
           }});
   }
 }

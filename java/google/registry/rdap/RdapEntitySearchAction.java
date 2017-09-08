@@ -60,7 +60,7 @@ import org.joda.time.DateTime;
 @Action(
   path = RdapEntitySearchAction.PATH,
   method = {GET, HEAD},
-  auth = Auth.AUTH_PUBLIC_ANONYMOUS
+  auth = Auth.AUTH_PUBLIC
 )
 public class RdapEntitySearchAction extends RdapActionBase {
 
@@ -254,6 +254,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
     // There can be more results than our max size, partially because we have two pools to draw from
     // (contacts and registrars), and partially because we try to fetch one more than the max size,
     // so we can tell whether to display the truncation notification.
+    Optional<String> loggedInClientId = getLoggedInClientId();
     List<ImmutableMap<String, Object>> jsonOutputList = new ArrayList<>();
     for (ContactResource contact : contacts) {
       if (jsonOutputList.size() >= rdapResultSetMaxSize) {
@@ -268,7 +269,8 @@ public class RdapEntitySearchAction extends RdapActionBase {
           rdapLinkBase,
           rdapWhoisServer,
           now,
-          outputDataType));
+          outputDataType,
+          loggedInClientId));
     }
     for (Registrar registrar : registrars) {
       if (registrar.isActiveAndPubliclyVisible()) {

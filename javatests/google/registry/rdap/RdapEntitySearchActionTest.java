@@ -24,7 +24,10 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeContactReso
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.google.appengine.api.users.User;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -32,13 +35,18 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
+import google.registry.request.auth.AuthLevel;
+import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
+import google.registry.ui.server.registrar.SessionUtils;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;
@@ -54,13 +62,16 @@ public class RdapEntitySearchActionTest {
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
   @Rule public final InjectRule inject = new InjectRule();
 
+  private final HttpServletRequest request = mock(HttpServletRequest.class);
   private final FakeResponse response = new FakeResponse();
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
+  private final SessionUtils sessionUtils = mock(SessionUtils.class);
+  private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
 
   private final RdapEntitySearchAction action = new RdapEntitySearchAction();
 
   private ContactResource contact;
-  private Registrar registrar;
+  private Registrar registrarDeleted;
   private Registrar registrarInactive;
   private Registrar registrarTest;
 
@@ -82,29 +93,11 @@ public class RdapEntitySearchActionTest {
 
     createTld("tld");
 
-    contact = makeAndPersistContactResource(
-        "blinky",
-        "Blinky (赤ベイ)",
-        "blinky@b.tld",
-        ImmutableList.of("123 Blinky St", "Blinkyland"),
-        clock.nowUtc());
-
-    makeAndPersistContactResource(
-        "blindly",
-        "Blindly",
-        "blindly@b.tld",
-        ImmutableList.of("123 Blindly St", "Blindlyland"),
-        clock.nowUtc());
-
     // deleted
-    persistResource(
-        makeContactResource("clyde", "Clyde (愚図た)", "clyde@c.tld")
-            .asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-
-    registrar =
+    registrarDeleted =
         persistResource(
             makeRegistrar("2-Registrar", "Yes Virginia <script>", Registrar.State.ACTIVE, 20L));
-    persistSimpleResources(makeRegistrarContacts(registrar));
+    persistSimpleResources(makeRegistrarContacts(registrarDeleted));
 
     // inactive
     registrarInactive =
@@ -121,7 +114,28 @@ public class RdapEntitySearchActionTest {
                 .build());
     persistSimpleResources(makeRegistrarContacts(registrarTest));
 
+    contact = makeAndPersistContactResource(
+        "blinky",
+        "Blinky (赤ベイ)",
+        "blinky@b.tld",
+        ImmutableList.of("123 Blinky St", "Blinkyland"),
+        clock.nowUtc(),
+        registrarTest);
+
+    makeAndPersistContactResource(
+        "blindly",
+        "Blindly",
+        "blindly@b.tld",
+        ImmutableList.of("123 Blindly St", "Blindlyland"),
+        clock.nowUtc(),
+        registrarTest);
+
+    persistResource(
+        makeContactResource("clyde", "Clyde (愚図た)", "clyde@c.tld", registrarDeleted)
+            .asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
+
     action.clock = clock;
+    action.request = request;
     action.requestPath = RdapEntitySearchAction.PATH;
     action.response = response;
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
@@ -130,6 +144,11 @@ public class RdapEntitySearchActionTest {
     action.rdapWhoisServer = null;
     action.fnParam = Optional.absent();
     action.handleParam = Optional.absent();
+    action.sessionUtils = sessionUtils;
+    UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
+    action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("2-RegistrarTest");
   }
 
   private Object generateExpectedJson(String expectedOutputFile) {
@@ -182,13 +201,15 @@ public class RdapEntitySearchActionTest {
     return builder.build();
   }
 
-  private void createManyContactsAndRegistrars(int numContacts, int numRegistrars) {
+  private void createManyContactsAndRegistrars(
+      int numContacts, int numRegistrars, Registrar contactRegistrar) {
     ImmutableList.Builder<ImmutableObject> resourcesBuilder = new ImmutableList.Builder<>();
     for (int i = 1; i <= numContacts; i++) {
       resourcesBuilder.add(makeContactResource(
           String.format("contact%d", i),
           String.format("Entity %d", i),
-          String.format("contact%d@gmail.com", i)));
+          String.format("contact%d@gmail.com", i),
+          contactRegistrar));
     }
     persistResources(resourcesBuilder.build());
     for (int i = 1; i <= numRegistrars; i++) {
@@ -324,7 +345,7 @@ public class RdapEntitySearchActionTest {
 
   @Test
   public void testNameMatch_nonTruncatedContacts() throws Exception {
-    createManyContactsAndRegistrars(4, 0);
+    createManyContactsAndRegistrars(4, 0, registrarTest);
     assertThat(generateActualJsonWithFullName("Entity *"))
         .isEqualTo(generateExpectedJson("rdap_nontruncated_contacts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
@@ -332,7 +353,7 @@ public class RdapEntitySearchActionTest {
 
   @Test
   public void testNameMatch_truncatedContacts() throws Exception {
-    createManyContactsAndRegistrars(5, 0);
+    createManyContactsAndRegistrars(5, 0, registrarTest);
     assertThat(generateActualJsonWithFullName("Entity *"))
         .isEqualTo(generateExpectedJson("rdap_truncated_contacts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
@@ -340,7 +361,7 @@ public class RdapEntitySearchActionTest {
 
   @Test
   public void testNameMatch_reallyTruncatedContacts() throws Exception {
-    createManyContactsAndRegistrars(9, 0);
+    createManyContactsAndRegistrars(9, 0, registrarTest);
     assertThat(generateActualJsonWithFullName("Entity *"))
         .isEqualTo(generateExpectedJson("rdap_truncated_contacts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
@@ -348,7 +369,7 @@ public class RdapEntitySearchActionTest {
 
   @Test
   public void testNameMatch_nonTruncatedRegistrars() throws Exception {
-    createManyContactsAndRegistrars(0, 4);
+    createManyContactsAndRegistrars(0, 4, registrarTest);
     assertThat(generateActualJsonWithFullName("Entity *"))
         .isEqualTo(generateExpectedJson("rdap_nontruncated_registrars.json"));
     assertThat(response.getStatus()).isEqualTo(200);
@@ -356,7 +377,7 @@ public class RdapEntitySearchActionTest {
 
   @Test
   public void testNameMatch_truncatedRegistrars() throws Exception {
-    createManyContactsAndRegistrars(0, 5);
+    createManyContactsAndRegistrars(0, 5, registrarTest);
     assertThat(generateActualJsonWithFullName("Entity *"))
         .isEqualTo(generateExpectedJson("rdap_truncated_registrars.json"));
     assertThat(response.getStatus()).isEqualTo(200);
@@ -364,7 +385,7 @@ public class RdapEntitySearchActionTest {
 
   @Test
   public void testNameMatch_reallyTruncatedRegistrars() throws Exception {
-    createManyContactsAndRegistrars(0, 9);
+    createManyContactsAndRegistrars(0, 9, registrarTest);
     assertThat(generateActualJsonWithFullName("Entity *"))
         .isEqualTo(generateExpectedJson("rdap_truncated_registrars.json"));
     assertThat(response.getStatus()).isEqualTo(200);
@@ -372,7 +393,7 @@ public class RdapEntitySearchActionTest {
 
   @Test
   public void testNameMatch_truncatedMixOfContactsAndRegistrars() throws Exception {
-    createManyContactsAndRegistrars(3, 3);
+    createManyContactsAndRegistrars(3, 3, registrarTest);
     assertThat(generateActualJsonWithFullName("Entity *"))
         .isEqualTo(generateExpectedJson("rdap_truncated_mixed_entities.json"));
     assertThat(response.getStatus()).isEqualTo(200);
@@ -459,7 +480,7 @@ public class RdapEntitySearchActionTest {
 
   @Test
   public void testHandleMatch_truncatedEntities() throws Exception {
-    createManyContactsAndRegistrars(300, 0);
+    createManyContactsAndRegistrars(300, 0, registrarTest);
     Object obj = generateActualJsonWithHandle("10*");
     assertThat(response.getStatus()).isEqualTo(200);
     checkNumberOfEntitiesInResult(obj, 4);

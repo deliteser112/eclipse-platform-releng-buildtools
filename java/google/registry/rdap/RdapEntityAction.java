@@ -50,7 +50,7 @@ import org.joda.time.DateTime;
   path = RdapEntityAction.PATH,
   method = {GET, HEAD},
   isPrefix = true,
-  auth = Auth.AUTH_PUBLIC_ANONYMOUS
+  auth = Auth.AUTH_PUBLIC
 )
 public class RdapEntityAction extends RdapActionBase {
 
@@ -93,7 +93,8 @@ public class RdapEntityAction extends RdapActionBase {
             rdapLinkBase,
             rdapWhoisServer,
             now,
-            OutputDataType.FULL);
+            OutputDataType.FULL,
+            getLoggedInClientId());
       }
     }
     Long ianaIdentifier = Longs.tryParse(pathSearchString);

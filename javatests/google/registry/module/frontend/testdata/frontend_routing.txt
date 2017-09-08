@@ -3,10 +3,10 @@ PATH                     CLASS                       METHODS  OK AUTH_METHODS   
 /_dr/whois               WhoisServer                 POST     n  INTERNAL,API        APP  ADMIN
 /check                   CheckApiAction              GET      n  INTERNAL            NONE PUBLIC
 /rdap/autnum/(*)         RdapAutnumAction            GET,HEAD n  INTERNAL            NONE PUBLIC
-/rdap/domain/(*)         RdapDomainAction            GET,HEAD n  INTERNAL            NONE PUBLIC
-/rdap/domains            RdapDomainSearchAction      GET,HEAD n  INTERNAL            NONE PUBLIC
-/rdap/entities           RdapEntitySearchAction      GET,HEAD n  INTERNAL            NONE PUBLIC
-/rdap/entity/(*)         RdapEntityAction            GET,HEAD n  INTERNAL            NONE PUBLIC
+/rdap/domain/(*)         RdapDomainAction            GET,HEAD n  INTERNAL,API,LEGACY NONE PUBLIC
+/rdap/domains            RdapDomainSearchAction      GET,HEAD n  INTERNAL,API,LEGACY NONE PUBLIC
+/rdap/entities           RdapEntitySearchAction      GET,HEAD n  INTERNAL,API,LEGACY NONE PUBLIC
+/rdap/entity/(*)         RdapEntityAction            GET,HEAD n  INTERNAL,API,LEGACY NONE PUBLIC
 /rdap/help(*)            RdapHelpAction              GET,HEAD n  INTERNAL            NONE PUBLIC
 /rdap/ip/(*)             RdapIpAction                GET,HEAD n  INTERNAL            NONE PUBLIC
 /rdap/nameserver/(*)     RdapNameserverAction        GET,HEAD n  INTERNAL            NONE PUBLIC

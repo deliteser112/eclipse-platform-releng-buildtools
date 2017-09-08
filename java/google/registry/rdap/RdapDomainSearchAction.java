@@ -65,7 +65,7 @@ import org.joda.time.DateTime;
 @Action(
   path = RdapDomainSearchAction.PATH,
   method = {GET, HEAD},
-  auth = Auth.AUTH_PUBLIC_ANONYMOUS
+  auth = Auth.AUTH_PUBLIC
 )
 public class RdapDomainSearchAction extends RdapActionBase {
 
@@ -375,11 +375,12 @@ public class RdapDomainSearchAction extends RdapActionBase {
       List<DomainResource> domains, boolean isTruncated, DateTime now) {
     OutputDataType outputDataType =
         (domains.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
+    Optional<String> loggedInClientId = getLoggedInClientId();
     ImmutableList.Builder<ImmutableMap<String, Object>> jsonBuilder = new ImmutableList.Builder<>();
     for (DomainResource domain : domains) {
       jsonBuilder.add(
           rdapJsonFormatter.makeRdapJsonForDomain(
-              domain, false, rdapLinkBase, rdapWhoisServer, now, outputDataType));
+              domain, false, rdapLinkBase, rdapWhoisServer, now, outputDataType, loggedInClientId));
     }
     return RdapSearchResults.create(jsonBuilder.build(), isTruncated);
   }

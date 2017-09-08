@@ -110,25 +110,29 @@ public class RdapJsonFormatterTest {
         "(◕‿◕)",
         "lol@cat.みんな",
         null,
-        clock.nowUtc().minusYears(1));
+        clock.nowUtc().minusYears(1),
+        registrar);
     contactResourceAdmin = makeAndPersistContactResource(
         "8372808-IRL",
         "Santa Claus",
         null,
         ImmutableList.of("Santa Claus Tower", "41st floor", "Suite みんな"),
-        clock.nowUtc().minusYears(2));
+        clock.nowUtc().minusYears(2),
+        registrar);
     contactResourceTech = makeAndPersistContactResource(
         "8372808-TRL",
         "The Raven",
         "bog@cat.みんな",
         ImmutableList.of("Chamber Door", "upper level"),
-        clock.nowUtc().minusYears(3));
+        clock.nowUtc().minusYears(3),
+        registrar);
     contactResourceNotLinked = makeAndPersistContactResource(
         "8372808-QRL",
         "The Wizard",
         "dog@cat.みんな",
         ImmutableList.of("Somewhere", "Over the Rainbow"),
-        clock.nowUtc().minusYears(4));
+        clock.nowUtc().minusYears(4),
+        registrar);
     hostResourceIpv4 = makeAndPersistHostResource(
         "ns1.cat.みんな", "1.2.3.4", clock.nowUtc().minusYears(1));
     hostResourceIpv6 = makeAndPersistHostResource(
@@ -365,7 +369,8 @@ public class RdapJsonFormatterTest {
                 LINK_BASE,
                 WHOIS_SERVER,
                 clock.nowUtc(),
-                OutputDataType.FULL))
+                OutputDataType.FULL,
+                Optional.of("unicoderegistrar")))
         .isEqualTo(loadJson("rdapjson_registrant.json"));
   }
 
@@ -379,8 +384,24 @@ public class RdapJsonFormatterTest {
                 LINK_BASE,
                 WHOIS_SERVER,
                 clock.nowUtc(),
-                OutputDataType.SUMMARY))
+                OutputDataType.SUMMARY,
+                Optional.of("unicoderegistrar")))
         .isEqualTo(loadJson("rdapjson_registrant_summary.json"));
+  }
+
+  @Test
+  public void testRegistrant_loggedOut() throws Exception {
+    assertThat(
+            rdapJsonFormatter.makeRdapJsonForContact(
+                contactResourceRegistrant,
+                false,
+                Optional.of(DesignatedContact.Type.REGISTRANT),
+                LINK_BASE,
+                WHOIS_SERVER,
+                clock.nowUtc(),
+                OutputDataType.FULL,
+                Optional.<String>absent()))
+        .isEqualTo(loadJson("rdapjson_registrant_logged_out.json"));
   }
 
   @Test
@@ -393,7 +414,8 @@ public class RdapJsonFormatterTest {
                 LINK_BASE_NO_TRAILING_SLASH,
                 WHOIS_SERVER,
                 clock.nowUtc(),
-                OutputDataType.FULL))
+                OutputDataType.FULL,
+                Optional.of("unicoderegistrar")))
         .isEqualTo(loadJson("rdapjson_registrant.json"));
   }
 
@@ -407,7 +429,8 @@ public class RdapJsonFormatterTest {
                 null,
                 WHOIS_SERVER,
                 clock.nowUtc(),
-                OutputDataType.FULL))
+                OutputDataType.FULL,
+                Optional.of("unicoderegistrar")))
         .isEqualTo(loadJson("rdapjson_registrant_nobase.json"));
   }
 
@@ -421,7 +444,8 @@ public class RdapJsonFormatterTest {
                 LINK_BASE,
                 WHOIS_SERVER,
                 clock.nowUtc(),
-                OutputDataType.FULL))
+                OutputDataType.FULL,
+                Optional.of("unicoderegistrar")))
         .isEqualTo(loadJson("rdapjson_admincontact.json"));
   }
 
@@ -435,7 +459,8 @@ public class RdapJsonFormatterTest {
                 LINK_BASE,
                 WHOIS_SERVER,
                 clock.nowUtc(),
-                OutputDataType.FULL))
+                OutputDataType.FULL,
+                Optional.of("unicoderegistrar")))
         .isEqualTo(loadJson("rdapjson_techcontact.json"));
   }
 
@@ -449,7 +474,8 @@ public class RdapJsonFormatterTest {
                 LINK_BASE,
                 WHOIS_SERVER,
                 clock.nowUtc(),
-                OutputDataType.FULL))
+                OutputDataType.FULL,
+                Optional.of("unicoderegistrar")))
         .isEqualTo(loadJson("rdapjson_rolelesscontact.json"));
   }
 
@@ -463,7 +489,8 @@ public class RdapJsonFormatterTest {
                 LINK_BASE,
                 WHOIS_SERVER,
                 clock.nowUtc(),
-                OutputDataType.FULL))
+                OutputDataType.FULL,
+                Optional.of("unicoderegistrar")))
         .isEqualTo(loadJson("rdapjson_unlinkedcontact.json"));
   }
 
@@ -475,7 +502,8 @@ public class RdapJsonFormatterTest {
             LINK_BASE,
             WHOIS_SERVER,
             clock.nowUtc(),
-            OutputDataType.FULL))
+            OutputDataType.FULL,
+            Optional.of("unicoderegistrar")))
         .isEqualTo(loadJson("rdapjson_domain_full.json"));
   }
 
@@ -487,8 +515,22 @@ public class RdapJsonFormatterTest {
             LINK_BASE,
             WHOIS_SERVER,
             clock.nowUtc(),
-            OutputDataType.SUMMARY))
+            OutputDataType.SUMMARY,
+            Optional.of("unicoderegistrar")))
         .isEqualTo(loadJson("rdapjson_domain_summary.json"));
+  }
+
+  @Test
+  public void testDomain_logged_out() throws Exception {
+    assertThat(rdapJsonFormatter.makeRdapJsonForDomain(
+            domainResourceFull,
+            false,
+            LINK_BASE,
+            WHOIS_SERVER,
+            clock.nowUtc(),
+            OutputDataType.FULL,
+            Optional.<String>absent()))
+        .isEqualTo(loadJson("rdapjson_domain_logged_out.json"));
   }
 
   @Test
@@ -499,7 +541,8 @@ public class RdapJsonFormatterTest {
             LINK_BASE,
             WHOIS_SERVER,
             clock.nowUtc(),
-            OutputDataType.FULL))
+            OutputDataType.FULL,
+            Optional.of("unicoderegistrar")))
         .isEqualTo(loadJson("rdapjson_domain_no_nameservers.json"));
   }
 
