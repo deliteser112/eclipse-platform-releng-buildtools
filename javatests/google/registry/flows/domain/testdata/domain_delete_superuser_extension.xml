@@ -1,0 +1,17 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <delete>
+      <domain:delete
+          xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>example.tld</domain:name>
+      </domain:delete>
+    </delete>
+    <extension>
+      <superuser:domainDelete xmlns:superuser="urn:google:params:xml:ns:superuser-1.0">
+        <superuser:redemptionGracePeriodDays>%REDEMPTION_GRACE_PERIOD_DAYS%</superuser:redemptionGracePeriodDays>
+        <superuser:pendingDeleteDays>%PENDING_DELETE_DAYS%</superuser:pendingDeleteDays>
+      </superuser:domainDelete>
+    </extension>
+    <clTRID>ABC-12345</clTRID>
+  </command>
+</epp>

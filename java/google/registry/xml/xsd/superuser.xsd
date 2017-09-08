@@ -38,4 +38,13 @@
     </restriction>
   </simpleType>
 
+  <element name="domainDelete" type="superuser:domainDeleteType" />
+
+  <complexType name="domainDeleteType">
+    <all>
+      <element name="redemptionGracePeriodDays" type="nonNegativeInteger" />
+      <element name="pendingDeleteDays" type="nonNegativeInteger" />
+    </all>
+  </complexType>
+
 </schema>

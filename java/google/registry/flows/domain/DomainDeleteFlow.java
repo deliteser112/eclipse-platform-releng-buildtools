@@ -72,6 +72,7 @@ import google.registry.model.domain.fee12.FeeDeleteResponseExtensionV12;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
+import google.registry.model.domain.superuser.DomainDeleteSuperuserExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import google.registry.model.eppcommon.StatusValue;
@@ -131,7 +132,8 @@ public final class DomainDeleteFlow implements TransactionalFlow {
 
   @Override
   public final EppResponse run() throws EppException {
-    extensionManager.register(MetadataExtension.class, SecDnsCreateExtension.class);
+    extensionManager.register(
+        MetadataExtension.class, SecDnsCreateExtension.class, DomainDeleteSuperuserExtension.class);
     customLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
@@ -147,6 +149,16 @@ public final class DomainDeleteFlow implements TransactionalFlow {
         ? ResourceFlowUtils.<DomainResource, DomainResource.Builder>resolvePendingTransfer(
             existingDomain, TransferStatus.SERVER_CANCELLED, now)
         : existingDomain.asBuilder();
+    Duration redemptionGracePeriodLength = registry.getRedemptionGracePeriodLength();
+    Duration pendingDeleteLength = registry.getPendingDeleteLength();
+    DomainDeleteSuperuserExtension domainDeleteSuperuserExtension =
+        eppInput.getSingleExtension(DomainDeleteSuperuserExtension.class);
+    if (domainDeleteSuperuserExtension != null) {
+      redemptionGracePeriodLength =
+          Duration.standardDays(domainDeleteSuperuserExtension.getRedemptionGracePeriodDays());
+      pendingDeleteLength =
+          Duration.standardDays(domainDeleteSuperuserExtension.getPendingDeleteDays());
+    }
     boolean inAddGracePeriod =
         existingDomain.getGracePeriodStatuses().contains(GracePeriodStatus.ADD);
     // If the domain is in the Add Grace Period, we delete it immediately.
@@ -155,10 +167,10 @@ public final class DomainDeleteFlow implements TransactionalFlow {
         inAddGracePeriod
             ? Duration.ZERO
             // By default, this should be 30 days of grace, and 5 days of pending delete.
-            : registry.getRedemptionGracePeriodLength().plus(registry.getPendingDeleteLength());
+            : redemptionGracePeriodLength.plus(pendingDeleteLength);
     HistoryEntry historyEntry = buildHistoryEntry(
         existingDomain, registry, now, durationUntilDelete, inAddGracePeriod);
-    if (inAddGracePeriod) {
+    if (durationUntilDelete.equals(Duration.ZERO)) {
       builder.setDeletionTime(now).setStatusValues(null);
     } else {
       DateTime deletionTime = now.plus(durationUntilDelete);
@@ -171,7 +183,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
           // billing event because there isn't one for a domain delete.
           .setGracePeriods(ImmutableSet.of(GracePeriod.createWithoutBillingEvent(
               GracePeriodStatus.REDEMPTION,
-              now.plus(registry.getRedemptionGracePeriodLength()),
+              now.plus(redemptionGracePeriodLength),
               clientId)))
           .setDeletePollMessage(Key.create(deletePollMessage));
       // Note: The expiration time is unchanged, so if it's before the new deletion time, there will

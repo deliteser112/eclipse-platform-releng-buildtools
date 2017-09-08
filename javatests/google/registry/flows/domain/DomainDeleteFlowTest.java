@@ -952,4 +952,89 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             // The cancellation record is the same as the original, except with a -1 counter
             existingRecord.asBuilder().setReportAmount(-1).build());
   }
+
+  @Test
+  public void testSuccess_superuserExtension_nonZeroDayGrace_nonZeroDayPendingDelete()
+      throws Exception {
+    eppRequestSource = EppRequestSource.TOOL;
+    setEppInput(
+        "domain_delete_superuser_extension.xml",
+        ImmutableMap.of("REDEMPTION_GRACE_PERIOD_DAYS", "15", "PENDING_DELETE_DAYS", "4"));
+    setUpSuccessfulTest();
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response_pending.xml"));
+    DomainResource resource = reloadResourceByForeignKey();
+    assertAboutDomains()
+        .that(resource)
+        .hasExactlyStatusValues(StatusValue.INACTIVE, StatusValue.PENDING_DELETE)
+        .and()
+        .hasDeletionTime(clock.nowUtc().plus(Duration.standardDays(19)));
+    assertThat(resource.getGracePeriods())
+        .containsExactly(
+            GracePeriod.create(
+                GracePeriodStatus.REDEMPTION,
+                clock.nowUtc().plus(Duration.standardDays(15)),
+                "TheRegistrar",
+                null));
+  }
+
+  @Test
+  public void testSuccess_superuserExtension_zeroDayGrace_nonZeroDayPendingDelete()
+      throws Exception {
+    eppRequestSource = EppRequestSource.TOOL;
+    setEppInput(
+        "domain_delete_superuser_extension.xml",
+        ImmutableMap.of("REDEMPTION_GRACE_PERIOD_DAYS", "0", "PENDING_DELETE_DAYS", "4"));
+    setUpSuccessfulTest();
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response_pending.xml"));
+    DomainResource resource = reloadResourceByForeignKey();
+    assertAboutDomains()
+        .that(resource)
+        .hasExactlyStatusValues(StatusValue.INACTIVE, StatusValue.PENDING_DELETE)
+        .and()
+        .hasDeletionTime(clock.nowUtc().plus(Duration.standardDays(4)));
+    assertThat(resource.getGracePeriods()).isEmpty();
+  }
+
+  @Test
+  public void testSuccess_superuserExtension_nonZeroDayGrace_zeroDayPendingDelete()
+      throws Exception {
+    eppRequestSource = EppRequestSource.TOOL;
+    setEppInput(
+        "domain_delete_superuser_extension.xml",
+        ImmutableMap.of("REDEMPTION_GRACE_PERIOD_DAYS", "15", "PENDING_DELETE_DAYS", "0"));
+    setUpSuccessfulTest();
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response_pending.xml"));
+    DomainResource resource = reloadResourceByForeignKey();
+    assertAboutDomains()
+        .that(resource)
+        .hasExactlyStatusValues(StatusValue.INACTIVE, StatusValue.PENDING_DELETE)
+        .and()
+        .hasDeletionTime(clock.nowUtc().plus(Duration.standardDays(15)));
+    assertThat(resource.getGracePeriods())
+        .containsExactly(
+            GracePeriod.create(
+                GracePeriodStatus.REDEMPTION,
+                clock.nowUtc().plus(Duration.standardDays(15)),
+                "TheRegistrar",
+                null));
+  }
+
+  @Test
+  public void testSuccess_superuserExtension_zeroDayGrace_zeroDayPendingDelete() throws Exception {
+    eppRequestSource = EppRequestSource.TOOL;
+    setEppInput(
+        "domain_delete_superuser_extension.xml",
+        ImmutableMap.of("REDEMPTION_GRACE_PERIOD_DAYS", "0", "PENDING_DELETE_DAYS", "0"));
+    setUpSuccessfulTest();
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response.xml"));
+    assertThat(reloadResourceByForeignKey()).isNull();
+  }
 }

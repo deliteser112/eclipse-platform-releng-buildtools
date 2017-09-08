@@ -51,6 +51,7 @@ import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.RgpUpdateExtension;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
+import google.registry.model.domain.superuser.DomainDeleteSuperuserExtension;
 import google.registry.model.domain.superuser.DomainTransferRequestSuperuserExtension;
 import google.registry.model.eppinput.ResourceCommand.ResourceCheck;
 import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
@@ -347,7 +348,8 @@ public class EppInput extends ImmutableObject {
         @XmlElementRef(type = RgpUpdateExtension.class),
         @XmlElementRef(type = SecDnsCreateExtension.class),
         @XmlElementRef(type = SecDnsUpdateExtension.class),
-        @XmlElementRef(type = DomainTransferRequestSuperuserExtension.class) })
+        @XmlElementRef(type = DomainTransferRequestSuperuserExtension.class),
+        @XmlElementRef(type = DomainDeleteSuperuserExtension.class) })
     @XmlElementWrapper
     List<CommandExtension> extension;
 
