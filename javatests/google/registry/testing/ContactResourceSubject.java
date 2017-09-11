@@ -17,8 +17,8 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertAbout;
 
-import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.SimpleSubjectBuilder;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
 import google.registry.model.eppcommon.AuthInfo;
@@ -183,7 +183,8 @@ public final class ContactResourceSubject
         "has currentSponsorClientId");
   }
 
-  public static DelegatedVerb<ContactResourceSubject, ContactResource> assertAboutContacts() {
+  public static SimpleSubjectBuilder<ContactResourceSubject, ContactResource>
+      assertAboutContacts() {
     return assertAbout(new SubjectFactory());
   }
 }

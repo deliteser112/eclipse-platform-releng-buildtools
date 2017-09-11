@@ -17,8 +17,8 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertAbout;
 
-import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.SimpleSubjectBuilder;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.TruthChainer.And;
@@ -115,7 +115,7 @@ public final class DomainResourceSubject
     super(strategy, checkNotNull(subject));
   }
 
-  public static DelegatedVerb<DomainResourceSubject, DomainResource> assertAboutDomains() {
+  public static SimpleSubjectBuilder<DomainResourceSubject, DomainResource> assertAboutDomains() {
     return assertAbout(new SubjectFactory());
   }
 }

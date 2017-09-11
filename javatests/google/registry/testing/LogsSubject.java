@@ -19,9 +19,9 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.TestLogHandler;
-import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.Correspondence;
 import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.SimpleSubjectBuilder;
 import com.google.common.truth.StringSubject;
 import com.google.common.truth.Subject;
 import google.registry.testing.TruthChainer.Which;
@@ -87,7 +87,7 @@ public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
     throw new AssertionError("Message check passed yet matching message not found");
   }
 
-  public static DelegatedVerb<LogsSubject, TestLogHandler> assertAboutLogs() {
+  public static SimpleSubjectBuilder<LogsSubject, TestLogHandler> assertAboutLogs() {
     return assertAbout(new SubjectFactory());
   }
 }

@@ -17,8 +17,8 @@ package google.registry.testing;
 import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.base.Optional;
-import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.SimpleSubjectBuilder;
 import com.google.common.truth.Subject;
 import google.registry.model.domain.Period;
 import google.registry.model.reporting.HistoryEntry;
@@ -103,7 +103,8 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
     return new And<>(this);
   }
 
-  public static DelegatedVerb<HistoryEntrySubject, HistoryEntry> assertAboutHistoryEntries() {
+  public static SimpleSubjectBuilder<HistoryEntrySubject, HistoryEntry>
+      assertAboutHistoryEntries() {
     return assertAbout(new SubjectFactory());
   }
 }

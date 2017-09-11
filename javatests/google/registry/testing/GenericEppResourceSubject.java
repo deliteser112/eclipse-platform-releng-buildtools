@@ -17,8 +17,8 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertAbout;
 
-import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.SimpleSubjectBuilder;
 import com.google.common.truth.SubjectFactory;
 import google.registry.model.EppResource;
 
@@ -39,7 +39,8 @@ public final class GenericEppResourceSubject
     super(strategy, checkNotNull(subject));
   }
 
-  public static DelegatedVerb<GenericEppResourceSubject, EppResource> assertAboutEppResources() {
+  public static SimpleSubjectBuilder<GenericEppResourceSubject, EppResource>
+      assertAboutEppResources() {
     return assertAbout(new GenericEppResourceSubjectFactory());
   }
 }

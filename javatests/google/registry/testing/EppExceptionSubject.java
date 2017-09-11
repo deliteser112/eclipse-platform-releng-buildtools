@@ -18,8 +18,8 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.EppXmlTransformer.marshal;
 
-import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.SimpleSubjectBuilder;
 import com.google.common.truth.Subject;
 import com.google.common.truth.SubjectFactory;
 import google.registry.flows.EppException;
@@ -57,7 +57,7 @@ public class EppExceptionSubject extends Subject<EppExceptionSubject, EppExcepti
     return new And<>(this);
   }
 
-  public static DelegatedVerb<EppExceptionSubject, EppException> assertAboutEppExceptions() {
+  public static SimpleSubjectBuilder<EppExceptionSubject, EppException> assertAboutEppExceptions() {
     return assertAbout(new SubjectFactory<EppExceptionSubject, EppException>() {
       @Override
       public EppExceptionSubject getSubject(FailureStrategy strategy, EppException subject) {

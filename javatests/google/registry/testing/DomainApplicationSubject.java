@@ -19,8 +19,8 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.truth.AbstractVerb.DelegatedVerb;
 import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.SimpleSubjectBuilder;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.launch.ApplicationStatus;
@@ -84,7 +84,7 @@ public final class DomainApplicationSubject
     super(strategy, checkNotNull(subject));
   }
 
-  public static DelegatedVerb<DomainApplicationSubject, DomainApplication>
+  public static SimpleSubjectBuilder<DomainApplicationSubject, DomainApplication>
       assertAboutApplications() {
     return assertAbout(new SubjectFactory());
   }
