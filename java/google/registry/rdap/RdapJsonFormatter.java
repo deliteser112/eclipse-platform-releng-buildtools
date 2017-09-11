@@ -444,8 +444,8 @@ public class RdapJsonFormatter {
    *        port43 field; if null, port43 is not added to the object
    * @param now the as-date
    * @param outputDataType whether to generate full or summary data
-   * @param loggedInClientId the logged-in client ID (or null if not logged in); if the requester is
-   *        not logged in as the registrar owning the domain, no contact information is included
+   * @param authorization the authorization level of the request; if not authorized for the
+   *        registrar owning the domain, no contact information is included
    */
   ImmutableMap<String, Object> makeRdapJsonForDomain(
       DomainResource domainResource,
@@ -454,7 +454,7 @@ public class RdapJsonFormatter {
       @Nullable String whoisServer,
       DateTime now,
       OutputDataType outputDataType,
-      Optional<String> loggedInClientId) {
+      RdapAuthorization authorization) {
     // Start with the domain-level information.
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     jsonBuilder.put("objectClassName", "domain");
@@ -467,8 +467,8 @@ public class RdapJsonFormatter {
     jsonBuilder.put("status", makeStatusValueList(domainResource.getStatusValues()));
     jsonBuilder.put("links", ImmutableList.of(
         makeLink("domain", domainResource.getFullyQualifiedDomainName(), linkBase)));
-    boolean displayContacts = loggedInClientId.isPresent()
-        && loggedInClientId.get().equals(domainResource.getCurrentSponsorClientId());
+    boolean displayContacts =
+        authorization.isAuthorizedForClientId(domainResource.getCurrentSponsorClientId());
     // If we are outputting all data (not just summary data), also add information about hosts,
     // contacts and events (history entries). If we are outputting summary data, instead add a
     // remark indicating that fact.
@@ -505,7 +505,7 @@ public class RdapJsonFormatter {
               null,
               now,
               outputDataType,
-              loggedInClientId));
+              authorization));
         }
         ImmutableList<Object> entities = entitiesBuilder.build();
         if (!entities.isEmpty()) {
@@ -644,8 +644,8 @@ public class RdapJsonFormatter {
    *        port43 field; if null, port43 is not added to the object
    * @param now the as-date
    * @param outputDataType whether to generate full or summary data
-   * @param loggedInClientId the logged-in client ID (or null if not logged in); personal contact
-   *        data is only shown if the contact is owned by the logged-in client
+   * @param authorization the authorization level of the request; personal contact data is only
+   *        shown if the contact is owned by a registrar for which the request is authorized
    */
   ImmutableMap<String, Object> makeRdapJsonForContact(
       ContactResource contactResource,
@@ -655,7 +655,7 @@ public class RdapJsonFormatter {
       @Nullable String whoisServer,
       DateTime now,
       OutputDataType outputDataType,
-      Optional<String> loggedInClientId) {
+      RdapAuthorization authorization) {
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     ImmutableList.Builder<ImmutableMap<String, Object>> remarksBuilder
         = new ImmutableList.Builder<>();
@@ -672,8 +672,7 @@ public class RdapJsonFormatter {
     jsonBuilder.put("links",
         ImmutableList.of(makeLink("entity", contactResource.getRepoId(), linkBase)));
     // If we are logged in as the owner of this contact, create the vCard.
-    if (loggedInClientId.isPresent()
-        && loggedInClientId.get().equals(contactResource.getCurrentSponsorClientId())) {
+    if (authorization.isAuthorizedForClientId(contactResource.getCurrentSponsorClientId())) {
       ImmutableList.Builder<Object> vcardBuilder = new ImmutableList.Builder<>();
       vcardBuilder.add(VCARD_ENTRY_VERSION);
       PostalInfo postalInfo = contactResource.getInternationalizedPostalInfo();

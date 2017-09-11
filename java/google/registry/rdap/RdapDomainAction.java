@@ -70,6 +70,6 @@ public class RdapDomainAction extends RdapActionBase {
         rdapWhoisServer,
         now,
         OutputDataType.FULL,
-        getLoggedInClientId());
+        getAuthorization());
   }
 }

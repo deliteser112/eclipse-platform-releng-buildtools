@@ -375,12 +375,12 @@ public class RdapDomainSearchAction extends RdapActionBase {
       List<DomainResource> domains, boolean isTruncated, DateTime now) {
     OutputDataType outputDataType =
         (domains.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
-    Optional<String> loggedInClientId = getLoggedInClientId();
+    RdapAuthorization authorization = getAuthorization();
     ImmutableList.Builder<ImmutableMap<String, Object>> jsonBuilder = new ImmutableList.Builder<>();
     for (DomainResource domain : domains) {
       jsonBuilder.add(
           rdapJsonFormatter.makeRdapJsonForDomain(
-              domain, false, rdapLinkBase, rdapWhoisServer, now, outputDataType, loggedInClientId));
+              domain, false, rdapLinkBase, rdapWhoisServer, now, outputDataType, authorization));
     }
     return RdapSearchResults.create(jsonBuilder.build(), isTruncated);
   }

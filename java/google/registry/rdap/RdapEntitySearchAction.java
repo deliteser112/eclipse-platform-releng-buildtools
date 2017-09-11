@@ -254,7 +254,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
     // There can be more results than our max size, partially because we have two pools to draw from
     // (contacts and registrars), and partially because we try to fetch one more than the max size,
     // so we can tell whether to display the truncation notification.
-    Optional<String> loggedInClientId = getLoggedInClientId();
+    RdapAuthorization authorization = getAuthorization();
     List<ImmutableMap<String, Object>> jsonOutputList = new ArrayList<>();
     for (ContactResource contact : contacts) {
       if (jsonOutputList.size() >= rdapResultSetMaxSize) {
@@ -270,7 +270,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
           rdapWhoisServer,
           now,
           outputDataType,
-          loggedInClientId));
+          authorization));
     }
     for (Registrar registrar : registrars) {
       if (registrar.isActiveAndPubliclyVisible()) {

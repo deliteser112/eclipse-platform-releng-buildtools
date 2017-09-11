@@ -351,6 +351,23 @@ public class RdapDomainActionTest {
   }
 
   @Test
+  public void testValidDomain_asAdministrator_works() throws Exception {
+    UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
+    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(false);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("noregistrar");
+    assertJsonEqual(
+        generateActualJson("cat.lol"),
+        generateExpectedJsonWithTopLevelEntries(
+            "cat.lol",
+            null,
+            "C-LOL",
+            ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
+            "rdap_domain.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
   public void testValidDomain_notLoggedIn_noContacts() throws Exception {
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
     assertJsonEqual(

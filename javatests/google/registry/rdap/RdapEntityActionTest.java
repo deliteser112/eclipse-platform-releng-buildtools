@@ -236,6 +236,18 @@ public class RdapEntityActionTest {
   }
 
   @Test
+  public void testValidRegistrantContact_works_asAdministrator() throws Exception {
+    UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
+    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(false);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("noregistrar");
+    assertThat(generateActualJson(registrant.getRepoId())).isEqualTo(
+        generateExpectedJsonWithTopLevelEntries(
+            registrant.getRepoId(), "rdap_associated_contact.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
   public void testValidRegistrantContact_works_notLoggedIn() throws Exception {
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
     assertThat(generateActualJson(registrant.getRepoId())).isEqualTo(

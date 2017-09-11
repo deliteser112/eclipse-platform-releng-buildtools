@@ -150,20 +150,23 @@ public abstract class RdapActionBase implements Runnable {
     }
   }
 
-  Optional<String> getLoggedInClientId() {
+  RdapAuthorization getAuthorization() {
     if (!authResult.userAuthInfo().isPresent()) {
-      return Optional.<String>absent();
+      return RdapAuthorization.PUBLIC_AUTHORIZATION;
     }
     UserAuthInfo userAuthInfo = authResult.userAuthInfo().get();
+    if (userAuthInfo.isUserAdmin()) {
+      return RdapAuthorization.ADMINISTRATOR_AUTHORIZATION;
+    }
     if (!sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)) {
-      return Optional.<String>absent();
+      return RdapAuthorization.PUBLIC_AUTHORIZATION;
     }
     String clientId = sessionUtils.getRegistrarClientId(request);
     Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
     if (!registrar.isPresent()) {
-      return Optional.<String>absent();
+      return RdapAuthorization.PUBLIC_AUTHORIZATION;
     }
-    return Optional.of(clientId);
+    return RdapAuthorization.create(RdapAuthorization.Role.REGISTRAR, clientId);
   }
 
   void validateDomainName(String name) {

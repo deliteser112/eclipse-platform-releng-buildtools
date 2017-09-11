@@ -455,17 +455,19 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
-  public void testDomainMatch_found_notLoggedIn() throws Exception {
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("evilregistrar");
+  public void testDomainMatch_found_asAdministrator() throws Exception {
+    UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
+    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(false);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("noregistrar");
     assertThat(generateActualJson(RequestType.NAME, "cat.lol"))
         .isEqualTo(
             generateExpectedJsonForDomain(
                 "cat.lol",
                 null,
                 "C-LOL",
-                null,
-                "rdap_domain_no_contacts_with_remark.json"));
+                ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
+                "rdap_domain.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
