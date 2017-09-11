@@ -67,6 +67,7 @@ public class RdapEntitySearchActionTest {
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
   private final SessionUtils sessionUtils = mock(SessionUtils.class);
   private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
+  UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
 
   private final RdapEntitySearchAction action = new RdapEntitySearchAction();
 
@@ -145,7 +146,6 @@ public class RdapEntitySearchActionTest {
     action.fnParam = Optional.absent();
     action.handleParam = Optional.absent();
     action.sessionUtils = sessionUtils;
-    UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("2-RegistrarTest");
@@ -196,7 +196,7 @@ public class RdapEntitySearchActionTest {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("entitySearchResults", ImmutableList.of(obj));
     builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
-    RdapTestHelper.addTermsOfServiceNotice(builder, "https://example.com/rdap/");
+    RdapTestHelper.addNotices(builder, "https://example.com/rdap/");
     RdapTestHelper.addNonDomainBoilerplateRemarks(builder);
     return builder.build();
   }
@@ -305,6 +305,34 @@ public class RdapEntitySearchActionTest {
                 "blinky@b.tld",
                 "\"123 Blinky St\", \"Blinkyland\"",
                 "rdap_contact.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_contactFound_notLoggedIn() throws Exception {
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
+    assertThat(generateActualJsonWithFullName("Blinky (赤ベイ)"))
+        .isEqualTo(
+            generateExpectedJsonForEntity(
+                "2-ROID",
+                "Blinky (赤ベイ)",
+                "blinky@b.tld",
+                "\"123 Blinky St\", \"Blinkyland\"",
+                "rdap_contact_no_personal_data_with_remark.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_contactFound_loggedInAsOtherRegistrar() throws Exception {
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("otherregistrar");
+    assertThat(generateActualJsonWithFullName("Blinky (赤ベイ)"))
+        .isEqualTo(
+            generateExpectedJsonForEntity(
+                "2-ROID",
+                "Blinky (赤ベイ)",
+                "blinky@b.tld",
+                "\"123 Blinky St\", \"Blinkyland\"",
+                "rdap_contact_no_personal_data_with_remark.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 

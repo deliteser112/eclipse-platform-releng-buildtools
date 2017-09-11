@@ -22,6 +22,7 @@ import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import com.google.appengine.api.NamespaceManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import google.registry.model.ofy.Ofy;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
@@ -117,17 +118,16 @@ public class RdapNameserverActionTest {
     if (obj instanceof Map) {
       @SuppressWarnings("unchecked")
       Map<String, Object> map = (Map<String, Object>) obj;
-      ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-      builder.putAll(map);
-      if (!map.containsKey("rdapConformance")) {
-        builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
-      }
-      if (!map.containsKey("notices")) {
-        RdapTestHelper.addTermsOfServiceNotice(builder, "https://example.tld/rdap/");
-      }
-      if (!map.containsKey("remarks")) {
-        RdapTestHelper.addNonDomainBoilerplateRemarks(builder);
-      }
+      ImmutableMap.Builder<String, Object> builder =
+          RdapTestHelper.getBuilderExcluding(
+              map, ImmutableSet.of("rdapConformance", "notices", "remarks"));
+      builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
+      RdapTestHelper.addNotices(
+          builder,
+          "https://example.tld/rdap/",
+          RdapTestHelper.ContactNoticeType.NONE,
+          map.get("notices"));
+      RdapTestHelper.addNonDomainBoilerplateRemarks(builder, map.get("remarks"));
       obj = builder.build();
     }
     return obj;

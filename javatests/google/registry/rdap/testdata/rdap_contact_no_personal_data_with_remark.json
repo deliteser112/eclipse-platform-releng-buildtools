@@ -1,0 +1,34 @@
+{
+  "objectClassName" : "entity",
+  "handle" : "%NAME%",
+  "status" : ["active"],
+  "links" :
+  [
+    {
+      "value" : "https://example.com/rdap/entity/%NAME%",
+      "rel" : "self",
+      "href": "https://example.com/rdap/entity/%NAME%",
+      "type" : "application/rdap+json"
+    }
+  ],
+  "events": [
+    {
+      "eventAction": "registration",
+      "eventActor": "foo",
+      "eventDate": "2000-01-01T00:00:00.000Z"
+    },
+    {
+      "eventAction": "last update of RDAP database",
+      "eventDate": "2000-01-01T00:00:00.000Z"
+    }
+  ],
+  "remarks": [
+    {
+      "title": "Contact Personal Data Hidden",
+      "description": [
+        "Contact personal data is visible only to the owning registrar."
+      ],
+      "type": "object truncated due to unexplainable reasons"
+    }
+  ]
+}

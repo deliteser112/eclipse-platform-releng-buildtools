@@ -31,6 +31,7 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.Ofy;
@@ -70,6 +71,7 @@ public class RdapEntityActionTest {
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
   private final SessionUtils sessionUtils = mock(SessionUtils.class);
   private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
+  UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
 
   private RdapEntityAction action;
 
@@ -153,7 +155,6 @@ public class RdapEntityActionTest {
     action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
     action.sessionUtils = sessionUtils;
-    UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("evilregistrar");
@@ -182,21 +183,29 @@ public class RdapEntityActionTest {
   private Object generateExpectedJsonWithTopLevelEntries(
       String handle,
       String expectedOutputFile) {
+    return generateExpectedJsonWithTopLevelEntries(handle, false, expectedOutputFile);
+  }
+
+  private Object generateExpectedJsonWithTopLevelEntries(
+      String handle,
+      boolean addNoPersonalDataRemark,
+      String expectedOutputFile) {
     Object obj = generateExpectedJson(handle, expectedOutputFile);
     if (obj instanceof Map) {
       @SuppressWarnings("unchecked")
       Map<String, Object> map = (Map<String, Object>) obj;
-      ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-      builder.putAll(map);
-      if (!map.containsKey("rdapConformance")) {
-        builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
-      }
-      if (!map.containsKey("notices")) {
-        RdapTestHelper.addTermsOfServiceNotice(builder, "https://example.com/rdap/");
-      }
-      if (!map.containsKey("remarks")) {
-        RdapTestHelper.addNonDomainBoilerplateRemarks(builder);
-      }
+      ImmutableMap.Builder<String, Object> builder =
+          RdapTestHelper.getBuilderExcluding(
+              map, ImmutableSet.of("rdapConformance", "notices", "remarks"));
+      builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
+      RdapTestHelper.addNotices(
+          builder,
+          "https://example.com/rdap/",
+          addNoPersonalDataRemark
+              ? RdapTestHelper.ContactNoticeType.CONTACT
+              : RdapTestHelper.ContactNoticeType.NONE,
+          map.get("notices"));
+      RdapTestHelper.addNonDomainBoilerplateRemarks(builder, map.get("remarks"));
       obj = builder.build();
     }
     return obj;
@@ -223,6 +232,24 @@ public class RdapEntityActionTest {
     assertThat(generateActualJson(registrant.getRepoId())).isEqualTo(
         generateExpectedJsonWithTopLevelEntries(
             registrant.getRepoId(), "rdap_associated_contact.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testValidRegistrantContact_works_notLoggedIn() throws Exception {
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
+    assertThat(generateActualJson(registrant.getRepoId())).isEqualTo(
+        generateExpectedJsonWithTopLevelEntries(
+            registrant.getRepoId(), true, "rdap_associated_contact_no_personal_data.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testValidRegistrantContact_works_loggedInAsOtherRegistrar() throws Exception {
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("otherregistrar");
+    assertThat(generateActualJson(registrant.getRepoId())).isEqualTo(
+        generateExpectedJsonWithTopLevelEntries(
+            registrant.getRepoId(), true, "rdap_associated_contact_no_personal_data.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 

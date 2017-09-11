@@ -17,16 +17,68 @@ package google.registry.rdap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.config.RdapNoticeDescriptor;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import javax.annotation.Nullable;
 
 public class RdapTestHelper {
 
-  static void addTermsOfServiceNotice(
+  enum ContactNoticeType {
+    NONE,
+    DOMAIN,
+    CONTACT
+  }
+
+  static ImmutableMap.Builder<String, Object> getBuilderExcluding(
+      Map<String, Object> map, Set<String> keysToExclude) {
+    ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
+    for (Entry<String, Object> entry : map.entrySet()) {
+      if (!keysToExclude.contains(entry.getKey())) {
+        builder.put(entry);
+      }
+    }
+    return builder;
+  }
+
+  static void addNotices(
       ImmutableMap.Builder<String, Object> builder, String linkBase) {
-    builder.put("notices",
-        ImmutableList.of(
-            ImmutableMap.of(
-                "title", "RDAP Terms of Service",
-                "description", ImmutableList.of(
+    addNotices(builder, linkBase, ContactNoticeType.NONE, null);
+  }
+
+  static void addNotices(
+      ImmutableMap.Builder<String, Object> builder,
+      String linkBase,
+      ContactNoticeType contactNoticeType,
+      @Nullable Object otherNotices) {
+    ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder =
+        getBuilderWithOthersAdded(otherNotices);
+    switch (contactNoticeType) {
+      case DOMAIN:
+        noticesBuilder.add(
+            ImmutableMap.<String, Object>of(
+                "title", "Contacts Hidden",
+                "description",
+                    ImmutableList.of("Domain contacts are visible only to the owning registrar."),
+                "type", "object truncated due to unexplainable reasons"));
+        break;
+      case CONTACT:
+        noticesBuilder.add(
+            ImmutableMap.<String, Object>of(
+                "title", "Contact Personal Data Hidden",
+                "description",
+                    ImmutableList.of(
+                        "Contact personal data is visible only to the owning registrar."),
+                "type", "object truncated due to unexplainable reasons"));
+        break;
+      default:
+        break;
+    }
+    noticesBuilder.add(
+        ImmutableMap.<String, Object>of(
+            "title", "RDAP Terms of Service",
+            "description",
+                ImmutableList.of(
                     "By querying our Domain Database, you are agreeing to comply with these terms"
                         + " so please read them carefully.",
                     "Any information provided is 'as is' without any guarantee of accuracy.",
@@ -48,57 +100,97 @@ public class RdapTestHelper {
                     "We reserve the right to restrict or deny your access to the database if we"
                         + " suspect that you have failed to comply with these terms.",
                     "We reserve the right to modify this agreement at any time."),
-                "links", ImmutableList.of(
+            "links",
+                ImmutableList.of(
                     ImmutableMap.of(
                         "value", linkBase + "help/tos",
                         "rel", "alternate",
                         "href", "https://www.registry.tld/about/rdap/tos.html",
-                        "type", "text/html")))));
+                        "type", "text/html"))));
+    builder.put("notices", noticesBuilder.build());
   }
 
   static void addNonDomainBoilerplateRemarks(ImmutableMap.Builder<String, Object> builder) {
-    builder.put("remarks",
-        ImmutableList.of(
-            ImmutableMap.of(
-                "description",
-                ImmutableList.of(
-                    "This response conforms to the RDAP Operational Profile for gTLD Registries and"
-                        + " Registrars version 1.0"))));
+    addNonDomainBoilerplateRemarks(builder, null);
+  }
+
+  static void addNonDomainBoilerplateRemarks(
+      ImmutableMap.Builder<String, Object> builder, @Nullable Object otherRemarks) {
+    ImmutableList.Builder<ImmutableMap<String, Object>> remarksBuilder =
+        getBuilderWithOthersAdded(otherRemarks);
+    remarksBuilder.add(
+        ImmutableMap.<String, Object>of(
+            "description",
+            ImmutableList.of(
+                "This response conforms to the RDAP Operational Profile for gTLD Registries and"
+                    + " Registrars version 1.0")));
+    builder.put("remarks", remarksBuilder.build());
   }
 
   static void addDomainBoilerplateRemarks(ImmutableMap.Builder<String, Object> builder) {
-    builder.put("remarks",
-        ImmutableList.of(
-            ImmutableMap.of(
-                "description",
-                ImmutableList.of(
-                    "This response conforms to the RDAP Operational Profile for gTLD Registries and"
-                        + " Registrars version 1.0")),
-            ImmutableMap.of(
-                "title",
-                "EPP Status Codes",
-                "description",
-                ImmutableList.of(
-                    "For more information on domain status codes, please visit"
-                        + " https://icann.org/epp"),
-                "links",
-                ImmutableList.of(
-                    ImmutableMap.of(
-                        "value", "https://icann.org/epp",
-                        "rel", "alternate",
-                        "href", "https://icann.org/epp",
-                        "type", "text/html"))),
-            ImmutableMap.of(
-                "description",
-                ImmutableList.of(
-                    "URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf"),
-                "links",
-                ImmutableList.of(
-                    ImmutableMap.of(
-                        "value", "https://www.icann.org/wicf",
-                        "rel", "alternate",
-                        "href", "https://www.icann.org/wicf",
-                        "type", "text/html")))));
+    addDomainBoilerplateRemarks(builder, false, null);
+  }
+
+  static void addDomainBoilerplateRemarks(
+      ImmutableMap.Builder<String, Object> builder,
+      boolean addNoContactRemark,
+      @Nullable Object otherRemarks) {
+    ImmutableList.Builder<ImmutableMap<String, Object>> remarksBuilder =
+        getBuilderWithOthersAdded(otherRemarks);
+    if (addNoContactRemark) {
+      remarksBuilder.add(
+          ImmutableMap.<String, Object>of(
+              "title", "Contacts Hidden",
+              "description",
+                  ImmutableList.of("Domain contacts are visible only to the owning registrar."),
+              "type", "object truncated due to unexplainable reasons"));
+    }
+    remarksBuilder.add(
+        ImmutableMap.<String, Object>of(
+            "description",
+            ImmutableList.of(
+                "This response conforms to the RDAP Operational Profile for gTLD Registries and"
+                    + " Registrars version 1.0")));
+    remarksBuilder.add(
+        ImmutableMap.<String, Object>of(
+            "title",
+            "EPP Status Codes",
+            "description",
+            ImmutableList.of(
+                "For more information on domain status codes, please visit"
+                    + " https://icann.org/epp"),
+            "links",
+            ImmutableList.of(
+                ImmutableMap.of(
+                    "value", "https://icann.org/epp",
+                    "rel", "alternate",
+                    "href", "https://icann.org/epp",
+                    "type", "text/html"))));
+    remarksBuilder.add(
+        ImmutableMap.<String, Object>of(
+            "description",
+            ImmutableList.of(
+                "URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf"),
+            "links",
+            ImmutableList.of(
+                ImmutableMap.of(
+                    "value", "https://www.icann.org/wicf",
+                    "rel", "alternate",
+                    "href", "https://www.icann.org/wicf",
+                    "type", "text/html"))));
+    builder.put("remarks", remarksBuilder.build());
+  }
+
+  private static ImmutableList.Builder<ImmutableMap<String, Object>> getBuilderWithOthersAdded(
+      @Nullable Object others) {
+    ImmutableList.Builder<ImmutableMap<String, Object>> builder = new ImmutableList.Builder<>();
+    if ((others != null) && (others instanceof ImmutableList<?>)) {
+      @SuppressWarnings("unchecked")
+      ImmutableList<ImmutableMap<String, Object>> othersList =
+          (ImmutableList<ImmutableMap<String, Object>>) others;
+      builder.addAll(othersList);
+    }
+    return builder;
   }
 
   static RdapJsonFormatter getTestRdapJsonFormatter() {

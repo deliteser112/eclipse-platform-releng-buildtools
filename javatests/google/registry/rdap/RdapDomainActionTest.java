@@ -31,6 +31,7 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.Period;
@@ -77,6 +78,7 @@ public class RdapDomainActionTest {
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
   private final SessionUtils sessionUtils = mock(SessionUtils.class);
   private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
+  private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
 
   private RdapDomainAction action;
 
@@ -232,7 +234,6 @@ public class RdapDomainActionTest {
     action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
     action.sessionUtils = sessionUtils;
-    UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("evilregistrar");
@@ -284,17 +285,18 @@ public class RdapDomainActionTest {
     if (obj instanceof Map) {
       @SuppressWarnings("unchecked")
       Map<String, Object> map = (Map<String, Object>) obj;
-      ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-      builder.putAll(map);
-      if (!map.containsKey("rdapConformance")) {
-        builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
-      }
-      if (!map.containsKey("notices")) {
-        RdapTestHelper.addTermsOfServiceNotice(builder, "https://example.com/rdap/");
-      }
-      if (!map.containsKey("remarks")) {
-        RdapTestHelper.addDomainBoilerplateRemarks(builder);
-      }
+      ImmutableMap.Builder<String, Object> builder =
+          RdapTestHelper.getBuilderExcluding(
+              map, ImmutableSet.of("rdapConformance", "notices", "remarks"));
+      builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
+      RdapTestHelper.addNotices(
+          builder,
+          "https://example.com/rdap/",
+          (contactRoids == null)
+              ? RdapTestHelper.ContactNoticeType.DOMAIN
+              : RdapTestHelper.ContactNoticeType.NONE,
+          map.get("notices"));
+      RdapTestHelper.addDomainBoilerplateRemarks(builder, false, map.get("remarks"));
       obj = builder.build();
     }
     return obj;
@@ -345,6 +347,34 @@ public class RdapDomainActionTest {
             "C-LOL",
             ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
             "rdap_domain.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testValidDomain_notLoggedIn_noContacts() throws Exception {
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
+    assertJsonEqual(
+        generateActualJson("cat.lol"),
+        generateExpectedJsonWithTopLevelEntries(
+            "cat.lol",
+            null,
+            "C-LOL",
+            null,
+            "rdap_domain_no_contacts.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testValidDomain_loggedInAsOtherRegistrar_noContacts() throws Exception {
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("otherregistrar");
+    assertJsonEqual(
+        generateActualJson("cat.lol"),
+        generateExpectedJsonWithTopLevelEntries(
+            "cat.lol",
+            null,
+            "C-LOL",
+            null,
+            "rdap_domain_no_contacts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 

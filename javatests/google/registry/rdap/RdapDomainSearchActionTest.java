@@ -84,6 +84,7 @@ public class RdapDomainSearchActionTest {
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
   private final SessionUtils sessionUtils = mock(SessionUtils.class);
   private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
+  UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
 
   private final RdapDomainSearchAction action = new RdapDomainSearchAction();
 
@@ -333,7 +334,6 @@ public class RdapDomainSearchActionTest {
     action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
     action.sessionUtils = sessionUtils;
-    UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("evilregistrar");
@@ -381,7 +381,7 @@ public class RdapDomainSearchActionTest {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("domainSearchResults", ImmutableList.of(obj));
     builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
-    RdapTestHelper.addTermsOfServiceNotice(builder, "https://example.com/rdap/");
+    RdapTestHelper.addNotices(builder, "https://example.com/rdap/");
     RdapTestHelper.addDomainBoilerplateRemarks(builder);
     return builder.build();
   }
@@ -451,6 +451,35 @@ public class RdapDomainSearchActionTest {
                 "C-LOL",
                 ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
                 "rdap_domain.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testDomainMatch_found_notLoggedIn() throws Exception {
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("evilregistrar");
+    assertThat(generateActualJson(RequestType.NAME, "cat.lol"))
+        .isEqualTo(
+            generateExpectedJsonForDomain(
+                "cat.lol",
+                null,
+                "C-LOL",
+                null,
+                "rdap_domain_no_contacts_with_remark.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testDomainMatch_found_loggedInAsOtherRegistrar() throws Exception {
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("otherregistrar");
+    assertThat(generateActualJson(RequestType.NAME, "cat.lol"))
+        .isEqualTo(
+            generateExpectedJsonForDomain(
+                "cat.lol",
+                null,
+                "C-LOL",
+                null,
+                "rdap_domain_no_contacts_with_remark.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 

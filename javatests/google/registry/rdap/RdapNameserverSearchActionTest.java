@@ -190,7 +190,7 @@ public class RdapNameserverSearchActionTest {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("nameserverSearchResults", ImmutableList.of(obj));
     builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
-    RdapTestHelper.addTermsOfServiceNotice(builder, "https://example.tld/rdap/");
+    RdapTestHelper.addNotices(builder, "https://example.tld/rdap/");
     RdapTestHelper.addNonDomainBoilerplateRemarks(builder);
     return builder.build();
   }
