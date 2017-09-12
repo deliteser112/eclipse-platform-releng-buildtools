@@ -15,7 +15,6 @@
 package google.registry.dns.writer.clouddns;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 
 import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo;
@@ -33,6 +32,7 @@ import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.net.InternetDomainName;
 import com.google.common.util.concurrent.RateLimiter;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.dns.writer.BaseDnsWriter;
 import google.registry.dns.writer.DnsWriter;
 import google.registry.dns.writer.DnsWriterZone;
 import google.registry.model.domain.DomainResource;
@@ -59,7 +59,7 @@ import org.joda.time.Duration;
  *
  * @see <a href="https://cloud.google.com/dns/docs/">Google Cloud DNS Documentation</a>
  */
-public class CloudDnsWriter implements DnsWriter {
+public class CloudDnsWriter extends BaseDnsWriter {
 
   /**
    * The name of the pricing engine, as used in {@code Registry.dnsWriter}. Remember to change
@@ -84,8 +84,6 @@ public class CloudDnsWriter implements DnsWriter {
   private final Dns dnsConnection;
   private final ImmutableMap.Builder<String, ImmutableSet<ResourceRecordSet>>
       desiredRecordsBuilder = new ImmutableMap.Builder<>();
-
-  private boolean committed = false;
 
   @Inject
   CloudDnsWriter(
@@ -273,15 +271,9 @@ public class CloudDnsWriter implements DnsWriter {
    * representation built via this writer.
    */
   @Override
-  public void commit() {
-    checkState(!committed, "commit() has already been called");
-    committed = true;
-    commit(desiredRecordsBuilder.build());
-  }
-
-  @VisibleForTesting
-  void commit(ImmutableMap<String, ImmutableSet<ResourceRecordSet>> desiredRecords) {
-    retrier.callWithRetry(getMutateZoneCallback(desiredRecords), ZoneStateException.class);
+  protected void commitUnchecked() {
+    retrier.callWithRetry(
+        getMutateZoneCallback(desiredRecordsBuilder.build()), ZoneStateException.class);
     logger.info("Wrote to Cloud DNS");
   }
 

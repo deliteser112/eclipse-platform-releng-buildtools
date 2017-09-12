@@ -14,7 +14,6 @@
 
 package google.registry.dns.writer.dnsupdate;
 
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Sets.intersection;
 import static com.google.common.collect.Sets.union;
@@ -26,7 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.dns.writer.DnsWriter;
+import google.registry.dns.writer.BaseDnsWriter;
 import google.registry.dns.writer.DnsWriterZone;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.secdns.DelegationSignerData;
@@ -76,7 +75,7 @@ import org.xbill.DNS.Update;
  * message, as required by RFC 2136. Care must be taken to make sure the SOA serial number does not
  * go backwards if the entire TLD (zone) is "reset" to empty and republished.
  */
-public class DnsUpdateWriter implements DnsWriter {
+public class DnsUpdateWriter extends BaseDnsWriter {
 
   /**
    * The name of the pricing engine, as used in {@code Registry.dnsWriter}. Remember to change
@@ -92,12 +91,12 @@ public class DnsUpdateWriter implements DnsWriter {
   private final Update update;
   private final String zoneName;
 
-  private boolean committed = false;
-
   /**
    * Class constructor.
    *
-   * @param dnsTimeToLive TTL used for any created resource records
+   * @param dnsDefaultATtl TTL used for any created resource records
+   * @param dnsDefaultNsTtl TTL used for any created nameserver records
+   * @param dnsDefaultDsTtl TTL used for any created DS records
    * @param transport the transport used to send/receive the UPDATE messages
    * @param clock a source of time
    */
@@ -168,10 +167,7 @@ public class DnsUpdateWriter implements DnsWriter {
   }
 
   @Override
-  public void commit() {
-    checkState(!committed, "commit() has already been called");
-    committed = true;
-
+  protected void commitUnchecked() {
     try {
       Message response = transport.send(update);
       verify(

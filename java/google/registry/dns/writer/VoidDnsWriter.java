@@ -14,8 +14,6 @@
 
 package google.registry.dns.writer;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import com.google.common.base.Joiner;
 import java.util.HashSet;
 import java.util.Set;
@@ -27,7 +25,7 @@ import javax.inject.Inject;
  *
  * <p>All this class does is write its displeasure to the logs.
  */
-public final class VoidDnsWriter implements DnsWriter {
+public final class VoidDnsWriter extends BaseDnsWriter {
 
   /**
    * The name of the pricing engine, as used in {@code Registry.dnsWriter}. Remember to change
@@ -36,8 +34,6 @@ public final class VoidDnsWriter implements DnsWriter {
   public static final String NAME = "VoidDnsWriter";
 
   private static final Logger logger = Logger.getLogger(VoidDnsWriter.class.getName());
-
-  private boolean committed = false;
 
   private final Set<String> names = new HashSet<>();
 
@@ -55,10 +51,7 @@ public final class VoidDnsWriter implements DnsWriter {
   }
 
   @Override
-  public void commit() {
-    checkState(!committed, "commit() has already been called");
-    committed = true;
-
+  protected void commitUnchecked() {
     logger.warning("Ignoring DNS zone updates! No DnsWriterFactory implementation specified!\n"
         + Joiner.on('\n').join(names));
   }
