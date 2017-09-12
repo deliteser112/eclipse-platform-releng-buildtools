@@ -2,7 +2,7 @@ workspace(name = "domain_registry")
 
 http_archive(
     name = "io_bazel_rules_closure",
-    sha256 = "286e9169d478c4549199e862d63b24aa8530e0fe1c1fd44524d307f3a56b0fa0",
+    sha256 = "9bb1d216b6067ef7b376eb2d81f3f309c665d4a9e01542c45dbe46dde4132727",
     strip_prefix = "rules_closure-c8e68361db0875f6fabb23abed16f1cebbb8b5d5",
     urls = [
         "http://mirror.bazel.build/github.com/bazelbuild/rules_closure/archive/c8e68361db0875f6fabb23abed16f1cebbb8b5d5.tar.gz", # 2017-08-08
