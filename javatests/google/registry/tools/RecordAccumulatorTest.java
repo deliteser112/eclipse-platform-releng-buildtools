@@ -15,18 +15,11 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.tools.LevelDbLogReader.BLOCK_SIZE;
 
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.EntityTranslator;
-import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
-import com.google.storage.onestore.v3.OnestoreEntity.EntityProto;
 import google.registry.testing.AppEngineRule;
-import google.registry.tools.LevelDbLogReader.ChunkType;
+import google.registry.tools.LevelDbFileBuilder.Property;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,7 +31,6 @@ import org.junit.runners.JUnit4;
 public class RecordAccumulatorTest {
 
   private static final int BASE_ID = 1001;
-  private static final String TEST_ENTITY_KIND = "TestEntity";
 
   @Rule public final TemporaryFolder tempFs = new TemporaryFolder();
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
@@ -84,57 +76,5 @@ public class RecordAccumulatorTest {
     ImmutableSet<ComparableEntity> entities =
         new RecordAccumulator().readDirectory(subdir).getComparableEntitySet();
     assertThat(entities).containsExactly(e1, e2, e3);
-  }
-
-  /** Utility class for building a leveldb logfile. */
-  private static final class LevelDbFileBuilder {
-    private final FileOutputStream out;
-    private byte[] currentBlock = new byte[BLOCK_SIZE];
-
-    // Write position in the current block.
-    private int currentPos = 0;
-
-    LevelDbFileBuilder(File file) throws FileNotFoundException {
-      out = new FileOutputStream(file);
-    }
-
-    /**
-     * Adds a record containing a new entity protobuf to the file.
-     *
-     * <p>Returns the ComparableEntity object rather than "this" so that we can check for the
-     * presence of the entity in the result set.
-     */
-    private ComparableEntity addEntityProto(int id, Property... properties) throws IOException {
-      Entity entity = new Entity(TEST_ENTITY_KIND, id);
-      for (Property prop : properties) {
-        entity.setProperty(prop.name(), prop.value());
-      }
-      EntityProto proto = EntityTranslator.convertToPb(entity);
-      byte[] protoBytes = proto.toByteArray();
-      if (protoBytes.length > BLOCK_SIZE - currentPos) {
-        out.write(currentBlock);
-        currentBlock = new byte[BLOCK_SIZE];
-      }
-
-      currentPos = LevelDbUtil.addRecord(currentBlock, currentPos, ChunkType.FULL, protoBytes);
-      return new ComparableEntity(entity);
-    }
-
-    /** Writes all remaining data and closes the block. */
-    void build() throws IOException {
-      out.write(currentBlock);
-      out.close();
-    }
-  }
-
-  @AutoValue
-  abstract static class Property {
-    static Property create(String name, Object value) {
-      return new AutoValue_RecordAccumulatorTest_Property(name, value);
-    }
-
-    abstract String name();
-
-    abstract Object value();
   }
 }

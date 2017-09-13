@@ -13,6 +13,7 @@ package_group(
         "//java/google/registry/eclipse",
         "//java/google/registry/testing",
         "//java/google/registry/tools",
+        "//javatests/google/registry/testing",
         "//javatests/google/registry/tools",
     ],
 )
@@ -98,5 +99,20 @@ java_binary(
         ":tools",
         "@com_google_appengine_api_1_0_sdk//:link",
         "@com_google_appengine_remote_api//:link",
+    ],
+)
+
+java_binary(
+    name = "compare_db_backups",
+    srcs = [
+        "CompareDbBackups.java",
+    ],
+    create_executable = 1,
+    main_class = "google.registry.tools.CompareDbBackups",
+    deps = [
+        ":tools",
+        "@com_google_appengine_api_1_0_sdk",
+        "@com_google_guava",
+        "@com_google_protobuf_java",
     ],
 )
