@@ -72,6 +72,12 @@
     <url-pattern>/_dr/task/resaveAllEppResources</url-pattern>
   </servlet-mapping>
 
+  <!--  Mapreduce to re-save all HistoryEntries. -->
+  <servlet-mapping>
+    <servlet-name>tools-servlet</servlet-name>
+    <url-pattern>/_dr/task/resaveAllHistoryEntries</url-pattern>
+  </servlet-mapping>
+
   <!-- Mapreduce to delete EppResources, children, and indices. -->
   <servlet-mapping>
     <servlet-name>tools-servlet</servlet-name>

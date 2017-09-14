@@ -45,6 +45,7 @@ import google.registry.tools.server.ListTldsAction;
 import google.registry.tools.server.PollMapreduceAction;
 import google.registry.tools.server.RefreshDnsForAllDomainsAction;
 import google.registry.tools.server.ResaveAllEppResourcesAction;
+import google.registry.tools.server.ResaveAllHistoryEntriesAction;
 import google.registry.tools.server.ToolsServerModule;
 import google.registry.tools.server.UpdatePremiumListAction;
 import google.registry.tools.server.VerifyOteAction;
@@ -82,6 +83,7 @@ interface ToolsRequestComponent {
   PublishDetailReportAction publishDetailReportAction();
   RefreshDnsForAllDomainsAction refreshDnsForAllDomainsAction();
   ResaveAllEppResourcesAction resaveAllEppResourcesAction();
+  ResaveAllHistoryEntriesAction resaveAllHistoryEntriesAction();
   RestoreCommitLogsAction restoreCommitLogsAction();
   UpdatePremiumListAction updatePremiumListAction();
   VerifyOteAction verifyOteAction();
