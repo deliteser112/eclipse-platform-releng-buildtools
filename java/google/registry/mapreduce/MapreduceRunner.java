@@ -14,8 +14,8 @@
 
 package google.registry.mapreduce;
 
-import static com.google.appengine.api.search.checkers.Preconditions.checkNotNull;
 import static com.google.appengine.tools.pipeline.PipelineServiceFactory.newPipelineService;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.appengine.tools.mapreduce.Input;
