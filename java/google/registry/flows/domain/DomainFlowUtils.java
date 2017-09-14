@@ -37,7 +37,6 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;
-import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
@@ -111,7 +110,6 @@ import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.tmch.ClaimsListShard;
-import google.registry.util.FormattingLogger;
 import google.registry.util.Idn;
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -126,8 +124,6 @@ import org.joda.time.Duration;
 
 /** Static utility functions for domain flows. */
 public class DomainFlowUtils {
-
-  private static final FormattingLogger logger = getLoggerForCallerClass();
 
   /** Map from launch phases to the equivalent tld states. */
   private static final ImmutableMap<LaunchPhase, TldState> LAUNCH_PHASE_TO_TLD_STATE =
@@ -521,16 +517,7 @@ public class DomainFlowUtils {
     }
 
     Recurring recurring = ofy().load().key(domain.getAutorenewBillingEvent()).now();
-    // TODO(b/27472322): Revert handling of recurring being null once bad data is cleaned from prod.
-    // It shouldn't ever actually be null, and we only have some null data left because of issues
-    // dating back to the Registry 2.0 migration.
-    if (recurring == null) {
-      logger.warningfmt(
-          "Domain name %s has null autorenew billing event; ignoring. Domain key: %s.",
-          domain.getFullyQualifiedDomainName(), Key.create(domain));
-    } else {
-      ofy().save().entity(recurring.asBuilder().setRecurrenceEndTime(newEndTime).build());
-    }
+    ofy().save().entity(recurring.asBuilder().setRecurrenceEndTime(newEndTime).build());
   }
 
   /**

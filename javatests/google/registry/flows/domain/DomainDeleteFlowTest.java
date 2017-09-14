@@ -511,20 +511,6 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     assertThat(domain.getTransferData()).isEqualTo(TransferData.EMPTY);
   }
 
-  //TODO(b/27472322): Delete test handling recurring being null once bad data is cleaned from prod.
-  @Test
-  public void testSuccess_nullAutorenewBillingEvent_isIgnore() throws Exception {
-    setClientIdForFlow("TheRegistrar");
-    setUpSuccessfulTest();
-    ofy().deleteWithoutBackup().key(domain.getAutorenewBillingEvent()).now();
-    ofy().clearSessionCache();
-    clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_delete_response_pending.xml"));
-    // If the previous statement doesn't throw an error, then the test is successful.
-    assertThat(ofy().load().key(reloadResourceByForeignKey().getAutorenewBillingEvent()).now())
-        .isNull();
-  }
-
   @Test
   public void testSuccess_pendingTransfer() throws Exception {
     setClientIdForFlow("TheRegistrar");
