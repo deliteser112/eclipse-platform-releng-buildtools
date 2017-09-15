@@ -83,16 +83,26 @@
     <target>backend</target>
   </cron>
 
-  <!-- TODO(b/23319222): Re-enable when fixed.
   <cron>
-    <url><![CDATA[/_dr/cron/commitLogFanout?queue=delete-commits&endpoint=/_dr/task/deleteOldCommitLogs&jitterSeconds=600]]></url>
+    <url><![CDATA[/_dr/task/resaveAllEppResources]]></url>
     <description>
-      This job deletes commit logs from Datastore that are old, e.g. thirty days.
+      This job resaves all our resources, projected in time to "now".
+      It is needed for "deleteOldCommitLogs" to work correctly.
     </description>
-    <schedule>every 20 minutes synchronized</schedule>
+    <schedule>1st monday of month 09:00</schedule>
+    <target>tools</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/task/deleteOldCommitLogs]]></url>
+    <description>
+      This job deletes unreferenced commit logs from Datastore that are older than thirty days.
+      Since references are only updated on save, if we want to delete "unneeded" commit logs, we
+      also need "resaveAllEppResources" to run periodically.
+    </description>
+    <schedule>3rd monday of month 09:00</schedule>
     <target>backend</target>
   </cron>
-  -->
 
   <!-- TODO: Add borgmon job to check that these files are created and updated successfully. -->
   <cron>
