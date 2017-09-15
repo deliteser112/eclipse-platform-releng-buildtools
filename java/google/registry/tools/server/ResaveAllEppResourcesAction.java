@@ -16,6 +16,7 @@ package google.registry.tools.server;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PipelineUtils.createJobPath;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
@@ -28,13 +29,15 @@ import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /**
- * A mapreduce that re-saves all EppResources without otherwise modifying them.
+ * A mapreduce that re-saves all EppResources, projecting them forward to the current time.
  *
  * <p>This is useful for completing data migrations on EppResource fields that are accomplished
  * with @OnSave or @OnLoad annotations, and also guarantees that all EppResources will get fresh
- * commit logs (for backup purposes).
+ * commit logs (for backup purposes). Additionally, pending actions such as transfers or grace
+ * periods that are past their effective time will be resolved.
  *
  * <p>Because there are no auth settings in the {@link Action} annotation, this command can only be
  * run internally, or by pretending to be internal by setting the X-AppEngine-QueueName header,
@@ -50,7 +53,6 @@ public class ResaveAllEppResourcesAction implements Runnable {
   @Inject Response response;
   @Inject ResaveAllEppResourcesAction() {}
 
-  @SuppressWarnings("unchecked")
   @Override
   public void run() {
     response.sendJavaScriptRedirect(createJobPath(mrRunner
@@ -73,7 +75,9 @@ public class ResaveAllEppResourcesAction implements Runnable {
       ofy().transact(new VoidWork() {
         @Override
         public void vrun() {
-          ofy().save().entity(ofy().load().key(resourceKey).now()).now();
+          EppResource projectedResource =
+              ofy().load().key(resourceKey).now().cloneProjectedAtTime(DateTime.now(UTC));
+          ofy().save().entity(projectedResource).now();
         }});
       getContext().incrementCounter(String.format("%s entities re-saved", resourceKey.getKind()));
     }

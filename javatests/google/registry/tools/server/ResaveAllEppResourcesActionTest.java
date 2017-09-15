@@ -17,8 +17,11 @@ package google.registry.tools.server;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistContactWithPendingTransfer;
+import static org.joda.time.DateTimeZone.UTC;
 
 import google.registry.model.contact.ContactResource;
+import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
 import org.joda.time.DateTime;
@@ -54,5 +57,26 @@ public class ResaveAllEppResourcesActionTest
     runMapreduce();
     assertThat(ofy().load().entity(contact).now().getUpdateAutoTimestamp().getTimestamp())
         .isGreaterThan(creationTime);
+  }
+
+  @Test
+  public void test_mapreduceResolvesPendingTransfer() throws Exception {
+    DateTime now = DateTime.now(UTC);
+    // Set up a contact with a transfer that implicitly completed five days ago.
+    ContactResource contact =
+        persistContactWithPendingTransfer(
+            persistActiveContact("meh789"),
+            now.minusDays(10),
+            now.minusDays(10),
+            now.minusDays(10));
+    assertThat(contact.getTransferData().getTransferStatus()).isEqualTo(TransferStatus.PENDING);
+    runMapreduce();
+
+    ofy().clearSessionCache();
+    // The transfer should be effective after the contact is re-saved, as it should've been
+    // projected to the current time.
+    ContactResource resavedContact = ofy().load().entity(contact).now();
+    assertThat(resavedContact.getTransferData().getTransferStatus())
+        .isEqualTo(TransferStatus.SERVER_APPROVED);
   }
 }
