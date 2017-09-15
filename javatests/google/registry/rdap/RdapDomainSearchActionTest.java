@@ -631,7 +631,7 @@ public class RdapDomainSearchActionTest {
       String hostName = String.format("ns%d.%s", i, mainDomainName);
       subordinateHostsBuilder.add(hostName);
       HostResource host = makeAndPersistHostResource(
-          hostName, String.format("5.5.5.%d", i), clock.nowUtc().minusYears(1));
+          hostName, String.format("5.5.%d.%d", 5 + i / 250, i % 250), clock.nowUtc().minusYears(1));
       hostKeysBuilder.add(Key.create(host));
     }
     ImmutableSet<Key<HostResource>> hostKeys = hostKeysBuilder.build();
@@ -1063,6 +1063,23 @@ public class RdapDomainSearchActionTest {
             "B7-LOL",
             "domain4.lol",
             "B8-LOL"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameserverMatch_incompleteResultsSet() throws Exception {
+    createManyDomainsAndHosts(2, 1, 2500);
+    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns*.domain1.lol"))
+        .isEqualTo(readMultiDomainFile(
+            "rdap_incomplete_domains.json",
+            "domain1.lol",
+            "41-LOL",
+            "domain2.lol",
+            "42-LOL",
+            "domain3.lol",
+            "43-LOL",
+            "domain4.lol",
+            "44-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 

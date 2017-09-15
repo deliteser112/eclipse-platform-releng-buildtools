@@ -16,7 +16,6 @@ package google.registry.rdap;
 
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.rdap.RdapIcannStandardInformation.TRUNCATION_NOTICES;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -32,6 +31,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
+import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
@@ -119,8 +119,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     rdapJsonFormatter.addTopLevelEntries(
         jsonBuilder,
         BoilerplateType.NAMESERVER,
-        results.isTruncated()
-            ? TRUNCATION_NOTICES : ImmutableList.<ImmutableMap<String, Object>>of(),
+        results.getIncompletenessWarnings(),
         ImmutableList.<ImmutableMap<String, Object>>of(),
         rdapLinkBase);
     return jsonBuilder.build();
@@ -215,6 +214,10 @@ public class RdapNameserverSearchAction extends RdapActionBase {
               host, false, rdapLinkBase, rdapWhoisServer, now, outputDataType));
     }
     ImmutableList<ImmutableMap<String, Object>> jsonList = jsonListBuilder.build();
-    return RdapSearchResults.create(jsonList, jsonList.size() < hosts.size());
+    return RdapSearchResults.create(
+        jsonList,
+        (jsonList.size() < hosts.size())
+            ? IncompletenessWarningType.TRUNCATED
+            : IncompletenessWarningType.NONE);
   }
 }

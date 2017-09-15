@@ -105,6 +105,24 @@ public class RdapIcannStandardInformation {
   static final ImmutableList<ImmutableMap<String, Object>> TRUNCATION_NOTICES =
       ImmutableList.of(TRUNCATED_RESULT_SET_NOTICE);
 
+  /**
+   * Used when a search for domains by nameserver may have returned incomplete information because
+   * there were too many nameservers in the first stage results.
+   */
+  static final ImmutableMap<String, Object> POSSIBLY_INCOMPLETE_RESULT_SET_NOTICE =
+      ImmutableMap.<String, Object>of(
+          "title",
+          "Search Policy",
+          "description",
+          ImmutableList.of(
+              "Search results may contain incomplete information due to first-stage query limits."),
+          "type",
+          "result set truncated due to unexplainable reasons");
+
+  /** Possibly incomplete notice as a singleton list, for easy use. */
+  static final ImmutableList<ImmutableMap<String, Object>> POSSIBLY_INCOMPLETE_NOTICES =
+      ImmutableList.of(POSSIBLY_INCOMPLETE_RESULT_SET_NOTICE);
+
   /** Included when the requester is not logged in as the owner of the domain being returned. */
   static final ImmutableMap<String, Object> DOMAIN_CONTACTS_HIDDEN_DATA_REMARK =
       ImmutableMap.<String, Object> of(

@@ -15,7 +15,6 @@
 package google.registry.rdap;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.rdap.RdapIcannStandardInformation.TRUNCATION_NOTICES;
 import static google.registry.rdap.RdapUtils.getRegistrarByIanaIdentifier;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
@@ -35,6 +34,7 @@ import google.registry.model.domain.DesignatedContact;
 import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
+import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
@@ -113,8 +113,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
     rdapJsonFormatter.addTopLevelEntries(
         jsonBuilder,
         BoilerplateType.ENTITY,
-        results.isTruncated()
-            ? TRUNCATION_NOTICES : ImmutableList.<ImmutableMap<String, Object>>of(),
+        results.getIncompletenessWarnings(),
         ImmutableList.<ImmutableMap<String, Object>>of(),
         rdapLinkBase);
     return jsonBuilder.build();
@@ -258,7 +257,8 @@ public class RdapEntitySearchAction extends RdapActionBase {
     List<ImmutableMap<String, Object>> jsonOutputList = new ArrayList<>();
     for (ContactResource contact : contacts) {
       if (jsonOutputList.size() >= rdapResultSetMaxSize) {
-        return RdapSearchResults.create(ImmutableList.copyOf(jsonOutputList), true);
+        return RdapSearchResults.create(
+            ImmutableList.copyOf(jsonOutputList), IncompletenessWarningType.TRUNCATED);
       }
       // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
       // they are global, and might have different roles for different domains.
@@ -275,7 +275,8 @@ public class RdapEntitySearchAction extends RdapActionBase {
     for (Registrar registrar : registrars) {
       if (registrar.isActiveAndPubliclyVisible()) {
         if (jsonOutputList.size() >= rdapResultSetMaxSize) {
-          return RdapSearchResults.create(ImmutableList.copyOf(jsonOutputList), true);
+          return RdapSearchResults.create(
+              ImmutableList.copyOf(jsonOutputList), IncompletenessWarningType.TRUNCATED);
         }
         jsonOutputList.add(rdapJsonFormatter.makeRdapJsonForRegistrar(
             registrar, false, rdapLinkBase, rdapWhoisServer, now, outputDataType));

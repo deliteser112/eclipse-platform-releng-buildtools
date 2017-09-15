@@ -17,7 +17,6 @@ package google.registry.rdap;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.rdap.RdapIcannStandardInformation.TRUNCATION_NOTICES;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -36,6 +35,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
+import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
@@ -72,6 +72,8 @@ public class RdapDomainSearchAction extends RdapActionBase {
   public static final String PATH = "/rdap/domains";
 
   public static final int RESULT_SET_SIZE_SCALING_FACTOR = 30;
+
+  public static final int MAX_NAMESERVERS_IN_FIRST_STAGE = 1000;
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -142,8 +144,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
     rdapJsonFormatter.addTopLevelEntries(
         builder,
         BoilerplateType.DOMAIN,
-        results.isTruncated()
-            ? TRUNCATION_NOTICES : ImmutableList.<ImmutableMap<String, Object>>of(),
+        results.getIncompletenessWarnings(),
         ImmutableList.<ImmutableMap<String, Object>>of(),
         rdapLinkBase);
     return builder.build();
@@ -167,7 +168,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
       ImmutableList<DomainResource> results = (domainResource == null)
           ? ImmutableList.<DomainResource>of()
           : ImmutableList.of(domainResource);
-      return makeSearchResults(results, false /* isTruncated */, now);
+      return makeSearchResults(results, now);
     // Handle queries with a wildcard and no initial string.
     } else if (partialStringQuery.getInitialString().isEmpty()) {
       if (partialStringQuery.getSuffix() == null) {
@@ -181,7 +182,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
           .filter("tld", partialStringQuery.getSuffix())
           .filter("deletionTime >", now)
           .limit(rdapResultSetMaxSize + 1);
-      return makeSearchResults(query.list(), false /* isTruncated */, now);
+      return makeSearchResults(query.list(), now);
     // Handle queries with a wildcard and an initial string.
     } else {
       if ((partialStringQuery.getSuffix() == null)
@@ -214,12 +215,13 @@ public class RdapDomainSearchAction extends RdapActionBase {
           query.limit(RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize)) {
         if (EppResourceUtils.isActive(domain, now)) {
           if (domainList.size() >= rdapResultSetMaxSize) {
-            return makeSearchResults(ImmutableList.copyOf(domainList), true /* isTruncated */, now);
+            return makeSearchResults(
+                ImmutableList.copyOf(domainList), IncompletenessWarningType.TRUNCATED, now);
           }
           domainList.add(domain);
         }
       }
-      return makeSearchResults(domainList, false /* isTruncated */, now);
+      return makeSearchResults(domainList, now);
     }
   }
 
@@ -293,10 +295,15 @@ public class RdapDomainSearchAction extends RdapActionBase {
       // pending deletes for hosts, so we can call queryUndeleted. In this case, the initial string
       // must be present, to avoid querying every host in the system. This restriction is enforced
       // by queryUndeleted().
-      // TODO (b/24463238): figure out how to limit the size of these queries effectively
       } else {
+        // Only return the first 1000 nameservers. This could result in an incomplete result set if
+        // a search asks for something like "ns*", but we need to enforce a limit in order to avoid
+        // arbitrarily long-running queries.
         return queryUndeleted(
-                HostResource.class, "fullyQualifiedHostName", partialStringQuery, 1000)
+                HostResource.class,
+                "fullyQualifiedHostName",
+                partialStringQuery,
+                MAX_NAMESERVERS_IN_FIRST_STAGE)
             .keys();
       }
     }
@@ -307,21 +314,23 @@ public class RdapDomainSearchAction extends RdapActionBase {
    *
    * <p>This is a two-step process: get a list of host references by IP address, and then look up
    * domains by host reference.
+   *
+   * <p>In theory, we could have any number of hosts using the same IP address. To make sure we get
+   * all the associated domains, we have to retrieve all of them, and use them to look up domains.
+   * This could open us up to a kind of DoS attack if huge number of hosts are defined on a single
+   * IP. To avoid this, fetch only the first 1000 nameservers. In all normal circumstances, this
+   * should be orders of magnitude more than there actually are. But it could result in us missing
+   * some domains.
    */
   private RdapSearchResults searchByNameserverIp(
       final InetAddress inetAddress, final DateTime now) {
-    // In theory, we could filter on the deletion time being in the future. But we can't do that in
-    // the query on nameserver name (because we're already using an inequality query), and it seems
-    // dangerous and confusing to filter on deletion time differently between the two queries.
-    // Find all domains that link to any of these hosts, and return information about them.
-    // TODO (b/24463238): figure out how to limit the size of these queries effectively
     return searchByNameserverRefs(
         ofy()
             .load()
             .type(HostResource.class)
             .filter("inetAddresses", inetAddress.getHostAddress())
             .filter("deletionTime", END_OF_TIME)
-            .limit(1000)
+            .limit(MAX_NAMESERVERS_IN_FIRST_STAGE)
             .keys(),
         now);
   }
@@ -329,8 +338,8 @@ public class RdapDomainSearchAction extends RdapActionBase {
   /**
    * Locates all domains which are linked to a set of host keys.
    *
-   * <p>This method is called by {@link #searchByNameserverLdhName} and
-   * {@link #searchByNameserverIp} after they assemble the relevant host keys.
+   * <p>This method is called by {@link #searchByNameserverLdhName} and {@link
+   * #searchByNameserverIp} after they assemble the relevant host keys.
    */
   private RdapSearchResults searchByNameserverRefs(
       final Iterable<Key<HostResource>> hostKeys, final DateTime now) {
@@ -340,7 +349,9 @@ public class RdapDomainSearchAction extends RdapActionBase {
     // domain), we must create a set of resulting {@link DomainResource} objects. But we use a
     // LinkedHashSet to preserve the order in which we found the domains.
     LinkedHashSet<DomainResource> domains = new LinkedHashSet<>();
+    int numHostKeysSearched = 0;
     for (List<Key<HostResource>> chunk : Iterables.partition(hostKeys, 30)) {
+      numHostKeysSearched += chunk.size();
       for (DomainResource domain : ofy().load()
           .type(DomainResource.class)
           .filter("nsHosts in", chunk)
@@ -348,23 +359,37 @@ public class RdapDomainSearchAction extends RdapActionBase {
           .limit(rdapResultSetMaxSize + 1)) {
         if (!domains.contains(domain)) {
           if (domains.size() >= rdapResultSetMaxSize) {
-            return makeSearchResults(ImmutableList.copyOf(domains), true /* isTruncated */, now);
+            return makeSearchResults(
+                ImmutableList.copyOf(domains), IncompletenessWarningType.TRUNCATED, now);
           }
           domains.add(domain);
         }
       }
     }
-    return makeSearchResults(ImmutableList.copyOf(domains), false /* isTruncated */, now);
+    return makeSearchResults(
+        ImmutableList.copyOf(domains),
+        (numHostKeysSearched >= MAX_NAMESERVERS_IN_FIRST_STAGE)
+            ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
+            : IncompletenessWarningType.NONE,
+        now);
+  }
+
+  /** Output JSON for a list of domains, with no incompleteness warnings. */
+  private RdapSearchResults makeSearchResults(List<DomainResource> domains, DateTime now) {
+    return makeSearchResults(domains, IncompletenessWarningType.NONE, now);
   }
 
   /**
    * Output JSON for a list of domains.
    *
-   * <p>The isTruncated parameter should be true if the search found more results than are in the
-   * list, meaning that the truncation notice should be added.
+   * <p>The incompletenessWarningType should be set to TRUNCATED if the search found more results
+   * than are in the list, or MIGHT_BE_INCOMPLETE if a search for domains by nameserver returned the
+   * maximum number of nameservers in the first stage query.
    */
   private RdapSearchResults makeSearchResults(
-      List<DomainResource> domains, boolean isTruncated, DateTime now) {
+      List<DomainResource> domains,
+      IncompletenessWarningType incompletenessWarningType,
+      DateTime now) {
     OutputDataType outputDataType =
         (domains.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
     RdapAuthorization authorization = getAuthorization();
@@ -374,6 +399,6 @@ public class RdapDomainSearchAction extends RdapActionBase {
           rdapJsonFormatter.makeRdapJsonForDomain(
               domain, false, rdapLinkBase, rdapWhoisServer, now, outputDataType, authorization));
     }
-    return RdapSearchResults.create(jsonBuilder.build(), isTruncated);
+    return RdapSearchResults.create(jsonBuilder.build(), incompletenessWarningType);
   }
 }
