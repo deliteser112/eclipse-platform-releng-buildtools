@@ -111,7 +111,7 @@
       It is needed for "deleteOldCommitLogs" to work correctly.
     </description>
     <schedule>1st monday of month 09:00</schedule>
-    <target>tools</target>
+    <target>backend</target>
   </cron>
 
   <cron>

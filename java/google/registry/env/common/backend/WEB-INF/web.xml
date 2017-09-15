@@ -256,6 +256,12 @@
     <url-pattern>/_dr/task/deleteProberData</url-pattern>
   </servlet-mapping>
 
+  <!--  Mapreduce to re-save all EppResources. -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/resaveAllEppResources</url-pattern>
+  </servlet-mapping>
+
   <!--
     Deletes contacts and hosts enqueued for asynchronous deletion if they are
     not referenced by any domain.

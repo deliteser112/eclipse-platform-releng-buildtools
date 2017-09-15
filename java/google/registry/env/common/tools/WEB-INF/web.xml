@@ -66,12 +66,6 @@
     <url-pattern>/_dr/epptool</url-pattern>
   </servlet-mapping>
 
-  <!--  Mapreduce to re-save all EppResources. -->
-  <servlet-mapping>
-    <servlet-name>tools-servlet</servlet-name>
-    <url-pattern>/_dr/task/resaveAllEppResources</url-pattern>
-  </servlet-mapping>
-
   <!--  Mapreduce to re-save all HistoryEntries. -->
   <servlet-mapping>
     <servlet-name>tools-servlet</servlet-name>
