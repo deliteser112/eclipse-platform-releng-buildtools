@@ -239,10 +239,13 @@ public class RdapNameserverSearchActionTest {
   }
 
   @Test
-  public void testNonexistentDomainSuffix_notFound() throws Exception {
+  public void testNonexistentDomainSuffix_unprocessable() throws Exception {
     assertThat(generateActualJsonWithName("exam*.foo.bar"))
-        .isEqualTo(generateExpectedJson("No nameservers found", "rdap_error_404.json"));
-    assertThat(response.getStatus()).isEqualTo(404);
+        .isEqualTo(
+            generateExpectedJson(
+                "A suffix after a wildcard in a nameserver lookup must be an in-bailiwick domain",
+                "rdap_error_422.json"));
+    assertThat(response.getStatus()).isEqualTo(422);
   }
 
   @Test

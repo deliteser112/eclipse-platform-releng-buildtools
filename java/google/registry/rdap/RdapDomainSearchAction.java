@@ -261,51 +261,43 @@ public class RdapDomainSearchAction extends RdapActionBase {
       }
     // Handle queries with a wildcard.
     } else {
-      // If there is a suffix, it must be a domain. If it happens to be a domain that we manage,
-      // we can look up the domain and look through the subordinate hosts. This is more efficient,
-      // and lets us permit wildcard searches with no initial string.
+      // If there is a suffix, it must be a domain that we manage. That way, we can look up the
+      // domain and search through the subordinate hosts. This is more efficient, and lets us permit
+      // wildcard searches with no initial string.
       if (partialStringQuery.getSuffix() != null) {
         DomainResource domainResource = loadByForeignKey(
             DomainResource.class, partialStringQuery.getSuffix(), now);
-        if (domainResource != null) {
-          ImmutableList.Builder<Key<HostResource>> builder = new ImmutableList.Builder<>();
-          for (String fqhn : ImmutableSortedSet.copyOf(domainResource.getSubordinateHosts())) {
-            // We can't just check that the host name starts with the initial query string, because
-            // then the query ns.exam*.example.com would match against nameserver ns.example.com.
-            if (partialStringQuery.matches(fqhn)) {
-              Key<HostResource> hostKey = loadAndGetKey(HostResource.class, fqhn, now);
-              if (hostKey != null) {
-                builder.add(hostKey);
-              } else {
-                logger.warningfmt("Host key unexpectedly null");
-              }
+        if (domainResource == null) {
+          // Don't allow wildcards with suffixes which are not domains we manage. That would risk a
+          // table scan in some easily foreseeable cases.
+          throw new UnprocessableEntityException(
+              "A suffix in a lookup by nameserver name must be an in-bailiwick domain");
+        }
+        ImmutableList.Builder<Key<HostResource>> builder = new ImmutableList.Builder<>();
+        for (String fqhn : ImmutableSortedSet.copyOf(domainResource.getSubordinateHosts())) {
+          // We can't just check that the host name starts with the initial query string, because
+          // then the query ns.exam*.example.com would match against nameserver ns.example.com.
+          if (partialStringQuery.matches(fqhn)) {
+            Key<HostResource> hostKey = loadAndGetKey(HostResource.class, fqhn, now);
+            if (hostKey != null) {
+              builder.add(hostKey);
+            } else {
+              logger.warningfmt("Host key unexpectedly null");
             }
           }
-          return builder.build();
         }
-      }
-      // If there's no suffix, or it isn't a domain we manage, query the host resources. Query the
-      // resources themselves, rather than the foreign key indexes, because then we have an index on
-      // fully qualified host name and deletion time, so we can check the deletion status in the
-      // query itself. There are no pending deletes for hosts, so we can call queryUndeleted. In
-      // this case, the initial string must be present, to avoid querying every host in the system.
-      // This restriction is enforced by queryUndeleted().
+        return builder.build();
+      // If there's no suffix, query the host resources. Query the resources themselves, rather than
+      // the foreign key indexes, because then we have an index on fully qualified host name and
+      // deletion time, so we can check the deletion status in the query itself. There are no
+      // pending deletes for hosts, so we can call queryUndeleted. In this case, the initial string
+      // must be present, to avoid querying every host in the system. This restriction is enforced
+      // by queryUndeleted().
       // TODO (b/24463238): figure out how to limit the size of these queries effectively
-      Iterable<Key<HostResource>> keys =
-          queryUndeleted(HostResource.class, "fullyQualifiedHostName", partialStringQuery, 1000)
-              .keys();
-      // queryUndeleted() ignores suffixes, so if one was specified, we must filter on the partial
-      // string query.
-      if (partialStringQuery.getSuffix() == null) {
-        return keys;
       } else {
-        ImmutableList.Builder<Key<HostResource>> filteredKeys = new ImmutableList.Builder<>();
-        for (Key<HostResource> key : keys) {
-          if (partialStringQuery.matches(key.getName())) {
-            filteredKeys.add(key);
-          }
-        }
-        return filteredKeys.build();
+        return queryUndeleted(
+                HostResource.class, "fullyQualifiedHostName", partialStringQuery, 1000)
+            .keys();
       }
     }
   }

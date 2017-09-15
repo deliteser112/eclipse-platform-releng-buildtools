@@ -815,8 +815,8 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
-  public void testNameserverMatchWithWildcardAndTldSuffix_notFound() throws Exception {
-    generateActualJson(RequestType.NS_LDH_NAME, "ns2.cat*.lol");
+  public void testNameserverMatchWithWildcardAndDomainSuffix_notFound() throws Exception {
+    generateActualJson(RequestType.NS_LDH_NAME, "ns5*.cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
@@ -846,6 +846,12 @@ public class RdapDomainSearchActionTest {
   @Test
   public void testNameserverMatchWithWildcardAndEmptySuffix_unprocessable() throws Exception {
     generateActualJson(RequestType.NS_LDH_NAME, "ns*.");
+    assertThat(response.getStatus()).isEqualTo(422);
+  }
+
+  @Test
+  public void testNameserverMatchWithWildcardAndInvalidSuffix_unprocessable() throws Exception {
+    generateActualJson(RequestType.NS_LDH_NAME, "ns*.google.com");
     assertThat(response.getStatus()).isEqualTo(422);
   }
 
@@ -887,9 +893,9 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
-  public void testNameserverMatch_nsstar_test_notFound() throws Exception {
+  public void testNameserverMatch_nsstar_test_unprocessable() throws Exception {
     generateActualJson(RequestType.NS_LDH_NAME, "ns*.1.test");
-    assertThat(response.getStatus()).isEqualTo(404);
+    assertThat(response.getStatus()).isEqualTo(422);
   }
 
   @Test
@@ -949,10 +955,11 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
-  public void testNameserverMatchDeletedNameserverWithWildcardAndTld_notFound() throws Exception {
+  public void testNameserverMatchDeletedNameserverWithWildcardAndSuffix_notFound()
+      throws Exception {
     persistResource(
         hostNs1CatLol.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat*.lol"))
+    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1*.cat.lol"))
         .isEqualTo(generateExpectedJson("No matching nameservers found", "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
   }
