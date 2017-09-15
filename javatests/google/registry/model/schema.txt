@@ -876,6 +876,7 @@ class google.registry.model.server.KmsSecretRevision {
 }
 class google.registry.model.server.Lock {
   @Id java.lang.String lockId;
+  java.lang.String requestLogId;
   org.joda.time.DateTime expirationTime;
 }
 class google.registry.model.server.ServerSecret {

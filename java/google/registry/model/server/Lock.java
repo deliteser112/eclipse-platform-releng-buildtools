@@ -15,12 +15,11 @@
 package google.registry.model.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Throwables.throwIfUnchecked;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableSortedSet;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
@@ -28,19 +27,21 @@ import com.googlecode.objectify.annotation.Id;
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.NotBackedUp;
 import google.registry.model.annotations.NotBackedUp.Reason;
-import google.registry.util.AppEngineTimeLimiter;
 import google.registry.util.FormattingLogger;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
+import google.registry.util.RequestStatusChecker;
+import google.registry.util.RequestStatusCheckerImpl;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 /**
- * A lock on some shared resource. Locks are either specific to a tld or global to the entire
- * system, in which case a tld of null is used.
+ * A lock on some shared resource.
+ *
+ * <p>Locks are either specific to a tld or global to the entire system, in which case a tld of
+ * null is used.
+ *
+ * <p>This is the "barebone" lock implementation, that requires manual locking and unlocking. For
+ * safe calls that automatically lock and unlock, see LockHandler.
  */
 @Entity
 @NotBackedUp(reason = Reason.TRANSIENT)
@@ -48,12 +49,20 @@ public class Lock extends ImmutableObject {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  /** Fudge factor to make sure we kill threads before a lock actually expires. */
-  private static final Duration LOCK_TIMEOUT_FUDGE = Duration.standardSeconds(5);
-
   /** The name of the locked resource. */
   @Id
   String lockId;
+
+  /**
+   * Unique log ID of the request that owns this lock.
+   *
+   * <p>When that request is no longer running (is finished), the lock can be considered implicitly
+   * released.
+   *
+   * <p>See {@link RequestStatusCheckerImpl#getLogId} for details about how it's created in
+   * practice.
+   */
+  String requestLogId;
 
   /** When the lock can be considered implicitly released. */
   DateTime expirationTime;
@@ -65,12 +74,14 @@ public class Lock extends ImmutableObject {
   private static Lock create(
       String resourceName,
       @Nullable String tld,
+      String requestLogId,
       DateTime expirationTime) {
     checkArgument(!Strings.isNullOrEmpty(resourceName), "resourceName cannot be null or empty");
     Lock instance = new Lock();
     // Add the tld to the Lock's id so that it is unique for locks acquiring the same resource
     // across different TLDs.
     instance.lockId = makeLockId(resourceName, tld);
+    instance.requestLogId = requestLogId;
     instance.expirationTime = expirationTime;
     return instance;
   }
@@ -79,15 +90,16 @@ public class Lock extends ImmutableObject {
     return String.format("%s-%s", tld, resourceName);
   }
 
-  /** Try to acquire a lock. Returns null if it can't be acquired. */
-  static Lock acquire(
+  /** Try to acquire a lock. Returns absent if it can't be acquired. */
+  public static Optional<Lock> acquire(
       final String resourceName,
       @Nullable final String tld,
-      final Duration leaseLength) {
+      final Duration leaseLength,
+      final RequestStatusChecker requestStatusChecker) {
     // It's important to use transactNew rather than transact, because a Lock can be used to control
     // access to resources like GCS that can't be transactionally rolled back. Therefore, the lock
     // must be definitively acquired before it is used, even when called inside another transaction.
-    return ofy().transactNew(new Work<Lock>() {
+    return Optional.fromNullable(ofy().transactNew(new Work<Lock>() {
       @Override
       public Lock run() {
         String lockId = makeLockId(resourceName, tld);
@@ -95,9 +107,19 @@ public class Lock extends ImmutableObject {
 
         // Checking if an unexpired lock still exists - if so, the lock can't be acquired.
         Lock lock = ofy().load().type(Lock.class).id(lockId).now();
-        if (lock != null && !isAtOrAfter(now, lock.expirationTime)) {
+        if (lock != null) {
           logger.infofmt(
-              "Existing lock is still valid now %s (until %s) lock: %s",
+              "Loaded existing lock: %s for request: %s", lock.lockId, lock.requestLogId);
+        }
+        // TODO(b/63982642): remove check on requestLogId being null once migration is done
+        // Until then we assume missing requestLogId means the app is still running (since we have
+        // no information to the contrary)
+        if (lock != null
+            && !isAtOrAfter(now, lock.expirationTime)
+            && (lock.requestLogId == null || requestStatusChecker.isRunning(lock.requestLogId))) {
+          logger.infofmt(
+              "Existing lock by request %s is still valid now %s (until %s) lock: %s",
+              lock.requestLogId,
               now,
               lock.expirationTime,
               lockId);
@@ -106,7 +128,8 @@ public class Lock extends ImmutableObject {
 
         if (lock != null) {
           logger.infofmt(
-              "Existing lock is timed out now %s (was valid until %s) lock: %s",
+              "Existing lock by request %s is timed out now %s (was valid until %s) lock: %s",
+              lock.requestLogId,
               now,
               lock.expirationTime,
               lockId);
@@ -114,6 +137,7 @@ public class Lock extends ImmutableObject {
         Lock newLock = create(
             resourceName,
             tld,
+            requestStatusChecker.getLogId(),
             now.plus(leaseLength));
         // Locks are not parented under an EntityGroupRoot (so as to avoid write contention) and
         // don't need to be backed up.
@@ -123,11 +147,11 @@ public class Lock extends ImmutableObject {
             newLock,
             lockId);
         return newLock;
-      }});
+      }}));
   }
 
   /** Release the lock. */
-  void release() {
+  public void release() {
     // Just use the default clock because we aren't actually doing anything that will use the clock.
     ofy().transact(new VoidWork() {
       @Override
@@ -150,75 +174,5 @@ public class Lock extends ImmutableObject {
           logger.infofmt("Not deleting lock: %s - someone else has it: %s", lockId, loadedLock);
         }
       }});
-  }
-
-  /**
-   * Acquire one or more locks and execute a Void {@link Callable} on a thread that will be
-   * killed if it doesn't complete before the lease expires.
-   *
-   * <p>Note that locks are specific either to a given tld or to the entire system (in which case
-   * tld should be passed as null).
-   *
-   * @return whether all locks were acquired and the callable was run.
-   */
-  public static boolean executeWithLocks(
-      final Callable<Void> callable,
-      @Nullable String tld,
-      Duration leaseLength,
-      String... lockNames) {
-    try {
-      return AppEngineTimeLimiter.create().callWithTimeout(
-          new LockingCallable(callable, Strings.emptyToNull(tld), leaseLength, lockNames),
-          leaseLength.minus(LOCK_TIMEOUT_FUDGE).getMillis(),
-          TimeUnit.MILLISECONDS,
-          true);
-    } catch (Exception e) {
-      throwIfUnchecked(e);
-      throw new RuntimeException(e);
-    }
-  }
-
-  /** A {@link Callable} that acquires and releases a lock around a delegate {@link Callable}. */
-  private static class LockingCallable implements Callable<Boolean> {
-    final Callable<Void> delegate;
-    @Nullable final String tld;
-    final Duration leaseLength;
-    final Set<String> lockNames;
-
-    LockingCallable(
-        Callable<Void> delegate,
-        String tld,
-        Duration leaseLength,
-        String... lockNames) {
-      checkArgument(leaseLength.isLongerThan(LOCK_TIMEOUT_FUDGE));
-      this.delegate = delegate;
-      this.tld = tld;
-      this.leaseLength = leaseLength;
-      // Make sure we join locks in a fixed (lexicographical) order to avoid deadlock.
-      this.lockNames = ImmutableSortedSet.copyOf(lockNames);
-    }
-
-    @Override
-    public Boolean call() throws Exception {
-      Set<Lock> acquiredLocks = new HashSet<>();
-      try {
-        for (String lockName : lockNames) {
-          Lock lock = acquire(lockName, tld, leaseLength);
-          if (lock == null) {
-            logger.infofmt("Couldn't acquire lock: %s", lockName);
-            return false;
-          }
-          logger.infofmt("Acquired lock: %s", lockName);
-          acquiredLocks.add(lock);
-        }
-        delegate.call();
-        return true;
-      } finally {
-        for (Lock lock : acquiredLocks) {
-          lock.release();
-          logger.infofmt("Released lock: %s", lock.lockId);
-        }
-      }
-    }
   }
 }

@@ -15,13 +15,18 @@
 package google.registry.model.server;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.google.common.base.Optional;
 import google.registry.model.ofy.Ofy;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
+import google.registry.util.RequestStatusChecker;
 import org.joda.time.Duration;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +39,7 @@ public class LockTest {
   private static final String RESOURCE_NAME = "foo";
   private static final Duration ONE_DAY = Duration.standardDays(1);
   private static final Duration TWO_MILLIS = Duration.millis(2);
+  private static final RequestStatusChecker requestStatusChecker = mock(RequestStatusChecker.class);
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -46,49 +52,68 @@ public class LockTest {
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();
 
+  private Optional<Lock> acquire(String tld, Duration leaseLength) {
+    return Lock.acquire(RESOURCE_NAME, tld, leaseLength, requestStatusChecker);
+  }
+
+  @Before public void setUp() {
+    when(requestStatusChecker.getLogId()).thenReturn("current-request-id");
+    when(requestStatusChecker.isRunning("current-request-id")).thenReturn(true);
+  }
+
   @Test
   public void testReleasedExplicitly() throws Exception {
-    Lock lock = Lock.acquire(RESOURCE_NAME, "", ONE_DAY);
-    assertThat(lock).isNotNull();
+    Optional<Lock> lock = acquire("", ONE_DAY);
+    assertThat(lock).isPresent();
     // We can't get it again at the same time.
-    assertThat(Lock.acquire(RESOURCE_NAME, "", ONE_DAY)).isNull();
+    assertThat(acquire("", ONE_DAY)).isAbsent();
     // But if we release it, it's available.
-    lock.release();
-    assertThat(Lock.acquire(RESOURCE_NAME, "", ONE_DAY)).isNotNull();
+    lock.get().release();
+    assertThat(acquire("", ONE_DAY)).isPresent();
   }
 
   @Test
   public void testReleasedAfterTimeout() throws Exception {
     FakeClock clock = new FakeClock();
     inject.setStaticField(Ofy.class, "clock", clock);
-    assertThat(Lock.acquire(RESOURCE_NAME, "", TWO_MILLIS)).isNotNull();
+    assertThat(acquire("", TWO_MILLIS)).isPresent();
     // We can't get it again at the same time.
-    assertThat(Lock.acquire(RESOURCE_NAME, "", TWO_MILLIS)).isNull();
+    assertThat(acquire("", TWO_MILLIS)).isAbsent();
     // A second later we still can't get the lock.
     clock.advanceOneMilli();
-    assertThat(Lock.acquire(RESOURCE_NAME, "", TWO_MILLIS)).isNull();
+    assertThat(acquire("", TWO_MILLIS)).isAbsent();
     // But two seconds later we can get it.
     clock.advanceOneMilli();
-    assertThat(Lock.acquire(RESOURCE_NAME, "", TWO_MILLIS)).isNotNull();
+    assertThat(acquire("", TWO_MILLIS)).isPresent();
+  }
+
+  @Test
+  public void testReleasedAfterRequestFinish() throws Exception {
+    assertThat(acquire("", ONE_DAY)).isPresent();
+    // We can't get it again while request is active
+    assertThat(acquire("", ONE_DAY)).isAbsent();
+    // But if request is finished, we can get it.
+    when(requestStatusChecker.isRunning("current-request-id")).thenReturn(false);
+    assertThat(acquire("", ONE_DAY)).isPresent();
   }
 
   @Test
   public void testTldsAreIndependent() throws Exception {
-    Lock lockA = Lock.acquire(RESOURCE_NAME, "a", ONE_DAY);
-    assertThat(lockA).isNotNull();
+    Optional<Lock> lockA = acquire("a", ONE_DAY);
+    assertThat(lockA).isPresent();
     // For a different tld we can still get a lock with the same name.
-    Lock lockB = Lock.acquire(RESOURCE_NAME, "b", ONE_DAY);
-    assertThat(lockB).isNotNull();
+    Optional<Lock> lockB = acquire("b", ONE_DAY);
+    assertThat(lockB).isPresent();
     // We can't get lockB again at the same time.
-    assertThat(Lock.acquire(RESOURCE_NAME, "b", ONE_DAY)).isNull();
+    assertThat(acquire("b", ONE_DAY)).isAbsent();
     // Releasing lockA has no effect on lockB (even though we are still using the "b" tld).
-    lockA.release();
-    assertThat(Lock.acquire(RESOURCE_NAME, "b", ONE_DAY)).isNull();
+    lockA.get().release();
+    assertThat(acquire("b", ONE_DAY)).isAbsent();
   }
 
   @Test
   public void testFailure_emptyResourceName() throws Exception {
     thrown.expect(IllegalArgumentException.class, "resourceName cannot be null or empty");
-    Lock.acquire("", "", TWO_MILLIS);
+    Lock.acquire("", "", TWO_MILLIS, requestStatusChecker);
   }
 }
