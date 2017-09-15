@@ -21,7 +21,7 @@
  * @param pw
  * @param clTrid
  */
-{template .login}
+{template .login stricthtml="false"}
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <login>
@@ -47,7 +47,7 @@
  * Logout request.
  * @param clTrid
  */
-{template .logout}
+{template .logout stricthtml="false"}
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <logout/>

@@ -20,7 +20,7 @@
  * @param item
  * @param clTrid
  */
-{template .create}
+{template .create stricthtml="false"}
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <create>
@@ -47,7 +47,7 @@
  * @param? addAddrs list of addrs to add.
  * @param? remAddrs list of addrs to remove.
  */
-{template .update}
+{template .update stricthtml="false"}
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <update>
@@ -79,7 +79,7 @@
  * @param clTrid
  * @param id The hostname (named "id" to preserve component API).
  */
-{template .info}
+{template .info stricthtml="false"}
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <info>
