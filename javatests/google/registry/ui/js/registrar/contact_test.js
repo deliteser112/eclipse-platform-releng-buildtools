@@ -110,7 +110,7 @@ function testVisitContact() {
         '  </response>' +
         '</epp>'
   });
-  assertEquals(3, $('contact-postalInfo').childNodes.length);
+  assertEquals(2, $('contact-postalInfo').childNodes.length);
 }
 
 
@@ -131,5 +131,5 @@ function testAddPostalInfo() {
   assertNull(addPiBtn.getAttribute('disabled'));
   registry.testing.click(addPiBtn);
   assertTrue(addPiBtn.hasAttribute('disabled'));
-  assertEquals(4, $('contact-postalInfo').childNodes.length);
+  assertEquals(3, $('contact-postalInfo').childNodes.length);
 }
