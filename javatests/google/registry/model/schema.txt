@@ -1,7 +1,3 @@
-enum com.google.common.collect.BoundType {
-  CLOSED;
-  OPEN;
-}
 class google.registry.model.CreateAutoTimestamp {
   org.joda.time.DateTime timestamp;
 }
