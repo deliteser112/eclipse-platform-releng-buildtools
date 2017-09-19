@@ -37,6 +37,7 @@ def domain_registry_repositories(
     omit_com_google_apis_google_api_services_drive=False,
     omit_com_google_apis_google_api_services_groupssettings=False,
     omit_com_google_apis_google_api_services_monitoring=False,
+    omit_com_google_apis_google_api_services_sheets=False,
     omit_com_google_apis_google_api_services_storage=False,
     omit_com_google_appengine_api_1_0_sdk=False,
     omit_com_google_appengine_api_labs=False,
@@ -141,6 +142,8 @@ def domain_registry_repositories(
     com_google_apis_google_api_services_groupssettings()
   if not omit_com_google_apis_google_api_services_monitoring:
     com_google_apis_google_api_services_monitoring()
+  if not omit_com_google_apis_google_api_services_sheets:
+    com_google_apis_google_api_services_sheets()
   if not omit_com_google_apis_google_api_services_storage:
     com_google_apis_google_api_services_storage()
   if not omit_com_google_appengine_api_1_0_sdk:
@@ -489,6 +492,19 @@ def com_google_apis_google_api_services_monitoring():
           "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/apis/google-api-services-monitoring/v3-rev11-1.22.0/google-api-services-monitoring-v3-rev11-1.22.0.jar",
           "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-monitoring/v3-rev11-1.22.0/google-api-services-monitoring-v3-rev11-1.22.0.jar",
           "http://repo1.maven.org/maven2/com/google/apis/google-api-services-monitoring/v3-rev11-1.22.0/google-api-services-monitoring-v3-rev11-1.22.0.jar",
+      ],
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      deps = ["@com_google_api_client"],
+  )
+
+def com_google_apis_google_api_services_sheets():
+  java_import_external(
+      name = "com_google_apis_google_api_services_sheets",
+      jar_sha256 = "67529b9efceb1a16b72c6aa0822d50f4f6e8c3c84972a5a37ca6e7bdc19064ba",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/apis/google-api-services-sheets/v4-rev483-1.22.0/google-api-services-sheets-v4-rev483-1.22.0.jar",
+          "http://repo1.maven.org/maven2/com/google/apis/google-api-services-sheets/v4-rev483-1.22.0/google-api-services-sheets-v4-rev483-1.22.0.jar",
+          "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-sheets/v4-rev483-1.22.0/google-api-services-sheets-v4-rev483-1.22.0.jar",
       ],
       licenses = ["notice"],  # The Apache Software License, Version 2.0
       deps = ["@com_google_api_client"],

@@ -14,31 +14,32 @@
 
 package google.registry.export.sheet;
 
+import static com.google.common.base.Strings.nullToEmpty;
+
+import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.model.AppendValuesResponse;
+import com.google.api.services.sheets.v4.model.BatchUpdateValuesRequest;
+import com.google.api.services.sheets.v4.model.BatchUpdateValuesResponse;
+import com.google.api.services.sheets.v4.model.ClearValuesRequest;
+import com.google.api.services.sheets.v4.model.ClearValuesResponse;
+import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.gdata.client.spreadsheet.SpreadsheetService;
-import com.google.gdata.data.spreadsheet.CustomElementCollection;
-import com.google.gdata.data.spreadsheet.ListEntry;
-import com.google.gdata.data.spreadsheet.ListFeed;
-import com.google.gdata.data.spreadsheet.SpreadsheetEntry;
-import com.google.gdata.data.spreadsheet.WorksheetEntry;
-import com.google.gdata.util.ServiceException;
-import google.registry.util.Retrier;
+import google.registry.util.FormattingLogger;
 import java.io.IOException;
-import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
 /** Generic data synchronization utility for Google Spreadsheets. */
 class SheetSynchronizer {
 
-  private static final String SPREADSHEET_URL_PREFIX =
-      "https://spreadsheets.google.com/feeds/spreadsheets/";
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @Inject SpreadsheetService spreadsheetService;
+  private static final String SHEET_NAME = "Registrars";
+
+  @Inject Sheets sheetsService;
   @Inject SheetSynchronizer() {}
-  @Inject Retrier retrier;
 
   /**
    * Replace the contents of a Google Spreadsheet with {@code data}.
@@ -50,10 +51,10 @@ class SheetSynchronizer {
    * credential email address.
    *
    * <p>The algorithm works by first assuming that the spreadsheet is sorted in the same way that
-   * {@code data} is sorted. It then iterates through the existing rows and comparing them to the
-   * items in {@code data}. Iteration continues until we either run out of rows, or items in
-   * {@code data}. If there's any rows remaining, they'll be deleted. If instead, items remain in
-   * data, they'll be inserted.
+   * {@code data} is sorted (i.e. registrar name order). It then iterates through the existing rows
+   * and comparing them to the items in {@code data}. Iteration continues until we either run out of
+   * rows, or items in {@code data}. If there's any rows remaining, they'll be deleted. If instead,
+   * items remain in data, they'll be appended to the end of the sheet.
    *
    * @param spreadsheetId The ID of your spreadsheet. This can be obtained by opening the Google
    *     spreadsheet in your browser and copying the ID from the URL.
@@ -61,62 +62,127 @@ class SheetSynchronizer {
    *     spreadsheet. Each row is a map, where the key must be exactly the same as the column header
    *     cell in the spreadsheet, and value is an arbitrary object which will be converted to a
    *     string before storing it in the spreadsheet.
-   * @throws IOException error communicating with the GData service.
-   * @throws ServiceException if a system error occurred when retrieving the entry.
-   * @throws com.google.gdata.util.ParseException error parsing the returned entry.
-   * @throws com.google.gdata.util.ResourceNotFoundException if an entry URL is not valid.
-   * @throws com.google.gdata.util.ServiceForbiddenException if the GData service cannot get the
-   *     entry resource due to access constraints.
-   * @see <a href="https://developers.google.com/google-apps/spreadsheets/">Google Sheets API</a>
+   * @throws IOException if encountering an error communicating with the Sheets service.
+   * @see <a href="https://developers.google.com/sheets/">Google Sheets API v4</a>
    */
   void synchronize(String spreadsheetId, ImmutableList<ImmutableMap<String, String>> data)
-      throws IOException, ServiceException {
-    URL url = new URL(SPREADSHEET_URL_PREFIX + spreadsheetId);
-    SpreadsheetEntry spreadsheet = spreadsheetService.getEntry(url, SpreadsheetEntry.class);
-    WorksheetEntry worksheet = spreadsheet.getWorksheets().get(0);
-    worksheet.setRowCount(data.size() + 1); // account for header row
-    worksheet = worksheet.update();
-    final ListFeed listFeed =
-        spreadsheetService.getFeed(worksheet.getListFeedUrl(), ListFeed.class);
-    List<ListEntry> entries = listFeed.getEntries();
-    int commonSize = Math.min(entries.size(), data.size());
-    for (int i = 0; i < commonSize; i++) {
-      final ListEntry entry = entries.get(i);
-      CustomElementCollection elements = entry.getCustomElements();
+      throws IOException {
+
+    // Get the existing sheet's values
+    ValueRange sheetValues =
+        sheetsService.spreadsheets().values().get(spreadsheetId, SHEET_NAME).execute();
+    List<List<Object>> originalVals = sheetValues.getValues();
+
+    // Assemble headers from the sheet
+    ImmutableList.Builder<String> headersBuilder = new ImmutableList.Builder<>();
+    for (Object headerCell : originalVals.get(0)) {
+      headersBuilder.add(headerCell.toString());
+    }
+    ImmutableList<String> headers = headersBuilder.build();
+    // Pop off the headers row
+    originalVals.remove(0);
+
+    List<ValueRange> updates = new ArrayList<>();
+    int minSize = Math.min(originalVals.size(), data.size());
+    for (int i = 0; i < minSize; i++) {
       boolean mutated = false;
-      for (ImmutableMap.Entry<String, String> cell : data.get(i).entrySet()) {
-        if (!cell.getValue().equals(elements.getValue(cell.getKey()))) {
+      List<Object> cellRow = originalVals.get(i);
+      // If the row isn't full, pad it with empty strings until it is
+      while (cellRow.size() < headers.size()) {
+        cellRow.add("");
+      }
+      for (int j = 0; j < headers.size(); j++) {
+        // Look for the value corresponding to the row and header indices in data
+        String dataField = data.get(i).get(headers.get(j));
+        // If the cell's header matches a data header, and the values aren't equal, mutate it
+        if (dataField != null && !cellRow.get(j).toString().equals(dataField)) {
           mutated = true;
-          elements.setValueLocal(cell.getKey(), cell.getValue());
+          originalVals.get(i).set(j, dataField);
         }
       }
       if (mutated) {
-        // Wrap in a retrier to deal with transient HTTP failures, which are IOExceptions wrapped
-        // in RuntimeExceptions.
-        retrier.callWithRetry(new Callable<Void>() {
-          @Override
-          public Void call() throws Exception {
-            entry.update();
-            return null;
-          }}, RuntimeException.class);
+        ValueRange rowUpdate =
+            new ValueRange()
+                .setValues(originalVals.subList(i, i + 1))
+                .setRange(getCellRange(i));
+        updates.add(rowUpdate);
       }
     }
-    if (data.size() > entries.size()) {
-      for (int i = entries.size(); i < data.size(); i++) {
-        final ListEntry entry = listFeed.createEntry();
-        CustomElementCollection elements = entry.getCustomElements();
-        for (ImmutableMap.Entry<String, String> cell : data.get(i).entrySet()) {
-          elements.setValueLocal(cell.getKey(), cell.getValue());
+    // Update the mutated cells if necessary
+    if (!updates.isEmpty()) {
+      BatchUpdateValuesRequest updateRequest = new BatchUpdateValuesRequest()
+          .setValueInputOption("RAW")
+          .setData(updates);
+
+      BatchUpdateValuesResponse response =
+          sheetsService.spreadsheets().values().batchUpdate(spreadsheetId, updateRequest).execute();
+      Integer cellsUpdated = response.getTotalUpdatedCells();
+      logger.infofmt("Updated %d originalVals", cellsUpdated != null ? cellsUpdated : 0);
+    }
+
+    // Append extra rows if necessary
+    if (data.size() > originalVals.size()) {
+      ImmutableList.Builder<List<Object>> valsBuilder = new ImmutableList.Builder<>();
+      for (int i = originalVals.size(); i < data.size(); i++) {
+        ImmutableList.Builder<Object> rowBuilder = new ImmutableList.Builder<>();
+        for (String header : headers) {
+          rowBuilder.add(nullToEmpty(data.get(i).get(header)));
         }
-        // Wrap in a retrier to deal with transient HTTP failures, which are IOExceptions wrapped
-        // in RuntimeExceptions.
-        retrier.callWithRetry(new Callable<Void>() {
-          @Override
-          public Void call() throws Exception {
-            listFeed.insert(entry);
-            return null;
-          }}, RuntimeException.class);
+        valsBuilder.add(rowBuilder.build());
       }
+      // Start the append at index originalVals.size (where the previous operation left off)
+      ValueRange appendUpdate = new ValueRange().setValues(valsBuilder.build());
+      AppendValuesResponse appendResponse = sheetsService
+          .spreadsheets()
+          .values()
+          .append(spreadsheetId, getCellRange(originalVals.size()), appendUpdate)
+          .setValueInputOption("RAW")
+          .setInsertDataOption("INSERT_ROWS")
+          .execute();
+      logger.infofmt(
+          "Appended %d rows to range %s",
+          data.size() - originalVals.size(), appendResponse.getTableRange());
+    // Clear the extra rows if necessary
+    } else if (data.size() < originalVals.size()) {
+      // Clear other rows if there's more originalVals on the sheet than live data.
+      ClearValuesResponse clearResponse =
+          sheetsService
+              .spreadsheets()
+              .values()
+              .clear(
+                  spreadsheetId,
+                  getRowRange(data.size(), originalVals.size()),
+                  new ClearValuesRequest())
+              .execute();
+      logger.infofmt(
+          "Cleared %d rows from range %s",
+          originalVals.size() - data.size(), clearResponse.getClearedRange());
     }
+  }
+
+  /**
+   * Returns an A1 representation of the cell indicating the top-left corner of the update.
+   *
+   * <p>Updates and appends can specify either a complete range (i.e. A1:B4), or just the top-left
+   * corner of the request. For the latter case, the data fills in based on the primary dimension
+   * (either row-major or column-major order, default is row-major.) For simplicity, we just specify
+   * a single cell for these requests.
+   *
+   * @see <a href="https://developers.google.com/sheets/api/guides/values#writing_to_a_single_range">
+   *   Writing to a single range</a>
+   */
+  private String getCellRange(int rowNum) {
+    // We add 1 to rowNum to compensate for Sheet's 1-indexing, and 1 to offset for the header
+    return String.format("%s!A%d", SHEET_NAME, rowNum + 2);
+  }
+
+  /**
+   * Returns an A1 representation of the cell indicating an entire set of rows.
+   *
+   * <p>Clear requests require a specific range, and we always want to clear an entire row at a time
+   * (to avoid leaving any data behind).
+   */
+  private String getRowRange(int firstRow, int lastRow) {
+    return String.format("%s!%d:%d", SHEET_NAME, firstRow + 2, lastRow + 2);
   }
 }

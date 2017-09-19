@@ -15,24 +15,28 @@
 package google.registry.export.sheet;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.services.sheets.v4.Sheets;
 import com.google.common.collect.ImmutableList;
-import com.google.gdata.client.spreadsheet.SpreadsheetService;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.config.RegistryConfig.Config;
 
-/** Dagger module for {@link SpreadsheetService}. */
+/** Dagger module for {@link Sheets}. */
 @Module
-public final class SpreadsheetServiceModule {
+public final class SheetsServiceModule {
 
-  private static final String APPLICATION_NAME = "google-registry-v1";
   private static final ImmutableList<String> SCOPES = ImmutableList.of(
-      "https://spreadsheets.google.com/feeds",
-      "https://docs.google.com/feeds");
-
+      "https://www.googleapis.com/auth/spreadsheets");
   @Provides
-  static SpreadsheetService provideSpreadsheetService(GoogleCredential credential) {
-    SpreadsheetService service = new SpreadsheetService(APPLICATION_NAME);
-    service.setOAuth2Credentials(credential.createScoped(SCOPES));
-    return service;
+  static Sheets provideSheets(
+      HttpTransport transport,
+      JsonFactory jsonFactory,
+      @Config("projectId") String projectId,
+      GoogleCredential credential) {
+    return new Sheets.Builder(transport, jsonFactory, credential.createScoped(SCOPES))
+        .setApplicationName(projectId)
+        .build();
   }
 }

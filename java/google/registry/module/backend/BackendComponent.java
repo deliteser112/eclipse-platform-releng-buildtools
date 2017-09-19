@@ -19,7 +19,7 @@ import google.registry.bigquery.BigqueryModule;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.export.DriveModule;
-import google.registry.export.sheet.SpreadsheetServiceModule;
+import google.registry.export.sheet.SheetsServiceModule;
 import google.registry.gcs.GcsServiceModule;
 import google.registry.groups.DirectoryModule;
 import google.registry.groups.GroupsModule;
@@ -67,7 +67,7 @@ import javax.inject.Singleton;
         KeyringModule.class,
         KmsModule.class,
         ModulesServiceModule.class,
-        SpreadsheetServiceModule.class,
+        SheetsServiceModule.class,
         StackdriverModule.class,
         SystemClockModule.class,
         SystemSleeperModule.class,

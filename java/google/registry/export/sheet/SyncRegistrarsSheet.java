@@ -34,7 +34,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
-import com.google.gdata.util.ServiceException;
 import com.googlecode.objectify.VoidWork;
 import google.registry.model.common.Cursor;
 import google.registry.model.registrar.Registrar;
@@ -74,7 +73,7 @@ class SyncRegistrarsSheet {
   }
 
   /** Performs the synchronization operation. */
-  void run(String spreadsheetId) throws IOException, ServiceException {
+  void run(String spreadsheetId) throws IOException {
     final DateTime executionTime = clock.nowUtc();
     sheetSynchronizer.synchronize(
         spreadsheetId,

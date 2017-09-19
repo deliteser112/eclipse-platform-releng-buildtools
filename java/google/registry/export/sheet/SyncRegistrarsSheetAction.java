@@ -28,7 +28,6 @@ import com.google.appengine.api.modules.ModulesServiceFactory;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.base.Optional;
-import com.google.gdata.util.ServiceException;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
@@ -133,6 +132,7 @@ public class SyncRegistrarsSheetAction implements Runnable {
         return;
       }
     }
+
     String sheetLockName = String.format("%s: %s", LOCK_NAME, sheetId.get());
     Callable<Void> runner = new Callable<Void>() {
       @Nullable
@@ -141,7 +141,7 @@ public class SyncRegistrarsSheetAction implements Runnable {
         try {
           syncRegistrarsSheet.run(sheetId.get());
           Result.OK.send(response, null);
-        } catch (IOException | ServiceException e) {
+        } catch (IOException e) {
           Result.FAILED.send(response, e);
         }
         return null;

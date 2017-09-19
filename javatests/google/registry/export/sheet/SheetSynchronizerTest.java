@@ -14,29 +14,25 @@
 
 package google.registry.export.sheet;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.model.AppendValuesResponse;
+import com.google.api.services.sheets.v4.model.BatchUpdateValuesRequest;
+import com.google.api.services.sheets.v4.model.BatchUpdateValuesResponse;
+import com.google.api.services.sheets.v4.model.ClearValuesRequest;
+import com.google.api.services.sheets.v4.model.ClearValuesResponse;
+import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.gdata.client.spreadsheet.SpreadsheetService;
-import com.google.gdata.data.spreadsheet.CustomElementCollection;
-import com.google.gdata.data.spreadsheet.ListEntry;
-import com.google.gdata.data.spreadsheet.ListFeed;
-import com.google.gdata.data.spreadsheet.SpreadsheetEntry;
-import com.google.gdata.data.spreadsheet.WorksheetEntry;
-import google.registry.testing.FakeClock;
-import google.registry.testing.FakeSleeper;
-import google.registry.util.Retrier;
-import java.net.URL;
-import org.joda.time.DateTime;
-import org.junit.After;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,143 +41,155 @@ import org.junit.runners.JUnit4;
 /** Unit tests for {@link SheetSynchronizer}. */
 @RunWith(JUnit4.class)
 public class SheetSynchronizerTest {
-
-  private static final int MAX_RETRIES = 3;
-
-  private final SpreadsheetService spreadsheetService = mock(SpreadsheetService.class);
-  private final SpreadsheetEntry spreadsheet = mock(SpreadsheetEntry.class);
-  private final WorksheetEntry worksheet = mock(WorksheetEntry.class);
-  private final ListFeed listFeed = mock(ListFeed.class);
   private final SheetSynchronizer sheetSynchronizer = new SheetSynchronizer();
-  private final FakeSleeper sleeper =
-      new FakeSleeper(new FakeClock(DateTime.parse("2000-01-01TZ")));
+  private final Sheets sheetsService = mock(Sheets.class);
+  private final Sheets.Spreadsheets spreadsheets = mock(Sheets.Spreadsheets.class);
+  private final Sheets.Spreadsheets.Values values = mock(Sheets.Spreadsheets.Values.class);
+  private final Sheets.Spreadsheets.Values.Get getReq = mock(Sheets.Spreadsheets.Values.Get.class);
+  private final Sheets.Spreadsheets.Values.Append appendReq =
+      mock(Sheets.Spreadsheets.Values.Append.class);
+  private final Sheets.Spreadsheets.Values.BatchUpdate updateReq =
+      mock(Sheets.Spreadsheets.Values.BatchUpdate.class);
+  private final Sheets.Spreadsheets.Values.Clear clearReq =
+      mock(Sheets.Spreadsheets.Values.Clear.class);
+
+  private List<List<Object>> existingSheet;
+  private ImmutableList<ImmutableMap<String, String>> data;
 
   @Before
   public void before() throws Exception {
-    sheetSynchronizer.spreadsheetService = spreadsheetService;
-    sheetSynchronizer.retrier = new Retrier(sleeper, MAX_RETRIES);
-    when(spreadsheetService.getEntry(any(URL.class), eq(SpreadsheetEntry.class)))
-        .thenReturn(spreadsheet);
-    when(spreadsheet.getWorksheets()).thenReturn(ImmutableList.of(worksheet));
-    when(worksheet.getListFeedUrl()).thenReturn(new URL("http://example.com/spreadsheet"));
-    when(spreadsheetService.getFeed(any(URL.class), eq(ListFeed.class))).thenReturn(listFeed);
-    when(worksheet.update()).thenReturn(worksheet);
+    sheetSynchronizer.sheetsService = sheetsService;
+    when(sheetsService.spreadsheets()).thenReturn(spreadsheets);
+    when(spreadsheets.values()).thenReturn(values);
+
+    when(values.get(any(String.class), any(String.class))).thenReturn(getReq);
+    when(values.append(any(String.class), any(String.class), any(ValueRange.class)))
+        .thenReturn(appendReq);
+    when(values.clear(any(String.class), any(String.class), any(ClearValuesRequest.class)))
+        .thenReturn(clearReq);
+    when(values.batchUpdate(any(String.class), any(BatchUpdateValuesRequest.class)))
+        .thenReturn(updateReq);
+
+    when(appendReq.execute()).thenReturn(new AppendValuesResponse());
+    when(appendReq.setValueInputOption(any(String.class))).thenReturn(appendReq);
+    when(appendReq.setInsertDataOption(any(String.class))).thenReturn(appendReq);
+    when(clearReq.execute()).thenReturn(new ClearValuesResponse());
+    when(updateReq.execute()).thenReturn(new BatchUpdateValuesResponse());
+
+    existingSheet = newArrayList();
+    data = ImmutableList.of();
+    ValueRange valueRange = new ValueRange().setValues(existingSheet);
+    when(getReq.execute()).thenReturn(valueRange);
   }
 
-  @After
-  public void after() throws Exception {
-    verify(spreadsheetService)
-        .getEntry(
-            new URL("https://spreadsheets.google.com/feeds/spreadsheets/foobar"),
-            SpreadsheetEntry.class);
-    verify(spreadsheet).getWorksheets();
-    verify(worksheet).getListFeedUrl();
-    verify(spreadsheetService).getFeed(new URL("http://example.com/spreadsheet"), ListFeed.class);
-    verify(listFeed).getEntries();
-    verifyNoMoreInteractions(spreadsheetService, spreadsheet, worksheet, listFeed);
-  }
-
-  @Test
-  public void testSynchronize_bothEmpty_doNothing() throws Exception {
-    when(listFeed.getEntries()).thenReturn(ImmutableList.<ListEntry>of());
-    sheetSynchronizer.synchronize("foobar", ImmutableList.<ImmutableMap<String, String>>of());
-    verify(worksheet).setRowCount(1);
-    verify(worksheet).update();
-  }
-
-  @Test
-  public void testSynchronize_bothContainSameRow_doNothing() throws Exception {
-    ListEntry entry = makeListEntry(ImmutableMap.of("key", "value"));
-    when(listFeed.getEntries()).thenReturn(ImmutableList.of(entry));
-    sheetSynchronizer.synchronize("foobar", ImmutableList.of(ImmutableMap.of("key", "value")));
-    verify(worksheet).setRowCount(2);
-    verify(worksheet).update();
-    verify(entry, atLeastOnce()).getCustomElements();
-    verifyNoMoreInteractions(entry);
+  // Explicitly constructs a List<Object> to avoid newArrayList typing to ArrayList<String>
+  private List<Object> createRow(Object... elements) {
+    List<Object> row = new ArrayList<>();
+    row.addAll(Arrays.asList(elements));
+    return row;
   }
 
   @Test
-  public void testSynchronize_cellIsDifferent_updateRow() throws Exception {
-    ListEntry entry = makeListEntry(ImmutableMap.of("key", "value"));
-    when(listFeed.getEntries()).thenReturn(ImmutableList.of(entry));
-    sheetSynchronizer.synchronize("foobar", ImmutableList.of(ImmutableMap.of("key", "new value")));
-    verify(entry.getCustomElements()).setValueLocal("key", "new value");
-    verify(entry).update();
-    verify(worksheet).setRowCount(2);
-    verify(worksheet).update();
-    verify(entry, atLeastOnce()).getCustomElements();
-    verifyNoMoreInteractions(entry);
+  public void testSynchronize_dataAndSheetEmpty_doNothing() throws Exception {
+    existingSheet.add(createRow("a", "b"));
+    sheetSynchronizer.synchronize("aSheetId", data);
+    verifyZeroInteractions(appendReq);
+    verifyZeroInteractions(clearReq);
+    verifyZeroInteractions(updateReq);
   }
 
   @Test
-  public void testSynchronize_cellIsDifferent_updateRow_retriesOnException() throws Exception {
-    ListEntry entry = makeListEntry(ImmutableMap.of("key", "value"));
-    when(listFeed.getEntries()).thenReturn(ImmutableList.of(entry));
-    when(entry.update())
-        .thenThrow(new RuntimeException())
-        .thenThrow(new RuntimeException())
-        .thenReturn(entry);
-    sheetSynchronizer.synchronize("foobar", ImmutableList.of(ImmutableMap.of("key", "new value")));
-    verify(entry.getCustomElements()).setValueLocal("key", "new value");
-    verify(entry, times(3)).update();
-    verify(worksheet).setRowCount(2);
-    verify(worksheet).update();
-    verify(entry, atLeastOnce()).getCustomElements();
-    verifyNoMoreInteractions(entry);
+  public void testSynchronize_differentValues_updatesValues() throws Exception {
+    existingSheet.add(createRow("a", "b"));
+    existingSheet.add(createRow("diffVal1l", "diffVal2"));
+    data = ImmutableList.of(ImmutableMap.of("a", "val1", "b", "val2"));
+    sheetSynchronizer.synchronize("aSheetId", data);
+
+    verifyZeroInteractions(appendReq);
+    verifyZeroInteractions(clearReq);
+
+    BatchUpdateValuesRequest expectedRequest = new BatchUpdateValuesRequest();
+    List<List<Object>> expectedVals = newArrayList();
+    expectedVals.add(createRow("val1", "val2"));
+    expectedRequest.setData(
+        newArrayList(new ValueRange().setRange("Registrars!A2").setValues(expectedVals)));
+    expectedRequest.setValueInputOption("RAW");
+    verify(values).batchUpdate("aSheetId", expectedRequest);
   }
 
   @Test
-  public void testSynchronize_spreadsheetMissingRow_insertRow() throws Exception {
-    ListEntry entry = makeListEntry(ImmutableMap.<String, String>of());
-    when(listFeed.getEntries()).thenReturn(ImmutableList.<ListEntry>of());
-    when(listFeed.createEntry()).thenReturn(entry);
-    sheetSynchronizer.synchronize("foobar", ImmutableList.of(ImmutableMap.of("key", "value")));
-    verify(entry.getCustomElements()).setValueLocal("key", "value");
-    verify(listFeed).insert(entry);
-    verify(worksheet).setRowCount(2);
-    verify(worksheet).update();
-    verify(listFeed).createEntry();
-    verify(entry, atLeastOnce()).getCustomElements();
-    verifyNoMoreInteractions(entry);
+  public void testSynchronize_unknownFields_doesntUpdate() throws Exception {
+    existingSheet.add(createRow("a", "c", "b"));
+    existingSheet.add(createRow("diffVal1", "sameVal", "diffVal2"));
+    data = ImmutableList.of(ImmutableMap.of("a", "val1", "b", "val2", "d", "val3"));
+    sheetSynchronizer.synchronize("aSheetId", data);
+
+    verifyZeroInteractions(appendReq);
+    verifyZeroInteractions(clearReq);
+
+    BatchUpdateValuesRequest expectedRequest = new BatchUpdateValuesRequest();
+    List<List<Object>> expectedVals = newArrayList();
+    expectedVals.add(createRow("val1", "sameVal", "val2"));
+    expectedRequest.setData(
+        newArrayList(new ValueRange().setRange("Registrars!A2").setValues(expectedVals)));
+    expectedRequest.setValueInputOption("RAW");
+    verify(values).batchUpdate("aSheetId", expectedRequest);
   }
 
   @Test
-  public void testSynchronize_spreadsheetMissingRow_insertRow_retriesOnException()
-      throws Exception {
-    ListEntry entry = makeListEntry(ImmutableMap.<String, String>of());
-    when(listFeed.getEntries()).thenReturn(ImmutableList.<ListEntry>of());
-    when(listFeed.createEntry()).thenReturn(entry);
-    when(listFeed.insert(entry))
-        .thenThrow(new RuntimeException())
-        .thenThrow(new RuntimeException())
-        .thenReturn(entry);
-    sheetSynchronizer.synchronize("foobar", ImmutableList.of(ImmutableMap.of("key", "value")));
-    verify(entry.getCustomElements()).setValueLocal("key", "value");
-    verify(listFeed, times(3)).insert(entry);
-    verify(worksheet).setRowCount(2);
-    verify(worksheet).update();
-    verify(listFeed).createEntry();
-    verify(entry, atLeastOnce()).getCustomElements();
-    verifyNoMoreInteractions(entry);
+  public void testSynchronize_notFullRow_getsPadded() throws Exception {
+    existingSheet.add(createRow("a", "c", "b"));
+    existingSheet.add(createRow("diffVal1", "diffVal2"));
+    data = ImmutableList.of(ImmutableMap.of("a", "val1", "b", "paddedVal", "d", "val3"));
+    sheetSynchronizer.synchronize("aSheetId", data);
+
+    verifyZeroInteractions(appendReq);
+    verifyZeroInteractions(clearReq);
+
+    BatchUpdateValuesRequest expectedRequest = new BatchUpdateValuesRequest();
+    List<List<Object>> expectedVals = newArrayList();
+    expectedVals.add(createRow("val1", "diffVal2", "paddedVal"));
+    expectedRequest.setData(
+        newArrayList(new ValueRange().setRange("Registrars!A2").setValues(expectedVals)));
+    expectedRequest.setValueInputOption("RAW");
+    verify(values).batchUpdate("aSheetId", expectedRequest);
   }
 
   @Test
-  public void testSynchronize_spreadsheetRowNoLongerInData_deleteRow() throws Exception {
-    ListEntry entry = makeListEntry(ImmutableMap.of("key", "value"));
-    when(listFeed.getEntries()).thenReturn(ImmutableList.of(entry));
-    sheetSynchronizer.synchronize("foobar", ImmutableList.<ImmutableMap<String, String>>of());
-    verify(worksheet).setRowCount(1);
-    verify(worksheet).update();
-    verifyNoMoreInteractions(entry);
+  public void testSynchronize_moreData_appendsValues() throws Exception {
+    existingSheet.add(createRow("a", "b"));
+    existingSheet.add(createRow("diffVal1", "diffVal2"));
+    data = ImmutableList.of(
+        ImmutableMap.of("a", "val1", "b", "val2"),
+        ImmutableMap.of("a", "val3", "b", "val4"));
+    sheetSynchronizer.synchronize("aSheetId", data);
+
+    verifyZeroInteractions(clearReq);
+
+    BatchUpdateValuesRequest expectedRequest = new BatchUpdateValuesRequest();
+    List<List<Object>> updatedVals = newArrayList();
+    updatedVals.add(createRow("val1", "val2"));
+    expectedRequest.setData(
+        newArrayList(
+            new ValueRange().setRange("Registrars!A2").setValues(updatedVals)));
+    expectedRequest.setValueInputOption("RAW");
+    verify(values).batchUpdate("aSheetId", expectedRequest);
+
+    List<List<Object>> appendedVals = newArrayList();
+    appendedVals.add(createRow("val3", "val4"));
+    ValueRange appendRequest = new ValueRange().setValues(appendedVals);
+    verify(values).append("aSheetId", "Registrars!A3", appendRequest);
   }
 
-  private static ListEntry makeListEntry(ImmutableMap<String, String> values) {
-    CustomElementCollection collection = mock(CustomElementCollection.class);
-    for (ImmutableMap.Entry<String, String> entry : values.entrySet()) {
-      when(collection.getValue(eq(entry.getKey()))).thenReturn(entry.getValue());
-    }
-    ListEntry listEntry = mock(ListEntry.class);
-    when(listEntry.getCustomElements()).thenReturn(collection);
-    return listEntry;
+  @Test
+  public void testSynchronize_lessData_clearsValues() throws Exception {
+    existingSheet.add(createRow("a", "b"));
+    existingSheet.add(createRow("val1", "val2"));
+    existingSheet.add(createRow("diffVal3", "diffVal4"));
+    data = ImmutableList.of(ImmutableMap.of("a", "val1", "b", "val2"));
+    sheetSynchronizer.synchronize("aSheetId", data);
+
+    verify(values).clear("aSheetId", "Registrars!3:4", new ClearValuesRequest());
+    verifyZeroInteractions(updateReq);
   }
 }
