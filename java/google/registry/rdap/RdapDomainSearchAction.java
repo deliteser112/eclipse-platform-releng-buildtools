@@ -210,7 +210,8 @@ public class RdapDomainSearchAction extends RdapActionBase {
       if (partialStringQuery.getSuffix() != null) {
         query = query.filter("tld", partialStringQuery.getSuffix());
       }
-      // TODO(mountford): Investigate fetching by foreign key instead of the domain itself.
+      // Query the domains directly, rather than the foreign keys, because then we have an index on
+      // TLD if we need it.
       for (DomainResource domain :
           query.limit(RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize)) {
         if (EppResourceUtils.isActive(domain, now)) {
