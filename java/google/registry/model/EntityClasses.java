@@ -29,7 +29,6 @@ import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.LrpTokenEntity;
-import google.registry.model.export.LogsExportCursor;
 import google.registry.model.host.HostResource;
 import google.registry.model.index.DomainApplicationIndex;
 import google.registry.model.index.EppResourceIndex;
@@ -95,7 +94,6 @@ public final class EntityClasses {
           KmsSecret.class,
           KmsSecretRevision.class,
           Lock.class,
-          LogsExportCursor.class,
           LrpTokenEntity.class,
           PollMessage.class,
           PollMessage.Autorenew.class,

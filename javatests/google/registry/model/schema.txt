@@ -117,12 +117,6 @@ class google.registry.model.common.GaeUserIdConverter {
   @Id long id;
   com.google.appengine.api.users.User user;
 }
-class google.registry.model.common.PersistedRangeLong {
-  com.google.common.collect.BoundType lowerBoundType;
-  com.google.common.collect.BoundType upperBoundType;
-  java.lang.Long lowerBound;
-  java.lang.Long upperBound;
-}
 class google.registry.model.common.TimeOfYear {
   java.lang.String timeString;
 }
@@ -370,12 +364,6 @@ enum google.registry.model.eppcommon.StatusValue {
 class google.registry.model.eppcommon.Trid {
   java.lang.String clientTransactionId;
   java.lang.String serverTransactionId;
-}
-class google.registry.model.export.LogsExportCursor {
-  @Id long id;
-  @Parent com.googlecode.objectify.Key<google.registry.model.common.EntityGroupRoot> parent;
-  java.util.List<java.lang.String> filesPendingImport;
-  java.util.Set<google.registry.model.common.PersistedRangeLong> exportedRanges;
 }
 class google.registry.model.host.HostResource {
   @Id java.lang.String repoId;
