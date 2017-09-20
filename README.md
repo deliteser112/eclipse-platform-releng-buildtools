@@ -1,8 +1,7 @@
 # Nomulus
 
+![Build Status](https://storage.googleapis.com/domain-registry-github-build-status/github-ci-status.png)
 ![Nomulus logo](./nomulus-logo.png)
-![CI status]
-(https://storage.googleapis.com/domain-registry-github-build-status/github-ci-status.png)
 
 ## Overview
 
