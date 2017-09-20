@@ -21,6 +21,7 @@ import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import google.registry.model.BackupGroupRoot;
@@ -32,9 +33,10 @@ import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 /**
- * Entity for tracking all domain applications with a given fully qualified domain name. Since this
- * resource is always kept up to date as additional domain applications are created, it is never
- * necessary to query them explicitly from Datastore.
+ * Entity for tracking all domain applications with a given fully qualified domain name.
+ *
+ * <p>Since this resource is always kept up to date as additional domain applications are created,
+ * it is never necessary to query them explicitly from Datastore.
  */
 @ReportedOn
 @Entity
@@ -60,12 +62,12 @@ public class DomainApplicationIndex extends BackupGroupRoot {
   }
 
   /**
-   * Creates a DomainApplicationIndex with the specified list of keys. Only use this method for data
-   * migrations. You probably want {@link #createUpdatedInstance}.
+   * Creates a DomainApplicationIndex with the specified list of keys.
+   *
+   * <p>Only use this method for data migrations. You probably want {@link #createUpdatedInstance}.
    */
   public static DomainApplicationIndex createWithSpecifiedKeys(
-      String fullyQualifiedDomainName,
-      ImmutableSet<Key<DomainApplication>> keys) {
+      String fullyQualifiedDomainName, ImmutableSet<Key<DomainApplication>> keys) {
     checkArgument(!isNullOrEmpty(fullyQualifiedDomainName),
         "fullyQualifiedDomainName must not be null or empty.");
     checkArgument(!isNullOrEmpty(keys), "Keys must not be null or empty.");
@@ -80,42 +82,54 @@ public class DomainApplicationIndex extends BackupGroupRoot {
   }
 
   /**
-   * Returns the set of all DomainApplications for the given fully qualified domain name that do
-   * not have a deletion time before the supplied DateTime.
+   * Returns the set of all active DomainApplications for the given fully qualified domain name.
+   *
+   * <p>Note that loading the individual applications referenced by the keys are explicitly
+   * non-transactional. This is to avoid potentially over-enlisting multiple entity groups within a
+   * transaction.
+   *
+   * <p>Consequently within a transaction this method will not return any applications that are not
+   * yet committed to datastore, even if called on an updated DomainApplicationIndex instance
+   * storing keys to those applications.
+   *
    */
   public static ImmutableSet<DomainApplication> loadActiveApplicationsByDomainName(
-      String fullyQualifiedDomainName, DateTime now) {
-    DomainApplicationIndex index = load(fullyQualifiedDomainName);
+      String fullyQualifiedDomainName, final DateTime now) {
+    final DomainApplicationIndex index = load(fullyQualifiedDomainName);
     if (index == null) {
       return ImmutableSet.of();
     }
-    ImmutableSet.Builder<DomainApplication> apps = new ImmutableSet.Builder<>();
-    for (DomainApplication app : ofy().load().keys(index.getKeys()).values()) {
-      if (app.getDeletionTime().isAfter(now)) {
-        apps.add(app);
-      }
-    }
-    return apps.build();
+    // Perform eventually consistent query, to avoid overenlisting cross entity groups
+    return ofy().doTransactionless(new Work<ImmutableSet<DomainApplication>>() {
+        @Override
+        public ImmutableSet<DomainApplication> run() {
+          ImmutableSet.Builder<DomainApplication> apps = new ImmutableSet.Builder<>();
+          for (DomainApplication app : ofy().load().keys(index.getKeys()).values()) {
+            if (app.getDeletionTime().isAfter(now)) {
+              apps.add(app);
+            }
+          }
+          return apps.build();
+        }});
   }
 
   /**
-   * Returns the DomainApplicationIndex for the given fully qualified domain name. Note that this
-   * can return null if there are no domain applications for this fully qualified domain name.
+   * Returns the DomainApplicationIndex for the given fully qualified domain name.
+   *
+   * <p>Note that this can return null if there are no domain applications for this fully qualified
+   * domain name.
    */
   @Nullable
   public static DomainApplicationIndex load(String fullyQualifiedDomainName) {
-    return ofy()
-        .load()
-        .type(DomainApplicationIndex.class)
-        .id(fullyQualifiedDomainName)
-        .now();
+    return ofy().load().type(DomainApplicationIndex.class).id(fullyQualifiedDomainName).now();
   }
 
   /**
-   * Saves a new DomainApplicationIndex for this resource or updates the existing one. This is
-   * the preferred method for creating an instance of DomainApplicationIndex because this performs
-   * the correct merging logic to add the given domain application to an existing index if there
-   * is one.
+   * Saves a new DomainApplicationIndex for this resource or updates the existing one.
+   *
+   * <p>This is the preferred method for creating an instance of DomainApplicationIndex because this
+   * performs the correct merging logic to add the given domain application to an existing index if
+   * there is one.
    */
   public static DomainApplicationIndex createUpdatedInstance(DomainApplication application) {
     DomainApplicationIndex existing = load(application.getFullyQualifiedDomainName());
