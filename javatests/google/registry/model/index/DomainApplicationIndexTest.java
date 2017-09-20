@@ -125,7 +125,8 @@ public class DomainApplicationIndexTest extends EntityTestCase {
   /** Ensure loading over 25 applications still succeeds (despite being in a transaction.) */
   @Test
   public void testSuccess_overCrossTransactionLimit() {
-    ImmutableList.Builder<DomainApplication> applicationsBuilder = new ImmutableList.Builder<>();
+    final ImmutableList.Builder<DomainApplication> applicationsBuilder =
+        new ImmutableList.Builder<>();
     for (int i = 0; i < 30; i++) {
       DomainApplication application = persistSimpleResource(newDomainApplication("example.com"));
       persistResource(createUpdatedInstance(application));
