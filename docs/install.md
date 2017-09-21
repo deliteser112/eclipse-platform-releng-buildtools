@@ -106,8 +106,8 @@ Cloud Platform. Make sure to choose a good Project ID, as it will be used
 repeatedly in a large number of places. If your company is named Acme, then a
 good Project ID for your production environment would be "acme-registry". Keep
 in mind that project IDs for non-production environments should be suffixed with
-the name of the environment (see the [App Engine architecture
-guide](./app-engine-architecture.md) for more details). For the purposes of this
+the name of the environment (see the [Architecture
+documentation](./architecture.md) for more details). For the purposes of this
 example we'll deploy to the "alpha" environment, which is used for developer
 testing. The Project ID will thus be `acme-registry-alpha`.
 

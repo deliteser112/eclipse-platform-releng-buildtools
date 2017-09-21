@@ -25,8 +25,8 @@ the [first steps tutorial](./first-steps-tutorial.md).
 ## How to load an escrow file
 
 First of all, ensure that all of the cloud storage buckets are set up for
-nomulus.  See the [architecture documentation](./app-engine-architecture.md) for
-details.  The escrow file that will be imported should be uploaded to the
+nomulus. See the [Architecture documentation](./architecture.md) for details.
+The escrow file that will be imported should be uploaded to the
 `PROJECT-rde-import` cloud storage bucket. The escrow file should not be
 compressed or encrypted. When launching each mapreduce job, reference the
 absolute path to the file (just the path, not the bucket name) in the `path`

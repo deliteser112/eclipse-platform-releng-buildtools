@@ -12,8 +12,8 @@ updated by running `nomulus` commands without having to deploy a new version.
 Here's a checklist of things that need to be configured upon initial
 installation of the project:
 
-*   Create Google Cloud Storage buckets (see the [App Engine architecture
-    guide](./app-engine-architecture.md)).
+*   Create Google Cloud Storage buckets (see the [Architecture
+    documentation](./architecture.md) for more information).
 *   Modify `ConfigModule.java` and set project-specific settings such as product
     name (see below).
 *   Copy and edit `ProductionRegistryConfigExample.java` with your
@@ -28,8 +28,8 @@ different values for different environments. This is especially pronounced in
 the `UNITTEST` and `LOCAL` environments, which don't run on App Engine at all.
 As an example, some timeouts may be long in production and short in unit tests.
 
-See the [App Engine architecture](./app-engine-architecture.md) documentation
-for more details on environments as used by Nomulus.
+See the [Architecture documentation](./architecture.md) for more details on
+environments as used by Nomulus.
 
 ## App Engine configuration
 

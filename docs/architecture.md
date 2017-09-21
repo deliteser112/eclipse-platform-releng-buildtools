@@ -1,12 +1,21 @@
-# App Engine architecture
+# Architecture
 
-This document contains information on the overall architecture of Nomulus as
-pertains to App Engine.
+This document contains information on the overall architecture of Nomulus on
+[Google Cloud Platform](https://cloud.google.com/). It covers the App Engine
+architecture as well as other Cloud Platform services used by Nomulus.
 
-## Services
+## App Engine
 
-Nomulus contains three
-[services](https://cloud.google.com/appengine/docs/python/an-overview-of-app-engine),
+[Google App Engine](https://cloud.google.com/appengine/) is a cloud computing
+platform that runs web applications in the form of servlets. Nomulus consists of
+Java servlets that process web requests. These servlets use other features
+provided by App Engine, including task queues and cron jobs, as explained
+below.
+
+### Services
+
+Nomulus contains three [App Engine
+services](https://cloud.google.com/appengine/docs/python/an-overview-of-app-engine),
 which were previously called modules in earlier versions of App Engine. The
 services are: default (also called front-end), backend, and tools. Each service
 runs independently in a lot of ways, including that they can be upgraded
@@ -25,7 +34,7 @@ The reason that the dot is escaped rather than forming subdomains is because the
 SSL certificate for `appspot.com` is only valid for `*.appspot.com` (no double
 wild-cards).
 
-### Default service
+#### Default service
 
 The default service is responsible for all registrar-facing
 [EPP](https://en.wikipedia.org/wiki/Extensible_Provisioning_Protocol) command
@@ -36,7 +45,7 @@ begin to impact users immediately. Requests to the default service are handled
 by the `FrontendServlet`, which provides all of the endpoints exposed in
 `FrontendRequestComponent`.
 
-### Backend service
+#### Backend service
 
 The backend service is responsible for executing all regularly scheduled
 background tasks (using cron) as well as all asynchronous tasks. Requests to the
@@ -57,7 +66,7 @@ sized to support not just the normal ongoing DNS load but also the load incurred
 by MapReduces, both scheduled (such as RDE) and on-demand (asynchronous
 contact/host deletion).
 
-### Tools service
+#### Tools service
 
 The tools service is responsible for servicing requests from the `nomulus`
 command line tool, which provides administrative-level functionality for
@@ -74,18 +83,19 @@ tool subcommands like `generate_zone_files` and by manually hitting URLs under
 https://tools-dot-project-id.appspot.com, like
 `/_dr/task/refreshDnsForAllDomains`.
 
-## Task queues
+### Task queues
 
-[Task queues](https://cloud.google.com/appengine/docs/java/taskqueue/) in App
-Engine provide an asynchronous way to enqueue tasks and then execute them on
-some kind of schedule. There are two types of queues, push queues and pull
-queues. Tasks in push queues are always executing up to some throttlable limit.
-Tasks in pull queues remain there until the queue is polled by code that is
-running for some other reason. Essentially, push queues run their own tasks
-while pull queues just enqueue data that is used by something else.
-Many other parts of App Engine are implemented using task queues. For example,
-[App Engine cron](https://cloud.google.com/appengine/docs/java/config/cron) adds
-tasks to push queues at regularly scheduled intervals, and the [MapReduce
+App Engine [task
+queues](https://cloud.google.com/appengine/docs/java/taskqueue/) provide an
+asynchronous way to enqueue tasks and then execute them on some kind of
+schedule. There are two types of queues, push queues and pull queues. Tasks in
+push queues are always executing up to some throttlable limit. Tasks in pull
+queues remain there until the queue is polled by code that is running for some
+other reason. Essentially, push queues run their own tasks while pull queues
+just enqueue data that is used by something else. Many other parts of App Engine
+are implemented using task queues. For example, [App Engine
+cron](https://cloud.google.com/appengine/docs/java/config/cron) adds tasks to
+push queues at regularly scheduled intervals, and the [MapReduce
 framework](https://cloud.google.com/appengine/docs/java/dataprocessing/) adds
 tasks for each phase of the MapReduce algorithm.
 
@@ -183,12 +193,60 @@ explicitly marked as otherwise.
     spreadsheet. Tasks are enqueued by `RegistrarServlet` when changes are made
     to registrar fields and are executed by `SyncRegistrarsSheetAction`.
 
+### Cron jobs
+
+Nomulus uses App Engine [cron
+jobs](https://cloud.google.com/appengine/docs/java/config/cron) to run periodic
+scheduled actions. These actions run as frequently as once per minute (in the
+case of syncing DNS updates) or as infrequently as once per month (in the case
+of RDE exports). Cron tasks are specified in `cron.xml` files, with one per
+environment. There are more tasks that run in Production than in other
+environments because tasks like uploading RDE dumps are only done for the live
+system. Cron tasks execute on the `backend` service.
+
+Most cron tasks use the `TldFanoutAction` which is accessed via the
+`/_dr/cron/fanout` URL path. This action, which is run by the BackendServlet on
+the backend service, fans out a given cron task for each TLD that exists in the
+registry system, using the queue that is specified in the `cron.xml` entry.
+Because some tasks may be computationally intensive and could risk spiking
+system latency if all start executing immediately at the same time, there is a
+`jitterSeconds` parameter that spreads out tasks over the given number of
+seconds. This is used with DNS updates and commit log deletion.
+
+The reason the `TldFanoutAction` exists is that a lot of tasks need to be done
+separately for each TLD, such as RDE exports and NORDN uploads. It's simpler to
+have a single cron entry that will create tasks for all TLDs than to have to
+specify a separate cron task for each action for each TLD (though that is still
+an option). Task queues also provide retry semantics in the event of transient
+failures that a raw cron task does not. This is why there are some tasks that do
+not fan out across TLDs that still use `TldFanoutAction` -- it's so that the
+tasks retry in the face of transient errors.
+
+The full list of URL parameters to `TldFanoutAction` that can be specified in
+cron.xml is:
+
+*   `endpoint` -- The path of the action that should be executed (see
+    `web.xml`).
+*   `queue` -- The cron queue to enqueue tasks in.
+*   `forEachRealTld` -- Specifies that the task should be run in each TLD of
+    type `REAL`. This can be combined with `forEachTestTld`.
+*   `forEachTestTld` -- Specifies that the task should be run in each TLD of
+    type `TEST`. This can be combined with `forEachRealTld`.
+*   `runInEmpty` -- Specifies that the task should be run globally, i.e. just
+    once, rather than individually per TLD. This is provided to allow tasks to
+    retry. It is called "`runInEmpty`" for historical reasons.
+*   `excludes` -- A list of TLDs to exclude from processing.
+*   `jitterSeconds` -- The execution of each per-TLD task is delayed by a
+    different random number of seconds between zero and this max value.
+
 ## Environments
 
 Nomulus comes pre-configured with support for a number of different
 environments, all of which are used in Google's registry system. Other registry
 operators may choose to use more or fewer environments, depending on their
-needs.
+needs. Each environment consists of a separate Google Cloud Platform project,
+which includes a separate database and separate bulk storage in Cloud Storage.
+Each environment is thus completely independent.
 
 The different environments are specified in `RegistryEnvironment`. Most
 correspond to a separate App Engine app except for `UNITTEST` and `LOCAL`, which
@@ -242,49 +300,6 @@ of experience running a production registry using this codebase.
 4.  Once a build has been running successfully in Sandbox for a day with no
     errors, it can be pushed to Production.
 5.  Repeat once weekly, or potentially more often.
-
-## Cron tasks
-
-All [cron tasks](https://cloud.google.com/appengine/docs/java/config/cron) are
-specified in `cron.xml` files, with one per environment. There are more tasks
-that execute in Production than in other environments, because tasks like
-uploading RDE dumps are only done for the live system. Cron tasks execute on the
-`backend` service.
-
-Most cron tasks use the `TldFanoutAction` which is accessed via the
-`/_dr/cron/fanout` URL path. This action, which is run by the BackendServlet on
-the backend service, fans out a given cron task for each TLD that exists in the
-registry system, using the queue that is specified in the `cron.xml` entry.
-Because some tasks may be computationally intensive and could risk spiking
-system latency if all start executing immediately at the same time, there is a
-`jitterSeconds` parameter that spreads out tasks over the given number of
-seconds. This is used with DNS updates and commit log deletion.
-
-The reason the `TldFanoutAction` exists is that a lot of tasks need to be done
-separately for each TLD, such as RDE exports and NORDN uploads. It's simpler to
-have a single cron entry that will create tasks for all TLDs than to have to
-specify a separate cron task for each action for each TLD (though that is still
-an option). Task queues also provide retry semantics in the event of transient
-failures that a raw cron task does not. This is why there are some tasks that do
-not fan out across TLDs that still use `TldFanoutAction` -- it's so that the
-tasks retry in the face of transient errors.
-
-The full list of URL parameters to `TldFanoutAction` that can be specified in
-cron.xml is:
-
-*   `endpoint` -- The path of the action that should be executed (see
-    `web.xml`).
-*   `queue` -- The cron queue to enqueue tasks in.
-*   `forEachRealTld` -- Specifies that the task should be run in each TLD of
-    type `REAL`. This can be combined with `forEachTestTld`.
-*   `forEachTestTld` -- Specifies that the task should be run in each TLD of
-    type `TEST`. This can be combined with `forEachRealTld`.
-*   `runInEmpty` -- Specifies that the task should be run globally, i.e. just
-    once, rather than individually per TLD. This is provided to allow tasks to
-    retry. It is called "`runInEmpty`" for historical reasons.
-*   `excludes` -- A list of TLDs to exclude from processing.
-*   `jitterSeconds` -- The execution of each per-TLD task is delayed by a
-    different random number of seconds between zero and this max value.
 
 ## Cloud Datastore
 
