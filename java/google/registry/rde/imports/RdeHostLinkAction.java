@@ -14,20 +14,25 @@
 
 package google.registry.rde.imports;
 
-import static google.registry.flows.host.HostFlowUtils.lookupSuperordinateDomain;
+import static com.google.common.base.Preconditions.checkState;
 import static google.registry.mapreduce.MapreduceRunner.PARAM_MAP_SHARDS;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.util.PipelineUtils.createJobPath;
-import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.tools.mapreduce.Mapper;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
+import com.googlecode.objectify.Work;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.flows.host.HostFlowUtils;
 import google.registry.mapreduce.MapreduceRunner;
+import google.registry.model.EppResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
@@ -104,47 +109,110 @@ public class RdeHostLinkAction implements Runnable {
       final XjcRdeHost xjcHost = fragment.getInstance().getValue();
       logger.infofmt("Attempting to link superordinate domain for host %s", xjcHost.getName());
       try {
-        InternetDomainName hostName = InternetDomainName.from(xjcHost.getName());
-        Optional<DomainResource> superordinateDomain =
-            lookupSuperordinateDomain(hostName, DateTime.now(UTC));
-        // if suporordinateDomain is null, this is an out of zone host and can't be linked
-        if (!superordinateDomain.isPresent()) {
-          getContext().incrementCounter("post-import hosts out of zone");
-          logger.infofmt("Host %s is out of zone", xjcHost.getName());
-          return;
-        }
-        if (superordinateDomain.get().getStatusValues().contains(StatusValue.PENDING_DELETE)) {
-          getContext()
-              .incrementCounter(
-                  "post-import hosts with superordinate domains in pending delete");
-          logger.infofmt(
-              "Host %s has a superordinate domain in pending delete", xjcHost.getName());
-          return;
-        }
-        // at this point, the host is definitely in zone and should be linked
-        getContext().incrementCounter("post-import hosts in zone");
-        final Key<DomainResource> superordinateDomainKey = Key.create(superordinateDomain.get());
-        ofy().transact(new VoidWork() {
+        final InternetDomainName hostName = InternetDomainName.from(xjcHost.getName());
+
+        HostLinkResult hostLinkResult = ofy().transact(new Work<HostLinkResult>() {
           @Override
-          public void vrun() {
+          public HostLinkResult run() {
+            Optional<DomainResource> superordinateDomain =
+                lookupSuperordinateDomain(hostName, ofy().getTransactionTime());
+            // if suporordinateDomain is absent, this is an out of zone host and can't be linked.
+            // absent is only returned for out of zone hosts, and an exception is thrown for in
+            // zone hosts with no superordinate domain.
+            if (!superordinateDomain.isPresent()) {
+              return HostLinkResult.HOST_OUT_OF_ZONE;
+            }
+            if (superordinateDomain.get().getStatusValues().contains(StatusValue.PENDING_DELETE)) {
+              return HostLinkResult.SUPERORDINATE_DOMAIN_IN_PENDING_DELETE;
+            }
+            Key<DomainResource> superordinateDomainKey = Key.create(superordinateDomain.get());
+            // link host to superordinate domain and set time of last superordinate change to
+            // the time of the import
             HostResource host =
                 ofy().load().now(Key.create(HostResource.class, xjcHost.getRoid()));
-            ofy().save()
-                .entity(host.asBuilder().setSuperordinateDomain(superordinateDomainKey).build());
+            if (host == null) {
+              return HostLinkResult.HOST_NOT_FOUND;
+            }
+            // link domain to subordinate host
+            ofy().save().<EppResource>entities(
+                host.asBuilder().setSuperordinateDomain(superordinateDomainKey)
+                    .setLastSuperordinateChange(ofy().getTransactionTime())
+                    .build(),
+                superordinateDomain.get().asBuilder()
+                    .addSubordinateHost(host.getFullyQualifiedHostName()).build());
+            return HostLinkResult.HOST_LINKED;
           }
         });
-        logger.infofmt(
-            "Successfully linked host %s to superordinate domain %s",
-            xjcHost.getName(),
-            superordinateDomain.get().getFullyQualifiedDomainName());
-        // Record number of hosts successfully linked
-        getContext().incrementCounter("post-import hosts linked");
-      } catch (Exception e) {
+        // increment counter and log appropriately based on result of transaction
+        switch (hostLinkResult) {
+          case HOST_LINKED:
+            getContext().incrementCounter("post-import hosts linked");
+            logger.infofmt(
+                "Successfully linked host %s to superordinate domain", xjcHost.getName());
+            // Record number of hosts successfully linked
+            break;
+          case HOST_NOT_FOUND:
+            getContext().incrementCounter("hosts not found");
+            logger.severefmt(
+                "Host with name %s and repoid %s not found",
+                xjcHost.getName(),
+                xjcHost.getRoid());
+            break;
+          case SUPERORDINATE_DOMAIN_IN_PENDING_DELETE:
+            getContext()
+                .incrementCounter(
+                    "post-import hosts with superordinate domains in pending delete");
+            logger.infofmt(
+                "Host %s has a superordinate domain in pending delete", xjcHost.getName());
+            break;
+          case HOST_OUT_OF_ZONE:
+            getContext().incrementCounter("post-import hosts out of zone");
+            logger.infofmt("Host %s is out of zone", xjcHost.getName());
+            break;
+        }
+      } catch (RuntimeException e) {
         // Record the number of hosts with unexpected errors
         getContext().incrementCounter("post-import host errors");
-        throw new HostLinkException(xjcHost.getName(), xjcHost.toString(), e);
+        logger.severefmt(e, "Error linking host %s; xml=%s", xjcHost.getName(), xjcHost);
       }
     }
+
+    /**
+     * Return the {@link DomainResource} this host is subordinate to, or absent for out of zone
+     * hosts.
+     *
+     * <p>We use this instead of {@link HostFlowUtils#lookupSuperordinateDomain} because we don't
+     * want to use the EPP exception classes for the case when the superordinate domain doesn't
+     * exist or isn't active.
+     *
+     * @throws IllegalStateException for hosts without superordinate domains
+     */
+    private static Optional<DomainResource> lookupSuperordinateDomain(
+        InternetDomainName hostName, DateTime now) {
+      Optional<InternetDomainName> tld = findTldForName(hostName);
+      // out of zone hosts cannot be linked
+      if (!tld.isPresent()) {
+        return Optional.absent();
+      }
+      // This is a subordinate host
+      String domainName =
+          Joiner.on('.')
+              .join(
+                  Iterables.skip(
+                      hostName.parts(), hostName.parts().size() - (tld.get().parts().size() + 1)));
+      DomainResource superordinateDomain = loadByForeignKey(DomainResource.class, domainName, now);
+      // Hosts can't be linked if domains import hasn't been run
+      checkState(
+          superordinateDomain != null, "Superordinate domain does not exist: %s", domainName);
+      return Optional.of(superordinateDomain);
+    }
+  }
+
+  private static enum HostLinkResult {
+    HOST_NOT_FOUND,
+    HOST_OUT_OF_ZONE,
+    SUPERORDINATE_DOMAIN_IN_PENDING_DELETE,
+    HOST_LINKED;
   }
 
   private static class HostLinkException extends RuntimeException {
