@@ -47,6 +47,7 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.DeterministicStringGenerator;
@@ -232,6 +233,15 @@ public class XjcToDomainResourceConverterTest {
     assertThat(gracePeriod.getType()).isEqualTo(GracePeriodStatus.TRANSFER);
     assertThat(gracePeriod.getClientId()).isEqualTo("RegistrarX");
     assertThat(gracePeriod.getExpirationTime()).isEqualTo(xjcDomain.getUpDate().plusDays(5));
+    TransferData transferData = domain.getTransferData();
+    assertThat(transferData).isNotEqualTo(TransferData.EMPTY);
+    assertThat(transferData.getTransferStatus()).isEqualTo(TransferStatus.CLIENT_APPROVED);
+    assertThat(transferData.getLosingClientId()).isEqualTo("RegistrarY");
+    assertThat(transferData.getTransferRequestTime())
+        .isEqualTo(DateTime.parse("2014-10-08T16:23:21.897803Z"));
+    assertThat(transferData.getGainingClientId()).isEqualTo("RegistrarX");
+    assertThat(transferData.getPendingTransferExpirationTime())
+        .isEqualTo(DateTime.parse("2014-10-09T08:25:43.305554Z"));
   }
 
   @Test
@@ -388,18 +398,29 @@ public class XjcToDomainResourceConverterTest {
         .isEqualTo(DateTime.parse("2015-01-08T22:00:00.0Z"));
   }
 
+  @Test
+  public void testConvertDomainResourcePendingTransferRegistrationCap() throws Exception {
+    persistActiveContact("jd1234");
+    persistActiveContact("sh8013");
+    final XjcRdeDomain xjcDomain =
+        loadDomainFromRdeXml("domain_fragment_pending_transfer_registration_cap.xml");
+    DomainResource domain = persistResource(convertDomainInTransaction(xjcDomain));
+    assertThat(domain.getTransferData()).isNotNull();
+    // This test will be imcomplete until b/36405140 is fixed to store exDate on TransferData, since
+    // without that there's no way to actually test the capping of the projected registration here.
+  }
+
   private static DomainResource convertDomainInTransaction(final XjcRdeDomain xjcDomain) {
-    final HistoryEntry historyEntry = createHistoryEntryForDomainImport(xjcDomain);
-    final BillingEvent.Recurring autorenewBillingEvent =
-        createAutoRenewBillingEventForDomainImport(xjcDomain, historyEntry);
-    final PollMessage.Autorenew autorenewPollMessage =
-        createAutoRenewPollMessageForDomainImport(xjcDomain, historyEntry);
     return ofy()
         .transact(
             new Work<DomainResource>() {
-              @SuppressWarnings("unchecked")
               @Override
               public DomainResource run() {
+                HistoryEntry historyEntry = createHistoryEntryForDomainImport(xjcDomain);
+                BillingEvent.Recurring autorenewBillingEvent =
+                    createAutoRenewBillingEventForDomainImport(xjcDomain, historyEntry);
+                PollMessage.Autorenew autorenewPollMessage =
+                    createAutoRenewPollMessageForDomainImport(xjcDomain, historyEntry);
                 ofy().save().entities(historyEntry, autorenewBillingEvent, autorenewPollMessage);
                 return XjcToDomainResourceConverter.convertDomain(
                     xjcDomain, autorenewBillingEvent, autorenewPollMessage);
