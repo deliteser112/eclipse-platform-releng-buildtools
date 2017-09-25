@@ -57,8 +57,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.logging.Logger;
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.inject.Inject;
-import javax.inject.Named;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.format.DateTimeFormatter;
@@ -140,13 +138,12 @@ public class StackdriverWriter implements MetricWriter {
    * <p>The monitoringClient must have read and write permissions to the Cloud Monitoring API v3 on
    * the provided project.
    */
-  @Inject
   public StackdriverWriter(
       Monitoring monitoringClient,
-      @Named("stackdriverGcpProject") String project,
+      String project,
       MonitoredResource monitoredResource,
-      @Named("stackdriverMaxQps") int maxQps,
-      @Named("stackdriverMaxPointsPerRequest") int maxPointsPerRequest) {
+      int maxQps,
+      int maxPointsPerRequest) {
     this.monitoringClient = checkNotNull(monitoringClient);
     this.projectResource = "projects/" + checkNotNull(project);
     this.monitoredResource = monitoredResource;
