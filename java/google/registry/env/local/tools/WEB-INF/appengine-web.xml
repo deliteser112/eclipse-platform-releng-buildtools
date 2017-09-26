@@ -3,6 +3,7 @@
 
   <application>domain-registry</application>
   <version>1</version>
+  <runtime>java8</runtime>
   <module>tools</module>
   <threadsafe>true</threadsafe>
   <sessions-enabled>true</sessions-enabled>
