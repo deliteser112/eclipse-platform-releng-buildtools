@@ -471,4 +471,22 @@ public class CloudDnsWriterTest {
 
     verifyZone(ImmutableSet.<ResourceRecordSet>of());
   }
+
+  @Test
+  public void testDuplicateRecords() throws Exception {
+    // In publishing DNS records, we can end up publishing information on the same host twice
+    // (through a domain change and a host change), so this scenario needs to work.
+    persistResource(
+            fakeDomain(
+                "example.tld",
+                ImmutableSet.of(persistResource(fakeHost("0.ip4.example.tld", IPv4))),
+                0))
+        .asBuilder()
+        .addSubordinateHost("ns1.example.tld")
+        .build();
+    writer.publishDomain("example.tld");
+    writer.publishHost("0.ip4.example.tld");
+
+    verifyZone(fakeDomainRecords("example.tld", 1, 0, 0, 0));
+  }
 }

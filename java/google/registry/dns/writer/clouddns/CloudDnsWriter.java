@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -82,8 +83,8 @@ public class CloudDnsWriter extends BaseDnsWriter {
   private final String projectId;
   private final String zoneName;
   private final Dns dnsConnection;
-  private final ImmutableMap.Builder<String, ImmutableSet<ResourceRecordSet>>
-      desiredRecordsBuilder = new ImmutableMap.Builder<>();
+  private final HashMap<String, ImmutableSet<ResourceRecordSet>> desiredRecords =
+      new HashMap<String, ImmutableSet<ResourceRecordSet>>();
 
   @Inject
   CloudDnsWriter(
@@ -121,7 +122,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
     // desiredRecordsBuilder is populated with an empty set to indicate that all existing records
     // should be deleted.
     if (!domainResource.isPresent() || !domainResource.get().shouldPublishToDns()) {
-      desiredRecordsBuilder.put(absoluteDomainName, ImmutableSet.<ResourceRecordSet>of());
+      desiredRecords.put(absoluteDomainName, ImmutableSet.<ResourceRecordSet>of());
       return;
     }
 
@@ -171,7 +172,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
       }
     }
 
-    desiredRecordsBuilder.put(absoluteDomainName, domainRecords.build());
+    desiredRecords.put(absoluteDomainName, domainRecords.build());
     logger.finefmt(
         "Will write %s records for domain %s", domainRecords.build().size(), absoluteDomainName);
   }
@@ -189,7 +190,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
 
     // Return early if the host is deleted.
     if (!host.isPresent()) {
-      desiredRecordsBuilder.put(absoluteHostName, ImmutableSet.<ResourceRecordSet>of());
+      desiredRecords.put(absoluteHostName, ImmutableSet.<ResourceRecordSet>of());
       return;
     }
 
@@ -227,7 +228,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
               .setRrdatas(ImmutableList.copyOf(aaaaRrData)));
     }
 
-    desiredRecordsBuilder.put(absoluteHostName, domainRecords.build());
+    desiredRecords.put(absoluteHostName, domainRecords.build());
   }
 
   /**
@@ -273,7 +274,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
   @Override
   protected void commitUnchecked() {
     retrier.callWithRetry(
-        getMutateZoneCallback(desiredRecordsBuilder.build()), ZoneStateException.class);
+        getMutateZoneCallback(ImmutableMap.copyOf(desiredRecords)), ZoneStateException.class);
     logger.info("Wrote to Cloud DNS");
   }
 
