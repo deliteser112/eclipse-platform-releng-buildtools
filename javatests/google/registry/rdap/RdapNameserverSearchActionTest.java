@@ -26,7 +26,10 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResourc
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.google.appengine.api.users.User;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -37,11 +40,16 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
+import google.registry.request.auth.AuthLevel;
+import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
+import google.registry.ui.server.registrar.SessionUtils;
 import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;
@@ -58,9 +66,13 @@ public class RdapNameserverSearchActionTest {
 
   @Rule public final InjectRule inject = new InjectRule();
 
+  private final HttpServletRequest request = mock(HttpServletRequest.class);
   private final FakeResponse response = new FakeResponse();
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
-
+  private final SessionUtils sessionUtils = mock(SessionUtils.class);
+  private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
+  private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
+  private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
   private final RdapNameserverSearchAction action = new RdapNameserverSearchAction();
 
   private DomainResource domainCatLol;
@@ -132,6 +144,7 @@ public class RdapNameserverSearchActionTest {
     inject.setStaticField(Ofy.class, "clock", clock);
     action.clock = clock;
     action.requestPath = RdapNameserverSearchAction.PATH;
+    action.request = request;
     action.response = response;
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapResultSetMaxSize = 4;
@@ -139,6 +152,10 @@ public class RdapNameserverSearchActionTest {
     action.rdapWhoisServer = null;
     action.ipParam = Optional.absent();
     action.nameParam = Optional.absent();
+    action.registrarParam = Optional.absent();
+    action.includeDeletedParam = Optional.absent();
+    action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+    action.sessionUtils = sessionUtils;
   }
 
   private Object generateExpectedJson(String expectedOutputFile) {
@@ -172,6 +189,7 @@ public class RdapNameserverSearchActionTest {
     if (ipAddress != null) {
       builder.put("ADDRESS", ipAddress);
     }
+    builder.put("STATUS", "active");
     builder.put("TYPE", "nameserver");
     return JSONValue.parse(
         loadFileWithSubstitutions(this.getClass(), expectedOutputFile, builder.build()));
@@ -207,6 +225,14 @@ public class RdapNameserverSearchActionTest {
     domainCatLol = persistResource(
         domainCatLol.asBuilder()
             .setSubordinateHosts(subordinateHostsBuilder.build())
+            .build());
+  }
+
+  private void createDeletedHost() {
+    persistResource(
+        makeAndPersistHostResource("nsdeleted.cat.lol", "4.3.2.1", clock.nowUtc().minusYears(1))
+            .asBuilder()
+            .setDeletionTime(clock.nowUtc().minusMonths(1))
             .build());
   }
 
@@ -283,6 +309,20 @@ public class RdapNameserverSearchActionTest {
   }
 
   @Test
+  public void testNameMatch_ns1_cat_lol_found_sameRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("TheRegistrar");
+    generateActualJsonWithName("ns1.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_ns1_cat_lol_notFound_differentRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("unicoderegistrar");
+    generateActualJsonWithName("ns1.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
   public void testNameMatch_ns2_cat_lol_found() throws Exception {
     assertThat(generateActualJsonWithName("ns2.cat.lol"))
         .isEqualTo(generateExpectedJsonForNameserver(
@@ -348,6 +388,20 @@ public class RdapNameserverSearchActionTest {
   }
 
   @Test
+  public void testNameMatch_nsstar_cat_lol_found_sameRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("TheRegistrar");
+    generateActualJsonWithName("ns*.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_nsstar_cat_lol_notFound_differentRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("unicoderegistrar");
+    generateActualJsonWithName("ns*.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
   public void testNameMatch_nstar_cat_lol_found() throws Exception {
     generateActualJsonWithName("n*.cat.lol");
     assertThat(response.getStatus()).isEqualTo(200);
@@ -357,6 +411,20 @@ public class RdapNameserverSearchActionTest {
   public void testNameMatch_star_cat_lol_found() throws Exception {
     generateActualJsonWithName("*.cat.lol");
     assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_star_cat_lol_found_sameRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("TheRegistrar");
+    generateActualJsonWithName("*.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_star_cat_lol_notFound_differentRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("unicoderegistrar");
+    generateActualJsonWithName("*.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
@@ -424,28 +492,6 @@ public class RdapNameserverSearchActionTest {
   }
 
   @Test
-  public void testAddressMatchV4Address_found() throws Exception {
-    assertThat(generateActualJsonWithIp("1.2.3.4"))
-        .isEqualTo(
-            generateExpectedJsonForNameserver(
-                "ns1.cat.lol", null, "2-ROID", "v4", "1.2.3.4", "rdap_host_linked.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
-  }
-
-  @Test
-  public void testAddressMatchV6Address_foundMultiple() throws Exception {
-    assertThat(generateActualJsonWithIp("bad:f00d:cafe::15:beef"))
-        .isEqualTo(generateExpectedJson("rdap_multiple_hosts.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
-  }
-
-  @Test
-  public void testAddressMatchLocalhost_notFound() throws Exception {
-    generateActualJsonWithIp("127.0.0.1");
-    assertThat(response.getStatus()).isEqualTo(404);
-  }
-
-  @Test
   public void testNameMatchDeletedHost_notFound() throws Exception {
     persistResource(hostNs1CatLol.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     assertThat(generateActualJsonWithName("ns1.cat.lol"))
@@ -458,6 +504,112 @@ public class RdapNameserverSearchActionTest {
     persistResource(hostNs1CatLol.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     assertThat(generateActualJsonWithName("cat.lo*"))
         .isEqualTo(generateExpectedJson("No nameservers found", "rdap_error_404.json"));
+    assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
+  public void testNameMatchDeleted_notFound_includeDeletedNotSpecified() throws Exception {
+    createDeletedHost();
+    generateActualJsonWithName("nsdeleted.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
+  public void testNameMatchDeleted_notFound_notLoggedIn() throws Exception {
+    createDeletedHost();
+    action.includeDeletedParam = Optional.of(true);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
+    generateActualJsonWithName("nsdeleted.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
+  public void testNameMatchDeleted_notFound_loggedInAsDifferentRegistrar() throws Exception {
+    createDeletedHost();
+    action.includeDeletedParam = Optional.of(true);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("unicoderegistrar");
+    generateActualJsonWithName("nsdeleted.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
+  public void testNameMatchDeleted_found_loggedInAsCorrectRegistrar() throws Exception {
+    createDeletedHost();
+    action.includeDeletedParam = Optional.of(true);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
+    generateActualJsonWithName("nsdeleted.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatchDeleted_found_loggedInAsAdmin() throws Exception {
+    createDeletedHost();
+    action.includeDeletedParam = Optional.of(true);
+    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("irrelevant");
+    generateActualJsonWithName("nsdeleted.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatchDeleted_found_loggedInAndRequestingSameRegistrar() throws Exception {
+    createDeletedHost();
+    action.registrarParam = Optional.of("TheRegistrar");
+    action.includeDeletedParam = Optional.of(true);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
+    generateActualJsonWithName("nsdeleted.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatchDeleted_notFound_loggedInButRequestingDifferentRegistrar()
+      throws Exception {
+    createDeletedHost();
+    action.registrarParam = Optional.of("unicoderegistrar");
+    action.includeDeletedParam = Optional.of(true);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
+    generateActualJsonWithName("nsdeleted.cat.lol");
+    assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
+  public void testAddressMatchV4Address_found() throws Exception {
+    assertThat(generateActualJsonWithIp("1.2.3.4"))
+        .isEqualTo(
+            generateExpectedJsonForNameserver(
+                "ns1.cat.lol", null, "2-ROID", "v4", "1.2.3.4", "rdap_host_linked.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testAddressMatchV4Address_found_sameRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("TheRegistrar");
+    generateActualJsonWithIp("1.2.3.4");
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testAddressMatchV4Address_notFound_differentRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("unicoderegistrar");
+    generateActualJsonWithIp("1.2.3.4");
+    assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
+  public void testAddressMatchV6Address_foundMultiple() throws Exception {
+    assertThat(generateActualJsonWithIp("bad:f00d:cafe::15:beef"))
+        .isEqualTo(generateExpectedJson("rdap_multiple_hosts.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testAddressMatchLocalhost_notFound() throws Exception {
+    generateActualJsonWithIp("127.0.0.1");
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
@@ -491,5 +643,75 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithIp("5.5.5.1"))
       .isEqualTo(generateExpectedJson("rdap_truncated_hosts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testAddressMatchDeleted_notFound_includeDeletedNotSpecified() throws Exception {
+    createDeletedHost();
+    generateActualJsonWithIp("4.3.2.1");
+    assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
+  public void testAddressMatchDeleted_notFound_notLoggedIn() throws Exception {
+    createDeletedHost();
+    action.includeDeletedParam = Optional.of(true);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
+    generateActualJsonWithIp("4.3.2.1");
+    assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
+  public void testAddressMatchDeleted_notFound_loggedInAsDifferentRegistrar() throws Exception {
+    createDeletedHost();
+    action.includeDeletedParam = Optional.of(true);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("unicoderegistrar");
+    generateActualJsonWithIp("4.3.2.1");
+    assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
+  public void testAddressMatchDeleted_found_loggedInAsCorrectRegistrar() throws Exception {
+    createDeletedHost();
+    action.includeDeletedParam = Optional.of(true);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
+    generateActualJsonWithIp("4.3.2.1");
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testAddressMatchDeleted_found_loggedInAsAdmin() throws Exception {
+    createDeletedHost();
+    action.includeDeletedParam = Optional.of(true);
+    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("irrelevant");
+    generateActualJsonWithIp("4.3.2.1");
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testAddressMatchDeleted_found_loggedInAndRequestingSameRegisrar() throws Exception {
+    createDeletedHost();
+    action.registrarParam = Optional.of("TheRegistrar");
+    action.includeDeletedParam = Optional.of(true);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
+    generateActualJsonWithIp("4.3.2.1");
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testAddressMatchDeleted_notFound_loggedButRequestingDiffentRegistrar()
+      throws Exception {
+    createDeletedHost();
+    action.registrarParam = Optional.of("unicoderegistrar");
+    action.includeDeletedParam = Optional.of(true);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
+    generateActualJsonWithIp("4.3.2.1");
+    assertThat(response.getStatus()).isEqualTo(404);
   }
 }

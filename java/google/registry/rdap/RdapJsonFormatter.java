@@ -23,6 +23,7 @@ import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -172,8 +173,8 @@ public class RdapJsonFormatter {
   private static final ImmutableMap<StatusValue, RdapStatus> statusToRdapStatusMap =
       Maps.immutableEnumMap(
           new ImmutableMap.Builder<StatusValue, RdapStatus>()
-              // StatusValue.ADD_PERIOD not defined in our system
-              // StatusValue.AUTO_RENEW_PERIOD not defined in our system
+              // RdapStatus.ADD_PERIOD not defined in our system
+              // RdapStatus.AUTO_RENEW_PERIOD not defined in our system
               .put(StatusValue.CLIENT_DELETE_PROHIBITED, RdapStatus.CLIENT_DELETE_PROHIBITED)
               .put(StatusValue.CLIENT_HOLD, RdapStatus.CLIENT_HOLD)
               .put(StatusValue.CLIENT_RENEW_PROHIBITED, RdapStatus.CLIENT_RENEW_PROHIBITED)
@@ -184,18 +185,18 @@ public class RdapJsonFormatter {
               .put(StatusValue.OK, RdapStatus.ACTIVE)
               .put(StatusValue.PENDING_CREATE, RdapStatus.PENDING_CREATE)
               .put(StatusValue.PENDING_DELETE, RdapStatus.PENDING_DELETE)
-              // StatusValue.PENDING_RENEW not defined in our system
-              // StatusValue.PENDING_RESTORE not defined in our system
+              // RdapStatus.PENDING_RENEW not defined in our system
+              // RdapStatus.PENDING_RESTORE not defined in our system
               .put(StatusValue.PENDING_TRANSFER, RdapStatus.PENDING_TRANSFER)
               .put(StatusValue.PENDING_UPDATE, RdapStatus.PENDING_UPDATE)
-              // StatusValue.REDEMPTION_PERIOD not defined in our system
-              // StatusValue.RENEW_PERIOD not defined in our system
+              // RdapStatus.REDEMPTION_PERIOD not defined in our system
+              // RdapStatus.RENEW_PERIOD not defined in our system
               .put(StatusValue.SERVER_DELETE_PROHIBITED, RdapStatus.SERVER_DELETE_PROHIBITED)
               .put(StatusValue.SERVER_HOLD, RdapStatus.SERVER_HOLD)
               .put(StatusValue.SERVER_RENEW_PROHIBITED, RdapStatus.SERVER_RENEW_PROHIBITED)
               .put(StatusValue.SERVER_TRANSFER_PROHIBITED, RdapStatus.SERVER_TRANSFER_PROHIBITED)
               .put(StatusValue.SERVER_UPDATE_PROHIBITED, RdapStatus.SERVER_UPDATE_PROHIBITED)
-              // StatusValue.TRANSFER_PERIOD not defined in our system
+              // RdapStatus.TRANSFER_PERIOD not defined in our system
               .build());
 
   /** Role values specified in RFC 7483 § 10.2.4. */
@@ -270,6 +271,8 @@ public class RdapJsonFormatter {
 
   private static final ImmutableList<String> STATUS_LIST_ACTIVE =
       ImmutableList.of(RdapStatus.ACTIVE.rfc7483String);
+  private static final ImmutableList<String> STATUS_LIST_REMOVED =
+      ImmutableList.of(RdapStatus.REMOVED.rfc7483String);
   private static final ImmutableMap<String, ImmutableList<String>> PHONE_TYPE_VOICE =
       ImmutableMap.of("type", ImmutableList.of("voice"));
   private static final ImmutableMap<String, ImmutableList<String>> PHONE_TYPE_FAX =
@@ -464,7 +467,10 @@ public class RdapJsonFormatter {
     if (hasUnicodeComponents(domainResource.getFullyQualifiedDomainName())) {
       jsonBuilder.put("unicodeName", Idn.toUnicode(domainResource.getFullyQualifiedDomainName()));
     }
-    jsonBuilder.put("status", makeStatusValueList(domainResource.getStatusValues()));
+    jsonBuilder.put(
+        "status",
+        makeStatusValueList(
+            domainResource.getStatusValues(), domainResource.getDeletionTime().isBefore(now)));
     jsonBuilder.put("links", ImmutableList.of(
         makeLink("domain", domainResource.getFullyQualifiedDomainName(), linkBase)));
     boolean displayContacts =
@@ -577,7 +583,9 @@ public class RdapJsonFormatter {
                 .contains(StatusValue.PENDING_TRANSFER)) {
       statuses.add(StatusValue.PENDING_TRANSFER);
     }
-    jsonBuilder.put("status", makeStatusValueList(statuses.build()));
+    jsonBuilder.put(
+        "status",
+        makeStatusValueList(statuses.build(), hostResource.getDeletionTime().isBefore(now)));
     jsonBuilder.put("links", ImmutableList.of(
         makeLink("nameserver", hostResource.getFullyQualifiedHostName(), linkBase)));
     List<ImmutableMap<String, Object>> remarks;
@@ -661,10 +669,13 @@ public class RdapJsonFormatter {
         = new ImmutableList.Builder<>();
     jsonBuilder.put("objectClassName", "entity");
     jsonBuilder.put("handle", contactResource.getRepoId());
-    jsonBuilder.put("status", makeStatusValueList(
-        isLinked(Key.create(contactResource), now)
-            ? union(contactResource.getStatusValues(), StatusValue.LINKED)
-            : contactResource.getStatusValues()));
+    jsonBuilder.put(
+        "status",
+        makeStatusValueList(
+            isLinked(Key.create(contactResource), now)
+                ? union(contactResource.getStatusValues(), StatusValue.LINKED)
+                : contactResource.getStatusValues(),
+            contactResource.getDeletionTime().isBefore(now)));
     if (contactType.isPresent()) {
       jsonBuilder.put("roles",
           ImmutableList.of(convertContactTypeToRdapRole(contactType.get())));
@@ -757,7 +768,7 @@ public class RdapJsonFormatter {
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     jsonBuilder.put("objectClassName", "entity");
     jsonBuilder.put("handle", registrar.getIanaIdentifier().toString());
-    jsonBuilder.put("status", STATUS_LIST_ACTIVE);
+    jsonBuilder.put("status", registrar.isActive() ? STATUS_LIST_ACTIVE : STATUS_LIST_REMOVED);
     jsonBuilder.put("roles", ImmutableList.of(RdapEntityRole.REGISTRAR.rfc7483String));
     jsonBuilder.put("links",
         ImmutableList.of(makeLink("entity", registrar.getIanaIdentifier().toString(), linkBase)));
@@ -1045,18 +1056,30 @@ public class RdapJsonFormatter {
   }
 
   /**
-   * Creates a string array of status values; the spec indicates that OK should be listed as
-   * "active".
+   * Creates a string array of status values.
+   *
+   * <p>The spec indicates that OK should be listed as "active". We use the "removed" status to
+   * indicate deleted objects.
    */
-  private static ImmutableList<String> makeStatusValueList(ImmutableSet<StatusValue> statusValues) {
-    return FluentIterable
-        .from(statusValues)
-        .transform(Functions.forMap(statusToRdapStatusMap, RdapStatus.OBSCURED))
-        .transform(new Function<RdapStatus, String>() {
-          @Override
-          public String apply(RdapStatus status) {
-            return status.getDisplayName();
-          }})
+  private static ImmutableList<String> makeStatusValueList(
+      ImmutableSet<StatusValue> statusValues, boolean isDeleted) {
+    FluentIterable<RdapStatus> iterable =
+        FluentIterable.from(statusValues)
+            .transform(Functions.forMap(statusToRdapStatusMap, RdapStatus.OBSCURED));
+    if (isDeleted) {
+      iterable =
+          iterable
+              .filter(Predicates.not(Predicates.equalTo(RdapStatus.ACTIVE)))
+              .append(RdapStatus.REMOVED);
+    }
+    return iterable
+        .transform(
+            new Function<RdapStatus, String>() {
+              @Override
+              public String apply(RdapStatus status) {
+                return status.getDisplayName();
+              }
+            })
         .toSortedSet(Ordering.natural())
         .asList();
   }

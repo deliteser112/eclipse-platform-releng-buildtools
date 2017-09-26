@@ -17,6 +17,7 @@ package google.registry.rdap;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.host.HostResource;
@@ -59,8 +60,12 @@ public class RdapNameserverAction extends RdapActionBase {
     pathSearchString = canonicalizeName(pathSearchString);
     // The RDAP syntax is /rdap/nameserver/ns1.mydomain.com.
     validateDomainName(pathSearchString);
-    HostResource hostResource = loadByForeignKey(HostResource.class, pathSearchString, now);
-    if (hostResource == null) {
+    // If there are no undeleted nameservers with the given name, the foreign key should point to
+    // the most recently deleted one.
+    HostResource hostResource =
+        loadByForeignKey(
+            HostResource.class, pathSearchString, shouldIncludeDeleted() ? START_OF_TIME : now);
+    if ((hostResource == null) || !shouldBeVisible(hostResource, now)) {
       throw new NotFoundException(pathSearchString + " not found");
     }
     return rdapJsonFormatter.makeRdapJsonForHost(

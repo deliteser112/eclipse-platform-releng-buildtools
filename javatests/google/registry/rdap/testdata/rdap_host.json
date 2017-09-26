@@ -1,6 +1,6 @@
 {
   "status": [
-    "active"
+    "%STATUS%"
   ],
   "ldhName": "%NAME%",
   "handle": "%HANDLE%",

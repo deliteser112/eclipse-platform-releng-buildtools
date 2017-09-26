@@ -28,7 +28,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Longs;
 import com.googlecode.objectify.Key;
-import google.registry.config.RegistryConfig.Config;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.registrar.Registrar;
@@ -69,7 +68,6 @@ public class RdapEntitySearchAction extends RdapActionBase {
   @Inject Clock clock;
   @Inject @Parameter("fn") Optional<String> fnParam;
   @Inject @Parameter("handle") Optional<String> handleParam;
-  @Inject @Config("rdapResultSetMaxSize") int rdapResultSetMaxSize;
   @Inject RdapEntitySearchAction() {}
 
   @Override
@@ -160,10 +158,15 @@ public class RdapEntitySearchAction extends RdapActionBase {
     // Get the contact matches and return the results, fetching an additional contact to detect
     // truncation.
     return makeSearchResults(
-      queryUndeleted(
-          ContactResource.class, "searchName", partialStringQuery, rdapResultSetMaxSize + 1).list(),
-      registrarMatches,
-      now);
+        queryItems(
+                ContactResource.class,
+                "searchName",
+                partialStringQuery,
+                false /* includeDeleted */,
+                rdapResultSetMaxSize + 1)
+            .list(),
+        registrarMatches,
+        now);
   }
 
   /** Searches for entities by handle, returning a JSON array of entity info maps. */

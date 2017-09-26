@@ -15,10 +15,8 @@
 package google.registry.rdap;
 
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
-import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
-import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -26,7 +24,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.Booleans;
-import google.registry.config.RegistryConfig.Config;
+import com.googlecode.objectify.cmd.Query;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
@@ -64,11 +62,11 @@ import org.joda.time.DateTime;
 public class RdapNameserverSearchAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/nameservers";
+  private static final int RESULT_SET_SIZE_SCALING_FACTOR = 30;
 
   @Inject Clock clock;
   @Inject @Parameter("name") Optional<String> nameParam;
   @Inject @Parameter("ip") Optional<InetAddress> ipParam;
-  @Inject @Config("rdapResultSetMaxSize") int rdapResultSetMaxSize;
   @Inject RdapNameserverSearchAction() {}
 
   @Override
@@ -125,85 +123,136 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     return jsonBuilder.build();
   }
 
-  /** Searches for nameservers by name, returning a JSON array of nameserver info maps. */
+  /**
+   * Searches for nameservers by name, returning a JSON array of nameserver info maps.
+   *
+   * <p>When deleted nameservers are included in the search, the search is treated as if it has a
+   * wildcard, because multiple results can be returned.
+   */
   private RdapSearchResults searchByName(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
-    // Handle queries without a wildcard -- just load by foreign key.
-    if (!partialStringQuery.getHasWildcard()) {
-      HostResource hostResource =
-          loadByForeignKey(HostResource.class, partialStringQuery.getInitialString(), now);
-      if (hostResource == null) {
-        throw new NotFoundException("No nameservers found");
+    // Handle queries without a wildcard -- just load by foreign key. We can't do this if deleted
+    // nameservers are desired, because there may be multiple nameservers with the same name.
+    if (!partialStringQuery.getHasWildcard() && !shouldIncludeDeleted()) {
+      return searchByNameUsingForeignKey(partialStringQuery, now);
+    // Handle queries with a wildcard (or including deleted entries). If there is a suffix, it
+    // should be a domain that we manage, so we can look up the domain and search through the
+    // subordinate hosts. This is more efficient, and lets us permit wildcard searches with no
+    // initial string. Deleted nameservers cannot be searched using a suffix, because the logic
+    // of the deletion status of the superordinate domain versus the deletion status of the
+    // subordinate host gets too messy.
+    } else if (partialStringQuery.getSuffix() != null) {
+      if (shouldIncludeDeleted()) {
+        throw new UnprocessableEntityException(
+            "A suffix after a wildcard is not allowed when searching for deleted nameservers");
       }
-      return RdapSearchResults.create(
-          ImmutableList.of(
-              rdapJsonFormatter.makeRdapJsonForHost(
-                  hostResource, false, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL)));
-    // Handle queries with a wildcard.
+      return searchByNameUsingSuperordinateDomain(partialStringQuery, now);
+    // Handle queries with a wildcard (or deleted entries included), but no suffix.
     } else {
-      // If there is a suffix, it should be a domain that we manage, so we can look up the domain
-      // and search through the subordinate hosts. This is more efficient, and lets us permit
-      // wildcard searches with no initial string.
-      if (partialStringQuery.getSuffix() != null) {
-        DomainResource domainResource =
-            loadByForeignKey(DomainResource.class, partialStringQuery.getSuffix(), now);
-        if (domainResource == null) {
-          // Don't allow wildcards with suffixes which are not domains we manage. That would risk a
-          // table scan in many easily foreseeable cases. The user might ask for ns*.zombo.com,
-          // forcing us to query for all hosts beginning with ns, then filter for those ending in
-          // .zombo.com. It might well be that 80% of all hostnames begin with ns, leading to
-          // inefficiency.
-          throw new UnprocessableEntityException(
-              "A suffix after a wildcard in a nameserver lookup must be an in-bailiwick domain");
-        }
-        List<HostResource> hostList = new ArrayList<>();
-        for (String fqhn : ImmutableSortedSet.copyOf(domainResource.getSubordinateHosts())) {
-          // We can't just check that the host name starts with the initial query string, because
-          // then the query ns.exam*.example.com would match against nameserver ns.example.com.
-          if (partialStringQuery.matches(fqhn)) {
-            HostResource hostResource = loadByForeignKey(HostResource.class, fqhn, now);
-            if (hostResource != null) {
-              hostList.add(hostResource);
-              if (hostList.size() > rdapResultSetMaxSize) {
-                break;
-              }
-            }
+      return searchByNameUsingPrefix(partialStringQuery, now);
+    }
+  }
+
+  /**
+   * Searches for nameservers by name with no wildcard or deleted names.
+   *
+   * <p>In this case, we can load by foreign key.
+   */
+  private RdapSearchResults searchByNameUsingForeignKey(
+      final RdapSearchPattern partialStringQuery, final DateTime now) {
+    HostResource hostResource =
+        loadByForeignKey(HostResource.class, partialStringQuery.getInitialString(), now);
+    if ((hostResource == null) || !shouldBeVisible(hostResource, now)) {
+      throw new NotFoundException("No nameservers found");
+    }
+    return RdapSearchResults.create(
+        ImmutableList.of(
+            rdapJsonFormatter.makeRdapJsonForHost(
+                hostResource, false, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL)));
+  }
+
+  /** Searches for nameservers by name using the superordinate domain as a suffix. */
+  private RdapSearchResults searchByNameUsingSuperordinateDomain(
+      final RdapSearchPattern partialStringQuery, final DateTime now) {
+    DomainResource domainResource =
+        loadByForeignKey(DomainResource.class, partialStringQuery.getSuffix(), now);
+    if (domainResource == null) {
+      // Don't allow wildcards with suffixes which are not domains we manage. That would risk a
+      // table scan in many easily foreseeable cases. The user might ask for ns*.zombo.com,
+      // forcing us to query for all hosts beginning with ns, then filter for those ending in
+      // .zombo.com. It might well be that 80% of all hostnames begin with ns, leading to
+      // inefficiency.
+      throw new UnprocessableEntityException(
+          "A suffix after a wildcard in a nameserver lookup must be an in-bailiwick domain");
+    }
+    List<HostResource> hostList = new ArrayList<>();
+    for (String fqhn : ImmutableSortedSet.copyOf(domainResource.getSubordinateHosts())) {
+      // We can't just check that the host name starts with the initial query string, because
+      // then the query ns.exam*.example.com would match against nameserver ns.example.com.
+      if (partialStringQuery.matches(fqhn)) {
+        HostResource hostResource = loadByForeignKey(HostResource.class, fqhn, now);
+        if ((hostResource != null) && shouldBeVisible(hostResource, now)) {
+          hostList.add(hostResource);
+          if (hostList.size() > rdapResultSetMaxSize) {
+            break;
           }
         }
-        return makeSearchResults(hostList, now);
-      // Handle queries with a wildcard, but no suffix. There are no pending deletes for hosts, so
-      // we can call queryUndeleted. Unlike the above problem with suffixes, we can safely search
-      // for nameservers beginning with a particular suffix, because we need only fetch the first
-      // rdapResultSetMaxSize entries, and ignore the rest.
-      } else {
-        return makeSearchResults(
-            // Add 1 so we can detect truncation.
-            queryUndeleted(
-                    HostResource.class,
-                    "fullyQualifiedHostName",
-                    partialStringQuery,
-                    rdapResultSetMaxSize + 1)
-                .list(),
-            now);
       }
     }
+    return makeSearchResults(hostList, IncompletenessWarningType.NONE, now);
+  }
+
+  /**
+   * Searches for nameservers by name with a prefix and wildcard.
+   *
+   * <p>There are no pending deletes for hosts, so we can call {@link RdapActionBase#queryItems}.
+   */
+  private RdapSearchResults searchByNameUsingPrefix(
+      final RdapSearchPattern partialStringQuery, final DateTime now) {
+    // Add 1 so we can detect truncation.
+    Query<HostResource> query =
+        queryItems(
+            HostResource.class,
+            "fullyQualifiedHostName",
+            partialStringQuery,
+            shouldIncludeDeleted(),
+            shouldIncludeDeleted()
+                ? (RESULT_SET_SIZE_SCALING_FACTOR * (rdapResultSetMaxSize + 1))
+                : (rdapResultSetMaxSize + 1));
+    return makeSearchResults(getMatchingResources(query, now), now);
   }
 
   /** Searches for nameservers by IP address, returning a JSON array of nameserver info maps. */
   private RdapSearchResults searchByIp(final InetAddress inetAddress, DateTime now) {
+    // Add 1 so we can detect truncation.
+    Query<HostResource> query =
+        queryItems(
+            HostResource.class,
+            "inetAddresses",
+            inetAddress.getHostAddress(),
+            shouldIncludeDeleted(),
+            shouldIncludeDeleted()
+                ? (RESULT_SET_SIZE_SCALING_FACTOR * (rdapResultSetMaxSize + 1))
+                : (rdapResultSetMaxSize + 1));
+    return makeSearchResults(getMatchingResources(query, now), now);
+  }
+
+  /**
+   * Output JSON for a lists of hosts contained in an {@link
+   * RdapResourcesAndIncompletenessWarningType}.
+   */
+  private RdapSearchResults makeSearchResults(
+      RdapResourcesAndIncompletenessWarningType<HostResource> resourcesAndIncompletenessWarningType,
+      DateTime now) {
     return makeSearchResults(
-        // Add 1 so we can detect truncation.
-        ofy().load()
-            .type(HostResource.class)
-            .filter("inetAddresses", inetAddress.getHostAddress())
-            .filter("deletionTime", END_OF_TIME)
-            .limit(rdapResultSetMaxSize + 1)
-            .list(),
+        resourcesAndIncompletenessWarningType.resources(),
+        resourcesAndIncompletenessWarningType.incompletenessWarningType(),
         now);
   }
 
   /** Output JSON for a list of hosts. */
-  private RdapSearchResults makeSearchResults(List<HostResource> hosts, DateTime now) {
+  private RdapSearchResults makeSearchResults(
+      List<HostResource> hosts, IncompletenessWarningType incompletenessWarningType, DateTime now) {
     OutputDataType outputDataType =
         (hosts.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
     ImmutableList.Builder<ImmutableMap<String, Object>> jsonListBuilder =
@@ -218,6 +267,6 @@ public class RdapNameserverSearchAction extends RdapActionBase {
         jsonList,
         (jsonList.size() < hosts.size())
             ? IncompletenessWarningType.TRUNCATED
-            : IncompletenessWarningType.NONE);
+            : incompletenessWarningType);
   }
 }

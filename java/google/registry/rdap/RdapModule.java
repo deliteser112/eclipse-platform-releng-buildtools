@@ -61,4 +61,16 @@ public final class RdapModule {
   static Optional<String> provideHandle(HttpServletRequest req) {
     return RequestParameters.extractOptionalParameter(req, "handle");
   }
+
+  @Provides
+  @Parameter("registrar")
+  static Optional<String> provideRegistrar(HttpServletRequest req) {
+    return RequestParameters.extractOptionalParameter(req, "registrar");
+  }
+
+  @Provides
+  @Parameter("includeDeleted")
+  static Optional<Boolean> provideIncludeDeleted(HttpServletRequest req) {
+    return RequestParameters.extractOptionalBooleanParameter(req, "includeDeleted");
+  }
 }

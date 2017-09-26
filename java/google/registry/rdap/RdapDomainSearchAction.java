@@ -29,7 +29,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.primitives.Booleans;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
-import google.registry.config.RegistryConfig.Config;
 import google.registry.model.EppResourceUtils;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
@@ -81,7 +80,6 @@ public class RdapDomainSearchAction extends RdapActionBase {
   @Inject @Parameter("name") Optional<String> nameParam;
   @Inject @Parameter("nsLdhName") Optional<String> nsLdhNameParam;
   @Inject @Parameter("nsIp") Optional<InetAddress> nsIpParam;
-  @Inject @Config("rdapResultSetMaxSize") int rdapResultSetMaxSize;
   @Inject RdapDomainSearchAction() {}
 
   @Override
@@ -300,10 +298,11 @@ public class RdapDomainSearchAction extends RdapActionBase {
         // Only return the first 1000 nameservers. This could result in an incomplete result set if
         // a search asks for something like "ns*", but we need to enforce a limit in order to avoid
         // arbitrarily long-running queries.
-        return queryUndeleted(
+        return queryItems(
                 HostResource.class,
                 "fullyQualifiedHostName",
                 partialStringQuery,
+                false, /* includeDeleted */
                 MAX_NAMESERVERS_IN_FIRST_STAGE)
             .keys();
       }
