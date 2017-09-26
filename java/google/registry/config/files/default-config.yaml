@@ -146,10 +146,10 @@ oAuth:
 
 icannReporting:
   # URL we PUT monthly ICANN transactions reports to.
-  icannTransactionsReportingUploadUrl: https://ry-api.example.org/report/registrar-transactions
+  icannTransactionsReportingUploadUrl: https://ry-api.icann.org/report/registrar-transactions
 
   # URL we PUT monthly ICANN activity reports to.
-  icannActivityReportingUploadUrl: https://ry-api.example.org/report/registry-functions-activity
+  icannActivityReportingUploadUrl: https://ry-api.icann.org/report/registry-functions-activity
 
 rde:
   # URL prefix of ICANN's server to upload RDE reports to. Nomulus adds /TLD/ID
