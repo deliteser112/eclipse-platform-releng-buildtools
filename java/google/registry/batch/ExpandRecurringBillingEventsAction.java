@@ -67,7 +67,6 @@ import java.util.Set;
 import javax.inject.Inject;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 
 /**
  * A mapreduce that expands {@link Recurring} billing events into synthetic {@link OneTime} events.
@@ -192,7 +191,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
               HistoryEntry historyEntry = new HistoryEntry.Builder()
                   .setBySuperuser(false)
                   .setClientId(recurring.getClientId())
-                  .setModificationTime(DateTime.now(DateTimeZone.UTC))
+                  .setModificationTime(ofy().getTransactionTime())
                   .setParent(domainKey)
                   .setPeriod(Period.create(1, YEARS))
                   .setReason("Domain autorenewal by ExpandRecurringBillingEventsAction")

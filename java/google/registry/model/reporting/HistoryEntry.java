@@ -104,7 +104,7 @@ public class HistoryEntry extends ImmutableObject implements Buildable {
   /** The actual EPP xml of the command, stored as bytes to be agnostic of encoding. */
   byte[] xmlBytes;
 
-  /** The time the command occurred. */
+  /** The time the command occurred, represented by the ofy transaction time.*/
   @Index
   DateTime modificationTime;
 
