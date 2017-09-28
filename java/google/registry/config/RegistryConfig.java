@@ -331,6 +331,18 @@ public final class RegistryConfig {
       return config.datastore.eppResourceIndexBucketsNum;
     }
 
+    @Provides
+    @Config("cloudDnsRootUrl")
+    public static Optional<String> getCloudDnsRootUrl(RegistryConfigSettings config) {
+      return Optional.fromNullable(config.cloudDns.rootUrl);
+    }
+
+    @Provides
+    @Config("cloudDnsServicePath")
+    public static Optional<String> getCloudDnsServicePath(RegistryConfigSettings config) {
+      return Optional.fromNullable(config.cloudDns.servicePath);
+    }
+
     /**
      * Returns size of Google Cloud Storage client connection buffer in bytes.
      *

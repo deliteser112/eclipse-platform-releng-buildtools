@@ -110,6 +110,15 @@ datastore:
   # doubles after each failure).
   baseOfyRetryMillis: 100
 
+cloudDns:
+  # The root url for the Cloud DNS API.  Set this to a non-null value to
+  # override the default API server used by the googleapis library.
+  rootUrl: null
+
+  # The service endpoint path for the Cloud DNS API.  Set this to a non-null
+  # value to override the default API path used by the googleapis library.
+  servicePath: null
+
 caching:
   # Length of time that a singleton should be cached before expiring.
   singletonCacheRefreshSeconds: 600

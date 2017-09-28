@@ -25,6 +25,7 @@ public class RegistryConfigSettings {
   public OAuth oAuth;
   public RegistryPolicy registryPolicy;
   public Datastore datastore;
+  public CloudDns cloudDns;
   public Caching caching;
   public IcannReporting icannReporting;
   public Rde rde;
@@ -94,6 +95,12 @@ public class RegistryConfigSettings {
   public static class Kms {
     public String keyringName;
     public String projectId;
+  }
+
+  /** Configuration for Cloud DNS. */
+  public static class CloudDns {
+    public String rootUrl;
+    public String servicePath;
   }
 
   /** Configuration for caching. */

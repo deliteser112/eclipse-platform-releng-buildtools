@@ -20,6 +20,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.DnsScopes;
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.util.concurrent.RateLimiter;
 import dagger.Module;
 import dagger.Provides;
@@ -40,10 +41,20 @@ public final class CloudDnsWriterModule {
       HttpTransport transport,
       JsonFactory jsonFactory,
       Function<Set<String>, ? extends HttpRequestInitializer> credential,
-      @Config("projectId") String projectId) {
-    return new Dns.Builder(transport, jsonFactory, credential.apply(DnsScopes.all()))
-        .setApplicationName(projectId)
-        .build();
+      @Config("projectId") String projectId,
+      @Config("cloudDnsRootUrl") Optional<String> rootUrl,
+      @Config("cloudDnsServicePath") Optional<String> servicePath) {
+    Dns.Builder builder = new Dns.Builder(transport, jsonFactory, credential.apply(DnsScopes.all()))
+        .setApplicationName(projectId);
+
+    if (rootUrl.isPresent()) {
+      builder.setRootUrl(rootUrl.get());
+    }
+    if (servicePath.isPresent()) {
+      builder.setServicePath(servicePath.get());
+    }
+
+    return builder.build();
   }
 
   @Provides
