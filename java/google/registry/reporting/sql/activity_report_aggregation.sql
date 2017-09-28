@@ -21,8 +21,8 @@ SELECT
   SUM(IF(metricName = 'operational-registrars', count, 0)) AS operational_registrars,
   SUM(IF(metricName = 'ramp-up-registrars', count, 0)) AS ramp_up_registrars,
   SUM(IF(metricName = 'pre-ramp-up-registrars', count, 0)) AS pre_ramp_up_registrars,
-  -- We don't support ZFA over SFTP, only AXFR.
-  0 AS zfa_passwords,
+  -- We use the Centralized Zone Data Service.
+  "CZDS" AS zfa_passwords,
   SUM(IF(metricName = 'whois-43-queries', count, 0)) AS whois_43_queries,
   SUM(IF(metricName = 'web-whois-queries', count, 0)) AS web_whois_queries,
   -- We don't support searchable WHOIS.

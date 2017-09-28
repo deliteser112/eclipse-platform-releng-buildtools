@@ -47,7 +47,6 @@ public final class IcannReportingModule {
   static final String ICANN_REPORTING_DATA_SET = "icann_reporting";
   static final String DATASTORE_EXPORT_DATA_SET = "latest_datastore_export";
   private static final String BIGQUERY_SCOPE =  "https://www.googleapis.com/auth/bigquery";
-  private static final String DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.readonly";
 
   @Provides
   @Parameter(PARAM_YEAR_MONTH)
@@ -90,7 +89,7 @@ public final class IcannReportingModule {
           .getApplicationDefault(transport, new JacksonFactory());
       BigqueryConnection connection = new BigqueryConnection.Builder()
           .setExecutorService(Executors.newFixedThreadPool(20))
-          .setCredential(credential.createScoped(ImmutableList.of(BIGQUERY_SCOPE, DRIVE_SCOPE)))
+          .setCredential(credential.createScoped(ImmutableList.of(BIGQUERY_SCOPE)))
           .setDatasetId(ICANN_REPORTING_DATA_SET)
           .setOverwrite(true)
           .setPollInterval(Duration.standardSeconds(1))

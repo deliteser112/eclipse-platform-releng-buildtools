@@ -76,8 +76,8 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
     String operationalRegistrarsQuery =
         SqlTemplate.create(getQueryFromFile("registrar_operating_status.sql"))
             .put("PROJECT_ID", projectId)
-            .put("REGISTRAR_DATA_SET", "registrar_data")
-            .put("REGISTRAR_STATUS_TABLE", "registrar_status")
+            .put("DATASTORE_EXPORT_DATA_SET", DATASTORE_EXPORT_DATA_SET)
+            .put("REGISTRAR_TABLE", "Registrar")
             .build();
     queriesBuilder.put(getTableName(REGISTRAR_OPERATING_STATUS), operationalRegistrarsQuery);
 

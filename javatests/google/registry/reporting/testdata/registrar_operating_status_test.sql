@@ -13,21 +13,15 @@
   -- See the License for the specific language governing permissions and
   -- limitations under the License.
 
-  -- Query for all registrar statuses:
-  -- production, ramping up (OTE), or pre-ramp-up (requested).
+  -- Query that counts the number of real registrars in system.
 
 SELECT
   -- Applies to all TLDs, hence the 'null' magic value.
   STRING(NULL) AS tld,
-  CASE WHEN access_type = 'PROD' AND registrar_name IS NOT NULL
-    THEN 'operational-registrars'
-  WHEN access_type = 'OTE' AND registrar_name IS NOT NULL
-    THEN 'ramp-up-registrars'
-  WHEN access_type IS NULL AND registrar_name IS NOT NULL
-    THEN 'pre-ramp-up-registrars'
-  -- The import process is imprecise; filter out invalid rows.
-  ELSE 'not-applicable' END AS metricName,
-  COUNT(registrar_id) AS count
+  'operational-registrars' AS metricName,
+  COUNT(registrarName) AS count
 FROM
-  `domain-registry-alpha.registrar_data.registrar_status`
+  `domain-registry-alpha.latest_datastore_export.Registrar`
+WHERE
+  type = 'REAL'
 GROUP BY metricName
