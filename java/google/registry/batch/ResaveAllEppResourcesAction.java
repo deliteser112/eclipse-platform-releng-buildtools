@@ -16,7 +16,6 @@ package google.registry.batch;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PipelineUtils.createJobPath;
-import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
@@ -29,7 +28,6 @@ import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import javax.inject.Inject;
-import org.joda.time.DateTime;
 
 /**
  * A mapreduce that re-saves all EppResources, projecting them forward to the current time.
@@ -76,7 +74,7 @@ public class ResaveAllEppResourcesAction implements Runnable {
         @Override
         public void vrun() {
           EppResource projectedResource =
-              ofy().load().key(resourceKey).now().cloneProjectedAtTime(DateTime.now(UTC));
+              ofy().load().key(resourceKey).now().cloneProjectedAtTime(ofy().getTransactionTime());
           ofy().save().entity(projectedResource).now();
         }});
       getContext().incrementCounter(String.format("%s entities re-saved", resourceKey.getKind()));
