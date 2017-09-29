@@ -15,8 +15,6 @@
 package google.registry.mapreduce.inputs;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Predicates.not;
-import static com.google.common.collect.Iterables.all;
 import static com.google.common.collect.Lists.asList;
 import static google.registry.util.TypeUtils.hasAnnotation;
 
@@ -92,7 +90,7 @@ public final class EppResourceInputs {
     ImmutableSet<Class<? extends R>> resourceClasses =
         ImmutableSet.copyOf(asList(resourceClass, moreResourceClasses));
     checkArgument(
-        all(resourceClasses, not(hasAnnotation(EntitySubclass.class))),
+        resourceClasses.stream().noneMatch(hasAnnotation(EntitySubclass.class)),
         "Mapping over keys requires a non-polymorphic Entity");
     return new EppResourceKeyInput<>(resourceClasses);
   }
