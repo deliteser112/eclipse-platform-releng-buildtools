@@ -35,6 +35,7 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyLaunchPhaseMatc
 import static google.registry.flows.domain.DomainFlowUtils.verifyNoCodeMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
+import static google.registry.flows.domain.DomainFlowUtils.verifyRegistrarIsActive;
 import static google.registry.flows.domain.DomainFlowUtils.verifyRegistryStateAllowsLaunchFlows;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRepoId;
@@ -147,6 +148,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
+ * @error {@link DomainFlowUtils.RegistrarMustBeActiveToCreateDomainsException}
  * @error {@link DomainFlowTmchUtils.SignedMarksMustBeEncodedException}
  * @error {@link DomainFlowTmchUtils.SignedMarkCertificateExpiredException}
  * @error {@link DomainFlowTmchUtils.SignedMarkCertificateInvalidException}
@@ -194,6 +196,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     customLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    verifyRegistrarIsActive(clientId);
     DateTime now = ofy().getTransactionTime();
     Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     // Fail if the domain is already registered (e.g. this is a landrush application but the domain

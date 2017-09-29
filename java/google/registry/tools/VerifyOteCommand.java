@@ -109,7 +109,7 @@ final class VerifyOteCommand implements ServerSideCommand {
       .transform(new Function<Registrar, String>() {
           @Override
           public String apply(Registrar registrar) {
-            if (!registrar.isActive()) {
+            if (!registrar.isLive()) {
               return null;
             }
             String name = registrar.getClientId();

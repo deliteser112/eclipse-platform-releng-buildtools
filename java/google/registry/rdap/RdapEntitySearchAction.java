@@ -243,7 +243,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
     } else {
       outputDataType = OutputDataType.FULL;
       for (Registrar registrar : registrars) {
-        if (registrar.isActiveAndPubliclyVisible()) {
+        if (registrar.isLiveAndPubliclyVisible()) {
           numEntities++;
           if (numEntities > 1) {
             outputDataType = OutputDataType.SUMMARY;
@@ -276,7 +276,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
           authorization));
     }
     for (Registrar registrar : registrars) {
-      if (registrar.isActiveAndPubliclyVisible()) {
+      if (registrar.isLiveAndPubliclyVisible()) {
         if (jsonOutputList.size() >= rdapResultSetMaxSize) {
           return RdapSearchResults.create(
               ImmutableList.copyOf(jsonOutputList), IncompletenessWarningType.TRUNCATED);

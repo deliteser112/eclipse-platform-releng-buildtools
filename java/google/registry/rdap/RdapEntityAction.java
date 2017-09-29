@@ -101,7 +101,7 @@ public class RdapEntityAction extends RdapActionBase {
     if (ianaIdentifier != null) {
       wasValidKey = true;
       Optional<Registrar> registrar = getRegistrarByIanaIdentifier(ianaIdentifier);
-      if ((registrar.isPresent()) && registrar.get().isActiveAndPubliclyVisible()) {
+      if ((registrar.isPresent()) && registrar.get().isLiveAndPubliclyVisible()) {
         return rdapJsonFormatter.makeRdapJsonForRegistrar(
             registrar.get(), true, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL);
       }

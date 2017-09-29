@@ -145,10 +145,8 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
 
   /** Represents the state of a persisted registrar entity. */
   public enum State {
-    /**
-     * This registrar is provisioned and may have access to the testing environment, but is not yet
-     * allowed to access the production environment.
-     */
+
+    /** This registrar is provisioned but not yet active, and cannot log in. */
     PENDING,
 
     /** This is an active registrar account which is allowed to provision and modify domains. */
@@ -177,8 +175,8 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   /** Regex for telephone support passcode (5 digit string). */
   public static final Pattern PHONE_PASSCODE_PATTERN = Pattern.compile("\\d{5}");
 
-  /** The states in which a {@link Registrar} is considered {@link #isActive active}. */
-  private static final ImmutableSet<State> ACTIVE_STATES =
+  /** The states in which a {@link Registrar} is considered {@link #isLive live}. */
+  private static final ImmutableSet<State> LIVE_STATES =
       Sets.immutableEnumSet(State.ACTIVE, State.SUSPENDED);
 
   /**
@@ -486,14 +484,19 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     return nullToEmptyImmutableSortedCopy(allowedTlds);
   }
 
-  /** Returns {@code true} if registrar is active. */
-  public boolean isActive() {
-    return ACTIVE_STATES.contains(state);
+  /**
+   * Returns {@code true} if the registrar is live.
+   *
+   * <p>A live registrar is one that can have live domains/contacts/hosts in the registry, meaning
+   * that it is either currently active or used to be active (i.e. suspended).
+   */
+  public boolean isLive() {
+    return LIVE_STATES.contains(state);
   }
 
   /** Returns {@code true} if registrar should be visible in WHOIS results. */
-  public boolean isActiveAndPubliclyVisible() {
-    return ACTIVE_STATES.contains(state) && PUBLICLY_VISIBLE_TYPES.contains(type);
+  public boolean isLiveAndPubliclyVisible() {
+    return LIVE_STATES.contains(state) && PUBLICLY_VISIBLE_TYPES.contains(type);
   }
 
   public String getClientCertificate() {

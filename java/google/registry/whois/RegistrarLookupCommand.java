@@ -51,7 +51,7 @@ final class RegistrarLookupCommand implements WhoisCommand {
           Map<String, Registrar> map = new HashMap<>();
           // Use the normalized registrar name as a key, and ignore inactive and hidden registrars.
           for (Registrar registrar : Registrar.loadAllCached()) {
-            if (!registrar.isActiveAndPubliclyVisible() || registrar.getRegistrarName() == null) {
+            if (!registrar.isLiveAndPubliclyVisible() || registrar.getRegistrarName() == null) {
               continue;
             }
             String normalized = normalizeRegistrarName(registrar.getRegistrarName());

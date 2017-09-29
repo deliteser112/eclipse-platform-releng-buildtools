@@ -35,6 +35,7 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyLaunchPhaseMatc
 import static google.registry.flows.domain.DomainFlowUtils.verifyNoCodeMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
+import static google.registry.flows.domain.DomainFlowUtils.verifyRegistrarIsActive;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIBITED;
@@ -155,6 +156,7 @@ import org.joda.time.Duration;
  * @error {@link NameserversNotSpecifiedForTldWithNameserverWhitelistException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
+ * @error {@link DomainFlowUtils.RegistrarMustBeActiveToCreateDomainsException}
  * @error {@link DomainFlowUtils.TldDoesNotExistException}
  * @error {@link DomainFlowUtils.TooManyDsRecordsException}
  * @error {@link DomainFlowUtils.TooManyNameserversException}
@@ -196,6 +198,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     customLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    verifyRegistrarIsActive(clientId);
     DateTime now = ofy().getTransactionTime();
     Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     Period period = command.getPeriod();

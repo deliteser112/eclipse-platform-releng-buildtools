@@ -239,7 +239,7 @@ public abstract class RdapActionBase implements Runnable {
    * 2. The request did not specify a registrar to filter on, or the registrar matches.
    */
   boolean shouldBeVisible(Registrar registrar) {
-    return (registrar.isActiveAndPubliclyVisible()
+    return (registrar.isLiveAndPubliclyVisible()
             || (shouldIncludeDeleted()
                 && getAuthorization().isAuthorizedForClientId(registrar.getClientId())))
         && (!registrarParam.isPresent() || registrarParam.get().equals(registrar.getClientId()));

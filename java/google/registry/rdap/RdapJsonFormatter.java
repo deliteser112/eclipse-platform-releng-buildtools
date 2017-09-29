@@ -768,7 +768,7 @@ public class RdapJsonFormatter {
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     jsonBuilder.put("objectClassName", "entity");
     jsonBuilder.put("handle", registrar.getIanaIdentifier().toString());
-    jsonBuilder.put("status", registrar.isActive() ? STATUS_LIST_ACTIVE : STATUS_LIST_REMOVED);
+    jsonBuilder.put("status", registrar.isLive() ? STATUS_LIST_ACTIVE : STATUS_LIST_REMOVED);
     jsonBuilder.put("roles", ImmutableList.of(RdapEntityRole.REGISTRAR.rfc7483String));
     jsonBuilder.put("links",
         ImmutableList.of(makeLink("entity", registrar.getIanaIdentifier().toString(), linkBase)));

@@ -314,6 +314,7 @@ An EPP flow that creates a new application for a domain resource.
     *   Specified extension is not implemented.
 *   2201
     *   Registrar is not authorized to access this TLD.
+    *   Registrar must be active in order to create domains or applications.
 *   2202
     *   Invalid limited registration period token.
 *   2302
@@ -546,6 +547,7 @@ An EPP flow that creates a new domain resource.
 *   2201
     *   Only a tool can pass a metadata extension.
     *   Registrar is not authorized to access this TLD.
+    *   Registrar must be active in order to create domains or applications.
 *   2202
     *   Invalid limited registration period token.
 *   2302

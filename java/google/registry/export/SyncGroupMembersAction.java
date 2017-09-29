@@ -123,7 +123,7 @@ public final class SyncGroupMembersAction implements Runnable {
           @Override
           public boolean apply(Registrar registrar) {
             // Only grab active registrars that require syncing and are of the correct type.
-            return registrar.isActive()
+            return registrar.isLive()
                 && registrar.getContactsRequireSyncing()
                 && registrar.getType() == Registrar.Type.REAL;
           }})

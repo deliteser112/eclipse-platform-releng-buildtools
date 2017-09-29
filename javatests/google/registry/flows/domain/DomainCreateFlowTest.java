@@ -104,6 +104,7 @@ import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForTl
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.PremiumNameBlockedException;
 import google.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
+import google.registry.flows.domain.DomainFlowUtils.RegistrarMustBeActiveToCreateDomainsException;
 import google.registry.flows.domain.DomainFlowUtils.TldDoesNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyDsRecordsException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyNameserversException;
@@ -125,6 +126,8 @@ import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.poll.PollMessage;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.Registry.TldType;
@@ -132,7 +135,6 @@ import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.DomainTransactionRecord.TransactionReportField;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.monitoring.whitebox.EppMetric;
-import google.registry.testing.DatastoreHelper;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -1439,6 +1441,20 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     runFlow();
   }
 
+  @Test
+  public void testFailure_suspendedRegistrarCantCreateDomain() throws Exception {
+    setEppInput("domain_create.xml");
+    persistContactsAndHosts();
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .get()
+            .asBuilder()
+            .setState(State.SUSPENDED)
+            .build());
+    thrown.expect(RegistrarMustBeActiveToCreateDomainsException.class);
+    runFlow();
+  }
+
   private void doFailingDomainNameTest(
       String domainName,
       Class<? extends Throwable> exception) throws Exception {
@@ -1579,7 +1595,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     createTld("irrelevant", "IRR");
-    DatastoreHelper.persistResource(
+    persistResource(
         loadRegistrar("TheRegistrar")
             .asBuilder()
             .setAllowedTlds(ImmutableSet.<String>of("irrelevant"))

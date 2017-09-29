@@ -102,6 +102,7 @@ import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.host.HostResource;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservationType;
@@ -750,6 +751,19 @@ public class DomainFlowUtils {
         && !command.getInnerRemove().getStatusValues()
             .contains(StatusValue.CLIENT_UPDATE_PROHIBITED)) {
       throw new ResourceHasClientUpdateProhibitedException();
+    }
+  }
+
+  /**
+   * Check that the registrar with the given client ID is active.
+   *
+   * <p>Non-active registrars are not allowed to create domain applications or domain resources.
+   */
+  static void verifyRegistrarIsActive(String clientId)
+      throws RegistrarMustBeActiveToCreateDomainsException {
+    Registrar registrar = Registrar.loadByClientIdCached(clientId).get();
+    if (registrar.getState() != State.ACTIVE) {
+      throw new RegistrarMustBeActiveToCreateDomainsException();
     }
   }
 
@@ -1426,4 +1440,12 @@ public class DomainFlowUtils {
           MAX_REGISTRATION_YEARS));
     }
   }
+
+  /** Registrar must be active in order to create domains or applications. */
+  static class RegistrarMustBeActiveToCreateDomainsException extends AuthorizationErrorException {
+    public RegistrarMustBeActiveToCreateDomainsException() {
+      super("Registrar must be active in order to create domains or applications");
+    }
+  }
+
 }

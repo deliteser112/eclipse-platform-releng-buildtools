@@ -98,6 +98,7 @@ import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForTl
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.domain.DomainFlowUtils.PremiumNameBlockedException;
 import google.registry.flows.domain.DomainFlowUtils.RegistrantNotAllowedException;
+import google.registry.flows.domain.DomainFlowUtils.RegistrarMustBeActiveToCreateDomainsException;
 import google.registry.flows.domain.DomainFlowUtils.TldDoesNotExistException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyDsRecordsException;
 import google.registry.flows.domain.DomainFlowUtils.TooManyNameserversException;
@@ -112,6 +113,8 @@ import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.domain.secdns.DelegationSignerData;
+import google.registry.model.registrar.Registrar;
+import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservedList;
@@ -720,6 +723,22 @@ public class DomainApplicationCreateFlowTest
     persistContactsAndHosts();
     clock.advanceOneMilli();
     thrown.expect(LandrushApplicationDisallowedDuringSunriseException.class);
+    runFlow();
+  }
+
+  @Test
+  public void testFailure_suspendedRegistrarCantCreateDomainApplication() throws Exception {
+    setEppInput("domain_create_sunrise_encoded_signed_mark.xml");
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    persistResource(
+        Registrar.loadByClientId("TheRegistrar")
+            .get()
+            .asBuilder()
+            .setState(State.SUSPENDED)
+            .build());
+    clock.advanceOneMilli();
+    thrown.expect(RegistrarMustBeActiveToCreateDomainsException.class);
     runFlow();
   }
 
