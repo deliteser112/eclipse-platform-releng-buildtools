@@ -199,6 +199,7 @@ public class DomainTransferRequestFlowTest
         implicitTransferTime,
         transferCost,
         originalGracePeriods,
+        /* expectTransferBillingEvent = */ true,
         extraExpectedBillingEvents);
 
     assertPollMessagesEmitted(
@@ -213,34 +214,46 @@ public class DomainTransferRequestFlowTest
       DateTime implicitTransferTime,
       Optional<Money> transferCost,
       ImmutableSet<GracePeriod> originalGracePeriods,
+      boolean expectTransferBillingEvent,
       BillingEvent.Cancellation.Builder... extraExpectedBillingEvents)
       throws Exception {
     Registry registry = Registry.get(domain.getTld());
     final HistoryEntry historyEntryTransferRequest =
         getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REQUEST);
 
-    // A BillingEvent should be created AUTOMATIC_TRANSFER_DAYS in the future, for the case when the
-    // transfer is implicitly acked, but there should be no grace period yet. There should also be
-    // two autorenew billing events, one for the losing client that ends at the transfer time, and
-    // one for the gaining client that starts at that time.
-    BillingEvent.OneTime transferBillingEvent = new BillingEvent.OneTime.Builder()
-        .setReason(Reason.TRANSFER)
-        .setTargetId(domain.getFullyQualifiedDomainName())
-        .setEventTime(implicitTransferTime)
-        .setBillingTime(implicitTransferTime.plus(registry.getTransferGracePeriodLength()))
-        .setClientId("NewRegistrar")
-        .setCost(transferCost.or(Money.of(USD, 11)))
-        .setPeriodYears(1)
-        .setParent(historyEntryTransferRequest)
-        .build();
+    Optional<BillingEvent.OneTime> optionalTransferBillingEvent;
+    if (expectTransferBillingEvent) {
+      // For normal transfers, a BillingEvent should be created AUTOMATIC_TRANSFER_DAYS in the
+      // future, for the case when the transfer is implicitly acked.
+      optionalTransferBillingEvent =
+          Optional.of(
+              new BillingEvent.OneTime.Builder()
+                  .setReason(Reason.TRANSFER)
+                  .setTargetId(domain.getFullyQualifiedDomainName())
+                  .setEventTime(implicitTransferTime)
+                  .setBillingTime(
+                      implicitTransferTime.plus(registry.getTransferGracePeriodLength()))
+                  .setClientId("NewRegistrar")
+                  .setCost(transferCost.or(Money.of(USD, 11)))
+                  .setPeriodYears(1)
+                  .setParent(historyEntryTransferRequest)
+                  .build());
+    } else {
+      // Superuser transfers with no bundled renewal have no transfer billing event.
+      optionalTransferBillingEvent = Optional.<BillingEvent.OneTime>absent();
+    }
+    // Assert that the billing events we expect are present - any extra cancellations, then the
+    // transfer billing event if there is one, plus two autorenew billing events, one for the losing
+    // client ending at the transfer time, and one for the gaining client starting at the domain's
+    // post-transfer expiration time.
     assertBillingEvents(FluentIterable.from(extraExpectedBillingEvents)
         .transform(new Function<BillingEvent.Cancellation.Builder, BillingEvent>() {
           @Override
           public BillingEvent apply(Builder builder) {
             return builder.setParent(historyEntryTransferRequest).build();
           }})
+        .append(optionalTransferBillingEvent.asSet())
         .append(
-            transferBillingEvent,
             // All of the other transfer flow tests happen on day 3 of the transfer, but the initial
             // request by definition takes place on day 1, so we need to edit the times in the
             // autorenew events from the base test case.
@@ -258,71 +271,24 @@ public class DomainTransferRequestFlowTest
     assertThat(domainAutorenewEvent.getRecurrenceEndTime()).isEqualTo(implicitTransferTime);
     // The original grace periods should remain untouched.
     assertThat(domain.getGracePeriods()).containsExactlyElementsIn(originalGracePeriods);
-    // If we fast forward AUTOMATIC_TRANSFER_DAYS, we should see the grace period appear, the
-    // transfer should have happened, and all other grace periods should be gone. Also, both the
-    // gaining and losing registrars should have a new poll message.
+    // If we fast forward AUTOMATIC_TRANSFER_DAYS, the transfer should have cleared out all other
+    // grace periods, but expect a transfer grace period (if there was a transfer billing event).
     DomainResource domainAfterAutomaticTransfer = domain.cloneProjectedAtTime(implicitTransferTime);
-    assertGracePeriods(
-        domainAfterAutomaticTransfer.getGracePeriods(),
-        ImmutableMap.of(
-            GracePeriod.create(
-                GracePeriodStatus.TRANSFER,
-                clock.nowUtc()
-                  .plus(registry.getAutomaticTransferLength())
-                  .plus(registry.getTransferGracePeriodLength()),
-                "NewRegistrar",
-                null),
-            transferBillingEvent));
-  }
-
-  public void assertHistoryEntriesDoNotContainTransferBillingEventsOrGracePeriods(
-      DateTime expectedExpirationTime,
-      DateTime implicitTransferTime,
-      ImmutableSet<GracePeriod> originalGracePeriods,
-      BillingEvent.Cancellation.Builder... extraExpectedBillingEvents)
-      throws Exception {
-    final HistoryEntry historyEntryTransferRequest =
-        getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REQUEST);
-
-    // There should also be two autorenew billing events, one for the losing client that ends at the
-    // transfer time, and one for the gaining client that starts at that time.
-    // All of the other transfer flow tests happen on day 3 of the transfer, but the initial
-    // request by definition takes place on day 1, so we need to edit the times in the
-    // autorenew events from the base test case.
-    assertBillingEvents(
-        FluentIterable.from(extraExpectedBillingEvents)
-            .transform(
-                new Function<BillingEvent.Cancellation.Builder, BillingEvent>() {
-                  @Override
-                  public BillingEvent apply(Builder builder) {
-                    return builder.setParent(historyEntryTransferRequest).build();
-                  }
-                })
-            .append(
-                getLosingClientAutorenewEvent()
-                    .asBuilder()
-                    .setRecurrenceEndTime(implicitTransferTime)
-                    .build(),
-                getGainingClientAutorenewEvent()
-                    .asBuilder()
-                    .setEventTime(expectedExpirationTime)
-                    .build())
-            .toArray(BillingEvent.class));
-    // The domain's autorenew billing event should still point to the losing client's event.
-    BillingEvent.Recurring domainAutorenewEvent =
-        ofy().load().key(domain.getAutorenewBillingEvent()).now();
-    assertThat(domainAutorenewEvent.getClientId()).isEqualTo("TheRegistrar");
-    assertThat(domainAutorenewEvent.getRecurrenceEndTime()).isEqualTo(implicitTransferTime);
-    // The original grace periods should remain untouched.
-    assertThat(domain.getGracePeriods()).containsExactlyElementsIn(originalGracePeriods);
-    // If we fast forward AUTOMATIC_TRANSFER_DAYS, we should see the grace period appear, the
-    // transfer should have happened, and all other grace periods should be gone. Also, both the
-    // gaining and losing registrars should have a new poll message.
-    DomainResource domainAfterAutomaticTransfer = domain.cloneProjectedAtTime(implicitTransferTime);
-    // There should be no grace period.
-    assertGracePeriods(
-        domainAfterAutomaticTransfer.getGracePeriods(),
-        ImmutableMap.<GracePeriod, BillingEvent>of());
+    if (expectTransferBillingEvent) {
+      assertGracePeriods(
+          domainAfterAutomaticTransfer.getGracePeriods(),
+          ImmutableMap.of(
+              GracePeriod.create(
+                  GracePeriodStatus.TRANSFER,
+                  implicitTransferTime.plus(registry.getTransferGracePeriodLength()),
+                  "NewRegistrar",
+                  null),
+              optionalTransferBillingEvent.get()));
+    } else {
+      assertGracePeriods(
+          domainAfterAutomaticTransfer.getGracePeriods(),
+          ImmutableMap.<GracePeriod, BillingEvent>of());
+    }
   }
 
   private void assertPollMessagesEmitted(
@@ -490,20 +456,14 @@ public class DomainTransferRequestFlowTest
         .hasOtherClientId("TheRegistrar");
     assertAboutHosts().that(subordinateHost).hasNoHistoryEntries();
 
-    if (expectedPeriod.getValue() == 0) {
-      assertHistoryEntriesDoNotContainTransferBillingEventsOrGracePeriods(
-          expectedExpirationTime,
-          implicitTransferTime,
-          originalGracePeriods,
-          extraExpectedBillingEvents);
-    } else {
-      assertHistoryEntriesContainBillingEventsAndGracePeriods(
-          expectedExpirationTime,
-          implicitTransferTime,
-          transferCost,
-          originalGracePeriods,
-          extraExpectedBillingEvents);
-    }
+    boolean expectTransferBillingEvent = expectedPeriod.getValue() != 0;
+    assertHistoryEntriesContainBillingEventsAndGracePeriods(
+        expectedExpirationTime,
+        implicitTransferTime,
+        transferCost,
+        originalGracePeriods,
+        expectTransferBillingEvent,
+        extraExpectedBillingEvents);
 
     assertPollMessagesEmitted(
         expectedExpirationTime,
