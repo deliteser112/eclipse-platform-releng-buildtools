@@ -76,6 +76,6 @@ public class AppEngineTimeLimiter {
   }
 
   public static TimeLimiter create() {
-    return new SimpleTimeLimiter(new NewRequestThreadExecutorService());
+    return SimpleTimeLimiter.create(new NewRequestThreadExecutorService());
   }
 }

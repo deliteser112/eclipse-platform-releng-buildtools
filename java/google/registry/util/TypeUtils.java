@@ -19,13 +19,13 @@ import static google.registry.util.CollectionUtils.difference;
 import static java.lang.reflect.Modifier.isFinal;
 import static java.lang.reflect.Modifier.isStatic;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.function.Predicate;
 
 /** Utilities methods related to reflection. */
 public class TypeUtils {
@@ -103,12 +103,7 @@ public class TypeUtils {
   /** Returns a predicate that tests whether classes are annotated with the given annotation. */
   public static final Predicate<Class<?>> hasAnnotation(
       final Class<? extends Annotation> annotation) {
-    return new Predicate<Class<?>>() {
-        @Override
-        public boolean apply(Class<?> clazz) {
-          return clazz.isAnnotationPresent(annotation);
-        }
-      };
+    return (Class<?> clazz) -> clazz.isAnnotationPresent(annotation);
   }
 
   public static void checkNoInheritanceRelationships(ImmutableSet<Class<?>> resourceClasses) {

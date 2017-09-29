@@ -14,11 +14,10 @@
 
 package google.registry.export;
 
-import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static google.registry.model.EntityClasses.CLASS_TO_KIND_FUNCTION;
 import static google.registry.util.TypeUtils.hasAnnotation;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
 import google.registry.model.EntityClasses;
@@ -33,19 +32,21 @@ public final class ExportConstants {
   public static ImmutableSet<String> getBackupKinds() {
     // Back up all entity classes that aren't annotated with @VirtualEntity (never even persisted
     // to Datastore, so they can't be backed up) or @NotBackedUp (intentionally omitted).
-    return FluentIterable.from(EntityClasses.ALL_CLASSES)
-        .filter(not(hasAnnotation(VirtualEntity.class)))
-        .filter(not(hasAnnotation(NotBackedUp.class)))
-        .transform(CLASS_TO_KIND_FUNCTION)
-        .toSortedSet(Ordering.natural());
+    return EntityClasses.ALL_CLASSES
+        .stream()
+        .filter(hasAnnotation(VirtualEntity.class).negate())
+        .filter(hasAnnotation(NotBackedUp.class).negate())
+        .map(CLASS_TO_KIND_FUNCTION)
+        .collect(toImmutableSortedSet(Ordering.natural()));
   }
 
   /** Returns the names of kinds to import into reporting tools (e.g. BigQuery). */
   public static ImmutableSet<String> getReportingKinds() {
-    return FluentIterable.from(EntityClasses.ALL_CLASSES)
+    return EntityClasses.ALL_CLASSES
+        .stream()
         .filter(hasAnnotation(ReportedOn.class))
-        .filter(not(hasAnnotation(VirtualEntity.class)))
-        .transform(CLASS_TO_KIND_FUNCTION)
-        .toSortedSet(Ordering.natural());
+        .filter(hasAnnotation(VirtualEntity.class).negate())
+        .map(CLASS_TO_KIND_FUNCTION)
+        .collect(toImmutableSortedSet(Ordering.natural()));
   }
 }

@@ -21,6 +21,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import google.registry.model.server.Lock;
 import google.registry.util.AppEngineTimeLimiter;
 import google.registry.util.FormattingLogger;
@@ -28,6 +29,7 @@ import google.registry.util.RequestStatusChecker;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -67,8 +69,12 @@ public class LockHandlerImpl implements LockHandler {
       return AppEngineTimeLimiter.create().callWithTimeout(
           new LockingCallable(callable, Strings.emptyToNull(tld), leaseLength, lockNames),
           leaseLength.minus(LOCK_TIMEOUT_FUDGE).getMillis(),
-          TimeUnit.MILLISECONDS,
-          true);
+          TimeUnit.MILLISECONDS);
+    } catch (ExecutionException | UncheckedExecutionException e) {
+      // Unwrap the execution exception and throw its root cause.
+      Throwable cause = e.getCause();
+      throwIfUnchecked(cause);
+      throw new RuntimeException(cause);
     } catch (Exception e) {
       throwIfUnchecked(e);
       throw new RuntimeException(e);

@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Throwables.throwIfUnchecked;
 import static com.google.common.util.concurrent.Runnables.doNothing;
 import static google.registry.util.NetworkUtils.getCanonicalHostName;
+import static java.util.concurrent.Executors.newCachedThreadPool;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -128,14 +129,18 @@ public final class TestServer {
   /** Stops the HTTP server. */
   public void stop() {
     try {
-      new SimpleTimeLimiter().callWithTimeout(new Callable<Void>() {
-        @Nullable
-        @Override
-        public Void call() throws Exception {
-          server.stop();
-          return null;
-        }
-      }, SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS, true);
+      SimpleTimeLimiter.create(newCachedThreadPool())
+          .callWithTimeout(
+              new Callable<Void>() {
+                @Nullable
+                @Override
+                public Void call() throws Exception {
+                  server.stop();
+                  return null;
+                }
+              },
+              SHUTDOWN_TIMEOUT_MS,
+              TimeUnit.MILLISECONDS);
     } catch (Exception e) {
       throwIfUnchecked(e);
       throw new RuntimeException(e);

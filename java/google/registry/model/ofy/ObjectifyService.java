@@ -15,7 +15,7 @@
 package google.registry.model.ofy;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.googlecode.objectify.ObjectifyService.factory;
 import static google.registry.util.TypeUtils.hasAnnotation;
 
@@ -24,7 +24,7 @@ import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -45,6 +45,7 @@ import google.registry.model.translators.InetAddressTranslatorFactory;
 import google.registry.model.translators.ReadableInstantUtcTranslatorFactory;
 import google.registry.model.translators.UpdateAutoTimestampTranslatorFactory;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 
 /**
  * An instance of Ofy, obtained via {@code #ofy()}, should be used to access all persistable
@@ -133,13 +134,16 @@ public class ObjectifyService {
 
   /** Register classes that can be persisted via Objectify as Datastore entities. */
   private static void registerEntityClasses(
-      Iterable<Class<? extends ImmutableObject>> entityClasses) {
+      ImmutableSet<Class<? extends ImmutableObject>> entityClasses) {
     // Register all the @Entity classes before any @EntitySubclass classes so that we can check
     // that every @Entity registration is a new kind and every @EntitySubclass registration is not.
     // This is future-proofing for Objectify 5.x where the registration logic gets less lenient.
-    for (Class<?> clazz : Iterables.concat(
-        Iterables.filter(entityClasses, hasAnnotation(Entity.class)),
-        Iterables.filter(entityClasses, not(hasAnnotation(Entity.class))))) {
+
+    for (Class<?> clazz :
+        Stream.concat(
+                entityClasses.stream().filter(hasAnnotation(Entity.class)),
+                entityClasses.stream().filter(hasAnnotation(Entity.class).negate()))
+            .collect(toImmutableSet())) {
       String kind = Key.getKind(clazz);
       boolean registered = factory().getMetadata(kind) != null;
       if (clazz.isAnnotationPresent(Entity.class)) {

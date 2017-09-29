@@ -15,6 +15,7 @@
 package google.registry.server;
 
 import static com.google.common.base.Throwables.throwIfUnchecked;
+import static java.util.concurrent.Executors.newCachedThreadPool;
 
 import com.google.common.util.concurrent.SimpleTimeLimiter;
 import java.io.IOException;
@@ -32,7 +33,7 @@ final class UrlChecker {
   /** Probes {@code url} until it becomes available. */
   static void waitUntilAvailable(final URL url, int timeoutMs) {
     try {
-      new SimpleTimeLimiter().callWithTimeout(new Callable<Void>() {
+      SimpleTimeLimiter.create(newCachedThreadPool()).callWithTimeout(new Callable<Void>() {
         @Nullable
         @Override
         public Void call() throws InterruptedException, IOException {
@@ -44,7 +45,7 @@ final class UrlChecker {
             Thread.sleep(exponentialBackoffMs *= 2);
           }
         }
-      }, timeoutMs, TimeUnit.MILLISECONDS, true);
+      }, timeoutMs, TimeUnit.MILLISECONDS);
     } catch (Exception e) {
       throwIfUnchecked(e);
       throw new RuntimeException(e);
