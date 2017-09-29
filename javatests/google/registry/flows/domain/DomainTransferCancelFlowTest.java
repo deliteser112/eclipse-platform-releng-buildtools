@@ -152,7 +152,7 @@ public class DomainTransferCancelFlowTest
             .setClientId("TheRegistrar")
             .setEventTime(clock.nowUtc())
             .setResponseData(ImmutableList.of(new DomainTransferResponse.Builder()
-                .setFullyQualifiedDomainNameName(getUniqueIdFromCommand())
+                .setFullyQualifiedDomainName(getUniqueIdFromCommand())
                 .setTransferStatus(TransferStatus.CLIENT_CANCELLED)
                 .setTransferRequestTime(TRANSFER_REQUEST_TIME)
                 .setGainingClientId("NewRegistrar")

@@ -179,7 +179,7 @@ public final class DomainTransferUtils {
       TransferData transferData,
       @Nullable DateTime extendedRegistrationExpirationTime) {
     return new DomainTransferResponse.Builder()
-        .setFullyQualifiedDomainNameName(targetId)
+        .setFullyQualifiedDomainName(targetId)
         .setGainingClientId(transferData.getGainingClientId())
         .setLosingClientId(transferData.getLosingClientId())
         .setPendingTransferExpirationTime(transferData.getPendingTransferExpirationTime())

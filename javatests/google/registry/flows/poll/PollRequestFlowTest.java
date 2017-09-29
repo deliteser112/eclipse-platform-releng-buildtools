@@ -64,7 +64,7 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
             .setEventTime(clock.nowUtc().minusDays(1))
             .setMsg("Transfer approved.")
             .setResponseData(ImmutableList.of(new DomainTransferResponse.Builder()
-                .setFullyQualifiedDomainNameName("test.example")
+                .setFullyQualifiedDomainName("test.example")
                 .setTransferStatus(TransferStatus.SERVER_APPROVED)
                 .setGainingClientId(getClientIdForFlow())
                 .setTransferRequestTime(clock.nowUtc().minusDays(5))

@@ -98,7 +98,7 @@ public final class ResourceFlowUtils {
       DomainResource domain = (DomainResource) eppResource;
       builder =
           new DomainTransferResponse.Builder()
-              .setFullyQualifiedDomainNameName(eppResource.getForeignKey())
+              .setFullyQualifiedDomainName(eppResource.getForeignKey())
               // TODO(b/25084229): fix exDate computation logic.
               .setExtendedRegistrationExpirationTime(
                   ADD_EXDATE_STATUSES.contains(transferData.getTransferStatus())
