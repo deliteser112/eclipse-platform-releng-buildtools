@@ -26,7 +26,7 @@ public interface IncrementableMetric extends Metric<Long> {
    * Increments a metric by 1 for the given label values.
    *
    * <p>Use this method rather than {@link IncrementableMetric#incrementBy(long, String...)} if the
-   * increment value is zero, as it will be slightly more performant.
+   * increment value is 1, as it will be slightly more performant.
    *
    * <p>If the metric is undefined for given label values, it will be incremented from zero.
    *
