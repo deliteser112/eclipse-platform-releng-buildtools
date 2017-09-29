@@ -27,11 +27,10 @@ import com.google.common.collect.ImmutableMap;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.monitoring.metrics.MetricReporter;
 import google.registry.monitoring.metrics.MetricWriter;
 import google.registry.monitoring.metrics.stackdriver.StackdriverWriter;
 import java.util.Set;
-import java.util.concurrent.ThreadFactory;
-import javax.inject.Named;
 import org.joda.time.Duration;
 
 /** Dagger module for Google Stackdriver service connection objects. */
@@ -85,15 +84,9 @@ public final class StackdriverModule {
   }
 
   @Provides
-  @Named("metricsBackgroundThreadFactory")
-  static ThreadFactory provideThreadFactory() {
-    return ThreadManager.backgroundThreadFactory();
-  }
-
-  @Provides
-  @Named("metricsWriteInterval")
-  static long provideMetricsWriteInterval(
-      @Config("metricsWriteInterval") Duration metricsWriteInterval) {
-    return metricsWriteInterval.getStandardSeconds();
+  static MetricReporter provideMetricReporter(
+      MetricWriter metricWriter, @Config("metricsWriteInterval") Duration writeInterval) {
+    return new MetricReporter(
+        metricWriter, writeInterval.getStandardSeconds(), ThreadManager.backgroundThreadFactory());
   }
 }

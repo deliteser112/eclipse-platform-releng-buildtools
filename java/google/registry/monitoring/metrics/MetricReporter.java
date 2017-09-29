@@ -30,8 +30,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.inject.Inject;
-import javax.inject.Named;
 
 /**
  * Engine to write metrics to a {@link MetricWriter} on a regular periodic basis.
@@ -57,11 +55,8 @@ public class MetricReporter extends AbstractScheduledService {
    * @param writeInterval time period between metric writes, in seconds.
    * @param threadFactory factory to use when creating background threads.
    */
-  @Inject
   public MetricReporter(
-      MetricWriter metricWriter,
-      @Named("metricsWriteInterval") long writeInterval,
-      @Named("metricsBackgroundThreadFactory") ThreadFactory threadFactory) {
+      MetricWriter metricWriter, long writeInterval, ThreadFactory threadFactory) {
     this(
         metricWriter,
         writeInterval,
