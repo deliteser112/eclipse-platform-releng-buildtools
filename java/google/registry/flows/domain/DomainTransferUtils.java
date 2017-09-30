@@ -119,7 +119,7 @@ public final class DomainTransferUtils {
     return builder
         .addAll(
             createOptionalAutorenewCancellation(
-                    automaticTransferTime, historyEntry, targetId, existingDomain)
+                    automaticTransferTime, historyEntry, targetId, existingDomain, transferCost)
                 .asSet())
         .add(
             createGainingClientAutorenewEvent(
@@ -229,7 +229,9 @@ public final class DomainTransferUtils {
    * expiration time. Since the gaining registrar will still be billed for the transfer's 1-year
    * renewal, we must issue a cancellation for the autorenew, so that the losing registrar will not
    * be charged (essentially, the gaining registrar takes on the cost of the year of registration
-   * that the autorenew just added).
+   * that the autorenew just added). But, if the superuser extension is used to request a transfer
+   * without an additional year then the gaining registrar is not charged for the one year renewal
+   * and the losing registrar still needs to be charged for the auto-renew.
    *
    * <p>For details on the policy justification, see b/19430703#comment17 and <a
    * href="https://www.icann.org/news/advisory-2002-06-06-en">this ICANN advisory</a>.
@@ -238,13 +240,14 @@ public final class DomainTransferUtils {
       DateTime automaticTransferTime,
       HistoryEntry historyEntry,
       String targetId,
-      DomainResource existingDomain) {
+      DomainResource existingDomain,
+      Optional<Money> transferCost) {
     DomainResource domainAtTransferTime =
         existingDomain.cloneProjectedAtTime(automaticTransferTime);
     GracePeriod autorenewGracePeriod =
         getOnlyElement(
             domainAtTransferTime.getGracePeriodsOfType(GracePeriodStatus.AUTO_RENEW), null);
-    if (autorenewGracePeriod != null) {
+    if (autorenewGracePeriod != null && transferCost.isPresent()) {
       return Optional.of(
           BillingEvent.Cancellation.forGracePeriod(autorenewGracePeriod, historyEntry, targetId)
               .asBuilder()

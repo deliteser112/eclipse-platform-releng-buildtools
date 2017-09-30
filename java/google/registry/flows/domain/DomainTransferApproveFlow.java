@@ -138,8 +138,15 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
     int extraYears = transferData.getTransferPeriod().getValue();
     if (autorenewGrace != null) {
       extraYears = 0;
-      ofy().save().entity(
-          BillingEvent.Cancellation.forGracePeriod(autorenewGrace, historyEntry, targetId));
+      // During a normal transfer, if the domain is in the auto-renew grace period, the auto-renew
+      // billing event is cancelled and the gaining registrar is charged for the one year renewal.
+      // But, if the superuser extension is used to request a transfer without an additional year
+      // then the gaining registrar is not charged for the one year renewal and the losing registrar
+      // still needs to be charged for the auto-renew.
+      if (billingEvent.isPresent()) {
+        ofy().save().entity(
+            BillingEvent.Cancellation.forGracePeriod(autorenewGrace, historyEntry, targetId));
+      }
     }
     // Close the old autorenew event and poll message at the transfer time (aka now). This may end
     // up deleting the poll message.

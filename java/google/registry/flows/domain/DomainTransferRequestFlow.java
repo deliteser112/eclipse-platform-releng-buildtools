@@ -46,7 +46,6 @@ import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
 import google.registry.flows.exceptions.InvalidTransferPeriodValueException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
-import google.registry.flows.exceptions.SuperuserExtensionAndAutorenewGracePeriodException;
 import google.registry.flows.exceptions.TransferPeriodMustBeOneYearException;
 import google.registry.flows.exceptions.TransferPeriodZeroAndFeeTransferExtensionException;
 import google.registry.model.domain.DomainCommand.Transfer;
@@ -99,7 +98,6 @@ import org.joda.time.DateTime;
  * @error {@link google.registry.flows.exceptions.MissingTransferRequestAuthInfoException}
  * @error {@link google.registry.flows.exceptions.ObjectAlreadySponsoredException}
  * @error {@link google.registry.flows.exceptions.ResourceStatusProhibitsOperationException}
- * @error {@link google.registry.flows.exceptions.SuperuserExtensionAndAutorenewGracePeriodException}
  * @error {@link google.registry.flows.exceptions.TransferPeriodMustBeOneYearException}
  * @error {@link InvalidTransferPeriodValueException}
  * @error {@link google.registry.flows.exceptions.TransferPeriodZeroAndFeeTransferExtensionException}
@@ -184,10 +182,6 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     DomainResource domainAtTransferTime =
         existingDomain.cloneProjectedAtTime(automaticTransferTime);
     if (!domainAtTransferTime.getGracePeriodsOfType(GracePeriodStatus.AUTO_RENEW).isEmpty()) {
-      if (superuserExtension != null) {
-        // We don't allow the superuser extension for domains in the auto renew grace period
-        throw new SuperuserExtensionAndAutorenewGracePeriodException();
-      }
       extraYears = 0;
     }
     // The new expiration time if there is a server approval.

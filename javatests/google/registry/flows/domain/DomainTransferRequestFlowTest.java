@@ -60,7 +60,6 @@ import google.registry.flows.exceptions.InvalidTransferPeriodValueException;
 import google.registry.flows.exceptions.MissingTransferRequestAuthInfoException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
-import google.registry.flows.exceptions.SuperuserExtensionAndAutorenewGracePeriodException;
 import google.registry.flows.exceptions.TransferPeriodMustBeOneYearException;
 import google.registry.flows.exceptions.TransferPeriodZeroAndFeeTransferExtensionException;
 import google.registry.model.billing.BillingEvent;
@@ -713,20 +712,33 @@ public class DomainTransferRequestFlowTest
   }
 
   @Test
-  public void testFailure_superuserExtension_duringAutorenewGracePeriod() throws Exception {
-    setupDomain("example", "tld");
+  public void testSuccess_superuserExtension_zeroPeriod_autorenewGraceActive()
+      throws Exception {
     eppRequestSource = EppRequestSource.TOOL;
-    DomainResource domain = reloadResourceByForeignKey();
-    DateTime oldExpirationTime = clock.nowUtc().minusDays(1);
-    persistResource(domain.asBuilder()
-        .setRegistrationExpirationTime(oldExpirationTime)
+    setupDomain("example", "tld");
+    Key<BillingEvent.Recurring> existingAutorenewEvent =
+        domain.getAutorenewBillingEvent();
+    // Set domain to have auto-renewed just before the transfer request, so that it will have an
+    // active autorenew grace period spanning the entire transfer window.
+    DateTime autorenewTime = clock.nowUtc().minusDays(1);
+    DateTime expirationTime = autorenewTime.plusYears(1);
+    domain = persistResource(domain.asBuilder()
+        .setRegistrationExpirationTime(expirationTime)
+        .addGracePeriod(GracePeriod.createForRecurring(
+            GracePeriodStatus.AUTO_RENEW,
+            autorenewTime.plus(Registry.get("tld").getAutoRenewGracePeriodLength()),
+            "TheRegistrar",
+            existingAutorenewEvent))
         .build());
     clock.advanceOneMilli();
-    thrown.expect(SuperuserExtensionAndAutorenewGracePeriodException.class);
-    runTest(
+    doSuccessfulSuperuserExtensionTest(
         "domain_transfer_request_superuser_extension.xml",
-        UserPrivileges.SUPERUSER,
-        ImmutableMap.of("PERIOD", "1", "AUTOMATIC_TRANSFER_LENGTH", "5"));
+        "domain_transfer_request_response_su_ext_zero_period_autorenew_grace.xml",
+        domain.getRegistrationExpirationTime(),
+        ImmutableMap.of("PERIOD", "0", "AUTOMATIC_TRANSFER_LENGTH", "0"),
+        Optional.<Money>absent(),
+        Period.create(0, Unit.YEARS),
+        Duration.standardDays(0));
   }
 
   @Test

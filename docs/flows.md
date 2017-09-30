@@ -898,7 +898,6 @@ new ones with the correct approval time).
     *   Resource with this id does not exist.
 *   2304
     *   Resource status prohibits this operation.
-    *   Superuser extensions cannot be used during autorenew grace periods.
     *   Domain transfer period cannot be zero when using the fee transfer
         extension.
     *   The requested domain name is on the premium price list, and this

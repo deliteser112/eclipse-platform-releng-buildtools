@@ -42,6 +42,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
+import com.googlecode.objectify.Key;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
@@ -52,6 +53,7 @@ import google.registry.model.billing.BillingEvent.Cancellation;
 import google.registry.model.billing.BillingEvent.Cancellation.Builder;
 import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.billing.BillingEvent.Recurring;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
@@ -568,7 +570,6 @@ public class DomainTransferApproveFlowTest
             previousSuccessRecord.asBuilder().setReportAmount(-1).build(),
             DomainTransactionRecord.create(
                 "tld", clock.nowUtc().plusDays(3), TRANSFER_SUCCESSFUL, 1));
-
   }
 
   @Test
@@ -587,6 +588,39 @@ public class DomainTransferApproveFlowTest
         "domain_transfer_approve.xml",
         "domain_transfer_approve_response_zero_period.xml",
         domain.getRegistrationExpirationTime().plusYears(0));
+    assertHistoryEntriesDoNotContainTransferBillingEventsOrGracePeriods();
+  }
+
+  @Test
+  public void testSuccess_superuserExtension_transferPeriodZero_autorenewGraceActive()
+      throws Exception {
+    DomainResource domain = reloadResourceByForeignKey();
+    Key<Recurring> existingAutorenewEvent = domain.getAutorenewBillingEvent();
+    // Set domain to have auto-renewed just before the transfer request, so that it will have an
+    // active autorenew grace period spanning the entire transfer window.
+    DateTime autorenewTime = clock.nowUtc().minusDays(1);
+    DateTime expirationTime = autorenewTime.plusYears(1);
+    TransferData.Builder transferDataBuilder = domain.getTransferData().asBuilder();
+    domain =
+        persistResource(
+            domain
+                .asBuilder()
+                .setTransferData(
+                    transferDataBuilder.setTransferPeriod(Period.create(0, Unit.YEARS)).build())
+                .setRegistrationExpirationTime(expirationTime)
+                .addGracePeriod(
+                    GracePeriod.createForRecurring(
+                        GracePeriodStatus.AUTO_RENEW,
+                        autorenewTime.plus(Registry.get("tld").getAutoRenewGracePeriodLength()),
+                        "TheRegistrar",
+                        existingAutorenewEvent))
+                .build());
+    clock.advanceOneMilli();
+    runSuccessfulFlowWithAssertions(
+        "tld",
+        "domain_transfer_approve.xml",
+        "domain_transfer_approve_response_zero_period_autorenew_grace.xml",
+        domain.getRegistrationExpirationTime());
     assertHistoryEntriesDoNotContainTransferBillingEventsOrGracePeriods();
   }
 }
