@@ -85,7 +85,7 @@ public class RdapEntityAction extends RdapActionBase {
       ContactResource contactResource = ofy().load().key(contactKey).now();
       // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
       // they are global, and might have different roles for different domains.
-      if ((contactResource != null) && now.isBefore(contactResource.getDeletionTime())) {
+      if ((contactResource != null) && shouldBeVisible(contactResource, now)) {
         return rdapJsonFormatter.makeRdapJsonForContact(
             contactResource,
             true,
@@ -101,7 +101,7 @@ public class RdapEntityAction extends RdapActionBase {
     if (ianaIdentifier != null) {
       wasValidKey = true;
       Optional<Registrar> registrar = getRegistrarByIanaIdentifier(ianaIdentifier);
-      if ((registrar.isPresent()) && registrar.get().isLiveAndPubliclyVisible()) {
+      if (registrar.isPresent() && shouldBeVisible(registrar.get())) {
         return rdapJsonFormatter.makeRdapJsonForRegistrar(
             registrar.get(), true, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL);
       }
@@ -112,4 +112,3 @@ public class RdapEntityAction extends RdapActionBase {
         : new BadRequestException(pathSearchString + " is not a valid entity handle");
   }
 }
-

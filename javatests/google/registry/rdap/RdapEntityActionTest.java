@@ -19,7 +19,6 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
-import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
@@ -29,6 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -45,6 +45,7 @@ import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.ui.server.registrar.SessionUtils;
 import java.util.Map;
+import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
@@ -72,6 +73,7 @@ public class RdapEntityActionTest {
   private final SessionUtils sessionUtils = mock(SessionUtils.class);
   private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
   UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
+  UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
 
   private RdapEntityAction action;
 
@@ -132,32 +134,50 @@ public class RdapEntityActionTest {
     Registrar registrar1tld = persistResource(
         makeRegistrar("1tldregistrar", "Multilevel Registrar", Registrar.State.ACTIVE, 103L));
     persistSimpleResources(makeRegistrarContacts(registrar1tld));
+    // deleted registrar
+    Registrar registrarDeleted = persistResource(
+        makeRegistrar("deletedregistrar", "Yes Virginia <script>", Registrar.State.PENDING, 104L));
+    persistSimpleResources(makeRegistrarContacts(registrarDeleted));
     // other contacts
-    disconnectedContact = makeAndPersistContactResource(
-        "8372808-DIS",
-        "(◕‿◕)",
-        "lol@cat.みんな",
-        ImmutableList.of("1 Smiley Row", "Suite みんな"),
-        clock.nowUtc(),
-        registrarLol);
-    deletedContact = persistResource(makeContactResource(
-            "8372808-DEL",
+    disconnectedContact =
+        makeAndPersistContactResource(
+            "8372808-DIS",
             "(◕‿◕)",
             "lol@cat.みんな",
             ImmutableList.of("1 Smiley Row", "Suite みんな"),
-            registrarLol)
-        .asBuilder().setDeletionTime(clock.nowUtc()).build());
+            clock.nowUtc(),
+            registrarLol);
+    deletedContact =
+        makeAndPersistContactResource(
+            "8372808-DEL",
+            "(◕‿◕)",
+            "lol@cat.みんな",
+            ImmutableList.of("2 Smiley Row"),
+            clock.nowUtc().minusYears(1),
+            registrarLol,
+            clock.nowUtc().minusMonths(6));
     action = new RdapEntityAction();
     action.clock = clock;
     action.request = request;
     action.response = response;
+    action.registrarParam = Optional.<String>absent();
+    action.includeDeletedParam = Optional.<Boolean>absent();
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
     action.sessionUtils = sessionUtils;
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+  }
+
+  private void login(String registrar) {
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("evilregistrar");
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn(registrar);
+  }
+
+  private void loginAsAdmin() {
+    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
+    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("irrelevant");
   }
 
   private Object generateActualJson(String name) {
@@ -166,31 +186,61 @@ public class RdapEntityActionTest {
     return JSONValue.parse(response.getPayload());
   }
 
+  private Object generateExpectedJson(String handle, String expectedOutputFile) {
+    return generateExpectedJson(handle, "(◕‿◕)", "", expectedOutputFile);
+  }
+
   private Object generateExpectedJson(
       String handle,
+      String status,
       String expectedOutputFile) {
-    return JSONValue.parse(loadFileWithSubstitutions(
-        this.getClass(),
-        expectedOutputFile,
-        ImmutableMap.of(
-            "NAME", handle,
-            "FULLNAME", "(◕‿◕)",
-            "ADDRESS", "\"1 Smiley Row\", \"Suite みんな\"",
-            "EMAIL", "lol@cat.みんな",
-            "TYPE", "entity")));
+    return generateExpectedJson(handle, "(◕‿◕)", status, expectedOutputFile);
+  }
+
+  private Object generateExpectedJson(
+      String handle,
+      String fullName,
+      String status,
+      String expectedOutputFile) {
+    return generateExpectedJson(
+        handle, fullName, status, null, expectedOutputFile);
+  }
+
+  private Object generateExpectedJson(
+      String handle,
+      String fullName,
+      String status,
+      @Nullable String address,
+      String expectedOutputFile) {
+    return JSONValue.parse(
+        loadFileWithSubstitutions(
+            this.getClass(),
+            expectedOutputFile,
+            new ImmutableMap.Builder<String, String>()
+                .put("NAME", handle)
+                .put("FULLNAME", fullName)
+                .put("ADDRESS", (address == null) ? "\"1 Smiley Row\", \"Suite みんな\"" : address)
+                .put("EMAIL", "lol@cat.みんな")
+                .put("TYPE", "entity")
+                .put("STATUS", status)
+                .build()));
   }
 
   private Object generateExpectedJsonWithTopLevelEntries(
       String handle,
       String expectedOutputFile) {
-    return generateExpectedJsonWithTopLevelEntries(handle, false, expectedOutputFile);
+    return generateExpectedJsonWithTopLevelEntries(
+        handle, "(◕‿◕)", "active", null, false, expectedOutputFile);
   }
 
   private Object generateExpectedJsonWithTopLevelEntries(
       String handle,
+      String fullName,
+      String status,
+      String address,
       boolean addNoPersonalDataRemark,
       String expectedOutputFile) {
-    Object obj = generateExpectedJson(handle, expectedOutputFile);
+    Object obj = generateExpectedJson(handle, fullName, status, address, expectedOutputFile);
     if (obj instanceof Map) {
       @SuppressWarnings("unchecked")
       Map<String, Object> map = (Map<String, Object>) obj;
@@ -211,6 +261,34 @@ public class RdapEntityActionTest {
     return obj;
   }
 
+  private void runSuccessfulTest(String queryString, String fileName) {
+    runSuccessfulTest(queryString, "(◕‿◕)", "active", null, false, fileName);
+  }
+
+  private void runSuccessfulTest(String queryString, String fullName, String fileName) {
+    runSuccessfulTest(queryString, fullName, "active", null, false, fileName);
+  }
+
+  private void runSuccessfulTest(
+      String queryString,
+      String fullName,
+      String rdapStatus,
+      String address,
+      boolean addNoPersonalDataRemark,
+      String fileName) {
+    assertThat(generateActualJson(queryString))
+        .isEqualTo(
+            generateExpectedJsonWithTopLevelEntries(
+                queryString, fullName, rdapStatus, address, addNoPersonalDataRemark, fileName));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  private void runNotFoundTest(String queryString) {
+    assertThat(generateActualJson(queryString))
+        .isEqualTo(generateExpectedJson(queryString + " not found", "", "rdap_error_404.json"));
+    assertThat(response.getStatus()).isEqualTo(404);
+  }
+
   @Test
   public void testInvalidEntity_returns400() throws Exception {
     assertThat(generateActualJson("invalid/entity/handle")).isEqualTo(
@@ -221,108 +299,196 @@ public class RdapEntityActionTest {
   }
 
   @Test
-  public void testUnknownEntity_returns404() throws Exception {
-    assertThat(generateActualJson("_MISSING-ENTITY_")).isEqualTo(
-        generateExpectedJson("_MISSING-ENTITY_ not found", "rdap_error_404.json"));
-    assertThat(response.getStatus()).isEqualTo(404);
+  public void testUnknownEntity_notFound() throws Exception {
+    runNotFoundTest("_MISSING-ENTITY_");
   }
 
   @Test
   public void testValidRegistrantContact_works() throws Exception {
-    assertThat(generateActualJson(registrant.getRepoId())).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries(
-            registrant.getRepoId(), "rdap_associated_contact.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    login("evilregistrar");
+    runSuccessfulTest(registrant.getRepoId(), "rdap_associated_contact.json");
   }
 
   @Test
-  public void testValidRegistrantContact_works_asAdministrator() throws Exception {
-    UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
-    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(false);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("noregistrar");
-    assertThat(generateActualJson(registrant.getRepoId())).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries(
-            registrant.getRepoId(), "rdap_associated_contact.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+  public void testValidRegistrantContact_found_sameRegistrarRequested() throws Exception {
+    login("evilregistrar");
+    action.registrarParam = Optional.of("evilregistrar");
+    runSuccessfulTest(registrant.getRepoId(), "rdap_associated_contact.json");
   }
 
   @Test
-  public void testValidRegistrantContact_works_notLoggedIn() throws Exception {
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
-    assertThat(generateActualJson(registrant.getRepoId())).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries(
-            registrant.getRepoId(), true, "rdap_associated_contact_no_personal_data.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+  public void testValidRegistrantContact_notFound_differentRegistrarRequested() throws Exception {
+    login("evilregistrar");
+    action.registrarParam = Optional.of("idnregistrar");
+    runNotFoundTest(registrant.getRepoId());
   }
 
   @Test
-  public void testValidRegistrantContact_works_loggedInAsOtherRegistrar() throws Exception {
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("otherregistrar");
-    assertThat(generateActualJson(registrant.getRepoId())).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries(
-            registrant.getRepoId(), true, "rdap_associated_contact_no_personal_data.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+  public void testValidRegistrantContact_found_asAdministrator() throws Exception {
+    loginAsAdmin();
+    runSuccessfulTest(registrant.getRepoId(), "rdap_associated_contact.json");
+  }
+
+  @Test
+  public void testValidRegistrantContact_found_notLoggedIn() throws Exception {
+    runSuccessfulTest(
+        registrant.getRepoId(),
+        "(◕‿◕)",
+        "active",
+        null,
+        true,
+        "rdap_associated_contact_no_personal_data.json");
+  }
+
+  @Test
+  public void testValidRegistrantContact_found_loggedInAsOtherRegistrar() throws Exception {
+    login("otherregistrar");
+    runSuccessfulTest(
+        registrant.getRepoId(),
+        "(◕‿◕)",
+        "active",
+        null,
+        true,
+        "rdap_associated_contact_no_personal_data.json");
   }
 
   @Test
   public void testValidAdminContact_works() throws Exception {
-    assertThat(generateActualJson(adminContact.getRepoId())).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries(
-            adminContact.getRepoId(), "rdap_associated_contact.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    login("evilregistrar");
+    runSuccessfulTest(adminContact.getRepoId(), "rdap_associated_contact.json");
   }
 
   @Test
   public void testValidTechContact_works() throws Exception {
-    assertThat(generateActualJson(techContact.getRepoId())).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries(
-            techContact.getRepoId(), "rdap_associated_contact.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    login("evilregistrar");
+    runSuccessfulTest(techContact.getRepoId(), "rdap_associated_contact.json");
   }
 
   @Test
   public void testValidDisconnectedContact_works() throws Exception {
-    assertThat(generateActualJson(disconnectedContact.getRepoId())).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries(
-            disconnectedContact.getRepoId(), "rdap_contact.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    login("evilregistrar");
+    runSuccessfulTest(disconnectedContact.getRepoId(), "rdap_contact.json");
   }
 
   @Test
-  public void testRegistrar_works() throws Exception {
-    assertThat(generateActualJson("101")).isEqualTo(
-        generateExpectedJsonWithTopLevelEntries("101", "rdap_registrar.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+  public void testDeletedContact_notFound() throws Exception {
+    runNotFoundTest(deletedContact.getRepoId());
+  }
+
+  @Test
+  public void testDeletedContact_notFound_includeDeletedSetFalse() throws Exception {
+    action.includeDeletedParam = Optional.of(false);
+    runNotFoundTest(deletedContact.getRepoId());
+  }
+
+  @Test
+  public void testDeletedContact_notFound_notLoggedIn() throws Exception {
+    action.includeDeletedParam = Optional.of(true);
+    runNotFoundTest(deletedContact.getRepoId());
+  }
+
+  @Test
+  public void testDeletedContact_notFound_loggedInAsDifferentRegistrar() throws Exception {
+    login("idnregistrar");
+    action.includeDeletedParam = Optional.of(true);
+    runNotFoundTest(deletedContact.getRepoId());
+  }
+
+  @Test
+  public void testDeletedContact_found_loggedInAsCorrectRegistrar() throws Exception {
+    login("evilregistrar");
+    action.includeDeletedParam = Optional.of(true);
+    runSuccessfulTest(
+        deletedContact.getRepoId(),
+        "(◕‿◕)",
+        "active",
+        "\"2 Smiley Row\"",
+        false,
+        "rdap_contact_deleted.json");
+  }
+
+  @Test
+  public void testDeletedContact_found_loggedInAsAdmin() throws Exception {
+    loginAsAdmin();
+    action.includeDeletedParam = Optional.of(true);
+    runSuccessfulTest(
+        deletedContact.getRepoId(),
+        "(◕‿◕)",
+        "active",
+        "\"2 Smiley Row\"",
+        false,
+        "rdap_contact_deleted.json");
+  }
+
+  @Test
+  public void testRegistrar_found() throws Exception {
+    runSuccessfulTest("101", "Yes Virginia <script>", "rdap_registrar.json");
   }
 
   @Test
   public void testRegistrar102_works() throws Exception {
-    generateActualJson("102");
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTest("102", "IDN Registrar", "rdap_registrar.json");
+  }
+
+  @Test
+  public void testRegistrar102_found_requestingSameRegistrar() throws Exception {
+    action.registrarParam = Optional.of("idnregistrar");
+    runSuccessfulTest("102", "IDN Registrar", "rdap_registrar.json");
+  }
+
+  @Test
+  public void testRegistrar102_notFound_requestingOtherRegistrar() throws Exception {
+    action.registrarParam = Optional.of("1tldregistrar");
+    runNotFoundTest("102");
   }
 
   @Test
   public void testRegistrar103_works() throws Exception {
-    generateActualJson("103");
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTest("103", "Multilevel Registrar", "rdap_registrar.json");
   }
 
   @Test
-  public void testRegistrar104_doesNotExist() throws Exception {
-    generateActualJson("104");
-    assertThat(response.getStatus()).isEqualTo(404);
+  public void testRegistrar104_notFound() throws Exception {
+    runNotFoundTest("104");
   }
 
   @Test
-  public void testDeletedContact_returns404() throws Exception {
-    assertThat(generateActualJson(deletedContact.getRepoId())).isEqualTo(
-        generateExpectedJson(deletedContact.getRepoId() + " not found", "rdap_error_404.json"));
-    assertThat(response.getStatus()).isEqualTo(404);
+  public void testRegistrar104_notFound_deletedFlagWhenNotLoggedIn() throws Exception {
+    action.includeDeletedParam = Optional.of(true);
+    runNotFoundTest("104");
+  }
+
+  @Test
+  public void testRegistrar104_found_deletedFlagWhenLoggedIn() throws Exception {
+    login("deletedregistrar");
+    action.includeDeletedParam = Optional.of(true);
+    runSuccessfulTest(
+        "104", "Yes Virginia <script>", "removed", null, false, "rdap_registrar.json");
+  }
+
+  @Test
+  public void testRegistrar104_notFound_deletedFlagWhenLoggedInAsOther() throws Exception {
+    login("1tldregistrar");
+    action.includeDeletedParam = Optional.of(true);
+    runNotFoundTest("104");
+  }
+
+  @Test
+  public void testRegistrar104_found_deletedFlagWhenLoggedInAsAdmin() throws Exception {
+    loginAsAdmin();
+    action.includeDeletedParam = Optional.of(true);
+    runSuccessfulTest(
+        "104", "Yes Virginia <script>", "removed", null, false, "rdap_registrar.json");
+  }
+
+  @Test
+  public void testRegistrar105_doesNotExist() throws Exception {
+    runNotFoundTest("105");
   }
 
   @Test
   public void testQueryParameter_ignored() throws Exception {
+    login("evilregistrar");
     assertThat(generateActualJson(techContact.getRepoId() + "?key=value")).isEqualTo(
         generateExpectedJsonWithTopLevelEntries(
             techContact.getRepoId(), "rdap_associated_contact.json"));

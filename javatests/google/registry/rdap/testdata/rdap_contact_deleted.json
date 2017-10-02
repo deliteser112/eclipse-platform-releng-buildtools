@@ -1,7 +1,7 @@
 {
   "objectClassName" : "entity",
   "handle" : "%NAME%",
-  "status" : ["%STATUS%"],
+  "status" : ["removed"],
   "links" :
   [
     {
@@ -11,11 +11,17 @@
       "type" : "application/rdap+json"
     }
   ],
-  "events": [
+  "events":
+  [
     {
       "eventAction": "registration",
       "eventActor": "foo",
-      "eventDate": "2000-01-01T00:00:00.000Z"
+      "eventDate": "1999-01-01T00:00:00.000Z"
+    },
+    {
+      "eventAction": "deletion",
+      "eventActor": "foo",
+      "eventDate": "1999-07-01T00:00:00.000Z"
     },
     {
       "eventAction": "last update of RDAP database",
@@ -33,7 +39,7 @@
         [
           "",
           "",
-          [ %ADDRESS% ],
+          %ADDRESS%,
           "KOKOMO",
           "BM",
           "31337",

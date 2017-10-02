@@ -178,6 +178,16 @@ public final class FullFieldsTestEntityHelper {
       @Nullable String email,
       @Nullable List<String> street,
       @Nullable Registrar registrar) {
+    return makeContactResource(id, name, email, street, registrar, null);
+  }
+
+  public static ContactResource makeContactResource(
+      String id,
+      String name,
+      @Nullable String email,
+      @Nullable List<String> street,
+      @Nullable Registrar registrar,
+      @Nullable DateTime deletionTime) {
     PostalInfo.Builder postalBuilder = new PostalInfo.Builder()
         .setType(PostalInfo.Type.INTERNATIONALIZED)
         .setName(name)
@@ -212,6 +222,9 @@ public final class FullFieldsTestEntityHelper {
           .setCreationClientId(registrar.getClientId())
           .setPersistedCurrentSponsorClientId(registrar.getClientId());
     }
+    if (deletionTime != null) {
+      builder.setDeletionTime(deletionTime);
+    }
     return builder.build();
   }
 
@@ -227,7 +240,8 @@ public final class FullFieldsTestEntityHelper {
         email,
         ImmutableList.of("123 Example Boulevard <script>"),
         creationTime,
-        registrar);
+        registrar,
+        null);
   }
 
   public static ContactResource makeAndPersistContactResource(
@@ -236,7 +250,7 @@ public final class FullFieldsTestEntityHelper {
       @Nullable String email,
       @Nullable List<String> street,
       @Nullable DateTime creationTime) {
-    return makeAndPersistContactResource(id, name, email, street, creationTime, null);
+    return makeAndPersistContactResource(id, name, email, street, creationTime, null, null);
   }
 
   public static ContactResource makeAndPersistContactResource(
@@ -246,11 +260,26 @@ public final class FullFieldsTestEntityHelper {
       @Nullable List<String> street,
       @Nullable DateTime creationTime,
       @Nullable Registrar registrar) {
+    return makeAndPersistContactResource(id, name, email, street, creationTime, registrar, null);
+  }
+
+  public static ContactResource makeAndPersistContactResource(
+      String id,
+      String name,
+      @Nullable String email,
+      @Nullable List<String> street,
+      @Nullable DateTime creationTime,
+      @Nullable Registrar registrar,
+      @Nullable DateTime deletionTime) {
     ContactResource contactResource =
-        persistResource(makeContactResource(id, name, email, street, registrar));
+        persistResource(makeContactResource(id, name, email, street, registrar, deletionTime));
     if (creationTime != null) {
       persistResource(makeHistoryEntry(
           contactResource, HistoryEntry.Type.CONTACT_CREATE, null, "created", creationTime));
+    }
+    if (deletionTime != null) {
+      persistResource(makeHistoryEntry(
+          contactResource, HistoryEntry.Type.CONTACT_DELETE, null, "deleted", deletionTime));
     }
     return contactResource;
   }

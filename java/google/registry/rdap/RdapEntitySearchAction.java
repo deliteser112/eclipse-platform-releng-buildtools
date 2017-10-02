@@ -18,7 +18,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.rdap.RdapUtils.getRegistrarByIanaIdentifier;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
-import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -27,7 +26,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Longs;
-import com.googlecode.objectify.Key;
+import com.googlecode.objectify.cmd.Query;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.registrar.Registrar;
@@ -64,6 +63,8 @@ import org.joda.time.DateTime;
 public class RdapEntitySearchAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/entities";
+
+  private static final int RESULT_SET_SIZE_SCALING_FACTOR = 30;
 
   @Inject Clock clock;
   @Inject @Parameter("fn") Optional<String> fnParam;
@@ -124,134 +125,167 @@ public class RdapEntitySearchAction extends RdapActionBase {
    * by registrar contact name:
    *
    * <p>The search is by registrar name only. The profile is supporting the functionality defined
-   * in the Base Registry Agreement (see 1.6 of Section 4 of the Base Registry Agreement,
-   * https://newgtlds.icann.org/sites/default/files/agreements/
-   * agreement-approved-09jan14-en.htm).
+   * in the Base Registry Agreement.
    *
    * <p>According to RFC 7482 section 6.1, punycode is only used for domain name labels, so we can
    * assume that entity names are regular unicode.
+   *
+   * <p>Searches for deleted entities are treated like wildcard searches, because they can return
+   * multiple entities.
+   *
+   * @see <a href="https://newgtlds.icann.org/sites/default/files/agreements/agreement-approved-09jan14-en.htm">1.6
+   * of Section 4 of the Base Registry Agreement</a>
    */
   private RdapSearchResults searchByName(final RdapSearchPattern partialStringQuery, DateTime now) {
-    // For wildcard searches, make sure the initial string is long enough, and don't allow suffixes.
-    if (partialStringQuery.getHasWildcard()) {
-      if (partialStringQuery.getSuffix() != null) {
-        throw new UnprocessableEntityException(
-            "Suffixes not allowed in wildcard entity name searches");
-      }
-      if (partialStringQuery.getInitialString().length()
-          < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH) {
-        throw new UnprocessableEntityException(
-            "Initial search string required in wildcard entity name searches");
-      }
+    // For wildcard searches, and searches that include deleted items, make sure the initial string
+    // is long enough, and don't allow suffixes.
+    if ((partialStringQuery.getHasWildcard() || shouldIncludeDeleted())
+        && (partialStringQuery.getSuffix() != null)) {
+      throw new UnprocessableEntityException(
+          partialStringQuery.getHasWildcard()
+              ? "Suffixes not allowed in wildcard entity name searches"
+              : "Suffixes not allowed when searching for deleted entities");
     }
-    // Get the registrar matches, depending on whether there's a wildcard.
-    ImmutableList<Registrar> registrarMatches =
+    if (partialStringQuery.getHasWildcard()
+        && (partialStringQuery.getInitialString().length()
+            < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH)) {
+      throw new UnprocessableEntityException(
+          partialStringQuery.getHasWildcard()
+              ? "Initial search string required in wildcard entity name searches"
+              : "Initial search string required when searching for deleted entities");
+    }
+    // Get the registrar matches.
+    ImmutableList<Registrar> registrars =
         FluentIterable.from(Registrar.loadAllCached())
             .filter(
                 new Predicate<Registrar>() {
                   @Override
                   public boolean apply(Registrar registrar) {
-                    return partialStringQuery.matches(registrar.getRegistrarName());
-                  }})
+                    return partialStringQuery.matches(registrar.getRegistrarName())
+                        && shouldBeVisible(registrar);
+                  }
+                })
             .limit(rdapResultSetMaxSize + 1)
             .toList();
     // Get the contact matches and return the results, fetching an additional contact to detect
-    // truncation.
-    return makeSearchResults(
+    // truncation. If we are including deleted entries, we must fetch more entries, in case some
+    // get excluded due to permissioning.
+    Query<ContactResource> query =
         queryItems(
-                ContactResource.class,
-                "searchName",
-                partialStringQuery,
-                false /* includeDeleted */,
-                rdapResultSetMaxSize + 1)
-            .list(),
-        registrarMatches,
-        now);
+            ContactResource.class,
+            "searchName",
+            partialStringQuery,
+            shouldIncludeDeleted(),
+            shouldIncludeDeleted()
+                ? (RESULT_SET_SIZE_SCALING_FACTOR * (rdapResultSetMaxSize + 1))
+                : (rdapResultSetMaxSize + 1));
+    return makeSearchResults(getMatchingResources(query, now), registrars, now);
   }
 
-  /** Searches for entities by handle, returning a JSON array of entity info maps. */
+  /**
+   * Searches for entities by handle, returning a JSON array of entity info maps.
+   *
+   * <p>Searches for deleted entities are treated like wildcard searches.
+   *
+   * <p>We don't allow suffixes after a wildcard in entity searches. Suffixes are used in domain
+   * searches to specify a TLD, and in nameserver searches to specify an in-bailiwick domain name.
+   * In both cases, the suffix can be turned into an additional query filter field. For contacts,
+   * there is no equivalent string suffix that can be used as a query filter, so we disallow use.
+   */
   private RdapSearchResults searchByHandle(
       final RdapSearchPattern partialStringQuery, DateTime now) {
-    // Handle queries without a wildcard -- load by ID.
-    if (!partialStringQuery.getHasWildcard()) {
+    if (partialStringQuery.getSuffix() != null) {
+      throw new UnprocessableEntityException("Suffixes not allowed in entity handle searches");
+    }
+    // Handle queries without a wildcard (and not including deleted) -- load by ID.
+    if (!partialStringQuery.getHasWildcard() && !shouldIncludeDeleted()) {
       ContactResource contactResource = ofy().load()
           .type(ContactResource.class)
           .id(partialStringQuery.getInitialString())
           .now();
-      ImmutableList<Registrar> registrars =
-          getMatchingRegistrars(partialStringQuery.getInitialString());
       return makeSearchResults(
-          ((contactResource == null) || !contactResource.getDeletionTime().isEqual(END_OF_TIME))
-              ? ImmutableList.<ContactResource>of() : ImmutableList.of(contactResource),
-          registrars,
+          ((contactResource != null) && shouldBeVisible(contactResource, now))
+              ? ImmutableList.of(contactResource)
+              : ImmutableList.<ContactResource>of(),
+          IncompletenessWarningType.NONE,
+          getMatchingRegistrars(partialStringQuery.getInitialString()),
           now);
-    // Handle queries with a wildcard, but no suffix. For contact resources, the deletion time will
-    // always be END_OF_TIME for non-deleted records; unlike domain resources, we don't need to
-    // worry about deletion times in the future. That allows us to use an equality query for the
-    // deletion time. Because the handle for registrars is the IANA identifier number, don't allow
-    // wildcard searches for registrars, by simply not searching for registrars if a wildcard is
-    // present. Fetch an extra contact to detect result set truncation.
-    } else if (partialStringQuery.getSuffix() == null) {
-      if (partialStringQuery.getInitialString().length()
-          < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH) {
-        throw new UnprocessableEntityException(
-            "Initial search string required in wildcard entity handle searches");
-      }
-      return makeSearchResults(
-          ofy().load()
-              .type(ContactResource.class)
-              .filterKey(
-                  ">=", Key.create(ContactResource.class, partialStringQuery.getInitialString()))
-              .filterKey(
-                  "<", Key.create(ContactResource.class, partialStringQuery.getNextInitialString()))
-              .filter("deletionTime", END_OF_TIME)
-              .limit(rdapResultSetMaxSize + 1)
-              .list(),
-          ImmutableList.<Registrar>of(),
-          now);
-    // Don't allow suffixes in entity handle search queries.
+    // Handle queries with a wildcard (or including deleted), but no suffix. Because the handle
+    // for registrars is the IANA identifier number, don't allow wildcard searches for registrars,
+    // by simply not searching for registrars if a wildcard is present. Fetch an extra contact to
+    // detect result set truncation.
     } else {
-      throw new UnprocessableEntityException("Suffixes not allowed in entity handle searches");
+      ImmutableList<Registrar> registrars =
+          partialStringQuery.getHasWildcard()
+              ? ImmutableList.<Registrar>of()
+              : getMatchingRegistrars(partialStringQuery.getInitialString());
+      // Get the contact matches and return the results, fetching an additional contact to detect
+      // truncation. If we are including deleted entries, we must fetch more entries, in case some
+      // get excluded due to permissioning.
+      Query<ContactResource> query =
+          queryItemsByKey(
+              ContactResource.class,
+              partialStringQuery,
+              shouldIncludeDeleted(),
+              shouldIncludeDeleted()
+                  ? (RESULT_SET_SIZE_SCALING_FACTOR * (rdapResultSetMaxSize + 1))
+                  : (rdapResultSetMaxSize + 1));
+      return makeSearchResults(getMatchingResources(query, now), registrars, now);
     }
   }
 
   /** Looks up registrars by handle (i.e. IANA identifier). */
   private ImmutableList<Registrar> getMatchingRegistrars(final String ianaIdentifierString) {
     Long ianaIdentifier = Longs.tryParse(ianaIdentifierString);
-    if (ianaIdentifier != null) {
-      Optional<Registrar> registrar = getRegistrarByIanaIdentifier(ianaIdentifier);
-      if (registrar.isPresent()) {
-        return ImmutableList.of(registrar.get());
-      }
+    if (ianaIdentifier == null) {
+      return ImmutableList.of();
     }
-    return ImmutableList.of();
+    Optional<Registrar> registrar = getRegistrarByIanaIdentifier(ianaIdentifier);
+    return (registrar.isPresent() && shouldBeVisible(registrar.get()))
+        ? ImmutableList.of(registrar.get())
+        : ImmutableList.<Registrar>of();
   }
 
-  /** Builds a JSON array of entity info maps based on the specified contacts and registrars. */
+  /**
+   * Builds a JSON array of entity info maps based on the specified contacts and registrars.
+   *
+   * <p>This is a convenience wrapper for the four-argument makeSearchResults; it unpacks the two
+   * properties of the ContactsAndIncompletenessWarningType structure and passes them as separate
+   * arguments.
+   */
   private RdapSearchResults makeSearchResults(
-      List<ContactResource> contacts, List<Registrar> registrars, DateTime now) {
+      RdapResourcesAndIncompletenessWarningType<ContactResource>
+          resourcesAndIncompletenessWarningType,
+      List<Registrar> registrars,
+      DateTime now) {
+    return makeSearchResults(
+        resourcesAndIncompletenessWarningType.resources(),
+        resourcesAndIncompletenessWarningType.incompletenessWarningType(),
+        registrars,
+        now);
+  }
+
+  /**
+   * Builds a JSON array of entity info maps based on the specified contacts and registrars.
+   *
+   * @param contacts the list of contacts which can be returned
+   * @param incompletenessWarningType MIGHT_BE_INCOMPLETE if the list of contacts might be
+   *        incomplete; this only matters if the total count of contacts and registrars combined is
+   *        less than a full result set's worth
+   * @param registrars the list of registrars which can be returned
+   * @param now the current date and time
+   * @return an {@link RdapSearchResults} object
+   */
+  private RdapSearchResults makeSearchResults(
+      List<ContactResource> contacts,
+      IncompletenessWarningType incompletenessWarningType,
+      List<Registrar> registrars,
+      DateTime now) {
 
     // Determine what output data type to use, depending on whether more than one entity will be
     // returned.
-    int numEntities = contacts.size();
-    OutputDataType outputDataType;
-    // If there's more than one contact, then we know already we need SUMMARY mode.
-    if (numEntities > 1) {
-      outputDataType = OutputDataType.SUMMARY;
-    // If there are fewer than two contacts, loop through and compute the total number of contacts
-    // and registrars, stopping as soon as we find two.
-    } else {
-      outputDataType = OutputDataType.FULL;
-      for (Registrar registrar : registrars) {
-        if (registrar.isLiveAndPubliclyVisible()) {
-          numEntities++;
-          if (numEntities > 1) {
-            outputDataType = OutputDataType.SUMMARY;
-            break;
-          }
-        }
-      }
-    }
+    OutputDataType outputDataType =
+        (contacts.size() + registrars.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
 
     // There can be more results than our max size, partially because we have two pools to draw from
     // (contacts and registrars), and partially because we try to fetch one more than the max size,
@@ -276,15 +310,17 @@ public class RdapEntitySearchAction extends RdapActionBase {
           authorization));
     }
     for (Registrar registrar : registrars) {
-      if (registrar.isLiveAndPubliclyVisible()) {
-        if (jsonOutputList.size() >= rdapResultSetMaxSize) {
-          return RdapSearchResults.create(
-              ImmutableList.copyOf(jsonOutputList), IncompletenessWarningType.TRUNCATED);
-        }
-        jsonOutputList.add(rdapJsonFormatter.makeRdapJsonForRegistrar(
-            registrar, false, rdapLinkBase, rdapWhoisServer, now, outputDataType));
+      if (jsonOutputList.size() >= rdapResultSetMaxSize) {
+        return RdapSearchResults.create(
+            ImmutableList.copyOf(jsonOutputList), IncompletenessWarningType.TRUNCATED);
       }
+      jsonOutputList.add(rdapJsonFormatter.makeRdapJsonForRegistrar(
+          registrar, false, rdapLinkBase, rdapWhoisServer, now, outputDataType));
     }
-    return RdapSearchResults.create(ImmutableList.copyOf(jsonOutputList));
+    return RdapSearchResults.create(
+        ImmutableList.copyOf(jsonOutputList),
+        (jsonOutputList.size() < rdapResultSetMaxSize)
+            ? incompletenessWarningType
+            : IncompletenessWarningType.NONE);
   }
 }

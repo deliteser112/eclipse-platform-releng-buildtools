@@ -3,14 +3,14 @@
   [
     {
       "objectClassName" : "entity",
-      "handle" : "7-ROID",
+      "handle" : "9-ROID",
       "status" : ["active"],
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/7-ROID",
+          "value" : "https://example.com/rdap/entity/9-ROID",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/7-ROID",
+          "href": "https://example.com/rdap/entity/9-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -49,14 +49,14 @@
     },
     {
       "objectClassName" : "entity",
-      "handle" : "8-ROID",
+      "handle" : "A-ROID",
       "status" : ["active"],
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/8-ROID",
+          "value" : "https://example.com/rdap/entity/A-ROID",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/8-ROID",
+          "href": "https://example.com/rdap/entity/A-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -95,14 +95,14 @@
     },
     {
       "objectClassName" : "entity",
-      "handle" : "9-ROID",
+      "handle" : "B-ROID",
       "status" : ["active"],
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/9-ROID",
+          "value" : "https://example.com/rdap/entity/B-ROID",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/9-ROID",
+          "href": "https://example.com/rdap/entity/B-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -141,14 +141,14 @@
     },
     {
       "objectClassName" : "entity",
-      "handle" : "A-ROID",
+      "handle" : "C-ROID",
       "status" : ["active"],
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/A-ROID",
+          "value" : "https://example.com/rdap/entity/C-ROID",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/A-ROID",
+          "href": "https://example.com/rdap/entity/C-ROID",
           "type" : "application/rdap+json"
         }
       ],

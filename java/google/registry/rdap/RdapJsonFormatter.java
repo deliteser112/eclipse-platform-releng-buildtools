@@ -767,16 +767,19 @@ public class RdapJsonFormatter {
       OutputDataType outputDataType) {
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     jsonBuilder.put("objectClassName", "entity");
-    jsonBuilder.put("handle", registrar.getIanaIdentifier().toString());
+    Long ianaIdentifier = registrar.getIanaIdentifier();
+    jsonBuilder.put("handle", (ianaIdentifier == null) ? "(none)" : ianaIdentifier.toString());
     jsonBuilder.put("status", registrar.isLive() ? STATUS_LIST_ACTIVE : STATUS_LIST_REMOVED);
     jsonBuilder.put("roles", ImmutableList.of(RdapEntityRole.REGISTRAR.rfc7483String));
-    jsonBuilder.put("links",
-        ImmutableList.of(makeLink("entity", registrar.getIanaIdentifier().toString(), linkBase)));
-    jsonBuilder.put("publicIds",
-        ImmutableList.of(
-            ImmutableMap.of(
-                "type", "IANA Registrar ID",
-                "identifier", registrar.getIanaIdentifier().toString())));
+    if (ianaIdentifier != null) {
+      jsonBuilder.put("links",
+          ImmutableList.of(makeLink("entity", ianaIdentifier.toString(), linkBase)));
+      jsonBuilder.put(
+          "publicIds",
+          ImmutableList.of(
+              ImmutableMap.of(
+                  "type", "IANA Registrar ID", "identifier", ianaIdentifier.toString())));
+    }
     // Create the vCard.
     ImmutableList.Builder<Object> vcardBuilder = new ImmutableList.Builder<>();
     vcardBuilder.add(VCARD_ENTRY_VERSION);
@@ -964,9 +967,10 @@ public class RdapJsonFormatter {
    */
   private static ImmutableList<Object> makeEvents(Registrar registrar, DateTime now) {
     ImmutableList.Builder<Object> eventsBuilder = new ImmutableList.Builder<>();
+    Long ianaIdentifier = registrar.getIanaIdentifier();
     eventsBuilder.add(makeEvent(
         RdapEventAction.REGISTRATION,
-        registrar.getIanaIdentifier().toString(),
+        (ianaIdentifier == null) ? "(none)" : ianaIdentifier.toString(),
         registrar.getCreationTime()));
     if ((registrar.getLastUpdateTime() != null)
         && registrar.getLastUpdateTime().isAfter(registrar.getCreationTime())) {
