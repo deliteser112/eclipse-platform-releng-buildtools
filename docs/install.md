@@ -13,12 +13,9 @@ You will need the following programs installed on your local machine:
     to the `gcloud` and `appcfg.sh` utilities (you'll use them a lot).
 *   [Git](https://git-scm.com/) version control system.
 
-**Note:** App Engine does not yet support Java 8. Your code cannot use any Java
-8 feature such as lambda expression or stream, but your *can* use a Java 8
-version of bazel. Just make sure that you pass `--javacopt="-target 7 -source
-7"` when you build and test. Also, the instructions in this document have only
-been tested on Linux. They might work with some alterations on other operating
-systems.
+**Note:** App Engine does not yet support Java 9. Also, the instructions in this
+document have only been tested on Linux. They might work with some alterations
+on other operating systems.
 
 ## Download the codebase
 
