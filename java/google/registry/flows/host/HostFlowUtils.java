@@ -65,6 +65,8 @@ public class HostFlowUtils {
       // level domains, such as .co.uk. But the list does not include new tlds, so in that case
       // we just ensure 3+ parts. In the particular case where our own tld has a '.' in it, we know
       // that there need to be 4 parts as well.
+      // TODO(b/63128999): Use better method (once implemented) that determines if it's a public
+      //                   suffix that domain names can be registered under.
       if (hostName.isUnderPublicSuffix()) {
         if (hostName.parent().isUnderPublicSuffix()) {
           return hostName;
