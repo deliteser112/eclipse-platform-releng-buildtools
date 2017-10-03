@@ -77,6 +77,7 @@ import javax.inject.Singleton;
 )
 interface RegistryToolComponent {
   void inject(CreateAnchorTenantCommand command);
+  void inject(CreateCdnsTld command);
   void inject(CreateContactCommand command);
   void inject(CreateDomainCommand command);
   void inject(CreateLrpTokensCommand command);
