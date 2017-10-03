@@ -168,8 +168,9 @@ upload just that one using the `-M` flag to specify the service to update.
 To verify successful deployment, visit
 https://acme-registry-alpha.appspot.com/registrar in your browser (adjusting
 appropriately for the project ID that you actually used). If the project
-deployed successfully, you'll see the registrar console homepage. It's time to
-go to the next step, configuration.
+deployed successfully, you'll see a "You need permission" page indicating that
+you need to configure the system and grant access to your Google account. It's
+time to go to the next step, configuration.
 
 Configuration is handled by editing code, rebuilding the project, and deploying
 again. See the [configuration guide](./configuration.md) for more details. Once
