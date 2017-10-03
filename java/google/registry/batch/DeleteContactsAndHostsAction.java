@@ -20,7 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.math.IntMath.divide;
 import static com.googlecode.objectify.Key.getKind;
-import static google.registry.flows.ResourceFlowUtils.createResolvedTransferData;
+import static google.registry.flows.ResourceFlowUtils.denyPendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_CLIENT_TRANSACTION_ID;
@@ -373,12 +373,12 @@ public class DeleteContactsAndHostsAction implements Runnable {
         EppResource.Builder<?, ?> resourceToSaveBuilder;
         if (resource instanceof ContactResource) {
           ContactResource contact = (ContactResource) resource;
-          ContactResource.Builder contactToSaveBuilder = contact.asBuilder();
+          // Handle pending transfers on contact deletion.
           if (contact.getStatusValues().contains(StatusValue.PENDING_TRANSFER)) {
-            contactToSaveBuilder = contactToSaveBuilder.setTransferData(createResolvedTransferData(
-                contact.getTransferData(), TransferStatus.SERVER_CANCELLED, now));
+            contact = denyPendingTransfer(contact, TransferStatus.SERVER_CANCELLED, now);
           }
-          resourceToSaveBuilder = contactToSaveBuilder.wipeOut();
+          // Wipe out PII on contact deletion.
+          resourceToSaveBuilder = contact.asBuilder().wipeOut();
         } else {
           resourceToSaveBuilder = resource.asBuilder();
         }

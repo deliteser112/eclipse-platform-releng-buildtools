@@ -207,43 +207,35 @@ public final class ResourceFlowUtils {
   }
 
   /**
-   * Create a {@link TransferData} object representing a resolved transfer.
-   *
-   * <p>This clears all the server-approve fields on the {@link TransferData}, sets the status
-   * field, and sets the expiration time of the last pending transfer to now.
-   */
-  public static TransferData createResolvedTransferData(
-      TransferData oldTransferData, TransferStatus transferStatus, DateTime now) {
-    checkArgument(!oldTransferData.equals(TransferData.EMPTY), "No old transfer to resolve.");
-    return oldTransferData.asBuilder()
-        .setServerApproveEntities(null)
-        .setServerApproveBillingEvent(null)
-        .setServerApproveAutorenewEvent(null)
-        .setServerApproveAutorenewPollMessage(null)
-        .setTransferStatus(transferStatus)
-        .setPendingTransferExpirationTime(checkNotNull(now))
-        .build();
-  }
-
-  /**
    * Turn a resource into a builder with its pending transfer resolved.
    *
    * <p>This removes the {@link StatusValue#PENDING_TRANSFER} status, sets the {@link
    * TransferStatus}, clears all the server-approve fields on the {@link TransferData}, and sets the
    * expiration time of the last pending transfer to now.
    */
-  @SuppressWarnings("unchecked")
-  public static <
+  private static <
           R extends EppResource & ResourceWithTransferData,
           B extends EppResource.Builder<R, B> & BuilderWithTransferData<B>>
       B resolvePendingTransfer(R resource, TransferStatus transferStatus, DateTime now) {
-    checkState(
+    checkArgument(
         resource.getStatusValues().contains(StatusValue.PENDING_TRANSFER),
         "Resource is not in pending transfer status.");
-    return ((B) resource.asBuilder())
+    checkArgument(
+        !TransferData.EMPTY.equals(resource.getTransferData()),
+        "No old transfer data to resolve.");
+    @SuppressWarnings("unchecked")
+    B builder = (B) resource.asBuilder();
+    return builder
         .removeStatusValue(StatusValue.PENDING_TRANSFER)
         .setTransferData(
-            createResolvedTransferData(resource.getTransferData(), transferStatus, now));
+            resource.getTransferData().asBuilder()
+                .setServerApproveEntities(null)
+                .setServerApproveBillingEvent(null)
+                .setServerApproveAutorenewEvent(null)
+                .setServerApproveAutorenewPollMessage(null)
+                .setTransferStatus(transferStatus)
+                .setPendingTransferExpirationTime(checkNotNull(now))
+                .build());
   }
 
   /**
@@ -258,6 +250,7 @@ public final class ResourceFlowUtils {
           R extends EppResource & ResourceWithTransferData,
           B extends Builder<R, B> & BuilderWithTransferData<B>>
       R approvePendingTransfer(R resource, TransferStatus transferStatus, DateTime now) {
+    checkArgument(transferStatus.isApproved(), "Not an approval transfer status");
     B builder = ResourceFlowUtils.<R, B>resolvePendingTransfer(resource, transferStatus, now);
     return builder
         .setLastTransferTime(now)
@@ -274,6 +267,7 @@ public final class ResourceFlowUtils {
    */
   public static <R extends EppResource & ResourceWithTransferData> R denyPendingTransfer(
       R resource, TransferStatus transferStatus, DateTime now) {
+    checkArgument(transferStatus.isDenied(), "Not a denial transfer status");
     return resolvePendingTransfer(resource, transferStatus, now).build();
   }
 

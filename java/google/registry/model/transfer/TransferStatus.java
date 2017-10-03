@@ -54,4 +54,10 @@ public enum TransferStatus {
   public boolean isApproved() {
     return this.equals(CLIENT_APPROVED) || this.equals(SERVER_APPROVED);
   }
+
+  public boolean isDenied() {
+    return this.equals(CLIENT_CANCELLED)
+        || this.equals(CLIENT_REJECTED)
+        || this.equals(SERVER_CANCELLED);
+  }
 }

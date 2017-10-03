@@ -17,6 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.flows.FlowUtils.persistEntityChanges;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
+import static google.registry.flows.ResourceFlowUtils.denyPendingTransfer;
 import static google.registry.flows.ResourceFlowUtils.handlePendingTransferOnDelete;
 import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
@@ -48,7 +49,6 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
-import google.registry.flows.ResourceFlowUtils;
 import google.registry.flows.SessionMetadata;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
@@ -145,10 +145,13 @@ public final class DomainDeleteFlow implements TransactionalFlow {
     customLogic.afterValidation(
         AfterValidationParameters.newBuilder().setExistingDomain(existingDomain).build());
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
-    Builder builder = existingDomain.getStatusValues().contains(StatusValue.PENDING_TRANSFER)
-        ? ResourceFlowUtils.<DomainResource, DomainResource.Builder>resolvePendingTransfer(
-            existingDomain, TransferStatus.SERVER_CANCELLED, now)
-        : existingDomain.asBuilder();
+    Builder builder;
+    if (existingDomain.getStatusValues().contains(StatusValue.PENDING_TRANSFER)) {
+      builder =
+          denyPendingTransfer(existingDomain, TransferStatus.SERVER_CANCELLED, now).asBuilder();
+    } else {
+      builder = existingDomain.asBuilder();
+    }
     Duration redemptionGracePeriodLength = registry.getRedemptionGracePeriodLength();
     Duration pendingDeleteLength = registry.getPendingDeleteLength();
     DomainDeleteSuperuserExtension domainDeleteSuperuserExtension =
