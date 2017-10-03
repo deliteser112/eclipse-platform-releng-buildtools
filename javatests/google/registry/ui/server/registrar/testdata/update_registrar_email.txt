@@ -1,13 +1,13 @@
 The following changes were made to the registrar:
-whoisServer -> [null, foo.bar.baz]
-ipAddressWhitelist -> [null, [1.1.1.1/32, 2.2.2.2/32, 4.4.4.4/32]]
-localizedAddress.street.0 -> [123 Example Bőulevard, 123 Street Rd]
-localizedAddress.street.1 -> [null, Ste 156]
-localizedAddress.city -> [Williamsburg, New York]
-localizedAddress.zip -> [11211, 10011]
-phoneNumber -> [+1.2223334444, +1.2223335555]
-emailAddress -> [new.registrar@example.com, thase@the.registrar]
-contacts ->
+whoisServer: null -> foo.bar.baz
+ipAddressWhitelist: null -> [1.1.1.1/32, 2.2.2.2/32, 4.4.4.4/32]
+localizedAddress.street.0: 123 Example Bőulevard -> 123 Street Rd
+localizedAddress.street.1: null -> Ste 156
+localizedAddress.city: Williamsburg -> New York
+localizedAddress.zip: 11211 -> 10011
+phoneNumber: +1.2223334444 -> +1.2223335555
+emailAddress: new.registrar@example.com -> thase@the.registrar
+contacts:
     ADDED:
         {parent=Key<?>(EntityGroupRoot("cross-tld")/Registrar("TheRegistrar")), name=Extra Terrestrial, emailAddress=etphonehome@example.com, phoneNumber=null, faxNumber=null, types=[ADMIN, BILLING, TECH, WHOIS], gaeUserId=null, visibleInWhoisAsAdmin=true, visibleInWhoisAsTech=false, visibleInDomainWhoisAsAbuse=false}
     REMOVED:

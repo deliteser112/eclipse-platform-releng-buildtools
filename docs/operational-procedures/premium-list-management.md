@@ -76,7 +76,7 @@ parameter:
 ```shell
 $ nomulus -e {ENVIRONMENT} update_tld exampletld --premium_list exampletld
 Update Registry@exampletld
-premiumList -> [null, Key<?>(EntityGroupRoot("cross-tld")/PremiumList("exampletld"))]
+premiumList: null -> Key<?>(EntityGroupRoot("cross-tld")/PremiumList("exampletld"))
 
 Perform this command? (y/N): y
 Updated 1 entities.

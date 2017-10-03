@@ -99,16 +99,16 @@ public class MutatingCommandTest {
     String changes = command.prompt();
     assertThat(changes).isEqualTo(
         "Update HostResource@2-ROID\n"
-            + "lastEppUpdateTime -> [null, 2014-09-09T09:09:09.000Z]\n"
+            + "lastEppUpdateTime: null -> 2014-09-09T09:09:09.000Z\n"
             + "\n"
             + "Update HostResource@3-ROID\n"
-            + "currentSponsorClientId -> [TheRegistrar, Registrar2]\n"
+            + "currentSponsorClientId: TheRegistrar -> Registrar2\n"
             + "\n"
             + "Update Registrar@Registrar1\n"
-            + "billingIdentifier -> [null, 42]\n"
+            + "billingIdentifier: null -> 42\n"
             + "\n"
             + "Update Registrar@Registrar2\n"
-            + "blockPremiumNames -> [false, true]\n");
+            + "blockPremiumNames: false -> true\n");
     String results = command.execute();
     assertThat(results).isEqualTo("Updated 4 entities.\n");
     assertThat(ofy().load().entity(host1).now()).isEqualTo(newHost1);
@@ -229,13 +229,13 @@ public class MutatingCommandTest {
             + host1 + "\n"
             + "\n"
             + "Update HostResource@3-ROID\n"
-            + "currentSponsorClientId -> [TheRegistrar, Registrar2]\n"
+            + "currentSponsorClientId: TheRegistrar -> Registrar2\n"
             + "\n"
             + "Delete Registrar@Registrar1\n"
             + registrar1 + "\n"
             + "\n"
             + "Update Registrar@Registrar2\n"
-            + "blockPremiumNames -> [false, true]\n");
+            + "blockPremiumNames: false -> true\n");
     String results = command.execute();
     assertThat(results).isEqualTo("Updated 4 entities.\n");
     assertThat(ofy().load().entity(host1).now()).isNull();
@@ -269,13 +269,13 @@ public class MutatingCommandTest {
             + host1 + "\n"
             + "\n"
             + "Update HostResource@3-ROID\n"
-            + "currentSponsorClientId -> [TheRegistrar, Registrar2]\n"
+            + "currentSponsorClientId: TheRegistrar -> Registrar2\n"
             + "\n"
             + "Delete Registrar@Registrar1\n"
             + registrar1 + "\n"
             + "\n"
             + "Update Registrar@Registrar2\n"
-            + "blockPremiumNames -> [false, true]\n");
+            + "blockPremiumNames: false -> true\n");
     try {
       command.execute();
       assertWithMessage("Expected transaction to fail with IllegalStateException").fail();

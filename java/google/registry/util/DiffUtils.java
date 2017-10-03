@@ -15,7 +15,6 @@
 package google.registry.util;
 
 import static com.google.common.base.Predicates.notNull;
-import static com.google.common.collect.Lists.newArrayList;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -54,7 +53,7 @@ public final class DiffUtils {
     @Override
     public String toString() {
       // Note that we use newArrayList here instead of ImmutableList because a and b can be null.
-      return newArrayList(a, b).toString();
+      return String.format("%s -> %s", a, b);
     }
   }
 
@@ -141,9 +140,9 @@ public final class DiffUtils {
           && ((DiffPair) value).b instanceof Set) {
         DiffPair pair = ((DiffPair) value);
         String prettyLineDiff = prettyPrintSetDiff((Set<?>) pair.a, (Set<?>) pair.b) + "\n";
-        output = newPath + ((prettyLineDiff.startsWith("\n")) ? " ->" : " -> ") + prettyLineDiff;
+        output = newPath + ((prettyLineDiff.startsWith("\n")) ? ":" : ": ") + prettyLineDiff;
       } else {
-        output = newPath + " -> " + value + "\n";
+        output = newPath + ": " + value + "\n";
       }
       builder.append(output);
     }

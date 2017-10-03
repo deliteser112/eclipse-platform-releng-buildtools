@@ -124,7 +124,7 @@ parameter:
 $ nomulus -e {ENVIRONMENT} update_tld exampletld \
     --add_reserved_lists common_bad-words
 Update Registry@exampletld
-reservedLists -> [null, [Key<?>(EntityGroupRoot("cross-tld")/ReservedList("common_bad-words"))]]
+reservedLists: null -> [Key<?>(EntityGroupRoot("cross-tld")/ReservedList("common_bad-words"))]
 Perform this command? (y/N): y
 Updated 1 entities.
 ```

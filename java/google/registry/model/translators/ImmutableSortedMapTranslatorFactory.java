@@ -57,16 +57,16 @@ import javax.annotation.Nullable;
  * <p>For example, if you had an {@code ImmutableSortedMap<String, String>} on a field named
  * {@code field}, then this would look like:<pre>   {@code
  *
- *   field.key -> [key1, key2]
- *   field.value -> [value1, value2]}</pre>
+ *   field.key: key1 -> key2
+ *   field.value: value1 -> value2}</pre>
  *
  * <p>If you had an {@code ImmutableSortedMap<String, EmbeddedClass>} on a field named
  * {@code field}, where {@code EmbeddedClass} defines two {@code foo} and {@code bar} fields, then
  * the embedded properties might look like:<pre>   {@code
  *
- *   field.key -> [key1, key2]
- *   field.value.foo -> [foo1, foo2]
- *   field.value.bar -> [bar1, bar2]}</pre>
+ *   field.key: key1 -> key2
+ *   field.value.foo: foo1 -> foo2
+ *   field.value.bar: bar1 -> bar2}</pre>
  *
  * @param <K> key type for sorted map which must be {@link Comparable}
  * @param <V> value type for sorted map

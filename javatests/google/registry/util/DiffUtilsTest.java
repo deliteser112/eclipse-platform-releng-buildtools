@@ -68,8 +68,8 @@ public class DiffUtilsTest {
     Map<String, Object> mapB = new HashMap<String, Object>();
     mapB.put("a", "tim");
     mapB.put("b", ImmutableSet.of());
-    // This ensures that it is not outputting a diff of [b -> [null, []].
-    assertThat(prettyPrintEntityDeepDiff(mapA, mapB)).isEqualTo("a -> [jim, tim]\n");
+    // This ensures that it is not outputting a diff of b: null -> [].
+    assertThat(prettyPrintEntityDeepDiff(mapA, mapB)).isEqualTo("a: jim -> tim\n");
   }
 
   @Test

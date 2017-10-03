@@ -63,7 +63,7 @@ Cursors can be updated as follows:
 $ nomulus -e {ENVIRONMENT} update_cursors exampletld --type RDE_STAGING \
     --timestamp 2016-09-01T00:00:00Z
 Update Cursor@ahFzfmRvbWFpbi1yZWdpc3RyeXIzCxIPRW50aXR5R3JvdXBSb290Igljcm9zcy10bGQMCxIIUmVnaXN0cnkiB3lvdXR1YmUM_RDE_STAGING
-cursorTime -> [2016-09-23T00:00:00.000Z, 2016-09-01T00:00:00.000Z]
+cursorTime: 2016-09-23T00:00:00.000Z -> 2016-09-01T00:00:00.000Z
 
 Perform this command? (y/N): Y
 Updated 1 entities.
