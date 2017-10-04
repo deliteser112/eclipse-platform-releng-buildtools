@@ -27,8 +27,8 @@ import static google.registry.model.registry.label.PremiumListUtils.deletePremiu
 import static google.registry.model.registry.label.PremiumListUtils.doesPremiumListExist;
 import static google.registry.model.registry.label.PremiumListUtils.getPremiumPrice;
 import static google.registry.model.registry.label.PremiumListUtils.savePremiumListAndEntries;
-import static google.registry.monitoring.metrics.contrib.EventMetricSubject.assertThat;
-import static google.registry.monitoring.metrics.contrib.IncrementableMetricSubject.assertThat;
+import static google.registry.monitoring.metrics.contrib.DistributionMetricSubject.assertThat;
+import static google.registry.monitoring.metrics.contrib.LongMetricSubject.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadPremiumListEntries;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;

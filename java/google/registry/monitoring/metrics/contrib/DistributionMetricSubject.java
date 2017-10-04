@@ -18,24 +18,24 @@ import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
-import com.google.common.truth.FailureStrategy;
-import com.google.common.truth.SubjectFactory;
+import com.google.common.truth.FailureMetadata;
+import com.google.common.truth.Subject;
 import google.registry.monitoring.metrics.Distribution;
-import google.registry.monitoring.metrics.EventMetric;
+import google.registry.monitoring.metrics.Metric;
 import google.registry.monitoring.metrics.MetricPoint;
 import java.util.Map;
 import javax.annotation.Nullable;
 
 /**
- * Truth subject for the {@link EventMetric} class.
+ * Truth subject for the {@link Metric<Distribution>} class.
  *
  * <p>For use with the Google <a href="https://google.github.io/truth/">Truth</a> framework. Usage:
  *
- * <pre>  assertThat(myEventMetric)
+ * <pre>  assertThat(myDistributionMetric)
  *       .hasAnyValueForLabels("label1", "label2", "label3")
  *       .and()
  *       .hasNoOtherValues();
- *   assertThat(myEventMetric)
+ *   assertThat(myDistributionMetric)
  *       .doesNotHaveAnyValueForLabels("label1", "label2");
  * </pre>
  *
@@ -44,28 +44,23 @@ import javax.annotation.Nullable;
  * it's difficult to write assertions about expected metric data when any number of empty
  * distributions can also be present, so they are screened out for convenience.
  */
-public final class EventMetricSubject
-    extends AbstractMetricSubject<Distribution, EventMetric, EventMetricSubject> {
+public final class DistributionMetricSubject
+    extends AbstractMetricSubject<Distribution, DistributionMetricSubject> {
 
-  /** {@link SubjectFactory} for assertions about {@link EventMetric} objects. */
-  private static final SubjectFactory<EventMetricSubject, EventMetric>
+  /** {@link Subject.Factory} for assertions about {@link Metric<Distribution>} objects. */
+  private static final Subject.Factory<DistributionMetricSubject, Metric<Distribution>>
       SUBJECT_FACTORY =
-          new SubjectFactory<EventMetricSubject, EventMetric>() {
-            // The Truth extensibility documentation indicates that the target should be nullable.
-            @Override
-            public EventMetricSubject getSubject(
-                FailureStrategy failureStrategy, @Nullable EventMetric target) {
-              return new EventMetricSubject(failureStrategy, target);
-            }
-          };
+          // The Truth extensibility documentation indicates that the target should be nullable.
+          (FailureMetadata failureMetadata, @Nullable Metric<Distribution> target) ->
+              new DistributionMetricSubject(failureMetadata, target);
 
-  /** Static assertThat({@link EventMetric}) shortcut method. */
-  public static EventMetricSubject assertThat(@Nullable EventMetric metric) {
+  /** Static assertThat({@link Metric<Distribution>}) shortcut method. */
+  public static DistributionMetricSubject assertThat(@Nullable Metric<Distribution> metric) {
     return assertAbout(SUBJECT_FACTORY).that(metric);
   }
 
-  private EventMetricSubject(FailureStrategy strategy, EventMetric actual) {
-    super(strategy, actual);
+  private DistributionMetricSubject(FailureMetadata metadata, Metric<Distribution> actual) {
+    super(metadata, actual);
   }
 
   /**

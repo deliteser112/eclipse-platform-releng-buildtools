@@ -16,24 +16,24 @@ package google.registry.monitoring.metrics.contrib;
 
 import static com.google.common.truth.Truth.assertAbout;
 
-import com.google.common.truth.FailureStrategy;
-import com.google.common.truth.SubjectFactory;
-import google.registry.monitoring.metrics.IncrementableMetric;
+import com.google.common.truth.FailureMetadata;
+import com.google.common.truth.Subject;
+import google.registry.monitoring.metrics.Metric;
 import google.registry.monitoring.metrics.MetricPoint;
 import javax.annotation.Nullable;
 
 /**
- * Truth subject for the {@link IncrementableMetric} class.
+ * Truth subject for the {@link Metric<Long>} class.
  *
  * <p>For use with the Google <a href="https://google.github.io/truth/">Truth</a> framework. Usage:
  *
- * <pre>  assertThat(myIncrementableMetric)
+ * <pre>  assertThat(myLongMetric)
  *       .hasValueForLabels(5, "label1", "label2", "label3")
  *       .and()
  *       .hasAnyValueForLabels("label1", "label2", "label4")
  *       .and()
  *       .hasNoOtherValues();
- *   assertThat(myIncrementableMetric)
+ *   assertThat(myLongMetric)
  *       .doesNotHaveAnyValueForLabels("label1", "label2");
  * </pre>
  *
@@ -42,35 +42,28 @@ import javax.annotation.Nullable;
  * after they are reset. But it's difficult to write assertions about expected metric data when any
  * number of zero values can also be present, so they are screened out for convenience.
  */
-public final class IncrementableMetricSubject
-    extends AbstractMetricSubject<Long, IncrementableMetric, IncrementableMetricSubject> {
+public final class LongMetricSubject extends AbstractMetricSubject<Long, LongMetricSubject> {
 
-  /** {@link SubjectFactory} for assertions about {@link IncrementableMetric} objects. */
-  private static final SubjectFactory<IncrementableMetricSubject, IncrementableMetric>
-      SUBJECT_FACTORY =
-          new SubjectFactory<IncrementableMetricSubject, IncrementableMetric>() {
-            // The Truth extensibility documentation indicates that the target should be nullable.
-            @Override
-            public IncrementableMetricSubject getSubject(
-                FailureStrategy failureStrategy, @Nullable IncrementableMetric target) {
-              return new IncrementableMetricSubject(failureStrategy, target);
-            }
-          };
+  /** {@link Subject.Factory} for assertions about {@link Metric<Long>} objects. */
+  private static final Subject.Factory<LongMetricSubject, Metric<Long>> SUBJECT_FACTORY =
+      // The Truth extensibility documentation indicates that the target should be nullable.
+      (FailureMetadata failureMetadata, @Nullable Metric<Long> target) ->
+          new LongMetricSubject(failureMetadata, target);
 
-  /** Static assertThat({@link IncrementableMetric}) shortcut method. */
-  public static IncrementableMetricSubject assertThat(@Nullable IncrementableMetric metric) {
+  /** Static assertThat({@link Metric<Long>}) shortcut method. */
+  public static LongMetricSubject assertThat(@Nullable Metric<Long> metric) {
     return assertAbout(SUBJECT_FACTORY).that(metric);
   }
 
-  private IncrementableMetricSubject(FailureStrategy strategy, IncrementableMetric actual) {
-    super(strategy, actual);
+  private LongMetricSubject(FailureMetadata metadata, Metric<Long> actual) {
+    super(metadata, actual);
   }
 
   /**
    * Asserts that the metric has a given value for the specified label values. This is a convenience
    * method that takes a long instead of a Long, for ease of use.
    */
-  public And<IncrementableMetricSubject> hasValueForLabels(long value, String... labels) {
+  public And<LongMetricSubject> hasValueForLabels(long value, String... labels) {
     return hasValueForLabels(Long.valueOf(value), labels);
   }
 
@@ -81,11 +74,5 @@ public final class IncrementableMetricSubject
   @Override
   protected boolean hasDefaultValue(MetricPoint<Long> metricPoint) {
     return metricPoint.value() == 0L;
-  }
-
-  /** Returns an appropriate string representation of a metric value for use in error messages. */
-  @Override
-  protected String getMessageRepresentation(Long value) {
-    return String.valueOf(value);
   }
 }

@@ -21,7 +21,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
 import google.registry.monitoring.metrics.Metric;
 import google.registry.monitoring.metrics.MetricPoint;
@@ -34,12 +34,11 @@ import javax.annotation.Nullable;
  *
  * <p>For use with the Google <a href="https://google.github.io/truth/">Truth</a> framework.
  */
-abstract class AbstractMetricSubject<
-        T, M extends Metric<T>, S extends AbstractMetricSubject<T, M, S>>
-    extends Subject<S, M> {
+abstract class AbstractMetricSubject<T, S extends AbstractMetricSubject<T, S>>
+    extends Subject<S, Metric<T>> {
 
   /** And chainer to allow fluent assertions. */
-  public static class And<S extends AbstractMetricSubject<?, ?, S>> {
+  public static class And<S extends AbstractMetricSubject<?, S>> {
 
     private final S subject;
 
@@ -57,7 +56,8 @@ abstract class AbstractMetricSubject<
     return new And<>((S) this);
   }
 
-  /** List of label value tuples about which an assertion has been made so far.
+  /**
+   * List of label value tuples about which an assertion has been made so far.
    *
    * <p>Used to track what tuples have been seen, in order to support hasNoOtherValues() assertions.
    */
@@ -77,8 +77,8 @@ abstract class AbstractMetricSubject<
         }
       };
 
-  protected AbstractMetricSubject(FailureStrategy strategy, M actual) {
-    super(strategy, checkNotNull(actual));
+  protected AbstractMetricSubject(FailureMetadata metadata, Metric<T> actual) {
+    super(metadata, checkNotNull(actual));
   }
 
   /**
@@ -148,9 +148,7 @@ abstract class AbstractMetricSubject<
     return andChainer();
   }
 
-  /**
-   * Asserts that the metric does not have a (non-default) value for the specified label values.
-   */
+  /** Asserts that the metric does not have a (non-default) value for the specified label values. */
   protected And<S> doesNotHaveAnyValueForLabels(String... labels) {
     MetricPoint<T> metricPoint = findMetricPointForLabels(ImmutableList.copyOf(labels));
     if (metricPoint != null) {
@@ -198,13 +196,19 @@ abstract class AbstractMetricSubject<
   }
 
   /**
+   * Returns a string representation of a metric point value, for use in error messages.
+   *
+   * <p>Subclass can override this method if the string needs extra processing.
+   */
+  protected String getMessageRepresentation(T value) {
+    return String.valueOf(value);
+  }
+
+  /**
    * Returns true if the metric point has a non-default value.
    *
    * <p>This should be overridden by subclasses. E.g. for incrementable metrics, the method should
    * return true if the value is not zero, and so on.
    */
   protected abstract boolean hasDefaultValue(MetricPoint<T> metricPoint);
-
-  /** Returns a string representation of a metric point value, for use in error messages. */
-  protected abstract String getMessageRepresentation(T value);
 }

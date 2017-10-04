@@ -15,11 +15,11 @@
 package google.registry.monitoring.metrics.contrib;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.monitoring.metrics.contrib.EventMetricSubject.assertThat;
+import static google.registry.monitoring.metrics.contrib.LongMetricSubject.assertThat;
 import static org.junit.Assert.fail;
 
 import com.google.common.collect.ImmutableSet;
-import google.registry.monitoring.metrics.EventMetric;
+import google.registry.monitoring.metrics.IncrementableMetric;
 import google.registry.monitoring.metrics.LabelDescriptor;
 import google.registry.monitoring.metrics.MetricRegistryImpl;
 import org.junit.Before;
@@ -28,47 +28,55 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class EventMetricSubjectTest {
+public class LongMetricSubjectTest {
 
   private static final ImmutableSet<LabelDescriptor> LABEL_DESCRIPTORS =
       ImmutableSet.of(
           LabelDescriptor.create("species", "Sheep Species"),
           LabelDescriptor.create("color", "Sheep Color"));
 
-  private static final EventMetric metric =
+  private static final IncrementableMetric metric =
       MetricRegistryImpl.getDefault()
-          .newEventMetric(
-              "/test/event/sheep",
-              "Sheep Latency",
-              "sheeplatency",
-              LABEL_DESCRIPTORS,
-              EventMetric.DEFAULT_FITTER);
+          .newIncrementableMetric(
+              "/test/incrementable/sheep",
+              "Count of Sheep",
+              "sheepcount",
+              LABEL_DESCRIPTORS);
 
   @Before
   public void before() {
     metric.reset();
-    metric.record(2.5, "Domestic", "Green");
-    metric.record(10, "Bighorn", "Blue");
+    metric.increment("Domestic", "Green");
+    metric.incrementBy(2, "Bighorn", "Blue");
   }
 
   @Test
   public void testWrongNumberOfLabels_fails() {
     try {
-      assertThat(metric).hasAnyValueForLabels("Domestic");
+      assertThat(metric).hasValueForLabels(1, "Domestic");
       fail("Expected assertion error");
     } catch (AssertionError e) {
       assertThat(e)
           .hasMessageThat()
           .isEqualTo(
-              "Not true that </test/event/sheep> has a value for labels <Domestic>."
-              + " It has labeled values <[Bighorn:Blue =>"
-              + " {[4.0..16.0)=1}, Domestic:Green => {[1.0..4.0)=1}]>");
+              "Not true that </test/incrementable/sheep> has a value for labels <Domestic>."
+              + " It has labeled values <[Bighorn:Blue => 2, Domestic:Green => 1]>");
     }
   }
 
   @Test
   public void testDoesNotHaveWrongNumberOfLabels_succeeds() {
     assertThat(metric).doesNotHaveAnyValueForLabels("Domestic");
+  }
+
+  @Test
+  public void testHasValueForLabels_success() {
+    assertThat(metric)
+        .hasValueForLabels(1, "Domestic", "Green")
+        .and()
+        .hasValueForLabels(2, "Bighorn", "Blue")
+        .and()
+        .hasNoOtherValues();
   }
 
   @Test
@@ -95,26 +103,36 @@ public class EventMetricSubjectTest {
       assertThat(e)
           .hasMessageThat()
           .isEqualTo(
-              "Not true that </test/event/sheep> has no value for labels <Domestic:Green>."
-              + " It has a value of <{[1.0..4.0)=1}>");
+              "Not true that </test/incrementable/sheep> has no value for labels <Domestic:Green>."
+              + " It has a value of <1>");
+    }
+  }
+
+  @Test
+  public void testWrongValue_failure() {
+    try {
+      assertThat(metric).hasValueForLabels(2, "Domestic", "Green");
+      fail("Expected assertion error");
+    } catch (AssertionError e) {
+      assertThat(e)
+          .hasMessageThat()
+          .isEqualTo(
+              "Not true that </test/incrementable/sheep> has a value of 2"
+              + " for labels <Domestic:Green>. It has a value of <1>");
     }
   }
 
   @Test
   public void testUnexpectedValue_failure() {
     try {
-      assertThat(metric)
-          .hasAnyValueForLabels("Domestic", "Green")
-          .and()
-          .hasNoOtherValues();
+      assertThat(metric).hasValueForLabels(1, "Domestic", "Green").and().hasNoOtherValues();
       fail("Expected assertion error");
     } catch (AssertionError e) {
       assertThat(e)
           .hasMessageThat()
           .isEqualTo(
-              "Not true that </test/event/sheep> has <no other nondefault values>."
-              + " It has labeled values <[Bighorn:Blue =>"
-              + " {[4.0..16.0)=1}, Domestic:Green => {[1.0..4.0)=1}]>");
+              "Not true that </test/incrementable/sheep> has <no other nondefault values>."
+              + " It has labeled values <[Bighorn:Blue => 2, Domestic:Green => 1]>");
     }
   }
 }
