@@ -13,10 +13,10 @@ java_library(
     deps = [
         "//java/google/registry/storage/drive",
         "//javatests/google/registry/testing",
+        "//third_party/java/truth",
         "@com_google_apis_google_api_services_drive",
         "@com_google_guava",
         "@com_google_http_client",
-        "@com_google_truth",
         "@junit",
         "@org_mockito_all",
     ],

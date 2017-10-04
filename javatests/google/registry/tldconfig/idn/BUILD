@@ -15,8 +15,8 @@ java_library(
     deps = [
         "//java/google/registry/tldconfig/idn",
         "//javatests/google/registry/testing",
+        "//third_party/java/truth",
         "@com_google_guava",
-        "@com_google_truth",
         "@junit",
     ],
 )

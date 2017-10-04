@@ -12,8 +12,8 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//java/google/registry/monitoring/metrics",
+        "//third_party/java/truth",
         "@com_google_guava",
-        "@com_google_truth",
         "@joda_time",
         "@junit",
         "@org_mockito_all",

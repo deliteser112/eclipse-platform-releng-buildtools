@@ -13,8 +13,8 @@ java_library(
     deps = [
         "//java/google/registry/monitoring/metrics",
         "//java/google/registry/monitoring/metrics/contrib",
+        "//third_party/java/truth",
         "@com_google_guava",
-        "@com_google_truth",
         "@junit",
     ],
 )
