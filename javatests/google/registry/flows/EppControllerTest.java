@@ -17,13 +17,16 @@ package google.registry.flows;
 import static com.google.common.io.BaseEncoding.base64;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.EppXmlTransformer.marshal;
+import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.LogsSubject.assertAboutLogs;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static google.registry.testing.TestLogHandlerUtils.findFirstLogRecordWithMessagePrefix;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.SEVERE;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Splitter;
@@ -64,12 +67,12 @@ import org.mockito.runners.MockitoJUnitRunner;
 public class EppControllerTest extends ShardableTestCase {
 
   @Rule
-  public AppEngineRule appEngineRule = new AppEngineRule.Builder().build();
+  public AppEngineRule appEngineRule = new AppEngineRule.Builder().withDatastore().build();
 
   @Mock SessionMetadata sessionMetadata;
   @Mock TransportCredentials transportCredentials;
   @Mock EppMetrics eppMetrics;
-  @Mock BigQueryMetricsEnqueuer metricsEnqueuer;
+  @Mock BigQueryMetricsEnqueuer bigQueryMetricsEnqueuer;
   @Mock FlowComponent.Builder flowComponentBuilder;
   @Mock FlowComponent flowComponent;
   @Mock FlowRunner flowRunner;
@@ -77,9 +80,9 @@ public class EppControllerTest extends ShardableTestCase {
   @Mock EppResponse eppResponse;
   @Mock Result result;
 
-  private static final DateTime startTime = DateTime.parse("2016-09-01T00:00:00Z");
+  private static final DateTime START_TIME = DateTime.parse("2016-09-01T00:00:00Z");
 
-  private final Clock clock = new FakeClock(startTime);
+  private final Clock clock = new FakeClock(START_TIME);
   private final TestLogHandler logHandler = new TestLogHandler();
 
   private final String domainCreateXml =
@@ -105,7 +108,7 @@ public class EppControllerTest extends ShardableTestCase {
     eppController = new EppController();
     eppController.eppMetricBuilder = EppMetric.builderForRequest("request-id-1", clock);
     when(flowRunner.run(eppController.eppMetricBuilder)).thenReturn(eppOutput);
-    eppController.bigQueryMetricsEnqueuer = metricsEnqueuer;
+    eppController.bigQueryMetricsEnqueuer = bigQueryMetricsEnqueuer;
     eppController.flowComponentBuilder = flowComponentBuilder;
     eppController.eppMetrics = eppMetrics;
     eppController.serverTridProvider = new FakeServerTridProvider();
@@ -130,10 +133,10 @@ public class EppControllerTest extends ShardableTestCase {
         new byte[0]);
 
     ArgumentCaptor<EppMetric> metricCaptor = ArgumentCaptor.forClass(EppMetric.class);
-    verify(metricsEnqueuer).export(metricCaptor.capture());
+    verify(bigQueryMetricsEnqueuer).export(metricCaptor.capture());
     EppMetric metric = metricCaptor.getValue();
     assertThat(metric.getRequestId()).isEqualTo("request-id-1");
-    assertThat(metric.getStartTimestamp()).isEqualTo(startTime);
+    assertThat(metric.getStartTimestamp()).isEqualTo(START_TIME);
     assertThat(metric.getEndTimestamp()).isEqualTo(clock.nowUtc());
     assertThat(metric.getClientId()).hasValue("some-client");
     assertThat(metric.getPrivilegeLevel()).hasValue("NORMAL");
@@ -141,7 +144,7 @@ public class EppControllerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testHandleEppCommand_regularEppCommand_exportsMetric() throws Exception {
+  public void testHandleEppCommand_regularEppCommand_exportsBigQueryMetric() throws Exception {
     eppController.handleEppCommand(
         sessionMetadata,
         transportCredentials,
@@ -151,15 +154,55 @@ public class EppControllerTest extends ShardableTestCase {
         domainCreateXml.getBytes(UTF_8));
 
     ArgumentCaptor<EppMetric> metricCaptor = ArgumentCaptor.forClass(EppMetric.class);
-    verify(metricsEnqueuer).export(metricCaptor.capture());
+    verify(bigQueryMetricsEnqueuer).export(metricCaptor.capture());
     EppMetric metric = metricCaptor.getValue();
     assertThat(metric.getRequestId()).isEqualTo("request-id-1");
-    assertThat(metric.getStartTimestamp()).isEqualTo(startTime);
+    assertThat(metric.getStartTimestamp()).isEqualTo(START_TIME);
     assertThat(metric.getEndTimestamp()).isEqualTo(clock.nowUtc());
     assertThat(metric.getClientId()).hasValue("some-client");
     assertThat(metric.getPrivilegeLevel()).hasValue("SUPERUSER");
     assertThat(metric.getStatus()).hasValue(Code.SUCCESS_WITH_NO_MESSAGES);
     assertThat(metric.getEppTarget()).hasValue("example.tld");
+  }
+
+  @Test
+  public void testHandleEppCommand_regularEppCommand_exportsEppMetrics() throws Exception {
+    createTld("tld");
+    // Note that some of the EPP metric fields, like # of attempts and command name, are set in
+    // FlowRunner, not EppController, and since FlowRunner is mocked out for these tests they won't
+    // actually get values.
+    EppMetric.Builder metricBuilder =
+        EppMetric.builderForRequest("request-id-1", clock)
+            .setClientId("some-client")
+            .setEppTarget("example.tld")
+            .setStatus(Code.SUCCESS_WITH_NO_MESSAGES)
+            .setTld("tld")
+            .setPrivilegeLevel("SUPERUSER");
+    eppController.handleEppCommand(
+        sessionMetadata,
+        transportCredentials,
+        EppRequestSource.UNIT_TEST,
+        false,
+        true,
+        domainCreateXml.getBytes(UTF_8));
+
+    EppMetric expectedMetric = metricBuilder.build();
+    verify(eppMetrics).incrementEppRequests(eq(expectedMetric));
+    verify(eppMetrics).recordProcessingTime(eq(expectedMetric));
+  }
+
+  @Test
+  public void testHandleEppCommand_dryRunEppCommand_doesNotExportMetric() throws Exception {
+    eppController.handleEppCommand(
+        sessionMetadata,
+        transportCredentials,
+        EppRequestSource.UNIT_TEST,
+        true,
+        true,
+        domainCreateXml.getBytes(UTF_8));
+
+    verifyZeroInteractions(bigQueryMetricsEnqueuer);
+    verifyZeroInteractions(eppMetrics);
   }
 
   @Test

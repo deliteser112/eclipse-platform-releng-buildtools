@@ -17,6 +17,7 @@ package google.registry.flows;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.io.BaseEncoding.base64;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.flows.FlowReporter.extractTlds;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -89,6 +90,9 @@ public final class EppController {
       }
       if (!eppInput.getTargetIds().isEmpty()) {
         eppMetricBuilder.setEppTarget(Joiner.on(',').join(eppInput.getTargetIds()));
+        if (eppInput.isDomainResourceType()) {
+          eppMetricBuilder.setTlds(extractTlds(eppInput.getTargetIds()));
+        }
       }
       EppOutput output = runFlowConvertEppErrors(flowComponentBuilder
           .flowModule(new FlowModule.Builder()
@@ -106,10 +110,12 @@ public final class EppController {
       }
       return output;
     } finally {
-      EppMetric metric = eppMetricBuilder.build();
-      bigQueryMetricsEnqueuer.export(metric);
-      eppMetrics.incrementEppRequests(metric);
-      eppMetrics.recordProcessingTime(metric);
+      if (!isDryRun) {
+        EppMetric metric = eppMetricBuilder.build();
+        bigQueryMetricsEnqueuer.export(metric);
+        eppMetrics.incrementEppRequests(metric);
+        eppMetrics.recordProcessingTime(metric);
+      }
     }
   }
 

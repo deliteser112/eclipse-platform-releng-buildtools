@@ -61,6 +61,17 @@ public class EppMetricSubject extends Subject<EppMetricSubject, EppMetric> {
     return new And<>(this);
   }
 
+  public And<EppMetricSubject> hasTld(String tld) {
+    return hasValue(tld, actual().getTld(), "has tld");
+  }
+
+  public And<EppMetricSubject> hasNoTld() {
+    if (actual().getTld().isPresent()) {
+      fail("has no tld");
+    }
+    return new And<>(this);
+  }
+
   private <E> And<EppMetricSubject> hasValue(E expected, Optional<E> actual, String verb) {
     checkArgumentNotNull(expected, "Expected value cannot be null");
     if (actual == null) {

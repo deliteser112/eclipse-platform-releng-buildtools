@@ -42,6 +42,11 @@ public final class MetricRegistryImpl implements MetricRegistry {
     return INSTANCE;
   }
 
+  /**
+   * Creates a new event metric.
+   *
+   * <p>Note that the order of the labels is significant.
+   */
   @Override
   public EventMetric newEventMetric(
       String name,
@@ -57,6 +62,11 @@ public final class MetricRegistryImpl implements MetricRegistry {
     return metric;
   }
 
+  /**
+   * Creates a new gauge metric.
+   *
+   * <p>Note that the order of the labels is significant.
+   */
   @Override
   @CanIgnoreReturnValue
   public <V> Metric<V> newGauge(
@@ -75,6 +85,11 @@ public final class MetricRegistryImpl implements MetricRegistry {
     return metric;
   }
 
+  /**
+   * Creates a new settable metric.
+   *
+   * <p>Note that the order of the labels is significant.
+   */
   @Override
   public <V> SettableMetric<V> newSettableMetric(
       String name,
@@ -90,6 +105,11 @@ public final class MetricRegistryImpl implements MetricRegistry {
     return metric;
   }
 
+  /**
+   * Creates a new incrementable metric.
+   *
+   * <p>Note that the order of the labels is significant.
+   */
   @Override
   public IncrementableMetric newIncrementableMetric(
       String name,

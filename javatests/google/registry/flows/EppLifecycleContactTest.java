@@ -44,17 +44,19 @@ public class EppLifecycleContactTest extends EppTestCase {
     assertCommandAndResponse(
         "contact_create_sh8013.xml",
         null,
-         "contact_create_response_sh8013.xml",
-         ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
-         DateTime.parse("2000-06-01T00:00:00Z"));
+        "contact_create_response_sh8013.xml",
+        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
+        DateTime.parse("2000-06-01T00:00:00Z"));
     assertThat(getRecordedEppMetric())
-         .hasClientId("NewRegistrar")
-         .and()
-         .hasCommandName("ContactCreate")
-         .and()
-         .hasEppTarget("sh8013")
-         .and()
-         .hasStatus(SUCCESS);
+        .hasClientId("NewRegistrar")
+        .and()
+        .hasNoTld()
+        .and()
+        .hasCommandName("ContactCreate")
+        .and()
+        .hasEppTarget("sh8013")
+        .and()
+        .hasStatus(SUCCESS);
     assertCommandAndResponse(
         "contact_info.xml",
         "contact_info_from_create_response.xml",

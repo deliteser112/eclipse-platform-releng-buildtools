@@ -68,6 +68,11 @@ public final class Counter extends AbstractMetric<Long>
    */
   private final Striped<Lock> valueLocks = Striped.lock(DEFAULT_CONCURRENCY_LEVEL);
 
+  /**
+   * Constructs a new Counter.
+   *
+   * <p>Note that the order of the labels is significant.
+   */
   Counter(
       String name,
       String description,

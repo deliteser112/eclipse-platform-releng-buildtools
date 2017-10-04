@@ -65,31 +65,34 @@ public class FlowReporter {
     logger.infofmt(
         "%s: %s",
         EPPINPUT_LOG_SIGNATURE,
-        JSONValue.toJSONString(ImmutableMap.<String, Object>of(
-            "xml", prettyPrint(inputXmlBytes),
-            "xmlBytes", base64().encode(inputXmlBytes))));
+        JSONValue.toJSONString(
+            ImmutableMap.<String, Object>of(
+                "xml", prettyPrint(inputXmlBytes),
+                "xmlBytes", base64().encode(inputXmlBytes))));
     // Explicitly log flow metadata separately from the EPP XML itself so that it stays compact
     // enough to be sure to fit in a single log entry (the XML part in rare cases could be long
     // enough to overflow into multiple log entries, breaking routine parsing of the JSON format).
-    String resourceType = eppInput.getResourceType().or("");
-    boolean isDomain = "domain".equals(resourceType);
     String singleTargetId = eppInput.getSingleTargetId().or("");
     ImmutableList<String> targetIds = eppInput.getTargetIds();
     logger.infofmt(
         "%s: %s",
         METADATA_LOG_SIGNATURE,
-        JSONValue.toJSONString(new ImmutableMap.Builder<String, Object>()
-            .put("serverTrid", trid.getServerTransactionId())
-            .put("clientId", clientId)
-            .put("commandType", eppInput.getCommandType())
-            .put("resourceType", resourceType)
-            .put("flowClassName", flowClass.getSimpleName())
-            .put("targetId", singleTargetId)
-            .put("targetIds", targetIds)
-            .put("tld", isDomain ? extractTld(singleTargetId).or("") : "")
-            .put("tlds", isDomain ? extractTlds(targetIds).asList() : EMPTY_LIST)
-            .put("icannActivityReportField", extractActivityReportField(flowClass))
-            .build()));
+        JSONValue.toJSONString(
+            new ImmutableMap.Builder<String, Object>()
+                .put("serverTrid", trid.getServerTransactionId())
+                .put("clientId", clientId)
+                .put("commandType", eppInput.getCommandType())
+                .put("resourceType", eppInput.getResourceType().or(""))
+                .put("flowClassName", flowClass.getSimpleName())
+                .put("targetId", singleTargetId)
+                .put("targetIds", targetIds)
+                .put(
+                    "tld", eppInput.isDomainResourceType() ? extractTld(singleTargetId).or("") : "")
+                .put(
+                    "tlds",
+                    eppInput.isDomainResourceType() ? extractTlds(targetIds).asList() : EMPTY_LIST)
+                .put("icannActivityReportField", extractActivityReportField(flowClass))
+                .build()));
   }
 
   /**
@@ -113,7 +116,7 @@ public class FlowReporter {
    * Returns the set of unique results of {@link #extractTld} applied to each given domain name,
    * excluding any absent results (i.e. cases where no TLD was detected).
    */
-  private static final ImmutableSet<String> extractTlds(Iterable<String> domainNames) {
+  public static final ImmutableSet<String> extractTlds(Iterable<String> domainNames) {
     ImmutableSet.Builder<String> set = new ImmutableSet.Builder<>();
     for (String domainName : domainNames) {
       Optional<String> extractedTld = extractTld(domainName);

@@ -14,6 +14,8 @@
 
 package google.registry.flows;
 
+import static google.registry.monitoring.metrics.EventMetric.DEFAULT_FITTER;
+
 import com.google.common.collect.ImmutableSet;
 import google.registry.monitoring.metrics.EventMetric;
 import google.registry.monitoring.metrics.IncrementableMetric;
@@ -25,31 +27,57 @@ import javax.inject.Inject;
 /** EPP Instrumentation. */
 public class EppMetrics {
 
-  private static final ImmutableSet<LabelDescriptor> LABEL_DESCRIPTORS =
+  private static final ImmutableSet<LabelDescriptor> LABEL_DESCRIPTORS_BY_REGISTRAR =
       ImmutableSet.of(
           LabelDescriptor.create("command", "The name of the command."),
           LabelDescriptor.create("client_id", "The name of the client."),
           LabelDescriptor.create("status", "The return status of the command."));
 
-  private static final IncrementableMetric eppRequests =
+  private static final ImmutableSet<LabelDescriptor> LABEL_DESCRIPTORS_BY_TLD =
+      ImmutableSet.of(
+          LabelDescriptor.create("command", "The name of the command."),
+          LabelDescriptor.create("tld", "The TLD acted on by the command (if applicable)."),
+          LabelDescriptor.create("status", "The return status of the command."));
+
+  private static final IncrementableMetric eppRequestsByRegistrar =
       MetricRegistryImpl.getDefault()
           .newIncrementableMetric(
-              "/epp/requests", "Count of EPP Requests", "count", LABEL_DESCRIPTORS);
+              "/epp/requests",
+              "Count of EPP Requests By Registrar",
+              "count",
+              LABEL_DESCRIPTORS_BY_REGISTRAR);
 
-  private static final EventMetric processingTime =
+  private static final IncrementableMetric eppRequestsByTld =
+      MetricRegistryImpl.getDefault()
+          .newIncrementableMetric(
+              "/epp/requests_by_tld",
+              "Count of EPP Requests By TLD",
+              "count",
+              LABEL_DESCRIPTORS_BY_TLD);
+
+  private static final EventMetric processingTimeByRegistrar =
       MetricRegistryImpl.getDefault()
           .newEventMetric(
               "/epp/processing_time",
-              "EPP Processing Time",
+              "EPP Processing Time By Registrar",
               "milliseconds",
-              LABEL_DESCRIPTORS,
-              EventMetric.DEFAULT_FITTER);
+              LABEL_DESCRIPTORS_BY_REGISTRAR,
+              DEFAULT_FITTER);
+
+  private static final EventMetric processingTimeByTld =
+      MetricRegistryImpl.getDefault()
+          .newEventMetric(
+              "/epp/processing_time_by_tld",
+              "EPP Processing Time By TLD",
+              "milliseconds",
+              LABEL_DESCRIPTORS_BY_TLD,
+              DEFAULT_FITTER);
 
   @Inject
   public EppMetrics() {}
 
   /**
-   * Increment a counter which tracks EPP requests.
+   * Increments the counters which tracks EPP requests.
    *
    * @see EppController
    * @see FlowRunner
@@ -57,20 +85,21 @@ public class EppMetrics {
   public void incrementEppRequests(EppMetric metric) {
     String eppStatusCode =
         metric.getStatus().isPresent() ? String.valueOf(metric.getStatus().get().code) : "";
-    eppRequests.increment(
-        metric.getCommandName().or(""),
-        metric.getClientId().or(""),
-        eppStatusCode);
+    eppRequestsByRegistrar.increment(
+        metric.getCommandName().or(""), metric.getClientId().or(""), eppStatusCode);
+    eppRequestsByTld.increment(
+        metric.getCommandName().or(""), metric.getTld().or(""), eppStatusCode);
   }
 
-  /** Record the server-side processing time for an EPP request. */
+  /** Records the server-side processing time for an EPP request. */
   public void recordProcessingTime(EppMetric metric) {
     String eppStatusCode =
         metric.getStatus().isPresent() ? String.valueOf(metric.getStatus().get().code) : "";
-    processingTime.record(
-        metric.getEndTimestamp().getMillis() - metric.getStartTimestamp().getMillis(),
-        metric.getCommandName().or(""),
-        metric.getClientId().or(""),
-        eppStatusCode);
+    long processingTime =
+        metric.getEndTimestamp().getMillis() - metric.getStartTimestamp().getMillis();
+    processingTimeByRegistrar.record(
+        processingTime, metric.getCommandName().or(""), metric.getClientId().or(""), eppStatusCode);
+    processingTimeByTld.record(
+        processingTime, metric.getCommandName().or(""), metric.getTld().or(""), eppStatusCode);
   }
 }

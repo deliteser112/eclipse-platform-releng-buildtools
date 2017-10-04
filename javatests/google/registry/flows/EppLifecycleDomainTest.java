@@ -206,6 +206,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
     assertThat(getRecordedEppMetric())
         .hasClientId("NewRegistrar")
         .and()
+        .hasNoTld()
+        .and()
         .hasCommandName("Login")
         .and()
         .hasStatus(SUCCESS);
@@ -232,6 +234,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
         DateTime.parse("2002-05-30T01:02:00Z"));
     assertThat(getRecordedEppMetric())
         .hasClientId("NewRegistrar")
+        .and()
+        .hasTld("example")
         .and()
         .hasCommandName("DomainDelete")
         .and()
@@ -352,6 +356,8 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasCommandName("DomainCheck")
         .and()
         .hasEppTarget("rich.example")
+        .and()
+        .hasTld("example")
         .and()
         .hasStatus(SUCCESS);
 

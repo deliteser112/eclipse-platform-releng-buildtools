@@ -111,6 +111,11 @@ public class EppInput extends ImmutableObject {
     return Optional.absent();
   }
 
+  /** Returns whether this EppInput represents a command that operates on domain resources. */
+  public boolean isDomainResourceType() {
+    return getResourceType().or("").equals("domain");
+  }
+
   @Nullable
   private ResourceCommand getResourceCommand() {
     InnerCommand innerCommand = commandWrapper.getCommand();
