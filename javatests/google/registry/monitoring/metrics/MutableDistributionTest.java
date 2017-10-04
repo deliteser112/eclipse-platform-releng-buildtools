@@ -109,6 +109,7 @@ public class MutableDistributionTest {
     distribution.add(2.0);
     distribution.add(16.0);
     distribution.add(128.0, 5);
+    distribution.add(1024.0, 0);
 
     assertThat(distribution.count()).isEqualTo(7);
     assertThat(distribution.mean()).isWithin(0.0).of(94.0);

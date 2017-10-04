@@ -41,7 +41,7 @@ public final class MutableDistribution implements Distribution {
   private final DistributionFitter distributionFitter;
   private double sumOfSquaredDeviation = 0.0;
   private double mean = 0.0;
-  private int count = 0;
+  private long count = 0;
 
   /** Constructs an empty Distribution with the specified {@link DistributionFitter}. */
   public MutableDistribution(DistributionFitter distributionFitter) {
@@ -70,8 +70,14 @@ public final class MutableDistribution implements Distribution {
   }
 
   public void add(double value, long numSamples) {
-    checkArgument(numSamples > 0, "numSamples must be greater than 0");
+    checkArgument(numSamples >= 0, "numSamples must be non-negative");
     checkDouble(value);
+
+    // having numSamples = 0 works as expected (does nothing) even if we let it continue, but we
+    // can short-circuit it by returning early.
+    if (numSamples == 0) {
+      return;
+    }
 
     Map.Entry<Range<Double>, Long> entry = intervalCounts.getEntry(value);
     intervalCounts.put(entry.getKey(), entry.getValue() + numSamples);
