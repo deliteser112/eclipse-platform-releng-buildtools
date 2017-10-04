@@ -36,7 +36,6 @@ public final class RegistryTool {
           .put("convert_idn", ConvertIdnCommand.class)
           .put("create_anchor_tenant", CreateAnchorTenantCommand.class)
           .put("create_auction_credits", CreateAuctionCreditsCommand.class)
-          .put("create_cdns_tld", CreateCdnsTld.class)
           .put("create_contact", CreateContactCommand.class)
           .put("create_credit", CreateCreditCommand.class)
           .put("create_credit_balance", CreateCreditBalanceCommand.class)

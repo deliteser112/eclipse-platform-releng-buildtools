@@ -69,7 +69,6 @@ java_library(
         "@com_beust_jcommander",
         "@com_google_api_client",
         "@com_google_apis_google_api_services_bigquery",
-        "@com_google_apis_google_api_services_dns",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_appengine_remote_api",
         "@com_google_appengine_remote_api//:link",
