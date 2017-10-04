@@ -87,8 +87,9 @@ public class RestoreCommitLogsAction implements Runnable {
   public void run() {
     checkArgument( // safety
         RegistryEnvironment.get() == RegistryEnvironment.ALPHA
+            || RegistryEnvironment.get() == RegistryEnvironment.CRASH
             || RegistryEnvironment.get() == RegistryEnvironment.UNITTEST,
-        "DO NOT RUN ANYWHERE ELSE EXCEPT ALPHA OR TESTS.");
+        "DO NOT RUN ANYWHERE ELSE EXCEPT ALPHA, CRASH OR TESTS.");
     if (dryRun) {
       logger.info("Running in dryRun mode");
     }
