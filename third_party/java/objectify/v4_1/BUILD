@@ -3,7 +3,7 @@ package_group(
     packages = ["//third_party/java/objectify"],
 )
 
-package(default_visibility = [":specific_version"])
+package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # MIT/X11
 
