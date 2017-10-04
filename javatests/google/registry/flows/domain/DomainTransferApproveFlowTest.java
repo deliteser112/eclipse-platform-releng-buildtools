@@ -107,13 +107,19 @@ public class DomainTransferApproveFlowTest
     clock.advanceOneMilli();
   }
 
-  private void assertTransferApproved(DomainResource domain) {
+  private void assertTransferApproved(DomainResource domain, TransferData oldTransferData) {
     assertAboutDomains().that(domain)
-        .hasTransferStatus(TransferStatus.CLIENT_APPROVED).and()
         .hasCurrentSponsorClientId("NewRegistrar").and()
         .hasLastTransferTime(clock.nowUtc()).and()
-        .hasPendingTransferExpirationTime(clock.nowUtc()).and()
         .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER);
+    // The domain TransferData should reflect the approved transfer as we expect, with
+    // all the speculative server-approve fields nulled out.
+    assertThat(domain.getTransferData())
+        .isEqualTo(
+            oldTransferData.copyConstantFieldsToBuilder()
+                .setTransferStatus(TransferStatus.CLIENT_APPROVED)
+                .setPendingTransferExpirationTime(clock.nowUtc())
+                .build());
   }
 
   private void setEppLoader(String commandFilename) {
@@ -150,6 +156,7 @@ public class DomainTransferApproveFlowTest
       DateTime expectedExpirationTime) throws Exception {
     setEppLoader(commandFilename);
     Registry registry = Registry.get(tld);
+    domain = reloadResourceByForeignKey();
     // Make sure the implicit billing event is there; it will be deleted by the flow.
     // We also expect to see autorenew events for the gaining and losing registrars.
     assertBillingEventsForResource(
@@ -161,6 +168,7 @@ public class DomainTransferApproveFlowTest
     assertThat(getPollMessages(domain, "NewRegistrar", clock.nowUtc().plusMonths(1))).hasSize(1);
     assertThat(getPollMessages(domain, "TheRegistrar", clock.nowUtc().plusMonths(1))).hasSize(1);
     // Setup done; run the test.
+    TransferData originalTransferData = domain.getTransferData();
     assertTransactionalFlow(true);
     runFlowAssertResponse(readFile(expectedXmlFilename));
     // Transfer should have succeeded. Verify correct fields were set.
@@ -173,7 +181,7 @@ public class DomainTransferApproveFlowTest
         getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_APPROVE);
     assertAboutHistoryEntries().that(historyEntryTransferApproved)
         .hasOtherClientId("NewRegistrar");
-    assertTransferApproved(domain);
+    assertTransferApproved(domain, originalTransferData);
     assertAboutDomains().that(domain).hasRegistrationExpirationTime(expectedExpirationTime);
     assertThat(ofy().load().key(domain.getAutorenewBillingEvent()).now().getEventTime())
         .isEqualTo(expectedExpirationTime);
@@ -369,7 +377,7 @@ public class DomainTransferApproveFlowTest
 
   @Test
   public void testSuccess_autorenewBeforeTransfer() throws Exception {
-    DomainResource domain = reloadResourceByForeignKey();
+    domain = reloadResourceByForeignKey();
     DateTime oldExpirationTime = clock.nowUtc().minusDays(1);
     persistResource(domain.asBuilder()
         .setRegistrationExpirationTime(oldExpirationTime)
@@ -407,7 +415,7 @@ public class DomainTransferApproveFlowTest
   @Test
   public void testFailure_badDomainPassword() throws Exception {
     // Change the domain's password so it does not match the password in the file.
-    domain = persistResource(domain.asBuilder()
+    persistResource(domain.asBuilder()
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("badpassword")))
         .build());
     thrown.expect(BadAuthInfoForResourceException.class);
@@ -472,7 +480,7 @@ public class DomainTransferApproveFlowTest
 
   @Test
   public void testFailure_deletedDomain() throws Exception {
-    domain = persistResource(
+    persistResource(
         domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     thrown.expect(ResourceDoesNotExistException.class,
         String.format("(%s)", getUniqueIdFromCommand()));
@@ -574,7 +582,7 @@ public class DomainTransferApproveFlowTest
 
   @Test
   public void testSuccess_superuserExtension_transferPeriodZero() throws Exception {
-    DomainResource domain = reloadResourceByForeignKey();
+    domain = reloadResourceByForeignKey();
     TransferData.Builder transferDataBuilder = domain.getTransferData().asBuilder();
     persistResource(
         domain

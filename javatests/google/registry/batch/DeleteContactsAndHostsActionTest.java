@@ -27,7 +27,6 @@ import static google.registry.model.reporting.HistoryEntry.Type.CONTACT_DELETE_F
 import static google.registry.model.reporting.HistoryEntry.Type.CONTACT_TRANSFER_REQUEST;
 import static google.registry.model.reporting.HistoryEntry.Type.HOST_DELETE;
 import static google.registry.model.reporting.HistoryEntry.Type.HOST_DELETE_FAILURE;
-import static google.registry.model.transfer.TransferStatus.SERVER_CANCELLED;
 import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -88,6 +87,7 @@ import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse;
+import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
@@ -274,8 +274,14 @@ public class DeleteContactsAndHostsActionTest
     assertAboutContacts()
         .that(softDeletedContact)
         .hasOneHistoryEntryEachOfTypes(CONTACT_TRANSFER_REQUEST, CONTACT_DELETE);
-    assertThat(softDeletedContact.getTransferData().getPendingTransferExpirationTime())
-        .isEqualTo(softDeletedContact.getDeletionTime());
+    // Check that the transfer data reflects the cancelled transfer as we expect.
+    TransferData oldTransferData = contact.getTransferData();
+    assertThat(softDeletedContact.getTransferData())
+        .isEqualTo(
+            oldTransferData.copyConstantFieldsToBuilder()
+                .setTransferStatus(TransferStatus.SERVER_CANCELLED)
+                .setPendingTransferExpirationTime(softDeletedContact.getDeletionTime())
+                .build());
     assertNoBillingEvents();
     PollMessage deletePollMessage =
         Iterables.getOnlyElement(getPollMessages("TheRegistrar", clock.nowUtc().plusMonths(1)));
@@ -290,7 +296,7 @@ public class DeleteContactsAndHostsActionTest
                     FluentIterable.from(gainingPollMessage.getResponseData())
                         .filter(TransferResponse.class))
                 .getTransferStatus())
-        .isEqualTo(SERVER_CANCELLED);
+        .isEqualTo(TransferStatus.SERVER_CANCELLED);
     PendingActionNotificationResponse panData =
         getOnlyElement(
             FluentIterable.from(gainingPollMessage.getResponseData())

@@ -15,25 +15,16 @@
 package google.registry.model.transfer;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.util.DateTimeUtils.END_OF_TIME;
-import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.model.billing.BillingEvent;
-import google.registry.model.billing.BillingEvent.Flag;
-import google.registry.model.billing.BillingEvent.Reason;
-import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.Period;
+import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PollMessage;
-import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.DatastoreHelper;
-import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -50,102 +41,53 @@ public class TransferDataTest {
       .withDatastore()
       .build();
 
-  protected final DateTime now = DateTime.now(UTC);
+  private final DateTime now = DateTime.now(UTC);
 
-  HistoryEntry historyEntry;
-  TransferData transferData;
-  BillingEvent.OneTime transferBillingEvent;
-  BillingEvent.OneTime nonTransferBillingEvent;
-  BillingEvent.OneTime otherTransferBillingEvent;
-  BillingEvent.Recurring recurringBillingEvent;
+  private Key<BillingEvent.OneTime> transferBillingEventKey;
+  private Key<BillingEvent.Cancellation> otherServerApproveBillingEventKey;
+  private Key<BillingEvent.Recurring> recurringBillingEventKey;
+  private Key<PollMessage.Autorenew> autorenewPollMessageKey;
+  private Key<PollMessage.OneTime> otherServerApprovePollMessageKey;
 
   @Before
   public void setUp() {
-    createTld("tld");
-    DomainResource domain = DatastoreHelper.persistActiveDomain("tat.tld");
-    historyEntry = persistResource(new HistoryEntry.Builder().setParent(domain).build());
-    transferBillingEvent = persistResource(makeBillingEvent());
-
-    nonTransferBillingEvent = persistResource(
-        makeBillingEvent().asBuilder().setReason(Reason.CREATE).build());
-
-    otherTransferBillingEvent = persistResource(
-        makeBillingEvent().asBuilder().setCost(Money.of(USD, 33)).build());
-
-    recurringBillingEvent = persistResource(
-        new BillingEvent.Recurring.Builder()
-            .setReason(Reason.RENEW)
-            .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
-            .setClientId("TheRegistrar")
-            .setTargetId("foo.tld")
-            .setEventTime(now)
-            .setRecurrenceEndTime(END_OF_TIME)
-            .setParent(historyEntry)
-            .build());
-  }
-
-  private BillingEvent.OneTime makeBillingEvent() {
-    return new BillingEvent.OneTime.Builder()
-        .setReason(Reason.TRANSFER)
-        .setClientId("TheRegistrar")
-        .setTargetId("foo.tld")
-        .setEventTime(now)
-        .setBillingTime(now.plusDays(5))
-        .setCost(Money.of(USD, 42))
-        .setPeriodYears(3)
-        .setParent(historyEntry)
-        .build();
-  }
-
-  @SafeVarargs
-  private static TransferData makeTransferDataWithEntities(
-      Key<? extends TransferServerApproveEntity>... entityKeys) {
-    ImmutableSet<Key<? extends TransferServerApproveEntity>> entityKeysSet =
-        ImmutableSet.copyOf(entityKeys);
-    return new TransferData.Builder().setServerApproveEntities(entityKeysSet).build();
+    transferBillingEventKey = Key.create(BillingEvent.OneTime.class, 12345);
+    otherServerApproveBillingEventKey = Key.create(BillingEvent.Cancellation.class, 2468);
+    recurringBillingEventKey = Key.create(BillingEvent.Recurring.class, 13579);
+    autorenewPollMessageKey = Key.create(PollMessage.Autorenew.class, 67890);
+    otherServerApprovePollMessageKey = Key.create(PollMessage.OneTime.class, 314159);
   }
 
   @Test
-  public void testSuccess_FindBillingEventNoEntities() throws Exception {
-    transferData = makeTransferDataWithEntities();
-    assertThat(transferData.serverApproveBillingEvent).isNull();
-    assertThat(transferData.getServerApproveBillingEvent()).isNull();
-  }
-
-  @Test
-  public void testSuccess_FindBillingEventOtherEntities() throws Exception {
-    transferData = makeTransferDataWithEntities(
-        Key.create(nonTransferBillingEvent),
-        Key.create(recurringBillingEvent),
-        Key.create(PollMessage.OneTime.class, 1));
-    assertThat(transferData.serverApproveBillingEvent).isNull();
-    assertThat(transferData.getServerApproveBillingEvent()).isNull();
-  }
-
-  @Test
-  public void testSuccess_GetStoredBillingEventNoEntities() throws Exception {
-    transferData = new TransferData.Builder()
-        .setServerApproveBillingEvent(Key.create(transferBillingEvent))
-        .build();
-    assertThat(ofy().load().key(transferData.serverApproveBillingEvent).now())
-        .isEqualTo(transferBillingEvent);
-    assertThat(ofy().load().key(transferData.getServerApproveBillingEvent()).now())
-        .isEqualTo(transferBillingEvent);
-  }
-
-  @Test
-  public void testSuccess_GetStoredBillingEventMultipleEntities() throws Exception {
-    transferData = makeTransferDataWithEntities(
-        Key.create(otherTransferBillingEvent),
-        Key.create(nonTransferBillingEvent),
-        Key.create(recurringBillingEvent),
-        Key.create(PollMessage.OneTime.class, 1));
-    transferData = transferData.asBuilder()
-        .setServerApproveBillingEvent(Key.create(transferBillingEvent))
-        .build();
-    assertThat(ofy().load().key(transferData.serverApproveBillingEvent).now())
-        .isEqualTo(transferBillingEvent);
-    assertThat(ofy().load().key(transferData.getServerApproveBillingEvent()).now())
-        .isEqualTo(transferBillingEvent);
+  public void test_copyConstantFieldsToBuilder() throws Exception {
+    TransferData constantTransferData =
+        new TransferData.Builder()
+            .setTransferRequestTrid(Trid.create("server-trid", "client-trid"))
+            .setTransferRequestTime(now)
+            .setGainingClientId("NewRegistrar")
+            .setLosingClientId("TheRegistrar")
+            // Test must use a non-1-year period, since that's the default value.
+            .setTransferPeriod(Period.create(5, Period.Unit.YEARS))
+            .build();
+    TransferData fullTransferData =
+        constantTransferData.asBuilder()
+            .setPendingTransferExpirationTime(now)
+            .setTransferStatus(TransferStatus.PENDING)
+            .setServerApproveEntities(
+                ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
+                    transferBillingEventKey,
+                    otherServerApproveBillingEventKey,
+                    recurringBillingEventKey,
+                    autorenewPollMessageKey,
+                    otherServerApprovePollMessageKey))
+            .setServerApproveBillingEvent(transferBillingEventKey)
+            .setServerApproveAutorenewEvent(recurringBillingEventKey)
+            .setServerApproveAutorenewPollMessage(autorenewPollMessageKey)
+            .build();
+    // asBuilder() copies over all fields
+    assertThat(fullTransferData.asBuilder().build()).isEqualTo(fullTransferData);
+    // copyConstantFieldsToBuilder() copies only constant fields
+    assertThat(fullTransferData.copyConstantFieldsToBuilder().build())
+        .isEqualTo(constantTransferData);
   }
 }

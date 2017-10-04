@@ -33,6 +33,7 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferStatus;
 import org.junit.Before;
@@ -58,6 +59,8 @@ public class ContactTransferCancelFlowTest
     assertThat(getPollMessages("TheRegistrar", clock.nowUtc().plusMonths(1))).hasSize(1);
 
     // Setup done; run the test.
+    contact = reloadResourceByForeignKey();
+    TransferData originalTransferData = contact.getTransferData();
     assertTransactionalFlow(true);
     runFlowAssertResponse(readFile(expectedXmlFilename));
 
@@ -66,11 +69,15 @@ public class ContactTransferCancelFlowTest
     assertAboutContacts().that(contact)
         .hasCurrentSponsorClientId("TheRegistrar").and()
         .hasLastTransferTimeNotEqualTo(clock.nowUtc()).and()
-        .hasTransferStatus(TransferStatus.CLIENT_CANCELLED).and()
-        .hasPendingTransferExpirationTime(clock.nowUtc()).and()
         .hasOneHistoryEntryEachOfTypes(
             HistoryEntry.Type.CONTACT_TRANSFER_REQUEST,
             HistoryEntry.Type.CONTACT_TRANSFER_CANCEL);
+    assertThat(contact.getTransferData())
+        .isEqualTo(
+            originalTransferData.copyConstantFieldsToBuilder()
+                .setTransferStatus(TransferStatus.CLIENT_CANCELLED)
+                .setPendingTransferExpirationTime(clock.nowUtc())
+                .build());
     assertNoBillingEvents();
     // The poll message (in the future) to the gaining registrar for implicit ack should be gone.
     assertThat(getPollMessages("NewRegistrar", clock.nowUtc().plusMonths(1))).isEmpty();

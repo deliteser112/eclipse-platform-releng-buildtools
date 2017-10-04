@@ -35,6 +35,7 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferStatus;
 import org.junit.Before;
@@ -62,6 +63,8 @@ public class ContactTransferRejectFlowTest
         .hasSize(1);
 
     // Setup done; run the test.
+    contact = reloadResourceByForeignKey();
+    TransferData originalTransferData = contact.getTransferData();
     assertTransactionalFlow(true);
     runFlowAssertResponse(readFile(expectedXmlFilename));
 
@@ -70,10 +73,15 @@ public class ContactTransferRejectFlowTest
     assertAboutContacts().that(contact)
         .hasCurrentSponsorClientId("TheRegistrar").and()
         .hasLastTransferTimeNotEqualTo(clock.nowUtc()).and()
-        .hasTransferStatus(TransferStatus.CLIENT_REJECTED).and()
         .hasOneHistoryEntryEachOfTypes(
             HistoryEntry.Type.CONTACT_TRANSFER_REQUEST,
             HistoryEntry.Type.CONTACT_TRANSFER_REJECT);
+    assertThat(contact.getTransferData())
+        .isEqualTo(
+            originalTransferData.copyConstantFieldsToBuilder()
+                .setTransferStatus(TransferStatus.CLIENT_REJECTED)
+                .setPendingTransferExpirationTime(clock.nowUtc())
+                .build());
     // The poll message (in the future) to the losing registrar for implicit ack should be gone.
     assertThat(getPollMessages("TheRegistrar", clock.nowUtc().plusMonths(1)))
         .isEmpty();

@@ -560,13 +560,15 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
         .isEmpty();
     assertThat(getPollMessages("TheRegistrar", deletionTime)).hasSize(1);
     assertOnlyBillingEventIsClosedAutorenew("TheRegistrar");
-    // The keys written for server approve should be null, and the entities should all be deleted.
-    assertThat(domain.getTransferData().getServerApproveEntities()).isEmpty();
-    assertThat(domain.getTransferData().getServerApproveBillingEvent()).isNull();
-    assertThat(domain.getTransferData().getServerApproveAutorenewEvent()).isNull();
-    assertThat(domain.getTransferData().getServerApproveAutorenewPollMessage()).isNull();
-    assertThat(domain.getTransferData().getPendingTransferExpirationTime())
-        .isEqualTo(clock.nowUtc());
+    // The domain TransferData should reflect the cancelled transfer as we expect, with
+    // all the speculative server-approve fields nulled out.
+    assertThat(domain.getTransferData())
+        .isEqualTo(
+            oldTransferData.copyConstantFieldsToBuilder()
+                .setTransferStatus(TransferStatus.SERVER_CANCELLED)
+                .setPendingTransferExpirationTime(clock.nowUtc())
+                .build());
+    // The server-approve entities should all be deleted.
     assertThat(ofy().load().key(oldTransferData.getServerApproveBillingEvent()).now()).isNull();
     assertThat(ofy().load().key(oldTransferData.getServerApproveAutorenewEvent()).now()).isNull();
     assertThat(ofy().load().key(oldTransferData.getServerApproveAutorenewPollMessage()).now())

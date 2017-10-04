@@ -120,6 +120,28 @@ public class TransferData extends BaseTransferObject implements Buildable {
     return new Builder(clone(this));
   }
 
+  /**
+   * Returns a fresh Builder populated only with the constant fields of this TransferData, i.e.
+   * those that are fixed and unchanging throughout the transfer process.
+   *
+   * <p>These fields are:
+   * <ul>
+   *   <li>transferRequestTrid
+   *   <li>transferRequestTime
+   *   <li>gainingClientId
+   *   <li>losingClientId
+   *   <li>transferPeriod
+   * </ul>
+   */
+  public Builder copyConstantFieldsToBuilder() {
+    return new Builder()
+        .setTransferRequestTrid(this.transferRequestTrid)
+        .setTransferRequestTime(this.transferRequestTime)
+        .setGainingClientId(this.gainingClientId)
+        .setLosingClientId(this.losingClientId)
+        .setTransferPeriod(this.transferPeriod);
+  }
+
   /** Builder for {@link TransferData} because it is immutable. */
   public static class Builder extends BaseTransferObject.Builder<TransferData, Builder> {
 

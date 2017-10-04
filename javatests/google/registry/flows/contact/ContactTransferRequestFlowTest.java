@@ -14,15 +14,23 @@
 
 package google.registry.flows.contact;
 
+import static com.google.common.base.Predicates.equalTo;
+import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.config.RegistryConfig.getContactAutomaticTransferLength;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
+import static google.registry.testing.DatastoreHelper.assertPollMessagesEqual;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.googlecode.objectify.Key;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
@@ -31,9 +39,14 @@ import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
 import google.registry.flows.exceptions.ResourceStatusProhibitsOperationException;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.Period;
+import google.registry.model.domain.Period.Unit;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.eppcommon.Trid;
+import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -68,22 +81,56 @@ public class ContactTransferRequestFlowTest
     // Transfer should have been requested. Verify correct fields were set.
     contact = reloadResourceByForeignKey();
     assertAboutContacts().that(contact)
-        .hasTransferStatus(TransferStatus.PENDING).and()
-        .hasTransferGainingClientId("NewRegistrar").and()
-        .hasTransferLosingClientId("TheRegistrar").and()
-        .hasTransferRequestClientTrid(getClientTrid()).and()
         .hasCurrentSponsorClientId("TheRegistrar").and()
-        .hasPendingTransferExpirationTime(afterTransfer).and()
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.CONTACT_TRANSFER_REQUEST);
+    Trid expectedTrid =
+        Trid.create(
+            getClientTrid(),
+            contact.getTransferData().getTransferRequestTrid().getServerTransactionId());
+    assertThat(contact.getTransferData())
+        .isEqualTo(
+            new TransferData.Builder()
+                .setTransferRequestTrid(expectedTrid)
+                .setTransferRequestTime(clock.nowUtc())
+                .setGainingClientId("NewRegistrar")
+                .setLosingClientId("TheRegistrar")
+                // Period is meaningless for contact transfers, but this is the default.
+                .setTransferPeriod(Period.create(1, Unit.YEARS))
+                .setTransferStatus(TransferStatus.PENDING)
+                .setPendingTransferExpirationTime(afterTransfer)
+                // Make the server-approve entities field a no-op comparison; it's easier to
+                // do this comparison separately below.
+                .setServerApproveEntities(contact.getTransferData().getServerApproveEntities())
+                .build());
     assertNoBillingEvents();
     assertThat(getPollMessages("TheRegistrar", clock.nowUtc())).hasSize(1);
+    PollMessage losingRequestMessage =
+        getOnlyElement(getPollMessages("TheRegistrar", clock.nowUtc()));
 
     // If we fast forward AUTOMATIC_TRANSFER_DAYS the transfer should have happened.
     assertAboutContacts().that(contact.cloneProjectedAtTime(afterTransfer))
         .hasCurrentSponsorClientId("NewRegistrar");
     assertThat(getPollMessages("NewRegistrar", afterTransfer)).hasSize(1);
     assertThat(getPollMessages("TheRegistrar", afterTransfer)).hasSize(2);
+    PollMessage gainingApproveMessage =
+        getOnlyElement(getPollMessages("NewRegistrar", afterTransfer));
+    PollMessage losingApproveMessage =
+        getOnlyElement(
+            Iterables.filter(
+                getPollMessages("TheRegistrar", afterTransfer),
+                not(equalTo(losingRequestMessage))));
+
+    // Check for TransferData server-approve entities containing what we expect: only
+    // poll messages, the approval notice ones for gaining and losing registrars.
+    assertPollMessagesEqual(
+        Iterables.filter(
+            ofy().load()
+                // Use toArray() to coerce the type to something keys() will accept.
+                .keys(contact.getTransferData().getServerApproveEntities().toArray(new Key<?>[]{}))
+                .values(),
+            PollMessage.class),
+        ImmutableList.of(gainingApproveMessage, losingApproveMessage));
   }
 
   private void doFailingTest(String commandFilename) throws Exception {

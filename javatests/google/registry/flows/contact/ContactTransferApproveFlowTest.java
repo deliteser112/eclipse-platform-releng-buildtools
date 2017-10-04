@@ -36,6 +36,7 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferStatus;
 import org.junit.Before;
@@ -64,6 +65,8 @@ public class ContactTransferApproveFlowTest
         .hasSize(1);
 
     // Setup done; run the test.
+    contact = reloadResourceByForeignKey();
+    TransferData originalTransferData = contact.getTransferData();
     assertTransactionalFlow(true);
     runFlowAssertResponse(readFile(expectedXmlFilename));
 
@@ -72,11 +75,15 @@ public class ContactTransferApproveFlowTest
     assertAboutContacts().that(contact)
         .hasCurrentSponsorClientId("NewRegistrar").and()
         .hasLastTransferTime(clock.nowUtc()).and()
-        .hasTransferStatus(TransferStatus.CLIENT_APPROVED).and()
-        .hasPendingTransferExpirationTime(clock.nowUtc()).and()
         .hasOneHistoryEntryEachOfTypes(
             HistoryEntry.Type.CONTACT_TRANSFER_REQUEST,
             HistoryEntry.Type.CONTACT_TRANSFER_APPROVE);
+    assertThat(contact.getTransferData())
+        .isEqualTo(
+            originalTransferData.copyConstantFieldsToBuilder()
+                .setTransferStatus(TransferStatus.CLIENT_APPROVED)
+                .setPendingTransferExpirationTime(clock.nowUtc())
+                .build());
     assertNoBillingEvents();
     // The poll message (in the future) to the losing registrar for implicit ack should be gone.
     assertThat(getPollMessages("TheRegistrar", clock.nowUtc().plusMonths(1))).isEmpty();

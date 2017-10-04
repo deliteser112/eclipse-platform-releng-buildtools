@@ -204,17 +204,19 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
         .build();
   }
 
-  protected void assertTransferFailed(DomainResource domain, TransferStatus status) {
+  protected void assertTransferFailed(
+      DomainResource domain, TransferStatus status, TransferData oldTransferData) {
     assertAboutDomains().that(domain)
-        .hasTransferStatus(status).and()
-        .hasPendingTransferExpirationTime(clock.nowUtc()).and()
         .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER).and()
         .hasCurrentSponsorClientId("TheRegistrar");
-    TransferData transferData = domain.getTransferData();
-    assertThat(transferData.getServerApproveBillingEvent()).isNull();
-    assertThat(transferData.getServerApproveAutorenewEvent()).isNull();
-    assertThat(transferData.getServerApproveAutorenewPollMessage()).isNull();
-    assertThat(transferData.getServerApproveEntities()).isEmpty();
+    // The domain TransferData should reflect the failed transfer as we expect, with
+    // all the speculative server-approve fields nulled out.
+    assertThat(domain.getTransferData())
+        .isEqualTo(
+            oldTransferData.copyConstantFieldsToBuilder()
+                .setTransferStatus(status)
+                .setPendingTransferExpirationTime(clock.nowUtc())
+                .build());
   }
 
   /** Adds a domain that has a pending transfer on it from TheRegistrar to NewRegistrar. */

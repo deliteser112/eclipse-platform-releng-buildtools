@@ -47,6 +47,7 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.model.transfer.TransferStatus;
 import org.joda.time.DateTime;
@@ -113,11 +114,12 @@ public class DomainTransferCancelFlowTest
     assertTransactionalFlow(true);
     DateTime originalExpirationTime = domain.getRegistrationExpirationTime();
     ImmutableSet<GracePeriod> originalGracePeriods = domain.getGracePeriods();
+    TransferData originalTransferData = domain.getTransferData();
     runFlowAssertResponse(readFile(expectedXmlFilename));
 
     // Transfer should have been cancelled. Verify correct fields were set.
     domain = reloadResourceByForeignKey();
-    assertTransferFailed(domain, TransferStatus.CLIENT_CANCELLED);
+    assertTransferFailed(domain, TransferStatus.CLIENT_CANCELLED, originalTransferData);
     assertAboutDomains().that(domain)
         .hasRegistrationExpirationTime(originalExpirationTime).and()
         .hasLastTransferTimeNotEqualTo(clock.nowUtc());

@@ -228,11 +228,7 @@ public final class ResourceFlowUtils {
     return builder
         .removeStatusValue(StatusValue.PENDING_TRANSFER)
         .setTransferData(
-            resource.getTransferData().asBuilder()
-                .setServerApproveEntities(null)
-                .setServerApproveBillingEvent(null)
-                .setServerApproveAutorenewEvent(null)
-                .setServerApproveAutorenewPollMessage(null)
+            resource.getTransferData().copyConstantFieldsToBuilder()
                 .setTransferStatus(transferStatus)
                 .setPendingTransferExpirationTime(checkNotNull(now))
                 .build());

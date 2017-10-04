@@ -99,6 +99,7 @@ import google.registry.model.transfer.TransferData.Builder;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.tmch.LordnTask;
+import java.util.Arrays;
 import java.util.List;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -645,19 +646,27 @@ public class DatastoreHelper {
         ofy().load().type(BillingEvent.Cancellation.class).ancestor(resource));
   }
 
+  /** Assert that the actual billing event matches the expected one, ignoring IDs. */
+  public static void assertBillingEventsEqual(BillingEvent actual, BillingEvent expected) {
+    assertThat(BILLING_EVENT_ID_STRIPPER.apply(actual))
+        .isEqualTo(BILLING_EVENT_ID_STRIPPER.apply(expected));
+  }
+
+  /** Assert that the actual billing events match the expected ones, ignoring IDs and order. */
+  public static void assertBillingEventsEqual(
+      Iterable<BillingEvent> actual, Iterable<BillingEvent> expected) {
+    assertThat(Iterables.transform(actual, BILLING_EVENT_ID_STRIPPER))
+        .containsExactlyElementsIn(Iterables.transform(expected, BILLING_EVENT_ID_STRIPPER));
+  }
 
   /** Assert that the expected billing events are exactly the ones found in the fake Datastore. */
   public static void assertBillingEvents(BillingEvent... expected) throws Exception {
-    assertThat(FluentIterable.from(getBillingEvents()).transform(BILLING_EVENT_ID_STRIPPER))
-        .containsExactlyElementsIn(
-            FluentIterable.from(expected).transform(BILLING_EVENT_ID_STRIPPER));
+    assertBillingEventsEqual(getBillingEvents(), Arrays.asList(expected));
   }
 
   /** Assert that the expected billing events set is exactly the one found in the fake Datastore. */
   public static void assertBillingEvents(ImmutableSet<BillingEvent> expected) throws Exception {
-    assertThat(FluentIterable.from(getBillingEvents()).transform(BILLING_EVENT_ID_STRIPPER))
-        .containsExactlyElementsIn(
-            FluentIterable.from(expected.asList()).transform(BILLING_EVENT_ID_STRIPPER));
+    assertBillingEventsEqual(getBillingEvents(), expected);
   }
 
   /**
@@ -683,6 +692,19 @@ public class DatastoreHelper {
           // Can't use id=0 because that causes the builder to generate a new id.
           return billingEvent.asBuilder().setId(1L).build();
         }};
+
+  /** Assert that the actual poll message matches the expected one, ignoring IDs. */
+  public static void assertPollMessagesEqual(PollMessage actual, PollMessage expected) {
+    assertThat(POLL_MESSAGE_ID_STRIPPER.apply(actual))
+        .isEqualTo(POLL_MESSAGE_ID_STRIPPER.apply(expected));
+  }
+
+  /** Assert that the actual poll messages match the expected ones, ignoring IDs and order. */
+  public static void assertPollMessagesEqual(
+      Iterable<PollMessage> actual, Iterable<PollMessage> expected) {
+    assertThat(Iterables.transform(actual, POLL_MESSAGE_ID_STRIPPER))
+        .containsExactlyElementsIn(Iterables.transform(expected, POLL_MESSAGE_ID_STRIPPER));
+  }
 
   public static void assertPollMessagesForResource(EppResource resource, PollMessage... expected)
       throws Exception {
