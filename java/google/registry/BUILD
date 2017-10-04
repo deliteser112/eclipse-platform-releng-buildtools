@@ -213,7 +213,7 @@ registry_ear_file(
 # had cron.xml removed.  We do this because it's necessary to deploy them in
 # this way when restoring a backup.
 #
-# "nocron" archives are currently prepared for production and alpha. To
+# "nocron" archives are currently prepared for production, alpha and crash. To
 # prepare them for another environment, just do something similar.
 registry_ear_file(
     name = "registry_alpha_nocron_ear",
@@ -292,6 +292,26 @@ registry_ear_file(
     },
 )
 
+# The "nocron" files are, unsurprisingly, versions of the archives that have
+# had cron.xml removed.  We do this because it's necessary to deploy them in
+# this way when restoring a backup.
+#
+# "nocron" archives are currently prepared for production, alpha and crash. To
+# prepare them for another environment, just do something similar.
+registry_ear_file(
+    name = "registry_crash_nocron_ear",
+    out = "registry_crash_nocron.ear",
+    configs = {
+        "env/common/META-INF/appengine-application.xml": "META-INF/appengine-application.xml",
+        "env/common/META-INF/application.xml": "META-INF/application.xml",
+    },
+    wars = {
+        "registry_default_crash_nocron.war": "default",
+        "registry_backend_crash.war": "backend",
+        "registry_tools_crash.war": "tools",
+    },
+)
+
 zip_file(
     name = "registry_default_crash_war",
     srcs = [
@@ -303,6 +323,13 @@ zip_file(
         "domain_registry/java/google/registry/env/crash/default": "",
     },
     deps = [":registry_default_war"],
+)
+
+zip_file(
+    name = "registry_default_crash_nocron_war",
+    out = "registry_default_crash_nocron.war",
+    exclude = ["WEB-INF/cron.xml"],
+    deps = [":registry_default_crash_war"],
 )
 
 zip_file(
