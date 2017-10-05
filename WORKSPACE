@@ -1,12 +1,13 @@
 workspace(name = "domain_registry")
 
+# https://github.com/bazelbuild/rules_closure/releases/tag/0.4.2
 http_archive(
     name = "io_bazel_rules_closure",
-    sha256 = "9bb1d216b6067ef7b376eb2d81f3f309c665d4a9e01542c45dbe46dde4132727",
-    strip_prefix = "rules_closure-c8e68361db0875f6fabb23abed16f1cebbb8b5d5",
+    strip_prefix = "rules_closure-0.4.2",
+    sha256 = "25f5399f18d8bf9ce435f85c6bbf671ec4820bc4396b3022cc5dc4bc66303609",
     urls = [
-        "http://mirror.bazel.build/github.com/bazelbuild/rules_closure/archive/c8e68361db0875f6fabb23abed16f1cebbb8b5d5.tar.gz", # 2017-08-08
-        "https://github.com/bazelbuild/rules_closure/archive/c8e68361db0875f6fabb23abed16f1cebbb8b5d5.tar.gz",
+        "http://mirror.bazel.build/github.com/bazelbuild/rules_closure/archive/0.4.2.tar.gz",
+        "https://github.com/bazelbuild/rules_closure/archive/0.4.2.tar.gz",
     ],
 )
 
