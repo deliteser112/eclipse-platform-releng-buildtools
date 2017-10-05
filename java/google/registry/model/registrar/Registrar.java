@@ -16,12 +16,12 @@ package google.registry.model.registrar;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Predicates.equalTo;
-import static com.google.common.base.Predicates.in;
-import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static com.google.common.collect.ImmutableSortedMap.toImmutableSortedMap;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
+import static com.google.common.collect.Ordering.natural;
 import static com.google.common.collect.Sets.immutableEnumSet;
 import static com.google.common.io.BaseEncoding.base64;
 import static google.registry.config.RegistryConfig.getDefaultRegistrarReferralUrl;
@@ -37,24 +37,21 @@ import static google.registry.util.X509Utils.getCertificateHash;
 import static google.registry.util.X509Utils.loadCertificate;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Comparator.comparing;
+import static java.util.function.Predicate.isEqual;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Ordering;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import com.google.re2j.Pattern;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -84,6 +81,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
@@ -96,37 +94,37 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   /** Represents the type of a registrar entity. */
   public enum Type {
     /** A real-world, third-party registrar.  Should have non-null IANA and billing IDs. */
-    REAL(Predicates.<Long>notNull()),
+    REAL(Objects::nonNull),
 
     /**
      * A registrar account used by a real third-party registrar undergoing operational testing
      * and evaluation. Should only be created in sandbox, and should have null IANA/billing IDs.
      */
-    OTE(Predicates.<Long>isNull()),
+    OTE(Objects::isNull),
 
     /**
      * A registrar used for predelegation testing.  Should have a null billing ID.  The IANA ID
      * should be either 9995 or 9996, which are reserved for predelegation testing.
      */
-    PDT(in(ImmutableSet.of(9995L, 9996L))),
+    PDT(n -> ImmutableSet.of(9995L, 9996L).contains(n)),
 
     /**
      * A registrar used for external monitoring by ICANN.  Should have IANA ID 9997 and a null
      * billing ID.
      */
-    EXTERNAL_MONITORING(equalTo(9997L)),
+    EXTERNAL_MONITORING(isEqual(9997L)),
 
     /**
      * A registrar used for when the registry acts as a registrar.  Must have either IANA ID
      * 9998 (for billable transactions) or 9999 (for non-billable transactions). */
     // TODO(b/13786188): determine what billing ID for this should be, if any.
-    INTERNAL(in(ImmutableSet.of(9998L, 9999L))),
+    INTERNAL(n -> ImmutableSet.of(9998L, 9999L).contains(n)),
 
     /** A registrar used for internal monitoring.  Should have null IANA/billing IDs. */
-    MONITORING(Predicates.<Long>isNull()),
+    MONITORING(Objects::isNull),
 
     /** A registrar used for internal testing.  Should have null IANA/billing IDs. */
-    TEST(Predicates.<Long>isNull());
+    TEST(Objects::isNull);
 
     /**
      * Predicate for validating IANA IDs for this type of registrar.
@@ -141,7 +139,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
 
     /** Returns true if the given IANA identifier is valid for this registrar type. */
     public boolean isValidIanaId(Long ianaId) {
-      return ianaIdValidator.apply(ianaId);
+      return ianaIdValidator.test(ianaId);
     }
   }
 
@@ -210,16 +208,8 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
           () ->
               ofy()
                   .doTransactionless(
-                      new Work<ImmutableMap<String, Registrar>>() {
-                        @Override
-                        public ImmutableMap<String, Registrar> run() {
-                          ImmutableMap.Builder<String, Registrar> builder =
-                              new ImmutableMap.Builder<>();
-                          for (Registrar registrar : loadAll()) {
-                            builder.put(registrar.getClientId(), registrar);
-                          }
-                          return builder.build();
-                        }
+                      () -> {
+                        return Maps.uniqueIndex(loadAll(), Registrar::getClientId);
                       }));
 
   @Parent
@@ -361,6 +351,11 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
       this.currency = currency;
     }
 
+    BillingAccountEntry(Map.Entry<CurrencyUnit, String> entry) {
+      this.accountId = entry.getValue();
+      this.currency = entry.getKey();
+    }
+
     /** Mapper to use for {@code @Mapify}. */
     static class CurrencyMapper implements Mapper<CurrencyUnit, BillingAccountEntry> {
       @Override
@@ -452,12 +447,10 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     if (billingAccountMap == null) {
       return ImmutableMap.of();
     }
-    ImmutableSortedMap.Builder<CurrencyUnit, String> billingAccountMapBuilder =
-        new ImmutableSortedMap.Builder<>(Ordering.natural());
-    for (Map.Entry<CurrencyUnit, BillingAccountEntry> entry : billingAccountMap.entrySet()) {
-      billingAccountMapBuilder.put(entry.getKey(), entry.getValue().accountId);
-    }
-    return billingAccountMapBuilder.build();
+    return billingAccountMap
+        .entrySet()
+        .stream()
+        .collect(toImmutableSortedMap(natural(), Map.Entry::getKey, v -> v.getValue().accountId));
   }
 
   public DateTime getLastUpdateTime() {
@@ -577,7 +570,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    */
   public ImmutableSortedSet<RegistrarContact> getContacts() {
     return Streams.stream(getContactsIterable())
-        .filter(notNull())
+        .filter(Objects::nonNull)
         .collect(toImmutableSortedSet(CONTACT_EMAIL_COMPARATOR));
   }
 
@@ -587,7 +580,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    */
   public ImmutableSortedSet<RegistrarContact> getContactsOfType(final RegistrarContact.Type type) {
     return Streams.stream(getContactsIterable())
-        .filter(notNull())
+        .filter(Objects::nonNull)
         .filter((@Nullable RegistrarContact contact) -> contact.getTypes().contains(type))
         .collect(toImmutableSortedSet(CONTACT_EMAIL_COMPARATOR));
   }
@@ -633,9 +626,8 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
 
   private String hashPassword(String password) {
     try {
-      return base64().encode(
-          MessageDigest.getInstance("SHA-256").digest(
-              (password + salt).getBytes(UTF_8)));
+      return base64()
+          .encode(MessageDigest.getInstance("SHA-256").digest((password + salt).getBytes(UTF_8)));
     } catch (NoSuchAlgorithmException e) {
       // All implementations of MessageDigest are required to support SHA-256.
       throw new RuntimeException(e);
@@ -645,7 +637,8 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   private static String checkValidPhoneNumber(String phoneNumber) {
     checkArgument(
         E164_PATTERN.matcher(phoneNumber).matches(),
-        "Not a valid E.164 phone number: %s", phoneNumber);
+        "Not a valid E.164 phone number: %s",
+        phoneNumber);
     return phoneNumber;
   }
 
@@ -694,17 +687,15 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
       return this;
     }
 
-    public Builder setBillingAccountMap(Map<CurrencyUnit, String> billingAccountMap) {
+    public Builder setBillingAccountMap(@Nullable Map<CurrencyUnit, String> billingAccountMap) {
       if (billingAccountMap == null) {
         getInstance().billingAccountMap = null;
       } else {
-        ImmutableMap.Builder<CurrencyUnit, BillingAccountEntry> billingAccountMapBuilder =
-            new ImmutableMap.Builder<>();
-        for (Map.Entry<CurrencyUnit, String> entry : billingAccountMap.entrySet()) {
-          billingAccountMapBuilder.put(
-              entry.getKey(), new BillingAccountEntry(entry.getKey(), entry.getValue()));
-        }
-        getInstance().billingAccountMap = billingAccountMapBuilder.build();
+        getInstance().billingAccountMap =
+            billingAccountMap
+                .entrySet()
+                .stream()
+                .collect(toImmutableMap(Map.Entry::getKey, BillingAccountEntry::new));
       }
       return this;
     }
@@ -772,9 +763,11 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
      */
     public Builder setClientCertificateHash(String clientCertificateHash) {
       if (clientCertificateHash != null) {
-        checkArgument(Pattern.matches("[A-Za-z0-9+/]+", clientCertificateHash),
+        checkArgument(
+            Pattern.matches("[A-Za-z0-9+/]+", clientCertificateHash),
             "--cert_hash not a valid base64 (no padding) value");
-        checkArgument(base64().decode(clientCertificateHash).length == 256 / 8,
+        checkArgument(
+            base64().decode(clientCertificateHash).length == 256 / 8,
             "--cert_hash base64 does not decode to 256 bits");
       }
       getInstance().clientCertificate = null;
