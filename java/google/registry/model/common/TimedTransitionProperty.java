@@ -20,7 +20,6 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DateTimeUtils.latestOf;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSortedMap;
@@ -103,18 +102,17 @@ public class TimedTransitionProperty<V, T extends TimedTransitionProperty.TimedT
     checkArgument(
         Ordering.natural().equals(valueMap.comparator()),
         "Timed transition value map must have transition time keys in chronological order");
-    return Maps.transformEntries(valueMap, new Maps.EntryTransformer<DateTime, V, T>() {
-        // For each entry in the input value map, make the output map have an entry at the
-        // corresponding time that points to a transition containing that time and that value.
-        @Override
-        public T transformEntry(DateTime transitionTime, V value) {
-          checkArgument(!transitionTime.isBefore(START_OF_TIME),
+    return Maps.transformEntries(
+        valueMap,
+        (DateTime transitionTime, V value) -> {
+          checkArgument(
+              !transitionTime.isBefore(START_OF_TIME),
               "Timed transition times cannot be earlier than START_OF_TIME / Unix Epoch");
           T subclass = TypeUtils.instantiate(timedTransitionSubclass);
           ((TimedTransition<V>) subclass).transitionTime = transitionTime;
           subclass.setValue(value);
           return subclass;
-        }});
+        });
   }
 
   /**
@@ -288,13 +286,7 @@ public class TimedTransitionProperty<V, T extends TimedTransitionProperty.TimedT
 
   /** Returns the map of DateTime to value that is the "natural" representation of this property. */
   public ImmutableSortedMap<DateTime, V> toValueMap() {
-    return ImmutableSortedMap.copyOfSorted(Maps.transformValues(
-        backingMap,
-        new Function<T, V>() {
-          @Override
-          public V apply(T timedTransition) {
-            return timedTransition.getValue();
-          }}));
+    return ImmutableSortedMap.copyOfSorted(Maps.transformValues(backingMap, T::getValue));
   }
 
   /**

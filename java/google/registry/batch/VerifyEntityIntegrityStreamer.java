@@ -21,19 +21,16 @@ import static google.registry.batch.EntityIntegrityAlertsSchema.FIELD_SCANTIME;
 import static google.registry.batch.EntityIntegrityAlertsSchema.FIELD_SOURCE;
 import static google.registry.batch.EntityIntegrityAlertsSchema.FIELD_TARGET;
 import static google.registry.batch.EntityIntegrityAlertsSchema.TABLE_ID;
+import static java.util.stream.Collectors.joining;
 
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.Bigquery.Tabledata.InsertAll;
 import com.google.api.services.bigquery.model.TableDataInsertAllRequest;
 import com.google.api.services.bigquery.model.TableDataInsertAllRequest.Rows;
 import com.google.api.services.bigquery.model.TableDataInsertAllResponse;
-import com.google.api.services.bigquery.model.TableDataInsertAllResponse.InsertErrors;
 import com.google.auto.factory.AutoFactory;
 import com.google.auto.factory.Provided;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.bigquery.BigqueryFactory;
@@ -183,30 +180,26 @@ public class VerifyEntityIntegrityStreamer {
                   new TableDataInsertAllRequest().setRows(rows));
 
       Callable<Void> callable =
-          new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-              TableDataInsertAllResponse response = request.execute();
-              // Turn errors on the response object into RuntimeExceptions that the retrier will
-              // retry.
-              if (response.getInsertErrors() != null && !response.getInsertErrors().isEmpty()) {
-                throw new RuntimeException(
-                    FluentIterable.from(response.getInsertErrors())
-                        .transform(
-                            new Function<InsertErrors, String>() {
-                              @Override
-                              public String apply(InsertErrors error) {
-                                try {
-                                  return error.toPrettyString();
-                                } catch (IOException e) {
-                                  return error.toString();
-                                }
-                              }
-                            })
-                        .join(Joiner.on('\n')));
-              }
-              return null;
+          () -> {
+            TableDataInsertAllResponse response = request.execute();
+            // Turn errors on the response object into RuntimeExceptions that the retrier will
+            // retry.
+            if (response.getInsertErrors() != null && !response.getInsertErrors().isEmpty()) {
+              throw new RuntimeException(
+                  response
+                      .getInsertErrors()
+                      .stream()
+                      .map(
+                          error -> {
+                            try {
+                              return error.toPrettyString();
+                            } catch (IOException e) {
+                              return error.toString();
+                            }
+                          })
+                      .collect(joining("\n")));
             }
+            return null;
           };
       retrier.callWithRetry(callable, RuntimeException.class);
     } catch (IOException e) {

@@ -14,6 +14,7 @@
 
 package google.registry.dns.writer.clouddns;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -30,8 +31,6 @@ import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.Change;
 import com.google.api.services.dns.model.ResourceRecordSet;
 import com.google.api.services.dns.model.ResourceRecordSetsListResponse;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -54,7 +53,6 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.util.concurrent.Callable;
-import javax.annotation.Nullable;
 import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
@@ -128,21 +126,18 @@ public class CloudDnsWriterTest {
                   throws Throwable {
                 return new ResourceRecordSetsListResponse()
                     .setRrsets(
-                        FluentIterable.from(stubZone)
+                        stubZone
+                            .stream()
                             .filter(
-                                new Predicate<ResourceRecordSet>() {
-                                  @Override
-                                  public boolean apply(
-                                      @Nullable ResourceRecordSet resourceRecordSet) {
-                                    if (resourceRecordSet == null) {
-                                      return false;
-                                    }
-                                    return resourceRecordSet
-                                        .getName()
-                                        .equals(recordNameCaptor.getValue());
+                                resourceRecordSet -> {
+                                  if (resourceRecordSet == null) {
+                                    return false;
                                   }
+                                  return resourceRecordSet
+                                      .getName()
+                                      .equals(recordNameCaptor.getValue());
                                 })
-                            .toList());
+                            .collect(toImmutableList()));
               }
             });
 

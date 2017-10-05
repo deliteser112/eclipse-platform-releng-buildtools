@@ -14,6 +14,7 @@
 
 package google.registry.flows.contact;
 
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
@@ -22,8 +23,6 @@ import static google.registry.testing.DatastoreHelper.getOnlyPollMessage;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Iterables;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.exceptions.NotPendingTransferException;
@@ -86,11 +85,14 @@ public class ContactTransferCancelFlowTest
     PollMessage losingPollMessage = getOnlyPollMessage("TheRegistrar");
     assertThat(losingPollMessage.getEventTime()).isEqualTo(clock.nowUtc());
     assertThat(
-        Iterables.getOnlyElement(FluentIterable
-            .from(losingPollMessage.getResponseData())
-            .filter(TransferResponse.class))
+            losingPollMessage
+                .getResponseData()
+                .stream()
+                .filter(TransferResponse.class::isInstance)
+                .map(TransferResponse.class::cast)
+                .collect(onlyElement())
                 .getTransferStatus())
-                .isEqualTo(TransferStatus.CLIENT_CANCELLED);
+        .isEqualTo(TransferStatus.CLIENT_CANCELLED);
   }
 
   private void doFailingTest(String commandFilename) throws Exception {

@@ -15,6 +15,7 @@
 package google.registry.export;
 
 import static com.google.common.base.Strings.repeat;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.io.Resources.getResource;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
@@ -22,14 +23,12 @@ import static google.registry.export.ExportConstants.getBackupKinds;
 import static google.registry.export.ExportConstants.getReportingKinds;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import com.google.re2j.Pattern;
-import javax.annotation.Nullable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -91,15 +90,8 @@ public class ExportConstantsTest {
   private static ImmutableList<String> extractListFromFile(String filename) {
     String fileContents = readResourceUtf8(ExportConstantsTest.class, filename);
     final Pattern stripComments = Pattern.compile("\\s*#.*$");
-    return FluentIterable.from(Splitter.on('\n').split(fileContents.trim()))
-        .transform(
-            new Function<String, String>() {
-              @Override
-              @Nullable
-              public String apply(@Nullable String line) {
-                return stripComments.matcher(line).replaceFirst("");
-              }
-            })
-        .toList();
+    return Streams.stream(Splitter.on('\n').split(fileContents.trim()))
+        .map(line -> stripComments.matcher(line).replaceFirst(""))
+        .collect(toImmutableList());
   }
 }

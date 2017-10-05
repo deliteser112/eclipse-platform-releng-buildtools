@@ -16,14 +16,12 @@ package google.registry.model.domain.rgp;
 
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
-import static java.util.Arrays.asList;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import google.registry.model.translators.EnumToAttributeAdapter;
 import google.registry.model.translators.EnumToAttributeAdapter.EppEnum;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -101,15 +99,12 @@ public enum GracePeriodStatus implements EppEnum {
 
   /** Provide a quick lookup of GracePeriodStatus from XML name. */
   private static final ImmutableMap<String, GracePeriodStatus> XML_NAME_TO_GRACE_PERIOD_STATUS =
-      Maps.uniqueIndex(
-          // SUNRUSH_ADD isn't a real grace period type visible in EPP XML, so exclude it.
-          Iterables.filter(asList(GracePeriodStatus.values()), not(equalTo(SUNRUSH_ADD))),
-          new Function<GracePeriodStatus, String>() {
-            @Override
-            public String apply(GracePeriodStatus gracePeriodStatus) {
-              return gracePeriodStatus.xmlName;
-            }
-          });
+      Stream.of(GracePeriodStatus.values())
+          .filter(not(equalTo(SUNRUSH_ADD)))
+          .collect(
+              toImmutableMap(
+                  (GracePeriodStatus gracePeriodStatus) -> gracePeriodStatus.xmlName,
+                  value -> value));
 
   @XmlAttribute(name = "s")
   private final String xmlName;

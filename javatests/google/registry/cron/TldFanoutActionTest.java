@@ -25,7 +25,6 @@ import static java.util.Arrays.asList;
 
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
@@ -106,14 +105,13 @@ public class TldFanoutActionTest {
   private static void assertTasks(String... tasks) throws Exception {
     assertTasksEnqueued(
         QUEUE,
-        transform(asList(tasks), new Function<String, TaskMatcher>() {
-          @Override
-          public TaskMatcher apply(String namespace) {
-            return new TaskMatcher()
-                .url(ENDPOINT)
-                .header("content-type", "application/x-www-form-urlencoded")
-                .param("tld", namespace);
-          }}));
+        transform(
+            asList(tasks),
+            (String namespace) ->
+                new TaskMatcher()
+                    .url(ENDPOINT)
+                    .header("content-type", "application/x-www-form-urlencoded")
+                    .param("tld", namespace)));
   }
 
   @Test

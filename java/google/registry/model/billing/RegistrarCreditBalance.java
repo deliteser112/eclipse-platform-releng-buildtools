@@ -20,7 +20,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ForwardingNavigableMap;
 import com.google.common.collect.ImmutableSortedMap;
@@ -193,16 +192,12 @@ public final class RegistrarCreditBalance extends ImmutableObject implements Bui
      */
     @VisibleForTesting
     BalanceMap(Map<DateTime, ? extends Map<DateTime, Money>> data) {
-      delegate = ImmutableSortedMap.copyOf(
-          Maps.transformValues(
-              data,
-              new Function<Map<DateTime, Money>, ImmutableSortedMap<DateTime, Money>>() {
-                @Override
-                public ImmutableSortedMap<DateTime, Money> apply(Map<DateTime, Money> map) {
-                  return ImmutableSortedMap.copyOf(map, Ordering.natural());
-                }
-              }),
-          Ordering.natural());
+      delegate =
+          ImmutableSortedMap.copyOf(
+              Maps.transformValues(
+                  data,
+                  (Map<DateTime, Money> map) -> ImmutableSortedMap.copyOf(map, Ordering.natural())),
+              Ordering.natural());
     }
 
     @Override

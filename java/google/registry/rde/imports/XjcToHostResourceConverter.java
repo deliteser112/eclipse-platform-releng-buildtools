@@ -16,14 +16,12 @@ package google.registry.rde.imports;
 
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.rde.imports.RdeImportUtils.generateTridForImport;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import google.registry.model.eppcommon.StatusValue;
@@ -37,23 +35,6 @@ import java.net.InetAddress;
 
 /** Utility class that converts an {@link XjcRdeHost} into a {@link HostResource}. */
 public class XjcToHostResourceConverter extends XjcToEppResourceConverter {
-
-  private static final Function<XjcHostStatusType, StatusValue> STATUS_VALUE_CONVERTER =
-      new Function<XjcHostStatusType, StatusValue>() {
-        @Override
-        public StatusValue apply(XjcHostStatusType status) {
-          return convertStatusType(status);
-        }
-      };
-
-  private static final Function<XjcHostAddrType, InetAddress> ADDR_CONVERTER =
-      new Function<XjcHostAddrType, InetAddress>() {
-        @Override
-        public InetAddress apply(XjcHostAddrType addr) {
-          return convertAddrType(addr);
-        }
-      };
-
   static HostResource convert(XjcRdeHost host) {
     // TODO(b/35384052): Handle subordinate hosts correctly by setting superordinateDomaina and
     // lastSuperordinateChange fields.
@@ -81,13 +62,16 @@ public class XjcToHostResourceConverter extends XjcToEppResourceConverter {
         .setCreationClientId(host.getCrRr().getValue())
         .setLastEppUpdateClientId(host.getUpRr() == null ? null : host.getUpRr().getValue())
         .setStatusValues(
-            FluentIterable.from(host.getStatuses())
-                .transform(STATUS_VALUE_CONVERTER)
-                // LINKED is implicit and should not be imported onto the new host.
-                // PENDING_TRANSFER is a property of the superordinate host.
+            host.getStatuses()
+                .stream()
+                .map(XjcToHostResourceConverter::convertStatusType)
                 .filter(not(in(ImmutableSet.of(StatusValue.LINKED, StatusValue.PENDING_TRANSFER))))
-                .toSet())
-        .setInetAddresses(ImmutableSet.copyOf(Lists.transform(host.getAddrs(), ADDR_CONVERTER)))
+                .collect(toImmutableSet()))
+        .setInetAddresses(
+            host.getAddrs()
+                .stream()
+                .map(XjcToHostResourceConverter::convertAddrType)
+                .collect(toImmutableSet()))
         .build();
   }
 

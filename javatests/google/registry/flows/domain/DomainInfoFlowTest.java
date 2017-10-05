@@ -27,9 +27,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static google.registry.util.DatastoreServiceUtils.KEY_TO_KIND_FUNCTION;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -56,7 +54,6 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.RequestCapturingAsyncDatastoreService;
 import google.registry.testing.AppEngineRule;
-import java.util.List;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -641,20 +638,20 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     int numPreviousReads = RequestCapturingAsyncDatastoreService.getReads().size();
     doSuccessfulTest("domain_info_response.xml", false);
     // Get all of the keys loaded in the flow, with each distinct load() call as a list of keys.
-    int numReadsWithContactsOrHosts = FluentIterable
-        .from(RequestCapturingAsyncDatastoreService.getReads())
-        .skip(numPreviousReads)
-        .filter(
-            new Predicate<List<com.google.appengine.api.datastore.Key>>() {
-              @Override
-              public boolean apply(List<com.google.appengine.api.datastore.Key> keys) {
-                return FluentIterable.from(keys)
-                    .transform(KEY_TO_KIND_FUNCTION)
-                    .anyMatch(Predicates.or(
-                        equalTo(Key.getKind(ContactResource.class)),
-                        equalTo(Key.getKind(HostResource.class))));
-              }})
-        .size();
+    int numReadsWithContactsOrHosts =
+        (int)
+            RequestCapturingAsyncDatastoreService.getReads()
+                .stream()
+                .skip(numPreviousReads)
+                .filter(
+                    keys ->
+                        keys.stream()
+                            .map(KEY_TO_KIND_FUNCTION)
+                            .anyMatch(
+                                Predicates.or(
+                                    equalTo(Key.getKind(ContactResource.class)),
+                                    equalTo(Key.getKind(HostResource.class)))))
+                .count();
     assertThat(numReadsWithContactsOrHosts).isEqualTo(1);
   }
 

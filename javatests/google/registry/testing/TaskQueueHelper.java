@@ -26,6 +26,7 @@ import static com.google.common.truth.Truth.assert_;
 import static google.registry.util.DiffUtils.prettyPrintEntityDeepDiff;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.joining;
 
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.HeaderWrapper;
@@ -35,7 +36,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultiset;
@@ -178,12 +178,7 @@ public class TaskQueueHelper {
           .join(
               Maps.transformValues(
                   expected.toMap(),
-                  new Function<Object, String>() {
-                    @Override
-                    public String apply(Object input) {
-                      return "\t" + String.valueOf(input).replaceAll("\n", "\n\t");
-                    }
-                  }));
+                  input -> "\t" + String.valueOf(input).replaceAll("\n", "\n\t")));
     }
   }
 
@@ -208,12 +203,7 @@ public class TaskQueueHelper {
   /** Ensures that the tasks in the named queue are exactly those with the expected names. */
   public static void assertTasksEnqueued(String queueName, String... expectedTaskNames)
       throws Exception {
-    Function<TaskStateInfo, String> nameGetter = new Function<TaskStateInfo, String>() {
-      @Nonnull
-      @Override
-      public String apply(@Nonnull TaskStateInfo taskStateInfo) {
-        return taskStateInfo.getTaskName();
-      }};
+    Function<TaskStateInfo, String> nameGetter = TaskStateInfo::getTaskName;
     assertTasksEnqueuedWithProperty(queueName, nameGetter, expectedTaskNames);
   }
 
@@ -249,21 +239,21 @@ public class TaskQueueHelper {
         taskInfos.remove(Iterables.find(taskInfos, taskMatcher));
       } catch (NoSuchElementException e) {
         final Map<String, Object> taskMatcherMap = taskMatcher.expected.toMap();
-        assert_().fail(
-            "Task not found in queue %s:\n\n%s\n\nPotential candidate match diffs:\n\n%s",
-            queueName,
-            taskMatcher,
-            FluentIterable.from(taskInfos)
-                .transform(new Function<TaskStateInfo, String>() {
-                    @Override
-                    public String apply(TaskStateInfo input) {
-                      return prettyPrintEntityDeepDiff(
-                          taskMatcherMap,
-                          Maps.filterKeys(
-                              new MatchableTaskInfo(input).toMap(),
-                              in(taskMatcherMap.keySet())));
-                    }})
-                .join(Joiner.on('\n')));
+        assert_()
+            .fail(
+                "Task not found in queue %s:\n\n%s\n\nPotential candidate match diffs:\n\n%s",
+                queueName,
+                taskMatcher,
+                taskInfos
+                    .stream()
+                    .map(
+                        input ->
+                            prettyPrintEntityDeepDiff(
+                                taskMatcherMap,
+                                Maps.filterKeys(
+                                    new MatchableTaskInfo(input).toMap(),
+                                    in(taskMatcherMap.keySet()))))
+                    .collect(joining("\n")));
       }
     }
   }
@@ -294,12 +284,7 @@ public class TaskQueueHelper {
   public static void assertDnsTasksEnqueued(String... expectedTaskTargetNames) throws Exception {
     assertTasksEnqueuedWithProperty(
         DnsConstants.DNS_PULL_QUEUE_NAME,
-        new Function<TaskStateInfo, String>() {
-          @Nonnull
-          @Override
-          public String apply(@Nonnull TaskStateInfo taskStateInfo) {
-            return getParamFromTaskInfo(taskStateInfo, DnsConstants.DNS_TARGET_NAME_PARAM);
-          }},
+        taskStateInfo -> getParamFromTaskInfo(taskStateInfo, DnsConstants.DNS_TARGET_NAME_PARAM),
         expectedTaskTargetNames);
   }
 

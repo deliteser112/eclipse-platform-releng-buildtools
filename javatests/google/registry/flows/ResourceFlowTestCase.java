@@ -14,6 +14,7 @@
 
 package google.registry.flows;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -21,10 +22,9 @@ import static google.registry.model.tmch.ClaimsListShardTest.createTestClaimsLis
 import static google.registry.testing.LogsSubject.assertAboutLogs;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Streams;
 import com.google.common.testing.TestLogHandler;
 import com.googlecode.objectify.Key;
 import google.registry.flows.FlowUtils.NotLoggedInException;
@@ -139,17 +139,17 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
    * Confirms that an EppResourceIndex entity exists in Datastore for a given resource.
    */
   protected static <T extends EppResource> void assertEppResourceIndexEntityFor(final T resource) {
-    ImmutableList<EppResourceIndex> indices = FluentIterable
-        .from(ofy().load()
-            .type(EppResourceIndex.class)
-            .filter("kind", Key.getKind(resource.getClass())))
-        .filter(new Predicate<EppResourceIndex>() {
-            @Override
-            public boolean apply(EppResourceIndex index) {
-              return Key.create(resource).equals(index.getKey())
-                  && ofy().load().key(index.getKey()).now().equals(resource);
-            }})
-        .toList();
+    ImmutableList<EppResourceIndex> indices =
+        Streams.stream(
+                ofy()
+                    .load()
+                    .type(EppResourceIndex.class)
+                    .filter("kind", Key.getKind(resource.getClass())))
+            .filter(
+                index ->
+                    Key.create(resource).equals(index.getKey())
+                        && ofy().load().key(index.getKey()).now().equals(resource))
+            .collect(toImmutableList());
     assertThat(indices).hasSize(1);
     assertThat(indices.get(0).getBucket())
         .isEqualTo(EppResourceIndexBucket.getBucketKey(Key.create(resource)));

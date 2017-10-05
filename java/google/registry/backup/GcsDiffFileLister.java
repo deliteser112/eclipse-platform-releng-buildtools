@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -113,12 +112,7 @@ class GcsDiffFileLister {
       final String filename = listItems.next().getName();
       DateTime upperBoundTime = DateTime.parse(filename.substring(DIFF_FILE_PREFIX.length()));
       if (isInRange(upperBoundTime, fromTime, toTime)) {
-        upperBoundTimesToMetadata.put(upperBoundTime, executor.submit(
-            new Callable<GcsFileMetadata>() {
-              @Override
-              public GcsFileMetadata call() throws Exception {
-                return getMetadata(filename);
-              }}));
+        upperBoundTimesToMetadata.put(upperBoundTime, executor.submit(() -> getMetadata(filename)));
         lastUpperBoundTime = latestOf(upperBoundTime, lastUpperBoundTime);
       }
     }

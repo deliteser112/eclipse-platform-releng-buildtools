@@ -14,8 +14,7 @@
 
 package google.registry.flows.domain;
 
-import static com.google.common.collect.Iterables.filter;
-import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
@@ -39,6 +38,7 @@ import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import dagger.Lazy;
@@ -212,7 +212,10 @@ public class DomainAllocateFlow implements TransactionalFlow {
 
   private <T extends ImmutableObject> T getOnly(
       Iterable<? extends ImmutableObject> objects, Class<T> clazz) {
-    return getOnlyElement(filter(objects, clazz));
+    return Streams.stream(objects)
+        .filter(clazz::isInstance)
+        .map(clazz::cast)
+        .collect(onlyElement());
   }
 
   private void verifyIsSuperuser() throws OnlySuperuserCanAllocateException {

@@ -26,7 +26,6 @@ import static google.registry.xjc.rgp.XjcRgpStatusValueType.TRANSFER_PERIOD;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.money.CurrencyUnit.USD;
 
-import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -59,7 +58,6 @@ import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.util.Idn;
-import google.registry.xjc.domain.XjcDomainContactType;
 import google.registry.xjc.domain.XjcDomainStatusType;
 import google.registry.xjc.domain.XjcDomainStatusValueType;
 import google.registry.xjc.rde.XjcRdeContentsType;
@@ -69,7 +67,6 @@ import google.registry.xjc.rde.XjcRdeMenuType;
 import google.registry.xjc.rdedomain.XjcRdeDomain;
 import google.registry.xjc.rdedomain.XjcRdeDomainElement;
 import google.registry.xjc.rgp.XjcRgpStatusType;
-import google.registry.xjc.rgp.XjcRgpStatusValueType;
 import google.registry.xjc.secdns.XjcSecdnsDsDataType;
 import java.io.ByteArrayOutputStream;
 import org.joda.money.Money;
@@ -109,13 +106,11 @@ public class DomainResourceToXjcConverterTest {
 
     assertThat(bean.getClID()).isEqualTo("GetTheeBack");
 
-    assertThat(FluentIterable
-        .from(bean.getContacts())
-        .transform(new Function<XjcDomainContactType, String>() {
-          @Override
-          public String apply(XjcDomainContactType input) {
-            return String.format("%s %s", input.getType().toString(), input.getValue());
-          }})).containsExactly("ADMIN 5372808-IRL", "TECH 5372808-TRL");
+    assertThat(
+            FluentIterable.from(bean.getContacts())
+                .transform(
+                    input -> String.format("%s %s", input.getType().toString(), input.getValue())))
+        .containsExactly("ADMIN 5372808-IRL", "TECH 5372808-TRL");
 
     assertThat(bean.getCrDate()).isEqualTo(DateTime.parse("1900-01-01T00:00:00Z"));
 
@@ -150,13 +145,8 @@ public class DomainResourceToXjcConverterTest {
     //    "pendingDelete" sub-statuses, including "redemptionPeriod",
     //    "pendingRestore", and "pendingDelete", that a domain name can be
     //    in as a result of grace period processing as specified in [RFC3915].
-    assertThat(FluentIterable
-        .from(bean.getRgpStatuses())
-        .transform(new Function<XjcRgpStatusType, XjcRgpStatusValueType>() {
-          @Override
-          public XjcRgpStatusValueType apply(XjcRgpStatusType status) {
-            return status.getS();
-          }})).containsExactly(TRANSFER_PERIOD, RENEW_PERIOD);
+    assertThat(FluentIterable.from(bean.getRgpStatuses()).transform(XjcRgpStatusType::getS))
+        .containsExactly(TRANSFER_PERIOD, RENEW_PERIOD);
 
     assertThat(bean.getSecDNS()).named("secdns").isNotNull();
     assertThat(bean.getSecDNS().getDsDatas()).named("secdns dsdata").isNotNull();
@@ -170,19 +160,12 @@ public class DomainResourceToXjcConverterTest {
 
     assertThat(bean.getRoid()).isEqualTo("2-Q9JYB4C");
 
-    assertThat(
-        FluentIterable
-            .from(bean.getStatuses())
-            .transform(new Function<XjcDomainStatusType, XjcDomainStatusValueType>() {
-              @Override
-              public XjcDomainStatusValueType apply(XjcDomainStatusType status) {
-                return status.getS();
-              }})
-            ).containsExactly(
-                XjcDomainStatusValueType.CLIENT_DELETE_PROHIBITED,
-                XjcDomainStatusValueType.CLIENT_RENEW_PROHIBITED,
-                XjcDomainStatusValueType.CLIENT_TRANSFER_PROHIBITED,
-                XjcDomainStatusValueType.SERVER_UPDATE_PROHIBITED);
+    assertThat(FluentIterable.from(bean.getStatuses()).transform(XjcDomainStatusType::getS))
+        .containsExactly(
+            XjcDomainStatusValueType.CLIENT_DELETE_PROHIBITED,
+            XjcDomainStatusValueType.CLIENT_RENEW_PROHIBITED,
+            XjcDomainStatusValueType.CLIENT_TRANSFER_PROHIBITED,
+            XjcDomainStatusValueType.SERVER_UPDATE_PROHIBITED);
 
     assertThat(bean.getTrDate()).isEqualTo(DateTime.parse("1910-01-01T00:00:00Z"));
 

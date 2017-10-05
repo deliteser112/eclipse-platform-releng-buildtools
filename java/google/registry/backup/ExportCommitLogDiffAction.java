@@ -16,6 +16,7 @@ package google.registry.backup;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verifyNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Lists.partition;
 import static google.registry.backup.BackupUtils.GcsMetadataKeys.LOWER_BOUND_CHECKPOINT;
@@ -29,15 +30,14 @@ import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static java.nio.channels.Channels.newOutputStream;
 import static java.util.Arrays.asList;
+import static java.util.Comparator.comparingLong;
 
 import com.google.appengine.tools.cloudstorage.GcsFileOptions;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
-import com.google.common.base.Function;
-import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.ImmutableObject;
@@ -52,7 +52,6 @@ import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -152,21 +151,17 @@ public final class ExportCommitLogDiffAction implements Runnable {
     // transaction-consistent by virtue of our checkpoint strategy and our customized Ofy; see
     // CommitLogCheckpointStrategy for the proof. We break ties by sorting on bucket ID to ensure
     // a deterministic order.
-    return FluentIterable.from(upperCheckpoint.getBucketTimestamps().keySet())
-        .transformAndConcat(new Function<Integer, Iterable<Key<CommitLogManifest>>>() {
-          @Override
-          public Iterable<Key<CommitLogManifest>> apply(Integer bucketNum) {
-            return loadDiffKeysFromBucket(lowerCheckpoint, upperCheckpoint, bucketNum);
-          }})
-        .toSortedList(new Comparator<Key<CommitLogManifest>>() {
-          @Override
-          public int compare(Key<CommitLogManifest> a, Key<CommitLogManifest> b) {
-            // Compare keys by timestamp (which is encoded in the id as millis), then by bucket id.
-            return ComparisonChain.start()
-                .compare(a.getId(), b.getId())
-                .compare(a.getParent().getId(), b.getParent().getId())
-                .result();
-          }});
+    return upperCheckpoint
+        .getBucketTimestamps()
+        .keySet()
+        .stream()
+        .flatMap(
+            bucketNum ->
+                Streams.stream(loadDiffKeysFromBucket(lowerCheckpoint, upperCheckpoint, bucketNum)))
+        .sorted(
+            comparingLong(Key<CommitLogManifest>::getId)
+                .thenComparingLong(a -> a.getParent().getId()))
+        .collect(toImmutableList());
   }
 
   /**

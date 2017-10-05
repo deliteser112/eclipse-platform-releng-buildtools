@@ -20,8 +20,6 @@ import static com.google.common.truth.Truth.assert_;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.annotation.Id;
@@ -157,14 +155,11 @@ public class EntityTestCase {
           }
           // Descend into persisted ImmutableObject classes, but not anything else.
           if (ImmutableObject.class.isAssignableFrom(fieldClass)) {
-            fields.addAll(FluentIterable
-                .from(getAllPotentiallyIndexedFieldPaths(fieldClass))
-                .transform(new Function<String, String>(){
-                    @Override
-                    public String apply(String subfield) {
-                      return field.getName() + "." + subfield;
-                    }})
-                .toSet());
+            getAllPotentiallyIndexedFieldPaths(fieldClass)
+                .stream()
+                .map(subfield -> field.getName() + "." + subfield)
+                .distinct()
+                .forEachOrdered(fields::add);
           } else {
             fields.add(field.getName());
           }

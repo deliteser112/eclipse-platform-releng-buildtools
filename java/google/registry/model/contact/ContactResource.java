@@ -15,13 +15,12 @@
 package google.registry.model.contact;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
@@ -33,6 +32,7 @@ import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.annotations.ReportedOn;
 import google.registry.model.contact.PostalInfo.Type;
 import google.registry.model.transfer.TransferData;
+import java.util.stream.Stream;
 import javax.xml.bind.annotation.XmlElement;
 import org.joda.time.DateTime;
 
@@ -170,10 +170,9 @@ public class ContactResource extends EppResource implements
    */
   @XmlElement(name = "postalInfo")
   public ImmutableList<PostalInfo> getPostalInfosAsList() {
-    return FluentIterable
-        .from(Lists.newArrayList(localizedPostalInfo, internationalizedPostalInfo))
+    return Stream.of(localizedPostalInfo, internationalizedPostalInfo)
         .filter(Predicates.notNull())
-        .toList();
+        .collect(toImmutableList());
   }
 
   @Override

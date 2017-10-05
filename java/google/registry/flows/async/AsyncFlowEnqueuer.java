@@ -26,7 +26,6 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
 import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
-import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.joda.time.DateTime;
@@ -107,11 +106,11 @@ public final class AsyncFlowEnqueuer {
    * enqueuing a task.
    */
   private void addTaskToQueueWithRetry(final Queue queue, final TaskOptions task) {
-    retrier.callWithRetry(new Callable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        queue.add(task);
-        return null;
-      }}, TransientFailureException.class);
+    retrier.callWithRetry(
+        () -> {
+          queue.add(task);
+          return null;
+        },
+        TransientFailureException.class);
   }
 }

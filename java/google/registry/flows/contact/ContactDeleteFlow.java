@@ -23,7 +23,6 @@ import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -69,13 +68,6 @@ public final class ContactDeleteFlow implements TransactionalFlow {
       StatusValue.PENDING_DELETE,
       StatusValue.SERVER_DELETE_PROHIBITED);
 
-  private static final Function<DomainBase, ImmutableSet<?>> GET_REFERENCED_CONTACTS =
-      new Function<DomainBase, ImmutableSet<?>>() {
-        @Override
-        public ImmutableSet<?> apply(DomainBase domain) {
-          return domain.getReferencedContacts();
-        }};
-
   @Inject ExtensionManager extensionManager;
   @Inject @ClientId String clientId;
   @Inject @TargetId String targetId;
@@ -93,7 +85,7 @@ public final class ContactDeleteFlow implements TransactionalFlow {
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
-    failfastForAsyncDelete(targetId, now, ContactResource.class, GET_REFERENCED_CONTACTS);
+    failfastForAsyncDelete(targetId, now, ContactResource.class, DomainBase::getReferencedContacts);
     ContactResource existingContact = loadAndVerifyExistence(ContactResource.class, targetId, now);
     verifyNoDisallowedStatuses(existingContact, DISALLOWED_STATUSES);
     verifyOptionalAuthInfo(authInfo, existingContact);

@@ -95,9 +95,5 @@ public class PremiumListTest {
 
   /** Gets the label of a premium list entry. */
   public static final Function<Key<PremiumListEntry>, String> GET_ENTRY_NAME_FUNCTION =
-      new Function<Key<PremiumListEntry>, String>() {
-        @Override
-        public String apply(final Key<PremiumListEntry> input) {
-          return input.getName();
-        }};
+      Key::getName;
 }

@@ -17,12 +17,11 @@ package google.registry.util;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.throwIfInstanceOf;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.io.BaseEncoding.base64;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,9 +71,12 @@ public final class X509Utils {
   public static X509Certificate loadCertificate(InputStream input)
       throws CertificateParsingException {
     try {
-      return Iterables.getOnlyElement(FluentIterable
-          .from(CertificateFactory.getInstance("X.509").generateCertificates(input))
-          .filter(X509Certificate.class));
+      return CertificateFactory.getInstance("X.509")
+          .generateCertificates(input)
+          .stream()
+          .filter(X509Certificate.class::isInstance)
+          .map(X509Certificate.class::cast)
+          .collect(onlyElement());
     } catch (CertificateException e) {  // CertificateParsingException by specification.
       throwIfInstanceOf(e, CertificateParsingException.class);
       throw new CertificateParsingException(e);
@@ -114,9 +116,12 @@ public final class X509Utils {
   public static X509CRL loadCrl(String asciiCrl) throws GeneralSecurityException {
     ByteArrayInputStream input = new ByteArrayInputStream(asciiCrl.getBytes(US_ASCII));
     try {
-      return Iterables.getOnlyElement(FluentIterable
-          .from(CertificateFactory.getInstance("X.509").generateCRLs(input))
-          .filter(X509CRL.class));
+      return CertificateFactory.getInstance("X.509")
+          .generateCRLs(input)
+          .stream()
+          .filter(X509CRL.class::isInstance)
+          .map(X509CRL.class::cast)
+          .collect(onlyElement());
     } catch (NoSuchElementException e) {
       throw new CRLException("No X509CRL found.");
     } catch (IllegalArgumentException e) {

@@ -14,13 +14,13 @@
 
 package google.registry.mapreduce.inputs;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.EntityClasses.CLASS_TO_KIND_FUNCTION;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.tools.mapreduce.InputReader;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
@@ -137,7 +137,7 @@ abstract class EppResourceBaseReader<T> extends InputReader<T> {
       ImmutableSet<Class<? extends R>> resourceClasses) {
     // Ignore EppResource when finding kinds, since it doesn't have one and doesn't imply filtering.
     return resourceClasses.contains(EppResource.class)
-          ? ImmutableSet.<String>of()
-          : FluentIterable.from(resourceClasses).transform(CLASS_TO_KIND_FUNCTION).toSet();
+        ? ImmutableSet.<String>of()
+        : resourceClasses.stream().map(CLASS_TO_KIND_FUNCTION).collect(toImmutableSet());
   }
 }

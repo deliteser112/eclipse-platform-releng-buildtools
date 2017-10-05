@@ -17,6 +17,7 @@ package google.registry.tools.server;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.instanceOf;
 import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Multimaps.filterKeys;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.truth.Truth.assertThat;
@@ -32,7 +33,6 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.util.Arrays.asList;
 
 import com.google.appengine.api.datastore.Entity;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -53,6 +53,7 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
+import java.util.stream.Stream;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.junit.Test;
@@ -64,22 +65,21 @@ import org.junit.runners.JUnit4;
 public class KillAllEppResourcesActionTest extends MapreduceTestCase<KillAllEppResourcesAction> {
 
   static final ImmutableSet<String> AFFECTED_KINDS =
-      FluentIterable.from(
-              asList(
-                  EppResourceIndex.class,
-                  ForeignKeyContactIndex.class,
-                  ForeignKeyDomainIndex.class,
-                  ForeignKeyHostIndex.class,
-                  DomainApplicationIndex.class,
-                  DomainBase.class,
-                  ContactResource.class,
-                  HostResource.class,
-                  HistoryEntry.class,
-                  PollMessage.class,
-                  BillingEvent.OneTime.class,
-                  BillingEvent.Recurring.class))
-          .transform(CLASS_TO_KIND_FUNCTION)
-          .toSet();
+      Stream.of(
+              EppResourceIndex.class,
+              ForeignKeyContactIndex.class,
+              ForeignKeyDomainIndex.class,
+              ForeignKeyHostIndex.class,
+              DomainApplicationIndex.class,
+              DomainBase.class,
+              ContactResource.class,
+              HostResource.class,
+              HistoryEntry.class,
+              PollMessage.class,
+              BillingEvent.OneTime.class,
+              BillingEvent.Recurring.class)
+          .map(CLASS_TO_KIND_FUNCTION)
+          .collect(toImmutableSet());
 
   private void runMapreduce() throws Exception {
     action = new KillAllEppResourcesAction();

@@ -16,16 +16,16 @@ package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Predicates.notNull;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.registrar.Registrar.loadByClientId;
 import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.base.Function;
 import com.google.common.base.Strings;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
 import google.registry.tools.server.VerifyOteAction;
@@ -105,21 +105,20 @@ final class VerifyOteCommand implements ServerSideCommand {
    * prefixes of those accounts (in this case, regname).
    */
   private ImmutableSet<String> getAllRegistrarNames() {
-    return FluentIterable.from(Registrar.loadAll())
-      .transform(new Function<Registrar, String>() {
-          @Override
-          public String apply(Registrar registrar) {
-            if (!registrar.isLive()) {
-              return null;
-            }
-            String name = registrar.getClientId();
-            // Look for names of the form "regname-1", "regname-2", etc. and strip the -# suffix.
-            String replacedName = name.replaceFirst("^(.*)-[1234]$", "$1");
-            // Check if any replacement happened, and thus whether the name matches the format.
-            // If it matches, provide the shortened name, and otherwise return null.
-            return name.equals(replacedName) ? null : replacedName;
-          }})
-      .filter(notNull())
-      .toSet();
+    return Streams.stream(Registrar.loadAll())
+        .map(
+            registrar -> {
+              if (!registrar.isLive()) {
+                return null;
+              }
+              String name = registrar.getClientId();
+              // Look for names of the form "regname-1", "regname-2", etc. and strip the -# suffix.
+              String replacedName = name.replaceFirst("^(.*)-[1234]$", "$1");
+              // Check if any replacement happened, and thus whether the name matches the format.
+              // If it matches, provide the shortened name, and otherwise return null.
+              return name.equals(replacedName) ? null : replacedName;
+            })
+        .filter(notNull())
+        .collect(toImmutableSet());
   }
 }

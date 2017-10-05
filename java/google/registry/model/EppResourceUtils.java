@@ -172,11 +172,7 @@ public final class EppResourceUtils {
    * Iterables.transform() over a collection of EppResources.
    */
   public static <T extends EppResource> Function<T, T> transformAtTime(final DateTime now) {
-    return new Function<T, T>() {
-      @Override
-      public T apply(T resource) {
-        return cloneProjectedAtTime(resource, now);
-      }};
+    return (T resource) -> cloneProjectedAtTime(resource, now);
   }
 
   /**

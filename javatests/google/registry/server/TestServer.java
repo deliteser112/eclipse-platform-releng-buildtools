@@ -29,11 +29,9 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
 import javax.servlet.Filter;
 import javax.servlet.http.HttpServlet;
 import org.mortbay.jetty.Connector;
@@ -129,15 +127,11 @@ public final class TestServer {
   /** Stops the HTTP server. */
   public void stop() {
     try {
-      SimpleTimeLimiter.create(newCachedThreadPool())
+      Void unusedReturnValue = SimpleTimeLimiter.create(newCachedThreadPool())
           .callWithTimeout(
-              new Callable<Void>() {
-                @Nullable
-                @Override
-                public Void call() throws Exception {
-                  server.stop();
-                  return null;
-                }
+              () -> {
+                server.stop();
+                return null;
               },
               SHUTDOWN_TIMEOUT_MS,
               TimeUnit.MILLISECONDS);

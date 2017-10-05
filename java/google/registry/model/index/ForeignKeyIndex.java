@@ -18,7 +18,6 @@ import static com.google.common.collect.Maps.filterValues;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.TypeUtils.instantiate;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
@@ -166,10 +165,6 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
       Class<E> clazz, Iterable<String> foreignKeys, final DateTime now) {
     return filterValues(
         ofy().load().type(mapToFkiClass(clazz)).ids(foreignKeys),
-        new Predicate<ForeignKeyIndex<?>>() {
-          @Override
-          public boolean apply(ForeignKeyIndex<?> fki) {
-            return now.isBefore(fki.deletionTime);
-          }});
+        (ForeignKeyIndex<?> fki) -> now.isBefore(fki.deletionTime));
   }
 }

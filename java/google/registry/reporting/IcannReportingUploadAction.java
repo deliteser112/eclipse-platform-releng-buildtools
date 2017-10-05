@@ -32,11 +32,9 @@ import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
-import google.registry.xml.XmlException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
 /**
@@ -82,16 +80,16 @@ public final class IcannReportingUploadAction implements Runnable {
         gcsFilename.getObjectName(),
         gcsFilename.getBucketName());
 
-    retrier.callWithRetry(new Callable<Void>() {
-      @Override
-      public Void call() throws IOException, XmlException {
-        final byte[] payload = readReportFromGcs(gcsFilename);
-        icannReporter.send(payload, tld, yearMonth, reportType);
-        response.setContentType(PLAIN_TEXT_UTF_8);
-        response.setPayload(
-            String.format("OK, sending: %s", new String(payload, StandardCharsets.UTF_8)));
-        return null;
-      }}, IOException.class);
+    retrier.callWithRetry(
+        () -> {
+          final byte[] payload = readReportFromGcs(gcsFilename);
+          icannReporter.send(payload, tld, yearMonth, reportType);
+          response.setContentType(PLAIN_TEXT_UTF_8);
+          response.setPayload(
+              String.format("OK, sending: %s", new String(payload, StandardCharsets.UTF_8)));
+          return null;
+        },
+        IOException.class);
   }
 
   private byte[] readReportFromGcs(GcsFilename reportFilename) throws IOException {

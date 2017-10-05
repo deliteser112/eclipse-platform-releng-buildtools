@@ -17,7 +17,6 @@ package google.registry.rdap;
 import static com.google.common.collect.Iterables.tryFind;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import google.registry.model.registrar.Registrar;
 
 /** Utility functions for RDAP. */
@@ -29,11 +28,9 @@ public final class RdapUtils {
   static Optional<Registrar> getRegistrarByIanaIdentifier(final long ianaIdentifier) {
     return tryFind(
         Registrar.loadAllCached(),
-        new Predicate<Registrar>() {
-          @Override
-          public boolean apply(Registrar registrar) {
-            Long registrarIanaIdentifier = registrar.getIanaIdentifier();
-            return (registrarIanaIdentifier != null) && (registrarIanaIdentifier == ianaIdentifier);
-          }});
+        registrar -> {
+          Long registrarIanaIdentifier = registrar.getIanaIdentifier();
+          return (registrarIanaIdentifier != null) && (registrarIanaIdentifier == ianaIdentifier);
+        });
   }
 }

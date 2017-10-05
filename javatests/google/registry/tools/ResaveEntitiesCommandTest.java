@@ -20,7 +20,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.common.base.Function;
 import com.googlecode.objectify.Key;
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
@@ -46,12 +45,7 @@ public class ResaveEntitiesCommandTest extends CommandTestCase<ResaveEntitiesCom
     Iterable<ImmutableObject> savedEntities =
         transform(
             ofy().load().type(CommitLogMutation.class).list(),
-            new Function<CommitLogMutation, ImmutableObject>() {
-              @Override
-              public ImmutableObject apply(CommitLogMutation mutation) {
-                return ofy().load().fromEntity(mutation.getEntity());
-              }
-            });
+            mutation -> ofy().load().fromEntity(mutation.getEntity()));
     // Reload the contacts before asserting, since their update times will have changed.
     ofy().clearSessionCache();
     assertThat(savedEntities)

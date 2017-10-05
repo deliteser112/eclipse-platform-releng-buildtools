@@ -19,23 +19,13 @@ import static com.google.common.collect.Range.closed;
 import static com.google.common.collect.Range.singleton;
 import static java.util.Locale.getISOCountries;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.re2j.Pattern;
-import javax.annotation.Nullable;
 
 /** Utility class of {@link FormField} objects for validating EPP related things. */
 public final class FormFields {
 
   private static final Pattern WHITESPACE = Pattern.compile("[ \\t\\r\\n]+");
-  private static final Function<String, String> COLLAPSE_WHITESPACE =
-      new Function<String, String>() {
-        @Nullable
-        @Override
-        public String apply(@Nullable String input) {
-          return input != null ? WHITESPACE.matcher(input).replaceAll(" ") : null;
-        }};
-
   /**
    * Form field that applies XML Schema Token cleanup to input.
    *
@@ -43,11 +33,12 @@ public final class FormFields {
    *
    * @see <a href="http://www.w3.org/TR/xmlschema11-2/#token">XSD Datatypes - token</a>
    */
-  public static final FormField<String, String> XS_TOKEN = FormField.named("xsToken")
-      .emptyToNull()
-      .trimmed()
-      .transform(COLLAPSE_WHITESPACE)
-      .build();
+  public static final FormField<String, String> XS_TOKEN =
+      FormField.named("xsToken")
+          .emptyToNull()
+          .trimmed()
+          .transform(input -> input != null ? WHITESPACE.matcher(input).replaceAll(" ") : null)
+          .build();
 
   /**
    * Form field that ensures input does not contain tabs, line feeds, or carriage returns.

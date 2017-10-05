@@ -216,14 +216,7 @@ public class FormFieldTest {
   public void testCast() {
     assertThat(
             FormField.named("lol")
-                .transform(
-                    Integer.class,
-                    new Function<String, Integer>() {
-                      @Override
-                      public Integer apply(String input) {
-                        return Integer.parseInt(input);
-                      }
-                    })
+                .transform(Integer.class, Integer::parseInt)
                 .build()
                 .convert("123"))
         .hasValue(123);
@@ -233,14 +226,7 @@ public class FormFieldTest {
   public void testCast_twice() {
     assertThat(
             FormField.named("lol")
-                .transform(
-                    Object.class,
-                    new Function<String, Object>() {
-                      @Override
-                      public Integer apply(String input) {
-                        return Integer.parseInt(input);
-                      }
-                    })
+                .transform(Object.class, Integer::parseInt)
                 .transform(String.class, Functions.toStringFunction())
                 .build()
                 .convert("123"))
@@ -384,20 +370,13 @@ public class FormFieldTest {
         .propagate(0)
         .propagate("lol")));
     FormField.mapNamed("lol")
-        .transform(String.class, new Function<Map<String, ?>, String>() {
-          @Override
-          public String apply(Map<String, ?> input) {
-            return FormField.named("cat")
-                .emptyToNull()
-                .required()
-                .build()
-                .extractUntyped(input)
-                .get();
-          }})
+        .transform(
+            String.class,
+            input ->
+                FormField.named("cat").emptyToNull().required().build().extractUntyped(input).get())
         .asList()
         .build()
-        .convert(ImmutableList.<Map<String, ?>>of(
-            ImmutableMap.of("cat", "")));
+        .convert(ImmutableList.<Map<String, ?>>of(ImmutableMap.of("cat", "")));
   }
 
   @Test
@@ -410,24 +389,21 @@ public class FormFieldTest {
   @Test
   public void testAsMatrix() {
     assertThat(
-        FormField.named("lol", Integer.class)
-            .transform(new Function<Integer, Integer>() {
-              @Override
-              public Integer apply(Integer input) {
-                return input * 2;
-              }})
-            .asList()
-            .asList()
-            .build()
-            .convert(Lists.cartesianProduct(ImmutableList.of(
-                ImmutableList.of(1, 2),
-                ImmutableList.of(3, 4))))
-            .get())
-                .containsExactly(
-                    ImmutableList.of(2, 6),
-                    ImmutableList.of(2, 8),
-                    ImmutableList.of(4, 6),
-                    ImmutableList.of(4, 8)).inOrder();
+            FormField.named("lol", Integer.class)
+                .transform(input -> input * 2)
+                .asList()
+                .asList()
+                .build()
+                .convert(
+                    Lists.cartesianProduct(
+                        ImmutableList.of(ImmutableList.of(1, 2), ImmutableList.of(3, 4))))
+                .get())
+        .containsExactly(
+            ImmutableList.of(2, 6),
+            ImmutableList.of(2, 8),
+            ImmutableList.of(4, 6),
+            ImmutableList.of(4, 8))
+        .inOrder();
  }
 
   @Test

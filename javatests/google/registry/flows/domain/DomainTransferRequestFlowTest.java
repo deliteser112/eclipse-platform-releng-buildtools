@@ -14,6 +14,8 @@
 
 package google.registry.flows.domain;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;
@@ -38,7 +40,6 @@ import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -66,7 +67,6 @@ import google.registry.flows.exceptions.ResourceStatusProhibitsOperationExceptio
 import google.registry.flows.exceptions.TransferPeriodMustBeOneYearException;
 import google.registry.flows.exceptions.TransferPeriodZeroAndFeeTransferExtensionException;
 import google.registry.model.billing.BillingEvent;
-import google.registry.model.billing.BillingEvent.Cancellation.Builder;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.domain.DomainAuthInfo;
@@ -87,6 +87,7 @@ import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferStatus;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -285,14 +286,11 @@ public class DomainTransferRequestFlowTest
             .build();
     // Construct extra billing events expected by the specific test.
     ImmutableList<BillingEvent> extraBillingEvents =
-        FluentIterable.from(extraExpectedBillingEvents)
-            .transform(
-                new Function<BillingEvent.Cancellation.Builder, BillingEvent>() {
-                  @Override
-                  public BillingEvent apply(Builder builder) {
-                    return builder.setParent(historyEntryTransferRequest).build();
-                  }})
-            .toList();
+        Stream.of(extraExpectedBillingEvents)
+            .map(
+                (Function<BillingEvent.Cancellation.Builder, BillingEvent>)
+                    builder -> builder.setParent(historyEntryTransferRequest).build())
+            .collect(toImmutableList());
     // Assert that the billing events we constructed above actually exist in datastore.
     assertBillingEvents(FluentIterable.from(extraBillingEvents)
         .append(optionalTransferBillingEvent.asSet())
@@ -367,46 +365,57 @@ public class DomainTransferRequestFlowTest
     assertThat(transferApprovedPollMessage.getEventTime()).isEqualTo(implicitTransferTime);
     assertThat(autorenewPollMessage.getEventTime()).isEqualTo(expectedExpirationTime);
     assertThat(
-        Iterables.getOnlyElement(FluentIterable
-            .from(transferApprovedPollMessage.getResponseData())
-            .filter(TransferResponse.class))
+            transferApprovedPollMessage
+                .getResponseData()
+                .stream()
+                .filter(TransferResponse.class::isInstance)
+                .map(TransferResponse.class::cast)
+                .collect(onlyElement())
                 .getTransferStatus())
-                .isEqualTo(TransferStatus.SERVER_APPROVED);
-    PendingActionNotificationResponse panData = Iterables.getOnlyElement(FluentIterable
-        .from(transferApprovedPollMessage.getResponseData())
-        .filter(PendingActionNotificationResponse.class));
+        .isEqualTo(TransferStatus.SERVER_APPROVED);
+    PendingActionNotificationResponse panData =
+        transferApprovedPollMessage
+            .getResponseData()
+            .stream()
+            .filter(PendingActionNotificationResponse.class::isInstance)
+            .map(PendingActionNotificationResponse.class::cast)
+            .collect(onlyElement());
     assertThat(panData.getTrid().getClientTransactionId()).isEqualTo("ABC-12345");
     assertThat(panData.getActionResult()).isTrue();
 
     // Two poll messages on the losing registrar's side at the implicit transfer time: a
     // transfer pending message, and a transfer approved message (both OneTime messages).
     assertThat(getPollMessages("TheRegistrar", implicitTransferTime)).hasSize(2);
-    PollMessage losingTransferPendingPollMessage = Iterables.getOnlyElement(
-        FluentIterable.from(getPollMessages("TheRegistrar", clock.nowUtc()))
-            .filter(
-                new Predicate<PollMessage>() {
-                  @Override
-                  public boolean apply(PollMessage pollMessage) {
-                    return TransferStatus.PENDING.getMessage().equals(pollMessage.getMsg());
-                  }
-                }));
-    PollMessage losingTransferApprovedPollMessage = Iterables.getOnlyElement(FluentIterable
-        .from(getPollMessages("TheRegistrar", implicitTransferTime))
-        .filter(Predicates.not(Predicates.equalTo(losingTransferPendingPollMessage))));
+    PollMessage losingTransferPendingPollMessage =
+        getPollMessages("TheRegistrar", clock.nowUtc())
+            .stream()
+            .filter(pollMessage -> TransferStatus.PENDING.getMessage().equals(pollMessage.getMsg()))
+            .collect(onlyElement());
+    PollMessage losingTransferApprovedPollMessage =
+        getPollMessages("TheRegistrar", implicitTransferTime)
+            .stream()
+            .filter(Predicates.not(Predicates.equalTo(losingTransferPendingPollMessage)))
+            .collect(onlyElement());
     assertThat(losingTransferPendingPollMessage.getEventTime()).isEqualTo(clock.nowUtc());
     assertThat(losingTransferApprovedPollMessage.getEventTime()).isEqualTo(implicitTransferTime);
     assertThat(
-        Iterables.getOnlyElement(FluentIterable
-            .from(losingTransferPendingPollMessage.getResponseData())
-            .filter(TransferResponse.class))
+            losingTransferPendingPollMessage
+                .getResponseData()
+                .stream()
+                .filter(TransferResponse.class::isInstance)
+                .map(TransferResponse.class::cast)
+                .collect(onlyElement())
                 .getTransferStatus())
-                .isEqualTo(TransferStatus.PENDING);
+        .isEqualTo(TransferStatus.PENDING);
     assertThat(
-        Iterables.getOnlyElement(FluentIterable
-            .from(losingTransferApprovedPollMessage.getResponseData())
-            .filter(TransferResponse.class))
+            losingTransferApprovedPollMessage
+                .getResponseData()
+                .stream()
+                .filter(TransferResponse.class::isInstance)
+                .map(TransferResponse.class::cast)
+                .collect(onlyElement())
                 .getTransferStatus())
-                .isEqualTo(TransferStatus.SERVER_APPROVED);
+        .isEqualTo(TransferStatus.SERVER_APPROVED);
 
     // Assert that the poll messages show up in the TransferData server approve entities.
     assertPollMessagesEqual(

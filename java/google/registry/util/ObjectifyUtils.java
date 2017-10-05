@@ -20,9 +20,5 @@ import com.googlecode.objectify.Key;
 /** Utilities for working with Objectify. */
 public class ObjectifyUtils {
 
-  public static final Function<Object, Key<?>> OBJECTS_TO_KEYS = new Function<Object, Key<?>>() {
-    @Override
-    public Key<?> apply(Object obj) {
-      return Key.create(obj);
-    }};
+  public static final Function<Object, Key<?>> OBJECTS_TO_KEYS = Key::create;
 }

@@ -14,7 +14,6 @@
 
 package google.registry.util;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -44,13 +43,10 @@ public class FormattingLogger {
   }
 
   private void log(Level level, @Nullable Throwable cause, String msg) {
-    StackTraceElement callerFrame = FluentIterable
-        .from(new Exception().getStackTrace())
-        .firstMatch(new Predicate<StackTraceElement>() {
-            @Override
-            public boolean apply(StackTraceElement frame) {
-              return !frame.getClassName().equals(FormattingLogger.class.getName());
-            }}).get();
+    StackTraceElement callerFrame =
+        FluentIterable.from(new Exception().getStackTrace())
+            .firstMatch(frame -> !frame.getClassName().equals(FormattingLogger.class.getName()))
+            .get();
     if (cause == null) {
       logger.logp(level, callerFrame.getClassName(), callerFrame.getMethodName(), msg);
     } else {

@@ -14,7 +14,6 @@
 
 package google.registry.testing;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.testing.TestLogHandler;
 import java.util.logging.LogRecord;
@@ -37,12 +36,6 @@ public final class TestLogHandlerUtils {
   public static LogRecord findFirstLogRecordWithMessagePrefix(
       TestLogHandler handler, final String prefix) {
     return Iterables.find(
-        handler.getStoredLogRecords(),
-        new Predicate<LogRecord>() {
-          @Override
-          public boolean apply(LogRecord logRecord) {
-            return logRecord.getMessage().startsWith(prefix);
-          }
-        });
+        handler.getStoredLogRecords(), logRecord -> logRecord.getMessage().startsWith(prefix));
   }
 }

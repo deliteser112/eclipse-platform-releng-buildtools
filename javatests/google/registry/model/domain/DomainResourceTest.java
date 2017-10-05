@@ -14,6 +14,7 @@
 
 package google.registry.model.domain;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
@@ -26,7 +27,6 @@ import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
@@ -52,6 +52,7 @@ import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.ExceptionRule;
+import java.util.stream.Stream;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -363,9 +364,13 @@ public class DomainResourceTest extends EntityTestCase {
     ImmutableSet<GracePeriod> renewGracePeriods = ImmutableSet.of(
         GracePeriod.create(GracePeriodStatus.RENEW, clock.nowUtc().plusDays(3), "foo", null),
         GracePeriod.create(GracePeriodStatus.RENEW, clock.nowUtc().plusDays(1), "baz", null));
-    domain = domain.asBuilder()
-        .setGracePeriods(FluentIterable.from(addGracePeriods).append(renewGracePeriods).toSet())
-        .build();
+    domain =
+        domain
+            .asBuilder()
+            .setGracePeriods(
+                Stream.concat(addGracePeriods.stream(), renewGracePeriods.stream())
+                    .collect(toImmutableSet()))
+            .build();
     assertThat(domain.getGracePeriodsOfType(GracePeriodStatus.ADD)).isEqualTo(addGracePeriods);
     assertThat(domain.getGracePeriodsOfType(GracePeriodStatus.RENEW)).isEqualTo(renewGracePeriods);
     assertThat(domain.getGracePeriodsOfType(GracePeriodStatus.TRANSFER)).isEmpty();

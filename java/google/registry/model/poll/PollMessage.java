@@ -14,6 +14,7 @@
 
 package google.registry.model.poll;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.util.CollectionUtils.forceEmptyToNull;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -24,6 +25,7 @@ import com.google.common.base.Converter;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.EntitySubclass;
@@ -235,26 +237,48 @@ public abstract class PollMessage extends ImmutableObject
 
       public Builder setResponseData(ImmutableList<? extends ResponseData> responseData) {
         FluentIterable<? extends ResponseData> iterable = FluentIterable.from(responseData);
-        getInstance().contactPendingActionNotificationResponses = forceEmptyToNull(
-            iterable.filter(ContactPendingActionNotificationResponse.class).toList());
-        getInstance().contactTransferResponses = forceEmptyToNull(
-            iterable.filter(ContactTransferResponse.class).toList());
-        getInstance().domainPendingActionNotificationResponses = forceEmptyToNull(
-            iterable.filter(DomainPendingActionNotificationResponse.class).toList());
-        getInstance().domainTransferResponses = forceEmptyToNull(
-            iterable.filter(DomainTransferResponse.class).toList());
-        getInstance().hostPendingActionNotificationResponses = forceEmptyToNull(
-            iterable.filter(HostPendingActionNotificationResponse.class).toList());
+        getInstance().contactPendingActionNotificationResponses =
+            forceEmptyToNull(
+                Streams.stream(iterable)
+                    .filter(ContactPendingActionNotificationResponse.class::isInstance)
+                    .map(ContactPendingActionNotificationResponse.class::cast)
+                    .collect(toImmutableList()));
+        getInstance().contactTransferResponses =
+            forceEmptyToNull(
+                Streams.stream(iterable)
+                    .filter(ContactTransferResponse.class::isInstance)
+                    .map(ContactTransferResponse.class::cast)
+                    .collect(toImmutableList()));
+        getInstance().domainPendingActionNotificationResponses =
+            forceEmptyToNull(
+                Streams.stream(iterable)
+                    .filter(DomainPendingActionNotificationResponse.class::isInstance)
+                    .map(DomainPendingActionNotificationResponse.class::cast)
+                    .collect(toImmutableList()));
+        getInstance().domainTransferResponses =
+            forceEmptyToNull(
+                Streams.stream(iterable)
+                    .filter(DomainTransferResponse.class::isInstance)
+                    .map(DomainTransferResponse.class::cast)
+                    .collect(toImmutableList()));
+        getInstance().hostPendingActionNotificationResponses =
+            forceEmptyToNull(
+                Streams.stream(iterable)
+                    .filter(HostPendingActionNotificationResponse.class::isInstance)
+                    .map(HostPendingActionNotificationResponse.class::cast)
+                    .collect(toImmutableList()));
         return this;
       }
 
       public Builder setResponseExtensions(
           ImmutableList<? extends ResponseExtension> responseExtensions) {
-        getInstance().launchInfoResponseExtension = FluentIterable
-            .from(responseExtensions)
-            .filter(LaunchInfoResponseExtension.class)
-            .first()
-            .orNull();
+        getInstance().launchInfoResponseExtension =
+            responseExtensions
+                .stream()
+                .filter(LaunchInfoResponseExtension.class::isInstance)
+                .map(LaunchInfoResponseExtension.class::cast)
+                .findFirst()
+                .orElse(null);
         return this;
       }
     }

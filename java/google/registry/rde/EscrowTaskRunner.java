@@ -89,26 +89,30 @@ class EscrowTaskRunner {
       Duration timeout,
       final CursorType cursorType,
       final Duration interval) {
-    Callable<Void> lockRunner = new Callable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        logger.info("tld=" + registry.getTld());
-        DateTime startOfToday = clock.nowUtc().withTimeAtStartOfDay();
-        Cursor cursor = ofy().load().key(Cursor.createKey(cursorType, registry)).now();
-        final DateTime nextRequiredRun = (cursor == null ? startOfToday : cursor.getCursorTime());
-        if (nextRequiredRun.isAfter(startOfToday)) {
-          throw new NoContentException("Already completed");
-        }
-        logger.info("cursor=" + nextRequiredRun);
-        task.runWithLock(nextRequiredRun);
-        ofy().transact(new VoidWork() {
-          @Override
-          public void vrun() {
-            ofy().save().entity(
-                Cursor.create(cursorType, nextRequiredRun.plus(interval), registry));
-          }});
-        return null;
-      }};
+    Callable<Void> lockRunner =
+        () -> {
+          logger.info("tld=" + registry.getTld());
+          DateTime startOfToday = clock.nowUtc().withTimeAtStartOfDay();
+          Cursor cursor = ofy().load().key(Cursor.createKey(cursorType, registry)).now();
+          final DateTime nextRequiredRun = (cursor == null ? startOfToday : cursor.getCursorTime());
+          if (nextRequiredRun.isAfter(startOfToday)) {
+            throw new NoContentException("Already completed");
+          }
+          logger.info("cursor=" + nextRequiredRun);
+          task.runWithLock(nextRequiredRun);
+          ofy()
+              .transact(
+                  new VoidWork() {
+                    @Override
+                    public void vrun() {
+                      ofy()
+                          .save()
+                          .entity(
+                              Cursor.create(cursorType, nextRequiredRun.plus(interval), registry));
+                    }
+                  });
+          return null;
+        };
     String lockName = String.format("%s %s", task.getClass().getSimpleName(), registry.getTld());
     if (!lockHandler.executeWithLocks(lockRunner, tld, timeout, lockName)) {
       // This will happen if either: a) the task is double-executed; b) the task takes a long time

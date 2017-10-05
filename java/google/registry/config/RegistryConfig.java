@@ -16,7 +16,6 @@ package google.registry.config;
 
 import static com.google.common.base.Suppliers.memoize;
 import static google.registry.config.ConfigUtils.makeUrl;
-import static google.registry.config.YamlUtils.getConfigSettings;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -1270,11 +1269,7 @@ public final class RegistryConfig {
    * change the contents of the YAML config files.
    */
   private static final Supplier<RegistryConfigSettings> CONFIG_SETTINGS =
-      memoize(new Supplier<RegistryConfigSettings>() {
-        @Override
-        public RegistryConfigSettings get() {
-          return getConfigSettings();
-        }});
+      memoize(YamlUtils::getConfigSettings);
 
   private RegistryConfig() {}
 }

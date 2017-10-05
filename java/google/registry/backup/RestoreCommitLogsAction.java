@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -117,16 +116,16 @@ public class RestoreCommitLogsAction implements Runnable {
       }
     }
     // Restore the CommitLogCheckpointRoot and CommitLogBuckets.
-    saveOfy(FluentIterable.from(bucketTimestamps.entrySet())
-        .transform(new Function<Entry<Integer, DateTime>, ImmutableObject> () {
-          @Override
-          public ImmutableObject apply(Entry<Integer, DateTime> entry) {
-            return new CommitLogBucket.Builder()
-                .setBucketNum(entry.getKey())
-                .setLastWrittenTime(entry.getValue())
-                .build();
-          }})
-        .append(CommitLogCheckpointRoot.create(lastCheckpoint.getCheckpointTime())));
+    saveOfy(
+        FluentIterable.from(bucketTimestamps.entrySet())
+            .transform(
+                (Function<Entry<Integer, DateTime>, ImmutableObject>)
+                    entry ->
+                        new CommitLogBucket.Builder()
+                            .setBucketNum(entry.getKey())
+                            .setLastWrittenTime(entry.getValue())
+                            .build())
+            .append(CommitLogCheckpointRoot.create(lastCheckpoint.getCheckpointTime())));
   }
 
   /**
@@ -153,11 +152,7 @@ public class RestoreCommitLogsAction implements Runnable {
     try {
       deleteResult.now();
     } catch (Exception e) {
-      retry(new Runnable() {
-        @Override
-        public void run() {
-          deleteAsync(manifest.getDeletions()).now();
-        }});
+      retry(() -> deleteAsync(manifest.getDeletions()).now());
     }
     return manifest;
   }
@@ -167,11 +162,7 @@ public class RestoreCommitLogsAction implements Runnable {
       logger.info("Would have saved " + entitiesToSave);
       return;
     }
-    retry(new Runnable() {
-      @Override
-      public void run() {
-        datastoreService.put(entitiesToSave);
-      }});
+    retry(() -> datastoreService.put(entitiesToSave));
   }
 
   private void saveOfy(final Iterable<? extends ImmutableObject> objectsToSave) {
@@ -179,11 +170,7 @@ public class RestoreCommitLogsAction implements Runnable {
       logger.info("Would have saved " + asList(objectsToSave));
       return;
     }
-    retry(new Runnable() {
-      @Override
-      public void run() {
-        ofy().saveWithoutBackup().entities(objectsToSave).now();
-      }});
+    retry(() -> ofy().saveWithoutBackup().entities(objectsToSave).now());
   }
 
   private Result<?> deleteAsync(Set<Key<?>> keysToDelete) {
@@ -198,12 +185,10 @@ public class RestoreCommitLogsAction implements Runnable {
   /** Retrier for saves and deletes, since we can't proceed with any failures. */
   private void retry(final Runnable runnable) {
     retrier.callWithRetry(
-        new Callable<Void>() {
-          @Override
-          public Void call() throws Exception {
-            runnable.run();
-            return null;
-          }},
+        () -> {
+          runnable.run();
+          return null;
+        },
         RuntimeException.class);
   }
 }

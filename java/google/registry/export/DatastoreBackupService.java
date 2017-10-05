@@ -18,15 +18,12 @@ import static com.google.appengine.api.datastore.DatastoreServiceFactory.getData
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.Strings.nullToEmpty;
 
-import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.modules.ModulesService;
 import com.google.appengine.api.modules.ModulesServiceFactory;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -91,18 +88,10 @@ public class DatastoreBackupService {
   public Iterable<DatastoreBackupInfo> findAllByNamePrefix(final String namePrefix) {
     // Need the raw DatastoreService to access the internal _AE_Backup_Information entities.
     // TODO(b/19081037): make an Objectify entity class for these raw Datastore entities instead.
-    return FluentIterable
-        .from(getDatastoreService().prepare(new Query(BACKUP_INFO_KIND)).asIterable())
-        .filter(new Predicate<Entity>() {
-            @Override
-            public boolean apply(Entity entity) {
-              return nullToEmpty((String) entity.getProperty("name")).startsWith(namePrefix);
-            }})
-        .transform(new Function<Entity, DatastoreBackupInfo>() {
-            @Override
-            public DatastoreBackupInfo apply(Entity entity) {
-              return new DatastoreBackupInfo(entity);
-            }});
+    return FluentIterable.from(
+            getDatastoreService().prepare(new Query(BACKUP_INFO_KIND)).asIterable())
+        .filter(entity -> nullToEmpty((String) entity.getProperty("name")).startsWith(namePrefix))
+        .transform(DatastoreBackupInfo::new);
   }
 
   /**

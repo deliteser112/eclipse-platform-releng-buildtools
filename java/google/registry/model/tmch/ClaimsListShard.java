@@ -23,7 +23,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
@@ -96,54 +95,47 @@ public class ClaimsListShard extends ImmutableObject {
   private static final Retrier LOADER_RETRIER = new Retrier(new SystemSleeper(), 2);
 
   private static final Callable<ClaimsListShard> LOADER_CALLABLE =
-      new Callable<ClaimsListShard>() {
-        @Override
-        public ClaimsListShard call() throws Exception {
-          // Find the most recent revision.
-          Key<ClaimsListRevision> revisionKey = getCurrentRevision();
+      () -> {
+        // Find the most recent revision.
+        Key<ClaimsListRevision> revisionKey = getCurrentRevision();
 
-          Map<String, String> combinedLabelsToKeys = new HashMap<>();
-          DateTime creationTime = START_OF_TIME;
-          if (revisionKey != null) {
-            // Grab all of the keys for the shards that belong to the current revision.
-            final List<Key<ClaimsListShard>> shardKeys =
-                ofy().load().type(ClaimsListShard.class).ancestor(revisionKey).keys().list();
+        Map<String, String> combinedLabelsToKeys = new HashMap<>();
+        DateTime creationTime = START_OF_TIME;
+        if (revisionKey != null) {
+          // Grab all of the keys for the shards that belong to the current revision.
+          final List<Key<ClaimsListShard>> shardKeys =
+              ofy().load().type(ClaimsListShard.class).ancestor(revisionKey).keys().list();
 
-            // Load all of the shards concurrently, each in a separate transaction.
-            List<ClaimsListShard> shards =
-                Concurrent.transform(
-                    shardKeys,
-                    new Function<Key<ClaimsListShard>, ClaimsListShard>() {
-                      @Override
-                      public ClaimsListShard apply(final Key<ClaimsListShard> key) {
-                        return ofy()
-                            .transactNewReadOnly(
-                                new Work<ClaimsListShard>() {
-                                  @Override
-                                  public ClaimsListShard run() {
-                                    ClaimsListShard claimsListShard = ofy().load().key(key).now();
-                                    checkState(
-                                        claimsListShard != null,
-                                        "Key not found when loading claims list shards.");
-                                    return claimsListShard;
-                                  }
-                                });
-                      }
-                    });
+          // Load all of the shards concurrently, each in a separate transaction.
+          List<ClaimsListShard> shards =
+              Concurrent.transform(
+                  shardKeys,
+                  (final Key<ClaimsListShard> key) ->
+                      ofy()
+                          .transactNewReadOnly(
+                              new Work<ClaimsListShard>() {
+                                @Override
+                                public ClaimsListShard run() {
+                                  ClaimsListShard claimsListShard = ofy().load().key(key).now();
+                                  checkState(
+                                      claimsListShard != null,
+                                      "Key not found when loading claims list shards.");
+                                  return claimsListShard;
+                                }
+                              }));
 
-            // Combine the shards together and return the concatenated ClaimsList.
-            if (!shards.isEmpty()) {
-              creationTime = shards.get(0).creationTime;
-              for (ClaimsListShard shard : shards) {
-                combinedLabelsToKeys.putAll(shard.labelsToKeys);
-                checkState(
-                    creationTime.equals(shard.creationTime),
-                    "Inconsistent claims list shard creation times.");
-              }
+          // Combine the shards together and return the concatenated ClaimsList.
+          if (!shards.isEmpty()) {
+            creationTime = shards.get(0).creationTime;
+            for (ClaimsListShard shard : shards) {
+              combinedLabelsToKeys.putAll(shard.labelsToKeys);
+              checkState(
+                  creationTime.equals(shard.creationTime),
+                  "Inconsistent claims list shard creation times.");
             }
           }
-          return create(creationTime, ImmutableMap.copyOf(combinedLabelsToKeys));
         }
+        return create(creationTime, ImmutableMap.copyOf(combinedLabelsToKeys));
       };
 
   /**
@@ -152,12 +144,7 @@ public class ClaimsListShard extends ImmutableObject {
    */
   private static final Supplier<ClaimsListShard> CACHE =
       memoizeWithShortExpiration(
-          new Supplier<ClaimsListShard>() {
-            @Override
-            public ClaimsListShard get() {
-              return LOADER_RETRIER.callWithRetry(LOADER_CALLABLE, IllegalStateException.class);
-            }
-          });
+          () -> LOADER_RETRIER.callWithRetry(LOADER_CALLABLE, IllegalStateException.class));
 
   public DateTime getCreationTime() {
     return creationTime;
@@ -186,20 +173,21 @@ public class ClaimsListShard extends ImmutableObject {
     final Key<ClaimsListRevision> parentKey = ClaimsListRevision.createKey();
 
     // Save the ClaimsList shards in separate transactions.
-    Concurrent.transform(CollectionUtils.partitionMap(labelsToKeys, shardSize),
-        new Function<ImmutableMap<String, String>, ClaimsListShard>() {
-          @Override
-          public ClaimsListShard apply(final ImmutableMap<String, String> labelsToKeysShard) {
-            return ofy().transactNew(new Work<ClaimsListShard>() {
-              @Override
-              public ClaimsListShard run() {
-                ClaimsListShard shard = create(creationTime, labelsToKeysShard);
-                shard.isShard = true;
-                shard.parent = parentKey;
-                ofy().saveWithoutBackup().entity(shard);
-                return shard;
-              }});
-          }});
+    Concurrent.transform(
+        CollectionUtils.partitionMap(labelsToKeys, shardSize),
+        (final ImmutableMap<String, String> labelsToKeysShard) ->
+            ofy()
+                .transactNew(
+                    new Work<ClaimsListShard>() {
+                      @Override
+                      public ClaimsListShard run() {
+                        ClaimsListShard shard = create(creationTime, labelsToKeysShard);
+                        shard.isShard = true;
+                        shard.parent = parentKey;
+                        ofy().saveWithoutBackup().entity(shard);
+                        return shard;
+                      }
+                    }));
 
     // Persist the new revision, thus causing the newly created shards to go live.
     ofy().transactNew(new VoidWork() {

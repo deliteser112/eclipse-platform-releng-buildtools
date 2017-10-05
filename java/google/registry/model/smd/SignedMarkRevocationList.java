@@ -25,7 +25,6 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
@@ -93,31 +92,36 @@ public class SignedMarkRevocationList extends ImmutableObject {
    * single {@link SignedMarkRevocationList} object.
    */
   private static final Supplier<SignedMarkRevocationList> CACHE =
-      memoizeWithShortExpiration(new Supplier<SignedMarkRevocationList>() {
-        @Override
-        public SignedMarkRevocationList get() {
-          // Open a new transactional read even if we are in a transaction currently.
-          return ofy().transactNewReadOnly(new Work<SignedMarkRevocationList>() {
-            @Override
-            public SignedMarkRevocationList run() {
-              Iterable<SignedMarkRevocationList> shards = ofy()
-                  .load()
-                  .type(SignedMarkRevocationList.class)
-                  .ancestor(getCrossTldKey());
-              DateTime creationTime =
-                  isEmpty(shards)
-                      ? START_OF_TIME
-                      : checkNotNull(Iterables.get(shards, 0).creationTime, "creationTime");
-              ImmutableMap.Builder<String, DateTime> revokes = new ImmutableMap.Builder<>();
-              for (SignedMarkRevocationList shard : shards) {
-                revokes.putAll(shard.revokes);
-                checkState(
-                    creationTime.equals(shard.creationTime),
-                    "Inconsistent creation times: %s vs. %s", creationTime, shard.creationTime);
-              }
-              return create(creationTime, revokes.build());
-            }});
-        }});
+      memoizeWithShortExpiration(
+          () ->
+              ofy()
+                  .transactNewReadOnly(
+                      new Work<SignedMarkRevocationList>() {
+                        @Override
+                        public SignedMarkRevocationList run() {
+                          Iterable<SignedMarkRevocationList> shards =
+                              ofy()
+                                  .load()
+                                  .type(SignedMarkRevocationList.class)
+                                  .ancestor(getCrossTldKey());
+                          DateTime creationTime =
+                              isEmpty(shards)
+                                  ? START_OF_TIME
+                                  : checkNotNull(
+                                      Iterables.get(shards, 0).creationTime, "creationTime");
+                          ImmutableMap.Builder<String, DateTime> revokes =
+                              new ImmutableMap.Builder<>();
+                          for (SignedMarkRevocationList shard : shards) {
+                            revokes.putAll(shard.revokes);
+                            checkState(
+                                creationTime.equals(shard.creationTime),
+                                "Inconsistent creation times: %s vs. %s",
+                                creationTime,
+                                shard.creationTime);
+                          }
+                          return create(creationTime, revokes.build());
+                        }
+                      }));
 
   /** Return a single logical instance that combines all Datastore shards. */
   public static SignedMarkRevocationList get() {
@@ -154,25 +158,34 @@ public class SignedMarkRevocationList extends ImmutableObject {
 
   /** Save this list to Datastore in sharded form. Returns {@code this}. */
   public SignedMarkRevocationList save() {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().deleteWithoutBackup().keys(ofy()
-            .load()
-            .type(SignedMarkRevocationList.class)
-            .ancestor(getCrossTldKey())
-            .keys());
-        ofy().saveWithoutBackup().entities(FluentIterable
-            .from(CollectionUtils.partitionMap(revokes, SHARD_SIZE))
-            .transform(new Function<ImmutableMap<String, DateTime>, SignedMarkRevocationList>() {
+    ofy()
+        .transact(
+            new VoidWork() {
               @Override
-              public SignedMarkRevocationList apply(ImmutableMap<String, DateTime> shardRevokes) {
-                SignedMarkRevocationList shard = create(creationTime, shardRevokes);
-                shard.id = allocateId();
-                shard.isShard = true;  // Avoid the exception in disallowUnshardedSaves().
-                return shard;
-              }}));
-      }});
+              public void vrun() {
+                ofy()
+                    .deleteWithoutBackup()
+                    .keys(
+                        ofy()
+                            .load()
+                            .type(SignedMarkRevocationList.class)
+                            .ancestor(getCrossTldKey())
+                            .keys());
+                ofy()
+                    .saveWithoutBackup()
+                    .entities(
+                        FluentIterable.from(CollectionUtils.partitionMap(revokes, SHARD_SIZE))
+                            .transform(
+                                (ImmutableMap<String, DateTime> shardRevokes) -> {
+                                  SignedMarkRevocationList shard =
+                                      create(creationTime, shardRevokes);
+                                  shard.id = allocateId();
+                                  shard.isShard =
+                                      true; // Avoid the exception in disallowUnshardedSaves().
+                                  return shard;
+                                }));
+              }
+            });
     return this;
   }
 

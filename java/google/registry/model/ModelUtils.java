@@ -17,7 +17,6 @@ package google.registry.model;
 import static com.google.common.base.Predicates.instanceOf;
 import static com.google.common.base.Predicates.isNull;
 import static com.google.common.base.Predicates.or;
-import static com.google.common.collect.Iterables.all;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.transformValues;
 import static com.google.common.collect.Sets.newLinkedHashSet;
@@ -34,6 +33,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
@@ -95,25 +95,21 @@ public class ModelUtils {
       body = FluentIterable.from(clazz.getEnumConstants());
     } else {
       stringBuilder.append("class ");
-      body = FluentIterable.from(getAllFields(clazz).values())
-          .filter(new Predicate<Field>() {
-            @Override
-            public boolean apply(Field field) {
-              return !field.isAnnotationPresent(Ignore.class);
-            }})
-          .transform(new Function<Field, Object>() {
-            @Override
-            public Object apply(Field field) {
-              String annotation = field.isAnnotationPresent(Id.class)
-                  ?  "@Id "
-                  : field.isAnnotationPresent(Parent.class)
-                      ? "@Parent "
-                      : "";
-              String type = field.getType().isArray()
-                  ? field.getType().getComponentType().getName() + "[]"
-                  : field.getGenericType().toString().replaceFirst("class ", "");
-              return String.format("%s%s %s", annotation, type, field.getName());
-            }});
+      body =
+          FluentIterable.from(getAllFields(clazz).values())
+              .filter((Field field) -> !field.isAnnotationPresent(Ignore.class))
+              .transform(
+                  (Field field) -> {
+                    String annotation =
+                        field.isAnnotationPresent(Id.class)
+                            ? "@Id "
+                            : field.isAnnotationPresent(Parent.class) ? "@Parent " : "";
+                    String type =
+                        field.getType().isArray()
+                            ? field.getType().getComponentType().getName() + "[]"
+                            : field.getGenericType().toString().replaceFirst("class ", "");
+                    return String.format("%s%s %s", annotation, type, field.getName());
+                  });
     }
     return stringBuilder
         .append(clazz.getName()).append(" {\n  ")
@@ -212,45 +208,48 @@ public class ModelUtils {
   }
 
   /** Functional helper for {@link #cloneEmptyToNull}. */
-  private static final Function<Object, ?> CLONE_EMPTY_TO_NULL = new Function<Object, Object>() {
-    @Override
-      public Object apply(Object obj) {
-        if (obj instanceof ImmutableSortedMap) {
-          // ImmutableSortedMapTranslatorFactory handles empty for us. If the object is null, then
-          // its on-save hook can't run.
+  private static final Function<Object, ?> CLONE_EMPTY_TO_NULL =
+      new Function<Object, Object>() {
+        @Override
+        public Object apply(Object obj) {
+          if (obj instanceof ImmutableSortedMap) {
+            // ImmutableSortedMapTranslatorFactory handles empty for us. If the object is null, then
+            // its on-save hook can't run.
+            return obj;
+          }
+          if ("".equals(obj)
+              || (obj instanceof Collection && ((Collection<?>) obj).isEmpty())
+              || (obj instanceof Map && ((Map<?, ?>) obj).isEmpty())
+              || (obj != null && obj.getClass().isArray() && Array.getLength(obj) == 0)) {
+            return null;
+          }
+          Predicate<Object> immutableObjectOrNull = or(isNull(), instanceOf(ImmutableObject.class));
+          if ((obj instanceof Set || obj instanceof List)
+              && Streams.stream((Iterable<?>) obj).allMatch(immutableObjectOrNull)) {
+            // Recurse into sets and lists, but only if they contain ImmutableObjects.
+            FluentIterable<?> fluent = FluentIterable.from((Iterable<?>) obj).transform(this);
+            return (obj instanceof List) ? newArrayList(fluent) : newLinkedHashSet(fluent);
+          }
+          if (obj instanceof Map
+              && ((Map<?, ?>) obj).values().stream().allMatch(immutableObjectOrNull)) {
+            // Recurse into maps with ImmutableObject values.
+            return transformValues((Map<?, ?>) obj, this);
+          }
+          if (obj instanceof ImmutableObject) {
+            // Recurse on the fields of an ImmutableObject.
+            ImmutableObject copy = ImmutableObject.clone((ImmutableObject) obj);
+            for (Field field : getAllFields(obj.getClass()).values()) {
+              Object oldValue = getFieldValue(obj, field);
+              Object newValue = apply(oldValue);
+              if (!Objects.equals(oldValue, newValue)) {
+                setFieldValue(copy, field, newValue);
+              }
+            }
+            return copy;
+          }
           return obj;
         }
-        if ("".equals(obj)
-            || (obj instanceof Collection && ((Collection<?>) obj).isEmpty())
-            || (obj instanceof Map && ((Map<?, ?>) obj).isEmpty())
-            || (obj != null && obj.getClass().isArray() && Array.getLength(obj) == 0)) {
-          return null;
-        }
-        Predicate<Object> immutableObjectOrNull = or(isNull(), instanceOf(ImmutableObject.class));
-        if ((obj instanceof Set || obj instanceof List)
-            && all((Iterable<?>) obj, immutableObjectOrNull)) {
-          // Recurse into sets and lists, but only if they contain ImmutableObjects.
-          FluentIterable<?> fluent = FluentIterable.from((Iterable<?>) obj).transform(this);
-          return (obj instanceof List) ? newArrayList(fluent) : newLinkedHashSet(fluent);
-        }
-        if (obj instanceof Map && all(((Map<?, ?>) obj).values(), immutableObjectOrNull)) {
-          // Recurse into maps with ImmutableObject values.
-          return transformValues((Map<?, ?>) obj, this);
-        }
-        if (obj instanceof ImmutableObject) {
-          // Recurse on the fields of an ImmutableObject.
-          ImmutableObject copy = ImmutableObject.clone((ImmutableObject) obj);
-          for (Field field : getAllFields(obj.getClass()).values()) {
-            Object oldValue = getFieldValue(obj, field);
-            Object newValue = apply(oldValue);
-            if (!Objects.equals(oldValue, newValue)) {
-              setFieldValue(copy, field, newValue);
-            }
-          }
-          return copy;
-        }
-        return obj;
-      }};
+      };
 
   /** Returns a clone of the object and sets empty collections, arrays, maps and strings to null. */
   @SuppressWarnings("unchecked")

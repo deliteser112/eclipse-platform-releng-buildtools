@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertAbout;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
 import com.google.common.truth.FailureMetadata;
-import com.google.common.truth.Subject;
 import google.registry.monitoring.metrics.Distribution;
 import google.registry.monitoring.metrics.Metric;
 import google.registry.monitoring.metrics.MetricPoint;
@@ -48,15 +47,9 @@ public final class DistributionMetricSubject
     extends AbstractMetricSubject<Distribution, DistributionMetricSubject> {
 
   /** {@link Subject.Factory} for assertions about {@link Metric<Distribution>} objects. */
-  private static final Subject.Factory<DistributionMetricSubject, Metric<Distribution>>
-      SUBJECT_FACTORY =
-          // The Truth extensibility documentation indicates that the target should be nullable.
-          (FailureMetadata failureMetadata, @Nullable Metric<Distribution> target) ->
-              new DistributionMetricSubject(failureMetadata, target);
-
   /** Static assertThat({@link Metric<Distribution>}) shortcut method. */
   public static DistributionMetricSubject assertThat(@Nullable Metric<Distribution> metric) {
-    return assertAbout(SUBJECT_FACTORY).that(metric);
+    return assertAbout(DistributionMetricSubject::new).that(metric);
   }
 
   private DistributionMetricSubject(FailureMetadata metadata, Metric<Distribution> actual) {

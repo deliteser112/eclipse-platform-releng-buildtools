@@ -16,7 +16,7 @@ package google.registry.rde.imports;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static org.joda.time.DateTimeZone.UTC;
@@ -24,7 +24,6 @@ import static org.joda.time.DateTimeZone.UTC;
 import com.google.common.base.Ascii;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.model.billing.BillingEvent;
@@ -80,44 +79,17 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
   private static final XmlToEnumMapper<TransferStatus> TRANSFER_STATUS_MAPPER =
       XmlToEnumMapper.create(TransferStatus.values());
 
-  private static final Function<XjcDomainStatusType, StatusValue> STATUS_CONVERTER =
-      new Function<XjcDomainStatusType, StatusValue>() {
-        @Override
-        public StatusValue apply(XjcDomainStatusType status) {
-          return convertStatusType(status);
-        }
-      };
-
   private static final Function<String, Key<HostResource>> HOST_OBJ_CONVERTER =
-      new Function<String, Key<HostResource>>() {
-        @Override
-        public Key<HostResource> apply(String fullyQualifiedHostName) {
-          // host names are always lower case
-          fullyQualifiedHostName = canonicalizeDomainName(fullyQualifiedHostName);
-          Key<HostResource> key =
-              ForeignKeyIndex.loadAndGetKey(
-                  HostResource.class, fullyQualifiedHostName, DateTime.now(UTC));
-          checkState(
-              key != null,
-              String.format("HostResource not found with name '%s'", fullyQualifiedHostName));
-          return key;
-        }
-      };
-
-  private static final Function<XjcDomainContactType, DesignatedContact> CONTACT_CONVERTER =
-      new Function<XjcDomainContactType, DesignatedContact>() {
-        @Override
-        public DesignatedContact apply(XjcDomainContactType contact) {
-          return convertContactType(contact);
-        }
-      };
-
-  private static final Function<XjcSecdnsDsDataType, DelegationSignerData> SECDNS_CONVERTER =
-      new Function<XjcSecdnsDsDataType, DelegationSignerData>() {
-        @Override
-        public DelegationSignerData apply(XjcSecdnsDsDataType secdns) {
-          return convertSecdnsDsDataType(secdns);
-        }
+      fullyQualifiedHostName -> {
+        // host names are always lower case
+        fullyQualifiedHostName = canonicalizeDomainName(fullyQualifiedHostName);
+        Key<HostResource> key =
+            ForeignKeyIndex.loadAndGetKey(
+                HostResource.class, fullyQualifiedHostName, DateTime.now(UTC));
+        checkState(
+            key != null,
+            String.format("HostResource not found with name '%s'", fullyQualifiedHostName));
+        return key;
       };
 
   /** Converts {@link XjcRgpStatusType} to {@link GracePeriod} */
@@ -198,21 +170,40 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
             .setLastEppUpdateTime(domain.getUpDate())
             .setLastEppUpdateClientId(domain.getUpRr() == null ? null : domain.getUpRr().getValue())
             .setLastTransferTime(domain.getTrDate())
-            .setStatusValues(ImmutableSet.copyOf(transform(domain.getStatuses(), STATUS_CONVERTER)))
+            .setStatusValues(
+                domain
+                    .getStatuses()
+                    .stream()
+                    .map(XjcToDomainResourceConverter::convertStatusType)
+                    .collect(toImmutableSet()))
             .setNameservers(convertNameservers(domain.getNs()))
             .setGracePeriods(
-                ImmutableSet.copyOf(transform(domain.getRgpStatuses(), gracePeriodConverter)))
-            .setContacts(ImmutableSet.copyOf(transform(domain.getContacts(), CONTACT_CONVERTER)))
+                domain
+                    .getRgpStatuses()
+                    .stream()
+                    .map(gracePeriodConverter)
+                    .collect(toImmutableSet()))
+            .setContacts(
+                domain
+                    .getContacts()
+                    .stream()
+                    .map(XjcToDomainResourceConverter::convertContactType)
+                    .collect(toImmutableSet()))
             .setDsData(
                 domain.getSecDNS() == null
                     ? ImmutableSet.<DelegationSignerData>of()
-                    : ImmutableSet.copyOf(
-                        transform(domain.getSecDNS().getDsDatas(), SECDNS_CONVERTER)))
+                    : domain
+                        .getSecDNS()
+                        .getDsDatas()
+                        .stream()
+                        .map(XjcToDomainResourceConverter::convertSecdnsDsDataType)
+                        .collect(toImmutableSet()))
             .setTransferData(convertDomainTransferData(domain.getTrnData()))
             // authInfo pw must be a token between 6 and 16 characters in length
             // generate a token of 16 characters as the default authInfo pw
-            .setAuthInfo(DomainAuthInfo
-                .create(PasswordAuth.create(stringGenerator.createString(16), domain.getRoid())));
+            .setAuthInfo(
+                DomainAuthInfo.create(
+                    PasswordAuth.create(stringGenerator.createString(16), domain.getRoid())));
     checkArgumentNotNull(
         domain.getRegistrant(), "Registrant is missing for domain '%s'", domain.getName());
     builder = builder.setRegistrant(convertRegistrant(domain.getRegistrant()));
@@ -237,7 +228,7 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
     checkArgument(
         ns.getHostAttrs() == null || ns.getHostAttrs().isEmpty(),
         "Host attributes are not yet supported");
-    return ImmutableSet.copyOf(Iterables.transform(ns.getHostObjs(), HOST_OBJ_CONVERTER));
+    return ns.getHostObjs().stream().map(HOST_OBJ_CONVERTER).collect(toImmutableSet());
   }
 
   /** Converts {@link XjcRdeDomainTransferDataType} to {@link TransferData}. */

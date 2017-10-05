@@ -15,15 +15,13 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
@@ -215,21 +213,11 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
 
   ImmutableSet<String> getContactsOfType(
       DomainResource domainResource, final DesignatedContact.Type contactType) {
-    return FluentIterable.from(domainResource.getContacts())
-        .filter(
-            new Predicate<DesignatedContact>() {
-              @Override
-              public boolean apply(DesignatedContact contact) {
-                return contact.getType().equals(contactType);
-              }
-            })
-        .transform(
-            new Function<DesignatedContact, String>() {
-              @Override
-              public String apply(DesignatedContact contact) {
-                return ofy().load().key(contact.getContactKey()).now().getContactId();
-              }
-            })
-        .toSet();
+    return domainResource
+        .getContacts()
+        .stream()
+        .filter(contact -> contact.getType().equals(contactType))
+        .map(contact -> ofy().load().key(contact.getContactKey()).now().getContactId())
+        .collect(toImmutableSet());
   }
 }

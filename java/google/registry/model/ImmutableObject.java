@@ -14,6 +14,8 @@
 
 package google.registry.model;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.transformValues;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -22,7 +24,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Ignore;
@@ -157,30 +158,33 @@ public abstract class ImmutableObject implements Cloneable {
         }};
 
   /** Helper function to recursively convert a ImmutableObject to a Map of generic objects. */
-  private static final Function<Object, Object> TO_MAP_HELPER = new Function<Object, Object>() {
-    @Override
-    public Object apply(Object o) {
-      if (o == null) {
-        return null;
-      } else if (o instanceof ImmutableObject) {
-        // LinkedHashMap to preserve field ordering and because ImmutableMap forbids null values.
-        Map<String, Object> result = new LinkedHashMap<>();
-        for (Entry<Field, Object> entry : ModelUtils.getFieldValues(o).entrySet()) {
-          result.put(entry.getKey().getName(), apply(entry.getValue()));
+  private static final Function<Object, Object> TO_MAP_HELPER =
+      new Function<Object, Object>() {
+        @Override
+        public Object apply(Object o) {
+          if (o == null) {
+            return null;
+          } else if (o instanceof ImmutableObject) {
+            // LinkedHashMap to preserve field ordering and because ImmutableMap forbids null
+            // values.
+            Map<String, Object> result = new LinkedHashMap<>();
+            for (Entry<Field, Object> entry : ModelUtils.getFieldValues(o).entrySet()) {
+              result.put(entry.getKey().getName(), apply(entry.getValue()));
+            }
+            return result;
+          } else if (o instanceof Map) {
+            return Maps.transformValues((Map<?, ?>) o, this);
+          } else if (o instanceof Set) {
+            return ((Set<?>) o).stream().map(this).collect(toImmutableSet());
+          } else if (o instanceof Collection) {
+            return ((Collection<?>) o).stream().map(this).collect(toImmutableList());
+          } else if (o instanceof Number || o instanceof Boolean) {
+            return o;
+          } else {
+            return o.toString();
+          }
         }
-        return result;
-      } else if (o instanceof Map) {
-        return Maps.transformValues((Map<?, ?>) o, this);
-      } else if (o instanceof Set) {
-        return FluentIterable.from((Set<?>) o).transform(this).toSet();
-      } else if (o instanceof Collection) {
-        return FluentIterable.from((Collection<?>) o).transform(this).toList();
-      } else if (o instanceof Number || o instanceof Boolean) {
-        return o;
-      } else {
-        return o.toString();
-      }
-    }};
+      };
 
   /** Returns a map of all object fields (including sensitive data) that's used to produce diffs. */
   @SuppressWarnings("unchecked")

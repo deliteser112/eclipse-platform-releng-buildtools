@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.config.RegistryConfig.getSingletonCacheRefreshDuration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -34,7 +35,6 @@ import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
@@ -799,15 +799,12 @@ public class Registry extends ImmutableObject implements Buildable {
         }
       }
       ImmutableSet<Entry<String, Collection<String>>> conflicts =
-          FluentIterable.from(allAuthCodes.asMap().entrySet())
-              .filter(
-                  new Predicate<Entry<String, Collection<String>>>() {
-                    @Override
-                    public boolean apply(Entry<String, Collection<String>> entry) {
-                      return entry.getValue().size() > 1;
-                    }
-                  })
-              .toSet();
+          allAuthCodes
+              .asMap()
+              .entrySet()
+              .stream()
+              .filter((Entry<String, Collection<String>> entry) -> entry.getValue().size() > 1)
+              .collect(toImmutableSet());
       checkArgument(
           conflicts.isEmpty(),
           "Cannot set reserved lists because of auth code conflicts for labels: %s",
@@ -837,14 +834,7 @@ public class Registry extends ImmutableObject implements Buildable {
         ImmutableSortedMap<DateTime, Money> renewCostsMap) {
       checkArgumentNotNull(renewCostsMap, "Renew billing costs map cannot be null");
       checkArgument(
-          Iterables.all(
-              renewCostsMap.values(),
-              new Predicate<Money>() {
-                @Override
-                public boolean apply(Money amount) {
-                  return amount.isPositiveOrZero();
-                }
-              }),
+          renewCostsMap.values().stream().allMatch(Money::isPositiveOrZero),
           "Renew billing cost cannot be negative");
       getInstance().renewBillingCostTransitions =
           TimedTransitionProperty.fromValueMap(renewCostsMap, BillingCostTransition.class);
@@ -855,14 +845,7 @@ public class Registry extends ImmutableObject implements Buildable {
     public Builder setEapFeeSchedule(ImmutableSortedMap<DateTime, Money> eapFeeSchedule) {
       checkArgumentNotNull(eapFeeSchedule, "EAP schedule map cannot be null");
       checkArgument(
-          Iterables.all(
-              eapFeeSchedule.values(),
-              new Predicate<Money>() {
-                @Override
-                public boolean apply(Money amount) {
-                  return amount.isPositiveOrZero();
-                }
-              }),
+          eapFeeSchedule.values().stream().allMatch(Money::isPositiveOrZero),
           "EAP fee cannot be negative");
       getInstance().eapFeeSchedule =
           TimedTransitionProperty.fromValueMap(eapFeeSchedule, BillingCostTransition.class);
@@ -939,17 +922,12 @@ public class Registry extends ImmutableObject implements Buildable {
           instance.getServerStatusChangeCost().getCurrencyUnit().equals(instance.currency),
           "Server status change cost must be in the registry's currency");
       Predicate<Money> currencyCheck =
-          new Predicate<Money>() {
-            @Override
-            public boolean apply(Money money) {
-              return money.getCurrencyUnit().equals(instance.currency);
-            }
-          };
+          (Money money) -> money.getCurrencyUnit().equals(instance.currency);
       checkArgument(
-          Iterables.all(instance.getRenewBillingCostTransitions().values(), currencyCheck),
+          instance.getRenewBillingCostTransitions().values().stream().allMatch(currencyCheck),
           "Renew cost must be in the registry's currency");
       checkArgument(
-          Iterables.all(instance.eapFeeSchedule.toValueMap().values(), currencyCheck),
+          instance.eapFeeSchedule.toValueMap().values().stream().allMatch(currencyCheck),
           "All EAP fees must be in the registry's currency");
       checkArgumentNotNull(
           instance.pricingEngineClassName, "All registries must have a configured pricing engine");

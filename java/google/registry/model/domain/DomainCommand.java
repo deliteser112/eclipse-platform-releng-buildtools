@@ -27,7 +27,6 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.union;
 
-import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -458,13 +457,7 @@ public class DomainCommand {
       throw new InvalidReferencesException(
           clazz, ImmutableSet.copyOf(difference(foreignKeys, fkis.keySet())));
     }
-    return ImmutableMap.copyOf(transformValues(
-        fkis,
-        new Function<ForeignKeyIndex<T>, Key<T>>() {
-          @Override
-          public Key<T> apply(ForeignKeyIndex<T> fki) {
-            return fki.getResourceKey();
-          }}));
+    return ImmutableMap.copyOf(transformValues(fkis, ForeignKeyIndex::getResourceKey));
   }
 
   /** Exception to throw when referenced objects don't exist. */

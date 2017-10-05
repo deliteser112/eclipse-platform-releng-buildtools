@@ -14,15 +14,13 @@
 
 package google.registry.model.billing;
 
+import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.base.Function;
 import com.google.common.base.Supplier;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Maps.EntryTransformer;
 import com.google.common.collect.Ordering;
 import com.googlecode.objectify.cmd.Query;
 import google.registry.model.CacheUtils;
@@ -38,19 +36,11 @@ public final class RegistrarBillingUtils {
 
   private static final Supplier<ImmutableSortedSet<CurrencyUnit>> CURRENCIES_CACHE =
       CacheUtils.memoizeWithShortExpiration(
-          new Supplier<ImmutableSortedSet<CurrencyUnit>>() {
-            @Override
-            public ImmutableSortedSet<CurrencyUnit> get() {
-              return FluentIterable
-                  .from(Registries.getTlds())
-                  .transform(new Function<String, CurrencyUnit>() {
-                    @Override
-                    public CurrencyUnit apply(String tld) {
-                      return Registry.get(tld).getCurrency();
-                    }})
-                  .toSortedSet(Ordering.natural());
-            }
-          });
+          () ->
+              Registries.getTlds()
+                  .stream()
+                  .map((String tld) -> Registry.get(tld).getCurrency())
+                  .collect(toImmutableSortedSet(Ordering.natural())));
 
   /**
    * Returns set of currencies in which registrars may be billed.
@@ -69,28 +59,25 @@ public final class RegistrarBillingUtils {
    */
   public static ImmutableMap<CurrencyUnit, Query<RegistrarBillingEntry>> getBillingEntryQueries(
       final Registrar registrar) {
-    return Maps.toMap(getCurrencies(),
-        new Function<CurrencyUnit, Query<RegistrarBillingEntry>>() {
-          @Override
-          public Query<RegistrarBillingEntry> apply(CurrencyUnit currency) {
-            return ofy().load()
+    return Maps.toMap(
+        getCurrencies(),
+        (CurrencyUnit currency) ->
+            ofy()
+                .load()
                 .type(RegistrarBillingEntry.class)
                 .ancestor(registrar)
                 .filter("currency", currency)
-                .order("-created");
-          }});
+                .order("-created"));
   }
 
   /** Returns amount of money registrar currently owes registry in each currency. */
   public static Map<CurrencyUnit, Money> loadBalance(Registrar registrar) {
-    return Maps.transformEntries(getBillingEntryQueries(registrar),
-        new EntryTransformer<CurrencyUnit, Query<RegistrarBillingEntry>, Money>() {
-          @Override
-          public Money transformEntry(
-              CurrencyUnit currency, Query<RegistrarBillingEntry> query) {
-            RegistrarBillingEntry entry = query.first().now();
-            return entry != null ? entry.getBalance() : Money.zero(currency);
-          }});
+    return Maps.transformEntries(
+        getBillingEntryQueries(registrar),
+        (CurrencyUnit currency, Query<RegistrarBillingEntry> query) -> {
+          RegistrarBillingEntry entry = query.first().now();
+          return entry != null ? entry.getBalance() : Money.zero(currency);
+        });
   }
 
   private RegistrarBillingUtils() {}

@@ -14,23 +14,22 @@
 
 package google.registry.ui.server.registrar;
 
-import static com.google.common.collect.Iterables.any;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
 
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Work;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
@@ -53,7 +52,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -82,11 +80,8 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       registrarChangesNotificationEmailAddresses;
   @Inject RegistrarSettingsAction() {}
 
-  private static final Predicate<RegistrarContact> HAS_PHONE = new Predicate<RegistrarContact>() {
-    @Override
-    public boolean apply(RegistrarContact contact) {
-      return contact.getPhoneNumber() != null;
-    }};
+  private static final Predicate<RegistrarContact> HAS_PHONE =
+      contact -> contact.getPhoneNumber() != null;
 
   @Override
   public void run() {
@@ -160,13 +155,10 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
   private Map<String, Object> expandRegistrarWithContacts(Iterable<RegistrarContact> contacts,
                                                           Registrar registrar) {
-    ImmutableSet<Map<String, Object>> expandedContacts = FluentIterable.from(contacts)
-        .transform(new Function<RegistrarContact, Map<String, Object>>() {
-          @Override
-          public Map<String, Object>  apply(RegistrarContact contact) {
-            return contact.toDiffableFieldMap();
-          }})
-      .toSet();
+    ImmutableSet<Map<String, Object>> expandedContacts =
+        Streams.stream(contacts)
+            .map(RegistrarContact::toDiffableFieldMap)
+            .collect(toImmutableSet());
     // Use LinkedHashMap here to preserve ordering; null values mean we can't use ImmutableMap.
     LinkedHashMap<String, Object> result = new LinkedHashMap<>();
     result.putAll(registrar.toDiffableFieldMap());
@@ -286,8 +278,8 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       Multimap<RegistrarContact.Type, RegistrarContact> newContactsByType,
       RegistrarContact.Type... types) {
     for (RegistrarContact.Type type : types) {
-      if (any(oldContactsByType.get(type), HAS_PHONE)
-          && !any(newContactsByType.get(type), HAS_PHONE)) {
+      if (oldContactsByType.get(type).stream().anyMatch(HAS_PHONE)
+          && newContactsByType.get(type).stream().noneMatch(HAS_PHONE)) {
         throw new ContactRequirementException(
             String.format(
                 "Please provide a phone number for at least one %s contact",
@@ -306,12 +298,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
    */
   private static Optional<RegistrarContact> getDomainWhoisVisibleAbuseContact(
       Set<RegistrarContact> contacts) {
-    return Iterables.tryFind(contacts, new Predicate<RegistrarContact>() {
-      @Override
-      public boolean apply(@Nullable RegistrarContact contact) {
-        return contact.getVisibleInDomainWhoisAsAbuse();
-      }
-    });
+    return Iterables.tryFind(contacts, RegistrarContact::getVisibleInDomainWhoisAsAbuse);
   }
 
   /**

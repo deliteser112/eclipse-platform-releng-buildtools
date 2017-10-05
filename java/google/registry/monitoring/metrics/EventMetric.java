@@ -153,9 +153,7 @@ public class EventMetric extends AbstractMetric<Distribution> {
     lock.lock();
 
     try {
-      if (!values.containsKey(labelValues)) {
-        values.put(labelValues, new MutableDistribution(distributionFitter));
-      }
+      values.computeIfAbsent(labelValues, k -> new MutableDistribution(distributionFitter));
 
       values.get(labelValues).add(sample, count);
       valueStartTimestamps.putIfAbsent(labelValues, startTimestamp);

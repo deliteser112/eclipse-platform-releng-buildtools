@@ -16,10 +16,8 @@ package google.registry.model;
 
 import static com.google.common.base.Predicates.or;
 import static com.google.common.base.Predicates.subtypeOf;
+import static java.util.stream.Collectors.joining;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Ordering;
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -60,14 +58,11 @@ public final class SchemaVersion {
    * types (for classes), or else a list of all possible values (for enums).
    */
   public static String getSchema() {
-    return FluentIterable.from(getAllPersistedTypes())
+    return getAllPersistedTypes()
+        .stream()
         .filter(or(subtypeOf(Enum.class), subtypeOf(ImmutableObject.class)))
-        .transform(new Function<Class<?>, String>() {
-            @Override
-            public String apply(Class<?> clazz) {
-              return ModelUtils.getSchema(clazz);
-            }})
-        .join(Joiner.on('\n'));
+        .map(ModelUtils::getSchema)
+        .collect(joining("\n"));
   }
 
   private SchemaVersion() {}

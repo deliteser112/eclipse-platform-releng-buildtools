@@ -15,6 +15,7 @@
 package google.registry.batch;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
 import static google.registry.mapreduce.MapreduceRunner.PARAM_DRY_RUN;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -24,11 +25,8 @@ import static google.registry.request.Action.Method.POST;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.tools.mapreduce.Mapper;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -94,21 +92,11 @@ public class DeleteProberDataAction implements Runnable {
   }
 
   private static ImmutableSet<String> getProberRoidSuffixes() {
-    return FluentIterable.from(getTldsOfType(TldType.TEST))
-        .filter(new Predicate<String>() {
-          @Override
-          public boolean apply(String tld) {
-            // Extra sanity check to prevent us from nuking prod data if a real TLD accidentally
-            // gets set to type TEST.
-            return tld.endsWith(".test");
-          }})
-        .transform(
-            new Function<String, String>() {
-              @Override
-              public String apply(String tld) {
-                return Registry.get(tld).getRoidSuffix();
-              }})
-        .toSet();
+    return getTldsOfType(TldType.TEST)
+        .stream()
+        .filter(tld -> tld.endsWith(".test"))
+        .map(tld -> Registry.get(tld).getRoidSuffix())
+        .collect(toImmutableSet());
   }
 
   /** Provides the map method that runs for each existing DomainBase entity. */

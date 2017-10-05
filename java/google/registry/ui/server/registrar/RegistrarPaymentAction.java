@@ -27,7 +27,6 @@ import com.braintreegateway.Transaction;
 import com.braintreegateway.TransactionRequest;
 import com.braintreegateway.ValidationError;
 import com.braintreegateway.ValidationErrors;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.re2j.Pattern;
 import google.registry.config.RegistryConfig.Config;
@@ -108,15 +107,15 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
           .emptyToNull()
           .required()
           .matches(Pattern.compile("-?\\d+(?:\\.\\d+)?"), "Invalid number.")
-          .transform(BigDecimal.class, new Function<String, BigDecimal>() {
-            @Override
-            public BigDecimal apply(String value) {
-              BigDecimal result = new BigDecimal(value);
-              if (result.signum() != 1) {
-                throw new FormFieldException("Must be a positive number.");
-              }
-              return result;
-            }})
+          .transform(
+              BigDecimal.class,
+              value -> {
+                BigDecimal result = new BigDecimal(value);
+                if (result.signum() != 1) {
+                  throw new FormFieldException("Must be a positive number.");
+                }
+                return result;
+              })
           .build();
 
   private static final FormField<String, CurrencyUnit> CURRENCY_FIELD =
@@ -125,15 +124,15 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
           .emptyToNull()
           .required()
           .matches(Pattern.compile("[A-Z]{3}"), "Invalid currency code.")
-          .transform(CurrencyUnit.class, new Function<String, CurrencyUnit>() {
-            @Override
-            public CurrencyUnit apply(String value) {
-              try {
-                return CurrencyUnit.of(value);
-              } catch (IllegalCurrencyException ignored) {
-                throw new FormFieldException("Unknown ISO currency code.");
-              }
-            }})
+          .transform(
+              CurrencyUnit.class,
+              value -> {
+                try {
+                  return CurrencyUnit.of(value);
+                } catch (IllegalCurrencyException ignored) {
+                  throw new FormFieldException("Unknown ISO currency code.");
+                }
+              })
           .build();
 
   private static final FormField<String, String> PAYMENT_METHOD_NONCE_FIELD =

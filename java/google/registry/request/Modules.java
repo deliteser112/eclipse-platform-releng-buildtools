@@ -128,12 +128,7 @@ public final class Modules {
   public static final class AppIdentityCredentialModule {
     @Provides
     static Function<Set<String>, AppIdentityCredential> provideAppIdentityCredential() {
-      return new Function<Set<String>, AppIdentityCredential>() {
-        @Override
-        public AppIdentityCredential apply(Set<String> scopes) {
-          return new AppIdentityCredential(scopes);
-        }
-      };
+      return AppIdentityCredential::new;
     }
   }
 
@@ -200,12 +195,7 @@ public final class Modules {
     @Provides
     static Function<Set<String>, GoogleCredential> provideScopedGoogleCredential(
         final Provider<GoogleCredential> googleCredentialProvider) {
-      return new Function<Set<String>, GoogleCredential>() {
-        @Override
-        public GoogleCredential apply(Set<String> scopes) {
-          return googleCredentialProvider.get().createScoped(scopes);
-        }
-      };
+      return scopes -> googleCredentialProvider.get().createScoped(scopes);
     }
 
     /**

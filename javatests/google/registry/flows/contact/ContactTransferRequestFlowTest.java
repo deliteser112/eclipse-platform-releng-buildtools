@@ -17,6 +17,7 @@ package google.registry.flows.contact;
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.config.RegistryConfig.getContactAutomaticTransferLength;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -116,10 +117,10 @@ public class ContactTransferRequestFlowTest
     PollMessage gainingApproveMessage =
         getOnlyElement(getPollMessages("NewRegistrar", afterTransfer));
     PollMessage losingApproveMessage =
-        getOnlyElement(
-            Iterables.filter(
-                getPollMessages("TheRegistrar", afterTransfer),
-                not(equalTo(losingRequestMessage))));
+        getPollMessages("TheRegistrar", afterTransfer)
+            .stream()
+            .filter(not(equalTo(losingRequestMessage)))
+            .collect(onlyElement());
 
     // Check for TransferData server-approve entities containing what we expect: only
     // poll messages, the approval notice ones for gaining and losing registrars.

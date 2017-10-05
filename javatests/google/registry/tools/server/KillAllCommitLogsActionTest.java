@@ -16,6 +16,7 @@ package google.registry.tools.server;
 
 import static com.google.common.base.Predicates.instanceOf;
 import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -27,10 +28,9 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.util.Arrays.asList;
 
 import com.google.appengine.api.datastore.Entity;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Streams;
 import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogCheckpoint;
@@ -81,13 +81,10 @@ public class KillAllCommitLogsActionTest extends MapreduceTestCase<KillAllCommit
     for (Class<?> clazz : AFFECTED_TYPES) {
       assertThat(ofy().load().type(clazz)).named("entities of type " + clazz).isNotEmpty();
     }
-    ImmutableList<?> otherStuff = FluentIterable.from(ofy().load())
-        .filter(new Predicate<Object>() {
-          @Override
-          public boolean apply(Object obj) {
-            return !AFFECTED_TYPES.contains(obj.getClass());
-          }})
-        .toList();
+    ImmutableList<?> otherStuff =
+        Streams.stream(ofy().load())
+            .filter(obj -> !AFFECTED_TYPES.contains(obj.getClass()))
+            .collect(toImmutableList());
     assertThat(otherStuff).isNotEmpty();
     runMapreduce();
     for (Class<?> clazz : AFFECTED_TYPES) {

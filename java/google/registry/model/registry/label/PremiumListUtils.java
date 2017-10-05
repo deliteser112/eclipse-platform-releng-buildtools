@@ -15,6 +15,7 @@
 package google.registry.model.registry.label;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Iterables.partition;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -30,12 +31,11 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
@@ -202,15 +202,9 @@ public final class PremiumListUtils {
   @VisibleForTesting
   public static ImmutableSet<PremiumListEntry> parentPremiumListEntriesOnRevision(
       Iterable<PremiumListEntry> entries, final Key<PremiumListRevision> revisionKey) {
-    return FluentIterable.from(entries)
-        .transform(
-            new Function<PremiumListEntry, PremiumListEntry>() {
-              @Override
-              public PremiumListEntry apply(PremiumListEntry entry) {
-                return entry.asBuilder().setParent(revisionKey).build();
-              }
-            })
-        .toSet();
+    return Streams.stream(entries)
+        .map((PremiumListEntry entry) -> entry.asBuilder().setParent(revisionKey).build())
+        .collect(toImmutableSet());
   }
 
   /** Deletes the PremiumList and all of its child entities. */

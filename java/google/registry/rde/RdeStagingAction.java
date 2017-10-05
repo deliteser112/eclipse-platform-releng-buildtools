@@ -23,7 +23,6 @@ import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -262,16 +261,14 @@ public final class RdeStagingAction implements Runnable {
     return ImmutableSetMultimap.copyOf(
         Multimaps.filterValues(
             pendingDepositChecker.getTldsAndWatermarksPendingDepositForRdeAndBrda(),
-            new Predicate<PendingDeposit>() {
-              @Override
-              public boolean apply(PendingDeposit pending) {
-                if (clock.nowUtc().isBefore(pending.watermark().plus(transactionCooldown))) {
-                  logger.infofmt("Ignoring within %s cooldown: %s", transactionCooldown, pending);
-                  return false;
-                } else {
-                  return true;
-                }
-              }}));
+            pending -> {
+              if (clock.nowUtc().isBefore(pending.watermark().plus(transactionCooldown))) {
+                logger.infofmt("Ignoring within %s cooldown: %s", transactionCooldown, pending);
+                return false;
+              } else {
+                return true;
+              }
+            }));
   }
 
   private ImmutableSetMultimap<String, PendingDeposit> getManualPendingDeposits() {

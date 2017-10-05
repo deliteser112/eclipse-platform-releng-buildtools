@@ -14,10 +14,11 @@
 
 package google.registry.request;
 
-import com.google.common.base.Function;
+import static java.util.stream.Collectors.joining;
+
 import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Streams;
 import java.util.Map;
 
 /**
@@ -139,14 +140,8 @@ public class RouterDisplayHelper {
                 .build());
     return headerToString(formatString)
         + String.format("%n")
-        + FluentIterable.from(routes)
-            .transform(
-                new Function<Route, String>() {
-                  @Override
-                  public String apply(Route route) {
-                    return routeToString(route, formatString);
-                  }
-                })
-            .join(Joiner.on(String.format("%n")));
+        + Streams.stream(routes)
+            .map(route -> routeToString(route, formatString))
+            .collect(joining(String.format("%n")));
   }
 }

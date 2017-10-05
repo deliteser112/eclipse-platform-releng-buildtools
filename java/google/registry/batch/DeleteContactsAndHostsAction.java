@@ -18,6 +18,7 @@ import static com.google.appengine.api.taskqueue.QueueConstants.maxLeaseCount;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.math.IntMath.divide;
 import static com.googlecode.objectify.Key.getKind;
 import static google.registry.flows.ResourceFlowUtils.denyPendingTransfer;
@@ -52,8 +53,6 @@ import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -94,7 +93,6 @@ import google.registry.util.SystemClock;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.joda.time.DateTime;
@@ -180,22 +178,11 @@ public class DeleteContactsAndHostsAction implements Runnable {
       return;
     }
     final List<TaskHandle> tasks =
-        FluentIterable.from(deletionRequests)
-            .transform(
-                new Function<DeletionRequest, TaskHandle>() {
-                  @Override
-                  public TaskHandle apply(DeletionRequest deletionRequest) {
-                    return deletionRequest.task();
-                  }
-                })
-            .toList();
+        deletionRequests.stream().map(DeletionRequest::task).collect(toImmutableList());
     retrier.callWithRetry(
-        new Callable<Void>() {
-          @Override
-          public Void call() throws Exception {
-            queue.deleteTask(tasks);
-            return null;
-          }
+        () -> {
+          queue.deleteTask(tasks);
+          return null;
         },
         TransientFailureException.class);
     for (DeletionRequest deletionRequest : deletionRequests) {

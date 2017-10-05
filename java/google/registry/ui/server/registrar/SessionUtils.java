@@ -21,9 +21,7 @@ import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.google.appengine.api.users.User;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
-import com.google.common.collect.FluentIterable;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.registrar.Registrar;
@@ -33,7 +31,6 @@ import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.util.FormattingLogger;
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -193,12 +190,9 @@ public class SessionUtils {
 
   /** Returns {@code true} if {@code gaeUserId} is listed in contacts. */
   private static boolean hasAccessToRegistrar(Registrar registrar, final String gaeUserId) {
-    return FluentIterable
-        .from(registrar.getContacts())
-        .anyMatch(new Predicate<RegistrarContact>() {
-          @Override
-          public boolean apply(@Nonnull RegistrarContact contact) {
-            return gaeUserId.equals(contact.getGaeUserId());
-          }});
+    return registrar
+        .getContacts()
+        .stream()
+        .anyMatch(contact -> gaeUserId.equals(contact.getGaeUserId()));
   }
 }

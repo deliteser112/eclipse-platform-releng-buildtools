@@ -20,7 +20,6 @@ import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.FutureCallback;
@@ -121,7 +120,7 @@ final class LoadSnapshotCommand extends BigqueryCommand {
     }
     // Block on the completion of all the load jobs.
     List<?> results = Futures.successfulAsList(loadJobs.values()).get();
-    int numSucceeded = FluentIterable.from(results).filter(notNull()).size();
+    int numSucceeded = (int) results.stream().filter(notNull()).count();
     System.err.printf(
         "All load jobs have terminated: %d/%d successful.\n",
         numSucceeded, loadJobs.size());

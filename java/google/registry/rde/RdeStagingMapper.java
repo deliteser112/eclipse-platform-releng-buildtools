@@ -15,18 +15,18 @@
 package google.registry.rde;
 
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.EppResourceUtils.loadAtPointInTime;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Result;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
@@ -96,25 +96,16 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
 
     // Get the set of all point-in-time watermarks we need, to minimize rewinding.
     ImmutableSet<DateTime> dates =
-        FluentIterable
-            .from(shouldEmitOnAllTlds
-                ? pendings.values()
-                : pendings.get(((DomainResource) resource).getTld()))
-            .transform(new Function<PendingDeposit, DateTime>() {
-              @Override
-              public DateTime apply(PendingDeposit pending) {
-                return pending.watermark();
-              }})
-            .toSet();
+        Streams.stream(
+                shouldEmitOnAllTlds
+                    ? pendings.values()
+                    : pendings.get(((DomainResource) resource).getTld()))
+            .map(PendingDeposit::watermark)
+            .collect(toImmutableSet());
 
     // Launch asynchronous fetches of point-in-time representations of resource.
     ImmutableMap<DateTime, Result<EppResource>> resourceAtTimes =
-        ImmutableMap.copyOf(Maps.asMap(dates,
-            new Function<DateTime, Result<EppResource>>() {
-              @Override
-              public Result<EppResource> apply(DateTime input) {
-                return loadAtPointInTime(resource, input);
-              }}));
+        ImmutableMap.copyOf(Maps.asMap(dates, input -> loadAtPointInTime(resource, input)));
 
     // Convert resource to an XML fragment for each watermark/mode pair lazily and cache the result.
     Fragmenter fragmenter = new Fragmenter(resourceAtTimes);

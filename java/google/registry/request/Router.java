@@ -95,21 +95,19 @@ final class Router {
   }
 
   private static Function<Object, ?> newInstantiator(final Method method) {
-    return new Function<Object, Object>() {
-      @Override
-      public Object apply(Object component) {
-        try {
-          return method.invoke(component);
-        } catch (IllegalAccessException e) {
-          throw new RuntimeException(
-              "Error reflectively accessing component's @Action factory method", e);
-        } catch (InvocationTargetException e) {
-          // This means an exception was thrown during the injection process while instantiating
-          // the @Action class; we should propagate that underlying exception.
-          throwIfUnchecked(e.getCause());
-          throw new AssertionError(
-              "Component's @Action factory method somehow threw checked exception", e);
-        }
-      }};
+    return component -> {
+      try {
+        return method.invoke(component);
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException(
+            "Error reflectively accessing component's @Action factory method", e);
+      } catch (InvocationTargetException e) {
+        // This means an exception was thrown during the injection process while instantiating
+        // the @Action class; we should propagate that underlying exception.
+        throwIfUnchecked(e.getCause());
+        throw new AssertionError(
+            "Component's @Action factory method somehow threw checked exception", e);
+      }
+    };
   }
 }

@@ -24,11 +24,10 @@ import static com.google.common.base.Strings.emptyToNull;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DatastoreServiceUtils.getNameOrId;
 import static google.registry.util.DiffUtils.prettyPrintEntityDeepDiff;
+import static java.util.stream.Collectors.joining;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -228,8 +227,6 @@ public abstract class MutatingCommand extends ConfirmingCommand implements Remot
   protected String prompt() {
     return changedEntitiesMap.isEmpty()
         ? "No entity changes to apply."
-        : Joiner.on("\n").join(FluentIterable
-            .from(changedEntitiesMap.values())
-            .transform(toStringFunction()));
+        : changedEntitiesMap.values().stream().map(toStringFunction()).collect(joining("\n"));
   }
 }

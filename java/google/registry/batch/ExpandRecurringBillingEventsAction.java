@@ -15,6 +15,7 @@
 package google.registry.batch;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.mapreduce.MapreduceRunner.PARAM_DRY_RUN;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createChildEntityInput;
@@ -32,13 +33,11 @@ import static google.registry.util.PipelineUtils.createJobPath;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
@@ -262,14 +261,10 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
         DateTime cursorTime,
         DateTime executeTime,
         final Registry tld) {
-      return FluentIterable.from(eventTimes)
-          .transform(new Function<DateTime, DateTime>() {
-            @Override
-            public DateTime apply(DateTime eventTime) {
-              return eventTime.plus(tld.getAutoRenewGracePeriodLength());
-            }})
+      return Streams.stream(eventTimes)
+          .map(eventTime -> eventTime.plus(tld.getAutoRenewGracePeriodLength()))
           .filter(Range.closedOpen(cursorTime, executeTime))
-          .toSet();
+          .collect(toImmutableSet());
     }
 
     /**
@@ -279,19 +274,13 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
     private ImmutableSet<DateTime> getExistingBillingTimes(
         Iterable<BillingEvent.OneTime> oneTimesForDomain,
         final BillingEvent.Recurring recurringEvent) {
-      return FluentIterable.from(oneTimesForDomain)
-          .filter(new Predicate<BillingEvent.OneTime>() {
-            @Override
-            public boolean apply(OneTime billingEvent) {
-              return Key.create(recurringEvent)
-                  .equals(billingEvent.getCancellationMatchingBillingEvent());
-            }})
-          .transform(new Function<OneTime, DateTime>() {
-            @Override
-            public DateTime apply(OneTime billingEvent) {
-              return billingEvent.getBillingTime();
-            }})
-          .toSet();
+      return Streams.stream(oneTimesForDomain)
+          .filter(
+              billingEvent ->
+                  Key.create(recurringEvent)
+                      .equals(billingEvent.getCancellationMatchingBillingEvent()))
+          .map(OneTime::getBillingTime)
+          .collect(toImmutableSet());
     }
   }
 

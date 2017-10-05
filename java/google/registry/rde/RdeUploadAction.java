@@ -59,7 +59,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.bouncycastle.openpgp.PGPKeyPair;
@@ -157,12 +156,10 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
     verifyFileExists(reportFilename);
     final long xmlLength = readXmlLength(xmlLengthFilename);
     retrier.callWithRetry(
-        new Callable<Void>() {
-          @Override
-          public Void call() throws Exception {
-            upload(xmlFilename, xmlLength, watermark, name);
-            return null;
-          }},
+        () -> {
+          upload(xmlFilename, xmlLength, watermark, name);
+          return null;
+        },
         JSchException.class);
     ofy().transact(new VoidWork() {
       @Override

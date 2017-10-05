@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static google.registry.flows.FlowUtils.persistEntityChanges;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
@@ -43,8 +44,6 @@ import static google.registry.model.index.DomainApplicationIndex.loadActiveAppli
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
@@ -94,7 +93,6 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
-import google.registry.model.smd.AbstractSignedMark;
 import google.registry.model.smd.EncodedSignedMark;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -244,32 +242,31 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
             .setDomainName(domainName)
             .setYears(years)
             .build());
-    DomainApplication newApplication = new DomainApplication.Builder()
-        .setCreationTrid(trid)
-        .setCreationClientId(clientId)
-        .setPersistedCurrentSponsorClientId(clientId)
-        .setRepoId(createDomainRepoId(ObjectifyService.allocateId(), tld))
-        .setLaunchNotice(launchCreate == null ? null : launchCreate.getNotice())
-        .setIdnTableName(idnTableName)
-        .setPhase(launchCreate.getPhase())
-        .setPeriod(command.getPeriod())
-        .setApplicationStatus(ApplicationStatus.VALIDATED)
-        .addStatusValue(StatusValue.PENDING_CREATE)
-        .setDsData(secDnsCreate == null ? null : secDnsCreate.getDsData())
-        .setRegistrant(command.getRegistrant())
-        .setAuthInfo(command.getAuthInfo())
-        .setFullyQualifiedDomainName(targetId)
-        .setNameservers(command.getNameservers())
-        .setContacts(command.getContacts())
-        .setEncodedSignedMarks(FluentIterable
-            .from(launchCreate.getSignedMarks())
-            .transform(new Function<AbstractSignedMark, EncodedSignedMark>() {
-              @Override
-              public EncodedSignedMark apply(AbstractSignedMark abstractSignedMark) {
-                return (EncodedSignedMark) abstractSignedMark;
-              }})
-            .toList())
-        .build();
+    DomainApplication newApplication =
+        new DomainApplication.Builder()
+            .setCreationTrid(trid)
+            .setCreationClientId(clientId)
+            .setPersistedCurrentSponsorClientId(clientId)
+            .setRepoId(createDomainRepoId(ObjectifyService.allocateId(), tld))
+            .setLaunchNotice(launchCreate == null ? null : launchCreate.getNotice())
+            .setIdnTableName(idnTableName)
+            .setPhase(launchCreate.getPhase())
+            .setPeriod(command.getPeriod())
+            .setApplicationStatus(ApplicationStatus.VALIDATED)
+            .addStatusValue(StatusValue.PENDING_CREATE)
+            .setDsData(secDnsCreate == null ? null : secDnsCreate.getDsData())
+            .setRegistrant(command.getRegistrant())
+            .setAuthInfo(command.getAuthInfo())
+            .setFullyQualifiedDomainName(targetId)
+            .setNameservers(command.getNameservers())
+            .setContacts(command.getContacts())
+            .setEncodedSignedMarks(
+                launchCreate
+                    .getSignedMarks()
+                    .stream()
+                    .map(abstractSignedMark -> (EncodedSignedMark) abstractSignedMark)
+                    .collect(toImmutableList()))
+            .build();
     HistoryEntry historyEntry =
         buildHistoryEntry(newApplication.getRepoId(), command.getPeriod(), now);
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();

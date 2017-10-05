@@ -15,12 +15,12 @@
 package google.registry.rdap;
 
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static google.registry.model.EppResourceUtils.isLinked;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
-import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Streams;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import google.registry.config.RdapNoticeDescriptor;
@@ -282,19 +283,11 @@ public class RdapJsonFormatter {
 
   /** Sets the ordering for hosts; just use the fully qualified host name. */
   private static final Ordering<HostResource> HOST_RESOURCE_ORDERING =
-      Ordering.natural().onResultOf(new Function<HostResource, String>() {
-        @Override
-        public String apply(HostResource host) {
-          return host.getFullyQualifiedHostName();
-        }});
+      Ordering.natural().onResultOf(HostResource::getFullyQualifiedHostName);
 
   /** Sets the ordering for designated contacts; order them in a fixed order by contact type. */
   private static final Ordering<DesignatedContact> DESIGNATED_CONTACT_ORDERING =
-      Ordering.natural().onResultOf(new Function<DesignatedContact, DesignatedContact.Type>() {
-        @Override
-        public DesignatedContact.Type apply(DesignatedContact designatedContact) {
-          return designatedContact.getType();
-        }});
+      Ordering.natural().onResultOf(DesignatedContact::getType);
 
   ImmutableMap<String, Object> getJsonTosNotice(String rdapLinkBase) {
     return getJsonHelpNotice(rdapTosPath, rdapLinkBase);
@@ -1076,15 +1069,9 @@ public class RdapJsonFormatter {
               .filter(Predicates.not(Predicates.equalTo(RdapStatus.ACTIVE)))
               .append(RdapStatus.REMOVED);
     }
-    return iterable
-        .transform(
-            new Function<RdapStatus, String>() {
-              @Override
-              public String apply(RdapStatus status) {
-                return status.getDisplayName();
-              }
-            })
-        .toSortedSet(Ordering.natural())
+    return Streams.stream(iterable)
+        .map(RdapStatus::getDisplayName)
+        .collect(toImmutableSortedSet(Ordering.natural()))
         .asList();
   }
 

@@ -14,16 +14,16 @@
 
 package google.registry.rdap;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.rdap.RdapUtils.getRegistrarByIanaIdentifier;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Streams;
 import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Longs;
 import com.googlecode.objectify.cmd.Query;
@@ -156,17 +156,13 @@ public class RdapEntitySearchAction extends RdapActionBase {
     }
     // Get the registrar matches.
     ImmutableList<Registrar> registrars =
-        FluentIterable.from(Registrar.loadAllCached())
+        Streams.stream(Registrar.loadAllCached())
             .filter(
-                new Predicate<Registrar>() {
-                  @Override
-                  public boolean apply(Registrar registrar) {
-                    return partialStringQuery.matches(registrar.getRegistrarName())
-                        && shouldBeVisible(registrar);
-                  }
-                })
+                registrar ->
+                    partialStringQuery.matches(registrar.getRegistrarName())
+                        && shouldBeVisible(registrar))
             .limit(rdapResultSetMaxSize + 1)
-            .toList();
+            .collect(toImmutableList());
     // Get the contact matches and return the results, fetching an additional contact to detect
     // truncation. If we are including deleted entries, we must fetch more entries, in case some
     // get excluded due to permissioning.

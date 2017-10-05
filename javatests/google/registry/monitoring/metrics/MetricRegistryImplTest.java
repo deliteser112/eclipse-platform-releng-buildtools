@@ -17,7 +17,6 @@ package google.registry.monitoring.metrics;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -76,12 +75,7 @@ public class MetricRegistryImplTest {
                 "test_description",
                 "test_valuedisplayname",
                 ImmutableSet.of(label),
-                new Supplier<ImmutableMap<ImmutableList<String>, Long>>() {
-                  @Override
-                  public ImmutableMap<ImmutableList<String>, Long> get() {
-                    return ImmutableMap.of(ImmutableList.of("foo"), 1L);
-                  }
-                },
+                () -> ImmutableMap.of(ImmutableList.of("foo"), 1L),
                 Long.class);
 
     assertThat(testGauge.getValueClass()).isSameAs(Long.class);

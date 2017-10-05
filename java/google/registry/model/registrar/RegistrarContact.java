@@ -16,17 +16,17 @@ package google.registry.model.registrar;
 
 import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
 import static google.registry.util.ObjectifyUtils.OBJECTS_TO_KEYS;
+import static java.util.stream.Collectors.joining;
 
 import com.google.common.base.Enums;
-import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.annotation.Entity;
@@ -141,7 +141,9 @@ public class RegistrarContact extends ImmutableObject implements Jsonifiable {
   }
 
   public static ImmutableSet<Type> typesFromStrings(Iterable<String> typeNames) {
-    return FluentIterable.from(typeNames).transform(Enums.stringConverter(Type.class)).toSet();
+    return Streams.stream(typeNames)
+        .map(Enums.stringConverter(Type.class))
+        .collect(toImmutableSet());
   }
 
   /**
@@ -154,15 +156,25 @@ public class RegistrarContact extends ImmutableObject implements Jsonifiable {
    */
   public static void updateContacts(
       final Registrar registrar, final Set<RegistrarContact> contacts) {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().delete().keys(difference(
-            ImmutableSet.copyOf(
-                ofy().load().type(RegistrarContact.class).ancestor(registrar).keys()),
-            FluentIterable.from(contacts).transform(OBJECTS_TO_KEYS).toSet()));
-        ofy().save().entities(contacts);
-      }});
+    ofy()
+        .transact(
+            new VoidWork() {
+              @Override
+              public void vrun() {
+                ofy()
+                    .delete()
+                    .keys(
+                        difference(
+                            ImmutableSet.copyOf(
+                                ofy()
+                                    .load()
+                                    .type(RegistrarContact.class)
+                                    .ancestor(registrar)
+                                    .keys()),
+                            contacts.stream().map(OBJECTS_TO_KEYS).collect(toImmutableSet())));
+                ofy().save().entities(contacts);
+              }
+            });
   }
 
   public Key<Registrar> getParent() {
@@ -260,7 +272,7 @@ public class RegistrarContact extends ImmutableObject implements Jsonifiable {
         .put("emailAddress", emailAddress)
         .put("phoneNumber", phoneNumber)
         .put("faxNumber", faxNumber)
-        .put("types", Joiner.on(',').join(transform(getTypes(), toStringFunction())))
+        .put("types", getTypes().stream().map(toStringFunction()).collect(joining(",")))
         .put("visibleInWhoisAsAdmin", visibleInWhoisAsAdmin)
         .put("visibleInWhoisAsTech", visibleInWhoisAsTech)
         .put("visibleInDomainWhoisAsAbuse", visibleInDomainWhoisAsAbuse)

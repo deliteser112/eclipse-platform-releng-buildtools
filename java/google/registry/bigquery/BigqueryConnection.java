@@ -73,7 +73,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -693,20 +692,15 @@ public class BigqueryConnection implements AutoCloseable {
       final Job job,
       final T result,
       @Nullable final AbstractInputStreamContent data) {
-    return service.submit(new Callable<T>() {
-      @Override
-      public T call() {
-        runJob(job, data);
-        return result;
-      }});
+    return service.submit(
+        () -> {
+          runJob(job, data);
+          return result;
+        });
   }
 
   private ListenableFuture<Job> runJobToCompletion(final Job job) {
-    return service.submit(new Callable<Job>() {
-      @Override
-      public Job call() {
-        return runJob(job, null);
-      }});
+    return service.submit(() -> runJob(job, null));
   }
 
   /** Helper that returns true if a dataset with this name exists. */

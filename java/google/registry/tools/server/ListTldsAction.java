@@ -14,12 +14,11 @@
 
 package google.registry.tools.server;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.registry.Registries.getTlds;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.POST;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -50,13 +49,7 @@ public final class ListTldsAction extends ListObjectsAction<Registry> {
 
   @Override
   public ImmutableSet<Registry> loadObjects() {
-    return FluentIterable.from(getTlds())
-        .transform(new Function<String, Registry>() {
-            @Override
-            public Registry apply(String tldString) {
-              return Registry.get(tldString);
-            }})
-        .toSet();
+    return getTlds().stream().map(Registry::get).collect(toImmutableSet());
   }
 
   @Override

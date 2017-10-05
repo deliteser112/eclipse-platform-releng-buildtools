@@ -29,7 +29,7 @@ import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -136,7 +136,7 @@ public class Ofy {
       @Override
       protected void handleDeletion(Iterable<Key<?>> keys) {
         assertInTransaction();
-        checkState(Iterables.all(keys, notNull()), "Can't delete a null key.");
+        checkState(Streams.stream(keys).allMatch(notNull()), "Can't delete a null key.");
         checkProhibitedAnnotations(keys, NotBackedUp.class, VirtualEntity.class);
         TRANSACTION_INFO.get().putDeletes(keys);
       }
@@ -168,7 +168,7 @@ public class Ofy {
       @Override
       protected void handleSave(Iterable<?> entities) {
         assertInTransaction();
-        checkState(Iterables.all(entities, notNull()), "Can't save a null entity.");
+        checkState(Streams.stream(entities).allMatch(notNull()), "Can't save a null entity.");
         checkProhibitedAnnotations(entities, NotBackedUp.class, VirtualEntity.class);
         ImmutableMap<Key<?>, ?> keysToEntities = uniqueIndex(entities, OBJECTS_TO_KEYS);
         TRANSACTION_INFO.get().putSaves(keysToEntities);

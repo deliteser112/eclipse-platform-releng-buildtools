@@ -134,19 +134,16 @@ public class SyncRegistrarsSheetAction implements Runnable {
     }
 
     String sheetLockName = String.format("%s: %s", LOCK_NAME, sheetId.get());
-    Callable<Void> runner = new Callable<Void>() {
-      @Nullable
-      @Override
-      public Void call() throws IOException {
-        try {
-          syncRegistrarsSheet.run(sheetId.get());
-          Result.OK.send(response, null);
-        } catch (IOException e) {
-          Result.FAILED.send(response, e);
-        }
-        return null;
-      }
-    };
+    Callable<Void> runner =
+        () -> {
+          try {
+            syncRegistrarsSheet.run(sheetId.get());
+            Result.OK.send(response, null);
+          } catch (IOException e) {
+            Result.FAILED.send(response, e);
+          }
+          return null;
+        };
     if (!lockHandler.executeWithLocks(runner, null, timeout, sheetLockName)) {
       // If we fail to acquire the lock, it probably means lots of updates are happening at once, in
       // which case it should be safe to not bother. The task queue definition should *not* specify

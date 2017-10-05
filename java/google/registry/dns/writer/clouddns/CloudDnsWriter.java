@@ -284,39 +284,35 @@ public class CloudDnsWriter extends BaseDnsWriter {
   @VisibleForTesting
   Callable<Void> getMutateZoneCallback(
       final ImmutableMap<String, ImmutableSet<ResourceRecordSet>> desiredRecords) {
-    return new Callable<Void>() {
-      @Override
-      public Void call() throws IOException, ZoneStateException {
-        // Fetch all existing records for names that this writer is trying to modify
-        Builder<ResourceRecordSet> existingRecords = new Builder<>();
-        for (String domainName : desiredRecords.keySet()) {
-          List<ResourceRecordSet> existingRecordsForDomain =
-              getResourceRecordsForDomain(domainName);
-          existingRecords.addAll(existingRecordsForDomain);
+    return () -> {
+      // Fetch all existing records for names that this writer is trying to modify
+      Builder<ResourceRecordSet> existingRecords = new Builder<>();
+      for (String domainName : desiredRecords.keySet()) {
+        List<ResourceRecordSet> existingRecordsForDomain = getResourceRecordsForDomain(domainName);
+        existingRecords.addAll(existingRecordsForDomain);
 
-          // Fetch glue records for in-bailiwick nameservers
-          for (ResourceRecordSet record : existingRecordsForDomain) {
-            if (!record.getType().equals("NS")) {
-              continue;
-            }
-            for (String hostName : record.getRrdatas()) {
-              if (hostName.endsWith(domainName) && !hostName.equals(domainName)) {
-                existingRecords.addAll(getResourceRecordsForDomain(hostName));
-              }
+        // Fetch glue records for in-bailiwick nameservers
+        for (ResourceRecordSet record : existingRecordsForDomain) {
+          if (!record.getType().equals("NS")) {
+            continue;
+          }
+          for (String hostName : record.getRrdatas()) {
+            if (hostName.endsWith(domainName) && !hostName.equals(domainName)) {
+              existingRecords.addAll(getResourceRecordsForDomain(hostName));
             }
           }
         }
-
-        // Flatten the desired records into one set.
-        Builder<ResourceRecordSet> flattenedDesiredRecords = new Builder<>();
-        for (ImmutableSet<ResourceRecordSet> records : desiredRecords.values()) {
-          flattenedDesiredRecords.addAll(records);
-        }
-
-        // Delete all existing records and add back the desired records
-        updateResourceRecords(flattenedDesiredRecords.build(), existingRecords.build());
-        return null;
       }
+
+      // Flatten the desired records into one set.
+      Builder<ResourceRecordSet> flattenedDesiredRecords = new Builder<>();
+      for (ImmutableSet<ResourceRecordSet> records : desiredRecords.values()) {
+        flattenedDesiredRecords.addAll(records);
+      }
+
+      // Delete all existing records and add back the desired records
+      updateResourceRecords(flattenedDesiredRecords.build(), existingRecords.build());
+      return null;
     };
   }
 

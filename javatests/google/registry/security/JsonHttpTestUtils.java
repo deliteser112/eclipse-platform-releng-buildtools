@@ -80,10 +80,6 @@ public final class JsonHttpTestUtils {
    */
   public static Supplier<Map<String, Object>> createJsonResponseSupplier(
       final StringWriter writer) {
-    return memoize(new Supplier<Map<String, Object>>() {
-      @Override
-      public Map<String, Object> get() {
-        return getJsonResponse(writer);
-      }});
+    return memoize(() -> getJsonResponse(writer));
   }
 }

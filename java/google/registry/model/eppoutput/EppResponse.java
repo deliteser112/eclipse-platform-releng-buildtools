@@ -17,7 +17,7 @@ package google.registry.model.eppoutput;
 import static google.registry.util.CollectionUtils.forceEmptyToNull;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
-import com.google.common.collect.FluentIterable;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
@@ -157,7 +157,9 @@ public class EppResponse extends ImmutableObject implements ResponseOrGreeting {
 
   @Nullable
   public ResponseExtension getFirstExtensionOfType(Class<? extends ResponseExtension> clazz) {
-    return FluentIterable.from(extensions).filter(clazz).first().orNull();
+    return Optional.fromJavaUtil(
+            extensions.stream().filter(clazz::isInstance).map(clazz::cast).findFirst())
+        .orNull();
   }
 
   @Nullable

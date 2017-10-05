@@ -17,6 +17,7 @@ package google.registry.model.registry.label;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static google.registry.config.RegistryConfig.getDomainLabelListCacheDuration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
@@ -28,14 +29,12 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
@@ -217,15 +216,10 @@ public final class ReservedList
     if (label.length() == 0) {
       return ImmutableSet.of(FULLY_BLOCKED);
     }
-    return FluentIterable.from(getReservedListEntries(label, tld))
-        .transform(
-            new Function<ReservedListEntry, ReservationType>() {
-              @Override
-              public ReservationType apply(ReservedListEntry reservedListEntry) {
-                return reservedListEntry.reservationType;
-              }
-            })
-        .toSet();
+    return getReservedListEntries(label, tld)
+        .stream()
+        .map((ReservedListEntry reservedListEntry) -> reservedListEntry.reservationType)
+        .collect(toImmutableSet());
   }
 
   /**

@@ -19,14 +19,11 @@ import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Multimaps.filterKeys;
 import static google.registry.request.Action.Method.POST;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
+import static java.util.stream.Collectors.joining;
 
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.TableDataInsertAllRequest;
 import com.google.api.services.bigquery.model.TableDataInsertAllResponse;
-import com.google.api.services.bigquery.model.TableDataInsertAllResponse.InsertErrors;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -85,18 +82,19 @@ public class MetricsExportAction implements Runnable {
           .execute();
 
       if (response.getInsertErrors() != null && !response.getInsertErrors().isEmpty()) {
-        throw new RuntimeException(FluentIterable
-            .from(response.getInsertErrors())
-            .transform(new Function<InsertErrors, String>() {
-              @Override
-              public String apply(InsertErrors error) {
-                try {
-                  return error.toPrettyString();
-                } catch (IOException e) {
-                  return error.toString();
-                }
-              }})
-            .join(Joiner.on('\n')));
+        throw new RuntimeException(
+            response
+                .getInsertErrors()
+                .stream()
+                .map(
+                    error -> {
+                      try {
+                        return error.toPrettyString();
+                      } catch (IOException e) {
+                        return error.toString();
+                      }
+                    })
+                .collect(joining("\n")));
       }
     } catch (Throwable e) {
       logger.warningfmt("Caught Unknown Exception: %s", e);

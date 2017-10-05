@@ -14,7 +14,6 @@
 
 package google.registry.tools;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableList.copyOf;
 import static com.google.common.collect.Sets.difference;
@@ -100,7 +99,7 @@ final class ValidateEscrowDepositCommand implements Command {
     SortedMap<String, Long> counts = new TreeMap<>();
     for (JAXBElement<?> item : deposit.getContents().getContents()) {
       String name = item.getDeclaredType().getSimpleName();
-      counts.put(name, firstNonNull(counts.get(name), 0L) + 1L);
+      counts.put(name, counts.getOrDefault(name, 0L) + 1L);
       if (XjcRdeHost.class.isAssignableFrom(item.getDeclaredType())) {
         XjcRdeHost host = (XjcRdeHost) item.getValue();
         hostnames.add(checkNotNull(host.getName()));

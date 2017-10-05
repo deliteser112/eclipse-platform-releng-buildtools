@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.NET_RENEWS_3_YR;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_NACKED;
@@ -32,9 +33,7 @@ import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
@@ -116,14 +115,21 @@ public class DomainTransferRejectFlowTest
     PollMessage gainingPollMessage = getOnlyPollMessage("NewRegistrar");
     assertThat(gainingPollMessage.getEventTime()).isEqualTo(clock.nowUtc());
     assertThat(
-        Iterables.getOnlyElement(FluentIterable
-            .from(gainingPollMessage.getResponseData())
-            .filter(TransferResponse.class))
+            gainingPollMessage
+                .getResponseData()
+                .stream()
+                .filter(TransferResponse.class::isInstance)
+                .map(TransferResponse.class::cast)
+                .collect(onlyElement())
                 .getTransferStatus())
-                .isEqualTo(TransferStatus.CLIENT_REJECTED);
-    PendingActionNotificationResponse panData = Iterables.getOnlyElement(FluentIterable
-        .from(gainingPollMessage.getResponseData())
-        .filter(PendingActionNotificationResponse.class));
+        .isEqualTo(TransferStatus.CLIENT_REJECTED);
+    PendingActionNotificationResponse panData =
+        gainingPollMessage
+            .getResponseData()
+            .stream()
+            .filter(PendingActionNotificationResponse.class::isInstance)
+            .map(PendingActionNotificationResponse.class::cast)
+            .collect(onlyElement());
     assertThat(panData.getTrid())
         .isEqualTo(Trid.create("transferClient-trid", "transferServer-trid"));
     assertThat(panData.getActionResult()).isFalse();

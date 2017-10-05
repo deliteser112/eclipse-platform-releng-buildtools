@@ -16,19 +16,18 @@ package google.registry.util;
 
 import static com.google.appengine.api.ThreadManager.currentRequestThreadFactory;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
 import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.google.common.util.concurrent.Uninterruptibles;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -71,17 +70,13 @@ public final class Concurrent {
       // are not compatible with code that needs to interact with App Engine (such as Objectify),
       // which we often have in funk when calling Concurrent.transform().
       // For more info see: http://stackoverflow.com/questions/15976406
-      return FluentIterable.from(items).transform(funk).toList();
+      return items.stream().map(funk).collect(toImmutableList());
     }
     ExecutorService executor = newFixedThreadPool(threadCount, threadFactory);
     try {
       List<Future<B>> futures = new ArrayList<>();
       for (final A item : items) {
-        futures.add(executor.submit(new Callable<B>() {
-          @Override
-          public B call() {
-            return funk.apply(item);
-          }}));
+        futures.add(executor.submit(() -> funk.apply(item)));
       }
       ImmutableList.Builder<B> results = new ImmutableList.Builder<>();
       for (Future<B> future : futures) {

@@ -21,7 +21,6 @@ import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.FluentIterable;
@@ -85,11 +84,7 @@ public class TimeOfYear extends ImmutableObject {
         normalizedRange.lowerEndpoint().getYear(),
         normalizedRange.upperEndpoint().getYear());
     return FluentIterable.from(ContiguousSet.create(yearRange, integers()))
-        .transform(new Function<Integer, DateTime>() {
-          @Override
-          public DateTime apply(Integer year) {
-            return getDateTimeWithYear(year);
-          }})
+        .transform(this::getDateTimeWithYear)
         .filter(normalizedRange);
   }
 

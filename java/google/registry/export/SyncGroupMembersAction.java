@@ -14,6 +14,8 @@
 
 package google.registry.export;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.request.Action.Method.POST;
 import static google.registry.util.CollectionUtils.nullToEmpty;
@@ -21,13 +23,11 @@ import static google.registry.util.RegistrarUtils.normalizeClientId;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.VoidWork;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.groups.GroupsConnection;
@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
@@ -118,16 +117,14 @@ public final class SyncGroupMembersAction implements Runnable {
    */
   @Override
   public void run() {
-    List<Registrar> dirtyRegistrars = FluentIterable.from(Registrar.loadAllCached())
-        .filter(new Predicate<Registrar>() {
-          @Override
-          public boolean apply(Registrar registrar) {
-            // Only grab active registrars that require syncing and are of the correct type.
-            return registrar.isLive()
-                && registrar.getContactsRequireSyncing()
-                && registrar.getType() == Registrar.Type.REAL;
-          }})
-        .toList();
+    List<Registrar> dirtyRegistrars =
+        Streams.stream(Registrar.loadAllCached())
+            .filter(
+                registrar ->
+                    registrar.isLive()
+                        && registrar.getContactsRequireSyncing()
+                        && registrar.getType() == Registrar.Type.REAL)
+            .collect(toImmutableList());
     if (dirtyRegistrars.isEmpty()) {
       sendResponse(Result.NOT_MODIFIED, null);
       return;
@@ -137,12 +134,12 @@ public final class SyncGroupMembersAction implements Runnable {
         new ImmutableMap.Builder<>();
     for (final Registrar registrar : dirtyRegistrars) {
       try {
-        retrier.callWithRetry(new Callable<Void>() {
-          @Override
-          public Void call() throws Exception {
-            syncRegistrarContacts(registrar);
-            return null;
-          }}, RuntimeException.class);
+        retrier.callWithRetry(
+            () -> {
+              syncRegistrarContacts(registrar);
+              return null;
+            },
+            RuntimeException.class);
         resultsBuilder.put(registrar, Optional.<Throwable>absent());
       } catch (Throwable e) {
         logger.severe(e, e.getMessage());
@@ -193,18 +190,12 @@ public final class SyncGroupMembersAction implements Runnable {
         groupKey = getGroupEmailAddressForContactType(
             registrar.getClientId(), type, gSuiteDomainName);
         Set<String> currentMembers = groupsConnection.getMembersOfGroup(groupKey);
-        Set<String> desiredMembers = FluentIterable.from(registrarContacts)
-            .filter(new Predicate<RegistrarContact>() {
-              @Override
-              public boolean apply(RegistrarContact contact) {
-                return contact.getTypes().contains(type);
-              }})
-            .transform(new Function<RegistrarContact, String>() {
-              @Override
-              public String apply(RegistrarContact contact) {
-                return contact.getEmailAddress();
-              }})
-            .toSet();
+        Set<String> desiredMembers =
+            registrarContacts
+                .stream()
+                .filter(contact -> contact.getTypes().contains(type))
+                .map(RegistrarContact::getEmailAddress)
+                .collect(toImmutableSet());
         for (String email : Sets.difference(desiredMembers, currentMembers)) {
           groupsConnection.addMemberToGroup(groupKey, email, Role.MEMBER);
           totalAdded++;

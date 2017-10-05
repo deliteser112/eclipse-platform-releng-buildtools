@@ -22,7 +22,6 @@ import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import java.io.Serializable;
 import java.util.List;
-import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
 /** Utilities for dealing with App Engine task queues. */
@@ -65,15 +64,13 @@ public class TaskEnqueuer implements Serializable {
    */
   public List<TaskHandle> enqueue(final Queue queue, final Iterable<TaskOptions> tasks) {
     return retrier.callWithRetry(
-        new Callable<List<TaskHandle>>() {
-          @Override
-          public List<TaskHandle> call() {
-            for (TaskOptions task : tasks) {
-              logger.infofmt(
-                  "Enqueuing queue='%s' endpoint='%s'", queue.getQueueName(), task.getUrl());
-            }
-            return queue.add(tasks);
-          }},
+        () -> {
+          for (TaskOptions task : tasks) {
+            logger.infofmt(
+                "Enqueuing queue='%s' endpoint='%s'", queue.getQueueName(), task.getUrl());
+          }
+          return queue.add(tasks);
+        },
         TransientFailureException.class);
   }
 }

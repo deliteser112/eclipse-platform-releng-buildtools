@@ -17,7 +17,7 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
@@ -166,8 +166,11 @@ final class RegistrarContactCommand extends MutatingCommand {
         || ((contactTypeNames.size() == 1) && contactTypeNames.get(0).isEmpty())) {
       contactTypes = ImmutableSet.of();
     } else {
-      contactTypes = ImmutableSet.copyOf(
-              transform(contactTypeNames, Enums.stringConverter(RegistrarContact.Type.class)));
+      contactTypes =
+          contactTypeNames
+              .stream()
+              .map(Enums.stringConverter(RegistrarContact.Type.class))
+              .collect(toImmutableSet());
     }
     ImmutableSet<RegistrarContact> contacts = registrar.getContacts();
     Map<String, RegistrarContact> contactsMap = new LinkedHashMap<>();

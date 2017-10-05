@@ -17,6 +17,7 @@ package google.registry.loadtest;
 import static com.google.appengine.api.taskqueue.QueueConstants.maxTasksPerAdd;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Lists.partition;
 import static com.google.common.collect.Lists.transform;
 import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
@@ -27,7 +28,6 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import google.registry.config.RegistryEnvironment;
@@ -247,12 +247,12 @@ public class LoadTestAction implements Runnable {
               startSecond));
       tasks.addAll(
           createTasks(
-              FluentIterable.from(
-                      createNumCopies(xmlDomainCreateTmpl, successfulDomainCreatesPerSecond))
-                  .transform(randomNameReplacer("%domain%", MAX_DOMAIN_LABEL_LENGTH))
-                  .transform(listNameReplacer("%contact%", contactNames))
-                  .transform(listNameReplacer("%host%", hostPrefixes))
-                  .toList(),
+              createNumCopies(xmlDomainCreateTmpl, successfulDomainCreatesPerSecond)
+                  .stream()
+                  .map(randomNameReplacer("%domain%", MAX_DOMAIN_LABEL_LENGTH))
+                  .map(listNameReplacer("%contact%", contactNames))
+                  .map(listNameReplacer("%host%", hostPrefixes))
+                  .collect(toImmutableList()),
               startSecond));
     }
     ImmutableList<TaskOptions> taskOptions = tasks.build();
@@ -308,19 +308,11 @@ public class LoadTestAction implements Runnable {
 
   private Function<String, String> listNameReplacer(final String toReplace, List<String> choices) {
     final Iterator<String> iterator = Iterators.cycle(choices);
-    return new Function<String, String>() {
-      @Override
-      public String apply(String xml) {
-        return xml.replace(toReplace, iterator.next());
-      }};
+    return xml -> xml.replace(toReplace, iterator.next());
   }
 
   private Function<String, String> randomNameReplacer(final String toReplace, final int numChars) {
-    return new Function<String, String>() {
-      @Override
-      public String apply(String xml) {
-        return xml.replace(toReplace, getRandomLabel(numChars));
-      }};
+    return xml -> xml.replace(toReplace, getRandomLabel(numChars));
   }
 
   private String getRandomLabel(int numChars) {

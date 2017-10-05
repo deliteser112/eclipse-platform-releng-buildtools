@@ -17,6 +17,7 @@ package google.registry.batch;
 import static com.google.appengine.api.taskqueue.QueueConstants.maxLeaseCount;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_HOST_KEY;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
@@ -38,8 +39,6 @@ import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
@@ -61,7 +60,6 @@ import google.registry.util.SystemClock;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -180,12 +178,11 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
       }
       if (referencingHostKey != null) {
         retrier.callWithRetry(
-            new Callable<Void>() {
-              @Override
-              public Void call() throws Exception {
-                dnsQueue.addDomainRefreshTask(domain.getFullyQualifiedDomainName());
-                return null;
-              }}, TransientFailureException.class);
+            () -> {
+              dnsQueue.addDomainRefreshTask(domain.getFullyQualifiedDomainName());
+              return null;
+            },
+            TransientFailureException.class);
         logger.infofmt(
             "Enqueued DNS refresh for domain %s referenced by host %s.",
             domain.getFullyQualifiedDomainName(), referencingHostKey);
@@ -244,22 +241,13 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
       return;
     }
     final List<TaskHandle> tasks =
-        FluentIterable.from(refreshRequests)
-        .transform(
-            new Function<DnsRefreshRequest, TaskHandle>() {
-              @Override
-              public TaskHandle apply(DnsRefreshRequest refreshRequest) {
-                return refreshRequest.task();
-              }
-            })
-        .toList();
+        refreshRequests.stream().map(DnsRefreshRequest::task).collect(toImmutableList());
     retrier.callWithRetry(
-        new Callable<Void>() {
-          @Override
-          public Void call() throws Exception {
-            queue.deleteTask(tasks);
-            return null;
-          }}, TransientFailureException.class);
+        () -> {
+          queue.deleteTask(tasks);
+          return null;
+        },
+        TransientFailureException.class);
     for (DnsRefreshRequest refreshRequest : refreshRequests) {
       asyncFlowMetrics.recordAsyncFlowResult(DNS_REFRESH, result, refreshRequest.requestedTime());
     }

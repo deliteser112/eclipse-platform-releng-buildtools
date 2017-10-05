@@ -15,7 +15,6 @@
 package google.registry.model.ofy;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
@@ -43,17 +42,20 @@ class TimestampInversionException extends RuntimeException {
   }
 
   private TimestampInversionException(DateTime transactionTime, String problem) {
-    super(Joiner.on('\n').join(
-        String.format(
-            "Timestamp inversion between transaction time (%s) and %s",
-            transactionTime,
-            problem),
-        getFileAndLine(FluentIterable.from(new Exception().getStackTrace())
-          .firstMatch(new Predicate<StackTraceElement>() {
-            @Override
-            public boolean apply(StackTraceElement element) {
-              return !element.getClassName().startsWith(Objectify.class.getPackage().getName())
-                  && !element.getClassName().startsWith(Ofy.class.getName());
-            }}).get())));
+    super(
+        Joiner.on('\n')
+            .join(
+                String.format(
+                    "Timestamp inversion between transaction time (%s) and %s",
+                    transactionTime, problem),
+                getFileAndLine(
+                    FluentIterable.from(new Exception().getStackTrace())
+                        .firstMatch(
+                            (StackTraceElement element) ->
+                                !element
+                                        .getClassName()
+                                        .startsWith(Objectify.class.getPackage().getName())
+                                    && !element.getClassName().startsWith(Ofy.class.getName()))
+                        .get())));
   }
 }

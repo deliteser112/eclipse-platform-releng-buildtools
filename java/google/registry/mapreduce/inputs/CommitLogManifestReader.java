@@ -30,7 +30,6 @@ import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
 import google.registry.util.SystemSleeper;
 import java.util.NoSuchElementException;
-import java.util.concurrent.Callable;
 import org.joda.time.DateTime;
 
 /** {@link InputReader} that maps over {@link CommitLogManifest}. */
@@ -138,12 +137,7 @@ class CommitLogManifestReader extends InputReader<Key<CommitLogManifest>> {
     final Cursor currentCursor = queryIterator.getCursor();
     try {
       return retrier.callWithRetry(
-          new Callable<Key<CommitLogManifest>>() {
-            @Override
-            public Key<CommitLogManifest> call() {
-              return queryIterator.next();
-            }
-          },
+          () -> queryIterator.next(),
           new Retrier.FailureReporter() {
             @Override
             public void beforeRetry(Throwable thrown, int failures, int maxAttempts) {
@@ -155,8 +149,7 @@ class CommitLogManifestReader extends InputReader<Key<CommitLogManifest>> {
             public void afterFinalFailure(Throwable thrown, int failures) {
               logger.severefmt(
                   "Max retry attempts reached trying to read item %d/%d. Giving up.",
-                  loaded,
-                  total);
+                  loaded, total);
             }
           },
           DatastoreTimeoutException.class);

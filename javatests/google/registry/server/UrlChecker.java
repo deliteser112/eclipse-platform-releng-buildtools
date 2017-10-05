@@ -21,9 +21,7 @@ import com.google.common.util.concurrent.SimpleTimeLimiter;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
 
 final class UrlChecker {
 
@@ -33,19 +31,19 @@ final class UrlChecker {
   /** Probes {@code url} until it becomes available. */
   static void waitUntilAvailable(final URL url, int timeoutMs) {
     try {
-      SimpleTimeLimiter.create(newCachedThreadPool()).callWithTimeout(new Callable<Void>() {
-        @Nullable
-        @Override
-        public Void call() throws InterruptedException, IOException {
-          int exponentialBackoffMs = 1;
-          while (true) {
-            if (isAvailable(url)) {
-              return null;
-            }
-            Thread.sleep(exponentialBackoffMs *= 2);
-          }
-        }
-      }, timeoutMs, TimeUnit.MILLISECONDS);
+      Void unusedReturnValue = SimpleTimeLimiter.create(newCachedThreadPool())
+          .callWithTimeout(
+              () -> {
+                int exponentialBackoffMs = 1;
+                while (true) {
+                  if (isAvailable(url)) {
+                    return null;
+                  }
+                  Thread.sleep(exponentialBackoffMs *= 2);
+                }
+              },
+              timeoutMs,
+              TimeUnit.MILLISECONDS);
     } catch (Exception e) {
       throwIfUnchecked(e);
       throw new RuntimeException(e);

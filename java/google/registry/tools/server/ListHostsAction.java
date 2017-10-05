@@ -14,19 +14,19 @@
 
 package google.registry.tools.server;
 
+import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.POST;
+import static java.util.Comparator.comparing;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import google.registry.model.EppResourceUtils;
 import google.registry.model.host.HostResource;
 import google.registry.request.Action;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
-import java.util.Comparator;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -40,14 +40,6 @@ public final class ListHostsAction extends ListObjectsAction<HostResource> {
 
   public static final String PATH = "/_dr/admin/list/hosts";
 
-  private static final Comparator<HostResource> comparator =
-      new Comparator<HostResource>() {
-          @Override
-          public int compare(HostResource host1, HostResource host2) {
-            return host1.getFullyQualifiedHostName()
-                .compareTo(host2.getFullyQualifiedHostName());
-          }};
-
   @Inject Clock clock;
   @Inject ListHostsAction() {}
 
@@ -59,13 +51,8 @@ public final class ListHostsAction extends ListObjectsAction<HostResource> {
   @Override
   public ImmutableSet<HostResource> loadObjects() {
     final DateTime now = clock.nowUtc();
-    return FluentIterable
-        .from(ofy().load().type(HostResource.class))
-        .filter(new Predicate<HostResource>() {
-            @Override
-            public boolean apply(HostResource host) {
-              return EppResourceUtils.isActive(host, now);
-            }})
-        .toSortedSet(comparator);
+    return Streams.stream(ofy().load().type(HostResource.class))
+        .filter(host -> EppResourceUtils.isActive(host, now))
+        .collect(toImmutableSortedSet(comparing(HostResource::getFullyQualifiedHostName)));
   }
 }

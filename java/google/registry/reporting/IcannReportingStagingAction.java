@@ -22,7 +22,6 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ArrayListMultimap;
@@ -130,16 +129,7 @@ public final class IcannReportingStagingAction implements Runnable {
   }
 
   private Iterable<String> getHeaders(ImmutableSet<TableFieldSchema> fields) {
-    return Iterables.transform(
-        fields,
-        new Function<TableFieldSchema, String>() {
-          @Override
-          public String apply(TableFieldSchema schema) {
-            // Change from '_' delimiters (Bigquery-compatible) to '-' (ICANN specification)
-            return schema.getName().replace('_', '-');
-          }
-        }
-    );
+    return Iterables.transform(fields, schema -> schema.getName().replace('_', '-'));
   }
 
   private void stageActivityReports (

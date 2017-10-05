@@ -101,12 +101,11 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
 
   @Override
   public void reduce(final PendingDeposit key, final ReducerInput<DepositFragment> fragments) {
-    Callable<Void> lockRunner = new Callable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        reduceWithLock(key, fragments);
-        return null;
-      }};
+    Callable<Void> lockRunner =
+        () -> {
+          reduceWithLock(key, fragments);
+          return null;
+        };
     String lockName = String.format("RdeStaging %s %s", key.tld(), key.mode());
     if (!lockHandler.executeWithLocks(lockRunner, null, lockTimeout, lockName)) {
       logger.warningfmt("Lock in use: %s", lockName);

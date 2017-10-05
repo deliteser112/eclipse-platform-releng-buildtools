@@ -17,8 +17,8 @@ package google.registry.model.domain;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Strings.emptyToNull;
-import static com.google.common.collect.Iterables.all;
-import static com.google.common.collect.Iterables.any;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -30,9 +30,7 @@ import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
@@ -49,6 +47,7 @@ import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /** Shared base class for {@link DomainResource} and {@link DomainApplication}. */
 @ReportedOn
@@ -134,33 +133,28 @@ public abstract class DomainBase extends EppResource {
 
   /** Loads and returns the fully qualified host names of all linked nameservers. */
   public ImmutableSortedSet<String> loadNameserverFullyQualifiedHostNames() {
-    return FluentIterable.from(ofy().load().keys(getNameservers()).values())
-        .transform(
-            new Function<HostResource, String>() {
-              @Override
-              public String apply(HostResource host) {
-                return host.getFullyQualifiedHostName();
-              }
-            })
-        .toSortedSet(Ordering.natural());
+    return ofy()
+        .load()
+        .keys(getNameservers())
+        .values()
+        .stream()
+        .map(HostResource::getFullyQualifiedHostName)
+        .collect(toImmutableSortedSet(Ordering.natural()));
   }
 
   /** A key to the registrant who registered this domain. */
   public Key<ContactResource> getRegistrant() {
-    return FluentIterable
-        .from(nullToEmpty(allContacts))
+    return nullToEmpty(allContacts)
+        .stream()
         .filter(IS_REGISTRANT)
-        .first()
+        .findFirst()
         .get()
         .getContactKey();
   }
 
   /** Associated contacts for the domain (other than registrant). */
   public ImmutableSet<DesignatedContact> getContacts() {
-    return FluentIterable
-        .from(nullToEmpty(allContacts))
-        .filter(not(IS_REGISTRANT))
-        .toSet();
+    return nullToEmpty(allContacts).stream().filter(not(IS_REGISTRANT)).collect(toImmutableSet());
   }
 
   public DomainAuthInfo getAuthInfo() {
@@ -183,11 +177,7 @@ public abstract class DomainBase extends EppResource {
 
   /** Predicate to determine if a given {@link DesignatedContact} is the registrant. */
   private static final Predicate<DesignatedContact> IS_REGISTRANT =
-      new Predicate<DesignatedContact>() {
-        @Override
-        public boolean apply(DesignatedContact contact) {
-          return DesignatedContact.Type.REGISTRANT.equals(contact.type);
-        }};
+      (DesignatedContact contact) -> DesignatedContact.Type.REGISTRANT.equals(contact.type);
 
   /** An override of {@link EppResource#asBuilder} with tighter typing. */
   @Override
@@ -208,7 +198,7 @@ public abstract class DomainBase extends EppResource {
       T instance = getInstance();
       checkArgumentNotNull(
           emptyToNull(instance.fullyQualifiedDomainName), "Missing fullyQualifiedDomainName");
-      checkArgument(any(instance.allContacts, IS_REGISTRANT), "Missing registrant");
+      checkArgument(instance.allContacts.stream().anyMatch(IS_REGISTRANT), "Missing registrant");
       instance.tld = getTldFromDomainName(instance.fullyQualifiedDomainName);
       return super.build();
     }
@@ -255,13 +245,13 @@ public abstract class DomainBase extends EppResource {
     }
 
     public B setContacts(ImmutableSet<DesignatedContact> contacts) {
-      checkArgument(all(contacts, not(IS_REGISTRANT)), "Registrant cannot be a contact");
+      checkArgument(contacts.stream().noneMatch(IS_REGISTRANT), "Registrant cannot be a contact");
       // Replace the non-registrant contacts inside allContacts.
-      getInstance().allContacts = FluentIterable
-          .from(nullToEmpty(getInstance().allContacts))
-          .filter(IS_REGISTRANT)
-          .append(contacts)
-          .toSet();
+      getInstance().allContacts =
+          Stream.concat(
+                  nullToEmpty(getInstance().allContacts).stream().filter(IS_REGISTRANT),
+                  contacts.stream())
+              .collect(toImmutableSet());
       return thisCastToDerived();
     }
 

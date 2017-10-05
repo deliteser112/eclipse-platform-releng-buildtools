@@ -14,11 +14,9 @@
 
 package google.registry.model.eppcommon;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Maps.uniqueIndex;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.domain.allocate.AllocateCreateExtension;
@@ -98,16 +96,9 @@ public class ProtocolDefinition {
   }
 
   /** Converts a service extension enum to its URI. */
-  private static final Function<ServiceExtension, String> TO_URI_FUNCTION =
-      new Function<ServiceExtension, String>() {
-        @Override
-        public String apply(ServiceExtension serviceExtension) {
-          return serviceExtension.getUri();
-        }};
-
   /** This stores a map from URI back to the service extension enum. */
   private static final ImmutableMap<String, ServiceExtension> serviceExtensionByUri =
-      uniqueIndex(EnumSet.allOf(ServiceExtension.class), TO_URI_FUNCTION);
+      uniqueIndex(EnumSet.allOf(ServiceExtension.class), ServiceExtension::getUri);
 
   /** Returns the service extension enum associated with a URI, or null if none are associated. */
   public static ServiceExtension getServiceExtensionFromUri(String uri) {
@@ -116,16 +107,11 @@ public class ProtocolDefinition {
 
   /** A set of all the visible extension URIs. */
   private static final ImmutableSet<String> visibleServiceExtensionUris =
-      FluentIterable.from(EnumSet.allOf(ServiceExtension.class))
-          .filter(
-              new Predicate<ServiceExtension>() {
-                @Override
-                public boolean apply(ServiceExtension serviceExtension) {
-                  return serviceExtension.getVisible();
-                }
-              })
-          .transform(TO_URI_FUNCTION)
-          .toSet();
+      EnumSet.allOf(ServiceExtension.class)
+          .stream()
+          .filter(ServiceExtension::getVisible)
+          .map(ServiceExtension::getUri)
+          .collect(toImmutableSet());
 
   /** Return the set of all visible service extension URIs. */
   public static ImmutableSet<String> getVisibleServiceExtensionUris() {

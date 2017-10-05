@@ -14,15 +14,12 @@
 
 package google.registry.flows;
 
-import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.intersection;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
 import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.getCommandExtensionUri;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.EppException.CommandUseErrorException;
@@ -130,7 +127,13 @@ public final class ExtensionManager {
       ImmutableSet<Class<? extends CommandExtension>> implementedExtensions)
           throws UnsupportedRepeatedExtensionException {
     for (Class<? extends CommandExtension> implemented : implementedExtensions) {
-      if (FluentIterable.from(suppliedExtensionInstances).filter(implemented).size() > 1) {
+      if ((int)
+              suppliedExtensionInstances
+                  .stream()
+                  .filter(implemented::isInstance)
+                  .map(implemented::cast)
+                  .count()
+          > 1) {
         throw new UnsupportedRepeatedExtensionException();
       }
     }
@@ -143,13 +146,9 @@ public final class ExtensionManager {
     ImmutableSet.Builder<Class<? extends CommandExtension>> unimplementedExtensionsBuilder =
         new ImmutableSet.Builder<>();
     for (final CommandExtension instance : suppliedExtensionInstances) {
-      if (!any(
-          implementedExtensionClasses,
-          new Predicate<Class<? extends CommandExtension>>() {
-            @Override
-            public boolean apply(Class<? extends CommandExtension> implementedExtensionClass) {
-              return implementedExtensionClass.isInstance(instance);
-            }})) {
+      if (implementedExtensionClasses
+          .stream()
+          .noneMatch(implementedExtensionClass -> implementedExtensionClass.isInstance(instance))) {
         unimplementedExtensionsBuilder.add(instance.getClass());
       }
     }

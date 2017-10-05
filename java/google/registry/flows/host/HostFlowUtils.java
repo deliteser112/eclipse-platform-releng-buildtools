@@ -18,11 +18,10 @@ import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static java.util.stream.Collectors.joining;
 
 import com.google.common.base.Ascii;
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
@@ -98,8 +97,12 @@ public class HostFlowUtils {
       return Optional.absent();
     }
     // This is a subordinate host
-    String domainName = Joiner.on('.').join(Iterables.skip(
-        hostName.parts(), hostName.parts().size() - (tld.get().parts().size() + 1)));
+    String domainName =
+        hostName
+            .parts()
+            .stream()
+            .skip(hostName.parts().size() - (tld.get().parts().size() + 1))
+            .collect(joining("."));
     DomainResource superordinateDomain = loadByForeignKey(DomainResource.class, domainName, now);
     if (superordinateDomain == null || !isActive(superordinateDomain, now)) {
       throw new SuperordinateDomainDoesNotExistException(domainName);

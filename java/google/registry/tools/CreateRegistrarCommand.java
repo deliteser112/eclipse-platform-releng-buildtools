@@ -17,22 +17,22 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.emptyToNull;
-import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.google.common.collect.Lists.newArrayList;
 import static google.registry.model.registrar.Registrar.State.ACTIVE;
 import static google.registry.tools.RegistryToolEnvironment.PRODUCTION;
 import static google.registry.tools.RegistryToolEnvironment.SANDBOX;
 import static google.registry.tools.RegistryToolEnvironment.UNITTEST;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static google.registry.util.RegistrarUtils.normalizeClientId;
+import static java.util.stream.Collectors.toCollection;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import google.registry.model.registrar.Registrar;
+import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -82,15 +82,9 @@ final class CreateRegistrarCommand extends CreateOrUpdateRegistrarCommand
     checkState(
         !Registrar.loadByClientId(clientId).isPresent(), "Registrar %s already exists", clientId);
     List<Registrar> collisions =
-        newArrayList(
-            filter(
-                Registrar.loadAll(),
-                new Predicate<Registrar>() {
-                  @Override
-                  public boolean apply(Registrar registrar) {
-                    return normalizeClientId(registrar.getClientId()).equals(clientId);
-                  }
-                }));
+        Streams.stream(Registrar.loadAll())
+            .filter(registrar -> normalizeClientId(registrar.getClientId()).equals(clientId))
+            .collect(toCollection(ArrayList::new));
     if (!collisions.isEmpty()) {
       throw new IllegalArgumentException(String.format(
           "The registrar client identifier %s normalizes identically to existing registrar %s",

@@ -19,6 +19,7 @@ import static google.registry.model.EppResourceUtils.queryNotDeleted;
 import static google.registry.model.registry.Registries.assertTldsExist;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.POST;
+import static java.util.Comparator.comparing;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
@@ -28,7 +29,6 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
-import java.util.Comparator;
 import java.util.List;
 import javax.inject.Inject;
 
@@ -42,12 +42,6 @@ public final class ListDomainsAction extends ListObjectsAction<DomainResource> {
 
   /** An App Engine limitation on how many subqueries can be used in a single query. */
   private static final int MAX_NUM_SUBQUERIES = 30;
-  private static final Comparator<DomainResource> COMPARATOR =
-      new Comparator<DomainResource>() {
-          @Override
-          public int compare(DomainResource a, DomainResource b) {
-            return a.getFullyQualifiedDomainName().compareTo(b.getFullyQualifiedDomainName());
-          }};
   public static final String PATH = "/_dr/admin/list/domains";
 
   @Inject @Parameter("tlds") ImmutableSet<String> tlds;
@@ -64,7 +58,8 @@ public final class ListDomainsAction extends ListObjectsAction<DomainResource> {
     checkArgument(!tlds.isEmpty(), "Must specify TLDs to query");
     assertTldsExist(tlds);
     ImmutableSortedSet.Builder<DomainResource> builder =
-        new ImmutableSortedSet.Builder<DomainResource>(COMPARATOR);
+        new ImmutableSortedSet.Builder<DomainResource>(
+            comparing(DomainResource::getFullyQualifiedDomainName));
     for (List<String> batch : Lists.partition(tlds.asList(), MAX_NUM_SUBQUERIES)) {
       builder.addAll(queryNotDeleted(DomainResource.class, clock.nowUtc(), "tld in", batch));
     }

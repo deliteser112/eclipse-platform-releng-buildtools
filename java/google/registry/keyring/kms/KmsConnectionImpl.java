@@ -29,7 +29,6 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyringException;
 import google.registry.util.Retrier;
 import java.io.IOException;
-import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
 /** The {@link KmsConnection} which talks to Cloud KMS. */
@@ -137,13 +136,7 @@ class KmsConnectionImpl implements KmsConnection {
   public byte[] decrypt(final String cryptoKeyName, final String encodedCiphertext) {
     try {
       return retrier.callWithRetry(
-          new Callable<byte[]>() {
-            @Override
-            public byte[] call() throws IOException {
-              return attemptDecrypt(cryptoKeyName, encodedCiphertext);
-            }
-          },
-          IOException.class);
+          () -> attemptDecrypt(cryptoKeyName, encodedCiphertext), IOException.class);
     } catch (RuntimeException e) {
       throw new KeyringException(
           String.format("CloudKMS decrypt operation failed for secret %s", cryptoKeyName), e);

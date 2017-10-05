@@ -15,13 +15,13 @@
 package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.model.EppResourceUtils.queryNotDeleted;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Streams;
 import com.google.common.net.InternetDomainName;
 import google.registry.model.host.HostResource;
 import google.registry.model.registry.Registries;
@@ -47,16 +47,14 @@ final class NameserverLookupByIpCommand implements WhoisCommand {
 
   @Override
   public WhoisResponse executeQuery(DateTime now) throws WhoisException {
-    ImmutableList<HostResource> hosts = FluentIterable
-        .from(queryNotDeleted(HostResource.class, now, "inetAddresses", ipAddress))
-        .filter(new Predicate<HostResource>() {
-          @Override
-          public boolean apply(final HostResource host) {
-            return Registries
-                .findTldForName(InternetDomainName.from(host.getFullyQualifiedHostName()))
-                .isPresent();
-          }})
-        .toList();
+    ImmutableList<HostResource> hosts =
+        Streams.stream(queryNotDeleted(HostResource.class, now, "inetAddresses", ipAddress))
+            .filter(
+                host ->
+                    Registries.findTldForName(
+                            InternetDomainName.from(host.getFullyQualifiedHostName()))
+                        .isPresent())
+            .collect(toImmutableList());
     if (hosts.isEmpty()) {
       throw new WhoisException(now, SC_NOT_FOUND, "No nameservers found.");
     }

@@ -18,13 +18,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InetAddresses;
 import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
-import java.net.InetAddress;
 import org.joda.time.DateTime;
 
 /** Container for WHOIS responses to a nameserver lookup queries. */
@@ -60,15 +58,7 @@ final class NameserverWhoisResponse extends WhoisResponseImpl {
       emitter
           .emitField(
               "Server Name", maybeFormatHostname(host.getFullyQualifiedHostName(), preferUnicode))
-          .emitSet(
-              "IP Address",
-              host.getInetAddresses(),
-              new Function<InetAddress, String>() {
-                @Override
-                public String apply(InetAddress addr) {
-                  return InetAddresses.toAddrString(addr);
-                }
-              })
+          .emitSet("IP Address", host.getInetAddresses(), InetAddresses::toAddrString)
           .emitField("Registrar", registrar.get().getRegistrarName())
           .emitField("Registrar WHOIS Server", registrar.get().getWhoisServer())
           .emitField("Registrar URL", registrar.get().getReferralUrl());

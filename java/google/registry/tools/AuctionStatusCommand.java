@@ -60,28 +60,34 @@ final class AuctionStatusCommand implements RemoteApiCommand {
   @Override
   public void run() throws Exception {
     final ImmutableSet<String> domains = ImmutableSet.copyOf(mainArguments);
-    Files.write(output, FluentIterable
-        .from(domains)
-        .transformAndConcat(new Function<String, Iterable<String>>() {
-            @Override
-            public Iterable<String> apply(String fullyQualifiedDomainName) {
-              checkState(
-                  findTldForName(InternetDomainName.from(fullyQualifiedDomainName)).isPresent(),
-                  "No tld found for %s", fullyQualifiedDomainName);
-              return ofy().transactNewReadOnly(new Work<Iterable<String>>() {
-                @Override
-                public Iterable<String> run() {
-                  ImmutableList.Builder<DomainApplication> applications =
-                      new ImmutableList.Builder<>();
-                  for (String domain : domains) {
-                    applications.addAll(
-                        loadActiveApplicationsByDomainName(domain, ofy().getTransactionTime()));
-                  }
-                  return Lists.transform(
-                      FluentIterable.from(applications.build()).toSortedList(ORDERING),
-                      APPLICATION_FORMATTER);
-                }});
-            }}), UTF_8);
+    Files.write(
+        output,
+        FluentIterable.from(domains)
+            .transformAndConcat(
+                fullyQualifiedDomainName -> {
+                  checkState(
+                      findTldForName(InternetDomainName.from(fullyQualifiedDomainName)).isPresent(),
+                      "No tld found for %s",
+                      fullyQualifiedDomainName);
+                  return ofy()
+                      .transactNewReadOnly(
+                          new Work<Iterable<String>>() {
+                            @Override
+                            public Iterable<String> run() {
+                              ImmutableList.Builder<DomainApplication> applications =
+                                  new ImmutableList.Builder<>();
+                              for (String domain : domains) {
+                                applications.addAll(
+                                    loadActiveApplicationsByDomainName(
+                                        domain, ofy().getTransactionTime()));
+                              }
+                              return Lists.transform(
+                                  ImmutableList.sortedCopyOf(ORDERING, applications.build()),
+                                  APPLICATION_FORMATTER);
+                            }
+                          });
+                }),
+        UTF_8);
   }
 
   private static final Ordering<DomainApplication> ORDERING = new Ordering<DomainApplication>() {
@@ -97,11 +103,10 @@ final class AuctionStatusCommand implements RemoteApiCommand {
         }};
 
   private static final Function<DomainApplication, String> APPLICATION_FORMATTER =
-      new Function<DomainApplication, String>() {
-        @Override
-        public String apply(DomainApplication app) {
-          ContactResource registrant = checkNotNull(ofy().load().key(app.getRegistrant()).now());
-          Object[] keysAndValues = new Object[] {
+      app -> {
+        ContactResource registrant = checkNotNull(ofy().load().key(app.getRegistrant()).now());
+        Object[] keysAndValues =
+            new Object[] {
               "Domain", app.getFullyQualifiedDomainName(),
               "Type", app.getEncodedSignedMarks().isEmpty() ? "Landrush" : "Sunrise",
               "Application Status", app.getApplicationStatus(),
@@ -111,8 +116,8 @@ final class AuctionStatusCommand implements RemoteApiCommand {
               "Registrar Name", app.getCurrentSponsorClientId(),
               "Registrant Email", registrant.getEmailAddress(),
               "Registrant Phone", registrant.getVoiceNumber().getPhoneNumber()
-          };
-          return String.format(
-              Strings.repeat("%-25s= %s\n", keysAndValues.length / 2), keysAndValues);
-        }};
+            };
+        return String.format(
+            Strings.repeat("%-25s= %s\n", keysAndValues.length / 2), keysAndValues);
+      };
 }

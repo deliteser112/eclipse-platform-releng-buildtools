@@ -103,7 +103,7 @@ public class TypeUtils {
   /** Returns a predicate that tests whether classes are annotated with the given annotation. */
   public static final Predicate<Class<?>> hasAnnotation(
       final Class<? extends Annotation> annotation) {
-    return (Class<?> clazz) -> clazz.isAnnotationPresent(annotation);
+    return clazz -> clazz.isAnnotationPresent(annotation);
   }
 
   public static void checkNoInheritanceRelationships(ImmutableSet<Class<?>> resourceClasses) {

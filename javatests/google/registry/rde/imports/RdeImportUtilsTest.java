@@ -14,6 +14,7 @@
 
 package google.registry.rde.imports;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -28,10 +29,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import com.google.common.io.ByteSource;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
@@ -375,16 +375,14 @@ public class RdeImportUtilsTest extends ShardableTestCase {
 
   /** Confirms that an EppResourceIndex entity exists in Datastore for a given resource. */
   private static <T extends EppResource> void assertEppResourceIndexEntityFor(final T resource) {
-    ImmutableList<EppResourceIndex> indices = FluentIterable
-        .from(ofy().load()
-            .type(EppResourceIndex.class)
-            .filter("kind", Key.getKind(resource.getClass())))
-        .filter(new Predicate<EppResourceIndex>() {
-            @Override
-            public boolean apply(EppResourceIndex index) {
-              return ofy().load().key(index.getKey()).now().equals(resource);
-            }})
-        .toList();
+    ImmutableList<EppResourceIndex> indices =
+        Streams.stream(
+                ofy()
+                    .load()
+                    .type(EppResourceIndex.class)
+                    .filter("kind", Key.getKind(resource.getClass())))
+            .filter(index -> ofy().load().key(index.getKey()).now().equals(resource))
+            .collect(toImmutableList());
     assertThat(indices).hasSize(1);
     assertThat(indices.get(0).getBucket())
         .isEqualTo(EppResourceIndexBucket.getBucketKey(Key.create(resource)));

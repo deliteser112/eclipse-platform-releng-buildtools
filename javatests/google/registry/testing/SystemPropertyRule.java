@@ -64,9 +64,8 @@ public final class SystemPropertyRule extends ExternalResource {
    * @see java.lang.System#setProperty(String, String)
    */
   public SystemPropertyRule override(String key, @Nullable String value) {
-    if (!originals.containsKey(key)) {
-      originals.put(key, new Property(key, Optional.fromNullable(System.getProperty(key))));
-    }
+    originals.computeIfAbsent(
+        key, k -> new Property(k, Optional.fromNullable(System.getProperty(k))));
     Property property = new Property(key, Optional.fromNullable(value));
     if (isRunning) {
       property.set();

@@ -24,6 +24,8 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.assertTldExists;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.joining;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
@@ -51,10 +53,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import org.joda.time.DateTime;
@@ -143,12 +145,8 @@ final class GenerateAuctionDataCommand implements RemoteApiCommand {
   /** Return a map of all fully-qualified domain names mapped to the applications for that name. */
   private static Multimap<String, DomainApplication> getDomainApplicationMap(final String tld) {
     DateTime now = DateTime.now(UTC);
-    Multimap<String, DomainApplication> domainApplicationMap = TreeMultimap.create(
-        Ordering.natural(), new Comparator<DomainApplication>() {
-          @Override
-          public int compare(DomainApplication o1, DomainApplication o2) {
-            return o1.getForeignKey().compareTo(o2.getForeignKey());
-          }});
+    Multimap<String, DomainApplication> domainApplicationMap =
+        TreeMultimap.create(Ordering.natural(), comparing(DomainApplication::getForeignKey));
     Iterable<DomainApplication> domainApplications =
         ofy().load().type(DomainApplication.class).filter("tld", tld);
     for (DomainApplication domainApplication : domainApplications) {
@@ -202,25 +200,28 @@ final class GenerateAuctionDataCommand implements RemoteApiCommand {
     // Registrant Name|Registrant Company|Registrant Address 1|Registrant Address 2|
     // Registrant City|Registrant Province|Registrant Postal Code|Registrant Country|
     // Registrant Email|Registrant Telephone|Reserve|Application Type
-    return Joiner.on('|').join(ImmutableList.of(
-        domainApplication.getFullyQualifiedDomainName(),
-        domainApplication.getForeignKey(),
-        formatter.print(domainApplication.getCreationTime()),
-        domainApplication.getLastEppUpdateTime() != null
-            ? formatter.print(domainApplication.getLastEppUpdateTime()) : "",
-        domainApplication.getCurrentSponsorClientId(),
-        nullToEmpty(postalInfo.isPresent() ? postalInfo.get().getName() : ""),
-        nullToEmpty(postalInfo.isPresent() ? postalInfo.get().getOrg() : ""),
-        Iterables.getFirst(street, ""),
-        Joiner.on(' ').skipNulls().join(Iterables.skip(street, 1)),
-        nullToEmpty(address.isPresent() ? address.get().getCity() : ""),
-        nullToEmpty(address.isPresent() ? address.get().getState() : ""),
-        nullToEmpty(address.isPresent() ? address.get().getZip() : ""),
-        nullToEmpty(address.isPresent() ? address.get().getCountryCode() : ""),
-        nullToEmpty(registrant.getEmailAddress()),
-        nullToEmpty(phoneNumber.isPresent() ? phoneNumber.get().toPhoneString() : ""),
-        "",
-        domainApplication.getEncodedSignedMarks().isEmpty() ? "Landrush" : "Sunrise"));
+    return Joiner.on('|')
+        .join(
+            ImmutableList.of(
+                domainApplication.getFullyQualifiedDomainName(),
+                domainApplication.getForeignKey(),
+                formatter.print(domainApplication.getCreationTime()),
+                domainApplication.getLastEppUpdateTime() != null
+                    ? formatter.print(domainApplication.getLastEppUpdateTime())
+                    : "",
+                domainApplication.getCurrentSponsorClientId(),
+                nullToEmpty(postalInfo.isPresent() ? postalInfo.get().getName() : ""),
+                nullToEmpty(postalInfo.isPresent() ? postalInfo.get().getOrg() : ""),
+                Iterables.getFirst(street, ""),
+                street.stream().skip(1).filter(Objects::nonNull).collect(joining(" ")),
+                nullToEmpty(address.isPresent() ? address.get().getCity() : ""),
+                nullToEmpty(address.isPresent() ? address.get().getState() : ""),
+                nullToEmpty(address.isPresent() ? address.get().getZip() : ""),
+                nullToEmpty(address.isPresent() ? address.get().getCountryCode() : ""),
+                nullToEmpty(registrant.getEmailAddress()),
+                nullToEmpty(phoneNumber.isPresent() ? phoneNumber.get().toPhoneString() : ""),
+                "",
+                domainApplication.getEncodedSignedMarks().isEmpty() ? "Landrush" : "Sunrise"));
   }
 
   /** Return a record line for the given registrar. */

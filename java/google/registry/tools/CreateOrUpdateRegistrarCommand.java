@@ -18,19 +18,17 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.isNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static google.registry.util.RegistrarUtils.normalizeRegistrarName;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import google.registry.model.billing.RegistrarBillingUtils;
 import google.registry.model.registrar.Registrar;
@@ -376,8 +374,9 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
         builder.setBillingMethod(billingMethod);
       }
       List<Object> streetAddressFields = Arrays.asList(street, city, state, zip, countryCode);
-      checkArgument(Iterables.any(streetAddressFields, isNull())
-          == Iterables.all(streetAddressFields, isNull()),
+      checkArgument(
+          streetAddressFields.stream().anyMatch(isNull())
+              == streetAddressFields.stream().allMatch(isNull()),
           "Must specify all fields of address");
       if (street != null) {
         // We always set the localized address for now. That should be safe to do since it supports
@@ -432,15 +431,11 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
         // Check if registrar has billing account IDs for the currency of the TLDs that it is
         // allowed to register.
         ImmutableSet<CurrencyUnit> tldCurrencies =
-            FluentIterable.from(newRegistrar.getAllowedTlds())
-                .transform(
-                    new Function<String, CurrencyUnit>() {
-                      @Override
-                      public CurrencyUnit apply(String tld) {
-                        return Registry.get(tld).getCurrency();
-                      }
-                    })
-                .toSet();
+            newRegistrar
+                .getAllowedTlds()
+                .stream()
+                .map(tld -> Registry.get(tld).getCurrency())
+                .collect(toImmutableSet());
         Set<CurrencyUnit> currenciesWithoutBillingAccountId =
             newRegistrar.getBillingAccountMap() == null
                 ? tldCurrencies

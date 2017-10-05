@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.domain.DomainTransferFlowTestCase.persistWithPendingTransfer;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
@@ -46,11 +47,9 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.ResourceFlowTestCase;
@@ -543,14 +542,21 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     PollMessage gainingPollMessage = getOnlyPollMessage("NewRegistrar");
     assertThat(gainingPollMessage.getEventTime()).isEqualTo(clock.nowUtc());
     assertThat(
-        Iterables.getOnlyElement(FluentIterable
-            .from(gainingPollMessage.getResponseData())
-            .filter(TransferResponse.class))
+            gainingPollMessage
+                .getResponseData()
+                .stream()
+                .filter(TransferResponse.class::isInstance)
+                .map(TransferResponse.class::cast)
+                .collect(onlyElement())
                 .getTransferStatus())
-                .isEqualTo(TransferStatus.SERVER_CANCELLED);
-    PendingActionNotificationResponse panData = Iterables.getOnlyElement(FluentIterable
-        .from(gainingPollMessage.getResponseData())
-        .filter(PendingActionNotificationResponse.class));
+        .isEqualTo(TransferStatus.SERVER_CANCELLED);
+    PendingActionNotificationResponse panData =
+        gainingPollMessage
+            .getResponseData()
+            .stream()
+            .filter(PendingActionNotificationResponse.class::isInstance)
+            .map(PendingActionNotificationResponse.class::cast)
+            .collect(onlyElement());
     assertThat(panData.getTrid())
         .isEqualTo(Trid.create("transferClient-trid", "transferServer-trid"));
     assertThat(panData.getActionResult()).isFalse();

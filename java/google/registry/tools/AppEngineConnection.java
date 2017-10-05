@@ -63,11 +63,7 @@ class AppEngineConnection implements Connection {
    * <p>Computing this is expensive since it needs to load {@code ServerSecret} so do it once.
    */
   private final Supplier<String> xsrfToken =
-      memoize(new Supplier<String>() {
-        @Override
-        public String get() {
-          return xsrfTokenManager.generateToken(getUserId());
-        }});
+      memoize(() -> xsrfTokenManager.generateToken(getUserId()));
 
   @Override
   public void prefetchXsrfToken() throws IOException {

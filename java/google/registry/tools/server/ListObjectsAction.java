@@ -16,6 +16,7 @@ package google.registry.tools.server;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -29,7 +30,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.ImmutableTable;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import google.registry.model.ImmutableObject;
@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 
 /**
@@ -150,14 +151,9 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
     final ImmutableMap<String, String> nameMapping =
         ((fullFieldNames != null) && fullFieldNames.isPresent() && fullFieldNames.get())
             ? getFieldAliases() : getFieldAliases().inverse();
-    return ImmutableSet.copyOf(Iterables.transform(
-        Iterables.concat(getPrimaryKeyFields(), fieldsToUse),
-        new Function<String, String>() {
-          @Override
-          public String apply(String field) {
-            // Rename fields that are in the map according to the map, and leave the others as is.
-            return nameMapping.containsKey(field) ? nameMapping.get(field) : field;
-          }}));
+    return Stream.concat(getPrimaryKeyFields().stream(), fieldsToUse.stream())
+        .map(field -> nameMapping.getOrDefault(field, field))
+        .collect(toImmutableSet());
   }
 
   /**
@@ -209,22 +205,16 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
    */
   private static ImmutableMap<String, Integer> computeColumnWidths(
       ImmutableTable<?, String, String> data, final boolean includingHeader) {
-    return ImmutableMap.copyOf(Maps.transformEntries(
-        data.columnMap(),
-        new Maps.EntryTransformer<String, Map<?, String>, Integer>() {
-          @Override
-          public Integer transformEntry(String columnName, Map<?, String> columnValues) {
-            // Return the length of the longest string in this column (including the column name).
-            return Ordering.natural().max(Iterables.transform(
-                Iterables.concat(
-                    ImmutableList.of(includingHeader ? columnName : ""),
-                    columnValues.values()),
-                new Function<String, Integer>() {
-                    @Override
-                    public Integer apply(String value) {
-                      return value.length();
-                    }}));
-          }}));
+    return ImmutableMap.copyOf(
+        Maps.transformEntries(
+            data.columnMap(),
+            (columnName, columnValues) ->
+                Stream.concat(
+                        Stream.of(includingHeader ? columnName : ""),
+                        columnValues.values().stream())
+                    .map(String::length)
+                    .max(Ordering.natural())
+                    .get()));
   }
 
   /**
@@ -250,12 +240,8 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
       lines.add(rowFormatter.apply(headerRow));
 
       // Add a row of separator lines (column names mapping to '-' * column width).
-      Map<String, String> separatorRow = Maps.transformValues(columnWidths,
-          new Function<Integer, String>() {
-            @Override
-            public String apply(Integer width) {
-              return Strings.repeat("-", width);
-            }});
+      Map<String, String> separatorRow =
+          Maps.transformValues(columnWidths, width -> Strings.repeat("-", width));
       lines.add(rowFormatter.apply(separatorRow));
     }
 
@@ -275,14 +261,12 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
    */
   private static Function<Map<String, String>, String> makeRowFormatter(
       final Map<String, Integer> columnWidths) {
-    return new Function<Map<String, String>, String>() {
-        @Override
-        public String apply(Map<String, String> rowByColumns) {
-          List<String> paddedFields = new ArrayList<>();
-          for (Map.Entry<String, String> cell : rowByColumns.entrySet()) {
-            paddedFields.add(Strings.padEnd(cell.getValue(), columnWidths.get(cell.getKey()), ' '));
-          }
-          return Joiner.on("  ").join(paddedFields);
-        }};
+    return rowByColumns -> {
+      List<String> paddedFields = new ArrayList<>();
+      for (Map.Entry<String, String> cell : rowByColumns.entrySet()) {
+        paddedFields.add(Strings.padEnd(cell.getValue(), columnWidths.get(cell.getKey()), ' '));
+      }
+      return Joiner.on("  ").join(paddedFields);
+    };
   }
 }

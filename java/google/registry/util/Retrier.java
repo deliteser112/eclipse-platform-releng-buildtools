@@ -16,7 +16,6 @@ package google.registry.util;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Throwables.throwIfUnchecked;
-import static com.google.common.collect.Iterables.any;
 import static com.google.common.math.IntMath.pow;
 import static google.registry.util.PredicateUtils.supertypeOf;
 
@@ -163,10 +162,7 @@ public class Retrier implements Serializable {
       Class<? extends Throwable>... moreRetryableErrors) {
     final Set<Class<?>> retryables =
         new ImmutableSet.Builder<Class<?>>().add(retryableError).add(moreRetryableErrors).build();
-    return callWithRetry(callable, failureReporter, new Predicate<Throwable>() {
-      @Override
-      public boolean apply(Throwable e) {
-        return any(retryables, supertypeOf(e.getClass()));
-      }});
+    return callWithRetry(
+        callable, failureReporter, e -> retryables.stream().anyMatch(supertypeOf(e.getClass())));
   }
 }

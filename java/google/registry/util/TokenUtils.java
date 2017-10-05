@@ -14,8 +14,8 @@
 
 package google.registry.util;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
@@ -59,13 +59,11 @@ public final class TokenUtils {
       final TokenType type,
       StringGenerator generator,
       int count) {
-    return FluentIterable.from(generator.createStrings(type.getLength(), count))
-        .transform(new Function<String, String>() {
-          @Override
-          public String apply(String token) {
-            return String.format("%s_%s", type.getPrefix(), token);
-          }})
-        .toSet();
+    return generator
+        .createStrings(type.getLength(), count)
+        .stream()
+        .map(token -> String.format("%s_%s", type.getPrefix(), token))
+        .collect(toImmutableSet());
   }
 
   private TokenUtils() {}

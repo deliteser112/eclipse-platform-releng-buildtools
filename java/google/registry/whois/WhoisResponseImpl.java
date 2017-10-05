@@ -16,13 +16,12 @@ package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Ordering;
 import google.registry.model.eppcommon.Address;
 import google.registry.util.Idn;
 import google.registry.xml.UtcDateTimeAdapter;
@@ -93,10 +92,7 @@ abstract class WhoisResponseImpl implements WhoisResponse {
      * be to use {@link java.util.SortedSet} but that would require reworking the models.
      */
     <T> E emitSet(String title, Set<T> values, Function<T, String> transform) {
-      return emitList(title, FluentIterable
-          .from(values)
-          .transform(transform)
-          .toSortedList(Ordering.natural()));
+      return emitList(title, values.stream().map(transform).sorted().collect(toImmutableList()));
     }
 
     /** Helper method that loops over a list of values and calls {@link #emitField}. */

@@ -30,7 +30,6 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.ListItem;
 import com.google.appengine.tools.cloudstorage.ListResult;
-import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
 import com.google.common.testing.TestLogHandler;
 import google.registry.testing.AppEngineRule;
@@ -85,12 +84,9 @@ public class GcsDiffFileListerTest {
   private Iterable<DateTime> extractTimesFromDiffFiles(List<GcsFileMetadata> diffFiles) {
     return transform(
         diffFiles,
-        new Function<GcsFileMetadata, DateTime>() {
-          @Override
-          public DateTime apply(GcsFileMetadata metadata) {
-            return DateTime.parse(
-                metadata.getFilename().getObjectName().substring(DIFF_FILE_PREFIX.length()));
-          }});
+        metadata ->
+            DateTime.parse(
+                metadata.getFilename().getObjectName().substring(DIFF_FILE_PREFIX.length())));
   }
 
   private Iterable<DateTime> listDiffFiles(DateTime fromTime, DateTime toTime) {

@@ -28,8 +28,6 @@ import static google.registry.model.registry.label.ReservationType.getTypeOfHigh
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -46,7 +44,6 @@ import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.custom.DomainCheckFlowCustomLogic;
 import google.registry.flows.custom.DomainCheckFlowCustomLogic.BeforeResponseParameters;
 import google.registry.flows.custom.DomainCheckFlowCustomLogic.BeforeResponseReturnData;
-import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Check;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.fee.FeeCheckCommandExtension;
@@ -176,12 +173,9 @@ public final class DomainCheckFlow implements Flow {
     }
     Registry registry = Registry.get(domainName.parent().toString());
     if (PENDING_ALLOCATION_TLD_STATES.contains(registry.getTldState(now))
-        && FluentIterable.from(loadActiveApplicationsByDomainName(domainName.toString(), now))
-            .anyMatch(new Predicate<DomainApplication>() {
-              @Override
-              public boolean apply(DomainApplication input) {
-                return !input.getApplicationStatus().isFinalStatus();
-              }})) {
+        && loadActiveApplicationsByDomainName(domainName.toString(), now)
+            .stream()
+            .anyMatch(input -> !input.getApplicationStatus().isFinalStatus())) {
       return Optional.of("Pending allocation");
     }
     ImmutableSet<ReservationType> reservationTypes = getReservationTypes(domainName);

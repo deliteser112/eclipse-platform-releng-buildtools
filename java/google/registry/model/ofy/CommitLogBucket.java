@@ -16,14 +16,13 @@ package google.registry.model.ofy;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.DiscreteDomain.integers;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.config.RegistryConfig.getCommitLogBucketCount;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
-import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ContiguousSet;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Range;
@@ -137,13 +136,10 @@ public class CommitLogBucket extends ImmutableObject implements Buildable {
 
   /** Returns all commit log bucket keys, in ascending order by bucket ID. */
   public static ImmutableSet<Key<CommitLogBucket>> getAllBucketKeys() {
-    return FluentIterable.from(getBucketIds())
-        .transform(new Function<Integer, Key<CommitLogBucket>>() {
-            @Override
-            public Key<CommitLogBucket> apply(Integer bucketId) {
-              return getBucketKeyUnsafe(bucketId);
-            }})
-        .toSet();
+    return getBucketIds()
+        .stream()
+        .map(CommitLogBucket::getBucketKeyUnsafe)
+        .collect(toImmutableSet());
   }
 
   @Override

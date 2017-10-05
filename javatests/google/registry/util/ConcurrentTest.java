@@ -44,21 +44,19 @@ public class ConcurrentTest {
 
   @Test
   public void testTransform_addIntegers() throws Exception {
-    assertThat(Concurrent.transform(ImmutableList.of(1, 2, 3), new Function<Integer, Integer>() {
-      @Override
-      public Integer apply(Integer input) {
-        return input + 1;
-      }})).containsExactly(2, 3, 4).inOrder();
+    assertThat(Concurrent.transform(ImmutableList.of(1, 2, 3), input -> input + 1))
+        .containsExactly(2, 3, 4)
+        .inOrder();
   }
 
   @Test
   public void testTransform_throwsException_isSinglyWrappedByUee() throws Exception {
     try {
-      Concurrent.transform(ImmutableList.of(1, 2, 3), new Function<Integer, Integer>() {
-        @Override
-        public Integer apply(Integer input) {
-          throw new RuntimeException("hello");
-        }});
+      Concurrent.transform(
+          ImmutableList.of(1, 2, 3),
+          input -> {
+            throw new RuntimeException("hello");
+          });
       fail("Didn't throw!");
     } catch (UncheckedExecutionException e) {
       // We can't use ExpectedException because root cause must be one level of indirection away.

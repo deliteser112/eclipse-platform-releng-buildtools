@@ -29,7 +29,6 @@ import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -129,16 +128,12 @@ public class ReadDnsQueueActionTest {
         DNS_PUBLISH_PUSH_QUEUE_NAME,
         transform(
             tldsToDnsWriters.entries().asList(),
-            new Function<Entry<String, String>, TaskMatcher>() {
-              @Override
-              public TaskMatcher apply(Entry<String, String> tldToDnsWriter) {
-                return new TaskMatcher()
+            (Entry<String, String> tldToDnsWriter) ->
+                new TaskMatcher()
                     .url(PublishDnsUpdatesAction.PATH)
                     .param("tld", tldToDnsWriter.getKey())
                     .param("dnsWriter", tldToDnsWriter.getValue())
-                    .header("content-type", "application/x-www-form-urlencoded");
-              }
-            }));
+                    .header("content-type", "application/x-www-form-urlencoded")));
   }
 
   @Test

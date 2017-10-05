@@ -19,6 +19,7 @@ import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Strings.emptyToNull;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Maps.filterValues;
 import static google.registry.model.CacheUtils.memoizeWithShortExpiration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
@@ -28,9 +29,9 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Work;
 import google.registry.model.registry.Registry.TldType;
@@ -50,19 +51,22 @@ public final class Registries {
    * query inside an unrelated client-affecting transaction.
    */
   private static Supplier<ImmutableMap<String, TldType>> createFreshCache() {
-    return memoizeWithShortExpiration(new Supplier<ImmutableMap<String, TldType>>() {
-      @Override
-      public ImmutableMap<String, TldType> get() {
-        return ofy().doTransactionless(new Work<ImmutableMap<String, TldType>>() {
-          @Override
-          public ImmutableMap<String, TldType> run() {
-            ImmutableMap.Builder<String, TldType> builder = new ImmutableMap.Builder<>();
-            for (Registry registry : ofy().load().type(Registry.class).ancestor(getCrossTldKey())) {
-              builder.put(registry.getTldStr(), registry.getTldType());
-            }
-            return builder.build();
-          }});
-      }});
+    return memoizeWithShortExpiration(
+        () ->
+            ofy()
+                .doTransactionless(
+                    new Work<ImmutableMap<String, TldType>>() {
+                      @Override
+                      public ImmutableMap<String, TldType> run() {
+                        ImmutableMap.Builder<String, TldType> builder =
+                            new ImmutableMap.Builder<>();
+                        for (Registry registry :
+                            ofy().load().type(Registry.class).ancestor(getCrossTldKey())) {
+                          builder.put(registry.getTldStr(), registry.getTldType());
+                        }
+                        return builder.build();
+                      }
+                    }));
   }
 
   /** Manually reset the static cache backing the methods on this class. */
@@ -93,7 +97,8 @@ public final class Registries {
     for (String tld : tlds) {
       checkArgumentNotNull(emptyToNull(tld), "Null or empty TLD specified");
     }
-    ImmutableSet<String> badTlds = FluentIterable.from(tlds).filter(not(in(getTlds()))).toSet();
+    ImmutableSet<String> badTlds =
+        Streams.stream(tlds).filter(not(in(getTlds()))).collect(toImmutableSet());
     checkArgument(badTlds.isEmpty(), "TLDs do not exist: %s", Joiner.on(", ").join(badTlds));
     return tlds;
   }

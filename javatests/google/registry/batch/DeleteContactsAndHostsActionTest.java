@@ -13,8 +13,9 @@
 // limitations under the License.
 
 package google.registry.batch;
+
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
-import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
@@ -57,7 +58,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -292,15 +292,21 @@ public class DeleteContactsAndHostsActionTest
         Iterables.getOnlyElement(getPollMessages("NewRegistrar", clock.nowUtc()));
     assertThat(gainingPollMessage.getEventTime()).isLessThan(clock.nowUtc());
     assertThat(
-            Iterables.getOnlyElement(
-                    FluentIterable.from(gainingPollMessage.getResponseData())
-                        .filter(TransferResponse.class))
+            gainingPollMessage
+                .getResponseData()
+                .stream()
+                .filter(TransferResponse.class::isInstance)
+                .map(TransferResponse.class::cast)
+                .collect(onlyElement())
                 .getTransferStatus())
         .isEqualTo(TransferStatus.SERVER_CANCELLED);
     PendingActionNotificationResponse panData =
-        getOnlyElement(
-            FluentIterable.from(gainingPollMessage.getResponseData())
-                .filter(PendingActionNotificationResponse.class));
+        gainingPollMessage
+            .getResponseData()
+            .stream()
+            .filter(PendingActionNotificationResponse.class::isInstance)
+            .map(PendingActionNotificationResponse.class::cast)
+            .collect(onlyElement());
     assertThat(panData.getTrid())
         .isEqualTo(Trid.create("transferClient-trid", "transferServer-trid"));
     assertThat(panData.getActionResult()).isFalse();

@@ -16,15 +16,16 @@ package google.registry.model.billing;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.assertTldExists;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -216,7 +217,8 @@ public final class RegistrarCredit extends ImmutableObject implements Buildable 
    * <p>The resulting list sorts the credits first by type and then by creation time.
    */
   public static ImmutableList<RegistrarCredit> loadAllForRegistrar(Registrar registrar) {
-    return FluentIterable.from(ofy().load().type(RegistrarCredit.class).ancestor(registrar))
-        .toSortedList(CREDIT_PRIORITY_ORDERING);
+    return Streams.stream(ofy().load().type(RegistrarCredit.class).ancestor(registrar))
+        .sorted(CREDIT_PRIORITY_ORDERING)
+        .collect(toImmutableList());
   }
 }

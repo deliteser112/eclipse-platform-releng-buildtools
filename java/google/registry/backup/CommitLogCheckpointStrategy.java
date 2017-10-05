@@ -21,7 +21,6 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.earliestOf;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
@@ -167,10 +166,7 @@ class CommitLogCheckpointStrategy {
   ImmutableMap<Integer, DateTime> computeBucketCheckpointTimes(
       ImmutableMap<Integer, DateTime> firstPassTimes,
       final DateTime threshold) {
-    return ImmutableMap.copyOf(transformValues(firstPassTimes, new Function<DateTime, DateTime>() {
-        @Override
-        public DateTime apply(DateTime firstPassTime) {
-          return earliestOf(firstPassTime, threshold);
-        }}));
+    return ImmutableMap.copyOf(
+        transformValues(firstPassTimes, firstPassTime -> earliestOf(firstPassTime, threshold)));
   }
 }

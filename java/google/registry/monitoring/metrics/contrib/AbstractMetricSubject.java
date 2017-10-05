@@ -67,15 +67,11 @@ abstract class AbstractMetricSubject<T, S extends AbstractMetricSubject<T, S>>
    * Function to convert a metric point to a nice string representation for use in error messages.
    */
   protected final Function<MetricPoint<T>, String> metricPointConverter =
-      new Function<MetricPoint<T>, String>() {
-        @Override
-        public String apply(MetricPoint<T> metricPoint) {
-          return String.format(
+      metricPoint ->
+          String.format(
               "%s => %s",
               Joiner.on(':').join(metricPoint.labelValues()),
               getMessageRepresentation(metricPoint.value()));
-        }
-      };
 
   protected AbstractMetricSubject(FailureMetadata metadata, Metric<T> actual) {
     super(metadata, checkNotNull(actual));

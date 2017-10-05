@@ -14,7 +14,6 @@
 
 package google.registry.monitoring.metrics;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -57,27 +56,24 @@ final class MetricMetrics {
               "Count of Timeseries being pushed to Monitoring API",
               "Timeseries Count",
               LABELS,
-              new Supplier<ImmutableMap<ImmutableList<String>, Long>>() {
-                @Override
-                public ImmutableMap<ImmutableList<String>, Long> get() {
-                  HashMap<ImmutableList<String>, Long> timeseriesCount = new HashMap<>();
+              () -> {
+                HashMap<ImmutableList<String>, Long> timeseriesCount = new HashMap<>();
 
-                  for (Metric<?> metric : MetricRegistryImpl.getDefault().getRegisteredMetrics()) {
-                    ImmutableList<String> key =
-                        ImmutableList.of(
-                            metric.getMetricSchema().kind().toString(),
-                            metric.getValueClass().toString());
+                for (Metric<?> metric : MetricRegistryImpl.getDefault().getRegisteredMetrics()) {
+                  ImmutableList<String> key =
+                      ImmutableList.of(
+                          metric.getMetricSchema().kind().toString(),
+                          metric.getValueClass().toString());
 
-                    int cardinality = metric.getCardinality();
-                    if (!timeseriesCount.containsKey(key)) {
-                      timeseriesCount.put(key, (long) cardinality);
-                    } else {
-                      timeseriesCount.put(key, timeseriesCount.get(key) + cardinality);
-                    }
+                  int cardinality = metric.getCardinality();
+                  if (!timeseriesCount.containsKey(key)) {
+                    timeseriesCount.put(key, (long) cardinality);
+                  } else {
+                    timeseriesCount.put(key, timeseriesCount.get(key) + cardinality);
                   }
-
-                  return ImmutableMap.copyOf(timeseriesCount);
                 }
+
+                return ImmutableMap.copyOf(timeseriesCount);
               },
               Long.class);
 

@@ -16,6 +16,7 @@ package google.registry.tools.server;
 
 import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Maps.toMap;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -23,7 +24,6 @@ import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
 import com.google.common.base.Ascii;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -51,7 +51,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nonnull;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 
 /**
@@ -82,14 +82,7 @@ public class VerifyOteAction implements Runnable, JsonAction {
   public Map<String, Object> handleJsonRequest(Map<String, ?> json) {
     final boolean summarize = Boolean.parseBoolean((String) json.get("summarize"));
     return toMap(
-        (List<String>) json.get("registrars"),
-        new Function<String, Object>() {
-          @Nonnull
-          @Override
-          public Object apply(@Nonnull String registrar) {
-            return checkRegistrar(registrar, summarize);
-          }
-        });
+        (List<String>) json.get("registrars"), registrar -> checkRegistrar(registrar, summarize));
   }
 
   /** Checks whether the provided registrar has passed OT&amp;E and returns relevant information. */
@@ -112,66 +105,37 @@ public class VerifyOteAction implements Runnable, JsonAction {
   }
 
   private static final Predicate<EppInput> HAS_CLAIMS_NOTICE =
-      new Predicate<EppInput>() {
-        @Override
-        public boolean apply(@Nonnull EppInput eppInput) {
-          LaunchCreateExtension launchCreate =
-              eppInput.getSingleExtension(LaunchCreateExtension.class);
-          return launchCreate != null && launchCreate.getNotice() != null;
-        }
-      };
-
-  private static final Predicate<EppInput> HAS_FEE =
-      new Predicate<EppInput>() {
-        @Override
-        public boolean apply(@Nonnull EppInput eppInput) {
-          return eppInput.getSingleExtension(FeeCreateCommandExtension.class) != null;
-        }
+      eppInput -> {
+        LaunchCreateExtension launchCreate =
+            eppInput.getSingleExtension(LaunchCreateExtension.class);
+        return launchCreate != null && launchCreate.getNotice() != null;
       };
 
   private static final Predicate<EppInput> HAS_SEC_DNS =
-      new Predicate<EppInput>() {
-        @Override
-        public boolean apply(@Nonnull EppInput eppInput) {
-          return (eppInput.getSingleExtension(SecDnsCreateExtension.class) != null)
+      eppInput ->
+          (eppInput.getSingleExtension(SecDnsCreateExtension.class) != null)
               || (eppInput.getSingleExtension(SecDnsUpdateExtension.class) != null);
-        }
-      };
-
   private static final Predicate<EppInput> IS_SUNRISE =
-      new Predicate<EppInput>() {
-        @Override
-        public boolean apply(@Nonnull EppInput eppInput) {
-          LaunchCreateExtension launchCreate =
-              eppInput.getSingleExtension(LaunchCreateExtension.class);
-          return launchCreate != null && !isNullOrEmpty(launchCreate.getSignedMarks());
-        }
+      eppInput -> {
+        LaunchCreateExtension launchCreate =
+            eppInput.getSingleExtension(LaunchCreateExtension.class);
+        return launchCreate != null && !isNullOrEmpty(launchCreate.getSignedMarks());
       };
 
   private static final Predicate<EppInput> IS_IDN =
-      new Predicate<EppInput>() {
-        @Override
-        public boolean apply(@Nonnull EppInput eppInput) {
-          return ((DomainCommand.Create)
+      eppInput ->
+          ((DomainCommand.Create)
                   ((ResourceCommandWrapper) eppInput.getCommandWrapper().getCommand())
                       .getResourceCommand())
               .getFullyQualifiedDomainName()
               .startsWith(ACE_PREFIX);
-        }
-      };
-
   private static final Predicate<EppInput> IS_SUBORDINATE =
-      new Predicate<EppInput>() {
-        @Override
-        public boolean apply(@Nonnull EppInput eppInput) {
-          return !isNullOrEmpty(
+      eppInput ->
+          !isNullOrEmpty(
               ((HostCommand.Create)
                       ((ResourceCommandWrapper) eppInput.getCommandWrapper().getCommand())
                           .getResourceCommand())
                   .getInetAddresses());
-        }
-      };
-
   /** Enum defining the distinct statistics (types of registrar actions) to record. */
   public enum StatType {
     CONTACT_CREATES(0, equalTo(Type.CONTACT_CREATE)),
@@ -192,7 +156,10 @@ public class VerifyOteAction implements Runnable, JsonAction {
     DOMAIN_CREATES_ASCII(1, equalTo(Type.DOMAIN_CREATE), not(IS_IDN)),
     DOMAIN_CREATES_IDN(1, equalTo(Type.DOMAIN_CREATE), IS_IDN),
     DOMAIN_CREATES_WITH_CLAIMS_NOTICE(1, equalTo(Type.DOMAIN_CREATE), HAS_CLAIMS_NOTICE),
-    DOMAIN_CREATES_WITH_FEE(1, equalTo(Type.DOMAIN_CREATE), HAS_FEE),
+    DOMAIN_CREATES_WITH_FEE(
+        1,
+        equalTo(Type.DOMAIN_CREATE),
+        eppInput -> eppInput.getSingleExtension(FeeCreateCommandExtension.class) != null),
     DOMAIN_CREATES_WITH_SEC_DNS(1, equalTo(Type.DOMAIN_CREATE), HAS_SEC_DNS),
     DOMAIN_CREATES_WITHOUT_SEC_DNS(0, equalTo(Type.DOMAIN_CREATE), not(HAS_SEC_DNS)),
     DOMAIN_DELETES(2, equalTo(Type.DOMAIN_DELETE)),
@@ -214,15 +181,7 @@ public class VerifyOteAction implements Runnable, JsonAction {
 
     /** The number of StatTypes with a non-zero requirement. */
     private static final int NUM_REQUIREMENTS =
-        FluentIterable.from(values())
-            .filter(
-                new Predicate<StatType>() {
-                  @Override
-                  public boolean apply(@Nonnull StatType statType) {
-                    return statType.requirement > 0;
-                  }
-                })
-            .size();
+        (int) Stream.of(values()).filter(statType -> statType.requirement > 0).count();
 
     /** Required number of times registrars must complete this action. */
     final int requirement;
@@ -304,15 +263,10 @@ public class VerifyOteAction implements Runnable, JsonAction {
               ? Optional.<EppInput>absent()
               : Optional.of(unmarshal(EppInput.class, xmlBytes));
       if (!statCounts.addAll(
-          FluentIterable.from(EnumSet.allOf(StatType.class))
-              .filter(
-                  new Predicate<StatType>() {
-                    @Override
-                    public boolean apply(@Nonnull StatType statType) {
-                      return statType.matches(historyEntry.getType(), eppInput);
-                    }
-                  })
-              .toList())) {
+          EnumSet.allOf(StatType.class)
+              .stream()
+              .filter(statType -> statType.matches(historyEntry.getType(), eppInput))
+              .collect(toImmutableList()))) {
         statCounts.add(StatType.UNCLASSIFIED_FLOWS);
       }
     }
@@ -339,14 +293,8 @@ public class VerifyOteAction implements Runnable, JsonAction {
     public String toString() {
       return FluentIterable.from(EnumSet.allOf(StatType.class))
           .transform(
-              new Function<StatType, String>() {
-                @Nonnull
-                @Override
-                public String apply(@Nonnull StatType statType) {
-                  return String.format(
-                      "%s: %d", statType.description(), statCounts.count(statType));
-                }
-              })
+              statType ->
+                  String.format("%s: %d", statType.description(), statCounts.count(statType)))
           .append(String.format("TOTAL: %d", statCounts.size()))
           .join(Joiner.on("\n"));
     }

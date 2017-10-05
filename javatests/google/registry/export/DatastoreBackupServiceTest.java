@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.modules.ModulesService;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.testing.AppEngineRule;
@@ -98,30 +97,24 @@ public class DatastoreBackupServiceTest {
             .param("kind", "bar"));
   }
 
-  private static final Function<DatastoreBackupInfo, String> BACKUP_NAME_GETTER =
-      new Function<DatastoreBackupInfo, String>() {
-        @Override
-        public String apply(DatastoreBackupInfo backup) {
-          return backup.getName();
-        }};
-
   @Test
   public void testSuccess_findAllByNamePrefix() throws Exception {
-    assertThat(transform(backupService.findAllByNamePrefix("backupA"), BACKUP_NAME_GETTER))
+    assertThat(
+            transform(backupService.findAllByNamePrefix("backupA"), DatastoreBackupInfo::getName))
         .containsExactly("backupA1", "backupA2", "backupA3");
-    assertThat(transform(backupService.findAllByNamePrefix("backupB"), BACKUP_NAME_GETTER))
+    assertThat(
+            transform(backupService.findAllByNamePrefix("backupB"), DatastoreBackupInfo::getName))
         .containsExactly("backupB1", "backupB42");
-    assertThat(transform(backupService.findAllByNamePrefix("backupB4"), BACKUP_NAME_GETTER))
+    assertThat(
+            transform(backupService.findAllByNamePrefix("backupB4"), DatastoreBackupInfo::getName))
         .containsExactly("backupB42");
     assertThat(backupService.findAllByNamePrefix("backupX")).isEmpty();
   }
 
   @Test
   public void testSuccess_findByName() throws Exception {
-    assertThat(BACKUP_NAME_GETTER.apply(backupService.findByName("backupA1")))
-        .isEqualTo("backupA1");
-    assertThat(BACKUP_NAME_GETTER.apply(backupService.findByName("backupB4")))
-        .isEqualTo("backupB42");
+    assertThat(backupService.findByName("backupA1").getName()).isEqualTo("backupA1");
+    assertThat(backupService.findByName("backupB4").getName()).isEqualTo("backupB42");
   }
 
   @Test

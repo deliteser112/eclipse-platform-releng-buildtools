@@ -14,7 +14,6 @@
 
 package google.registry.server;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verify;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
@@ -133,9 +132,8 @@ public final class StaticResourceServlet extends HttpServlet {
         return Optional.absent();
       }
       rsp.setContentType(
-          firstNonNull(
-                  MIMES_BY_EXTENSION.get(getExtension(file.getFileName().toString())),
-                  DEFAULT_MIME_TYPE)
+          MIMES_BY_EXTENSION
+              .getOrDefault(getExtension(file.getFileName().toString()), DEFAULT_MIME_TYPE)
               .toString());
       rsp.setContentLength(Ints.checkedCast(Files.size(file)));
       return Optional.of(file);

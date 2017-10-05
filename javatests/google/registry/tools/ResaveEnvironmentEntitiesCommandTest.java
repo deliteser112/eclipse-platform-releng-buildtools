@@ -21,7 +21,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 
-import com.google.common.base.Function;
 import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.ofy.CommitLogMutation;
@@ -62,12 +61,7 @@ public class ResaveEnvironmentEntitiesCommandTest
     Iterable<ImmutableObject> savedEntities =
         transform(
             ofy().load().type(CommitLogMutation.class).list(),
-            new Function<CommitLogMutation, ImmutableObject>() {
-              @Override
-              public ImmutableObject apply(CommitLogMutation mutation) {
-                return ofy().load().fromEntity(mutation.getEntity());
-              }
-            });
+            mutation -> ofy().load().fromEntity(mutation.getEntity()));
     assertThat(savedEntities)
         .containsExactly(
             // The Registrars and RegistrarContacts are created by AppEngineRule.

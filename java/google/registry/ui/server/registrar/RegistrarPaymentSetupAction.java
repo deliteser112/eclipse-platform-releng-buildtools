@@ -15,12 +15,12 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.base.Functions.toStringFunction;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
 import static java.util.Arrays.asList;
 
 import com.braintreegateway.BraintreeGateway;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import google.registry.braintree.BraintreeRegistrarSyncer;
 import google.registry.config.RegistryConfig.Config;
@@ -107,14 +107,18 @@ public final class RegistrarPaymentSetupAction implements Runnable, JsonAction {
     // In order to set the customerId field on the payment, the customer must exist.
     customerSyncer.sync(registrar);
 
-    return JsonResponseHelper
-        .create(SUCCESS, "Success", asList(
+    return JsonResponseHelper.create(
+        SUCCESS,
+        "Success",
+        asList(
             ImmutableMap.of(
                 "brainframe", brainframe,
                 "token", braintreeGateway.clientToken().generate(),
                 "currencies",
-                    FluentIterable.from(accountIds.keySet())
-                        .transform(toStringFunction())
-                        .toList())));
+                    accountIds
+                        .keySet()
+                        .stream()
+                        .map(toStringFunction())
+                        .collect(toImmutableList()))));
   }
 }

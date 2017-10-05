@@ -19,7 +19,7 @@ import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Multimaps.filterKeys;
 import static com.google.common.collect.Sets.difference;
@@ -36,6 +36,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Streams;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.ParameterMap;
@@ -116,11 +117,13 @@ public final class TldFanoutAction implements Runnable {
   public void run() {
     Set<String> tlds =
         difference(
-            ImmutableSet.copyOf(
-                concat(
-                    runInEmpty ? ImmutableSet.of("") : ImmutableSet.<String>of(),
-                    forEachRealTld ? getTldsOfType(REAL) : ImmutableSet.<String>of(),
-                    forEachTestTld ? getTldsOfType(TEST) : ImmutableSet.<String>of())),
+            Streams.concat(
+                    Streams.stream(runInEmpty ? ImmutableSet.of("") : ImmutableSet.<String>of()),
+                    Streams.stream(
+                        forEachRealTld ? getTldsOfType(REAL) : ImmutableSet.<String>of()),
+                    Streams.stream(
+                        forEachTestTld ? getTldsOfType(TEST) : ImmutableSet.<String>of()))
+                .collect(toImmutableSet()),
             excludes);
     Multimap<String, String> flowThruParams = filterKeys(params, not(in(CONTROL_PARAMS)));
     Queue taskQueue = getQueue(queue);

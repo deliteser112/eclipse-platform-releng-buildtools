@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.assertTldsExist;
@@ -27,9 +28,7 @@ import com.beust.jcommander.Parameters;
 import com.google.appengine.tools.remoteapi.RemoteApiException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Function;
 import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -50,7 +49,6 @@ import java.io.StringReader;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
 /**
@@ -164,12 +162,12 @@ public class CreateLrpTokensCommand implements RemoteApiCommand {
       }
       final ImmutableSet<LrpTokenEntity> tokensToSave = tokensToSaveBuilder.build();
       // Wrap in a retrier to deal with transient 404 errors (thrown as RemoteApiExceptions).
-      retrier.callWithRetry(new Callable<Void>() {
-        @Override
-        public Void call() throws Exception {
-          saveTokens(tokensToSave);
-          return null;
-        }}, RemoteApiException.class);
+      retrier.callWithRetry(
+          () -> {
+            saveTokens(tokensToSave);
+            return null;
+          },
+          RemoteApiException.class);
     } while (line != null);
   }
 
@@ -196,21 +194,19 @@ public class CreateLrpTokensCommand implements RemoteApiCommand {
   private ImmutableSet<String> generateTokens(int count) {
     final ImmutableSet<String> candidates =
         ImmutableSet.copyOf(TokenUtils.createTokens(LRP, stringGenerator, count));
-    ImmutableSet<Key<LrpTokenEntity>> existingTokenKeys = FluentIterable.from(candidates)
-        .transform(new Function<String, Key<LrpTokenEntity>>() {
-          @Override
-          public Key<LrpTokenEntity> apply(String input) {
-            return Key.create(LrpTokenEntity.class, input);
-          }})
-        .toSet();
-    ImmutableSet<String> existingTokenStrings = FluentIterable
-        .from(ofy().load().keys(existingTokenKeys).values())
-        .transform(new Function<LrpTokenEntity, String>() {
-          @Override
-          public String apply(LrpTokenEntity input) {
-            return input.getToken();
-          }})
-        .toSet();
+    ImmutableSet<Key<LrpTokenEntity>> existingTokenKeys =
+        candidates
+            .stream()
+            .map(input -> Key.create(LrpTokenEntity.class, input))
+            .collect(toImmutableSet());
+    ImmutableSet<String> existingTokenStrings =
+        ofy()
+            .load()
+            .keys(existingTokenKeys)
+            .values()
+            .stream()
+            .map(LrpTokenEntity::getToken)
+            .collect(toImmutableSet());
     return ImmutableSet.copyOf(difference(candidates, existingTokenStrings));
   }
 }

@@ -14,6 +14,7 @@
 
 package google.registry.rde;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.common.Cursor.CursorType.BRDA;
 import static google.registry.model.common.Cursor.CursorType.RDE_STAGING;
@@ -39,9 +40,7 @@ import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.ListItem;
 import com.google.appengine.tools.cloudstorage.ListOptions;
 import com.google.appengine.tools.cloudstorage.ListResult;
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -782,15 +781,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     ListResult listResult =
         gcsService.list("rde-bucket", new ListOptions.Builder().setPrefix("manual/test").build());
     ImmutableSet<String> filenames =
-        FluentIterable.from(ImmutableList.copyOf(listResult))
-            .transform(
-                new Function<ListItem, String>() {
-                  @Override
-                  public String apply(ListItem listItem) {
-                    return listItem.getName();
-                  }
-                })
-            .toSet();
+        ImmutableList.copyOf(listResult).stream().map(ListItem::getName).collect(toImmutableSet());
     for (String tld : tlds) {
       assertThat(filenames)
           .containsAllOf(

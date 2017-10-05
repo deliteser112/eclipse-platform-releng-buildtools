@@ -14,7 +14,7 @@
 
 package google.registry.flows.domain;
 
-import static com.google.common.collect.Iterables.concat;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
@@ -26,6 +26,7 @@ import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Credit;
 import google.registry.model.domain.fee.Fee;
+import java.util.stream.Stream;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 
@@ -102,7 +103,7 @@ public class FeesAndCredits extends ImmutableObject implements Buildable {
 
   /** Returns all fees and credits for the event. */
   public ImmutableList<BaseFee> getFeesAndCredits() {
-    return ImmutableList.copyOf(concat(getFees(), getCredits()));
+    return Stream.concat(getFees().stream(), getCredits().stream()).collect(toImmutableList());
   }
 
   @Override

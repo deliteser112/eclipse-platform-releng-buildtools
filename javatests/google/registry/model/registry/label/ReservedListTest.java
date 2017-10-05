@@ -551,10 +551,5 @@ public class ReservedListTest {
   }
 
   /** Gets the name of a reserved list. */
-  public static final Function<Key<ReservedList>, String> GET_NAME_FUNCTION =
-      new Function<Key<ReservedList>, String>() {
-        @Override
-        public String apply(final Key<ReservedList> input) {
-          return input.getName();
-        }};
+  public static final Function<Key<ReservedList>, String> GET_NAME_FUNCTION = Key::getName;
 }

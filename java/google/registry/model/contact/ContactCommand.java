@@ -17,7 +17,6 @@ package google.registry.model.contact;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.PostalInfo.Type;
@@ -67,11 +66,7 @@ public class ContactCommand {
       // There can be no more than 2 postalInfos (enforced by the schema), and if there are 2 they
       // must be of different types (not enforced). If the type is repeated, uniqueIndex will throw.
       checkState(nullToEmpty(postalInfo).size() <= 2);
-      return Maps.uniqueIndex(nullToEmpty(postalInfo), new Function<PostalInfo, Type>() {
-        @Override
-        public Type apply(PostalInfo info) {
-          return info.getType();
-        }});
+      return Maps.uniqueIndex(nullToEmpty(postalInfo), PostalInfo::getType);
     }
 
     public ContactPhoneNumber getVoice() {

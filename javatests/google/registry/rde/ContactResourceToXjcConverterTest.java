@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -88,14 +87,7 @@ public class ContactResourceToXjcConverterTest {
 
     // o  One or more <status> elements that describe the status of the
     //    contact object.
-    assertThat(
-            FluentIterable
-                .from(bean.getStatuses())
-                .transform(new Function<XjcContactStatusType, XjcContactStatusValueType>() {
-                  @Override
-                  public XjcContactStatusValueType apply(XjcContactStatusType status) {
-                    return status.getS();
-                  }}))
+    assertThat(FluentIterable.from(bean.getStatuses()).transform(XjcContactStatusType::getS))
         .containsExactly(
             XjcContactStatusValueType.CLIENT_DELETE_PROHIBITED,
             XjcContactStatusValueType.SERVER_UPDATE_PROHIBITED);

@@ -178,19 +178,6 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   }
 
   /** Helper to remove the grace period's billing event key to facilitate comparison. */
-  private static final Function<GracePeriod, GracePeriod> GRACE_PERIOD_KEY_STRIPPER =
-      new Function<GracePeriod, GracePeriod>() {
-        @Override
-        public GracePeriod apply(GracePeriod gracePeriod) {
-          return GracePeriod.create(
-              gracePeriod.isSunrushAddGracePeriod()
-                  ? GracePeriodStatus.SUNRUSH_ADD
-                  : gracePeriod.getType(),
-              gracePeriod.getExpirationTime(),
-              gracePeriod.getClientId(),
-              null);
-        }};
-
   /** A helper class that sets the billing event parent history entry to facilitate comparison. */
   public static class BillingEventParentSetter implements Function<BillingEvent, BillingEvent> {
     private HistoryEntry historyEntry;
@@ -220,7 +207,16 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     ImmutableMap.Builder<GracePeriod, BillingEvent> builder = new ImmutableMap.Builder<>();
     for (Map.Entry<GracePeriod, ? extends BillingEvent> entry : gracePeriods.entrySet()) {
       builder.put(
-          GRACE_PERIOD_KEY_STRIPPER.apply(entry.getKey()),
+          ((Function<GracePeriod, GracePeriod>)
+                  gracePeriod ->
+                      GracePeriod.create(
+                          gracePeriod.isSunrushAddGracePeriod()
+                              ? GracePeriodStatus.SUNRUSH_ADD
+                              : gracePeriod.getType(),
+                          gracePeriod.getExpirationTime(),
+                          gracePeriod.getClientId(),
+                          null))
+              .apply(entry.getKey()),
           BILLING_EVENT_ID_STRIPPER.apply(entry.getValue()));
     }
     return builder.build();
@@ -235,18 +231,17 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
       Iterable<GracePeriod> actual,
       ImmutableMap<GracePeriod, ? extends BillingEvent> expected) {
     Function<GracePeriod, BillingEvent> gracePeriodExpander =
-        new Function<GracePeriod, BillingEvent>() {
-          @Override
-          public BillingEvent apply(GracePeriod gracePeriod) {
-            assertThat(gracePeriod.hasBillingEvent())
-                .named("Billing event is present for grace period: " + gracePeriod)
-                .isTrue();
-            return ofy().load()
-                .key(firstNonNull(
-                    gracePeriod.getOneTimeBillingEvent(),
-                    gracePeriod.getRecurringBillingEvent()))
-                .now();
-          }};
+        gracePeriod -> {
+          assertThat(gracePeriod.hasBillingEvent())
+              .named("Billing event is present for grace period: " + gracePeriod)
+              .isTrue();
+          return ofy()
+              .load()
+              .key(
+                  firstNonNull(
+                      gracePeriod.getOneTimeBillingEvent(), gracePeriod.getRecurringBillingEvent()))
+              .now();
+        };
     assertThat(canonicalizeGracePeriods(Maps.toMap(actual, gracePeriodExpander)))
         .isEqualTo(canonicalizeGracePeriods(expected));
   }
@@ -273,11 +268,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
       throws Exception {
     // To facilitate comparison, remove the ids.
     Function<PollMessage, PollMessage> idStripper =
-        new Function<PollMessage, PollMessage>() {
-          @Override
-          public PollMessage apply(PollMessage pollMessage) {
-            return pollMessage.asBuilder().setId(1L).build();
-          }};
+        pollMessage -> pollMessage.asBuilder().setId(1L).build();
     // Ordering is irrelevant but duplicates should be considered independently.
     assertThat(FluentIterable.from(pollMessages).transform(idStripper))
         .containsExactlyElementsIn(FluentIterable.from(expected).transform(idStripper));

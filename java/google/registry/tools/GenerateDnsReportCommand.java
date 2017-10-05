@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.io.BaseEncoding.base16;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.assertTldExists;
@@ -23,10 +24,8 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Ordering;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
@@ -98,20 +97,24 @@ final class GenerateDnsReportCommand implements RemoteApiCommand {
     }
 
     private void write(DomainResource domain) {
-      ImmutableList<String> nameservers = FluentIterable
-          .from(domain.loadNameserverFullyQualifiedHostNames())
-          .toSortedList(Ordering.natural());
-      ImmutableList<Map<String, ?>> dsData = FluentIterable.from(domain.getDsData())
-          .transform(new Function<DelegationSignerData, Map<String, ?>>() {
-              @Override
-              public Map<String, ?> apply(DelegationSignerData dsData) {
-                return ImmutableMap.of(
-                    "keyTag", dsData.getKeyTag(),
-                    "algorithm", dsData.getAlgorithm(),
-                    "digestType", dsData.getDigestType(),
-                    "digest", base16().encode(dsData.getDigest()));
-              }})
-          .toList();
+      ImmutableList<String> nameservers =
+          ImmutableList.sortedCopyOf(domain.loadNameserverFullyQualifiedHostNames());
+      ImmutableList<Map<String, ?>> dsData =
+          domain
+              .getDsData()
+              .stream()
+              .map(
+                  new Function<DelegationSignerData, Map<String, ?>>() {
+                    @Override
+                    public Map<String, ?> apply(DelegationSignerData dsData) {
+                      return ImmutableMap.of(
+                          "keyTag", dsData.getKeyTag(),
+                          "algorithm", dsData.getAlgorithm(),
+                          "digestType", dsData.getDigestType(),
+                          "digest", base16().encode(dsData.getDigest()));
+                    }
+                  })
+              .collect(toImmutableList());
       ImmutableMap.Builder<String, Object> mapBuilder = new ImmutableMap.Builder<>();
       mapBuilder.put("domain", domain.getFullyQualifiedDomainName());
       if (!nameservers.isEmpty()) {
@@ -124,13 +127,13 @@ final class GenerateDnsReportCommand implements RemoteApiCommand {
     }
 
     private void write(HostResource nameserver) {
-      ImmutableList<String> ipAddresses = FluentIterable.from(nameserver.getInetAddresses())
-          .transform(new Function<InetAddress, String>() {
-              @Override
-              public String apply(InetAddress inetAddress) {
-                return inetAddress.getHostAddress();
-              }})
-          .toSortedList(Ordering.natural());
+      ImmutableList<String> ipAddresses =
+          nameserver
+              .getInetAddresses()
+              .stream()
+              .map(InetAddress::getHostAddress)
+              .sorted()
+              .collect(toImmutableList());
       ImmutableMap<String, ?> map  = ImmutableMap.of(
           "host", nameserver.getFullyQualifiedHostName(),
           "ips", ipAddresses);

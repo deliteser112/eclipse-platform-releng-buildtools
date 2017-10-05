@@ -21,9 +21,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.xml.UtcDateTimeAdapter.getFormattedString;
 
-import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -77,13 +75,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
     Registrar registrar = registrarOptional.get();
     Optional<RegistrarContact> abuseContact =
         Iterables.tryFind(
-            registrar.getContacts(),
-            new Predicate<RegistrarContact>() {
-              @Override
-              public boolean apply(@Nullable RegistrarContact contact) {
-                return contact.getVisibleInDomainWhoisAsAbuse();
-              }
-            });
+            registrar.getContacts(), RegistrarContact::getVisibleInDomainWhoisAsAbuse);
     String plaintext =
         new DomainEmitter()
             .emitField(
@@ -97,9 +89,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
             .emitField(
                 "Registry Expiry Date", getFormattedString(domain.getRegistrationExpirationTime()))
             .emitField("Registrar", registrar.getRegistrarName())
-            .emitField(
-                "Registrar IANA ID",
-                Objects.toString(registrar.getIanaIdentifier(), ""))
+            .emitField("Registrar IANA ID", Objects.toString(registrar.getIanaIdentifier(), ""))
             // Email address is a required field for registrar contacts. Therefore as long as there
             // is an abuse contact, we can get an email address from it.
             .emitFieldIfDefined(
@@ -116,12 +106,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
             .emitSet(
                 "Name Server",
                 domain.loadNameserverFullyQualifiedHostNames(),
-                new Function<String, String>() {
-                  @Override
-                  public String apply(String hostName) {
-                    return maybeFormatHostname(hostName, preferUnicode);
-                  }
-                })
+                hostName -> maybeFormatHostname(hostName, preferUnicode))
             .emitField(
                 "DNSSEC", isNullOrEmpty(domain.getDsData()) ? "unsigned" : "signedDelegation")
             .emitWicfLink()
@@ -135,12 +120,8 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
   /** Returns the contact of the given type, or null if it does not exist. */
   @Nullable
   private Key<ContactResource> getContactReference(final Type type) {
-    Optional<DesignatedContact> contactOfType = tryFind(domain.getContacts(),
-        new Predicate<DesignatedContact>() {
-          @Override
-          public boolean apply(DesignatedContact d) {
-            return d.getType() == type;
-          }});
+    Optional<DesignatedContact> contactOfType =
+        tryFind(domain.getContacts(), d -> d.getType() == type);
     return contactOfType.isPresent() ? contactOfType.get().getContactKey() : null;
   }
 
@@ -200,12 +181,10 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
       return emitSet(
           "Domain Status",
           combinedStatuses.build(),
-          new Function<EppEnum, String>() {
-            @Override
-            public String apply(EppEnum status) {
-              String xmlName = status.getXmlName();
-              return String.format("%s %s%s", xmlName, ICANN_STATUS_URL_PREFIX, xmlName);
-            }});
+          status -> {
+            String xmlName = status.getXmlName();
+            return String.format("%s %s%s", xmlName, ICANN_STATUS_URL_PREFIX, xmlName);
+          });
     }
 
     /** Emits the message that AWIP requires accompany all domain WHOIS responses. */

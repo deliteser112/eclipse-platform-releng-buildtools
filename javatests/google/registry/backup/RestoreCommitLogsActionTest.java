@@ -33,7 +33,6 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.tools.cloudstorage.GcsFileOptions;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -278,13 +277,8 @@ public class RestoreCommitLogsActionTest {
   }
 
   private void assertExpectedIds(String... ids) {
-    assertThat(transform(
-        ofy().load().type(TestObject.class),
-        new Function<TestObject, String>() {
-          @Override
-          public String apply(TestObject test) {
-            return test.getId();
-          }})).containsExactly((Object[]) ids);
+    assertThat(transform(ofy().load().type(TestObject.class), TestObject::getId))
+        .containsExactly((Object[]) ids);
   }
 
   private void assertInDatastore(Iterable<? extends ImmutableObject> entities) {

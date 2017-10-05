@@ -17,6 +17,7 @@ package google.registry.model.ofy;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Maps.filterKeys;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
@@ -25,7 +26,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -150,14 +150,13 @@ class CommitLoggedWork<R> extends VoidWork {
         ImmutableSet.copyOf(filterKeys(rootsForTouchedKeys, not(in(touchedKeys))).values());
     manifest = CommitLogManifest.create(info.bucketKey, info.transactionTime, info.getDeletes());
     final Key<CommitLogManifest> manifestKey = Key.create(manifest);
-    mutations = FluentIterable
-        .from(union(info.getSaves(), untouchedRootsWithTouchedChildren))
-        .transform(new Function<Object, ImmutableObject>() {
-            @Override
-            public CommitLogMutation apply(Object saveEntity) {
-              return CommitLogMutation.create(manifestKey, saveEntity);
-            }})
-        .toSet();
+    mutations =
+        union(info.getSaves(), untouchedRootsWithTouchedChildren)
+            .stream()
+            .map(
+                (Function<Object, ImmutableObject>)
+                    (Object saveEntity) -> CommitLogMutation.create(manifestKey, saveEntity))
+            .collect(toImmutableSet());
     ofy().saveWithoutBackup()
       .entities(new ImmutableSet.Builder<>()
           .add(manifest)

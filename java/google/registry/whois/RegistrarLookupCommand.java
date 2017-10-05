@@ -45,42 +45,42 @@ final class RegistrarLookupCommand implements WhoisCommand {
    * WHOIS.
    */
   private static final Supplier<Map<String, Registrar>> REGISTRAR_BY_NORMALIZED_NAME_CACHE =
-      memoizeWithShortExpiration(new Supplier<Map<String, Registrar>>() {
-        @Override
-        public Map<String, Registrar> get() {
-          Map<String, Registrar> map = new HashMap<>();
-          // Use the normalized registrar name as a key, and ignore inactive and hidden registrars.
-          for (Registrar registrar : Registrar.loadAllCached()) {
-            if (!registrar.isLiveAndPubliclyVisible() || registrar.getRegistrarName() == null) {
-              continue;
-            }
-            String normalized = normalizeRegistrarName(registrar.getRegistrarName());
-            if (map.put(normalized, registrar) != null) {
-              logger.warning(normalized
-                  + " appeared as a normalized registrar name for more than one registrar");
-            }
-          }
-          // Use the normalized registrar name without its last word as a key, assuming there are
-          // multiple words in the name. This allows searches without LLC or INC, etc. Only insert
-          // if there isn't already a mapping for this string, so that if there's a registrar with a
-          // two word name (Go Daddy) and no business-type suffix and another registrar with just
-          // that first word as its name (Go), the latter will win.
-          for (Registrar registrar : ImmutableList.copyOf(map.values())) {
-            if (registrar.getRegistrarName() == null) {
-              continue;
-            }
-            List<String> words =
-                Splitter.on(CharMatcher.whitespace()).splitToList(registrar.getRegistrarName());
-            if (words.size() > 1) {
-              String normalized =
-                  normalizeRegistrarName(Joiner.on("").join(words.subList(0, words.size() - 1)));
-              if (!map.containsKey(normalized)) {
-                map.put(normalized, registrar);
+      memoizeWithShortExpiration(
+          () -> {
+            Map<String, Registrar> map = new HashMap<>();
+            // Use the normalized registrar name as a key, and ignore inactive and hidden
+            // registrars.
+            for (Registrar registrar : Registrar.loadAllCached()) {
+              if (!registrar.isLiveAndPubliclyVisible() || registrar.getRegistrarName() == null) {
+                continue;
+              }
+              String normalized = normalizeRegistrarName(registrar.getRegistrarName());
+              if (map.put(normalized, registrar) != null) {
+                logger.warning(
+                    normalized
+                        + " appeared as a normalized registrar name for more than one registrar");
               }
             }
-          }
-          return ImmutableMap.copyOf(map);
-        }});
+            // Use the normalized registrar name without its last word as a key, assuming there are
+            // multiple words in the name. This allows searches without LLC or INC, etc. Only insert
+            // if there isn't already a mapping for this string, so that if there's a registrar with
+            // a
+            // two word name (Go Daddy) and no business-type suffix and another registrar with just
+            // that first word as its name (Go), the latter will win.
+            for (Registrar registrar : ImmutableList.copyOf(map.values())) {
+              if (registrar.getRegistrarName() == null) {
+                continue;
+              }
+              List<String> words =
+                  Splitter.on(CharMatcher.whitespace()).splitToList(registrar.getRegistrarName());
+              if (words.size() > 1) {
+                String normalized =
+                    normalizeRegistrarName(Joiner.on("").join(words.subList(0, words.size() - 1)));
+                map.putIfAbsent(normalized, registrar);
+              }
+            }
+            return ImmutableMap.copyOf(map);
+          });
 
   @VisibleForTesting
   final String registrarName;

@@ -17,7 +17,9 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Suppliers.memoize;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.toArray;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.config.RegistryConfig.getContactAndHostRoidSuffix;
@@ -42,7 +44,6 @@ import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
@@ -51,6 +52,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
@@ -108,14 +110,14 @@ import org.joda.time.DateTime;
 public class DatastoreHelper {
 
   private static final Supplier<String[]> DEFAULT_PREMIUM_LIST_CONTENTS =
-      memoize(new Supplier<String[]>() {
-        @Override
-        public String[] get() {
-          return toArray(
-              Splitter.on('\n').split(
-                  readResourceUtf8(DatastoreHelper.class, "default_premium_list_testdata.csv")),
-              String.class);
-        }});
+      memoize(
+          () ->
+              toArray(
+                  Splitter.on('\n')
+                      .split(
+                          readResourceUtf8(
+                              DatastoreHelper.class, "default_premium_list_testdata.csv")),
+                  String.class));
 
   public static HostResource newHostResource(String hostName) {
     return new HostResource.Builder()
@@ -689,12 +691,7 @@ public class DatastoreHelper {
 
   /** Helper to effectively erase the billing event ID to facilitate comparison. */
   public static final Function<BillingEvent, BillingEvent> BILLING_EVENT_ID_STRIPPER =
-      new Function<BillingEvent, BillingEvent>() {
-        @Override
-        public BillingEvent apply(BillingEvent billingEvent) {
-          // Can't use id=0 because that causes the builder to generate a new id.
-          return billingEvent.asBuilder().setId(1L).build();
-        }};
+      billingEvent -> billingEvent.asBuilder().setId(1L).build();
 
   /** Assert that the actual poll message matches the expected one, ignoring IDs. */
   public static void assertPollMessagesEqual(PollMessage actual, PollMessage expected) {
@@ -718,48 +715,43 @@ public class DatastoreHelper {
 
   /** Helper to effectively erase the poll message ID to facilitate comparison. */
   public static final Function<PollMessage, PollMessage> POLL_MESSAGE_ID_STRIPPER =
-      new Function<PollMessage, PollMessage>() {
-        @Override
-        public PollMessage apply(PollMessage pollMessage) {
-          // Can't use id=0 because that causes the builder to generate a new id.
-          return pollMessage.asBuilder().setId(1L).build();
-        }};
+      pollMessage -> pollMessage.asBuilder().setId(1L).build();
 
   public static ImmutableList<PollMessage> getPollMessages() {
-    return FluentIterable.from(ofy().load().type(PollMessage.class)).toList();
+    return Streams.stream(ofy().load().type(PollMessage.class)).collect(toImmutableList());
   }
 
   public static ImmutableList<PollMessage> getPollMessages(String clientId) {
-    return FluentIterable
-        .from(ofy().load().type(PollMessage.class).filter("clientId", clientId))
-        .toList();
+    return Streams.stream(ofy().load().type(PollMessage.class).filter("clientId", clientId))
+        .collect(toImmutableList());
   }
 
   public static ImmutableList<PollMessage> getPollMessages(EppResource resource) {
-    return FluentIterable.from(ofy().load().type(PollMessage.class).ancestor(resource)).toList();
+    return Streams.stream(ofy().load().type(PollMessage.class).ancestor(resource))
+        .collect(toImmutableList());
   }
 
   public static ImmutableList<PollMessage> getPollMessages(String clientId, DateTime now) {
-    return FluentIterable
-        .from(ofy()
-            .load()
-            .type(PollMessage.class)
-            .filter("clientId", clientId)
-            .filter("eventTime <=", now.toDate()))
-        .toList();
+    return Streams.stream(
+            ofy()
+                .load()
+                .type(PollMessage.class)
+                .filter("clientId", clientId)
+                .filter("eventTime <=", now.toDate()))
+        .collect(toImmutableList());
   }
 
   /** Gets all PollMessages associated with the given EppResource. */
   public static ImmutableList<PollMessage> getPollMessages(
       EppResource resource, String clientId, DateTime now) {
-    return FluentIterable
-        .from(ofy()
-            .load()
-            .type(PollMessage.class)
-            .ancestor(resource)
-            .filter("clientId", clientId)
-            .filter("eventTime <=", now.toDate()))
-        .toList();
+    return Streams.stream(
+            ofy()
+                .load()
+                .type(PollMessage.class)
+                .ancestor(resource)
+                .filter("clientId", clientId)
+                .filter("eventTime <=", now.toDate()))
+        .collect(toImmutableList());
   }
 
   public static PollMessage getOnlyPollMessage(String clientId) {
@@ -774,7 +766,11 @@ public class DatastoreHelper {
       String clientId,
       DateTime now,
       Class<? extends PollMessage> subType) {
-    return Iterables.getOnlyElement(Iterables.filter(getPollMessages(clientId, now), subType));
+    return getPollMessages(clientId, now)
+        .stream()
+        .filter(subType::isInstance)
+        .map(subType::cast)
+        .collect(onlyElement());
   }
 
   public static PollMessage getOnlyPollMessage(
@@ -782,8 +778,11 @@ public class DatastoreHelper {
       String clientId,
       DateTime now,
       Class<? extends PollMessage> subType) {
-    return Iterables.getOnlyElement(
-        Iterables.filter(getPollMessages(resource, clientId, now), subType));
+    return getPollMessages(resource, clientId, now)
+        .stream()
+        .filter(subType::isInstance)
+        .map(subType::cast)
+        .collect(onlyElement());
   }
 
   /** Returns a newly allocated, globally unique domain repoId of the format HEX-TLD. */
@@ -948,13 +947,10 @@ public class DatastoreHelper {
    */
   public static List<HistoryEntry> getHistoryEntriesOfType(
       EppResource resource, final HistoryEntry.Type type) {
-    return FluentIterable.from(getHistoryEntries(resource))
-        .filter(new Predicate<HistoryEntry>() {
-          @Override
-          public boolean apply(HistoryEntry entry) {
-            return entry.getType() == type;
-          }})
-        .toList();
+    return getHistoryEntries(resource)
+        .stream()
+        .filter(entry -> entry.getType() == type)
+        .collect(toImmutableList());
   }
 
   /**

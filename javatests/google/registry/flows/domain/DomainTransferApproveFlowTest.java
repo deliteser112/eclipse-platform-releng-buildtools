@@ -14,7 +14,7 @@
 
 package google.registry.flows.domain;
 
-import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.NET_ADDS_4_YR;
@@ -40,7 +40,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.googlecode.objectify.Key;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
@@ -49,8 +48,6 @@ import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
 import google.registry.flows.exceptions.NotPendingTransferException;
 import google.registry.model.billing.BillingEvent;
-import google.registry.model.billing.BillingEvent.Cancellation;
-import google.registry.model.billing.BillingEvent.Cancellation.Builder;
 import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.billing.BillingEvent.Recurring;
@@ -205,15 +202,23 @@ public class DomainTransferApproveFlowTest
     assertThat(gainingTransferPollMessage.getEventTime()).isEqualTo(clock.nowUtc());
     assertThat(gainingAutorenewPollMessage.getEventTime())
         .isEqualTo(domain.getRegistrationExpirationTime());
-    DomainTransferResponse transferResponse = getOnlyElement(FluentIterable
-        .from(gainingTransferPollMessage.getResponseData())
-        .filter(DomainTransferResponse.class));
+    DomainTransferResponse transferResponse =
+        gainingTransferPollMessage
+            .getResponseData()
+            .stream()
+            .filter(DomainTransferResponse.class::isInstance)
+            .map(DomainTransferResponse.class::cast)
+            .collect(onlyElement());
     assertThat(transferResponse.getTransferStatus()).isEqualTo(TransferStatus.CLIENT_APPROVED);
     assertThat(transferResponse.getExtendedRegistrationExpirationTime())
         .isEqualTo(domain.getRegistrationExpirationTime());
-    PendingActionNotificationResponse panData = Iterables.getOnlyElement(FluentIterable
-        .from(gainingTransferPollMessage.getResponseData())
-        .filter(PendingActionNotificationResponse.class));
+    PendingActionNotificationResponse panData =
+        gainingTransferPollMessage
+            .getResponseData()
+            .stream()
+            .filter(PendingActionNotificationResponse.class::isInstance)
+            .map(PendingActionNotificationResponse.class::cast)
+            .collect(onlyElement());
     assertThat(panData.getTrid())
         .isEqualTo(Trid.create("transferClient-trid", "transferServer-trid"));
     assertThat(panData.getActionResult()).isTrue();
@@ -250,12 +255,8 @@ public class DomainTransferApproveFlowTest
         domain,
         FluentIterable.from(expectedCancellationBillingEvents)
             .transform(
-                new Function<BillingEvent.Cancellation.Builder, BillingEvent>() {
-                  @Override
-                  public Cancellation apply(Builder builder) {
-                    return builder.setParent(historyEntryTransferApproved).build();
-                  }
-                })
+                (Function<BillingEvent.Cancellation.Builder, BillingEvent>)
+                    builder -> builder.setParent(historyEntryTransferApproved).build())
             .append(
                 transferBillingEvent,
                 getLosingClientAutorenewEvent()
@@ -292,12 +293,8 @@ public class DomainTransferApproveFlowTest
         domain,
         FluentIterable.from(expectedCancellationBillingEvents)
             .transform(
-                new Function<BillingEvent.Cancellation.Builder, BillingEvent>() {
-                  @Override
-                  public Cancellation apply(Builder builder) {
-                    return builder.setParent(historyEntryTransferApproved).build();
-                  }
-                })
+                (Function<BillingEvent.Cancellation.Builder, BillingEvent>)
+                    builder -> builder.setParent(historyEntryTransferApproved).build())
             .append(
                 getLosingClientAutorenewEvent()
                     .asBuilder()

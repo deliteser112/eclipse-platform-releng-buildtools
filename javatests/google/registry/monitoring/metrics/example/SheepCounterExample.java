@@ -22,7 +22,6 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.monitoring.v3.MonitoringScopes;
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -130,12 +129,7 @@ public final class SheepCounterExample {
               "Quality of the sleep.",
               "Quality",
               ImmutableSet.<LabelDescriptor>of(),
-              new Supplier<ImmutableMap<ImmutableList<String>, Double>>() {
-                @Override
-                public ImmutableMap<ImmutableList<String>, Double> get() {
-                  return ImmutableMap.of(ImmutableList.<String>of(), new Random().nextDouble());
-                }
-              },
+              () -> ImmutableMap.of(ImmutableList.<String>of(), new Random().nextDouble()),
               Double.class);
 
   /**
@@ -210,13 +204,10 @@ public final class SheepCounterExample {
     Runtime.getRuntime()
         .addShutdownHook(
             new Thread(
-                new Runnable() {
-                  @Override
-                  public void run() {
-                    reporter.stopAsync().awaitTerminated();
-                    // Allow the LogManager to cleanup the loggers.
-                    DelayedShutdownLogManager.resetFinally();
-                  }
+                () -> {
+                  reporter.stopAsync().awaitTerminated();
+                  // Allow the LogManager to cleanup the loggers.
+                  DelayedShutdownLogManager.resetFinally();
                 }));
 
     System.err.println("Send SIGINT (Ctrl+C) to stop sleeping.");

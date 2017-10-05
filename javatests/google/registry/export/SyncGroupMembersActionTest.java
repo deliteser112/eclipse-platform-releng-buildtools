@@ -32,7 +32,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import google.registry.groups.DirectoryGroupsConnection;
@@ -198,11 +197,8 @@ public class SyncGroupMembersActionTest {
         "hexadecimal@snow.fall",
         Role.MEMBER);
     verify(response).setStatus(SC_OK);
-    assertThat(Iterables.filter(Registrar.loadAll(), new Predicate<Registrar>() {
-      @Override
-      public boolean apply(Registrar registrar) {
-        return registrar.getContactsRequireSyncing();
-      }})).isEmpty();
+    assertThat(Iterables.filter(Registrar.loadAll(), Registrar::getContactsRequireSyncing))
+        .isEmpty();
   }
 
   @Test

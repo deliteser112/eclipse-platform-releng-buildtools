@@ -30,7 +30,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
@@ -178,29 +177,35 @@ public final class ResourceFlowUtils {
       final Class<R> resourceClass,
       final Function<DomainBase, ImmutableSet<?>> getPotentialReferences) throws EppException {
     // Enter a transactionless context briefly.
-    EppException failfastException = ofy().doTransactionless(new Work<EppException>() {
-      @Override
-      public EppException run() {
-        final ForeignKeyIndex<R> fki = ForeignKeyIndex.load(resourceClass, targetId, now);
-        if (fki == null) {
-          return new ResourceDoesNotExistException(resourceClass, targetId);
-        }
-        // Query for the first few linked domains, and if found, actually load them. The query is
-        // eventually consistent and so might be very stale, but the direct load will not be stale,
-        // just non-transactional. If we find at least one actual reference then we can reliably
-        // fail. If we don't find any, we can't trust the query and need to do the full mapreduce.
-        Iterable<Key<DomainBase>> keys =
-            queryForLinkedDomains(fki.getResourceKey(), now).limit(FAILFAST_CHECK_COUNT).keys();
-        Predicate<DomainBase> predicate = new Predicate<DomainBase>() {
-          @Override
-          public boolean apply(DomainBase domain) {
-            return getPotentialReferences.apply(domain).contains(fki.getResourceKey());
-          }};
-        return Iterables.any(ofy().load().keys(keys).values(), predicate)
-            ? new ResourceToDeleteIsReferencedException()
-            : null;
-      }
-    });
+    EppException failfastException =
+        ofy()
+            .doTransactionless(
+                new Work<EppException>() {
+                  @Override
+                  public EppException run() {
+                    final ForeignKeyIndex<R> fki =
+                        ForeignKeyIndex.load(resourceClass, targetId, now);
+                    if (fki == null) {
+                      return new ResourceDoesNotExistException(resourceClass, targetId);
+                    }
+                    /* Query for the first few linked domains, and if found, actually load them. The
+                     * query is eventually consistent and so might be very stale, but the direct
+                     * load will not be stale, just non-transactional. If we find at least one
+                     * actual reference then we can reliably fail. If we don't find any, we can't
+                     * trust the query and need to do the full mapreduce.
+                     */
+                    Iterable<Key<DomainBase>> keys =
+                        queryForLinkedDomains(fki.getResourceKey(), now)
+                            .limit(FAILFAST_CHECK_COUNT)
+                            .keys();
+                    Predicate<DomainBase> predicate =
+                        domain ->
+                            getPotentialReferences.apply(domain).contains(fki.getResourceKey());
+                    return ofy().load().keys(keys).values().stream().anyMatch(predicate)
+                        ? new ResourceToDeleteIsReferencedException()
+                        : null;
+                  }
+                });
     if (failfastException != null) {
       throw failfastException;
     }
@@ -339,13 +344,8 @@ public final class ResourceFlowUtils {
       return;
     }
     // The roid should match one of the contacts.
-    Optional<Key<ContactResource>> foundContact = tryFind(
-        domain.getReferencedContacts(),
-        new Predicate<Key<ContactResource>>() {
-          @Override
-          public boolean apply(Key<ContactResource> key) {
-            return key.getName().equals(authRepoId);
-          }});
+    Optional<Key<ContactResource>> foundContact =
+        tryFind(domain.getReferencedContacts(), key -> key.getName().equals(authRepoId));
     if (!foundContact.isPresent()) {
       throw new BadAuthInfoForResourceException();
     }

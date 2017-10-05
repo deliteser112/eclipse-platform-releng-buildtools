@@ -16,6 +16,7 @@ package google.registry.tools.server;
 
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
 import static com.google.common.base.Predicates.notNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterators.filter;
 import static com.google.common.io.BaseEncoding.base16;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
@@ -31,8 +32,6 @@ import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -144,17 +143,13 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
             ImmutableList.of(
                 new NullInput<EppResource>(),
                 createEntityInput(DomainResource.class)));
-    ImmutableList<String> filenames = FluentIterable.from(tlds)
-        .transform(
-            new Function<String, String>() {
-              @Override
-              public String apply(String tld) {
-                return String.format(
-                    GCS_PATH_FORMAT,
-                    bucket,
-                    String.format(FILENAME_FORMAT, tld, exportTime));
-              }})
-        .toList();
+    ImmutableList<String> filenames =
+        tlds.stream()
+            .map(
+                tld ->
+                    String.format(
+                        GCS_PATH_FORMAT, bucket, String.format(FILENAME_FORMAT, tld, exportTime)))
+            .collect(toImmutableList());
     return ImmutableMap.<String, Object>of(
         "jobPath", createJobPath(jobId),
         "filenames", filenames);

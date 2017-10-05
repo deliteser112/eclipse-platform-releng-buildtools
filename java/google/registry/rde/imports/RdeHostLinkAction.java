@@ -20,12 +20,11 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.findTldForName;
 import static google.registry.util.PipelineUtils.createJobPath;
+import static java.util.stream.Collectors.joining;
 
 import com.google.appengine.tools.mapreduce.Mapper;
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
@@ -196,10 +195,11 @@ public class RdeHostLinkAction implements Runnable {
       }
       // This is a subordinate host
       String domainName =
-          Joiner.on('.')
-              .join(
-                  Iterables.skip(
-                      hostName.parts(), hostName.parts().size() - (tld.get().parts().size() + 1)));
+          hostName
+              .parts()
+              .stream()
+              .skip(hostName.parts().size() - (tld.get().parts().size() + 1))
+              .collect(joining("."));
       DomainResource superordinateDomain = loadByForeignKey(DomainResource.class, domainName, now);
       // Hosts can't be linked if domains import hasn't been run
       checkState(

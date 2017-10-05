@@ -19,7 +19,6 @@ import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.ImmutableObject;
@@ -153,7 +152,13 @@ public class EppInput extends ImmutableObject {
   /** Get the extension based on type, or null. If there are multiple, it chooses the first. */
   @Nullable
   public <E extends CommandExtension> E getSingleExtension(Class<E> clazz) {
-    return FluentIterable.from(getCommandWrapper().getExtensions()).filter(clazz).first().orNull();
+    return getCommandWrapper()
+        .getExtensions()
+        .stream()
+        .filter(clazz::isInstance)
+        .map(clazz::cast)
+        .findFirst()
+        .orElse(null);
   }
 
   /** A tag that goes inside of an EPP {@literal <command>}. */

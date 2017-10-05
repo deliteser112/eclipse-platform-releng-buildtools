@@ -61,12 +61,7 @@ public class WhiteboxModule {
   @Provides
   @Named("insertIdGenerator")
   static Supplier<String> provideInsertIdGenerator() {
-    return new Supplier<String>() {
-      @Override
-      public String get() {
-        return UUID.randomUUID().toString();
-      }
-    };
+    return () -> UUID.randomUUID().toString();
   }
 
   /** Provides an EppMetric builder with the request ID and startTimestamp already initialized. */

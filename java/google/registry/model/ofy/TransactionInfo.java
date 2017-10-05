@@ -16,6 +16,7 @@ package google.registry.model.ofy;
 
 import static com.google.common.base.Functions.constant;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Maps.filterValues;
 import static com.google.common.collect.Maps.toMap;
 import static google.registry.model.ofy.CommitLogBucket.getArbitraryBucketId;
@@ -23,7 +24,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -88,9 +88,11 @@ class TransactionInfo {
   }
 
   ImmutableSet<Object> getSaves() {
-    return FluentIterable
-        .from(changesBuilder.build().values())
+    return changesBuilder
+        .build()
+        .values()
+        .stream()
         .filter(Predicates.not(IS_DELETE))
-        .toSet();
+        .collect(toImmutableSet());
   }
 }

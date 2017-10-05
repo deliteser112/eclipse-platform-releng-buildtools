@@ -21,6 +21,7 @@ import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static com.google.common.collect.Sets.immutableEnumSet;
 import static com.google.common.io.BaseEncoding.base64;
 import static google.registry.config.RegistryConfig.getDefaultRegistrarReferralUrl;
@@ -35,13 +36,13 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static google.registry.util.X509Utils.getCertificateHash;
 import static google.registry.util.X509Utils.loadCertificate;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Comparator.comparing;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -50,6 +51,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import com.google.re2j.Pattern;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Work;
@@ -193,12 +195,9 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    * Compare two instances of {@link RegistrarContact} by their email addresses lexicographically.
    */
   private static final Comparator<RegistrarContact> CONTACT_EMAIL_COMPARATOR =
-      new Comparator<RegistrarContact>() {
-        @Override
-        public int compare(RegistrarContact rc1, RegistrarContact rc2) {
-          return rc1.getEmailAddress().compareTo(rc2.getEmailAddress());
-        }
-      };
+      comparing(
+          (RegistrarContact arg) -> arg.getEmailAddress(),
+          (String leftProperty, String rightProperty) -> leftProperty.compareTo(rightProperty));
 
   /**
    * A caching {@link Supplier} of a clientId to {@link Registrar} map.
@@ -207,19 +206,21 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    * query inside an unrelated client-affecting transaction.
    */
   private static final Supplier<ImmutableMap<String, Registrar>> CACHE_BY_CLIENT_ID =
-      memoizeWithShortExpiration(new Supplier<ImmutableMap<String, Registrar>>() {
-        @Override
-        public ImmutableMap<String, Registrar> get() {
-          return ofy().doTransactionless(new Work<ImmutableMap<String, Registrar>>() {
-            @Override
-            public ImmutableMap<String, Registrar> run() {
-              ImmutableMap.Builder<String, Registrar> builder = new ImmutableMap.Builder<>();
-              for (Registrar registrar : loadAll()) {
-                builder.put(registrar.getClientId(), registrar);
-              }
-              return builder.build();
-            }});
-        }});
+      memoizeWithShortExpiration(
+          () ->
+              ofy()
+                  .doTransactionless(
+                      new Work<ImmutableMap<String, Registrar>>() {
+                        @Override
+                        public ImmutableMap<String, Registrar> run() {
+                          ImmutableMap.Builder<String, Registrar> builder =
+                              new ImmutableMap.Builder<>();
+                          for (Registrar registrar : loadAll()) {
+                            builder.put(registrar.getClientId(), registrar);
+                          }
+                          return builder.build();
+                        }
+                      }));
 
   @Parent
   Key<EntityGroupRoot> parent = getCrossTldKey();
@@ -421,14 +422,13 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   BillingMethod billingMethod;
 
   @NonFinalForTesting
-  private static Supplier<byte[]> saltSupplier = new Supplier<byte[]>() {
-    @Override
-    public byte[] get() {
-      // There are 32 bytes in a sha-256 hash, and the salt should generally be the same size.
-      byte[] salt = new byte[32];
-      new SecureRandom().nextBytes(salt);
-      return salt;
-    }};
+  private static Supplier<byte[]> saltSupplier =
+      () -> {
+        // There are 32 bytes in a sha-256 hash, and the salt should generally be the same size.
+        byte[] salt = new byte[32];
+        new SecureRandom().nextBytes(salt);
+        return salt;
+      };
 
   public String getClientId() {
     return clientIdentifier;
@@ -576,9 +576,9 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    * address.
    */
   public ImmutableSortedSet<RegistrarContact> getContacts() {
-    return FluentIterable.from(getContactsIterable())
+    return Streams.stream(getContactsIterable())
         .filter(notNull())
-        .toSortedSet(CONTACT_EMAIL_COMPARATOR);
+        .collect(toImmutableSortedSet(CONTACT_EMAIL_COMPARATOR));
   }
 
   /**
@@ -586,16 +586,10 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    * their email address.
    */
   public ImmutableSortedSet<RegistrarContact> getContactsOfType(final RegistrarContact.Type type) {
-    return FluentIterable.from(getContactsIterable())
+    return Streams.stream(getContactsIterable())
         .filter(notNull())
-        .filter(
-            new Predicate<RegistrarContact>() {
-              @Override
-              public boolean apply(@Nullable RegistrarContact contact) {
-                return contact.getTypes().contains(type);
-              }
-            })
-        .toSortedSet(CONTACT_EMAIL_COMPARATOR);
+        .filter((@Nullable RegistrarContact contact) -> contact.getTypes().contains(type))
+        .collect(toImmutableSortedSet(CONTACT_EMAIL_COMPARATOR));
   }
 
   private Iterable<RegistrarContact> getContactsIterable() {

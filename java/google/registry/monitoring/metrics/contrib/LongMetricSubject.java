@@ -17,7 +17,6 @@ package google.registry.monitoring.metrics.contrib;
 import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.truth.FailureMetadata;
-import com.google.common.truth.Subject;
 import google.registry.monitoring.metrics.Metric;
 import google.registry.monitoring.metrics.MetricPoint;
 import javax.annotation.Nullable;
@@ -45,14 +44,9 @@ import javax.annotation.Nullable;
 public final class LongMetricSubject extends AbstractMetricSubject<Long, LongMetricSubject> {
 
   /** {@link Subject.Factory} for assertions about {@link Metric<Long>} objects. */
-  private static final Subject.Factory<LongMetricSubject, Metric<Long>> SUBJECT_FACTORY =
-      // The Truth extensibility documentation indicates that the target should be nullable.
-      (FailureMetadata failureMetadata, @Nullable Metric<Long> target) ->
-          new LongMetricSubject(failureMetadata, target);
-
   /** Static assertThat({@link Metric<Long>}) shortcut method. */
   public static LongMetricSubject assertThat(@Nullable Metric<Long> metric) {
-    return assertAbout(SUBJECT_FACTORY).that(metric);
+    return assertAbout(LongMetricSubject::new).that(metric);
   }
 
   private LongMetricSubject(FailureMetadata metadata, Metric<Long> actual) {

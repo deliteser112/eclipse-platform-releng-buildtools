@@ -14,8 +14,8 @@
 
 package google.registry.flows.domain;
 
-import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.getOnlyElement;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Optional;
@@ -61,14 +61,29 @@ public final class DomainTransferUtils {
     if (transferPeriod.getValue() != 0) {
       // Unless superuser sets period to 0, add a transfer billing event.
       transferDataBuilder.setServerApproveBillingEvent(
-          Key.create(getOnlyElement(filter(serverApproveEntities, BillingEvent.OneTime.class))));
+          Key.create(
+              serverApproveEntities
+                  .stream()
+                  .filter(BillingEvent.OneTime.class::isInstance)
+                  .map(BillingEvent.OneTime.class::cast)
+                  .collect(onlyElement())));
     }
     return transferDataBuilder
         .setTransferStatus(TransferStatus.PENDING)
-        .setServerApproveAutorenewEvent(Key.create(
-            getOnlyElement(filter(serverApproveEntities, BillingEvent.Recurring.class))))
-        .setServerApproveAutorenewPollMessage(Key.create(
-            getOnlyElement(filter(serverApproveEntities, PollMessage.Autorenew.class))))
+        .setServerApproveAutorenewEvent(
+            Key.create(
+                serverApproveEntities
+                    .stream()
+                    .filter(BillingEvent.Recurring.class::isInstance)
+                    .map(BillingEvent.Recurring.class::cast)
+                    .collect(onlyElement())))
+        .setServerApproveAutorenewPollMessage(
+            Key.create(
+                serverApproveEntities
+                    .stream()
+                    .filter(PollMessage.Autorenew.class::isInstance)
+                    .map(PollMessage.Autorenew.class::cast)
+                    .collect(onlyElement())))
         .setServerApproveEntities(serverApproveEntityKeys.build())
         .setTransferPeriod(transferPeriod)
         .build();

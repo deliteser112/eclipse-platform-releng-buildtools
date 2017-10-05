@@ -14,7 +14,6 @@
 
 package google.registry.ui.server;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.io.Resources.asCharSource;
 import static com.google.common.io.Resources.getResource;
@@ -46,44 +45,43 @@ public final class SoyTemplateUtils {
 
   /** Returns a memoized supplier containing compiled tofu. */
   public static Supplier<SoyTofu> createTofuSupplier(final SoyFileInfo... soyInfos) {
-    return memoize(new Supplier<SoyTofu>() {
-      @Override
-      public SoyTofu get() {
-        ConsoleDebug debugMode = ConsoleDebug.get();
-        SoyFileSet.Builder builder = SoyFileSet.builder();
-        for (SoyFileInfo soyInfo : soyInfos) {
-          builder.add(getResource(soyInfo.getClass(), soyInfo.getFileName()));
-        }
-        Map<String, Object> globals = new HashMap<>();
-        try {
-          globals.putAll(SoyUtils.parseCompileTimeGlobals(asCharSource(SOY_GLOBALS, UTF_8)));
-        } catch (SoySyntaxException | IOException e) {
-          throw new RuntimeException("Failed to load soy globals", e);
-        }
-        globals.put("DEBUG", debugMode.ordinal());
-        builder.setCompileTimeGlobals(globals);
-        return builder.build().compileToTofu();
-      }});
+    return memoize(
+        () -> {
+          ConsoleDebug debugMode = ConsoleDebug.get();
+          SoyFileSet.Builder builder = SoyFileSet.builder();
+          for (SoyFileInfo soyInfo : soyInfos) {
+            builder.add(getResource(soyInfo.getClass(), soyInfo.getFileName()));
+          }
+          Map<String, Object> globals = new HashMap<>();
+          try {
+            globals.putAll(SoyUtils.parseCompileTimeGlobals(asCharSource(SOY_GLOBALS, UTF_8)));
+          } catch (SoySyntaxException | IOException e) {
+            throw new RuntimeException("Failed to load soy globals", e);
+          }
+          globals.put("DEBUG", debugMode.ordinal());
+          builder.setCompileTimeGlobals(globals);
+          return builder.build().compileToTofu();
+        });
   }
 
   /** Returns a memoized supplier of the thing you pass to {@code setCssRenamingMap()}. */
   public static Supplier<SoyCssRenamingMap> createCssRenamingMapSupplier(
       final URL cssMap,
       final URL cssMapDebug) {
-    return memoize(new Supplier<SoyCssRenamingMap>() {
-      @Override
-      public SoyCssRenamingMap get() {
-        final ImmutableMap<String, String> renames = getCssRenames(cssMap, cssMapDebug);
-        return new SoyCssRenamingMap() {
-          @Override
-          public String get(String cssClassName) {
-            List<String> result = new ArrayList<>();
-            for (String part : CSS_CLASS_SPLITTER.split(cssClassName)) {
-              result.add(firstNonNull(renames.get(part), part));
+    return memoize(
+        () -> {
+          final ImmutableMap<String, String> renames = getCssRenames(cssMap, cssMapDebug);
+          return new SoyCssRenamingMap() {
+            @Override
+            public String get(String cssClassName) {
+              List<String> result = new ArrayList<>();
+              for (String part : CSS_CLASS_SPLITTER.split(cssClassName)) {
+                result.add(renames.getOrDefault(part, part));
+              }
+              return CSS_CLASS_JOINER.join(result);
             }
-            return CSS_CLASS_JOINER.join(result);
-          }};
-      }});
+          };
+        });
   }
 
   private static ImmutableMap<String, String> getCssRenames(URL cssMap, URL cssMapDebug) {

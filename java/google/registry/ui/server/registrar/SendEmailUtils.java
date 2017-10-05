@@ -14,12 +14,12 @@
 
 package google.registry.ui.server.registrar;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.toArray;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Streams;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
@@ -60,25 +60,25 @@ public class SendEmailUtils {
       Message msg = emailService.createMessage();
       msg.setFrom(
           new InternetAddress(gSuiteOutgoingEmailAddress, gSuiteOutoingEmailDisplayName));
-      List<InternetAddress> emails = FluentIterable
-          .from(addresses)
-          .transform(new Function<String, InternetAddress>() {
-            @Override
-            public InternetAddress apply(String emailAddress) {
-              try {
-                return new InternetAddress(emailAddress, true);
-              } catch (AddressException e) {
-                logger.severefmt(
-                    e,
-                    "Could not send email to %s with subject '%s'.",
-                    emailAddress,
-                    subject);
-                // Returning null excludes this address from the list of recipients on the email.
-                return null;
-              }
-            }})
-          .filter(Predicates.notNull())
-          .toList();
+      List<InternetAddress> emails =
+          Streams.stream(addresses)
+              .map(
+                  emailAddress -> {
+                    try {
+                      return new InternetAddress(emailAddress, true);
+                    } catch (AddressException e) {
+                      logger.severefmt(
+                          e,
+                          "Could not send email to %s with subject '%s'.",
+                          emailAddress,
+                          subject);
+                      // Returning null excludes this address from the list of recipients on the
+                      // email.
+                      return null;
+                    }
+                  })
+              .filter(Predicates.notNull())
+              .collect(toImmutableList());
       if (emails.isEmpty()) {
         return false;
       }

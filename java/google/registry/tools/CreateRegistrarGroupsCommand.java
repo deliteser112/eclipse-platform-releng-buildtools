@@ -14,13 +14,11 @@
 
 package google.registry.tools;
 
-import static com.google.common.collect.Iterables.transform;
 import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
+import static java.util.stream.Collectors.joining;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import google.registry.model.registrar.Registrar;
@@ -64,11 +62,7 @@ public class CreateRegistrarGroupsCommand extends ConfirmingCommand
   protected String prompt() {
     return String.format(
         "Create registrar contact groups for registrar(s) %s?",
-        Joiner.on(", ").join(transform(registrars, new Function<Registrar, String>() {
-          @Override
-          public String apply(Registrar registrar) {
-            return registrar.getRegistrarName();
-          }})));
+        registrars.stream().map(Registrar::getRegistrarName).collect(joining(", ")));
   }
 
   /** Calls the server endpoint to create groups for the specified registrar client id. */

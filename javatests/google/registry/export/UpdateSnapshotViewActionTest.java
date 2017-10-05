@@ -32,7 +32,6 @@ import static org.mockito.Mockito.when;
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.model.Dataset;
 import com.google.api.services.bigquery.model.Table;
-import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import google.registry.bigquery.BigqueryFactory;
 import google.registry.request.HttpException.InternalServerErrorException;
@@ -118,14 +117,7 @@ public class UpdateSnapshotViewActionTest {
     tableOrder.verify(bigqueryTables)
         .update(eq("myproject"), eq("latest_datastore_export"), eq("fookind"), tableArg.capture());
     Iterable<String> actualQueries =
-        Iterables.transform(
-            tableArg.getAllValues(),
-            new Function<Table, String>() {
-              @Override
-              public String apply(Table table) {
-                return table.getView().getQuery();
-              }
-            });
+        Iterables.transform(tableArg.getAllValues(), table -> table.getView().getQuery());
     assertThat(actualQueries).containsExactly(
         "#legacySQL\nSELECT * FROM [myproject:some_dataset.12345_fookind]",
         "#standardSQL\nSELECT * FROM `myproject.some_dataset.12345_fookind`");

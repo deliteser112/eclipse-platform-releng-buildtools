@@ -37,7 +37,6 @@ import com.google.api.services.bigquery.model.Job;
 import com.google.api.services.bigquery.model.JobConfigurationLoad;
 import com.google.api.services.bigquery.model.JobReference;
 import com.google.appengine.api.taskqueue.QueueFactory;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import google.registry.bigquery.BigqueryFactory;
@@ -138,31 +137,27 @@ public class LoadSnapshotActionTest {
     }
 
     // Check the job IDs for each load job.
-    assertThat(transform(jobs, new Function<Job, String>() {
-        @Override
-        public String apply(Job job) {
-          return job.getJobReference().getJobId();
-        }})).containsExactly(
+    assertThat(transform(jobs, job -> job.getJobReference().getJobId()))
+        .containsExactly(
             "load-snapshot-id12345-one-1391096117045",
             "load-snapshot-id12345-two-1391096117045",
             "load-snapshot-id12345-three-1391096117045");
 
     // Check the source URI for each load job.
-    assertThat(transform(jobs, new Function<Job, String>() {
-        @Override
-        public String apply(Job job) {
-          return Iterables.getOnlyElement(job.getConfiguration().getLoad().getSourceUris());
-        }})).containsExactly(
+    assertThat(
+            transform(
+                jobs,
+                job -> Iterables.getOnlyElement(job.getConfiguration().getLoad().getSourceUris())))
+        .containsExactly(
             "gs://bucket/snapshot.one.backup_info",
             "gs://bucket/snapshot.two.backup_info",
             "gs://bucket/snapshot.three.backup_info");
 
     // Check the destination table ID for each load job.
-    assertThat(transform(jobs, new Function<Job, String>() {
-        @Override
-        public String apply(Job job) {
-          return job.getConfiguration().getLoad().getDestinationTable().getTableId();
-        }})).containsExactly("id12345_one", "id12345_two", "id12345_three");
+    assertThat(
+            transform(
+                jobs, job -> job.getConfiguration().getLoad().getDestinationTable().getTableId()))
+        .containsExactly("id12345_one", "id12345_two", "id12345_three");
 
     // Check that we executed the inserted jobs.
     verify(bigqueryJobsInsert, times(3)).execute();

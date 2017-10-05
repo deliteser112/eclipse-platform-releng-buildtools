@@ -30,7 +30,6 @@ import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntr
 import static org.joda.time.DateTimeZone.UTC;
 import static org.junit.Assert.fail;
 
-import com.google.common.collect.FluentIterable;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
@@ -123,8 +122,9 @@ public class UpdateApplicationStatusCommandTest
 
     PollMessage pollMessage = getFirstPollMessage();
     assertThat(pollMessage.getMsg()).isEqualTo("Application rejected");
-    DomainPendingActionNotificationResponse response = (DomainPendingActionNotificationResponse)
-        FluentIterable.from(pollMessage.getResponseData()).first().get();
+    DomainPendingActionNotificationResponse response =
+        (DomainPendingActionNotificationResponse)
+            pollMessage.getResponseData().stream().findFirst().get();
     assertThat(response.getTrid()).isEqualTo(creationTrid);
     assertThat(response.getActionResult()).isFalse();
   }
@@ -161,8 +161,9 @@ public class UpdateApplicationStatusCommandTest
 
     PollMessage pollMessage = getFirstPollMessage();
     assertThat(pollMessage.getMsg()).isEqualTo("Application allocated");
-    DomainPendingActionNotificationResponse response = (DomainPendingActionNotificationResponse)
-        FluentIterable.from(pollMessage.getResponseData()).first().get();
+    DomainPendingActionNotificationResponse response =
+        (DomainPendingActionNotificationResponse)
+            pollMessage.getResponseData().stream().findFirst().get();
     assertThat(response.getTrid()).isEqualTo(creationTrid);
     assertThat(response.getActionResult()).isTrue();
   }
@@ -225,8 +226,9 @@ public class UpdateApplicationStatusCommandTest
     assertThat(getPollMessageCount()).isEqualTo(1);
 
     PollMessage pollMessage = getFirstPollMessage();
-    DomainPendingActionNotificationResponse response = (DomainPendingActionNotificationResponse)
-        FluentIterable.from(pollMessage.getResponseData()).first().get();
+    DomainPendingActionNotificationResponse response =
+        (DomainPendingActionNotificationResponse)
+            pollMessage.getResponseData().stream().findFirst().get();
     assertThat(response.getTrid()).isEqualTo(Trid.create("ABC123", "server-trid"));
   }
 

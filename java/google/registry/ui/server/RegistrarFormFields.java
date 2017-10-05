@@ -37,7 +37,6 @@ import java.security.cert.CertificateParsingException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 /** Form fields for validating input for the {@code Registrar} class. */
 public final class RegistrarFormFields {
@@ -47,30 +46,24 @@ public final class RegistrarFormFields {
   public static final String ASCII_ERROR = "Please only use ASCII-US characters.";
 
   private static final Function<String, CidrAddressBlock> CIDR_TRANSFORM =
-      new Function<String, CidrAddressBlock>() {
-        @Nullable
-        @Override
-        public CidrAddressBlock apply(@Nullable String input) {
-          try {
-            return input != null ? CidrAddressBlock.create(input) : null;
-          } catch (IllegalArgumentException e) {
-            throw new FormFieldException("Not a valid CIDR notation IP-address block.", e);
-          }
-        }};
+      input -> {
+        try {
+          return input != null ? CidrAddressBlock.create(input) : null;
+        } catch (IllegalArgumentException e) {
+          throw new FormFieldException("Not a valid CIDR notation IP-address block.", e);
+        }
+      };
 
   private static final Function<String, String> HOSTNAME_TRANSFORM =
-      new Function<String, String>() {
-        @Nullable
-        @Override
-        public String apply(@Nullable String input) {
-          if (input == null) {
-            return null;
-          }
-          if (!InternetDomainName.isValid(input)) {
-            throw new FormFieldException("Not a valid hostname.");
-          }
-          return canonicalizeDomainName(input);
-        }};
+      input -> {
+        if (input == null) {
+          return null;
+        }
+        if (!InternetDomainName.isValid(input)) {
+          throw new FormFieldException("Not a valid hostname.");
+        }
+        return canonicalizeDomainName(input);
+      };
 
   public static final FormField<String, String> NAME_FIELD =
       FormFields.NAME.asBuilderNamed("registrarName")
@@ -133,20 +126,18 @@ public final class RegistrarFormFields {
   private static final FormField<String, String> X509_PEM_CERTIFICATE =
       FormField.named("certificate")
           .emptyToNull()
-          .transform(new Function<String, String>() {
-            @Nullable
-            @Override
-            public String apply(@Nullable String input) {
-              if (input == null) {
-                return null;
-              }
-              try {
-                X509Utils.loadCertificate(input);
-              } catch (CertificateParsingException e) {
-                throw new FormFieldException("Invalid X.509 PEM certificate");
-              }
-              return input;
-            }})
+          .transform(
+              input -> {
+                if (input == null) {
+                  return null;
+                }
+                try {
+                  X509Utils.loadCertificate(input);
+                } catch (CertificateParsingException e) {
+                  throw new FormFieldException("Invalid X.509 PEM certificate");
+                }
+                return input;
+              })
           .build();
 
   public static final FormField<String, String> CLIENT_CERTIFICATE_FIELD =
@@ -233,48 +224,44 @@ public final class RegistrarFormFields {
 
   public static final Function<Map<String, ?>, RegistrarContact.Builder>
       REGISTRAR_CONTACT_TRANSFORM =
-          new Function<Map<String, ?>, RegistrarContact.Builder>() {
-            @Nullable
-            @Override
-            public RegistrarContact.Builder apply(@Nullable Map<String, ?> args) {
-              if (args == null) {
-                return null;
-              }
-              RegistrarContact.Builder builder = new RegistrarContact.Builder();
-              for (String name : CONTACT_NAME_FIELD.extractUntyped(args).asSet()) {
-                builder.setName(name);
-              }
-              for (String emailAddress : CONTACT_EMAIL_ADDRESS_FIELD.extractUntyped(args).asSet()) {
-                builder.setEmailAddress(emailAddress);
-              }
-              for (Boolean visible :
-                  CONTACT_VISIBLE_IN_WHOIS_AS_ADMIN_FIELD.extractUntyped(args).asSet()) {
-                builder.setVisibleInWhoisAsAdmin(visible);
-              }
-              for (Boolean visible :
-                  CONTACT_VISIBLE_IN_WHOIS_AS_TECH_FIELD.extractUntyped(args).asSet()) {
-                builder.setVisibleInWhoisAsTech(visible);
-              }
-              for (Boolean visible :
-                  PHONE_AND_EMAIL_VISIBLE_IN_DOMAIN_WHOIS_AS_ABUSE_FIELD
-                      .extractUntyped(args)
-                      .asSet()) {
-                builder.setVisibleInDomainWhoisAsAbuse(visible);
-              }
-              for (String phoneNumber : CONTACT_PHONE_NUMBER_FIELD.extractUntyped(args).asSet()) {
-                builder.setPhoneNumber(phoneNumber);
-              }
-              for (String faxNumber : CONTACT_FAX_NUMBER_FIELD.extractUntyped(args).asSet()) {
-                builder.setFaxNumber(faxNumber);
-              }
-              for (Set<RegistrarContact.Type> types : CONTACT_TYPES.extractUntyped(args).asSet()) {
-                builder.setTypes(types);
-              }
-              for (String gaeUserId : CONTACT_GAE_USER_ID_FIELD.extractUntyped(args).asSet()) {
-                builder.setGaeUserId(gaeUserId);
-              }
-              return builder;
+          args -> {
+            if (args == null) {
+              return null;
             }
+            RegistrarContact.Builder builder = new RegistrarContact.Builder();
+            for (String name : CONTACT_NAME_FIELD.extractUntyped(args).asSet()) {
+              builder.setName(name);
+            }
+            for (String emailAddress : CONTACT_EMAIL_ADDRESS_FIELD.extractUntyped(args).asSet()) {
+              builder.setEmailAddress(emailAddress);
+            }
+            for (Boolean visible :
+                CONTACT_VISIBLE_IN_WHOIS_AS_ADMIN_FIELD.extractUntyped(args).asSet()) {
+              builder.setVisibleInWhoisAsAdmin(visible);
+            }
+            for (Boolean visible :
+                CONTACT_VISIBLE_IN_WHOIS_AS_TECH_FIELD.extractUntyped(args).asSet()) {
+              builder.setVisibleInWhoisAsTech(visible);
+            }
+            for (Boolean visible :
+                PHONE_AND_EMAIL_VISIBLE_IN_DOMAIN_WHOIS_AS_ABUSE_FIELD
+                    .extractUntyped(args)
+                    .asSet()) {
+              builder.setVisibleInDomainWhoisAsAbuse(visible);
+            }
+            for (String phoneNumber : CONTACT_PHONE_NUMBER_FIELD.extractUntyped(args).asSet()) {
+              builder.setPhoneNumber(phoneNumber);
+            }
+            for (String faxNumber : CONTACT_FAX_NUMBER_FIELD.extractUntyped(args).asSet()) {
+              builder.setFaxNumber(faxNumber);
+            }
+            for (Set<RegistrarContact.Type> types : CONTACT_TYPES.extractUntyped(args).asSet()) {
+              builder.setTypes(types);
+            }
+            for (String gaeUserId : CONTACT_GAE_USER_ID_FIELD.extractUntyped(args).asSet()) {
+              builder.setGaeUserId(gaeUserId);
+            }
+            return builder;
           };
 
   public static final FormField<List<Map<String, ?>>, List<RegistrarContact.Builder>>
@@ -349,36 +336,32 @@ public final class RegistrarFormFields {
       final FormField<String, String> cityField,
       final FormField<String, String> stateField,
       final FormField<String, String> zipField) {
-    return new Function<Map<String, ?>, RegistrarAddress>() {
-      @Nullable
-      @Override
-      public RegistrarAddress apply(@Nullable Map<String, ?> args) {
-        if (args == null) {
-          return null;
-        }
-        RegistrarAddress.Builder builder = new RegistrarAddress.Builder();
-        String countryCode = COUNTRY_CODE_FIELD.extractUntyped(args).get();
-        builder.setCountryCode(countryCode);
-        for (List<String> streets : streetField.extractUntyped(args).asSet()) {
-          builder.setStreet(ImmutableList.copyOf(streets));
-        }
-        for (String city : cityField.extractUntyped(args).asSet()) {
-          builder.setCity(city);
-        }
-        for (String state : stateField.extractUntyped(args).asSet()) {
-          if ("US".equals(countryCode)) {
-            state = Ascii.toUpperCase(state);
-            if (!StateCode.US_MAP.containsKey(state)) {
-              throw new FormFieldException(stateField, "Unknown US state code.");
-            }
-          }
-          builder.setState(state);
-        }
-        for (String zip : zipField.extractUntyped(args).asSet()) {
-          builder.setZip(zip);
-        }
-        return builder.build();
+    return args -> {
+      if (args == null) {
+        return null;
       }
+      RegistrarAddress.Builder builder = new RegistrarAddress.Builder();
+      String countryCode = COUNTRY_CODE_FIELD.extractUntyped(args).get();
+      builder.setCountryCode(countryCode);
+      for (List<String> streets : streetField.extractUntyped(args).asSet()) {
+        builder.setStreet(ImmutableList.copyOf(streets));
+      }
+      for (String city : cityField.extractUntyped(args).asSet()) {
+        builder.setCity(city);
+      }
+      for (String state : stateField.extractUntyped(args).asSet()) {
+        if ("US".equals(countryCode)) {
+          state = Ascii.toUpperCase(state);
+          if (!StateCode.US_MAP.containsKey(state)) {
+            throw new FormFieldException(stateField, "Unknown US state code.");
+          }
+        }
+        builder.setState(state);
+      }
+      for (String zip : zipField.extractUntyped(args).asSet()) {
+        builder.setZip(zip);
+      }
+      return builder.build();
     };
   }
 }

@@ -41,13 +41,12 @@ import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Streams;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
@@ -940,24 +939,22 @@ public class DomainFlowUtils {
         .order("modificationTime")
         .list();
     Optional<HistoryEntry> entryToCancel =
-        FluentIterable.from(recentHistoryEntries)
-            .filter(
-                new Predicate<HistoryEntry>() {
-                  @Override
-                  public boolean apply(HistoryEntry historyEntry) {
-                    // Look for add and renew transaction records that have yet to be reported
-                    for (DomainTransactionRecord record :
-                        historyEntry.getDomainTransactionRecords()) {
-                      if (cancelableFields.contains(record.getReportField())
-                          && record.getReportingTime().isAfter(now)) {
-                        return true;
-                      }
-                    }
-                    return false;
-                  }
-                })
-            // We only want to cancel out the most recent add or renewal
-            .last();
+        Optional.fromJavaUtil(
+            Streams.findLast(
+                recentHistoryEntries
+                    .stream()
+                    .filter(
+                        historyEntry -> {
+                          // Look for add and renew transaction records that have yet to be reported
+                          for (DomainTransactionRecord record :
+                              historyEntry.getDomainTransactionRecords()) {
+                            if (cancelableFields.contains(record.getReportField())
+                                && record.getReportingTime().isAfter(now)) {
+                              return true;
+                            }
+                          }
+                          return false;
+                        })));
     ImmutableSet.Builder<DomainTransactionRecord> recordsBuilder = new ImmutableSet.Builder<>();
     if (entryToCancel.isPresent()) {
       for (DomainTransactionRecord record : entryToCancel.get().getDomainTransactionRecords()) {

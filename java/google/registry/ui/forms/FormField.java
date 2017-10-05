@@ -17,6 +17,8 @@ package google.registry.ui.forms;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.CharMatcher;
@@ -24,10 +26,10 @@ import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
+import com.google.common.collect.Streams;
 import com.google.re2j.Pattern;
 import java.util.Collection;
 import java.util.List;
@@ -35,7 +37,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Detainted;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.Tainted;
 import javax.annotation.concurrent.Immutable;
@@ -281,7 +282,15 @@ public final class FormField<I, O> {
       checkState(CharSequence.class.isAssignableFrom(typeOut)
           || Collection.class.isAssignableFrom(typeOut));
       @SuppressWarnings("unchecked")
-      Function<O, O> emptyToNullFunction = (Function<O, O>) EMPTY_TO_NULL_FUNCTION;
+      Function<O, O> emptyToNullFunction =
+          (Function<O, O>)
+              ((Function<Object, Object>)
+                  input ->
+                      ((input instanceof CharSequence) && (((CharSequence) input).length() == 0))
+                              || ((input instanceof Collection)
+                                  && ((Collection<?>) input).isEmpty())
+                          ? null
+                          : input);
       return transform(emptyToNullFunction);
     }
 
@@ -295,7 +304,9 @@ public final class FormField<I, O> {
     public Builder<I, String> trimmed() {
       checkState(String.class.isAssignableFrom(typeOut));
       @SuppressWarnings("unchecked")
-      Function<O, String> trimFunction = (Function<O, String>) TRIM_FUNCTION;
+      Function<O, String> trimFunction =
+          (Function<O, String>)
+              ((Function<String, String>) input -> input != null ? input.trim() : null);
       return transform(String.class, trimFunction);
     }
 
@@ -309,7 +320,10 @@ public final class FormField<I, O> {
     public Builder<I, String> uppercased() {
       checkState(String.class.isAssignableFrom(typeOut));
       @SuppressWarnings("unchecked")
-      Function<O, String> funk = (Function<O, String>) UPPERCASE_FUNCTION;
+      Function<O, String> funk =
+          (Function<O, String>)
+              ((Function<String, String>)
+                  input -> input != null ? input.toUpperCase(Locale.ENGLISH) : null);
       return transform(String.class, funk);
     }
 
@@ -323,7 +337,10 @@ public final class FormField<I, O> {
     public Builder<I, String> lowercased() {
       checkState(String.class.isAssignableFrom(typeOut));
       @SuppressWarnings("unchecked")
-      Function<O, String> funk = (Function<O, String>) LOWERCASE_FUNCTION;
+      Function<O, String> funk =
+          (Function<O, String>)
+              ((Function<String, String>)
+                  input -> input != null ? input.toLowerCase(Locale.ENGLISH) : null);
       return transform(String.class, funk);
     }
 
@@ -519,7 +536,10 @@ public final class FormField<I, O> {
       Class<Set<O>> setOut = (Class<Set<O>>) (Class<O>) Set.class;
       @SuppressWarnings("unchecked")
       Function<List<O>, Set<O>> toSetFunction =
-          (Function<List<O>, Set<O>>) (Function<O, O>) TO_SET_FUNCTION;
+          (Function<List<O>, Set<O>>)
+              (Function<O, O>)
+                  ((Function<List<Object>, Set<Object>>)
+                      input -> input != null ? ImmutableSet.copyOf(input) : null);
       return asList().transform(setOut, toSetFunction);
     }
 
@@ -541,58 +561,13 @@ public final class FormField<I, O> {
       return new FormField<>(name, typeIn, typeOut, converter);
     }
 
-    private static final Function<List<Object>, Set<Object>> TO_SET_FUNCTION =
-        new Function<List<Object>, Set<Object>>() {
-          @Nullable
-          @Override
-          public Set<Object> apply(@Nullable List<Object> input) {
-            return input != null ? ImmutableSet.copyOf(input) : null;
-          }};
-
-    private static final Function<String, String> TRIM_FUNCTION =
-        new Function<String, String>() {
-          @Nullable
-          @Override
-          public String apply(@Nullable String input) {
-            return input != null ? input.trim() : null;
-          }};
-
-    private static final Function<String, String> UPPERCASE_FUNCTION =
-        new Function<String, String>() {
-          @Nullable
-          @Override
-          public String apply(@Nullable String input) {
-            return input != null ? input.toUpperCase(Locale.ENGLISH) : null;
-          }};
-
-    private static final Function<String, String> LOWERCASE_FUNCTION =
-        new Function<String, String>() {
-          @Nullable
-          @Override
-          public String apply(@Nullable String input) {
-            return input != null ? input.toLowerCase(Locale.ENGLISH) : null;
-          }};
-
     private static final Function<Object, Object> REQUIRED_FUNCTION =
-        new Function<Object, Object>() {
-          @Nonnull
-          @Override
-          public Object apply(@Nullable Object input) {
-            if (input == null) {
-              throw new FormFieldException("This field is required.");
-            }
-            return input;
-          }};
-
-    private static final Function<Object, Object> EMPTY_TO_NULL_FUNCTION =
-        new Function<Object, Object>() {
-          @Nullable
-          @Override
-          public Object apply(@Nullable Object input) {
-            return ((input instanceof CharSequence) && (((CharSequence) input).length() == 0))
-                || ((input instanceof Collection) && ((Collection<?>) input).isEmpty())
-                ? null : input;
-          }};
+        input -> {
+          if (input == null) {
+            throw new FormFieldException("This field is required.");
+          }
+          return input;
+        };
 
     private static final class DefaultFunction<O> implements Function<O, O> {
       private final O defaultValue;
@@ -761,10 +736,11 @@ public final class FormField<I, O> {
       @Nullable
       @Override
       public List<O> apply(@Nullable String input) {
-        return input == null ? null : FluentIterable
-            .from(splitter.split(input))
-            .transform(itemField.converter)
-            .toList();
+        return input == null
+            ? null
+            : Streams.stream(splitter.split(input))
+                .map(itemField.converter)
+                .collect(toImmutableList());
       }
     }
 
@@ -780,10 +756,11 @@ public final class FormField<I, O> {
       @Nullable
       @Override
       public Set<O> apply(@Nullable String input) {
-        return input == null ? null : FluentIterable
-            .from(splitter.split(input))
-            .transform(itemField.converter)
-            .toSet();
+        return input == null
+            ? null
+            : Streams.stream(splitter.split(input))
+                .map(itemField.converter)
+                .collect(toImmutableSet());
       }
     }
   }
