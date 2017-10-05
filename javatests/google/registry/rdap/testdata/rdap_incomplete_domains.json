@@ -1,7 +1,7 @@
 {
    "domainSearchResults":[
       {
-         "ldhName":"domain1.lol",
+         "ldhName":"%DOMAINNAME1%",
          "status":[
             "client delete prohibited",
             "client renew prohibited",
@@ -17,19 +17,19 @@
                ]
             }
          ],
-         "handle":"13C5-LOL",
+         "handle":"%DOMAINHANDLE1%",
          "links":[
             {
-               "value":"https://example.com/rdap/domain/domain1.lol",
+               "value":"https://example.com/rdap/domain/%DOMAINNAME1%",
                "type":"application/rdap+json",
                "rel":"self",
-               "href":"https://example.com/rdap/domain/domain1.lol"
+               "href":"https://example.com/rdap/domain/%DOMAINNAME1%"
             }
          ],
          "objectClassName":"domain"
       },
       {
-         "ldhName":"domain2.lol",
+         "ldhName":"%DOMAINNAME2%",
          "status":[
             "client delete prohibited",
             "client renew prohibited",
@@ -45,13 +45,13 @@
                ]
             }
          ],
-         "handle":"13C6-LOL",
+         "handle":"%DOMAINHANDLE2%",
          "links":[
             {
-               "value":"https://example.com/rdap/domain/domain2.lol",
+               "value":"https://example.com/rdap/domain/%DOMAINNAME2%",
                "type":"application/rdap+json",
                "rel":"self",
-               "href":"https://example.com/rdap/domain/domain2.lol"
+               "href":"https://example.com/rdap/domain/%DOMAINNAME2%"
             }
          ],
          "objectClassName":"domain"

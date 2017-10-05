@@ -414,7 +414,10 @@ public class DatastoreHelper {
   }
 
   public static void createTld(String tld, ImmutableSortedMap<DateTime, TldState> tldStates) {
-    createTld(tld, Ascii.toUpperCase(tld.replaceFirst(ACE_PREFIX_REGEX, "")), tldStates);
+    createTld(
+        tld,
+        Ascii.toUpperCase(tld.replaceFirst(ACE_PREFIX_REGEX, "").replace('.', '_')),
+        tldStates);
   }
 
   public static void createTld(

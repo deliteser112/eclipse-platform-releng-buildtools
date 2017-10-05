@@ -5,14 +5,13 @@
     "client transfer prohibited",
     "server update prohibited"
   ],
-  "unicodeName": "%NAME%",
   "handle": "%HANDLE%",
   "links": [
     {
-      "href": "https://example.com/rdap/domain/%PUNYCODENAME%",
+      "href": "https://example.com/rdap/domain/%NAME%",
       "type": "application/rdap+json",
       "rel": "self",
-      "value": "https://example.com/rdap/domain/%PUNYCODENAME%"
+      "value": "https://example.com/rdap/domain/%NAME%"
     }
   ],
   "events": [
@@ -43,15 +42,13 @@
       "handle": "%NAMESERVER1ROID%",
       "links": [
         {
-          "href":
-              "https://example.com/rdap/nameserver/%NAMESERVER1PUNYCODENAME%",
+          "href": "https://example.com/rdap/nameserver/%NAMESERVER1NAME%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value":
-              "https://example.com/rdap/nameserver/%NAMESERVER1PUNYCODENAME%"
+          "value": "https://example.com/rdap/nameserver/%NAMESERVER1NAME%"
         }
       ],
-      "ldhName": "%NAMESERVER1PUNYCODENAME%",
+      "ldhName": "%NAMESERVER1NAME%",
       "ipAddresses": {
         "v4": [
           "%NAMESERVER1ADDRESS%"
@@ -78,15 +75,13 @@
       "handle": "%NAMESERVER2ROID%",
       "links": [
         {
-          "href":
-              "https://example.com/rdap/nameserver/%NAMESERVER2PUNYCODENAME%",
+          "href": "https://example.com/rdap/nameserver/%NAMESERVER2NAME%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value":
-              "https://example.com/rdap/nameserver/%NAMESERVER2PUNYCODENAME%"
+          "value": "https://example.com/rdap/nameserver/%NAMESERVER2NAME%"
         }
       ],
-      "ldhName": "%NAMESERVER2PUNYCODENAME%",
+      "ldhName": "%NAMESERVER2NAME%",
       "ipAddresses": {
         "v6": [
           "%NAMESERVER2ADDRESS%"
@@ -106,7 +101,7 @@
       "objectClassName": "nameserver"
     }
   ],
-  "ldhName": "%PUNYCODENAME%",
+  "ldhName": "%NAME%",
   "entities": [
     {
       "status": [
@@ -150,7 +145,7 @@
             "fn",
             {},
             "text",
-            "Santa Claus"
+            "Sieglinde"
           ],
           [
             "org",
@@ -196,7 +191,7 @@
             "email",
             {},
             "text",
-            "BOFH@cat.lol"
+            "sieglinde@cat2.lol"
           ]
         ]
       ]
@@ -243,7 +238,7 @@
             "fn",
             {},
             "text",
-            "The Raven"
+            "Siegfried"
           ],
           [
             "org",
@@ -289,7 +284,7 @@
             "email",
             {},
             "text",
-            "bog@cat.lol"
+            "siegfried@cat2.lol"
           ]
         ]
       ]
@@ -336,7 +331,7 @@
             "fn",
             {},
             "text",
-            "Goblin Market"
+            "Siegmund"
           ],
           [
             "org",
@@ -382,7 +377,7 @@
             "email",
             {},
             "text",
-            "lol@cat.lol"
+            "siegmund@cat2.lol"
           ]
         ]
       ]

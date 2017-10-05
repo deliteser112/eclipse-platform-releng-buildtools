@@ -14,6 +14,7 @@
 
 package google.registry.rdap;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistDomainAsDeleted;
@@ -54,11 +55,15 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.ui.server.registrar.SessionUtils;
+import google.registry.util.Idn;
+import java.net.IDN;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
+import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -92,11 +97,14 @@ public class RdapDomainSearchActionTest {
   private DomainResource domainCatLol;
   private DomainResource domainCatLol2;
   private DomainResource domainCatExample;
+  private DomainResource domainIdn;
+  private DomainResource domainMultipart;
   private ContactResource contact1;
   private ContactResource contact2;
   private ContactResource contact3;
   private HostResource hostNs1CatLol;
   private HostResource hostNs2CatLol;
+  private Map<String, HostResource> hostNameToHostMap = new HashMap<>();
 
   enum RequestType { NONE, NAME, NS_LDH_NAME, NS_IP }
 
@@ -129,6 +137,11 @@ public class RdapDomainSearchActionTest {
     return JSONValue.parse(response.getPayload());
   }
 
+  private HostResource addHostToMap(HostResource host) {
+    hostNameToHostMap.put(host.getFullyQualifiedHostName(), host);
+    return host;
+  }
+
   @Before
   public void setUp() throws Exception {
     inject.setStaticField(Ofy.class, "clock", clock);
@@ -159,14 +172,14 @@ public class RdapDomainSearchActionTest {
                 "bog@cat.lol",
                 clock.nowUtc().minusYears(3),
                 registrar),
-            hostNs1CatLol = makeAndPersistHostResource(
+            hostNs1CatLol = addHostToMap(makeAndPersistHostResource(
                 "ns1.cat.lol",
                 "1.2.3.4",
-                clock.nowUtc().minusYears(1)),
-            hostNs2CatLol = makeAndPersistHostResource(
+                clock.nowUtc().minusYears(1))),
+            hostNs2CatLol = addHostToMap(makeAndPersistHostResource(
                 "ns2.cat.lol",
-                "bad:f00d:cafe::15:beef",
-                clock.nowUtc().minusYears(2)),
+                "bad:f00d:cafe:0:0:0:15:beef",
+                clock.nowUtc().minusYears(2))),
             registrar)
         .asBuilder()
         .setSubordinateHosts(ImmutableSet.of("ns1.cat.lol", "ns2.cat.lol"))
@@ -197,10 +210,10 @@ public class RdapDomainSearchActionTest {
                 "siegfried@cat2.lol",
                 clock.nowUtc().minusYears(3),
                 registrar),
-            makeAndPersistHostResource(
-                "ns1.cat.example", "10.20.30.40", clock.nowUtc().minusYears(1)),
-            makeAndPersistHostResource(
-                "ns2.dog.lol", "12:feed:5000::15:beef", clock.nowUtc().minusYears(2)),
+            addHostToMap(makeAndPersistHostResource(
+                "ns1.cat.example", "10.20.30.40", clock.nowUtc().minusYears(1))),
+            addHostToMap(makeAndPersistHostResource(
+                "ns2.dog.lol", "12:feed:5000:0:0:0:15:beef", clock.nowUtc().minusYears(2))),
             registrar)
         .asBuilder()
         .setCreationTimeForTest(clock.nowUtc().minusYears(3))
@@ -232,8 +245,8 @@ public class RdapDomainSearchActionTest {
                 clock.nowUtc().minusYears(3),
                 registrar),
             hostNs1CatLol,
-            makeAndPersistHostResource(
-                "ns2.external.tld", "bad:f00d:cafe::15:beef", clock.nowUtc().minusYears(2)),
+            addHostToMap(makeAndPersistHostResource(
+                "ns2.external.tld", "bad:f00d:cafe:0:0:0:15:beef", clock.nowUtc().minusYears(2))),
             registrar)
         .asBuilder()
         .setCreationTimeForTest(clock.nowUtc().minusYears(3))
@@ -242,7 +255,7 @@ public class RdapDomainSearchActionTest {
     createTld("xn--q9jyb4c");
     registrar = persistResource(makeRegistrar("unicoderegistrar", "みんな", Registrar.State.ACTIVE));
     persistSimpleResources(makeRegistrarContacts(registrar));
-    persistResource(
+    domainIdn = persistResource(
         makeDomainResource(
             "cat.みんな",
             makeAndPersistContactResource(
@@ -263,9 +276,10 @@ public class RdapDomainSearchActionTest {
                 "bog@cat.みんな",
                 clock.nowUtc().minusYears(3),
                 registrar),
-            makeAndPersistHostResource("ns1.cat.みんな", "1.2.3.5", clock.nowUtc().minusYears(1)),
-            makeAndPersistHostResource(
-                "ns2.cat.みんな", "bad:f00d:cafe::14:beef", clock.nowUtc().minusYears(2)),
+            addHostToMap(makeAndPersistHostResource(
+                "ns1.cat.みんな", "1.2.3.5", clock.nowUtc().minusYears(1))),
+            addHostToMap(makeAndPersistHostResource(
+                "ns2.cat.みんな", "bad:f00d:cafe:0:0:0:14:beef", clock.nowUtc().minusYears(2))),
             registrar)
         .asBuilder()
         .setCreationTimeForTest(clock.nowUtc().minusYears(3))
@@ -275,7 +289,7 @@ public class RdapDomainSearchActionTest {
     registrar =
         persistResource(makeRegistrar("unicoderegistrar", "1.test", Registrar.State.ACTIVE));
     persistSimpleResources(makeRegistrarContacts(registrar));
-    persistResource(makeDomainResource(
+    domainMultipart = persistResource(makeDomainResource(
             "cat.1.test",
             makeAndPersistContactResource(
                 "9372808-ERL",
@@ -295,9 +309,10 @@ public class RdapDomainSearchActionTest {
                 "bog@cat.みんな",
                 clock.nowUtc().minusYears(3),
                 registrar),
-            makeAndPersistHostResource("ns1.cat.1.test", "1.2.3.5", clock.nowUtc().minusYears(1)),
-            makeAndPersistHostResource(
-                "ns2.cat.2.test", "bad:f00d:cafe::14:beef", clock.nowUtc().minusYears(2)),
+            addHostToMap(makeAndPersistHostResource(
+                "ns1.cat.1.test", "1.2.3.5", clock.nowUtc().minusYears(1))),
+            addHostToMap(makeAndPersistHostResource(
+                "ns2.cat.2.test", "bad:f00d:cafe:0:0:0:14:beef", clock.nowUtc().minusYears(2))),
             registrar)
         .asBuilder()
         .setSubordinateHosts(ImmutableSet.of("ns1.cat.1.test"))
@@ -326,10 +341,26 @@ public class RdapDomainSearchActionTest {
             Period.create(1, Period.Unit.YEARS),
             "created",
             clock.nowUtc()));
+    persistResource(
+        makeHistoryEntry(
+            domainIdn,
+            HistoryEntry.Type.DOMAIN_CREATE,
+            Period.create(1, Period.Unit.YEARS),
+            "created",
+            clock.nowUtc()));
+    persistResource(
+        makeHistoryEntry(
+            domainMultipart,
+            HistoryEntry.Type.DOMAIN_CREATE,
+            Period.create(1, Period.Unit.YEARS),
+            "created",
+            clock.nowUtc()));
 
     action.clock = clock;
     action.request = request;
     action.response = response;
+    action.registrarParam = Optional.absent();
+    action.includeDeletedParam = Optional.absent();
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
@@ -339,15 +370,59 @@ public class RdapDomainSearchActionTest {
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("evilregistrar");
   }
 
-  private Object generateExpectedJson(String expectedOutputFile) {
+  private Object generateExpectedJsonForTwoDomains() {
+    return generateExpectedJsonForTwoDomains("cat.example", "21-EXAMPLE", "cat.lol", "C-LOL");
+  }
+
+  private Object generateExpectedJsonForTwoDomains(
+      String domain1Name,
+      String domain1Handle,
+      String domain2Name,
+      String domain2Handle) {
     return JSONValue.parse(loadFileWithSubstitutions(
         this.getClass(),
-        expectedOutputFile,
-        ImmutableMap.of("TYPE", "domain name")));
+        "rdap_domains_two.json",
+        ImmutableMap.of(
+            "TYPE", "domain name",
+            "DOMAINNAME1", domain1Name,
+            "DOMAINHANDLE1", domain1Handle,
+            "DOMAINNAME2", domain2Name,
+            "DOMAINHANDLE2", domain2Handle)));
+  }
+
+  private Object generateExpectedJsonForFourDomains(
+      String domain1Name,
+      String domain1Handle,
+      String domain2Name,
+      String domain2Handle,
+      String domain3Name,
+      String domain3Handle,
+      String domain4Name,
+      String domain4Handle,
+      String expectedOutputFile) {
+    return JSONValue.parse(
+        loadFileWithSubstitutions(
+            this.getClass(),
+            expectedOutputFile,
+            new ImmutableMap.Builder<String, String>()
+                .put("TYPE", "domain name")
+                .put("DOMAINPUNYCODENAME1", domain1Name)
+                .put("DOMAINNAME1", IDN.toUnicode(domain1Name))
+                .put("DOMAINHANDLE1", domain1Handle)
+                .put("DOMAINPUNYCODENAME2", domain2Name)
+                .put("DOMAINNAME2", IDN.toUnicode(domain2Name))
+                .put("DOMAINHANDLE2", domain2Handle)
+                .put("DOMAINPUNYCODENAME3", domain3Name)
+                .put("DOMAINNAME3", IDN.toUnicode(domain3Name))
+                .put("DOMAINHANDLE3", domain3Handle)
+                .put("DOMAINPUNYCODENAME4", domain4Name)
+                .put("DOMAINNAME4", IDN.toUnicode(domain4Name))
+                .put("DOMAINHANDLE4", domain4Handle)
+                .build()));
   }
 
   private Object generateExpectedJson(String name, String expectedOutputFile) {
-    return generateExpectedJson(name, null, null, null, expectedOutputFile);
+    return generateExpectedJson(name, null, null, null, null, expectedOutputFile);
   }
 
   private Object generateExpectedJson(
@@ -355,6 +430,7 @@ public class RdapDomainSearchActionTest {
       String punycodeName,
       String handle,
       @Nullable List<String> contactRoids,
+      @Nullable List<String> nameservers,
       String expectedOutputFile) {
     ImmutableMap.Builder<String, String> substitutionsBuilder = new ImmutableMap.Builder<>();
     substitutionsBuilder.put("NAME", name);
@@ -364,6 +440,18 @@ public class RdapDomainSearchActionTest {
     if (contactRoids != null) {
       for (int i = 0; i < contactRoids.size(); i++) {
         substitutionsBuilder.put("CONTACT" + (i + 1) + "ROID", contactRoids.get(i));
+      }
+    }
+    if (nameservers != null) {
+      for (int i = 0; i < nameservers.size(); i++) {
+        HostResource host = checkNotNull(hostNameToHostMap.get(nameservers.get(i)));
+        substitutionsBuilder.put("NAMESERVER" + (i + 1) + "PUNYCODENAME", nameservers.get(i));
+        substitutionsBuilder.put(
+            "NAMESERVER" + (i + 1) + "NAME", Idn.toUnicode(nameservers.get(i)));
+        substitutionsBuilder.put("NAMESERVER" + (i + 1) + "ROID", host.getRepoId());
+        substitutionsBuilder.put(
+            "NAMESERVER" + (i + 1) + "ADDRESS",
+            InetAddresses.toAddrString(host.getInetAddresses().asList().get(0)));
       }
     }
     return JSONValue.parse(
@@ -376,14 +464,65 @@ public class RdapDomainSearchActionTest {
       String punycodeName,
       String handle,
       @Nullable List<String> contactRoids,
+      @Nullable List<String> nameservers,
       String expectedOutputFile) {
-    Object obj = generateExpectedJson(name, punycodeName, handle, contactRoids, expectedOutputFile);
+    Object obj =
+        generateExpectedJson(
+            name, punycodeName, handle, contactRoids, nameservers, expectedOutputFile);
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("domainSearchResults", ImmutableList.of(obj));
     builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
     RdapTestHelper.addNotices(builder, "https://example.com/rdap/");
     RdapTestHelper.addDomainBoilerplateRemarks(builder);
-    return builder.build();
+    return new JSONObject(builder.build());
+  }
+
+  private void runSuccessfulTestWithCatLol(
+      RequestType requestType, String queryString, String fileName) {
+    runSuccessfulTest(
+        requestType,
+        queryString,
+        "cat.lol",
+        null,
+        "C-LOL",
+        ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
+        ImmutableList.of("ns1.cat.lol", "ns2.cat.lol"),
+        fileName);
+  }
+
+  private void runSuccessfulTestWithCat2Lol(
+      RequestType requestType, String queryString, String fileName) {
+    runSuccessfulTest(
+        requestType,
+        queryString,
+        "cat2.lol",
+        null,
+        "17-LOL",
+        ImmutableList.of("F-ROID", "11-ROID", "D-ROID"),
+        ImmutableList.of("ns1.cat.example", "ns2.dog.lol"),
+        fileName);
+  }
+
+  private void runSuccessfulTest(
+      RequestType requestType,
+      String queryString,
+      String name,
+      String punycodeName,
+      String handle,
+      @Nullable List<String> contactRoids,
+      @Nullable List<String> nameservers,
+      String fileName) {
+    assertThat(generateActualJson(requestType, queryString))
+        .isEqualTo(
+            generateExpectedJsonForDomain(
+                name, punycodeName, handle, contactRoids, nameservers, fileName));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  private void runNotFoundTest(RequestType requestType, String fullName, String errorMessage) {
+    assertThat(generateActualJson(requestType, fullName))
+        .isEqualTo(generateExpectedJson(errorMessage, "rdap_error_404.json"));
+    assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
@@ -443,15 +582,7 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testDomainMatch_found() throws Exception {
-    assertThat(generateActualJson(RequestType.NAME, "cat.lol"))
-        .isEqualTo(
-            generateExpectedJsonForDomain(
-                "cat.lol",
-                null,
-                "C-LOL",
-                ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
-                "rdap_domain.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithCatLol(RequestType.NAME, "cat.lol", "rdap_domain.json");
   }
 
   @Test
@@ -460,29 +591,14 @@ public class RdapDomainSearchActionTest {
     action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
     when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(false);
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("noregistrar");
-    assertThat(generateActualJson(RequestType.NAME, "cat.lol"))
-        .isEqualTo(
-            generateExpectedJsonForDomain(
-                "cat.lol",
-                null,
-                "C-LOL",
-                ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
-                "rdap_domain.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithCatLol(RequestType.NAME, "cat.lol", "rdap_domain.json");
   }
 
   @Test
   public void testDomainMatch_found_loggedInAsOtherRegistrar() throws Exception {
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("otherregistrar");
-    assertThat(generateActualJson(RequestType.NAME, "cat.lol"))
-        .isEqualTo(
-            generateExpectedJsonForDomain(
-                "cat.lol",
-                null,
-                "C-LOL",
-                null,
-                "rdap_domain_no_contacts_with_remark.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithCatLol(
+        RequestType.NAME, "cat.lol", "rdap_domain_no_contacts_with_remark.json");
   }
 
   /*
@@ -492,85 +608,133 @@ public class RdapDomainSearchActionTest {
   @Ignore
   @Test
   public void testDomainMatchWithTrailingDot_notFound() throws Exception {
-    generateActualJson(RequestType.NAME, "cat.lol.");
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NAME, "cat.lol.", "No domains found");
   }
 
   @Test
   public void testDomainMatch_cat2_lol_found() throws Exception {
-    generateActualJson(RequestType.NAME, "cat2.lol");
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithCat2Lol(RequestType.NAME, "cat2.lol", "rdap_domain_cat2.json");
   }
 
   @Test
   public void testDomainMatch_cat_example_found() throws Exception {
-    generateActualJson(RequestType.NAME, "cat.example");
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTest(
+        RequestType.NAME,
+        "cat.example",
+        "cat.example",
+        null,
+        "21-EXAMPLE",
+        null,
+        ImmutableList.of("ns1.cat.lol", "ns2.external.tld"),
+        "rdap_domain_no_contacts_with_remark.json");
   }
 
   @Test
   public void testDomainMatch_cat_idn_unicode_found() throws Exception {
-    generateActualJson(RequestType.NAME, "cat.みんな");
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTest(
+        RequestType.NAME,
+        "cat.みんな",
+        "cat.みんな",
+        "cat.xn--q9jyb4c",
+        "2D-Q9JYB4C",
+        null,
+        ImmutableList.of("ns1.cat.xn--q9jyb4c", "ns2.cat.xn--q9jyb4c"),
+        "rdap_domain_unicode_no_contacts_with_remark.json");
   }
 
   @Test
   public void testDomainMatch_cat_idn_punycode_found() throws Exception {
-    generateActualJson(RequestType.NAME, "cat.xn--q9jyb4c");
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTest(
+        RequestType.NAME,
+        "cat.xn--q9jyb4c",
+        "cat.みんな",
+        "cat.xn--q9jyb4c",
+        "2D-Q9JYB4C",
+        null,
+        ImmutableList.of("ns1.cat.xn--q9jyb4c", "ns2.cat.xn--q9jyb4c"),
+        "rdap_domain_unicode_no_contacts_with_remark.json");
   }
 
   @Test
   public void testDomainMatch_cat_1_test_found() throws Exception {
-    generateActualJson(RequestType.NAME, "cat.1.test");
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTest(
+        RequestType.NAME,
+        "cat.1.test",
+        "cat.1.test",
+        null,
+        "39-1_TEST",
+        ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
+        ImmutableList.of("ns1.cat.1.test", "ns2.cat.2.test"),
+        "rdap_domain_no_contacts_with_remark.json");
   }
 
   @Test
   public void testDomainMatch_castar_1_test_found() throws Exception {
-    generateActualJson(RequestType.NAME, "ca*.1.test");
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTest(
+        RequestType.NAME,
+        "ca*.1.test",
+        "cat.1.test",
+        null,
+        "39-1_TEST",
+        ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
+        ImmutableList.of("ns1.cat.1.test", "ns2.cat.2.test"),
+        "rdap_domain_no_contacts_with_remark.json");
   }
 
   @Test
   public void testDomainMatch_castar_test_notFound() throws Exception {
-    generateActualJson(RequestType.NAME, "ca*.test");
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NAME, "ca*.test", "No domains found");
   }
 
   @Test
   public void testDomainMatch_catstar_lol_found() throws Exception {
-    generateActualJson(RequestType.NAME, "cat*.lol");
+    assertThat(generateActualJson(RequestType.NAME, "cat*.lol"))
+        .isEqualTo(generateExpectedJsonForTwoDomains("cat.lol", "C-LOL", "cat2.lol", "17-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testDomainMatch_cstar_lol_found() throws Exception {
-    generateActualJson(RequestType.NAME, "c*.lol");
+    assertThat(generateActualJson(RequestType.NAME, "c*.lol"))
+        .isEqualTo(generateExpectedJsonForTwoDomains("cat.lol", "C-LOL", "cat2.lol", "17-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testDomainMatch_star_lol_found() throws Exception {
-    generateActualJson(RequestType.NAME, "*.lol");
+    assertThat(generateActualJson(RequestType.NAME, "*.lol"))
+        .isEqualTo(generateExpectedJsonForTwoDomains("cat2.lol", "17-LOL", "cat.lol", "C-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testDomainMatch_cat_star_found() throws Exception {
-    generateActualJson(RequestType.NAME, "cat.*");
+    assertThat(generateActualJson(RequestType.NAME, "cat.*"))
+        .isEqualTo(
+            generateExpectedJsonForFourDomains(
+                "cat.1.test", "39-1_TEST",
+                "cat.example", "21-EXAMPLE",
+                "cat.lol", "C-LOL",
+                "cat.xn--q9jyb4c", "2D-Q9JYB4C",
+                "rdap_domains_four_with_one_unicode.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testDomainMatch_cat_lstar_found() throws Exception {
-    generateActualJson(RequestType.NAME, "cat.l*");
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithCatLol(RequestType.NAME, "cat.l*", "rdap_domain.json");
   }
 
   @Test
   public void testDomainMatch_catstar_found() throws Exception {
-    generateActualJson(RequestType.NAME, "cat*");
+    assertThat(generateActualJson(RequestType.NAME, "cat*"))
+        .isEqualTo(
+            generateExpectedJsonForFourDomains(
+                "cat.1.test", "39-1_TEST",
+                "cat.example", "21-EXAMPLE",
+                "cat.lol", "C-LOL",
+                "cat.xn--q9jyb4c", "2D-Q9JYB4C",
+                "rdap_domains_four_with_one_unicode_truncated.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -585,32 +749,26 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testDomainMatch_dog_notFound() throws Exception {
-    generateActualJson(RequestType.NAME, "dog*");
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NAME, "dog*", "No domains found");
   }
 
   @Test
   public void testDomainMatchDeletedDomain_notFound() throws Exception {
     persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
-    assertThat(generateActualJson(RequestType.NAME, "cat.lol"))
-        .isEqualTo(generateExpectedJson("No domains found", "rdap_error_404.json"));
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NAME, "cat.lol", "No domains found");
   }
 
   @Test
   public void testDomainMatchDeletedDomainWithWildcard_notFound() throws Exception {
     persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
-    assertThat(generateActualJson(RequestType.NAME, "cat.lo*"))
-        .isEqualTo(generateExpectedJson("No domains found", "rdap_error_404.json"));
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NAME, "cat.lo*", "No domains found");
   }
 
   @Test
   public void testDomainMatchDeletedDomainsWithWildcardAndTld_notFound() throws Exception {
     persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
     persistDomainAsDeleted(domainCatLol2, clock.nowUtc().minusDays(1));
-    generateActualJson(RequestType.NAME, "cat*.lol");
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NAME, "cat*.lol", "No domains found");
   }
 
   // TODO(b/27378695): reenable or delete this test
@@ -618,8 +776,7 @@ public class RdapDomainSearchActionTest {
   @Test
   public void testDomainMatchDomainInTestTld_notFound() throws Exception {
     persistResource(Registry.get("lol").asBuilder().setTldType(Registry.TldType.TEST).build());
-    generateActualJson(RequestType.NAME, "cat.lol");
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NAME, "cat.lol", "No domains found");
   }
 
   private void createManyDomainsAndHosts(
@@ -719,9 +876,18 @@ public class RdapDomainSearchActionTest {
     // result set, but there are so many deleted domains that we run out of patience before we work
     // our way through all of them.
     createManyDomainsAndHosts(4, 50, 2);
-    Object obj = generateActualJson(RequestType.NAME, "domain*.lol");
+    assertThat(generateActualJson(RequestType.NAME, "domain*.lol"))
+        .isEqualTo(readMultiDomainFile(
+            "rdap_incomplete_domain_result_set.json",
+            "domain100.lol",
+            "A6-LOL",
+            "domain150.lol",
+            "D8-LOL",
+            "domain200.lol",
+            "10A-LOL",
+            "domainunused.lol",
+            "unused-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
-    checkNumberOfDomainsInResult(obj, 3);
   }
 
   @Test
@@ -731,13 +897,13 @@ public class RdapDomainSearchActionTest {
         .isEqualTo(readMultiDomainFile(
             "rdap_nontruncated_domains.json",
             "domain1.lol",
-            "41-LOL",
-            "domain2.lol",
-            "42-LOL",
-            "domain3.lol",
             "43-LOL",
+            "domain2.lol",
+            "44-LOL",
+            "domain3.lol",
+            "45-LOL",
             "domain4.lol",
-            "44-LOL"));
+            "46-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -746,15 +912,15 @@ public class RdapDomainSearchActionTest {
     createManyDomainsAndHosts(5, 1, 2);
     assertThat(generateActualJson(RequestType.NAME, "domain*.lol"))
         .isEqualTo(readMultiDomainFile(
-            "rdap_truncated_domains.json",
+            "rdap_domains_four_truncated.json",
             "domain1.lol",
-            "41-LOL",
-            "domain2.lol",
-            "42-LOL",
-            "domain3.lol",
             "43-LOL",
+            "domain2.lol",
+            "44-LOL",
+            "domain3.lol",
+            "45-LOL",
             "domain4.lol",
-            "44-LOL"));
+            "46-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -765,15 +931,15 @@ public class RdapDomainSearchActionTest {
     createManyDomainsAndHosts(9, 1, 2);
     assertThat(generateActualJson(RequestType.NAME, "domain*.lol"))
         .isEqualTo(readMultiDomainFile(
-            "rdap_truncated_domains.json",
+            "rdap_domains_four_truncated.json",
             "domain1.lol",
-            "41-LOL",
-            "domain2.lol",
-            "42-LOL",
-            "domain3.lol",
             "43-LOL",
+            "domain2.lol",
+            "44-LOL",
+            "domain3.lol",
+            "45-LOL",
             "domain4.lol",
-            "44-LOL"));
+            "46-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -782,48 +948,39 @@ public class RdapDomainSearchActionTest {
     createManyDomainsAndHosts(5, 6, 2);
     assertThat(generateActualJson(RequestType.NAME, "domain*.lol"))
         .isEqualTo(readMultiDomainFile(
-            "rdap_truncated_domains.json",
+            "rdap_domains_four_truncated.json",
             "domain12.lol",
-            "4C-LOL",
+            "4E-LOL",
             "domain18.lol",
-            "52-LOL",
+            "54-LOL",
             "domain24.lol",
-            "58-LOL",
+            "5A-LOL",
             "domain30.lol",
-            "5E-LOL"));
+            "60-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testNameserverMatch_foundMultiple() throws Exception {
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat.lol"))
-        .isEqualTo(generateExpectedJson("rdap_multiple_domains.json"));
+        .isEqualTo(generateExpectedJsonForTwoDomains());
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testNameserverMatchWithWildcard_found() throws Exception {
-    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns2.cat.l*"))
-        .isEqualTo(
-            generateExpectedJsonForDomain(
-                "cat.lol",
-                null,
-                "C-LOL",
-                ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
-                "rdap_domain.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithCatLol(RequestType.NS_LDH_NAME, "ns2.cat.l*", "rdap_domain.json");
   }
 
   @Test
   public void testNameserverMatchWithWildcardAndDomainSuffix_notFound() throws Exception {
-    generateActualJson(RequestType.NS_LDH_NAME, "ns5*.cat.lol");
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NS_LDH_NAME, "ns5*.cat.lol", "No matching nameservers found");
   }
 
   @Test
   public void testNameserverMatchWithNoPrefixWildcardAndDomainSuffix_found() throws Exception {
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "*.cat.lol"))
-        .isEqualTo(generateExpectedJson("rdap_multiple_domains.json"));
+        .isEqualTo(generateExpectedJsonForTwoDomains());
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -831,7 +988,7 @@ public class RdapDomainSearchActionTest {
   public void testNameserverMatchWithOneCharacterPrefixWildcardAndDomainSuffix_found()
       throws Exception {
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "n*.cat.lol"))
-        .isEqualTo(generateExpectedJson("rdap_multiple_domains.json"));
+        .isEqualTo(generateExpectedJsonForTwoDomains());
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -839,7 +996,7 @@ public class RdapDomainSearchActionTest {
   public void testNameserverMatchWithTwoCharacterPrefixWildcardAndDomainSuffix_found()
       throws Exception {
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns*.cat.lol"))
-        .isEqualTo(generateExpectedJson("rdap_multiple_domains.json"));
+        .isEqualTo(generateExpectedJsonForTwoDomains());
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -857,14 +1014,12 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testNameserverMatch_ns2_cat_lol_found() throws Exception {
-    generateActualJson(RequestType.NS_LDH_NAME, "ns2.cat.lol");
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithCatLol(RequestType.NS_LDH_NAME, "ns2.cat.lol", "rdap_domain.json");
   }
 
   @Test
   public void testNameserverMatch_ns2_dog_lol_found() throws Exception {
-    generateActualJson(RequestType.NS_LDH_NAME, "ns2.dog.lol");
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithCat2Lol(RequestType.NS_LDH_NAME, "ns2.dog.lol", "rdap_domain_cat2.json");
   }
 
   @Test
@@ -876,20 +1031,41 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testNameserverMatch_ns1_cat_idn_punycode_found() throws Exception {
-    generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat.xn--q9jyb4c");
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTest(
+        RequestType.NS_LDH_NAME,
+        "ns1.cat.xn--q9jyb4c",
+        "cat.みんな",
+        "cat.xn--q9jyb4c",
+        "2D-Q9JYB4C",
+        null,
+        ImmutableList.of("ns1.cat.xn--q9jyb4c", "ns2.cat.xn--q9jyb4c"),
+        "rdap_domain_unicode_no_contacts_with_remark.json");
   }
 
   @Test
   public void testNameserverMatch_ns1_cat_1_test_found() throws Exception {
-    generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat.1.test");
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTest(
+        RequestType.NS_LDH_NAME,
+        "ns1.cat.1.test",
+        "cat.1.test",
+        null,
+        "39-1_TEST",
+        ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
+        ImmutableList.of("ns1.cat.1.test", "ns2.cat.2.test"),
+        "rdap_domain_no_contacts_with_remark.json");
   }
 
   @Test
   public void testNameserverMatch_nsstar_cat_1_test_found() throws Exception {
-    generateActualJson(RequestType.NS_LDH_NAME, "ns*.cat.1.test");
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTest(
+        RequestType.NS_LDH_NAME,
+        "ns*.cat.1.test",
+        "cat.1.test",
+        null,
+        "39-1_TEST",
+        ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
+        ImmutableList.of("ns1.cat.1.test", "ns2.cat.2.test"),
+        "rdap_domain_no_contacts_with_remark.json");
   }
 
   @Test
@@ -900,8 +1076,7 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testNameserverMatchMissing_notFound() throws Exception {
-    generateActualJson(RequestType.NS_LDH_NAME, "ns1.missing.com");
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NS_LDH_NAME, "ns1.missing.com", "No matching nameservers found");
   }
 
   // todo (b/27378695): reenable or delete this test
@@ -909,49 +1084,34 @@ public class RdapDomainSearchActionTest {
   @Test
   public void testNameserverMatchDomainsInTestTld_notFound() throws Exception {
     persistResource(Registry.get("lol").asBuilder().setTldType(Registry.TldType.TEST).build());
-    generateActualJson(RequestType.NS_LDH_NAME, "ns2.cat.lol");
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NS_LDH_NAME, "ns2.cat.lol", "No matching nameservers found");
   }
 
   @Test
   public void testNameserverMatchOneDeletedDomain_foundTheOther() throws Exception {
     persistDomainAsDeleted(domainCatExample, clock.nowUtc().minusDays(1));
-    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat.lol"))
-        .isEqualTo(
-            generateExpectedJsonForDomain(
-                "cat.lol",
-                null,
-                "C-LOL",
-                ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
-                "rdap_domain.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithCatLol(RequestType.NS_LDH_NAME, "ns1.cat.lol", "rdap_domain.json");
   }
 
   @Test
   public void testNameserverMatchTwoDeletedDomains_notFound() throws Exception {
     persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
     persistDomainAsDeleted(domainCatExample, clock.nowUtc().minusDays(1));
-    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat.lol"))
-        .isEqualTo(generateExpectedJson("No domains found", "rdap_error_404.json"));
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NS_LDH_NAME, "ns1.cat.lol", "No domains found");
   }
 
   @Test
   public void testNameserverMatchDeletedNameserver_notFound() throws Exception {
     persistResource(
         hostNs1CatLol.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat.lol"))
-        .isEqualTo(generateExpectedJson("No matching nameservers found", "rdap_error_404.json"));
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NS_LDH_NAME, "ns1.cat.lol", "No matching nameservers found");
   }
 
   @Test
   public void testNameserverMatchDeletedNameserverWithWildcard_notFound() throws Exception {
     persistResource(
         hostNs1CatLol.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat.l*"))
-        .isEqualTo(generateExpectedJson("No matching nameservers found", "rdap_error_404.json"));
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NS_LDH_NAME, "ns1.cat.l*", "No matching nameservers found");
   }
 
   @Test
@@ -959,9 +1119,7 @@ public class RdapDomainSearchActionTest {
       throws Exception {
     persistResource(
         hostNs1CatLol.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1*.cat.lol"))
-        .isEqualTo(generateExpectedJson("No matching nameservers found", "rdap_error_404.json"));
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NS_LDH_NAME, "ns1*.cat.lol", "No matching nameservers found");
   }
 
   @Test
@@ -1002,13 +1160,13 @@ public class RdapDomainSearchActionTest {
         .isEqualTo(readMultiDomainFile(
             "rdap_nontruncated_domains.json",
             "domain1.lol",
-            "41-LOL",
-            "domain2.lol",
-            "42-LOL",
-            "domain3.lol",
             "43-LOL",
+            "domain2.lol",
+            "44-LOL",
+            "domain3.lol",
+            "45-LOL",
             "domain4.lol",
-            "44-LOL"));
+            "46-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -1017,15 +1175,15 @@ public class RdapDomainSearchActionTest {
     createManyDomainsAndHosts(5, 1, 2);
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.domain1.lol"))
         .isEqualTo(readMultiDomainFile(
-            "rdap_truncated_domains.json",
+            "rdap_domains_four_truncated.json",
             "domain1.lol",
-            "41-LOL",
-            "domain2.lol",
-            "42-LOL",
-            "domain3.lol",
             "43-LOL",
+            "domain2.lol",
+            "44-LOL",
+            "domain3.lol",
+            "45-LOL",
             "domain4.lol",
-            "44-LOL"));
+            "46-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -1034,15 +1192,15 @@ public class RdapDomainSearchActionTest {
     createManyDomainsAndHosts(9, 1, 2);
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.domain1.lol"))
         .isEqualTo(readMultiDomainFile(
-            "rdap_truncated_domains.json",
+            "rdap_domains_four_truncated.json",
             "domain1.lol",
-            "41-LOL",
-            "domain2.lol",
-            "42-LOL",
-            "domain3.lol",
             "43-LOL",
+            "domain2.lol",
+            "44-LOL",
+            "domain3.lol",
+            "45-LOL",
             "domain4.lol",
-            "44-LOL"));
+            "46-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -1056,13 +1214,13 @@ public class RdapDomainSearchActionTest {
         .isEqualTo(readMultiDomainFile(
             "rdap_nontruncated_domains.json",
             "domain1.lol",
-            "B5-LOL",
-            "domain2.lol",
-            "B6-LOL",
-            "domain3.lol",
             "B7-LOL",
+            "domain2.lol",
+            "B8-LOL",
+            "domain3.lol",
+            "B9-LOL",
             "domain4.lol",
-            "B8-LOL"));
+            "BA-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -1073,34 +1231,33 @@ public class RdapDomainSearchActionTest {
         .isEqualTo(readMultiDomainFile(
             "rdap_incomplete_domains.json",
             "domain1.lol",
-            "41-LOL",
+            "13C7-LOL",
             "domain2.lol",
-            "42-LOL",
-            "domain3.lol",
-            "43-LOL",
-            "domain4.lol",
-            "44-LOL"));
+            "13C8-LOL",
+            "x",
+            "x",
+            "x",
+            "x"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testAddressMatchV4Address_foundMultiple() throws Exception {
     assertThat(generateActualJson(RequestType.NS_IP, "1.2.3.4"))
-        .isEqualTo(generateExpectedJson("rdap_multiple_domains.json"));
+        .isEqualTo(generateExpectedJsonForTwoDomains());
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testAddressMatchV6Address_foundMultiple() throws Exception {
-    assertThat(generateActualJson(RequestType.NS_IP, "bad:f00d:cafe::15:beef"))
-        .isEqualTo(generateExpectedJson("rdap_multiple_domains.json"));
+    assertThat(generateActualJson(RequestType.NS_IP, "bad:f00d:cafe:0:0:0:15:beef"))
+        .isEqualTo(generateExpectedJsonForTwoDomains());
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
   public void testAddressMatchLocalhost_notFound() throws Exception {
-    generateActualJson(RequestType.NS_IP, "127.0.0.1");
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NS_IP, "127.0.0.1", "No domains found");
   }
 
   // todo (b/27378695): reenable or delete this test
@@ -1109,8 +1266,7 @@ public class RdapDomainSearchActionTest {
   public void testAddressMatchDomainsInTestTld_notFound() throws Exception {
     persistResource(Registry.get("lol").asBuilder().setTldType(Registry.TldType.TEST).build());
     persistResource(Registry.get("example").asBuilder().setTldType(Registry.TldType.TEST).build());
-    generateActualJson(RequestType.NS_IP, "1.2.3.4");
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NS_IP, "127.0.0.1", "No matching nameservers found");
   }
 
   @Test
@@ -1123,6 +1279,7 @@ public class RdapDomainSearchActionTest {
                 null,
                 "C-LOL",
                 ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
+                ImmutableList.of("ns1.cat.lol", "ns2.cat.lol"),
                 "rdap_domain.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
@@ -1131,17 +1288,13 @@ public class RdapDomainSearchActionTest {
   public void testAddressMatchTwoDeletedDomains_notFound() throws Exception {
     persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
     persistDomainAsDeleted(domainCatExample, clock.nowUtc().minusDays(1));
-    assertThat(generateActualJson(RequestType.NS_IP, "1.2.3.4"))
-        .isEqualTo(generateExpectedJson("No domains found", "rdap_error_404.json"));
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NS_IP, "1.2.3.4", "No domains found");
   }
 
   @Test
   public void testAddressMatchDeletedNameserver_notFound() throws Exception {
     persistResource(hostNs1CatLol.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    assertThat(generateActualJson(RequestType.NS_IP, "1.2.3.4"))
-        .isEqualTo(generateExpectedJson("No domains found", "rdap_error_404.json"));
-    assertThat(response.getStatus()).isEqualTo(404);
+    runNotFoundTest(RequestType.NS_IP, "1.2.3.4", "No domains found");
   }
 
   @Test
@@ -1151,13 +1304,13 @@ public class RdapDomainSearchActionTest {
         .isEqualTo(readMultiDomainFile(
             "rdap_nontruncated_domains.json",
             "domain1.lol",
-            "41-LOL",
-            "domain2.lol",
-            "42-LOL",
-            "domain3.lol",
             "43-LOL",
+            "domain2.lol",
+            "44-LOL",
+            "domain3.lol",
+            "45-LOL",
             "domain4.lol",
-            "44-LOL"));
+            "46-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -1166,15 +1319,15 @@ public class RdapDomainSearchActionTest {
     createManyDomainsAndHosts(5, 1, 2);
     assertThat(generateActualJson(RequestType.NS_IP, "5.5.5.1"))
         .isEqualTo(readMultiDomainFile(
-            "rdap_truncated_domains.json",
+            "rdap_domains_four_truncated.json",
             "domain1.lol",
-            "41-LOL",
-            "domain2.lol",
-            "42-LOL",
-            "domain3.lol",
             "43-LOL",
+            "domain2.lol",
+            "44-LOL",
+            "domain3.lol",
+            "45-LOL",
             "domain4.lol",
-            "44-LOL"));
+            "46-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -1183,15 +1336,15 @@ public class RdapDomainSearchActionTest {
     createManyDomainsAndHosts(9, 1, 2);
     assertThat(generateActualJson(RequestType.NS_IP, "5.5.5.1"))
         .isEqualTo(readMultiDomainFile(
-            "rdap_truncated_domains.json",
+            "rdap_domains_four_truncated.json",
             "domain1.lol",
-            "41-LOL",
-            "domain2.lol",
-            "42-LOL",
-            "domain3.lol",
             "43-LOL",
+            "domain2.lol",
+            "44-LOL",
+            "domain3.lol",
+            "45-LOL",
             "domain4.lol",
-            "44-LOL"));
+            "46-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 }

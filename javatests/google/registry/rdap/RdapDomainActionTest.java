@@ -53,6 +53,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
+import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -264,6 +265,14 @@ public class RdapDomainActionTest {
     substitutionsBuilder.put("PUNYCODENAME", (punycodeName == null) ? name : punycodeName);
     substitutionsBuilder.put("HANDLE", handle);
     substitutionsBuilder.put("TYPE", "domain name");
+    substitutionsBuilder.put("NAMESERVER1ROID", "8-ROID");
+    substitutionsBuilder.put("NAMESERVER1NAME", "ns1.cat.lol");
+    substitutionsBuilder.put("NAMESERVER1PUNYCODENAME", "ns1.cat.lol");
+    substitutionsBuilder.put("NAMESERVER1ADDRESS", "1.2.3.4");
+    substitutionsBuilder.put("NAMESERVER2ROID", "A-ROID");
+    substitutionsBuilder.put("NAMESERVER2NAME", "ns2.cat.lol");
+    substitutionsBuilder.put("NAMESERVER2PUNYCODENAME", "ns2.cat.lol");
+    substitutionsBuilder.put("NAMESERVER2ADDRESS", "bad:f00d:cafe::15:beef");
     if (contactRoids != null) {
       for (int i = 0; i < contactRoids.size(); i++) {
         substitutionsBuilder.put("CONTACT" + (i + 1) + "ROID", contactRoids.get(i));
@@ -297,7 +306,7 @@ public class RdapDomainActionTest {
               : RdapTestHelper.ContactNoticeType.NONE,
           map.get("notices"));
       RdapTestHelper.addDomainBoilerplateRemarks(builder, false, map.get("remarks"));
-      obj = builder.build();
+      obj = new JSONObject(builder.build());
     }
     return obj;
   }
@@ -471,7 +480,7 @@ public class RdapDomainActionTest {
         generateExpectedJsonWithTopLevelEntries(
             "cat.1.tld",
             null,
-            "1D-1.TLD",
+            "1D-1_TLD",
             ImmutableList.of("19-ROID", "1B-ROID", "17-ROID"),
             "rdap_domain.json"));
     assertThat(response.getStatus()).isEqualTo(200);

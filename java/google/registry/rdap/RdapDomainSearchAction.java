@@ -210,8 +210,10 @@ public class RdapDomainSearchAction extends RdapActionBase {
       }
       // Query the domains directly, rather than the foreign keys, because then we have an index on
       // TLD if we need it.
+      int numFetched = 0;
       for (DomainResource domain :
           query.limit(RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize)) {
+        numFetched++;
         if (EppResourceUtils.isActive(domain, now)) {
           if (domainList.size() >= rdapResultSetMaxSize) {
             return makeSearchResults(
@@ -220,7 +222,13 @@ public class RdapDomainSearchAction extends RdapActionBase {
           domainList.add(domain);
         }
       }
-      return makeSearchResults(domainList, now);
+      return makeSearchResults(
+          domainList,
+          ((numFetched == RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize)
+                  && (domainList.size() < rdapResultSetMaxSize))
+              ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
+              : IncompletenessWarningType.NONE,
+          now);
     }
   }
 

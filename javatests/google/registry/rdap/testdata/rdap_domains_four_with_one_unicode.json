@@ -7,16 +7,16 @@
         "client transfer prohibited",
         "server update prohibited"
       ],
-      "handle": "21-EXAMPLE",
+      "handle": "%DOMAINHANDLE1%",
       "links": [
         {
-          "href": "https://example.com/rdap/domain/cat.example",
+          "href": "https://example.com/rdap/domain/%DOMAINNAME1%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/domain/cat.example"
+          "value": "https://example.com/rdap/domain/%DOMAINNAME1%"
         }
       ],
-      "ldhName": "cat.example",
+      "ldhName": "%DOMAINNAME1%",
       "objectClassName": "domain",
       "remarks": [
         {
@@ -35,16 +35,73 @@
         "client transfer prohibited",
         "server update prohibited"
       ],
-      "handle": "C-LOL",
+      "handle": "%DOMAINHANDLE2%",
       "links": [
         {
-          "href": "https://example.com/rdap/domain/cat.lol",
+          "href": "https://example.com/rdap/domain/%DOMAINNAME2%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/domain/cat.lol"
+          "value": "https://example.com/rdap/domain/%DOMAINNAME2%"
         }
       ],
-      "ldhName": "cat.lol",
+      "ldhName": "%DOMAINNAME2%",
+      "objectClassName": "domain",
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ]
+    },
+    {
+      "status": [
+        "client delete prohibited",
+        "client renew prohibited",
+        "client transfer prohibited",
+        "server update prohibited"
+      ],
+      "handle": "%DOMAINHANDLE3%",
+      "links": [
+        {
+          "href": "https://example.com/rdap/domain/%DOMAINNAME3%",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.com/rdap/domain/%DOMAINNAME3%"
+        }
+      ],
+      "ldhName": "%DOMAINNAME3%",
+      "objectClassName": "domain",
+      "remarks": [
+        {
+          "title": "Incomplete Data",
+          "description": [
+            "Summary data only. For complete data, send a specific query for the object."
+          ],
+          "type": "object truncated due to unexplainable reasons"
+        }
+      ]
+    },
+    {
+      "status": [
+        "client delete prohibited",
+        "client renew prohibited",
+        "client transfer prohibited",
+        "server update prohibited"
+      ],
+      "handle": "%DOMAINHANDLE4%",
+      "links": [
+        {
+          "href": "https://example.com/rdap/domain/%DOMAINPUNYCODENAME4%",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.com/rdap/domain/%DOMAINPUNYCODENAME4%"
+        }
+      ],
+      "ldhName": "%DOMAINPUNYCODENAME4%",
+      "unicodeName": "%DOMAINNAME4%",
       "objectClassName": "domain",
       "remarks": [
         {

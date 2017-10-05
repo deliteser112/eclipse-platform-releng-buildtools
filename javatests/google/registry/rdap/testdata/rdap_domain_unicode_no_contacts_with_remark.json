@@ -8,10 +8,10 @@
   "handle": "%HANDLE%",
   "links": [
     {
-      "href": "https://example.com/rdap/domain/%NAME%",
+      "href": "https://example.com/rdap/domain/%PUNYCODENAME%",
       "type": "application/rdap+json",
       "rel": "self",
-      "value": "https://example.com/rdap/domain/%NAME%"
+      "value": "https://example.com/rdap/domain/%PUNYCODENAME%"
     }
   ],
   "events": [
@@ -42,13 +42,14 @@
       "handle": "%NAMESERVER1ROID%",
       "links": [
         {
-          "href": "https://example.com/rdap/nameserver/%NAMESERVER1NAME%",
+          "href": "https://example.com/rdap/nameserver/%NAMESERVER1PUNYCODENAME%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/nameserver/%NAMESERVER1NAME%"
+          "value": "https://example.com/rdap/nameserver/%NAMESERVER1PUNYCODENAME%"
         }
       ],
-      "ldhName": "%NAMESERVER1NAME%",
+      "ldhName": "%NAMESERVER1PUNYCODENAME%",
+      "unicodeName": "%NAMESERVER1NAME%",
       "ipAddresses": {
         "v4": [
           "%NAMESERVER1ADDRESS%"
@@ -75,13 +76,14 @@
       "handle": "%NAMESERVER2ROID%",
       "links": [
         {
-          "href": "https://example.com/rdap/nameserver/%NAMESERVER2NAME%",
+          "href": "https://example.com/rdap/nameserver/%NAMESERVER2PUNYCODENAME%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/nameserver/%NAMESERVER2NAME%"
+          "value": "https://example.com/rdap/nameserver/%NAMESERVER2PUNYCODENAME%"
         }
       ],
-      "ldhName": "%NAMESERVER2NAME%",
+      "ldhName": "%NAMESERVER2PUNYCODENAME%",
+      "unicodeName": "%NAMESERVER2NAME%",
       "ipAddresses": {
         "v6": [
           "%NAMESERVER2ADDRESS%"
@@ -101,7 +103,8 @@
       "objectClassName": "nameserver"
     }
   ],
-  "ldhName": "%NAME%",
+  "ldhName": "%PUNYCODENAME%",
+  "unicodeName": "%NAME%",
   "objectClassName": "domain",
   "remarks": [
     {

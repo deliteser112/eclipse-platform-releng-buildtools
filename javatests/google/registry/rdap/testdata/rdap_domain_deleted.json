@@ -3,23 +3,28 @@
     "client delete prohibited",
     "client renew prohibited",
     "client transfer prohibited",
+    "removed",
     "server update prohibited"
   ],
-  "unicodeName": "%NAME%",
   "handle": "%HANDLE%",
   "links": [
     {
-      "href": "https://example.com/rdap/domain/%PUNYCODENAME%",
+      "href": "https://example.com/rdap/domain/%NAME%",
       "type": "application/rdap+json",
       "rel": "self",
-      "value": "https://example.com/rdap/domain/%PUNYCODENAME%"
+      "value": "https://example.com/rdap/domain/%NAME%"
     }
   ],
   "events": [
     {
       "eventAction": "registration",
       "eventActor": "foo",
-      "eventDate": "2000-01-01T00:00:00.000Z"
+      "eventDate": "1999-01-01T00:00:00.000Z"
+    },
+    {
+      "eventAction": "deletion",
+      "eventActor": "foo",
+      "eventDate": "1999-07-01T00:00:00.000Z"
     },
     {
       "eventAction": "expiration",
@@ -43,15 +48,13 @@
       "handle": "%NAMESERVER1ROID%",
       "links": [
         {
-          "href":
-              "https://example.com/rdap/nameserver/%NAMESERVER1PUNYCODENAME%",
+          "href": "https://example.com/rdap/nameserver/%NAMESERVER1NAME%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value":
-              "https://example.com/rdap/nameserver/%NAMESERVER1PUNYCODENAME%"
+          "value": "https://example.com/rdap/nameserver/%NAMESERVER1NAME%"
         }
       ],
-      "ldhName": "%NAMESERVER1PUNYCODENAME%",
+      "ldhName": "%NAMESERVER1NAME%",
       "ipAddresses": {
         "v4": [
           "%NAMESERVER1ADDRESS%"
@@ -78,15 +81,13 @@
       "handle": "%NAMESERVER2ROID%",
       "links": [
         {
-          "href":
-              "https://example.com/rdap/nameserver/%NAMESERVER2PUNYCODENAME%",
+          "href": "https://example.com/rdap/nameserver/%NAMESERVER2NAME%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value":
-              "https://example.com/rdap/nameserver/%NAMESERVER2PUNYCODENAME%"
+          "value": "https://example.com/rdap/nameserver/%NAMESERVER2NAME%"
         }
       ],
-      "ldhName": "%NAMESERVER2PUNYCODENAME%",
+      "ldhName": "%NAMESERVER2NAME%",
       "ipAddresses": {
         "v6": [
           "%NAMESERVER2ADDRESS%"
@@ -106,7 +107,7 @@
       "objectClassName": "nameserver"
     }
   ],
-  "ldhName": "%PUNYCODENAME%",
+  "ldhName": "%NAME%",
   "entities": [
     {
       "status": [

@@ -39,19 +39,19 @@
         "active",
         "associated"
       ],
-      "handle": "8-ROID",
+      "handle": "%NAMESERVER1ROID%",
       "links": [
         {
-          "href": "https://example.com/rdap/nameserver/ns1.cat.lol",
+          "href": "https://example.com/rdap/nameserver/%NAMESERVER1NAME%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/nameserver/ns1.cat.lol"
+          "value": "https://example.com/rdap/nameserver/%NAMESERVER1NAME%"
         }
       ],
-      "ldhName": "ns1.cat.lol",
+      "ldhName": "%NAMESERVER1NAME%",
       "ipAddresses": {
         "v4": [
-          "1.2.3.4"
+          "%NAMESERVER1ADDRESS%"
         ]
       },
       "events": [
@@ -72,19 +72,19 @@
         "active",
         "associated"
       ],
-      "handle": "A-ROID",
+      "handle": "%NAMESERVER2ROID%",
       "links": [
         {
-          "href": "https://example.com/rdap/nameserver/ns2.cat.lol",
+          "href": "https://example.com/rdap/nameserver/%NAMESERVER2NAME%",
           "type": "application/rdap+json",
           "rel": "self",
-          "value": "https://example.com/rdap/nameserver/ns2.cat.lol"
+          "value": "https://example.com/rdap/nameserver/%NAMESERVER2NAME%"
         }
       ],
-      "ldhName": "ns2.cat.lol",
+      "ldhName": "%NAMESERVER2NAME%",
       "ipAddresses": {
         "v6": [
-          "bad:f00d:cafe::15:beef"
+          "%NAMESERVER2ADDRESS%"
         ]
       },
       "events": [
