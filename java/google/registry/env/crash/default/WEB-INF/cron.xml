@@ -103,6 +103,15 @@
   </cron>
 
   <cron>
+    <url><![CDATA[/_dr/cron/commitLogCheckpoint]]></url>
+    <description>
+      This job checkpoints the commit log buckets and exports the diff since last checkpoint to GCS.
+    </description>
+    <schedule>every 1 minutes synchronized</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
     <url><![CDATA[/_dr/task/deleteContactsAndHosts]]></url>
     <description>
       This job runs a mapreduce that processes batch asynchronous deletions of
