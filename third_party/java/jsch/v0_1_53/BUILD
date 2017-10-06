@@ -8,8 +8,8 @@ package(default_visibility = ["//visibility:public"])
 licenses(["notice"])  # BSD
 
 java_import(
-    name = "v0_1_44_google",
-    jars = ["jsch-0.1.44_google.jar"],
-    srcjar = "jsch-0.1.44_google-src.jar",
+    name = "v0_1_53",
+    jars = ["jsch-0.1.53.jar"],
+    srcjar = "jsch-0.1.53-src.jar",
     deps = ["@com_jcraft_jzlib"],
 )
