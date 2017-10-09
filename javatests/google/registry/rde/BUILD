@@ -27,7 +27,7 @@ java_library(
         "//javatests/google/registry/testing/mapreduce",
         "//javatests/google/registry/testing/sftp",
         "//javatests/google/registry/xml",
-        "//third_party/java/jsch:jsch_v0_1_53",
+        "//third_party/java/jsch/v0_1_53",
         "//third_party/java/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk//:testonly",
         "@com_google_appengine_tools_appengine_gcs_client",
