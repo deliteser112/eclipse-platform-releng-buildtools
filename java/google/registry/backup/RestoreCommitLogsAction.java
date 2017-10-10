@@ -126,6 +126,7 @@ public class RestoreCommitLogsAction implements Runnable {
                             .setLastWrittenTime(entry.getValue())
                             .build())
             .append(CommitLogCheckpointRoot.create(lastCheckpoint.getCheckpointTime())));
+    logger.info("Restore complete");
   }
 
   /**
