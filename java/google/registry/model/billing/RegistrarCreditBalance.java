@@ -20,7 +20,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.collect.ForwardingNavigableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
@@ -34,6 +33,7 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.ReportedOn;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -171,8 +171,8 @@ public final class RegistrarCreditBalance extends ImmutableObject implements Bui
           ofy().load().type(RegistrarCreditBalance.class).ancestor(registrarCredit)) {
         // Create the submap at this key if it doesn't exist already.
         Map<DateTime, Money> submap =
-            Optional.fromNullable(map.get(balance.effectiveTime))
-                .or(new HashMap<DateTime, Money>());
+            Optional.ofNullable(map.get(balance.effectiveTime))
+                .orElse(new HashMap<DateTime, Money>());
         submap.put(balance.writtenTime, balance.amount);
         map.put(balance.effectiveTime, submap);
       }
@@ -212,8 +212,8 @@ public final class RegistrarCreditBalance extends ImmutableObject implements Bui
     private Optional<Money> getMostRecentlyWrittenBalance(
         Map.Entry<DateTime, ImmutableSortedMap<DateTime, Money>> balancesAtEffectiveTime) {
       return balancesAtEffectiveTime == null
-          ? Optional.<Money>absent()
-          // Don't use Optional.fromNullable() here since it's an error if there's a empty submap.
+          ? Optional.<Money>empty()
+          // Don't use Optional.ofNullable() here since it's an error if there's a empty submap.
           : Optional.of(balancesAtEffectiveTime.getValue().lastEntry().getValue());
     }
 

@@ -20,7 +20,6 @@ import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.domain.DomainTransferUtils.createTransferResponse;
 import static google.registry.model.domain.DomainResource.extendRegistrationWithCap;
 
-import com.google.common.base.Optional;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
@@ -36,6 +35,7 @@ import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.util.Clock;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 

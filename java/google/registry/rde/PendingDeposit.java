@@ -15,14 +15,19 @@
 package google.registry.rde;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Optional;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.rde.RdeMode;
 import java.io.Serializable;
+import java.util.Optional;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
-/** Container representing a single RDE or BRDA XML escrow deposit that needs to be created. */
+/**
+ * Container representing a single RDE or BRDA XML escrow deposit that needs to be created.
+ *
+ * <p>There are some {@code @Nullable} fields here because Optionals aren't Serializable.
+ */
 @AutoValue
 public abstract class PendingDeposit implements Serializable {
 
@@ -44,22 +49,26 @@ public abstract class PendingDeposit implements Serializable {
   public abstract RdeMode mode();
 
   /** The cursor type to update (not used in manual operation). */
-  public abstract Optional<CursorType> cursor();
+  @Nullable
+  public abstract CursorType cursor();
 
   /** Amount of time to increment the cursor (not used in manual operation). */
-  public abstract Optional<Duration> interval();
+  @Nullable
+  public abstract Duration interval();
 
   /**
    * Subdirectory of bucket/manual in which files should be placed, including a trailing slash (used
    * only in manual operation).
    */
-  public abstract Optional<String> directoryWithTrailingSlash();
+  @Nullable
+  public abstract String directoryWithTrailingSlash();
 
   /**
    * Revision number for generated files; if absent, use the next available in the sequence (used
    * only in manual operation).
    */
-  public abstract Optional<Integer> revision();
+  @Nullable
+  public abstract Integer revision();
 
   static PendingDeposit create(
       String tld, DateTime watermark, RdeMode mode, CursorType cursor, Duration interval) {
@@ -68,10 +77,10 @@ public abstract class PendingDeposit implements Serializable {
         tld,
         watermark,
         mode,
-        Optional.of(cursor),
-        Optional.of(interval),
-        Optional.<String>absent(),
-        Optional.<Integer>absent());
+        cursor,
+        interval,
+        null,
+        null);
   }
 
   static PendingDeposit createInManualOperation(
@@ -79,15 +88,15 @@ public abstract class PendingDeposit implements Serializable {
       DateTime watermark,
       RdeMode mode,
       String directoryWithTrailingSlash,
-      Optional<Integer> revision) {
+      @Nullable Integer revision) {
     return new AutoValue_PendingDeposit(
         true,
         tld,
         watermark,
         mode,
-        Optional.<CursorType>absent(),
-        Optional.<Duration>absent(),
-        Optional.of(directoryWithTrailingSlash),
+        null,
+        null,
+        directoryWithTrailingSlash,
         revision);
   }
 

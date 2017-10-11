@@ -30,7 +30,6 @@ import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
@@ -61,6 +60,7 @@ import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import java.util.Objects;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -141,10 +141,10 @@ public final class HostUpdateFlow implements TransactionalFlow {
     // Note that lookupSuperordinateDomain calls cloneProjectedAtTime on the domain for us.
     Optional<DomainResource> newSuperordinateDomain =
         lookupSuperordinateDomain(validateHostName(newHostName), now);
-    verifySuperordinateDomainNotInPendingDelete(newSuperordinateDomain.orNull());
+    verifySuperordinateDomainNotInPendingDelete(newSuperordinateDomain.orElse(null));
     EppResource owningResource = firstNonNull(oldSuperordinateDomain, existingHost);
     verifyUpdateAllowed(
-        command, existingHost, newSuperordinateDomain.orNull(), owningResource, isHostRename);
+        command, existingHost, newSuperordinateDomain.orElse(null), owningResource, isHostRename);
     if (isHostRename && loadAndGetKey(HostResource.class, newHostName, now) != null) {
       throw new HostAlreadyExistsException(newHostName);
     }

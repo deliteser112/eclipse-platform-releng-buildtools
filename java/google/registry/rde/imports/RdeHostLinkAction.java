@@ -23,7 +23,6 @@ import static google.registry.util.PipelineUtils.createJobPath;
 import static java.util.stream.Collectors.joining;
 
 import com.google.appengine.tools.mapreduce.Mapper;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
@@ -43,6 +42,7 @@ import google.registry.util.FormattingLogger;
 import google.registry.xjc.JaxbFragment;
 import google.registry.xjc.rdehost.XjcRdeHost;
 import google.registry.xjc.rdehost.XjcRdeHostElement;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -191,7 +191,7 @@ public class RdeHostLinkAction implements Runnable {
       Optional<InternetDomainName> tld = findTldForName(hostName);
       // out of zone hosts cannot be linked
       if (!tld.isPresent()) {
-        return Optional.absent();
+        return Optional.empty();
       }
       // This is a subordinate host
       String domainName =

@@ -72,6 +72,7 @@ def domain_registry_repositories(
     omit_com_google_re2j=False,
     omit_com_google_template_soy=False,
     omit_com_google_truth=False,
+    omit_com_google_truth_extensions_truth_java8_extension=False,
     omit_com_googlecode_charts4j=False,
     omit_com_googlecode_json_simple=False,
     omit_com_ibm_icu_icu4j=False,
@@ -212,6 +213,8 @@ def domain_registry_repositories(
     com_google_template_soy()
   if not omit_com_google_truth:
     com_google_truth()
+  if not omit_com_google_truth_extensions_truth_java8_extension:
+    com_google_truth_extensions_truth_java8_extension()
   if not omit_com_googlecode_charts4j:
     com_googlecode_charts4j()
   if not omit_com_googlecode_json_simple:
@@ -1162,6 +1165,21 @@ def com_google_truth():
           "@com_google_guava",
           "@junit",
           "@com_google_auto_value",
+          "@com_google_errorprone_error_prone_annotations",
+      ],
+  )
+
+def com_google_truth_extensions_truth_java8_extension():
+  java_import_external(
+      name = "com_google_truth_extensions_truth_java8_extension",
+      jar_sha256 = "44566c46783296856c80b14fc3b324d0616c192fa0090214b0eaf1b0b5697266",
+      jar_urls = [
+          "http://central.maven.org/maven2/com/google/truth/extensions/truth-java8-extension/0.36/truth-java8-extension-0.36.jar",
+      ],
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      testonly_ = True,
+      deps = [
+          "@com_google_truth",
           "@com_google_errorprone_error_prone_annotations",
       ],
   )

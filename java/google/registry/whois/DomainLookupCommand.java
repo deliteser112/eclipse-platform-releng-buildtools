@@ -16,9 +16,9 @@ package google.registry.whois;
 
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 
-import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
 import google.registry.model.domain.DomainResource;
+import java.util.Optional;
 import org.joda.time.DateTime;
 
 /** Represents a WHOIS lookup on a domain name (i.e. SLD). */
@@ -32,7 +32,7 @@ public class DomainLookupCommand extends DomainOrHostLookupCommand {
   protected Optional<WhoisResponse> getResponse(InternetDomainName domainName, DateTime now) {
     final DomainResource domainResource =
         loadByForeignKey(DomainResource.class, domainName.toString(), now);
-    return Optional.<WhoisResponse>fromNullable(
+    return Optional.<WhoisResponse>ofNullable(
         domainResource == null ? null : new DomainWhoisResponse(domainResource, now));
   }
 }

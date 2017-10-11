@@ -17,7 +17,6 @@ package google.registry.flows;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.Iterables.tryFind;
 import static com.google.common.collect.Sets.intersection;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.EppResourceUtils.queryForLinkedDomains;
@@ -26,7 +25,6 @@ import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -68,6 +66,7 @@ import google.registry.model.transfer.TransferResponse.ContactTransferResponse;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.model.transfer.TransferStatus;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.joda.time.DateTime;
 
@@ -345,7 +344,11 @@ public final class ResourceFlowUtils {
     }
     // The roid should match one of the contacts.
     Optional<Key<ContactResource>> foundContact =
-        tryFind(domain.getReferencedContacts(), key -> key.getName().equals(authRepoId));
+        domain
+            .getReferencedContacts()
+            .stream()
+            .filter(key -> key.getName().equals(authRepoId))
+            .findFirst();
     if (!foundContact.isPresent()) {
       throw new BadAuthInfoForResourceException();
     }

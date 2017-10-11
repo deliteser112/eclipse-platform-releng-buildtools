@@ -30,7 +30,6 @@ import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -47,6 +46,7 @@ import google.registry.util.TaskEnqueuer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
@@ -106,7 +106,7 @@ public class ReadDnsQueueActionTest {
     action.dnsQueue = dnsQueue;
     action.dnsPublishPushQueue = QueueFactory.getQueue(DNS_PUBLISH_PUSH_QUEUE_NAME);
     action.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
-    action.jitterSeconds = Optional.absent();
+    action.jitterSeconds = Optional.empty();
     action.keepTasks = keepTasks;
     // Advance the time a little, to ensure that leaseTasks() returns all tasks.
     clock.setTo(DateTime.now(DateTimeZone.UTC).plusMillis(1));

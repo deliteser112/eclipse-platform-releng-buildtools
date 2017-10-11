@@ -46,7 +46,6 @@ import static google.registry.model.registry.label.ReservedList.matchesAnchorTen
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -105,6 +104,7 @@ import google.registry.model.reporting.DomainTransactionRecord.TransactionReport
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.tmch.LordnTask;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -255,7 +255,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         DomainCreateFlowCustomLogic.AfterValidationParameters.newBuilder()
             .setDomainName(domainName)
             .setYears(years)
-            .setSignedMarkId(Optional.fromNullable(signedMarkId))
+            .setSignedMarkId(Optional.ofNullable(signedMarkId))
             .build());
     FeeCreateCommandExtension feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);

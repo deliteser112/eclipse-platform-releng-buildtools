@@ -16,10 +16,10 @@ package google.registry.monitoring.metrics;
 
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;

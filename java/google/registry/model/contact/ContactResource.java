@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.annotation.Entity;
@@ -32,6 +31,7 @@ import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.annotations.ReportedOn;
 import google.registry.model.contact.PostalInfo.Type;
 import google.registry.model.transfer.TransferData;
+import java.util.Optional;
 import java.util.stream.Stream;
 import javax.xml.bind.annotation.XmlElement;
 import org.joda.time.DateTime;
@@ -147,7 +147,7 @@ public class ContactResource extends EppResource implements
 
   @Override
   public final TransferData getTransferData() {
-    return Optional.fromNullable(transferData).or(TransferData.EMPTY);
+    return Optional.ofNullable(transferData).orElse(TransferData.EMPTY);
   }
 
   @Override

@@ -19,7 +19,6 @@ import static com.google.common.base.Verify.verify;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import com.google.common.primitives.Ints;
@@ -28,6 +27,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletConfig;
 import javax.servlet.http.HttpServlet;
@@ -86,7 +86,7 @@ public final class StaticResourceServlet extends HttpServlet {
     return holder;
   }
 
-  private Optional<FileServer> fileServer = Optional.absent();
+  private Optional<FileServer> fileServer = Optional.empty();
 
   @Override
   @PostConstruct
@@ -124,12 +124,12 @@ public final class StaticResourceServlet extends HttpServlet {
       if (!Files.exists(file)) {
         logger.infofmt("Not found: %s (%s)", req.getRequestURI(), file);
         rsp.sendError(SC_NOT_FOUND, "Not found");
-        return Optional.absent();
+        return Optional.empty();
       }
       if (Files.isDirectory(file)) {
         logger.infofmt("Directory listing forbidden: %s (%s)", req.getRequestURI(), file);
         rsp.sendError(SC_FORBIDDEN, "No directory listing");
-        return Optional.absent();
+        return Optional.empty();
       }
       rsp.setContentType(
           MIMES_BY_EXTENSION
@@ -140,8 +140,9 @@ public final class StaticResourceServlet extends HttpServlet {
     }
 
     void doGet(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
-      for (Path file : doHead(req, rsp).asSet()) {
-        rsp.getOutputStream().write(Files.readAllBytes(file));
+      Optional<Path> file = doHead(req, rsp);
+      if (file.isPresent()) {
+        rsp.getOutputStream().write(Files.readAllBytes(file.get()));
       }
     }
   }

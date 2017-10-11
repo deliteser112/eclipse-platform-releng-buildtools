@@ -15,8 +15,10 @@
 package google.registry.keyring.kms;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+
 import com.googlecode.objectify.Key;
 import google.registry.keyring.api.KeySerializer;
 import google.registry.model.server.KmsSecret;

@@ -44,7 +44,6 @@ import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.net.InternetDomainName;
@@ -77,6 +76,7 @@ import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 

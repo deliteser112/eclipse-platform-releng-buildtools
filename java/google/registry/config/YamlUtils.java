@@ -18,9 +18,9 @@ import static com.google.common.base.Ascii.toLowerCase;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 
-import com.google.common.base.Optional;
 import google.registry.util.FormattingLogger;
 import java.util.Map;
+import java.util.Optional;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -134,7 +134,7 @@ public final class YamlUtils {
    */
   @SuppressWarnings("unchecked")
   private static Optional<Map<String, Object>> loadAsMap(Yaml yaml, String yamlString) {
-    return Optional.fromNullable((Map<String, Object>) yaml.load(yamlString));
+    return Optional.ofNullable((Map<String, Object>) yaml.load(yamlString));
   }
 
   private YamlUtils() {}

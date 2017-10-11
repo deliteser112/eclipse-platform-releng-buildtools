@@ -15,6 +15,7 @@
 package google.registry.model.eppinput;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.util.ResourceUtils.readResourceBytes;
 
@@ -52,7 +53,7 @@ public class EppInputTest {
     assertThat(input.getCommandWrapper().getClTrid()).isEqualTo("ABC-12345");
     assertThat(input.getCommandType()).isEqualTo("check");
     assertThat(input.getResourceType()).hasValue("domain");
-    assertThat(input.getSingleTargetId()).isAbsent();
+    assertThat(input.getSingleTargetId()).isEmpty();
     assertThat(input.getTargetIds()).containsExactly("example.com", "example.net", "example.org");
   }
 
@@ -62,8 +63,8 @@ public class EppInputTest {
         unmarshal(EppInput.class, readResourceBytes(getClass(), "testdata/login_valid.xml").read());
     assertThat(input.getCommandWrapper().getClTrid()).isEqualTo("ABC-12345");
     assertThat(input.getCommandType()).isEqualTo("login");
-    assertThat(input.getResourceType()).isAbsent();
-    assertThat(input.getSingleTargetId()).isAbsent();
+    assertThat(input.getResourceType()).isEmpty();
+    assertThat(input.getSingleTargetId()).isEmpty();
     assertThat(input.getTargetIds()).isEmpty();
     InnerCommand command = input.getCommandWrapper().getCommand();
     assertThat(command).isInstanceOf(Login.class);

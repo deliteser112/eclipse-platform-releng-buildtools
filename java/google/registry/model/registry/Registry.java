@@ -30,7 +30,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -67,6 +66,7 @@ import google.registry.model.registry.label.ReservedList.ReservedListEntry;
 import google.registry.util.Idn;
 import java.util.Collection;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
@@ -213,7 +213,7 @@ public class Registry extends ImmutableObject implements Buildable {
 
   /** Returns the registry for a given TLD, throwing if none exists. */
   public static Registry get(String tld) {
-    Registry registry = CACHE.getUnchecked(tld).orNull();
+    Registry registry = CACHE.getUnchecked(tld).orElse(null);
     if (registry == null) {
       throw new RegistryNotFoundException(tld);
     }
@@ -241,7 +241,7 @@ public class Registry extends ImmutableObject implements Buildable {
                 public Optional<Registry> load(final String tld) {
                   // Enter a transactionless context briefly; we don't want to enroll every TLD in a
                   // transaction that might be wrapping this call.
-                  return Optional.fromNullable(
+                  return Optional.ofNullable(
                       ofy()
                           .doTransactionless(
                               new Work<Registry>() {

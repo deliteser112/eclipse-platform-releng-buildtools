@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -39,7 +40,7 @@ public class DeleteReservedListCommandTest extends CommandTestCase<DeleteReserve
   public void testSuccess() throws Exception {
     assertThat(reservedList.getReservedListEntries()).hasSize(1);
     runCommandForced("--name=common");
-    assertThat(ReservedList.get("common")).isAbsent();
+    assertThat(ReservedList.get("common")).isEmpty();
   }
 
   @Test

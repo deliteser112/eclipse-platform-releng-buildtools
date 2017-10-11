@@ -15,6 +15,7 @@
 package google.registry.model.registry;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTlds;
 
 import com.google.common.net.InternetDomainName;
@@ -72,13 +73,13 @@ public class RegistriesTest {
     assertThat(Registries.findTldForName(InternetDomainName.from("x.y.a.b.c")).get().toString())
         .isEqualTo("a.b.c");
     // We don't have an "example" tld.
-    assertThat(Registries.findTldForName(InternetDomainName.from("foo.example"))).isAbsent();
+    assertThat(Registries.findTldForName(InternetDomainName.from("foo.example"))).isEmpty();
     // A tld is not a match for itself.
-    assertThat(Registries.findTldForName(InternetDomainName.from("foo"))).isAbsent();
+    assertThat(Registries.findTldForName(InternetDomainName.from("foo"))).isEmpty();
     // The name must match the entire tld.
-    assertThat(Registries.findTldForName(InternetDomainName.from("x.y.a.b"))).isAbsent();
-    assertThat(Registries.findTldForName(InternetDomainName.from("x.y.b.c"))).isAbsent();
+    assertThat(Registries.findTldForName(InternetDomainName.from("x.y.a.b"))).isEmpty();
+    assertThat(Registries.findTldForName(InternetDomainName.from("x.y.b.c"))).isEmpty();
     // Substring tld matches aren't considered.
-    assertThat(Registries.findTldForName(InternetDomainName.from("example.barfoo"))).isAbsent();
+    assertThat(Registries.findTldForName(InternetDomainName.from("example.barfoo"))).isEmpty();
   }
 }

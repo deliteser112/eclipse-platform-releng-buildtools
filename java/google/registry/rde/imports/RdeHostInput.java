@@ -22,7 +22,6 @@ import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.InputReader;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
@@ -33,6 +32,7 @@ import google.registry.xjc.rdehost.XjcRdeHostElement;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A MapReduce {@link Input} that imports {@link HostResource} objects from an escrow file.
@@ -67,7 +67,7 @@ public class RdeHostInput extends Input<JaxbFragment<XjcRdeHostElement>> {
 
   public RdeHostInput(Optional<Integer> mapShards, String importBucketName,
       String importFileName) {
-    this.numReaders = mapShards.or(DEFAULT_READERS);
+    this.numReaders = mapShards.orElse(DEFAULT_READERS);
     checkArgument(numReaders > 0, "Number of shards must be greater than zero");
     this.importBucketName = importBucketName;
     this.importFileName = importFileName;

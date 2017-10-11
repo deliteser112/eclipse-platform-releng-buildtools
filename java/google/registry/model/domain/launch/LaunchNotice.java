@@ -22,12 +22,12 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Optional;
 import com.google.common.primitives.Ints;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.condition.IfNull;
 import google.registry.model.ImmutableObject;
+import java.util.Optional;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
@@ -64,7 +64,7 @@ public class LaunchNotice extends ImmutableObject {
 
     public String getValidatorId() {
       // The default value is "tmch".
-      return Optional.fromNullable(validatorId).or("tmch");
+      return Optional.ofNullable(validatorId).orElse("tmch");
     }
   }
 
@@ -78,7 +78,7 @@ public class LaunchNotice extends ImmutableObject {
   DateTime acceptedTime;
 
   public NoticeIdType getNoticeId() {
-    return Optional.fromNullable(noticeId).or(EMPTY_NOTICE_ID);
+    return Optional.ofNullable(noticeId).orElse(EMPTY_NOTICE_ID);
   }
 
   public DateTime getExpirationTime() {

@@ -16,7 +16,7 @@ package google.registry.tools.server;
 
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

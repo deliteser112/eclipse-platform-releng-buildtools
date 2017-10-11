@@ -20,7 +20,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.google.appengine.api.users.User;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
@@ -30,6 +29,7 @@ import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.util.FormattingLogger;
+import java.util.Optional;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.concurrent.Immutable;
 import javax.inject.Inject;
@@ -167,7 +167,7 @@ public class SessionUtils {
         .filter("gaeUserId", gaeUserId)
         .first().now();
     if (contact == null) {
-      return Optional.absent();
+      return Optional.empty();
     }
     String registrarClientId = contact.getParent().getName();
     Optional<Registrar> result = Registrar.loadByClientIdCached(registrarClientId);

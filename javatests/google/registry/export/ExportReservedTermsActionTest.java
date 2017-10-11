@@ -16,6 +16,7 @@ package google.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.export.ExportReservedTermsAction.EXPORT_MIME_TYPE;
 import static google.registry.export.ExportReservedTermsAction.RESERVED_TERMS_FILENAME;
 import static google.registry.testing.DatastoreHelper.createTld;

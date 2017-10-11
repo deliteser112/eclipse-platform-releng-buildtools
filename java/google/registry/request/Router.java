@@ -18,12 +18,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Throwables.throwIfUnchecked;
 
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 /**
@@ -62,7 +62,7 @@ final class Router {
         return Optional.of(floor.getValue());
       }
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   static ImmutableSortedMap<String, Route> extractRoutesFromComponent(Class<?> componentClass) {

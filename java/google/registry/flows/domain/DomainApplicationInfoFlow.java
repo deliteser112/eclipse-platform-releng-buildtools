@@ -25,7 +25,6 @@ import static google.registry.flows.domain.DomainFlowUtils.loadForeignKeyedDesig
 import static google.registry.flows.domain.DomainFlowUtils.verifyApplicationDomainMatchesTargetId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
@@ -52,6 +51,7 @@ import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.smd.SignedMark;
 import google.registry.util.Clock;
+import java.util.Optional;
 import javax.inject.Inject;
 
 /**

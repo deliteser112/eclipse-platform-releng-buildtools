@@ -15,6 +15,7 @@
 package google.registry.tmch;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.util.ResourceUtils.readResourceBytes;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

@@ -24,7 +24,6 @@ import static google.registry.flows.domain.DomainFlowUtils.loadForeignKeyedDesig
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
@@ -53,6 +52,7 @@ import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.util.Clock;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 

@@ -20,12 +20,12 @@ import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
-import com.google.common.base.Optional;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.RequestAuthenticator;
 import google.registry.util.FormattingLogger;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import java.io.IOException;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.inject.Provider;
 import javax.servlet.http.HttpServletRequest;

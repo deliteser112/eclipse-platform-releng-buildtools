@@ -19,7 +19,6 @@ import static google.registry.rdap.RdapUtils.getRegistrarByIanaIdentifier;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Longs;
 import com.google.re2j.Pattern;
@@ -33,6 +32,7 @@ import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -89,7 +89,7 @@ public class RdapEntityAction extends RdapActionBase {
         return rdapJsonFormatter.makeRdapJsonForContact(
             contactResource,
             true,
-            Optional.<DesignatedContact.Type>absent(),
+            Optional.<DesignatedContact.Type>empty(),
             rdapLinkBase,
             rdapWhoisServer,
             now,

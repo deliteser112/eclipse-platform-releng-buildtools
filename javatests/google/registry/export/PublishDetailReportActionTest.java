@@ -15,6 +15,7 @@
 package google.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.export.PublishDetailReportAction.DETAIL_REPORT_NAME_PARAM;
 import static google.registry.export.PublishDetailReportAction.GCS_BUCKET_PARAM;
 import static google.registry.export.PublishDetailReportAction.GCS_FOLDER_PREFIX_PARAM;

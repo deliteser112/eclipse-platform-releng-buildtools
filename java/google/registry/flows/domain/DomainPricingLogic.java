@@ -19,7 +19,6 @@ import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
 import static google.registry.pricing.PricingEngineProxy.getDomainFeeClass;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 
-import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
@@ -37,6 +36,7 @@ import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.registry.Registry;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -210,6 +210,6 @@ public final class DomainPricingLogic {
         return Optional.of(token);
       }
     }
-    return Optional.<LrpTokenEntity>absent();
+    return Optional.<LrpTokenEntity>empty();
   }
 }

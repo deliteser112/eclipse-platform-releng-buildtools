@@ -40,7 +40,6 @@ import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.ListItem;
 import com.google.appengine.tools.cloudstorage.ListOptions;
 import com.google.appengine.tools.cloudstorage.ListResult;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -83,6 +82,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javax.xml.bind.JAXBElement;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPrivateKey;
@@ -151,11 +151,11 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.pendingDepositChecker.rdeInterval = Duration.standardDays(1);
     action.response = response;
     action.transactionCooldown = Duration.ZERO;
-    action.directory = Optional.<String>absent();
+    action.directory = Optional.<String>empty();
     action.modeStrings = ImmutableSet.<String>of();
     action.tlds = ImmutableSet.<String>of();
     action.watermarks = ImmutableSet.<DateTime>of();
-    action.revision = Optional.<Integer>absent();
+    action.revision = Optional.<Integer>empty();
   }
 
   @Test

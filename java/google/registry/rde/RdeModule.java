@@ -23,11 +23,11 @@ import static google.registry.request.RequestParameters.extractSetOfDatetimePara
 import static google.registry.request.RequestParameters.extractSetOfParameters;
 
 import com.google.appengine.api.taskqueue.Queue;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.request.Parameter;
+import java.util.Optional;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;

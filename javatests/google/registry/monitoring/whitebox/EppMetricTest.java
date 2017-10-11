@@ -15,6 +15,7 @@
 package google.registry.monitoring.whitebox;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
 
@@ -71,7 +72,7 @@ public class EppMetricTest {
         EppMetric.builderForRequest("request-id-1", new FakeClock())
             .setTlds(ImmutableSet.<String>of())
             .build();
-    assertThat(metric.getTld()).isAbsent();
+    assertThat(metric.getTld()).isEmpty();
   }
 
   @Test

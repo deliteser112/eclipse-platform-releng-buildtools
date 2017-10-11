@@ -21,7 +21,6 @@ import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import com.beust.jcommander.Parameter;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
@@ -39,6 +38,7 @@ import google.registry.tools.params.TransitionListParameter.BillingCostTransitio
 import google.registry.tools.params.TransitionListParameter.TldStateTransitions;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -338,7 +338,7 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
       }
 
       if (driveFolderId != null) {
-        builder.setDriveFolderId(driveFolderId.orNull());
+        builder.setDriveFolderId(driveFolderId.orElse(null));
       }
 
       if (createBillingCost != null) {
@@ -366,7 +366,7 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
       }
 
       if (lordnUsername != null) {
-        builder.setLordnUsername(lordnUsername.orNull());
+        builder.setLordnUsername(lordnUsername.orElse(null));
       }
 
       if (claimsPeriodEnd != null) {
@@ -400,7 +400,7 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
       }
 
       if (lrpPeriod != null) {
-        builder.setLrpPeriod(lrpPeriod.orNull());
+        builder.setLrpPeriod(lrpPeriod.orElse(null));
       }
 
       ImmutableSet<String> newReservedListNames = getReservedLists(oldRegistry);

@@ -22,10 +22,10 @@ import static org.bouncycastle.bcpg.PublicKeyAlgorithmTags.ELGAMAL_GENERAL;
 import static org.bouncycastle.bcpg.PublicKeyAlgorithmTags.RSA_GENERAL;
 import static org.bouncycastle.bcpg.PublicKeyAlgorithmTags.RSA_SIGN;
 
-import com.google.common.base.Optional;
 import com.google.common.base.VerifyException;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Optional;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPrivateKey;
@@ -156,7 +156,7 @@ public final class PgpHelper {
           throw new AssertionError();
       }
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   /** Returns {@code true} if this key can be used for signing. */

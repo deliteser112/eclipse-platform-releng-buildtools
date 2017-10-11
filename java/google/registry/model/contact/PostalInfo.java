@@ -16,11 +16,11 @@ package google.registry.model.contact;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.common.base.Optional;
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.Buildable;
 import google.registry.model.Buildable.Overlayable;
 import google.registry.model.ImmutableObject;
+import java.util.Optional;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlEnumValue;
@@ -77,10 +77,9 @@ public class PostalInfo extends ImmutableObject implements Overlayable<PostalInf
     // Don't overlay the type field, as that should never change.
     checkState(source.type == null || source.type == type);
     return asBuilder()
-        .setName(Optional.fromNullable(source.getName()).or(Optional.fromNullable(name)).orNull())
-        .setOrg(Optional.fromNullable(source.getOrg()).or(Optional.fromNullable(org)).orNull())
-        .setAddress(
-            Optional.fromNullable(source.getAddress()).or(Optional.fromNullable(address)).orNull())
+        .setName(Optional.ofNullable(source.getName()).orElse(name))
+        .setOrg(Optional.ofNullable(source.getOrg()).orElse(org))
+        .setAddress(Optional.ofNullable(source.getAddress()).orElse(address))
         .build();
   }
 

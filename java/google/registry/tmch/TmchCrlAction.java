@@ -17,13 +17,13 @@ package google.registry.tmch;
 import static google.registry.request.Action.Method.POST;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.base.Optional;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.auth.Auth;
 import java.io.IOException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
+import java.util.Optional;
 import javax.inject.Inject;
 
 /** Action to download the latest ICANN TMCH CRL from MarksDB. */
@@ -45,7 +45,7 @@ public final class TmchCrlAction implements Runnable {
   public void run() {
     try {
       tmchCertificateAuthority.updateCrl(
-          new String(marksdb.fetch(tmchCrlUrl, Optional.<String>absent()), UTF_8),
+          new String(marksdb.fetch(tmchCrlUrl, Optional.<String>empty()), UTF_8),
           tmchCrlUrl.toString());
     } catch (IOException | GeneralSecurityException e) {
       throw new RuntimeException("Failed to update ICANN TMCH CRL.", e);

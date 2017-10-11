@@ -16,6 +16,7 @@ package google.registry.tmch;
 
 import static com.google.common.net.HttpHeaders.AUTHORIZATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.UrlFetchUtils.getHeaderFirst;
@@ -30,13 +31,13 @@ import static org.mockito.Mockito.when;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
-import com.google.common.base.Optional;
 import google.registry.model.registry.Registry;
 import google.registry.request.HttpException.ConflictException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeResponse;
 import java.net.URL;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -138,9 +139,9 @@ public class NordnVerifyActionTest {
 
   @Test
   public void testSuccess_noLordnPassword_doesntSetAuthorizationHeader() throws Exception {
-    lordnRequestInitializer.marksdbLordnPassword = Optional.absent();
+    lordnRequestInitializer.marksdbLordnPassword = Optional.empty();
     action.run();
-    assertThat(getHeaderFirst(getCapturedHttpRequest(), AUTHORIZATION)).isAbsent();
+    assertThat(getHeaderFirst(getCapturedHttpRequest(), AUTHORIZATION)).isEmpty();
   }
 
   @Test

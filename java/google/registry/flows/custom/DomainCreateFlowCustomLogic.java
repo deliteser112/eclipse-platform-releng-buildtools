@@ -15,7 +15,6 @@
 package google.registry.flows.custom;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
 import google.registry.flows.EppException;
@@ -28,6 +27,7 @@ import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppResponse.ResponseData;
 import google.registry.model.eppoutput.EppResponse.ResponseExtension;
 import google.registry.model.reporting.HistoryEntry;
+import java.util.Optional;
 
 /**
  * A no-op base class for {@link DomainCreateFlow} custom logic.

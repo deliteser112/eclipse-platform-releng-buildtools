@@ -19,12 +19,12 @@ import static google.registry.request.RequestParameters.extractBooleanParameter;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.request.Parameter;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -36,7 +36,7 @@ public class ToolsServerModule {
   @Provides
   @Parameter("clientId")
   static Optional<String> provideClientId(HttpServletRequest req) {
-    return Optional.fromNullable(emptyToNull(req.getParameter(CreateGroupsAction.CLIENT_ID_PARAM)));
+    return Optional.ofNullable(emptyToNull(req.getParameter(CreateGroupsAction.CLIENT_ID_PARAM)));
   }
 
   @Provides
@@ -49,7 +49,7 @@ public class ToolsServerModule {
   @Parameter("fullFieldNames")
   static Optional<Boolean> provideFullFieldNames(HttpServletRequest req) {
     String s = emptyToNull(req.getParameter(ListObjectsAction.FULL_FIELD_NAMES_PARAM));
-    return (s == null) ? Optional.<Boolean>absent() : Optional.of(Boolean.parseBoolean(s));
+    return (s == null) ? Optional.<Boolean>empty() : Optional.of(Boolean.parseBoolean(s));
   }
 
   @Provides
@@ -74,7 +74,7 @@ public class ToolsServerModule {
   @Parameter("printHeaderRow")
   static Optional<Boolean> providePrintHeaderRow(HttpServletRequest req) {
     String s = emptyToNull(req.getParameter(ListObjectsAction.PRINT_HEADER_ROW_PARAM));
-    return (s == null) ? Optional.<Boolean>absent() : Optional.of(Boolean.parseBoolean(s));
+    return (s == null) ? Optional.<Boolean>empty() : Optional.of(Boolean.parseBoolean(s));
   }
 
   @Provides

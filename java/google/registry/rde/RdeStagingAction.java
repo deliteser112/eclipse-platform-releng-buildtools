@@ -22,7 +22,6 @@ import static google.registry.xml.ValidationMode.STRICT;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 
 import com.google.common.base.Ascii;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -47,6 +46,7 @@ import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -328,7 +328,7 @@ public final class RdeStagingAction implements Runnable {
                   watermark,
                   mode,
                   directoryWithTrailingSlash,
-                  revision));
+                  revision.orElse(null)));
         }
       }
     }

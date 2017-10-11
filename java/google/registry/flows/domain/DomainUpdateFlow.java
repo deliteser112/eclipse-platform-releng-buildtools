@@ -44,7 +44,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.DateTimeUtils.earliestOf;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
@@ -82,6 +81,7 @@ import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -371,6 +371,6 @@ public final class DomainUpdateFlow implements TransactionalFlow {
         }
       }
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 }

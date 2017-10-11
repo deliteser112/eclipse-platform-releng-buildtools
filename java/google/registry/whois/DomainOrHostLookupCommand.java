@@ -20,8 +20,8 @@ import static google.registry.model.registry.Registries.getTlds;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
+import java.util.Optional;
 import org.joda.time.DateTime;
 
 /** Represents a WHOIS lookup on a domain name (i.e. SLD) or a nameserver. */

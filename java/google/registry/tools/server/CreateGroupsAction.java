@@ -19,7 +19,6 @@ import static google.registry.request.Action.Method.POST;
 import static java.util.Arrays.asList;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
-import com.google.common.base.Optional;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.groups.GroupsConnection;
 import google.registry.groups.GroupsConnection.Role;
@@ -36,6 +35,7 @@ import google.registry.util.FormattingLogger;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
@@ -83,13 +83,13 @@ public class CreateGroupsAction implements Runnable {
                 // that type.
                 groupsConnection.createGroup(groupKey);
                 groupsConnection.addMemberToGroup(parentGroup, groupKey, Role.MEMBER);
-                return Optional.<Exception>absent();
+                return Optional.<Exception>empty();
               } catch (Exception e) {
                 return Optional.of(e);
               }
             });
     // Return the correct server response based on the results of the group creations.
-    if (Optional.presentInstances(results).iterator().hasNext()) {
+    if (results.stream().filter(Optional::isPresent).count() > 0) {
       StringWriter responseString = new StringWriter();
       PrintWriter responseWriter = new PrintWriter(responseString);
       for (int i = 0; i < results.size(); i++) {

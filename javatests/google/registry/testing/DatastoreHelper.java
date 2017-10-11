@@ -103,6 +103,7 @@ import google.registry.model.transfer.TransferStatus;
 import google.registry.tmch.LordnTask;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -678,7 +679,7 @@ public class DatastoreHelper {
   }
 
   /** Assert that the expected billing events set is exactly the one found in the fake Datastore. */
-  public static void assertBillingEvents(ImmutableSet<BillingEvent> expected) throws Exception {
+  public static void assertBillingEvents(Set<BillingEvent> expected) throws Exception {
     assertBillingEventsEqual(getBillingEvents(), expected);
   }
 

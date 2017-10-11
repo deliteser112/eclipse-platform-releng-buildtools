@@ -14,8 +14,10 @@
 
 
 package google.registry.flows;
+
 import static com.google.appengine.api.users.UserServiceFactory.getUserService;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;

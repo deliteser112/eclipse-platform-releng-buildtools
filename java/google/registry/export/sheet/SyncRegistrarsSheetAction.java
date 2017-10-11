@@ -27,7 +27,6 @@ import com.google.appengine.api.modules.ModulesService;
 import com.google.appengine.api.modules.ModulesServiceFactory;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
-import com.google.common.base.Optional;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
@@ -37,6 +36,7 @@ import google.registry.request.lock.LockHandler;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -121,7 +121,7 @@ public class SyncRegistrarsSheetAction implements Runnable {
 
   @Override
   public void run() {
-    final Optional<String> sheetId = idParam.or(idConfig);
+    final Optional<String> sheetId = Optional.ofNullable(idParam.orElse(idConfig.orElse(null)));
     if (!sheetId.isPresent()) {
       Result.MISSINGNO.send(response, null);
       return;

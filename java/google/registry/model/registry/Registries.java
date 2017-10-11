@@ -27,7 +27,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -35,6 +34,7 @@ import com.google.common.collect.Streams;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Work;
 import google.registry.model.registry.Registry.TldType;
+import java.util.Optional;
 
 /** Utilities for finding and listing {@link Registry} entities. */
 public final class Registries {
@@ -123,7 +123,7 @@ public final class Registries {
         return Optional.of(domainName);
       }
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   /**
@@ -132,7 +132,7 @@ public final class Registries {
    */
   public static InternetDomainName findTldForNameOrThrow(InternetDomainName domainName) {
     return checkArgumentNotNull(
-        findTldForName(domainName).orNull(),
+        findTldForName(domainName).orElse(null),
         "Domain name is not under a recognized TLD: %s", domainName.toString());
   }
 }

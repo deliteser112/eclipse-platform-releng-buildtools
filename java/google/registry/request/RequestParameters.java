@@ -19,11 +19,11 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
 
 import com.google.common.base.Ascii;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
 import google.registry.request.HttpException.BadRequestException;
 import java.net.InetAddress;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
@@ -60,7 +60,7 @@ public final class RequestParameters {
 
   /** Returns the first GET or POST parameter associated with {@code name}. */
   public static Optional<String> extractOptionalParameter(HttpServletRequest req, String name) {
-    return Optional.fromNullable(emptyToNull(req.getParameter(name)));
+    return Optional.ofNullable(emptyToNull(req.getParameter(name)));
   }
 
   /**
@@ -72,7 +72,7 @@ public final class RequestParameters {
     String stringParam = req.getParameter(name);
     try {
       return isNullOrEmpty(stringParam)
-          ? Optional.<Integer>absent()
+          ? Optional.<Integer>empty()
           : Optional.of(Integer.valueOf(stringParam));
     } catch (NumberFormatException e) {
       throw new BadRequestException("Expected integer: " + name);
@@ -123,7 +123,7 @@ public final class RequestParameters {
       HttpServletRequest req, String name) {
     String stringParam = req.getParameter(name);
     return isNullOrEmpty(stringParam)
-        ? Optional.<Boolean>absent()
+        ? Optional.<Boolean>empty()
         : Optional.of(Boolean.valueOf(stringParam));
   }
 
@@ -167,7 +167,7 @@ public final class RequestParameters {
     String stringParam = req.getParameter(name);
     try {
       return isNullOrEmpty(stringParam)
-          ? Optional.<DateTime>absent()
+          ? Optional.<DateTime>empty()
           : Optional.of(DateTime.parse(stringParam));
     } catch (IllegalArgumentException e) {
       throw new BadRequestException("Bad ISO 8601 timestamp: " + name);
@@ -212,7 +212,7 @@ public final class RequestParameters {
       HttpServletRequest req, String name) {
     Optional<String> paramVal = extractOptionalParameter(req, name);
     if (!paramVal.isPresent()) {
-      return Optional.absent();
+      return Optional.empty();
     }
     try {
       return Optional.of(InetAddresses.forString(paramVal.get()));
@@ -245,7 +245,7 @@ public final class RequestParameters {
    * @param name case insensitive header name
    */
   public static Optional<String> extractOptionalHeader(HttpServletRequest req, String name) {
-    return Optional.fromNullable(req.getHeader(name));
+    return Optional.ofNullable(req.getHeader(name));
   }
 
   private RequestParameters() {}

@@ -22,7 +22,6 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.VoidWork;
@@ -33,6 +32,7 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
+import java.util.Optional;
 import javax.inject.Inject;
 
 /**
@@ -105,16 +105,16 @@ public class DeleteEntityAction implements Runnable {
 
   private Optional<Object> loadOfyEntity(Key rawKey) {
     EntityMetadata<Object> metadata = ofy().factory().getMetadata(rawKey.getKind());
-    return Optional.fromNullable(metadata == null ? null : ofy().load().key(create(rawKey)).now());
+    return Optional.ofNullable(metadata == null ? null : ofy().load().key(create(rawKey)).now());
   }
 
   private Optional<Entity> loadRawEntity(Key rawKey) {
     try {
-      return Optional.fromNullable(getDatastoreService().get(rawKey));
+      return Optional.ofNullable(getDatastoreService().get(rawKey));
     } catch (EntityNotFoundException e) {
       logger.warningfmt(e, "Could not load entity from Datastore service with key %s",
           rawKey.toString());
-      return Optional.absent();
+      return Optional.empty();
     }
   }
 }

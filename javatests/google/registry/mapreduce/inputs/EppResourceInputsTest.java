@@ -16,6 +16,7 @@ package google.registry.mapreduce.inputs;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createKeyInput;
 import static google.registry.model.index.EppResourceIndexBucket.getBucketKey;

@@ -26,7 +26,6 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -48,6 +47,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
@@ -282,16 +282,16 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
         builder.setRegistrarName(registrarName);
       }
       if (email != null) {
-        builder.setEmailAddress(email.orNull());
+        builder.setEmailAddress(email.orElse(null));
       }
       if (url != null) {
-        builder.setUrl(url.orNull());
+        builder.setUrl(url.orElse(null));
       }
       if (phone != null) {
-        builder.setPhoneNumber(phone.orNull());
+        builder.setPhoneNumber(phone.orElse(null));
       }
       if (fax != null) {
-        builder.setFaxNumber(fax.orNull());
+        builder.setFaxNumber(fax.orElse(null));
       }
       if (registrarType != null) {
         builder.setType(registrarType);
@@ -300,7 +300,7 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
         builder.setState(registrarState);
       }
       if (driveFolderId != null) {
-        builder.setDriveFolderId(driveFolderId.orNull());
+        builder.setDriveFolderId(driveFolderId.orElse(null));
       }
       if (!allowedTlds.isEmpty()) {
         checkArgument(addAllowedTlds.isEmpty(),
@@ -348,10 +348,10 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
         builder.setClientCertificateHash(clientCertificateHash);
       }
       if (ianaId != null) {
-        builder.setIanaIdentifier(ianaId.orNull());
+        builder.setIanaIdentifier(ianaId.orElse(null));
       }
       if (billingId != null) {
-        builder.setBillingIdentifier(billingId.orNull());
+        builder.setBillingIdentifier(billingId.orElse(null));
       }
       if (billingAccountMap != null) {
         LinkedHashMap<CurrencyUnit, String> newBillingAccountMap = new LinkedHashMap<>();

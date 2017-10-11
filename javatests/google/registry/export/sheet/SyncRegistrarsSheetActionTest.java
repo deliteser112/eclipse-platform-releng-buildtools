@@ -16,6 +16,7 @@ package google.registry.export.sheet;
 
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -23,10 +24,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.Optional;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeLockHandler;
 import google.registry.testing.FakeResponse;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import org.joda.time.Duration;
 import org.junit.Before;
@@ -51,8 +52,8 @@ public class SyncRegistrarsSheetActionTest {
   private SyncRegistrarsSheetAction action;
 
   private void runAction(@Nullable String idConfig, @Nullable String idParam) {
-    action.idConfig = Optional.fromNullable(idConfig);
-    action.idParam = Optional.fromNullable(idParam);
+    action.idConfig = Optional.ofNullable(idConfig);
+    action.idParam = Optional.ofNullable(idParam);
     action.run();
   }
 

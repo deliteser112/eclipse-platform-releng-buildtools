@@ -22,7 +22,6 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
@@ -30,6 +29,7 @@ import com.google.common.collect.Maps;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -109,6 +109,6 @@ class CreateTldCommand extends CreateOrUpdateTldCommand {
   Optional<Map.Entry<DateTime, TldState>> getTldStateTransitionToAdd() {
     return initialTldState != null
         ? Optional.of(Maps.immutableEntry(START_OF_TIME, initialTldState))
-        : Optional.<Map.Entry<DateTime, TldState>>absent();
+        : Optional.<Map.Entry<DateTime, TldState>>empty();
   }
 }

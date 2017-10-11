@@ -31,7 +31,6 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -45,6 +44,7 @@ import google.registry.model.registry.label.PremiumList.PremiumListEntry;
 import google.registry.model.registry.label.PremiumList.PremiumListRevision;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -73,7 +73,7 @@ public final class PremiumListUtils {
   public static Optional<Money> getPremiumPrice(String label, Registry registry) {
     // If the registry has no configured premium list, then no labels are premium.
     if (registry.getPremiumList() == null) {
-      return Optional.<Money>absent();
+      return Optional.<Money>empty();
     }
     DateTime startTime = DateTime.now(UTC);
     String listName = registry.getPremiumList().getName();
@@ -103,7 +103,7 @@ public final class PremiumListUtils {
 
   private static CheckResults checkStatus(PremiumListRevision premiumListRevision, String label) {
     if (!premiumListRevision.getProbablePremiumLabels().mightContain(label)) {
-      return CheckResults.create(BLOOM_FILTER_NEGATIVE, Optional.<Money>absent());
+      return CheckResults.create(BLOOM_FILTER_NEGATIVE, Optional.<Money>empty());
     }
 
     Key<PremiumListEntry> entryKey =
@@ -115,7 +115,7 @@ public final class PremiumListUtils {
         if (entry.isPresent()) {
           return CheckResults.create(CACHED_POSITIVE, Optional.of(entry.get().getValue()));
         } else {
-          return CheckResults.create(CACHED_NEGATIVE, Optional.<Money>absent());
+          return CheckResults.create(CACHED_NEGATIVE, Optional.<Money>empty());
         }
       }
 
@@ -123,7 +123,7 @@ public final class PremiumListUtils {
       if (entry.isPresent()) {
         return CheckResults.create(UNCACHED_POSITIVE, Optional.of(entry.get().getValue()));
       } else {
-        return CheckResults.create(UNCACHED_NEGATIVE, Optional.<Money>absent());
+        return CheckResults.create(UNCACHED_NEGATIVE, Optional.<Money>empty());
       }
     } catch (InvalidCacheLoadException | ExecutionException e) {
       throw new RuntimeException("Could not load premium list entry " + entryKey, e);
@@ -173,7 +173,7 @@ public final class PremiumListUtils {
               .id(premiumList.getName())
               .now();
           checkState(
-              Objects.equals(existing, oldPremiumList.orNull()),
+              Objects.equals(existing, oldPremiumList.orElse(null)),
               "PremiumList was concurrently edited");
           PremiumList newList = premiumList.asBuilder()
               .setLastUpdateTime(now)

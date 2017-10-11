@@ -21,12 +21,12 @@ import static google.registry.request.RequestParameters.extractRequiredParameter
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.bigquery.BigqueryConnection;
 import google.registry.request.Parameter;
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.Duration;

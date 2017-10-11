@@ -16,10 +16,10 @@ package google.registry.export.sheet;
 
 import static com.google.common.base.Strings.emptyToNull;
 
-import com.google.common.base.Optional;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.request.Parameter;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 /** Dagger module for the sheet package. */
@@ -29,6 +29,6 @@ public final class SheetModule {
   @Provides
   @Parameter("id")
   static Optional<String> provideId(HttpServletRequest req) {
-    return Optional.fromNullable(emptyToNull(req.getParameter("id")));
+    return Optional.ofNullable(emptyToNull(req.getParameter("id")));
   }
 }

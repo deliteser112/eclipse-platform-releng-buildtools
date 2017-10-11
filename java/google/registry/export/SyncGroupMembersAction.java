@@ -23,7 +23,6 @@ import static google.registry.util.RegistrarUtils.normalizeClientId;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -43,6 +42,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -140,7 +140,7 @@ public final class SyncGroupMembersAction implements Runnable {
               return null;
             },
             RuntimeException.class);
-        resultsBuilder.put(registrar, Optional.<Throwable>absent());
+        resultsBuilder.put(registrar, Optional.<Throwable>empty());
       } catch (Throwable e) {
         logger.severe(e, e.getMessage());
         resultsBuilder.put(registrar, Optional.of(e));

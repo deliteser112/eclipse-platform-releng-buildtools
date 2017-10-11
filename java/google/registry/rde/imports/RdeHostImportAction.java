@@ -22,7 +22,6 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Mapper;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.VoidWork;
 import google.registry.config.RegistryConfig.Config;
@@ -39,6 +38,7 @@ import google.registry.util.SystemClock;
 import google.registry.xjc.JaxbFragment;
 import google.registry.xjc.rdehost.XjcRdeHost;
 import google.registry.xjc.rdehost.XjcRdeHostElement;
+import java.util.Optional;
 import javax.inject.Inject;
 
 /**

@@ -19,13 +19,13 @@ import static google.registry.request.RequestParameters.extractOptionalIntParame
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
 import dagger.multibindings.StringKey;
 import google.registry.request.Parameter;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 /**

@@ -27,9 +27,9 @@ import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.common.base.Ascii;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.net.MediaType;
+import java.util.Optional;
 import java.util.Random;
 
 /** Helper methods for the App Engine URL fetch service. */
@@ -55,7 +55,7 @@ public final class UrlFetchUtils {
         return Optional.of(header.getValue());
       }
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   /**

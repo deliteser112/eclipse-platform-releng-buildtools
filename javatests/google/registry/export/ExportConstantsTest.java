@@ -19,6 +19,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.io.Resources.getResource;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.export.ExportConstants.getBackupKinds;
 import static google.registry.export.ExportConstants.getReportingKinds;
 import static google.registry.util.ResourceUtils.readResourceUtf8;

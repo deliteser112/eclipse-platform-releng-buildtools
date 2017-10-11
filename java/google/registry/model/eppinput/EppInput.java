@@ -18,7 +18,6 @@ import static google.registry.util.CollectionUtils.nullSafeImmutableCopy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 
 import com.google.common.base.Ascii;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.ImmutableObject;
@@ -56,6 +55,7 @@ import google.registry.model.eppinput.ResourceCommand.ResourceCheck;
 import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
 import google.registry.model.host.HostCommand;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -107,12 +107,12 @@ public class EppInput extends ImmutableObject {
          return Optional.of(xmlSchemaAnnotation.xmlns()[0].prefix());
        }
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   /** Returns whether this EppInput represents a command that operates on domain resources. */
   public boolean isDomainResourceType() {
-    return getResourceType().or("").equals("domain");
+    return getResourceType().orElse("").equals("domain");
   }
 
   @Nullable
@@ -131,7 +131,7 @@ public class EppInput extends ImmutableObject {
     ResourceCommand resourceCommand = getResourceCommand();
     return resourceCommand instanceof SingleResourceCommand
         ? Optional.of(((SingleResourceCommand) resourceCommand).getTargetId())
-        : Optional.<String>absent();
+        : Optional.<String>empty();
   }
 
   /**

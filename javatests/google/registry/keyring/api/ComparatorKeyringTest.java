@@ -15,6 +15,7 @@
 package google.registry.keyring.api;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.LogsSubject.assertAboutLogs;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.fail;

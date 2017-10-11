@@ -22,9 +22,9 @@ import com.google.appengine.tools.pipeline.impl.PipelineManager;
 import com.google.appengine.tools.pipeline.impl.model.JobRecord;
 import com.google.appengine.tools.pipeline.util.Pair;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -92,11 +92,11 @@ class MapreduceEntityCleanupUtil {
       boolean ignoreState,
       Optional<String> cursor) {
     if (maxJobs.isPresent() && (maxJobs.get() <= 0)) {
-      return EligibleJobResults.create(ImmutableSet.<String>of(), Optional.<String>absent());
+      return EligibleJobResults.create(ImmutableSet.<String>of(), Optional.empty());
     }
     Set<String> eligibleJobs = new HashSet<>();
     Pair<? extends Iterable<JobRecord>, String> pair =
-        PipelineManager.queryRootPipelines(jobName, cursor.orNull(), getMaxNumberOfJobsPerSearch());
+        PipelineManager.queryRootPipelines(jobName, cursor.orElse(null), getMaxNumberOfJobsPerSearch());
     for (JobRecord jobRecord : pair.getFirst()) {
       if (((jobRecord.getStartTime() == null)
               || jobRecord.getStartTime().before(cutoffDate.toDate()))
@@ -108,12 +108,12 @@ class MapreduceEntityCleanupUtil {
         eligibleJobs.add(jobRecord.getRootJobKey().getName());
         if (maxJobs.isPresent() && (eligibleJobs.size() >= maxJobs.get())) {
           return EligibleJobResults.create(
-              ImmutableSet.copyOf(eligibleJobs), Optional.<String>absent());
+              ImmutableSet.copyOf(eligibleJobs), Optional.empty());
         }
       }
     }
     return EligibleJobResults.create(
-        ImmutableSet.copyOf(eligibleJobs), Optional.fromNullable(pair.getSecond()));
+        ImmutableSet.copyOf(eligibleJobs), Optional.ofNullable(pair.getSecond()));
   }
 
   /**
@@ -148,7 +148,7 @@ class MapreduceEntityCleanupUtil {
     // delete the pipeline-* entities as well.
     try {
       PipelineManager.deletePipelineRecords(jobId, force, true /* async */);
-      return Optional.absent();
+      return Optional.empty();
     } catch (NoSuchObjectException ex) {
       return Optional.of("No such pipeline job");
     } catch (IllegalStateException ex) {

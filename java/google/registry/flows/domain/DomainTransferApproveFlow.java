@@ -33,7 +33,6 @@ import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
@@ -60,6 +59,7 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -119,7 +119,7 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
     // the transfer period to zero. There is not a transfer cost if the transfer period is zero.
     Optional<BillingEvent.OneTime> billingEvent =
         (transferData.getTransferPeriod().getValue() == 0)
-            ? Optional.<BillingEvent.OneTime>absent()
+            ? Optional.<BillingEvent.OneTime>empty()
             : Optional.of(
                 new BillingEvent.OneTime.Builder()
                     .setReason(Reason.TRANSFER)

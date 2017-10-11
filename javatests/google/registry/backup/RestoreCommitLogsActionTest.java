@@ -19,6 +19,7 @@ import static com.google.common.base.Functions.constant;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.toMap;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
 import static google.registry.backup.BackupUtils.GcsMetadataKeys.LOWER_BOUND_CHECKPOINT;
 import static google.registry.backup.BackupUtils.serializeEntity;

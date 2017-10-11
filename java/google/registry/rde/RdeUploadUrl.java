@@ -18,12 +18,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Objects;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 
@@ -69,7 +69,7 @@ final class RdeUploadUrl implements Comparable<RdeUploadUrl> {
   public Optional<String> getUser() {
     String userInfo = uri.getUserInfo();
     if (isNullOrEmpty(userInfo)) {
-      return Optional.absent();
+      return Optional.empty();
     }
     int idx = userInfo.indexOf(':');
     if (idx != -1) {
@@ -83,13 +83,13 @@ final class RdeUploadUrl implements Comparable<RdeUploadUrl> {
   public Optional<String> getPass() {
     String userInfo = uri.getUserInfo();
     if (isNullOrEmpty(userInfo)) {
-      return Optional.absent();
+      return Optional.empty();
     }
     int idx = userInfo.indexOf(':');
     if (idx != -1) {
       return Optional.of(userInfo.substring(idx + 1));
     } else {
-      return Optional.absent();
+      return Optional.empty();
     }
   }
 
@@ -112,7 +112,7 @@ final class RdeUploadUrl implements Comparable<RdeUploadUrl> {
   public Optional<String> getPath() {
     String path = uri.getPath();
     if (isNullOrEmpty(path) || path.equals("/")) {
-      return Optional.absent();
+      return Optional.empty();
     } else {
       return Optional.of(path.substring(1));
     }
@@ -134,7 +134,7 @@ final class RdeUploadUrl implements Comparable<RdeUploadUrl> {
       result += String.format(":%d", getPort());
     }
     result += "/";
-    result += getPath().or("");
+    result += getPath().orElse("");
     return result;
   }
 

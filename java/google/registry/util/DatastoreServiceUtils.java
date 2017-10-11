@@ -16,7 +16,7 @@ package google.registry.util;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 /** Utility methods for working with the App Engine Datastore service. */
 public class DatastoreServiceUtils {
@@ -26,6 +26,6 @@ public class DatastoreServiceUtils {
 
   /** Returns the name or id of a key, which may be a string or a long. */
   public static Object getNameOrId(Key key) {
-    return Optional.<Object>fromNullable(key.getName()).or(key.getId());
+    return Optional.<Object>ofNullable(key.getName()).orElse(key.getId());
   }
 }

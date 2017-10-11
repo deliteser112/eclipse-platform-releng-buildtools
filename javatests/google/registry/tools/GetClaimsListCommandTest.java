@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.readAllLines;
 import static org.joda.time.DateTimeZone.UTC;

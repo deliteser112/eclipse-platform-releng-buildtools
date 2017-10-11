@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -57,7 +58,7 @@ public class UpdateCursorsCommandTest extends CommandTestCase<UpdateCursorsComma
   }
 
   @Test
-  public void testSuccess_oldValueIsAbsent() throws Exception {
+  public void testSuccess_oldValueisEmpty() throws Exception {
     assertThat(ofy().load().key(Cursor.createKey(CursorType.BRDA, registry)).now()).isNull();
     doUpdateTest();
   }
@@ -76,7 +77,7 @@ public class UpdateCursorsCommandTest extends CommandTestCase<UpdateCursorsComma
   }
 
   @Test
-  public void testSuccess_global_oldValueIsAbsent() throws Exception {
+  public void testSuccess_global_oldValueisEmpty() throws Exception {
     assertThat(ofy().load().key(Cursor.createGlobalKey(CursorType.RECURRING_BILLING)).now())
         .isNull();
     doGlobalUpdateTest();
@@ -96,7 +97,7 @@ public class UpdateCursorsCommandTest extends CommandTestCase<UpdateCursorsComma
   }
 
   @Test
-  public void testSuccess_multipleTlds_oldValueIsAbsent() throws Exception {
+  public void testSuccess_multipleTlds_oldValueisEmpty() throws Exception {
     createTld("bar");
     Registry registry2 = Registry.get("bar");
     assertThat(ofy().load().key(Cursor.createKey(CursorType.BRDA, registry)).now()).isNull();

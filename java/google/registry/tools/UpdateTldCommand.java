@@ -24,7 +24,6 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.googlecode.objectify.Key;
@@ -33,6 +32,7 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -123,7 +123,7 @@ class UpdateTldCommand extends CreateOrUpdateTldCommand {
   Optional<Map.Entry<DateTime, TldState>> getTldStateTransitionToAdd() {
     return setCurrentTldState != null
         ? Optional.of(Maps.immutableEntry(DateTime.now(DateTimeZone.UTC), setCurrentTldState))
-        : Optional.<Map.Entry<DateTime, TldState>>absent();
+        : Optional.<Map.Entry<DateTime, TldState>>empty();
   }
 
   @Override

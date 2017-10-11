@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
@@ -27,7 +28,6 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.beust.jcommander.ParameterException;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
 import com.google.common.net.MediaType;
@@ -35,6 +35,7 @@ import google.registry.model.registrar.Registrar;
 import google.registry.testing.CertificateSamples;
 import google.registry.tools.ServerSideCommand.Connection;
 import java.io.IOException;
+import java.util.Optional;
 import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
 import org.junit.Before;

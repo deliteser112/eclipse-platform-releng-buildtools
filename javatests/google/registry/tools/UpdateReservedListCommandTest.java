@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -84,7 +85,7 @@ public class UpdateReservedListCommandTest extends
     assertThat(reservedList.getReservedListEntries()).hasSize(2);
     assertThat(reservedList.getReservationInList("baddies")).hasValue(FULLY_BLOCKED);
     assertThat(reservedList.getReservationInList("ford")).hasValue(FULLY_BLOCKED);
-    assertThat(reservedList.getReservationInList("helicopter")).isAbsent();
+    assertThat(reservedList.getReservationInList("helicopter")).isEmpty();
   }
 
   @Test

@@ -19,7 +19,6 @@ import static google.registry.bigquery.BigqueryUtils.toBigqueryTimestamp;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -28,6 +27,7 @@ import google.registry.bigquery.BigqueryUtils.FieldType;
 import google.registry.model.eppoutput.Result.Code;
 import google.registry.model.registry.Registries;
 import google.registry.util.Clock;
+import java.util.Optional;
 import org.joda.time.DateTime;
 
 /**
@@ -178,13 +178,13 @@ public abstract class EppMetric implements BigQueryMetric {
     public Builder setTlds(ImmutableSet<String> tlds) {
       switch (tlds.size()) {
         case 0:
-          setTld(Optional.<String>absent());
+          setTld(Optional.<String>empty());
           break;
         case 1:
           String tld = Iterables.getOnlyElement(tlds);
           // Only record TLDs that actually exist, otherwise we can blow up cardinality by recording
           // an arbitrarily large number of strings.
-          setTld(Optional.fromNullable(Registries.getTlds().contains(tld) ? tld : "_invalid"));
+          setTld(Optional.ofNullable(Registries.getTlds().contains(tld) ? tld : "_invalid"));
           break;
         default:
           setTld("_various");

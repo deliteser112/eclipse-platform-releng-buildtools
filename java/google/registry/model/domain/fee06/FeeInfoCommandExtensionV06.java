@@ -14,10 +14,10 @@
 
 package google.registry.model.domain.fee06;
 
-import com.google.common.base.Optional;
 import google.registry.model.domain.fee.FeeExtensionCommandDescriptor;
 import google.registry.model.domain.fee.FeeQueryCommandExtensionItem;
 import google.registry.model.eppinput.EppInput.CommandExtension;
+import java.util.Optional;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import org.joda.money.CurrencyUnit;
@@ -66,7 +66,7 @@ public class FeeInfoCommandExtensionV06
 
   @Override
   public Optional<DateTime> getEffectiveDate() {
-    return Optional.absent();
+    return Optional.empty();
   }
 }
 

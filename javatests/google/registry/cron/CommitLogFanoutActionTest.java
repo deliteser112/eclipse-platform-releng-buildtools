@@ -18,7 +18,6 @@ import static google.registry.cron.CommitLogFanoutAction.BUCKET_PARAM;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
@@ -27,6 +26,7 @@ import google.registry.util.Retrier;
 import google.registry.util.TaskEnqueuer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,7 +61,7 @@ public class CommitLogFanoutActionTest {
     action.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
     action.endpoint = ENDPOINT;
     action.queue = QUEUE;
-    action.jitterSeconds = Optional.absent();
+    action.jitterSeconds = Optional.empty();
     action.run();
     List<TaskMatcher> matchers = new ArrayList<>();
     for (int bucketId : CommitLogBucket.getBucketIds()) {

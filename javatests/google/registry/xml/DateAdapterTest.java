@@ -15,6 +15,7 @@
 package google.registry.xml;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 
 import google.registry.testing.ExceptionRule;
 import org.joda.time.LocalDate;

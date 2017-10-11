@@ -18,11 +18,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
 import com.google.errorprone.annotations.Immutable;
 import google.registry.util.FormattingLogger;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
@@ -117,14 +117,14 @@ public class RequestAuthenticator {
       case APP:
         if (!authResult.isAuthenticated()) {
           logger.warning("Not authorized; no authentication found");
-          return Optional.absent();
+          return Optional.empty();
         }
         break;
       case USER:
         if (authResult.authLevel() != AuthLevel.USER) {
           logger.warning("Not authorized; no authenticated user");
           // TODO(mountford): change this so that the caller knows to return a more helpful error
-          return Optional.absent();
+          return Optional.empty();
         }
         break;
     }
@@ -132,7 +132,7 @@ public class RequestAuthenticator {
       case IGNORED:
         if (authResult.authLevel() == AuthLevel.USER) {
           logger.warning("Not authorized; user policy is IGNORED, but a user was found");
-          return Optional.absent();
+          return Optional.empty();
         }
         break;
       case PUBLIC:
@@ -142,7 +142,7 @@ public class RequestAuthenticator {
         if (authResult.userAuthInfo().isPresent()
             && !authResult.userAuthInfo().get().isUserAdmin()) {
           logger.warning("Not authorized; user policy is ADMIN, but the user was not an admin");
-          return Optional.absent();
+          return Optional.empty();
         }
         break;
     }

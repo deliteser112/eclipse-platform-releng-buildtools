@@ -19,7 +19,6 @@ import static google.registry.flows.ResourceFlowUtils.loadAndVerifyExistence;
 import static google.registry.flows.ResourceFlowUtils.verifyOptionalAuthInfo;
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
 
-import com.google.common.base.Optional;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.Flow;
@@ -33,6 +32,7 @@ import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.util.Clock;
+import java.util.Optional;
 import javax.inject.Inject;
 
 /**

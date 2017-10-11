@@ -19,7 +19,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.registry.Registries.getTlds;
 
-import com.google.common.base.Optional;
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.HashMultiset;
@@ -39,6 +38,7 @@ import google.registry.model.registry.label.ReservedList.ReservedListEntry;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -153,7 +153,7 @@ public abstract class BaseDomainLabelList<T extends Comparable<?>, R extends Dom
     try {
       return Optional.of(cache.get(listName));
     } catch (InvalidCacheLoadException e) {
-      return Optional.absent();
+      return Optional.empty();
     } catch (ExecutionException e) {
       throw new UncheckedExecutionException("Could not retrieve list named " + listName, e);
     }

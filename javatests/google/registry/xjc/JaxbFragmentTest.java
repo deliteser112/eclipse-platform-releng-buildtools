@@ -15,6 +15,7 @@
 package google.registry.xjc;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import google.registry.xjc.rdehost.XjcRdeHostElement;

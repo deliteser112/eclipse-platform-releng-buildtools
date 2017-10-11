@@ -14,10 +14,10 @@
 
 package google.registry.rdap;
 
-import static com.google.common.collect.Iterables.tryFind;
-
-import com.google.common.base.Optional;
+import com.google.common.collect.Streams;
 import google.registry.model.registrar.Registrar;
+import java.util.Objects;
+import java.util.Optional;
 
 /** Utility functions for RDAP. */
 public final class RdapUtils {
@@ -26,11 +26,8 @@ public final class RdapUtils {
 
   /** Looks up a registrar by its IANA identifier. */
   static Optional<Registrar> getRegistrarByIanaIdentifier(final long ianaIdentifier) {
-    return tryFind(
-        Registrar.loadAllCached(),
-        registrar -> {
-          Long registrarIanaIdentifier = registrar.getIanaIdentifier();
-          return (registrarIanaIdentifier != null) && (registrarIanaIdentifier == ianaIdentifier);
-        });
+    return Streams.stream(Registrar.loadAllCached())
+        .filter(registrar -> Objects.equals(ianaIdentifier, registrar.getIanaIdentifier()))
+        .findFirst();
   }
 }

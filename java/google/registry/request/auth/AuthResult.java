@@ -17,7 +17,7 @@ package google.registry.request.auth;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Optional;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
@@ -37,14 +37,14 @@ public abstract class AuthResult {
   }
 
   public static AuthResult create(AuthLevel authLevel) {
-    return new AutoValue_AuthResult(authLevel, Optional.<UserAuthInfo>absent());
+    return new AutoValue_AuthResult(authLevel, Optional.<UserAuthInfo>empty());
   }
 
   public static AuthResult create(AuthLevel authLevel, @Nullable UserAuthInfo userAuthInfo) {
     if (authLevel == AuthLevel.USER) {
       checkNotNull(userAuthInfo);
     }
-    return new AutoValue_AuthResult(authLevel, Optional.fromNullable(userAuthInfo));
+    return new AutoValue_AuthResult(authLevel, Optional.ofNullable(userAuthInfo));
   }
 
   /**

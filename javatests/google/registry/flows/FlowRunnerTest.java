@@ -15,6 +15,7 @@
 package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static google.registry.testing.TestLogHandlerUtils.findFirstLogMessageByPrefix;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -24,7 +25,6 @@ import static org.mockito.Mockito.verify;
 
 import com.google.appengine.api.users.User;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -39,6 +39,7 @@ import google.registry.testing.FakeHttpSession;
 import google.registry.testing.Providers;
 import google.registry.testing.ShardableTestCase;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import org.junit.Before;
 import org.junit.Rule;

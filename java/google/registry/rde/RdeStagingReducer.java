@@ -55,6 +55,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.security.Security;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -129,12 +130,14 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
     final RdeMode mode = key.mode();
     final String tld = key.tld();
     final DateTime watermark = key.watermark();
-    final int revision = key.revision().or(RdeRevision.getNextRevision(tld, watermark, mode));
+    final int revision =
+        Optional.ofNullable(key.revision())
+            .orElse(RdeRevision.getNextRevision(tld, watermark, mode));
     String id = RdeUtil.timestampToId(watermark);
     String prefix = RdeNamingUtils.makeRydeFilename(tld, watermark, mode, 1, revision);
     if (key.manual()) {
-      checkState(key.directoryWithTrailingSlash().isPresent(), "Manual subdirectory not specified");
-      prefix = "manual/" + key.directoryWithTrailingSlash().get() + prefix;
+      checkState(key.directoryWithTrailingSlash() != null, "Manual subdirectory not specified");
+      prefix = "manual/" + key.directoryWithTrailingSlash() + prefix;
     }
     GcsFilename xmlFilename = new GcsFilename(bucket, prefix + ".xml.ghostryde");
     GcsFilename xmlLengthFilename = new GcsFilename(bucket, prefix + ".xml.length");
@@ -228,16 +231,16 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
       public void vrun() {
         Registry registry = Registry.get(tld);
         DateTime position = getCursorTimeOrStartOfTime(
-            ofy().load().key(Cursor.createKey(key.cursor().get(), registry)).now());
-        checkState(key.interval().isPresent(), "Interval must be present");
-        DateTime newPosition = key.watermark().plus(key.interval().get());
+            ofy().load().key(Cursor.createKey(key.cursor(), registry)).now());
+        checkState(key.interval() != null, "Interval must be present");
+        DateTime newPosition = key.watermark().plus(key.interval());
         if (!position.isBefore(newPosition)) {
           logger.warning("Cursor has already been rolled forward.");
           return;
         }
         verify(position.equals(key.watermark()),
             "Partial ordering of RDE deposits broken: %s %s", position, key);
-        ofy().save().entity(Cursor.create(key.cursor().get(), newPosition, registry)).now();
+        ofy().save().entity(Cursor.create(key.cursor(), newPosition, registry)).now();
         logger.infofmt("Rolled forward %s on %s cursor to %s", key.cursor(), tld, newPosition);
         RdeRevision.saveRevision(tld, watermark, mode, revision);
         if (mode == RdeMode.FULL) {

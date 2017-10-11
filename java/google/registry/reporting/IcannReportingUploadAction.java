@@ -20,7 +20,6 @@ import static google.registry.model.registry.Registries.assertTldExists;
 import static google.registry.request.Action.Method.POST;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
-import com.google.common.base.Optional;
 import com.google.common.io.ByteStreams;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
@@ -35,6 +34,7 @@ import google.registry.util.Retrier;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import javax.inject.Inject;
 
 /**

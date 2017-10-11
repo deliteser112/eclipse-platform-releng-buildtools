@@ -24,7 +24,6 @@ import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.InputReader;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
@@ -35,6 +34,7 @@ import google.registry.xjc.rdedomain.XjcRdeDomainElement;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A MapReduce {@link Input} that imports {@link DomainResource} objects from an escrow file.
@@ -68,7 +68,7 @@ public class RdeDomainInput extends Input<JaxbFragment<XjcRdeDomainElement>> {
 
   public RdeDomainInput(
       Optional<Integer> mapShards, String importBucketName, String importFileName) {
-    this.numReaders = mapShards.or(DEFAULT_READERS);
+    this.numReaders = mapShards.orElse(DEFAULT_READERS);
     this.importBucketName = importBucketName;
     this.importFileName = importFileName;
   }

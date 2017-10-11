@@ -16,6 +16,7 @@ package google.registry.rdap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistResources;
@@ -29,7 +30,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.ImmutableObject;
@@ -45,6 +45,7 @@ import google.registry.testing.InjectRule;
 import google.registry.ui.server.registrar.SessionUtils;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
@@ -147,10 +148,10 @@ public class RdapEntitySearchActionTest {
     action.rdapResultSetMaxSize = 4;
     action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
-    action.fnParam = Optional.absent();
-    action.handleParam = Optional.absent();
-    action.registrarParam = Optional.absent();
-    action.includeDeletedParam = Optional.absent();
+    action.fnParam = Optional.empty();
+    action.handleParam = Optional.empty();
+    action.registrarParam = Optional.empty();
+    action.includeDeletedParam = Optional.empty();
     action.sessionUtils = sessionUtils;
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
   }

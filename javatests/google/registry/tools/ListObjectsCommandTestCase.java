@@ -25,12 +25,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import google.registry.tools.ServerSideCommand.Connection;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import org.junit.Before;
 import org.junit.Test;
@@ -105,7 +105,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     } else {
       runCommand(tldsParameter);
     }
-    verifySent(null, Optional.<Boolean>absent(), Optional.<Boolean>absent());
+    verifySent(null, Optional.<Boolean>empty(), Optional.<Boolean>empty());
   }
 
   @Test
@@ -115,7 +115,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     } else {
       runCommand("--fields=fieldName", tldsParameter);
     }
-    verifySent("fieldName", Optional.<Boolean>absent(), Optional.<Boolean>absent());
+    verifySent("fieldName", Optional.<Boolean>empty(), Optional.<Boolean>empty());
   }
 
   @Test
@@ -125,7 +125,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     } else {
       runCommand("--fields=*", tldsParameter);
     }
-    verifySent("*", Optional.<Boolean>absent(), Optional.<Boolean>absent());
+    verifySent("*", Optional.<Boolean>empty(), Optional.<Boolean>empty());
   }
 
   @Test
@@ -135,7 +135,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     } else {
       runCommand("--fields=fieldName", "--header=true", tldsParameter);
     }
-    verifySent("fieldName", Optional.of(Boolean.TRUE), Optional.<Boolean>absent());
+    verifySent("fieldName", Optional.of(Boolean.TRUE), Optional.<Boolean>empty());
   }
 
   @Test
@@ -145,7 +145,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     } else {
       runCommand("--fields=fieldName", "--header=false", tldsParameter);
     }
-    verifySent("fieldName", Optional.of(Boolean.FALSE), Optional.<Boolean>absent());
+    verifySent("fieldName", Optional.of(Boolean.FALSE), Optional.<Boolean>empty());
   }
 
   @Test
@@ -155,7 +155,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     } else {
       runCommand("--fields=fieldName", "--full_field_names", tldsParameter);
     }
-    verifySent("fieldName", Optional.<Boolean>absent(), Optional.of(Boolean.TRUE));
+    verifySent("fieldName", Optional.<Boolean>empty(), Optional.of(Boolean.TRUE));
   }
 
   @Test

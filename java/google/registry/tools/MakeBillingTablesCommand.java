@@ -21,11 +21,11 @@ import static google.registry.util.ResourceUtils.readResourceUtf8;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import google.registry.bigquery.BigqueryUtils.TableType;
 import google.registry.tools.BigqueryCommandUtilities.TableCreationException;
 import google.registry.util.SqlTemplate;
 import java.util.List;
+import java.util.Optional;
 
 /** Command to make synthetic billing tables and views in Bigquery. */
 @Parameters(separators = " =", commandDescription = "Make synthetic billing tables in Bigquery")
@@ -55,7 +55,7 @@ final class MakeBillingTablesCommand extends BigqueryCommand {
   @Override
   public void runWithBigquery() throws Exception {
     // Make the source dataset default to the default destination dataset if it has not been set.
-    sourceDatasetId = Optional.fromNullable(sourceDatasetId).or(bigquery().getDatasetId());
+    sourceDatasetId = Optional.ofNullable(sourceDatasetId).orElse(bigquery().getDatasetId());
     checkArgument(!tlds.isEmpty(), "Must specify at least 1 TLD to include in billing data table");
     // TODO(b/19016191): Should check that input tables exist up front, and avoid later errors.
     try {

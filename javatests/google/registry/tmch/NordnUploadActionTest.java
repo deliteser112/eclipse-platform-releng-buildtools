@@ -19,6 +19,7 @@ import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.common.net.HttpHeaders.LOCATION;
 import static com.google.common.net.MediaType.FORM_DATA;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
@@ -37,7 +38,6 @@ import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
-import com.google.common.base.Optional;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import google.registry.model.domain.DomainResource;
@@ -51,6 +51,7 @@ import google.registry.testing.InjectRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.UrlFetchException;
 import java.net.URL;
+import java.util.Optional;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -155,10 +156,10 @@ public class NordnUploadActionTest {
 
   @Test
   public void testRun_noPassword_doesntSendAuthorizationHeader() throws Exception {
-    lordnRequestInitializer.marksdbLordnPassword = Optional.absent();
+    lordnRequestInitializer.marksdbLordnPassword = Optional.empty();
     persistClaimsModeDomain();
     action.run();
-    assertThat(getHeaderFirst(getCapturedHttpRequest(), AUTHORIZATION)).isAbsent();
+    assertThat(getHeaderFirst(getCapturedHttpRequest(), AUTHORIZATION)).isEmpty();
   }
 
   @Test

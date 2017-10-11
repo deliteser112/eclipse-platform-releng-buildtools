@@ -24,13 +24,13 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.base.Optional;
 import google.registry.flows.TlsCredentials;
 import google.registry.model.registrar.Registrar;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /** A command to test registrar login credentials. */

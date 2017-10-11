@@ -17,7 +17,6 @@ package google.registry.testing;
 import static com.google.common.truth.Truth.assertAbout;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
-import com.google.common.base.Optional;
 import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.Subject;
 import com.google.common.truth.SubjectFactory;
@@ -25,6 +24,7 @@ import google.registry.model.eppoutput.Result.Code;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.TruthChainer.And;
 import java.util.Objects;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /** Utility methods for asserting things about {@link EppMetric} instances. */

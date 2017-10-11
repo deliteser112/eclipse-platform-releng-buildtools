@@ -15,6 +15,7 @@
 package google.registry.pricing;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.pricing.PricingEngineProxy.getDomainCreateCost;
 import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;

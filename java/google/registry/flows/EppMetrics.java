@@ -86,9 +86,9 @@ public class EppMetrics {
     String eppStatusCode =
         metric.getStatus().isPresent() ? String.valueOf(metric.getStatus().get().code) : "";
     eppRequestsByRegistrar.increment(
-        metric.getCommandName().or(""), metric.getClientId().or(""), eppStatusCode);
+        metric.getCommandName().orElse(""), metric.getClientId().orElse(""), eppStatusCode);
     eppRequestsByTld.increment(
-        metric.getCommandName().or(""), metric.getTld().or(""), eppStatusCode);
+        metric.getCommandName().orElse(""), metric.getTld().orElse(""), eppStatusCode);
   }
 
   /** Records the server-side processing time for an EPP request. */
@@ -98,8 +98,14 @@ public class EppMetrics {
     long processingTime =
         metric.getEndTimestamp().getMillis() - metric.getStartTimestamp().getMillis();
     processingTimeByRegistrar.record(
-        processingTime, metric.getCommandName().or(""), metric.getClientId().or(""), eppStatusCode);
+        processingTime,
+        metric.getCommandName().orElse(""),
+        metric.getClientId().orElse(""),
+        eppStatusCode);
     processingTimeByTld.record(
-        processingTime, metric.getCommandName().or(""), metric.getTld().or(""), eppStatusCode);
+        processingTime,
+        metric.getCommandName().orElse(""),
+        metric.getTld().orElse(""),
+        eppStatusCode);
   }
 }

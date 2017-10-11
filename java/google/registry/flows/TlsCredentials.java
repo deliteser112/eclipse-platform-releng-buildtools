@@ -20,7 +20,6 @@ import static google.registry.request.RequestParameters.extractOptionalHeader;
 import static google.registry.request.RequestParameters.extractRequiredHeader;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.InetAddresses;
@@ -32,6 +31,7 @@ import google.registry.request.Header;
 import google.registry.util.CidrAddressBlock;
 import google.registry.util.FormattingLogger;
 import java.net.InetAddress;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 

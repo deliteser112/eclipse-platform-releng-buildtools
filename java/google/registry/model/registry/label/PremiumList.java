@@ -13,6 +13,7 @@
 // limitations under the License.
 
 package google.registry.model.registry.label;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.hash.Funnels.unencodedCharsFunnel;
 import static google.registry.config.RegistryConfig.getDomainLabelListCacheDuration;
@@ -24,7 +25,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -46,6 +46,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
@@ -206,12 +207,9 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
               public Optional<PremiumListEntry> load(final Key<PremiumListEntry> entryKey) {
                 return ofy()
                     .doTransactionless(
-                        new Work<Optional<PremiumListEntry>>() {
-                          @Override
-                          public Optional<PremiumListEntry> run() {
-                            return Optional.fromNullable(ofy().load().key(entryKey).now());
-                          }
-                        });
+                        () -> {
+                            return Optional.ofNullable(ofy().load().key(entryKey).now());
+                          });
               }
             });
   }
@@ -226,7 +224,7 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
     try {
       return Optional.of(cachePremiumLists.get(name));
     } catch (InvalidCacheLoadException e) {
-      return Optional.<PremiumList> absent();
+      return Optional.empty();
     } catch (ExecutionException e) {
       throw new UncheckedExecutionException("Could not retrieve premium list named " + name, e);
     }

@@ -19,6 +19,7 @@ import static com.google.common.net.HttpHeaders.X_CONTENT_TYPE_OPTIONS;
 import static com.google.common.net.MediaType.JSON_UTF_8;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_16;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;

@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.domain.launch.ApplicationStatus.ALLOCATED;
 import static google.registry.model.domain.launch.ApplicationStatus.PENDING_ALLOCATION;
 import static google.registry.model.domain.launch.ApplicationStatus.REJECTED;

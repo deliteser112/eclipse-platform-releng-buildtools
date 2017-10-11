@@ -21,7 +21,6 @@ import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.DatastoreTimeoutException;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.tools.mapreduce.InputReader;
-import com.google.common.base.Optional;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
 import google.registry.model.ofy.CommitLogBucket;
@@ -30,12 +29,11 @@ import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
 import google.registry.util.SystemSleeper;
 import java.util.NoSuchElementException;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 /** {@link InputReader} that maps over {@link CommitLogManifest}. */
 class CommitLogManifestReader extends InputReader<Key<CommitLogManifest>> {
-
-  private static final long serialVersionUID = 5117046535590539778L;
 
   static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -48,6 +46,7 @@ class CommitLogManifestReader extends InputReader<Key<CommitLogManifest>> {
   private static final long MEMORY_ESTIMATE = 100 * 1024;
 
   private static final Retrier retrier = new Retrier(new SystemSleeper(), 3);
+  private static final long serialVersionUID = 2553537421598284748L;
 
   private final Key<CommitLogBucket> bucketKey;
 
@@ -56,7 +55,8 @@ class CommitLogManifestReader extends InputReader<Key<CommitLogManifest>> {
    *
    * If present, all resulting CommitLogManifest will be dated prior to this date.
    */
-  private final Optional<DateTime> olderThan;
+  @Nullable
+  private final DateTime olderThan;
 
   private Cursor cursor;
   private int total;
@@ -64,7 +64,7 @@ class CommitLogManifestReader extends InputReader<Key<CommitLogManifest>> {
 
   private transient QueryResultIterator<Key<CommitLogManifest>> queryIterator;
 
-  CommitLogManifestReader(Key<CommitLogBucket> bucketKey, Optional<DateTime> olderThan) {
+  CommitLogManifestReader(Key<CommitLogBucket> bucketKey, @Nullable DateTime olderThan) {
     this.bucketKey = bucketKey;
     this.olderThan = olderThan;
   }
@@ -112,10 +112,10 @@ class CommitLogManifestReader extends InputReader<Key<CommitLogManifest>> {
   /** Query for children of this bucket. */
   Query<CommitLogManifest> query() {
     Query<CommitLogManifest> query = ofy().load().type(CommitLogManifest.class).ancestor(bucketKey);
-    if (olderThan.isPresent()) {
+    if (olderThan != null) {
       query = query.filterKey(
           "<",
-          Key.create(bucketKey, CommitLogManifest.class, olderThan.get().getMillis()));
+          Key.create(bucketKey, CommitLogManifest.class, olderThan.getMillis()));
     }
     return query;
   }

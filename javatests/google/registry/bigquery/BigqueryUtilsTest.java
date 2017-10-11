@@ -15,6 +15,7 @@
 package google.registry.bigquery;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.bigquery.BigqueryUtils.fromBigqueryTimestampString;
 import static google.registry.bigquery.BigqueryUtils.toBigqueryTimestamp;
 import static google.registry.bigquery.BigqueryUtils.toBigqueryTimestampString;

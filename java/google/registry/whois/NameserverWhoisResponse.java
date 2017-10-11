@@ -18,11 +18,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InetAddresses;
 import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
+import java.util.Optional;
 import org.joda.time.DateTime;
 
 /** Container for WHOIS responses to a nameserver lookup queries. */

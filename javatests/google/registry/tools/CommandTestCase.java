@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static java.nio.charset.StandardCharsets.UTF_8;
 

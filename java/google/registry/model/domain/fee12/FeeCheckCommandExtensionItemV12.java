@@ -16,9 +16,9 @@ package google.registry.model.domain.fee12;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Optional;
 import google.registry.model.domain.Period;
 import google.registry.model.domain.fee.FeeCheckCommandExtensionItem;
+import java.util.Optional;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
@@ -110,6 +110,6 @@ public class FeeCheckCommandExtensionItemV12 extends FeeCheckCommandExtensionIte
 
   @Override
   public Optional<DateTime> getEffectiveDate() {
-    return Optional.fromNullable(feeDate);
+    return Optional.ofNullable(feeDate);
   }
 }

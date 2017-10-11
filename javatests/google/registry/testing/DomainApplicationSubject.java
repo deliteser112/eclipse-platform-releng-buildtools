@@ -17,6 +17,7 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.FailureStrategy;

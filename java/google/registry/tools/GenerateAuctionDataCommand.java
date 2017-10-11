@@ -31,7 +31,6 @@ import static org.joda.time.DateTimeZone.UTC;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
@@ -57,6 +56,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import org.joda.time.DateTime;
@@ -186,13 +186,14 @@ final class GenerateAuctionDataCommand implements RemoteApiCommand {
   /** Return a record line for the given application. */
   private String emitApplication(DomainApplication domainApplication, ContactResource registrant) {
     Optional<PostalInfo> postalInfo =
-        Optional.fromNullable(registrant.getInternationalizedPostalInfo())
-            .or(Optional.fromNullable(registrant.getLocalizedPostalInfo()));
+        Optional.ofNullable(
+            Optional.ofNullable(registrant.getInternationalizedPostalInfo())
+                .orElse(registrant.getLocalizedPostalInfo()));
     Optional<ContactAddress> address =
-        Optional.fromNullable(postalInfo.isPresent() ? postalInfo.get().getAddress() : null);
+        Optional.ofNullable(postalInfo.isPresent() ? postalInfo.get().getAddress() : null);
     List<String> street =
         address.isPresent() ? address.get().getStreet() : ImmutableList.<String>of();
-    Optional<ContactPhoneNumber> phoneNumber = Optional.fromNullable(registrant.getVoiceNumber());
+    Optional<ContactPhoneNumber> phoneNumber = Optional.ofNullable(registrant.getVoiceNumber());
 
     // Each line containing an auction participant has the following format:
     //
@@ -228,9 +229,11 @@ final class GenerateAuctionDataCommand implements RemoteApiCommand {
   private static String emitRegistrar(Registrar registrar) {
     // TODO(b/19016140): Determine if this set-up is required.
     Optional<RegistrarContact> contact =
-        Optional.fromNullable(Iterables.getFirst(registrar.getContacts(), null));
-    Optional<RegistrarAddress> address = Optional.fromNullable(registrar.getLocalizedAddress())
-        .or(Optional.fromNullable(registrar.getInternationalizedAddress()));
+        Optional.ofNullable(Iterables.getFirst(registrar.getContacts(), null));
+    Optional<RegistrarAddress> address =
+        Optional.ofNullable(
+            Optional.ofNullable(registrar.getLocalizedAddress())
+                .orElse(registrar.getInternationalizedAddress()));
     List<String> street =
         address.isPresent() ? address.get().getStreet() : ImmutableList.<String>of();
 

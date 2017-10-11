@@ -16,7 +16,6 @@ package google.registry.flows.session;
 
 import static google.registry.testing.DatastoreHelper.persistResource;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InetAddresses;
 import google.registry.flows.TlsCredentials;
@@ -27,6 +26,7 @@ import google.registry.flows.TlsCredentials.NoSniException;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.CertificateSamples;
 import google.registry.util.CidrAddressBlock;
+import java.util.Optional;
 import org.junit.Test;
 
 /** Unit tests for {@link LoginFlow} when accessed via a TLS transport. */
@@ -116,7 +116,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
                 CidrAddressBlock.create(InetAddresses.forString("192.168.1.1"), 32),
                 CidrAddressBlock.create(InetAddresses.forString("2001:db8::1"), 128)))
             .build());
-    credentials = new TlsCredentials(GOOD_CERT, Optional.<String>absent(), "goo.example");
+    credentials = new TlsCredentials(GOOD_CERT, Optional.<String>empty(), "goo.example");
     doFailingTest("login_valid.xml", BadRegistrarIpAddressException.class);
   }
 

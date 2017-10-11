@@ -15,6 +15,7 @@
 package google.registry.xml;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static org.joda.time.DateTimeZone.UTC;
 
 import google.registry.testing.ExceptionRule;

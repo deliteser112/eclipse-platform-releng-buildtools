@@ -28,12 +28,12 @@ import static java.util.stream.Collectors.toCollection;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import google.registry.model.registrar.Registrar;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /** Command to create a Registrar. */
@@ -65,7 +65,7 @@ final class CreateRegistrarCommand extends CreateOrUpdateRegistrarCommand
     checkArgumentNotNull(icannReferralEmail, "--icann_referral_email is a required field");
     checkArgumentNotNull(street, "Address fields are required when creating a registrar");
     // Default new registrars to active.
-    registrarState = Optional.fromNullable(registrarState).or(ACTIVE);
+    registrarState = Optional.ofNullable(registrarState).orElse(ACTIVE);
   }
 
   @Nullable

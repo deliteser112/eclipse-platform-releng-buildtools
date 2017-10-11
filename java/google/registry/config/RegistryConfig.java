@@ -19,7 +19,6 @@ import static google.registry.config.ConfigUtils.makeUrl;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -34,6 +33,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.inject.Qualifier;
@@ -333,13 +333,13 @@ public final class RegistryConfig {
     @Provides
     @Config("cloudDnsRootUrl")
     public static Optional<String> getCloudDnsRootUrl(RegistryConfigSettings config) {
-      return Optional.fromNullable(config.cloudDns.rootUrl);
+      return Optional.ofNullable(config.cloudDns.rootUrl);
     }
 
     @Provides
     @Config("cloudDnsServicePath")
     public static Optional<String> getCloudDnsServicePath(RegistryConfigSettings config) {
-      return Optional.fromNullable(config.cloudDns.servicePath);
+      return Optional.ofNullable(config.cloudDns.servicePath);
     }
 
     /**
@@ -674,7 +674,7 @@ public final class RegistryConfig {
     @Provides
     @Config("sheetRegistrarId")
     public static Optional<String> provideSheetRegistrarId(RegistryConfigSettings config) {
-      return Optional.fromNullable(config.misc.sheetExportId);
+      return Optional.ofNullable(config.misc.sheetExportId);
     }
 
     /**

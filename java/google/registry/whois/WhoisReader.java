@@ -21,7 +21,6 @@ import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.io.CharStreams;
 import com.google.common.net.InetAddresses;
 import com.google.common.net.InternetDomainName;
@@ -31,6 +30,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 

@@ -15,6 +15,7 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
@@ -26,7 +27,6 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -49,6 +49,7 @@ import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
+import java.util.Optional;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;
@@ -472,7 +473,7 @@ public class RdapJsonFormatterTest {
             rdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceTech,
                 false,
-                Optional.<DesignatedContact.Type>absent(),
+                Optional.<DesignatedContact.Type>empty(),
                 LINK_BASE,
                 WHOIS_SERVER,
                 clock.nowUtc(),
@@ -487,7 +488,7 @@ public class RdapJsonFormatterTest {
             rdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceNotLinked,
                 false,
-                Optional.<DesignatedContact.Type>absent(),
+                Optional.<DesignatedContact.Type>empty(),
                 LINK_BASE,
                 WHOIS_SERVER,
                 clock.nowUtc(),

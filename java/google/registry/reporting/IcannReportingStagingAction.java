@@ -22,7 +22,6 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
-import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableCollection;
@@ -50,6 +49,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import javax.inject.Inject;
 

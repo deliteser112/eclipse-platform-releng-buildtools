@@ -15,6 +15,7 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 
 import com.google.common.collect.ImmutableMap;

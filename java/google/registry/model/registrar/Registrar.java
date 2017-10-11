@@ -39,7 +39,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Comparator.comparing;
 import static java.util.function.Predicate.isEqual;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -80,6 +79,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
@@ -896,13 +896,13 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   /** Loads and returns a registrar entity by its client id directly from Datastore. */
   public static Optional<Registrar> loadByClientId(String clientId) {
     checkArgument(!Strings.isNullOrEmpty(clientId), "clientId must be specified");
-    return Optional.fromNullable(
+    return Optional.ofNullable(
         ofy().load().type(Registrar.class).parent(getCrossTldKey()).id(clientId).now());
   }
 
   /** Loads and returns a registrar entity by its client id using an in-memory cache. */
   public static Optional<Registrar> loadByClientIdCached(String clientId) {
     checkArgument(!Strings.isNullOrEmpty(clientId), "clientId must be specified");
-    return Optional.fromNullable(CACHE_BY_CLIENT_ID.get().get(clientId));
+    return Optional.ofNullable(CACHE_BY_CLIENT_ID.get().get(clientId));
   }
 }

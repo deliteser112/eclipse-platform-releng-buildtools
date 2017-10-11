@@ -18,13 +18,13 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.registry.label.PremiumListUtils.savePremiumListAndEntries;
 import static google.registry.request.Action.Method.POST;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.request.Action;
 import google.registry.request.auth.Auth;
 import java.util.List;
+import java.util.Optional;
 import javax.inject.Inject;
 
 /**

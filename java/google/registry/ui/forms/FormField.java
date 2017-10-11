@@ -24,7 +24,6 @@ import com.google.common.base.Ascii;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -35,6 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Detainted;
 import javax.annotation.Nullable;
@@ -189,7 +189,7 @@ public final class FormField<I, O> {
   @Detainted
   public Optional<O> convert(@Tainted @Nullable I value) {
     try {
-      return Optional.fromNullable(converter.apply(value));
+      return Optional.ofNullable(converter.apply(value));
     } catch (FormFieldException e) {
       throw e.propagate(name);
     }
@@ -359,7 +359,7 @@ public final class FormField<I, O> {
     public Builder<I, O> matches(Pattern pattern, @Nullable String errorMessage) {
       checkState(CharSequence.class.isAssignableFrom(typeOut));
       return transform(
-          new MatchesFunction<O>(checkNotNull(pattern), Optional.fromNullable(errorMessage)));
+          new MatchesFunction<O>(checkNotNull(pattern), Optional.ofNullable(errorMessage)));
     }
 
     /** Alias for {@link #matches(Pattern, String) matches(pattern, null)} */
@@ -652,7 +652,7 @@ public final class FormField<I, O> {
           return null;
         }
         if (!pattern.matcher((CharSequence) input).matches()) {
-          throw new FormFieldException(errorMessage.or("Must match pattern: " + pattern));
+          throw new FormFieldException(errorMessage.orElse("Must match pattern: " + pattern));
         }
         return input;
       }

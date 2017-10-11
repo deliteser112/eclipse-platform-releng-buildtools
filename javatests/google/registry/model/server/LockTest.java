@@ -15,16 +15,17 @@
 package google.registry.model.server;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.Optional;
 import google.registry.model.ofy.Ofy;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import google.registry.util.RequestStatusChecker;
+import java.util.Optional;
 import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
@@ -66,7 +67,7 @@ public class LockTest {
     Optional<Lock> lock = acquire("", ONE_DAY);
     assertThat(lock).isPresent();
     // We can't get it again at the same time.
-    assertThat(acquire("", ONE_DAY)).isAbsent();
+    assertThat(acquire("", ONE_DAY)).isEmpty();
     // But if we release it, it's available.
     lock.get().release();
     assertThat(acquire("", ONE_DAY)).isPresent();
@@ -78,10 +79,10 @@ public class LockTest {
     inject.setStaticField(Ofy.class, "clock", clock);
     assertThat(acquire("", TWO_MILLIS)).isPresent();
     // We can't get it again at the same time.
-    assertThat(acquire("", TWO_MILLIS)).isAbsent();
+    assertThat(acquire("", TWO_MILLIS)).isEmpty();
     // A second later we still can't get the lock.
     clock.advanceOneMilli();
-    assertThat(acquire("", TWO_MILLIS)).isAbsent();
+    assertThat(acquire("", TWO_MILLIS)).isEmpty();
     // But two seconds later we can get it.
     clock.advanceOneMilli();
     assertThat(acquire("", TWO_MILLIS)).isPresent();
@@ -91,7 +92,7 @@ public class LockTest {
   public void testReleasedAfterRequestFinish() throws Exception {
     assertThat(acquire("", ONE_DAY)).isPresent();
     // We can't get it again while request is active
-    assertThat(acquire("", ONE_DAY)).isAbsent();
+    assertThat(acquire("", ONE_DAY)).isEmpty();
     // But if request is finished, we can get it.
     when(requestStatusChecker.isRunning("current-request-id")).thenReturn(false);
     assertThat(acquire("", ONE_DAY)).isPresent();
@@ -105,10 +106,10 @@ public class LockTest {
     Optional<Lock> lockB = acquire("b", ONE_DAY);
     assertThat(lockB).isPresent();
     // We can't get lockB again at the same time.
-    assertThat(acquire("b", ONE_DAY)).isAbsent();
+    assertThat(acquire("b", ONE_DAY)).isEmpty();
     // Releasing lockA has no effect on lockB (even though we are still using the "b" tld).
     lockA.get().release();
-    assertThat(acquire("b", ONE_DAY)).isAbsent();
+    assertThat(acquire("b", ONE_DAY)).isEmpty();
   }
 
   @Test

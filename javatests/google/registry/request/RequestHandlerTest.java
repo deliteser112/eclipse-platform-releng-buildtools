@@ -15,6 +15,7 @@
 package google.registry.request;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.POST;
 import static google.registry.request.auth.Auth.AUTH_INTERNAL_OR_ADMIN;
@@ -26,7 +27,6 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
-import com.google.common.base.Optional;
 import com.google.common.testing.NullPointerTester;
 import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.request.auth.AuthLevel;
@@ -38,6 +38,7 @@ import google.registry.testing.Providers;
 import google.registry.testing.UserInfo;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.junit.After;
@@ -412,7 +413,7 @@ public final class RequestHandlerTest {
 
     assertThat(providedAuthResult).isNotNull();
     assertThat(providedAuthResult.authLevel()).isEqualTo(AuthLevel.NONE);
-    assertThat(providedAuthResult.userAuthInfo()).isAbsent();
+    assertThat(providedAuthResult.userAuthInfo()).isEmpty();
   }
 
   @Test
@@ -420,7 +421,7 @@ public final class RequestHandlerTest {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/auth/adminUser");
     when(requestAuthenticator.authorize(AUTH_INTERNAL_OR_ADMIN.authSettings(), req))
-        .thenReturn(Optional.<AuthResult>absent());
+        .thenReturn(Optional.<AuthResult>empty());
 
     handler.handleRequest(req, rsp);
 
@@ -442,7 +443,7 @@ public final class RequestHandlerTest {
     assertThat(providedAuthResult.authLevel()).isEqualTo(AuthLevel.USER);
     assertThat(providedAuthResult.userAuthInfo()).isPresent();
     assertThat(providedAuthResult.userAuthInfo().get().user()).isEqualTo(testUser);
-    assertThat(providedAuthResult.userAuthInfo().get().oauthTokenInfo()).isAbsent();
+    assertThat(providedAuthResult.userAuthInfo().get().oauthTokenInfo()).isEmpty();
   }
 
 }

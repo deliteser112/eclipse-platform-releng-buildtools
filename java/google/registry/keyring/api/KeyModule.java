@@ -16,10 +16,10 @@ package google.registry.keyring.api;
 
 import static com.google.common.base.Strings.emptyToNull;
 
-import com.google.common.base.Optional;
 import dagger.Module;
 import dagger.Provides;
 import java.lang.annotation.Documented;
+import java.util.Optional;
 import javax.inject.Qualifier;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPrivateKey;
@@ -57,19 +57,19 @@ public final class KeyModule {
   @Provides
   @Key("marksdbDnlLogin")
   static Optional<String> provideMarksdbDnlLogin(Keyring keyring) {
-    return Optional.fromNullable(emptyToNull(keyring.getMarksdbDnlLogin()));
+    return Optional.ofNullable(emptyToNull(keyring.getMarksdbDnlLogin()));
   }
 
   @Provides
   @Key("marksdbLordnPassword")
   static Optional<String> provideMarksdbLordnPassword(Keyring keyring) {
-    return Optional.fromNullable(emptyToNull(keyring.getMarksdbLordnPassword()));
+    return Optional.ofNullable(emptyToNull(keyring.getMarksdbLordnPassword()));
   }
 
   @Provides
   @Key("marksdbSmdrlLogin")
   static Optional<String> provideMarksdbSmdrlLogin(Keyring keyring) {
-    return Optional.fromNullable(emptyToNull(keyring.getMarksdbSmdrlLogin()));
+    return Optional.ofNullable(emptyToNull(keyring.getMarksdbSmdrlLogin()));
   }
 
   @Provides

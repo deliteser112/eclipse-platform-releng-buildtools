@@ -15,13 +15,14 @@
 package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
-import com.google.common.base.Optional;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeJsonResponse;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import org.junit.Rule;
 

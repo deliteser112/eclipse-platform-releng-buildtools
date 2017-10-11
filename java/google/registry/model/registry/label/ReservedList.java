@@ -30,7 +30,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -49,6 +48,7 @@ import google.registry.model.registry.label.DomainLabelMetrics.MetricsReservedLi
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
@@ -338,7 +338,7 @@ public final class ReservedList
    */
   public Optional<ReservationType> getReservationInList(String label) {
     ReservedListEntry entry = getReservedListEntries().get(label);
-    return Optional.fromNullable(entry == null ? null : entry.reservationType);
+    return Optional.ofNullable(entry == null ? null : entry.reservationType);
   }
 
   @Override

@@ -23,7 +23,6 @@ import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
@@ -32,6 +31,7 @@ import com.googlecode.objectify.annotation.Index;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.transfer.TransferData;
+import java.util.Optional;
 import java.util.Set;
 import org.joda.time.DateTime;
 
@@ -296,7 +296,7 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
         addStatusValue(StatusValue.OK);
       }
       // If there is no deletion time, set it to END_OF_TIME.
-      setDeletionTime(Optional.fromNullable(getInstance().deletionTime).or(END_OF_TIME));
+      setDeletionTime(Optional.ofNullable(getInstance().deletionTime).orElse(END_OF_TIME));
       return ImmutableObject.cloneEmptyToNull(super.build());
     }
   }

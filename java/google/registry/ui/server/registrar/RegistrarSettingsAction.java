@@ -15,19 +15,16 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Streams;
 import com.googlecode.objectify.Work;
@@ -35,6 +32,7 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
+import google.registry.model.registrar.RegistrarContact.Builder;
 import google.registry.model.registrar.RegistrarContact.Type;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
@@ -50,7 +48,9 @@ import google.registry.util.CollectionUtils;
 import google.registry.util.DiffUtils;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -97,10 +97,10 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     Registrar initialRegistrar = sessionUtils.getRegistrarForAuthResult(request, authResult);
     // Process the operation.  Though originally derived from a CRUD
     // handler, registrar-settings really only supports read and update.
-    String op = Optional.fromNullable((String) input.get(OP_PARAM)).or("read");
+    String op = Optional.ofNullable((String) input.get(OP_PARAM)).orElse("read");
     @SuppressWarnings("unchecked")
     Map<String, ?> args = (Map<String, Object>)
-        Optional.<Object>fromNullable(input.get(ARGS_PARAM)).or(ImmutableMap.of());
+        Optional.<Object>ofNullable(input.get(ARGS_PARAM)).orElse(ImmutableMap.of());
     try {
       switch (op) {
         case "update":
@@ -175,43 +175,44 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
     // WHOIS
     builder.setWhoisServer(
-        RegistrarFormFields.WHOIS_SERVER_FIELD.extractUntyped(args).orNull());
+        RegistrarFormFields.WHOIS_SERVER_FIELD.extractUntyped(args).orElse(null));
     builder.setReferralUrl(
-        RegistrarFormFields.REFERRAL_URL_FIELD.extractUntyped(args).orNull());
-    for (String email :
-        RegistrarFormFields.EMAIL_ADDRESS_FIELD.extractUntyped(args).asSet()) {
-      builder.setEmailAddress(email);
-    }
+        RegistrarFormFields.REFERRAL_URL_FIELD.extractUntyped(args).orElse(null));
+    RegistrarFormFields.EMAIL_ADDRESS_FIELD
+        .extractUntyped(args)
+        .ifPresent(builder::setEmailAddress);
     builder.setPhoneNumber(
-        RegistrarFormFields.PHONE_NUMBER_FIELD.extractUntyped(args).orNull());
+        RegistrarFormFields.PHONE_NUMBER_FIELD.extractUntyped(args).orElse(null));
     builder.setFaxNumber(
-        RegistrarFormFields.FAX_NUMBER_FIELD.extractUntyped(args).orNull());
+        RegistrarFormFields.FAX_NUMBER_FIELD.extractUntyped(args).orElse(null));
     builder.setLocalizedAddress(
-        RegistrarFormFields.L10N_ADDRESS_FIELD.extractUntyped(args).orNull());
+        RegistrarFormFields.L10N_ADDRESS_FIELD.extractUntyped(args).orElse(null));
 
     // Security
     builder.setIpAddressWhitelist(
-        RegistrarFormFields.IP_ADDRESS_WHITELIST_FIELD.extractUntyped(args).or(
-            ImmutableList.<CidrAddressBlock>of()));
-    for (String certificate
-        : RegistrarFormFields.CLIENT_CERTIFICATE_FIELD.extractUntyped(args).asSet()) {
-      builder.setClientCertificate(certificate, ofy().getTransactionTime());
-    }
-    for (String certificate
-        : RegistrarFormFields.FAILOVER_CLIENT_CERTIFICATE_FIELD.extractUntyped(args).asSet()) {
-      builder.setFailoverClientCertificate(certificate, ofy().getTransactionTime());
-    }
+        RegistrarFormFields.IP_ADDRESS_WHITELIST_FIELD
+            .extractUntyped(args)
+            .orElse(ImmutableList.<CidrAddressBlock>of()));
+    RegistrarFormFields.CLIENT_CERTIFICATE_FIELD
+        .extractUntyped(args)
+        .ifPresent(
+            certificate -> builder.setClientCertificate(certificate, ofy().getTransactionTime()));
+    RegistrarFormFields.FAILOVER_CLIENT_CERTIFICATE_FIELD
+        .extractUntyped(args)
+        .ifPresent(
+            certificate ->
+                builder.setFailoverClientCertificate(certificate, ofy().getTransactionTime()));
 
     builder.setUrl(
-        RegistrarFormFields.URL_FIELD.extractUntyped(args).orNull());
+        RegistrarFormFields.URL_FIELD.extractUntyped(args).orElse(null));
     builder.setReferralUrl(
-        RegistrarFormFields.REFERRAL_URL_FIELD.extractUntyped(args).orNull());
+        RegistrarFormFields.REFERRAL_URL_FIELD.extractUntyped(args).orElse(null));
 
     // Contact
     ImmutableSet.Builder<RegistrarContact> contacts = new ImmutableSet.Builder<>();
-    for (RegistrarContact.Builder contactBuilder
-        : concat(RegistrarFormFields.CONTACTS_FIELD.extractUntyped(args).asSet())) {
-      contacts.add(contactBuilder.setParent(existingRegistrarObj).build());
+    Optional<List<Builder>> builders = RegistrarFormFields.CONTACTS_FIELD.extractUntyped(args);
+    if (builders.isPresent()) {
+      builders.get().forEach(c -> contacts.add(c.setParent(existingRegistrarObj).build()));
     }
 
     return contacts.build();
@@ -298,7 +299,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
    */
   private static Optional<RegistrarContact> getDomainWhoisVisibleAbuseContact(
       Set<RegistrarContact> contacts) {
-    return Iterables.tryFind(contacts, RegistrarContact::getVisibleInDomainWhoisAsAbuse);
+    return contacts.stream().filter(RegistrarContact::getVisibleInDomainWhoisAsAbuse).findFirst();
   }
 
   /**

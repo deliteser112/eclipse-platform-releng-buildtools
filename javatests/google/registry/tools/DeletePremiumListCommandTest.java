@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadPremiumListEntries;
@@ -35,7 +36,7 @@ public class DeletePremiumListCommandTest extends CommandTestCase<DeletePremiumL
     PremiumList premiumList = persistPremiumList("xn--q9jyb4c", "blah,USD 100");
     assertThat(loadPremiumListEntries(premiumList)).hasSize(1);
     runCommand("--force", "--name=xn--q9jyb4c");
-    assertThat(PremiumList.get("xn--q9jyb4c")).isAbsent();
+    assertThat(PremiumList.get("xn--q9jyb4c")).isEmpty();
 
     // Ensure that the Datastore premium list entry entities were deleted correctly.
     assertThat(ofy().load()

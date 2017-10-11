@@ -15,6 +15,7 @@
 package google.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.export.CheckSnapshotAction.CHECK_SNAPSHOT_KINDS_TO_LOAD_PARAM;
 import static google.registry.export.CheckSnapshotAction.CHECK_SNAPSHOT_NAME_PARAM;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
@@ -23,7 +24,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.request.Action.Method;
@@ -36,6 +36,7 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import java.util.Optional;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Before;
@@ -88,7 +89,7 @@ public class CheckSnapshotActionTest {
         new DatastoreBackupInfo(
             backupInfo.getName(),
             backupInfo.getStartTime(),
-            Optional.<DateTime>absent(),
+            Optional.<DateTime>empty(),
             backupInfo.getKinds(),
             backupInfo.getGcsFilename());
 

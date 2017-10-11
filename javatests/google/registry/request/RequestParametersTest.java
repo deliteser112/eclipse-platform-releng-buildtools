@@ -15,6 +15,7 @@
 package google.registry.request;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.request.RequestParameters.extractBooleanParameter;
 import static google.registry.request.RequestParameters.extractEnumParameter;
 import static google.registry.request.RequestParameters.extractOptionalDatetimeParameter;
@@ -70,13 +71,13 @@ public class RequestParametersTest {
 
   @Test
   public void testExtractOptionalParameter_notPresent_returnsAbsent() throws Exception {
-    assertThat(extractOptionalParameter(req, "spin")).isAbsent();
+    assertThat(extractOptionalParameter(req, "spin")).isEmpty();
   }
 
   @Test
   public void testExtractOptionalParameter_empty_returnsAbsent() throws Exception {
     when(req.getParameter("spin")).thenReturn("");
-    assertThat(extractOptionalParameter(req, "spin")).isAbsent();
+    assertThat(extractOptionalParameter(req, "spin")).isEmpty();
   }
 
   @Test
@@ -177,7 +178,7 @@ public class RequestParametersTest {
   @Test
   public void testExtractOptionalDatetimeParameter_empty_returnsAbsent() throws Exception {
     when(req.getParameter("timeParam")).thenReturn("");
-    assertThat(extractOptionalDatetimeParameter(req, "timeParam")).isAbsent();
+    assertThat(extractOptionalDatetimeParameter(req, "timeParam")).isEmpty();
   }
 
   @Test

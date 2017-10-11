@@ -25,7 +25,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.util.CollectionUtils.union;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
@@ -52,6 +51,7 @@ import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -103,8 +103,8 @@ public final class HostCreateFlow implements TransactionalFlow {
     // we can detect error conditions earlier.
     Optional<DomainResource> superordinateDomain =
         lookupSuperordinateDomain(validateHostName(targetId), now);
-    verifySuperordinateDomainNotInPendingDelete(superordinateDomain.orNull());
-    verifySuperordinateDomainOwnership(clientId, superordinateDomain.orNull());
+    verifySuperordinateDomainNotInPendingDelete(superordinateDomain.orElse(null));
+    verifySuperordinateDomainOwnership(clientId, superordinateDomain.orElse(null));
     boolean willBeSubordinate = superordinateDomain.isPresent();
     boolean hasIpAddresses = !isNullOrEmpty(command.getInetAddresses());
     if (willBeSubordinate != hasIpAddresses) {

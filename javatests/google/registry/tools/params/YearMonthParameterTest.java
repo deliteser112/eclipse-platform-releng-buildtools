@@ -15,6 +15,7 @@
 package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 
 import com.beust.jcommander.ParameterException;
 import google.registry.testing.ExceptionRule;

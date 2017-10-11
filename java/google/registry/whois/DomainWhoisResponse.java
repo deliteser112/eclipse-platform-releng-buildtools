@@ -16,15 +16,12 @@ package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.Iterables.tryFind;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.xml.UtcDateTimeAdapter.getFormattedString;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
@@ -39,6 +36,7 @@ import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.translators.EnumToAttributeAdapter.EppEnum;
 import google.registry.util.FormattingLogger;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -74,8 +72,11 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
         domain.getCurrentSponsorClientId());
     Registrar registrar = registrarOptional.get();
     Optional<RegistrarContact> abuseContact =
-        Iterables.tryFind(
-            registrar.getContacts(), RegistrarContact::getVisibleInDomainWhoisAsAbuse);
+        registrar
+            .getContacts()
+            .stream()
+            .filter(RegistrarContact::getVisibleInDomainWhoisAsAbuse)
+            .findFirst();
     String plaintext =
         new DomainEmitter()
             .emitField(
@@ -121,7 +122,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
   @Nullable
   private Key<ContactResource> getContactReference(final Type type) {
     Optional<DesignatedContact> contactOfType =
-        tryFind(domain.getContacts(), d -> d.getType() == type);
+        domain.getContacts().stream().filter(d -> d.getType() == type).findFirst();
     return contactOfType.isPresent() ? contactOfType.get().getContactKey() : null;
   }
 

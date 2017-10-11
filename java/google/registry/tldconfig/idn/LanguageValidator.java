@@ -14,8 +14,8 @@
 
 package google.registry.tldconfig.idn;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+import java.util.Optional;
 
 abstract class LanguageValidator {
 
@@ -25,7 +25,7 @@ abstract class LanguageValidator {
 
   /** Return the language validator for the given language code (if one exists). */
   static Optional<LanguageValidator> get(String language) {
-    return Optional.fromNullable(LANGUAGE_VALIDATORS.get(language));
+    return Optional.ofNullable(LANGUAGE_VALIDATORS.get(language));
   }
 
   /** Returns true if the label meets the context rules for this language. */

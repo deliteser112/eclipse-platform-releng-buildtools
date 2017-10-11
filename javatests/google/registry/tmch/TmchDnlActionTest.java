@@ -15,12 +15,13 @@
 package google.registry.tmch;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.Optional;
 import google.registry.model.tmch.ClaimsListShard;
+import java.util.Optional;
 import org.joda.time.DateTime;
 import org.junit.Test;
 

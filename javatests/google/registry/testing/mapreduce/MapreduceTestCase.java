@@ -15,6 +15,7 @@
 package google.registry.testing.mapreduce;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.config.RegistryConfig.getEppResourceIndexBucketCount;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.mockito.Mockito.mock;
@@ -33,7 +34,6 @@ import com.google.appengine.tools.pipeline.impl.servlets.PipelineServlet;
 import com.google.appengine.tools.pipeline.impl.servlets.TaskHandler;
 import com.google.apphosting.api.ApiProxy;
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Optional;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
@@ -47,6 +47,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -178,7 +179,7 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
    */
   protected void executeTasksUntilEmpty(String queueName, @Nullable FakeClock clock)
       throws Exception {
-    executeTasks(queueName, clock, Optional.<Integer>absent());
+    executeTasks(queueName, clock, Optional.<Integer>empty());
   }
 
   /**

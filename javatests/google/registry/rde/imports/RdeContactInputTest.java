@@ -15,12 +15,12 @@
 package google.registry.rde.imports;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.RetryParams;
-import com.google.common.base.Optional;
 import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
 import google.registry.config.RegistryConfig.ConfigModule;
@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -66,14 +67,14 @@ public class RdeContactInputTest {
   @Test
   public void testZeroContactsDefaultShards_returnsOneReader() throws Exception {
     pushToGcs(DEPOSIT_0_CONTACT);
-    assertNumberOfReaders(Optional.<Integer>absent(), 1);
+    assertNumberOfReaders(Optional.<Integer>empty(), 1);
   }
 
   /** Escrow file with zero contacts results in expected reader configuration */
   @Test
   public void testZeroContactsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_0_CONTACT);
-    assertReaderConfigurations(Optional.<Integer>absent(), 0, 0, 100);
+    assertReaderConfigurations(Optional.<Integer>empty(), 0, 0, 100);
   }
 
   /** Escrow file with zero contacts and 75 shards results in one reader */
@@ -87,14 +88,14 @@ public class RdeContactInputTest {
   @Test
   public void testOneContactDefaultShards_returnsOneReader() throws Exception {
     pushToGcs(DEPOSIT_1_CONTACT);
-    assertNumberOfReaders(Optional.<Integer>absent(), 1);
+    assertNumberOfReaders(Optional.<Integer>empty(), 1);
   }
 
   /** Escrow file with one contact results in expected reader configuration */
   @Test
   public void testOneContactDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_1_CONTACT);
-    assertReaderConfigurations(Optional.<Integer>absent(), 0, 0, 100);
+    assertReaderConfigurations(Optional.<Integer>empty(), 0, 0, 100);
   }
 
   /** Escrow file with one contact and 75 shards results in one reader */
@@ -108,14 +109,14 @@ public class RdeContactInputTest {
   @Test
   public void test199ContactsDefaultShards_returnsOneReader() throws Exception {
     pushToGcs(DEPOSIT_199_CONTACT);
-    assertNumberOfReaders(Optional.<Integer>absent(), 1);
+    assertNumberOfReaders(Optional.<Integer>empty(), 1);
   }
 
   /** Escrow file with 199 contacts results in expected reader configuration */
   @Test
   public void test199ContactsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_199_CONTACT);
-    assertReaderConfigurations(Optional.<Integer>absent(), 0, 0, 199);
+    assertReaderConfigurations(Optional.<Integer>empty(), 0, 0, 199);
   }
 
   /** Escrow file with 199 contacts and 75 shards results in one reader */
@@ -129,15 +130,15 @@ public class RdeContactInputTest {
   @Test
   public void test200ContactsDefaultShards_returnsTwoReaders() throws Exception {
     pushToGcs(DEPOSIT_200_CONTACT);
-    assertNumberOfReaders(Optional.<Integer>absent(), 2);
+    assertNumberOfReaders(Optional.<Integer>empty(), 2);
   }
 
   /** Escrow file with 200 contacts results in expected reader configurations */
   @Test
   public void test200ContactsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_200_CONTACT);
-    assertReaderConfigurations(Optional.<Integer>absent(), 0, 0, 100);
-    assertReaderConfigurations(Optional.<Integer>absent(), 1, 100, 100);
+    assertReaderConfigurations(Optional.<Integer>empty(), 0, 0, 100);
+    assertReaderConfigurations(Optional.<Integer>empty(), 1, 100, 100);
   }
 
   /** Escrow file with 200 contacts and 75 shards results in two readers */
@@ -151,7 +152,7 @@ public class RdeContactInputTest {
   @Test
   public void test1000ContactsDefaultShards_returns10Readers() throws Exception {
     pushToGcs(DEPOSIT_1000_CONTACT);
-    assertNumberOfReaders(Optional.<Integer>absent(), 10);
+    assertNumberOfReaders(Optional.<Integer>empty(), 10);
   }
 
   /** Escrow file with 1000 contacts results in expected reader configurations */
@@ -159,7 +160,7 @@ public class RdeContactInputTest {
   public void test1000ContactsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_1000_CONTACT);
     for (int i = 0; i < 10; i++) {
-      assertReaderConfigurations(Optional.<Integer>absent(), i, i * 100, 100);
+      assertReaderConfigurations(Optional.<Integer>empty(), i, i * 100, 100);
     }
   }
 
@@ -174,7 +175,7 @@ public class RdeContactInputTest {
   @Test
   public void test10000ContactsDefaultShards_returns50Readers() throws Exception {
     pushToGcs(DEPOSIT_10000_CONTACT);
-    assertNumberOfReaders(Optional.<Integer>absent(), 50);
+    assertNumberOfReaders(Optional.<Integer>empty(), 50);
   }
 
   /** Escrow file with 10000 contacts results in expected reader configurations */
@@ -182,7 +183,7 @@ public class RdeContactInputTest {
   public void test10000ContactsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_10000_CONTACT);
     for (int i = 0; i < 50; i++) {
-      assertReaderConfigurations(Optional.<Integer>absent(), i, i * 200, 200);
+      assertReaderConfigurations(Optional.<Integer>empty(), i, i * 200, 200);
     }
   }
 
@@ -203,7 +204,7 @@ public class RdeContactInputTest {
   /**
    * Verify bucket, filename, offset and max results for a specific reader
    *
-   * @param numberOfShards Number of desired shards ({@code Optional.absent()} uses default of 50)
+   * @param numberOfShards Number of desired shards ({@code Optional.empty()} uses default of 50)
    * @param whichReader Index of the reader in the list that is produced by the
    *        {@link RdeContactInput}
    * @param expectedOffset Expected offset of the reader
@@ -234,7 +235,7 @@ public class RdeContactInputTest {
   /**
    * Verify the number of readers produced by the {@link RdeContactInput}
    *
-   * @param numberOfShards Number of desired shards ({@code Optional.absent()} uses default of 50)
+   * @param numberOfShards Number of desired shards ({@code Optional.empty()} uses default of 50)
    * @param expectedNumberOfReaders Expected size of the list returned
    */
   private void assertNumberOfReaders(Optional<Integer> numberOfShards,
@@ -246,7 +247,7 @@ public class RdeContactInputTest {
 
   /**
    * Creates a new testable instance of {@link RdeContactInput}
-   * @param mapShards Number of desired shards ({@code Optional.absent()} uses default of 50)
+   * @param mapShards Number of desired shards ({@code Optional.empty()} uses default of 50)
    */
   private RdeContactInput getInput(Optional<Integer> mapShards) {
     return new RdeContactInput(mapShards, IMPORT_BUCKET_NAME, IMPORT_FILE_NAME);

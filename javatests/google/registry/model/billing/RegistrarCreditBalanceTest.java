@@ -15,6 +15,7 @@
 package google.registry.model.billing;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
@@ -127,19 +128,19 @@ public class RegistrarCreditBalanceTest extends EntityTestCase {
   @Test
   public void testSuccess_balanceMap_getActiveBalance_emptyMap() throws Exception {
     BalanceMap map = new BalanceMap(ImmutableMap.<DateTime, Map<DateTime, Money>>of());
-    assertThat(map.getActiveBalanceAtTime(START_OF_TIME)).isAbsent();
-    assertThat(map.getActiveBalanceAtTime(clock.nowUtc())).isAbsent();
-    assertThat(map.getActiveBalanceAtTime(END_OF_TIME)).isAbsent();
-    assertThat(map.getActiveBalanceBeforeTime(START_OF_TIME)).isAbsent();
-    assertThat(map.getActiveBalanceBeforeTime(clock.nowUtc())).isAbsent();
-    assertThat(map.getActiveBalanceBeforeTime(END_OF_TIME)).isAbsent();
+    assertThat(map.getActiveBalanceAtTime(START_OF_TIME)).isEmpty();
+    assertThat(map.getActiveBalanceAtTime(clock.nowUtc())).isEmpty();
+    assertThat(map.getActiveBalanceAtTime(END_OF_TIME)).isEmpty();
+    assertThat(map.getActiveBalanceBeforeTime(START_OF_TIME)).isEmpty();
+    assertThat(map.getActiveBalanceBeforeTime(clock.nowUtc())).isEmpty();
+    assertThat(map.getActiveBalanceBeforeTime(END_OF_TIME)).isEmpty();
   }
 
   @Test
   public void testSuccess_balanceMap_getActiveBalanceAtTime() throws Exception {
     BalanceMap map = new BalanceMap(rawBalanceMap);
-    assertThat(map.getActiveBalanceAtTime(START_OF_TIME)).isAbsent();
-    assertThat(map.getActiveBalanceAtTime(clock.nowUtc().minusMillis(1))).isAbsent();
+    assertThat(map.getActiveBalanceAtTime(START_OF_TIME)).isEmpty();
+    assertThat(map.getActiveBalanceAtTime(clock.nowUtc().minusMillis(1))).isEmpty();
     assertThat(map.getActiveBalanceAtTime(clock.nowUtc()).get()).isEqualTo(Money.parse("USD 70"));
     assertThat(map.getActiveBalanceAtTime(clock.nowUtc().plusMillis(1)).get())
         .isEqualTo(Money.parse("USD 70"));
@@ -154,9 +155,9 @@ public class RegistrarCreditBalanceTest extends EntityTestCase {
   @Test
   public void testSuccess_balanceMap_getActiveBalanceBeforeTime() throws Exception {
     BalanceMap map = new BalanceMap(rawBalanceMap);
-    assertThat(map.getActiveBalanceBeforeTime(START_OF_TIME)).isAbsent();
-    assertThat(map.getActiveBalanceBeforeTime(clock.nowUtc().minusMillis(1))).isAbsent();
-    assertThat(map.getActiveBalanceBeforeTime(clock.nowUtc())).isAbsent();
+    assertThat(map.getActiveBalanceBeforeTime(START_OF_TIME)).isEmpty();
+    assertThat(map.getActiveBalanceBeforeTime(clock.nowUtc().minusMillis(1))).isEmpty();
+    assertThat(map.getActiveBalanceBeforeTime(clock.nowUtc())).isEmpty();
     assertThat(map.getActiveBalanceBeforeTime(clock.nowUtc().plusMillis(1)).get())
         .isEqualTo(Money.parse("USD 70"));
     assertThat(map.getActiveBalanceBeforeTime(then.minusMillis(1)).get())

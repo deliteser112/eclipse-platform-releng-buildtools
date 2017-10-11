@@ -21,11 +21,11 @@ import static com.google.common.html.HtmlEscapers.htmlEscaper;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import google.registry.model.eppcommon.Address;
 import google.registry.util.Idn;
 import google.registry.xml.UtcDateTimeAdapter;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -64,9 +64,9 @@ abstract class WhoisResponseImpl implements WhoisResponse {
   static <T> T chooseByUnicodePreference(
       boolean preferUnicode, @Nullable T localized, @Nullable T internationalized) {
     if (preferUnicode) {
-      return Optional.fromNullable(localized).or(Optional.fromNullable(internationalized)).orNull();
+      return Optional.ofNullable(localized).orElse(internationalized);
     } else {
-      return Optional.fromNullable(internationalized).or(Optional.fromNullable(localized)).orNull();
+      return Optional.ofNullable(internationalized).orElse(localized);
     }
   }
 

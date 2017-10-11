@@ -20,7 +20,6 @@ import static google.registry.util.X509Utils.loadCertificate;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.re2j.Pattern;
 import google.registry.config.RegistryEnvironment;
@@ -32,6 +31,7 @@ import google.registry.util.StringGenerator;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;

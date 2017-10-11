@@ -27,7 +27,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.common.GaeUserIdConverter;
@@ -45,6 +44,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -240,10 +240,10 @@ final class RegistrarContactCommand extends MutatingCommand {
     builder.setName(name);
     builder.setEmailAddress(email);
     if (phone != null) {
-      builder.setPhoneNumber(phone.orNull());
+      builder.setPhoneNumber(phone.orElse(null));
     }
     if (fax != null) {
-      builder.setFaxNumber(fax.orNull());
+      builder.setFaxNumber(fax.orElse(null));
     }
     builder.setTypes(nullToEmpty(contactTypes));
 
@@ -276,10 +276,10 @@ final class RegistrarContactCommand extends MutatingCommand {
       builder.setEmailAddress(email);
     }
     if (phone != null) {
-      builder.setPhoneNumber(phone.orNull());
+      builder.setPhoneNumber(phone.orElse(null));
     }
     if (fax != null) {
-      builder.setFaxNumber(fax.orNull());
+      builder.setFaxNumber(fax.orElse(null));
     }
     if (contactTypes != null) {
       builder.setTypes(contactTypes);

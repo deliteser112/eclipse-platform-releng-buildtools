@@ -14,7 +14,7 @@
 
 package google.registry.batch;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 

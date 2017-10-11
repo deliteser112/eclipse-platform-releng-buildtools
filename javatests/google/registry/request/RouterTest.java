@@ -15,11 +15,12 @@
 package google.registry.request;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.request.auth.Auth.AUTH_INTERNAL_ONLY;
 
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import google.registry.testing.ExceptionRule;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import org.junit.Rule;
 import org.junit.Test;
@@ -67,12 +68,12 @@ public final class RouterTest {
 
   @Test
   public void testRoute_pathMismatch_returnsAbsent() throws Exception {
-    assertThat(Router.create(SlothComponent.class).route("/doge")).isAbsent();
+    assertThat(Router.create(SlothComponent.class).route("/doge")).isEmpty();
   }
 
   @Test
   public void testRoute_pathIsAPrefix_notAllowedByDefault() throws Exception {
-    assertThat(Router.create(SlothComponent.class).route("/sloth/extra")).isAbsent();
+    assertThat(Router.create(SlothComponent.class).route("/sloth/extra")).isEmpty();
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,10 +96,10 @@ public final class RouterTest {
 
   @Test
   public void testRoute_prefixDoesNotMatch_returnsAbsent() throws Exception {
-    assertThat(Router.create(PrefixComponent.class).route("")).isAbsent();
-    assertThat(Router.create(PrefixComponent.class).route("/")).isAbsent();
-    assertThat(Router.create(PrefixComponent.class).route("/ulysses")).isAbsent();
-    assertThat(Router.create(PrefixComponent.class).route("/man/of/sadness")).isAbsent();
+    assertThat(Router.create(PrefixComponent.class).route("")).isEmpty();
+    assertThat(Router.create(PrefixComponent.class).route("/")).isEmpty();
+    assertThat(Router.create(PrefixComponent.class).route("/ulysses")).isEmpty();
+    assertThat(Router.create(PrefixComponent.class).route("/man/of/sadness")).isEmpty();
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////

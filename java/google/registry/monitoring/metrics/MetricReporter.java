@@ -18,9 +18,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.AbstractScheduledService;
+import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
@@ -117,7 +117,7 @@ public class MetricReporter extends AbstractScheduledService {
     runOneIteration();
 
     // Offer a poision pill to inform the exporter to stop.
-    writeQueue.offer(Optional.<ImmutableList<MetricPoint<?>>>absent());
+    writeQueue.offer(Optional.<ImmutableList<MetricPoint<?>>>empty());
     try {
       metricExporter.awaitTerminated(10, TimeUnit.SECONDS);
       logger.info("Shut down MetricExporter");

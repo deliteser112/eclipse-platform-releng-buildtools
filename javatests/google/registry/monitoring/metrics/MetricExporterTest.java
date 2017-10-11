@@ -15,15 +15,16 @@
 package google.registry.monitoring.metrics;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Service.State;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
@@ -44,7 +45,7 @@ public class MetricExporterTest {
   @Mock private MetricPoint<?> point;
   private MetricExporter exporter;
   private BlockingQueue<Optional<ImmutableList<MetricPoint<?>>>> writeQueue;
-  private final Optional<ImmutableList<MetricPoint<?>>> poisonPill = Optional.absent();
+  private final Optional<ImmutableList<MetricPoint<?>>> poisonPill = Optional.empty();
   private final Optional<ImmutableList<MetricPoint<?>>> emptyBatch =
       Optional.of(ImmutableList.<MetricPoint<?>>of());
 

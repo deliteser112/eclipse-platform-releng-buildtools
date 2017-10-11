@@ -15,6 +15,7 @@
 package google.registry.ui.server;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 import google.registry.testing.CertificateSamples;

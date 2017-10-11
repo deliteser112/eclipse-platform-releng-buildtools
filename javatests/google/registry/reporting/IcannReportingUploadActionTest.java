@@ -16,6 +16,7 @@ package google.registry.reporting;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.reporting.IcannReportingModule.ReportType.ACTIVITY;
 import static google.registry.reporting.IcannReportingModule.ReportType.TRANSACTIONS;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -30,7 +31,6 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
-import com.google.common.base.Optional;
 import google.registry.gcs.GcsUtils;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
@@ -38,6 +38,7 @@ import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
 import google.registry.util.Retrier;
 import java.io.IOException;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,7 +65,7 @@ public class IcannReportingUploadActionTest {
     action.retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
     action.yearMonth = "2017-06";
     action.reportType = TRANSACTIONS;
-    action.subdir = Optional.absent();
+    action.subdir = Optional.empty();
     action.tld = "test";
     action.icannReportingBucket = "basin";
     action.response = response;
@@ -172,7 +173,7 @@ public class IcannReportingUploadActionTest {
   public void testSuccess_CreateBucketname() throws Exception{
     assertThat(
         IcannReportingUploadAction
-            .createReportingBucketName("gs://my-reporting", Optional.<String>absent(), "2017-06"))
+            .createReportingBucketName("gs://my-reporting", Optional.<String>empty(), "2017-06"))
         .isEqualTo("gs://my-reporting/icann/monthly/2017-06");
     assertThat(
         IcannReportingUploadAction

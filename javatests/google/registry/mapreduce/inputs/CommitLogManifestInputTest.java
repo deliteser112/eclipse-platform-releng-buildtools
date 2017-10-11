@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assert_;
 
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.InputReader;
-import com.google.common.base.Optional;
 import com.googlecode.objectify.Key;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogManifest;
@@ -58,8 +57,7 @@ public final class CommitLogManifestInputTest {
       created.add(createManifest(CommitLogBucket.getBucketKey(i), DATE_TIME_OLD));
     }
     List<Key<CommitLogManifest>> seen = new ArrayList<>();
-    Input<Key<CommitLogManifest>> input =
-        new CommitLogManifestInput(Optional.of(DATE_TIME_THRESHOLD));
+    Input<Key<CommitLogManifest>> input = new CommitLogManifestInput(DATE_TIME_THRESHOLD);
     for (InputReader<Key<CommitLogManifest>> reader
         : input.createReaders()) {
       reader.beginShard();
@@ -84,8 +82,7 @@ public final class CommitLogManifestInputTest {
       old.add(createManifest(CommitLogBucket.getBucketKey(i), DATE_TIME_OLD2));
     }
     List<Key<CommitLogManifest>> seen = new ArrayList<>();
-    Input<Key<CommitLogManifest>> input =
-        new CommitLogManifestInput(Optional.of(DATE_TIME_THRESHOLD));
+    Input<Key<CommitLogManifest>> input = new CommitLogManifestInput(DATE_TIME_THRESHOLD);
     for (InputReader<Key<CommitLogManifest>> reader
         : input.createReaders()) {
       reader.beginShard();
@@ -111,7 +108,7 @@ public final class CommitLogManifestInputTest {
       created.add(createManifest(CommitLogBucket.getBucketKey(i), DATE_TIME_OLD2));
     }
     List<Key<CommitLogManifest>> seen = new ArrayList<>();
-    Input<Key<CommitLogManifest>> input = new CommitLogManifestInput(Optional.<DateTime>absent());
+    Input<Key<CommitLogManifest>> input = new CommitLogManifestInput();
     for (InputReader<Key<CommitLogManifest>> reader
         : input.createReaders()) {
       reader.beginShard();

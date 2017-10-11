@@ -18,9 +18,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import org.junit.Test;
@@ -65,6 +65,6 @@ public class MetricReporterTest {
     verify(reporter).runOneIteration();
     InOrder interactions = Mockito.inOrder(writeQueue);
     interactions.verify(writeQueue).offer(Optional.of(ImmutableList.<MetricPoint<?>>of()));
-    interactions.verify(writeQueue).offer(Optional.<ImmutableList<MetricPoint<?>>>absent());
+    interactions.verify(writeQueue).offer(Optional.<ImmutableList<MetricPoint<?>>>empty());
   }
 }

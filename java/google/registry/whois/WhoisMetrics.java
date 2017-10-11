@@ -18,13 +18,13 @@ import static com.google.common.base.Preconditions.checkState;
 import static google.registry.monitoring.metrics.EventMetric.DEFAULT_FITTER;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import google.registry.monitoring.metrics.EventMetric;
 import google.registry.monitoring.metrics.IncrementableMetric;
 import google.registry.monitoring.metrics.LabelDescriptor;
 import google.registry.monitoring.metrics.MetricRegistryImpl;
 import google.registry.util.Clock;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -62,12 +62,12 @@ public class WhoisMetrics {
   /** Records the given {@link WhoisMetric} and its associated processing time. */
   public void recordWhoisMetric(WhoisMetric metric) {
     whoisRequests.increment(
-        metric.commandName().or(""),
+        metric.commandName().orElse(""),
         Integer.toString(metric.numResults()),
         Integer.toString(metric.status()));
     processingTime.record(
         metric.endTimestamp().getMillis() - metric.startTimestamp().getMillis(),
-        metric.commandName().or(""),
+        metric.commandName().orElse(""),
         Integer.toString(metric.numResults()),
         Integer.toString(metric.status()));
   }

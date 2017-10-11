@@ -24,7 +24,6 @@ import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -44,6 +43,7 @@ import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.money.Money;
@@ -391,7 +391,7 @@ public abstract class BillingEvent extends ImmutableObject
         checkNotNull(instance.reason);
         instance.recurrenceTimeOfYear = TimeOfYear.fromDateTime(instance.eventTime);
         instance.recurrenceEndTime =
-            Optional.fromNullable(instance.recurrenceEndTime).or(END_OF_TIME);
+            Optional.ofNullable(instance.recurrenceEndTime).orElse(END_OF_TIME);
         return super.build();
       }
     }

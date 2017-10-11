@@ -17,11 +17,11 @@ package google.registry.tldconfig.idn;
 import static google.registry.tldconfig.idn.IdnTableEnum.EXTENDED_LATIN;
 import static google.registry.tldconfig.idn.IdnTableEnum.JA;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.util.Idn;
 import google.registry.util.NonFinalForTesting;
+import java.util.Optional;
 
 /** Validates whether a given IDN label can be provisioned for a particular TLD. */
 public final class IdnLabelValidator {
@@ -44,12 +44,12 @@ public final class IdnLabelValidator {
   public static Optional<String> findValidIdnTableForTld(String label, String tld) {
     String unicodeString = Idn.toUnicode(label);
     for (IdnTableEnum idnTable
-        : Optional.fromNullable(idnTableListsPerTld.get(tld)).or(DEFAULT_IDN_TABLES)) {
+        : Optional.ofNullable(idnTableListsPerTld.get(tld)).orElse(DEFAULT_IDN_TABLES)) {
       if (idnTable.getTable().isValidLabel(unicodeString)) {
         return Optional.of(idnTable.getTable().getName());
       }
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   private IdnLabelValidator() {}

@@ -20,7 +20,6 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.DnsScopes;
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.util.concurrent.RateLimiter;
 import dagger.Module;
 import dagger.Provides;
@@ -29,6 +28,7 @@ import dagger.multibindings.IntoSet;
 import dagger.multibindings.StringKey;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.dns.writer.DnsWriter;
+import java.util.Optional;
 import java.util.Set;
 import javax.inject.Named;
 

@@ -33,7 +33,6 @@ import static google.registry.util.PipelineUtils.createJobPath;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
@@ -62,6 +61,7 @@ import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
+import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import org.joda.money.Money;
@@ -97,7 +97,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
     Cursor cursor = ofy().load().key(Cursor.createGlobalKey(RECURRING_BILLING)).now();
     DateTime executeTime = clock.nowUtc();
     DateTime persistedCursorTime = (cursor == null ? START_OF_TIME : cursor.getCursorTime());
-    DateTime cursorTime = cursorTimeParam.or(persistedCursorTime);
+    DateTime cursorTime = cursorTimeParam.orElse(persistedCursorTime);
     checkArgument(
         cursorTime.isBefore(executeTime),
         "Cursor time must be earlier than execution time.");

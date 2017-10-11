@@ -18,6 +18,7 @@ import static com.google.common.collect.Range.atLeast;
 import static com.google.common.collect.Range.atMost;
 import static com.google.common.collect.Range.closed;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.google.common.base.CharMatcher;
@@ -50,7 +51,7 @@ public class FormFieldTest {
 
   @Test
   public void testConvert_nullString_notPresent() {
-    assertThat(FormField.named("lol").build().convert(null)).isAbsent();
+    assertThat(FormField.named("lol").build().convert(null)).isEmpty();
   }
 
   @Test
@@ -72,7 +73,7 @@ public class FormFieldTest {
 
   @Test
   public void testEmptyToNull_emptyString_notPresent() {
-    assertThat(FormField.named("lol").emptyToNull().build().convert("")).isAbsent();
+    assertThat(FormField.named("lol").emptyToNull().build().convert("")).isEmpty();
   }
 
   @Test
@@ -95,7 +96,7 @@ public class FormFieldTest {
   @Test
   public void testUppercased() {
     FormField<String, String> field = FormField.named("lol").uppercased().build();
-    assertThat(field.convert(null)).isAbsent();
+    assertThat(field.convert(null)).isEmpty();
     assertThat(field.convert("foo")).hasValue("FOO");
     assertThat(field.convert("BAR")).hasValue("BAR");
   }
@@ -103,7 +104,7 @@ public class FormFieldTest {
   @Test
   public void testLowercased() {
     FormField<String, String> field = FormField.named("lol").lowercased().build();
-    assertThat(field.convert(null)).isAbsent();
+    assertThat(field.convert(null)).isEmpty();
     assertThat(field.convert("foo")).hasValue("foo");
     assertThat(field.convert("BAR")).hasValue("bar");
   }
@@ -113,7 +114,7 @@ public class FormFieldTest {
     FormField<String, String> field = FormField.named("lol")
         .in(ImmutableSet.of("foo", "bar"))
         .build();
-    assertThat(field.convert(null)).isAbsent();
+    assertThat(field.convert(null)).isEmpty();
   }
 
   @Test
@@ -136,7 +137,7 @@ public class FormFieldTest {
 
   @Test
   public void testRange_hasLowerBound_nullValue_passesThrough() {
-    assertThat(FormField.named("lol").range(atLeast(5)).build().convert(null)).isAbsent();
+    assertThat(FormField.named("lol").range(atLeast(5)).build().convert(null)).isEmpty();
   }
 
   @Test
@@ -153,7 +154,7 @@ public class FormFieldTest {
 
   @Test
   public void testRange_noLowerBound_nullValue_passThrough() {
-    assertThat(FormField.named("lol").range(atMost(5)).build().convert(null)).isAbsent();
+    assertThat(FormField.named("lol").range(atMost(5)).build().convert(null)).isEmpty();
   }
 
   @Test
@@ -235,7 +236,7 @@ public class FormFieldTest {
 
   @Test
   public void testAsList_null_notPresent() {
-    assertThat(FormField.named("lol").asList().build().convert(null)).isAbsent();
+    assertThat(FormField.named("lol").asList().build().convert(null)).isEmpty();
   }
 
   @Test
@@ -262,7 +263,7 @@ public class FormFieldTest {
         .emptyToNull()
         .build()
         .convert(ImmutableList.<String>of()))
-        .isAbsent();
+        .isEmpty();
   }
 
   @Test
@@ -302,7 +303,7 @@ public class FormFieldTest {
         .containsExactly("oh", "my", "goth")
         .inOrder();
     assertThat(field.convert("").get()).isEmpty();
-    assertThat(field.convert(null)).isAbsent();
+    assertThat(field.convert(null)).isEmpty();
   }
 
   @Test
@@ -315,7 +316,7 @@ public class FormFieldTest {
         .containsExactly("OH", "MY", "GOTH")
         .inOrder();
     assertThat(field.convert("").get()).isEmpty();
-    assertThat(field.convert(null)).isAbsent();
+    assertThat(field.convert(null)).isEmpty();
   }
 
   @Test

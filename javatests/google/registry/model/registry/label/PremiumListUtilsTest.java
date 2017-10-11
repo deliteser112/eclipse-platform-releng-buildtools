@@ -15,6 +15,7 @@
 package google.registry.model.registry.label;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.BLOOM_FILTER_NEGATIVE;
 import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.CACHED_NEGATIVE;
@@ -102,7 +103,7 @@ public class PremiumListUtilsTest {
             .setDnsWriters(ImmutableSet.of(VoidDnsWriter.NAME))
             .build());
     assertThat(Registry.get("ghost").getPremiumList()).isNull();
-    assertThat(getPremiumPrice("blah", Registry.get("ghost"))).isAbsent();
+    assertThat(getPremiumPrice("blah", Registry.get("ghost"))).isEmpty();
     assertThat(premiumListChecks).hasNoOtherValues();
     assertThat(premiumListProcessingTime).hasNoOtherValues();
   }
@@ -160,7 +161,7 @@ public class PremiumListUtilsTest {
                 .build());
     // "missingno" shouldn't be in the Bloom filter, thus it should return not premium without
     // attempting to load the entity that is actually present.
-    assertThat(getPremiumPrice("missingno", Registry.get("tld"))).isAbsent();
+    assertThat(getPremiumPrice("missingno", Registry.get("tld"))).isEmpty();
     // However, if we manually query the cache to force an entity load, it should be found.
     assertThat(
             PremiumList.cachePremiumListEntries.get(
@@ -206,8 +207,8 @@ public class PremiumListUtilsTest {
             });
     ofy().clearSessionCache();
 
-    assertThat(getPremiumPrice("rich", Registry.get("tld"))).isAbsent();
-    assertThat(getPremiumPrice("rich", Registry.get("tld"))).isAbsent();
+    assertThat(getPremiumPrice("rich", Registry.get("tld"))).isEmpty();
+    assertThat(getPremiumPrice("rich", Registry.get("tld"))).isEmpty();
 
     assertThat(premiumListChecks)
         .hasValueForLabels(1, "tld", "tld", UNCACHED_NEGATIVE.toString())
@@ -241,7 +242,7 @@ public class PremiumListUtilsTest {
         savePremiumListAndEntries(pl, ImmutableList.of("genius,USD 10", "savant,USD 90"));
     assertThat(getPremiumPrice("genius", registry)).hasValue(Money.parse("USD 10"));
     assertThat(getPremiumPrice("savant", registry)).hasValue(Money.parse("USD 90"));
-    assertThat(getPremiumPrice("dolt", registry)).isAbsent();
+    assertThat(getPremiumPrice("dolt", registry)).isEmpty();
     assertThat(ofy()
             .load()
             .type(PremiumListEntry.class)
@@ -272,8 +273,8 @@ public class PremiumListUtilsTest {
 
   @Test
   public void testGetPremiumPrice_allLabelsAreNonPremium_whenNotInList() throws Exception {
-    assertThat(getPremiumPrice("blah", Registry.get("tld"))).isAbsent();
-    assertThat(getPremiumPrice("slinge", Registry.get("tld"))).isAbsent();
+    assertThat(getPremiumPrice("blah", Registry.get("tld"))).isEmpty();
+    assertThat(getPremiumPrice("slinge", Registry.get("tld"))).isEmpty();
     assertMetricOutcomeCount(2, BLOOM_FILTER_NEGATIVE);
   }
 
@@ -286,7 +287,7 @@ public class PremiumListUtilsTest {
     createTld("tld");
     persistResource(Registry.get("tld").asBuilder().setPremiumList(pl).build());
     assertThat(getPremiumPrice("lol", Registry.get("tld"))).hasValue(Money.parse("USD 999"));
-    assertThat(getPremiumPrice("lol ", Registry.get("tld"))).isAbsent();
+    assertThat(getPremiumPrice("lol ", Registry.get("tld"))).isEmpty();
     ImmutableMap<String, PremiumListEntry> entries =
         loadPremiumListEntries(PremiumList.get("tld2").get());
     assertThat(entries.keySet()).containsExactly("lol");
@@ -333,7 +334,7 @@ public class PremiumListUtilsTest {
     assertThat(PremiumList.get("gtld1")).isPresent();
     Key<PremiumListRevision> parent = PremiumList.get("gtld1").get().getRevisionKey();
     deletePremiumList(PremiumList.get("gtld1").get());
-    assertThat(PremiumList.get("gtld1")).isAbsent();
+    assertThat(PremiumList.get("gtld1")).isEmpty();
     assertThat(ofy().load().type(PremiumListEntry.class).ancestor(parent).list()).isEmpty();
   }
 
@@ -341,13 +342,7 @@ public class PremiumListUtilsTest {
   public void testDelete_largeNumberOfEntries_succeeds() {
     persistHumongousPremiumList("ginormous", 2500);
     deletePremiumList(PremiumList.get("ginormous").get());
-    assertThat(PremiumList.get("ginormous")).isAbsent();
-  }
-
-  @Test
-  public void testDelete_failsWhenListDoesntExist() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    deletePremiumList(PremiumList.get("tld-premium-blah").get());
+    assertThat(PremiumList.get("ginormous")).isEmpty();
   }
 
   /** Persists a premium list with a specified number of nonsense entries. */

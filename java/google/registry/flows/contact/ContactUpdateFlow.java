@@ -26,7 +26,6 @@ import static google.registry.flows.contact.ContactFlowUtils.validateAsciiPostal
 import static google.registry.flows.contact.ContactFlowUtils.validateContactAgainstPolicy;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
@@ -49,6 +48,7 @@ import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;

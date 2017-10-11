@@ -24,7 +24,6 @@ import com.google.api.services.dns.model.Change;
 import com.google.api.services.dns.model.ResourceRecordSet;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -49,6 +48,7 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
@@ -116,7 +116,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
 
     // Load the target domain. Note that it can be null if this domain was just deleted.
     Optional<DomainResource> domainResource =
-        Optional.fromNullable(loadByForeignKey(DomainResource.class, domainName, clock.nowUtc()));
+        Optional.ofNullable(loadByForeignKey(DomainResource.class, domainName, clock.nowUtc()));
 
     // Return early if no DNS records should be published.
     // desiredRecordsBuilder is populated with an empty set to indicate that all existing records
@@ -186,7 +186,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
     // desiredRecords is populated with an empty set to indicate that all existing records
     // should be deleted.
     Optional<HostResource> host =
-        Optional.fromNullable(loadByForeignKey(HostResource.class, hostName, clock.nowUtc()));
+        Optional.ofNullable(loadByForeignKey(HostResource.class, hostName, clock.nowUtc()));
 
     // Return early if the host is deleted.
     if (!host.isPresent()) {

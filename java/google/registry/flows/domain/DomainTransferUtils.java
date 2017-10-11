@@ -18,7 +18,6 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -38,6 +37,7 @@ import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.model.transfer.TransferStatus;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -135,11 +135,10 @@ public final class DomainTransferUtils {
               registry,
               transferCost.get()));
     }
+    createOptionalAutorenewCancellation(
+            automaticTransferTime, historyEntry, targetId, existingDomain, transferCost)
+        .ifPresent(builder::add);
     return builder
-        .addAll(
-            createOptionalAutorenewCancellation(
-                    automaticTransferTime, historyEntry, targetId, existingDomain, transferCost)
-                .asSet())
         .add(
             createGainingClientAutorenewEvent(
                 serverApproveNewExpirationTime, historyEntry, targetId, gainingClientId))
@@ -273,7 +272,7 @@ public final class DomainTransferUtils {
               .setEventTime(automaticTransferTime)
               .build());
     }
-    return Optional.absent();
+    return Optional.empty();
   }
 
   private static BillingEvent.OneTime createTransferBillingEvent(

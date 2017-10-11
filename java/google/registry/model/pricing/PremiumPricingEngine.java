@@ -14,7 +14,7 @@
 
 package google.registry.model.pricing;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 

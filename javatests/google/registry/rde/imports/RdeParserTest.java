@@ -15,6 +15,7 @@
 package google.registry.rde.imports;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.common.io.ByteSource;
 import google.registry.rde.imports.RdeParser.RdeHeader;

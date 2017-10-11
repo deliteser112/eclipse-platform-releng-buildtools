@@ -62,7 +62,7 @@ final class JSchSshSession implements Closeable {
       RdeUploadUrl url = RdeUploadUrl.create(uri);
       logger.info("Connecting to SSH endpoint: " + url);
       Session session = jsch.getSession(
-          url.getUser().or("domain-registry"),
+          url.getUser().orElse("domain-registry"),
           url.getHost(),
           url.getPort());
       if (url.getPass().isPresent()) {

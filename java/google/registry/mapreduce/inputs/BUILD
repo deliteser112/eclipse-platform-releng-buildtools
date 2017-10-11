@@ -14,6 +14,7 @@ java_library(
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_appengine_tools_appengine_mapreduce",
         "@com_google_appengine_tools_appengine_pipeline",
+        "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_guava",
         "@javax_servlet_api",

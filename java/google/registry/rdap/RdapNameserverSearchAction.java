@@ -18,7 +18,6 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
@@ -41,6 +40,7 @@ import google.registry.util.Idn;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 

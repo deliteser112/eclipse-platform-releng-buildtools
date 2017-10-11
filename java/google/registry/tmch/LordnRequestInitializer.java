@@ -18,9 +18,9 @@ import static com.google.common.base.Verify.verifyNotNull;
 import static google.registry.util.UrlFetchUtils.setAuthorizationHeader;
 
 import com.google.appengine.api.urlfetch.HTTPRequest;
-import com.google.common.base.Optional;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.model.registry.Registry;
+import java.util.Optional;
 import javax.inject.Inject;
 
 /** Helper class for setting the authorization header on a MarksDB LORDN request. */
@@ -41,7 +41,7 @@ final class LordnRequestInitializer {
           "lordnUsername is not set for %s.", Registry.get(tld).getTld());
       return Optional.of(String.format("%s:%s", lordnUsername, marksdbLordnPassword.get()));
     } else {
-      return Optional.absent();
+      return Optional.empty();
     }
   }
 }

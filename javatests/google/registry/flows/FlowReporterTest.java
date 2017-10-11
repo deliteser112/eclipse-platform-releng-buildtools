@@ -16,13 +16,13 @@ package google.registry.flows;
 
 import static com.google.common.io.BaseEncoding.base64;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static google.registry.testing.TestLogHandlerUtils.findFirstLogMessageByPrefix;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.testing.TestLogHandler;
@@ -34,6 +34,7 @@ import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.testing.ShardableTestCase;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 import org.json.simple.JSONValue;
 import org.junit.Before;
@@ -139,7 +140,7 @@ public class FlowReporterTest extends ShardableTestCase {
   @Test
   public void testRecordToLogs_metadata_notResourceFlow_noResourceTypeOrTld() throws Exception {
     when(flowReporter.eppInput.isDomainResourceType()).thenReturn(false);
-    when(flowReporter.eppInput.getResourceType()).thenReturn(Optional.<String>absent());
+    when(flowReporter.eppInput.getResourceType()).thenReturn(Optional.<String>empty());
     flowReporter.recordToLogs();
     Map<String, Object> json =
         parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-METADATA: "));
@@ -179,7 +180,7 @@ public class FlowReporterTest extends ShardableTestCase {
   @Test
   public void testRecordToLogs_metadata_multipleTargetIds_uniqueTldSet() throws Exception {
     when(flowReporter.eppInput.isDomainResourceType()).thenReturn(true);
-    when(flowReporter.eppInput.getSingleTargetId()).thenReturn(Optional.<String>absent());
+    when(flowReporter.eppInput.getSingleTargetId()).thenReturn(Optional.<String>empty());
     when(flowReporter.eppInput.getTargetIds())
         .thenReturn(ImmutableList.of("target.co.uk", "foo.uk", "bar.uk", "baz.com"));
     flowReporter.recordToLogs();

@@ -37,7 +37,6 @@ import static google.registry.pricing.PricingEngineProxy.getDomainRenewCost;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.CollectionUtils.union;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -90,6 +89,7 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.transfer.TransferStatus;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.inject.Inject;

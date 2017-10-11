@@ -17,6 +17,7 @@ package google.registry.cron;
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Lists.transform;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
@@ -26,7 +27,6 @@ import static java.util.Arrays.asList;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -39,6 +39,7 @@ import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.Retrier;
 import google.registry.util.TaskEnqueuer;
 import java.util.List;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -92,7 +93,7 @@ public class TldFanoutActionTest {
     action.runInEmpty = params.containsKey("runInEmpty");
     action.forEachRealTld = params.containsKey("forEachRealTld");
     action.forEachTestTld = params.containsKey("forEachTestTld");
-    action.jitterSeconds = Optional.absent();
+    action.jitterSeconds = Optional.empty();
     action.run();
   }
 

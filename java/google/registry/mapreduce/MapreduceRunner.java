@@ -33,12 +33,12 @@ import com.google.appengine.tools.mapreduce.outputs.NoOutput;
 import com.google.appengine.tools.pipeline.Job0;
 import com.google.appengine.tools.pipeline.JobSetting;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import google.registry.mapreduce.inputs.ConcatenatingInput;
 import google.registry.request.Parameter;
 import google.registry.util.FormattingLogger;
 import google.registry.util.PipelineUtils;
 import java.io.Serializable;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.Duration;
 
@@ -143,7 +143,7 @@ public class MapreduceRunner {
     return new MapJob<>(
         new MapSpecification.Builder<I, O, R>()
             .setJobName(jobName)
-            .setInput(new ConcatenatingInput<>(inputs, httpParamMapShards.or(defaultMapShards)))
+            .setInput(new ConcatenatingInput<>(inputs, httpParamMapShards.orElse(defaultMapShards)))
             .setMapper(mapper)
             .setOutput(output)
             .build(),
@@ -199,13 +199,13 @@ public class MapreduceRunner {
     return new MapReduceJob<>(
         new MapReduceSpecification.Builder<I, K, V, O, R>()
             .setJobName(jobName)
-            .setInput(new ConcatenatingInput<>(inputs, httpParamMapShards.or(defaultMapShards)))
+            .setInput(new ConcatenatingInput<>(inputs, httpParamMapShards.orElse(defaultMapShards)))
             .setMapper(mapper)
             .setReducer(reducer)
             .setOutput(output)
             .setKeyMarshaller(Marshallers.<K>getSerializationMarshaller())
             .setValueMarshaller(Marshallers.<V>getSerializationMarshaller())
-            .setNumReducers(httpParamReduceShards.or(defaultReduceShards))
+            .setNumReducers(httpParamReduceShards.orElse(defaultReduceShards))
             .build(),
         new MapReduceSettings.Builder()
             .setWorkerQueueName(QUEUE_NAME)

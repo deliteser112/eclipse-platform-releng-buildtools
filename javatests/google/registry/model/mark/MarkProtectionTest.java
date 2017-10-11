@@ -15,6 +15,7 @@
 package google.registry.model.mark;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Test;

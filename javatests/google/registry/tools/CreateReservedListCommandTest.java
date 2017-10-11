@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
@@ -174,7 +175,7 @@ public class CreateReservedListCommandTest extends
       runCommandForced("--name=" + name, "--input=" + reservedTermsPath);
       assertWithMessage("Expected IllegalArgumentException to be thrown").fail();
     } catch (IllegalArgumentException e) {
-      assertThat(ReservedList.get(name)).isAbsent();
+      assertThat(ReservedList.get(name)).isEmpty();
       assertThat(e).hasMessageThat().isEqualTo(expectedErrorMsg);
     }
   }

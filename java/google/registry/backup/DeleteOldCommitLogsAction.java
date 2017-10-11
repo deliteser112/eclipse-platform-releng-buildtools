@@ -27,7 +27,6 @@ import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
 import com.googlecode.objectify.Key;
@@ -100,7 +99,7 @@ public final class DeleteOldCommitLogsAction implements Runnable {
               new DeleteOldCommitLogsMapper(),
               new DeleteOldCommitLogsReducer(deletionThreshold, isDryRun),
               ImmutableList.of(
-                  new CommitLogManifestInput(Optional.of(deletionThreshold)),
+                  new CommitLogManifestInput(deletionThreshold),
                   EppResourceInputs.createKeyInput(EppResource.class)))));
   }
 

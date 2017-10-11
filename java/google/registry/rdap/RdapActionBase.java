@@ -26,7 +26,6 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.InternetDomainName;
 import com.google.common.net.MediaType;
@@ -54,6 +53,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -196,7 +196,7 @@ public abstract class RdapActionBase implements Runnable {
    */
   boolean shouldIncludeDeleted() {
     // If includeDeleted is not specified, or set to false, we don't need to go any further.
-    if (!includeDeletedParam.or(false)) {
+    if (!includeDeletedParam.orElse(false)) {
       return false;
     }
     if (!authResult.userAuthInfo().isPresent()) {

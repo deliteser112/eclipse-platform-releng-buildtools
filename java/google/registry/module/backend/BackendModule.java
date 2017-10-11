@@ -20,13 +20,13 @@ import static google.registry.request.RequestParameters.extractOptionalDatetimeP
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 import static google.registry.request.RequestParameters.extractSetOfParameters;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.batch.ExpandRecurringBillingEventsAction;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 

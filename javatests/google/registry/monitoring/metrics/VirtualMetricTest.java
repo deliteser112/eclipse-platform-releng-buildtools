@@ -15,6 +15,7 @@
 package google.registry.monitoring.metrics;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;

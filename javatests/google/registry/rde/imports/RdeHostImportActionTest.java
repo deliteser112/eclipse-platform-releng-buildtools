@@ -15,6 +15,7 @@
 package google.registry.rde.imports;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.getHistoryEntries;
 import static google.registry.testing.DatastoreHelper.newHostResource;
@@ -26,7 +27,6 @@ import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.RetryParams;
-import com.google.common.base.Optional;
 import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
 import com.googlecode.objectify.Key;
@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Optional;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,12 +64,12 @@ public class RdeHostImportActionTest extends MapreduceTestCase<RdeHostImportActi
   private MapreduceRunner mrRunner;
   private Response response;
 
-  private final Optional<Integer> mapShards = Optional.absent();
+  private final Optional<Integer> mapShards = Optional.empty();
 
   @Before
   public void before() throws Exception {
     response = new FakeResponse();
-    mrRunner = new MapreduceRunner(Optional.<Integer>absent(), Optional.<Integer>absent());
+    mrRunner = new MapreduceRunner(Optional.<Integer>empty(), Optional.<Integer>empty());
     action = new RdeHostImportAction(
         mrRunner,
         response,

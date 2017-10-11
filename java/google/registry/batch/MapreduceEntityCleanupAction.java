@@ -18,7 +18,6 @@ import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import com.google.appengine.api.datastore.DatastoreService;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import google.registry.batch.MapreduceEntityCleanupUtil.EligibleJobResults;
 import google.registry.mapreduce.MapreduceRunner;
@@ -28,6 +27,7 @@ import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
+import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -164,7 +164,7 @@ public class MapreduceEntityCleanupAction implements Runnable {
       handleBadRequest(ERROR_NON_POSITIVE_JOBS_TO_DELETE);
       return;
     }
-    int defaultedDaysOld = daysOld.or(DEFAULT_DAYS_OLD);
+    int defaultedDaysOld = daysOld.orElse(DEFAULT_DAYS_OLD);
     // Only generate the detailed response payload if there aren't too many jobs involved.
     boolean verbose =
         numJobsToDelete.isPresent() && (numJobsToDelete.get() <= DEFAULT_MAX_NUM_JOBS_TO_DELETE);
@@ -174,14 +174,14 @@ public class MapreduceEntityCleanupAction implements Runnable {
     // until we find enough, requesting deletion as we go.
     int numJobsProcessed = 0;
     DateTime cutoffDate = clock.nowUtc().minusDays(defaultedDaysOld);
-    Optional<String> cursor = Optional.absent();
+    Optional<String> cursor = Optional.empty();
     do {
       Optional<Integer> numJobsToRequest =
-          Optional.fromNullable(
+          Optional.ofNullable(
               numJobsToDelete.isPresent() ? numJobsToDelete.get() - numJobsProcessed : null);
       EligibleJobResults batch =
           mapreduceEntityCleanupUtil.findEligibleJobsByJobName(
-              jobName.orNull(), cutoffDate, numJobsToRequest, force.or(false), cursor);
+              jobName.orElse(null), cutoffDate, numJobsToRequest, force.orElse(false), cursor);
       cursor = batch.cursor();
       // Individual batches can come back empty if none of the returned jobs meet the requirements
       // or if all jobs have been exhausted.
@@ -200,7 +200,7 @@ public class MapreduceEntityCleanupAction implements Runnable {
     if (numJobsProcessed == 0) {
       logger.infofmt(
           "No eligible jobs found with name '%s' older than %s days old.",
-          jobName.or("(any)"), defaultedDaysOld);
+          jobName.orElse("(any)"), defaultedDaysOld);
       payload.append("No eligible jobs found");
     } else {
       logger.infofmt("A total of %s job(s) processed.", numJobsProcessed);
@@ -211,19 +211,19 @@ public class MapreduceEntityCleanupAction implements Runnable {
 
   private String requestDeletion(Set<String> actualJobIds, boolean verbose) {
     Optional<StringBuilder> payloadChunkBuilder =
-        verbose ? Optional.of(new StringBuilder()) : Optional.<StringBuilder>absent();
+        verbose ? Optional.of(new StringBuilder()) : Optional.<StringBuilder>empty();
     int errorCount = 0;
     for (String actualJobId : actualJobIds) {
       Optional<String> error =
-          mapreduceEntityCleanupUtil.deleteJobAsync(datastore, actualJobId, force.or(false));
+          mapreduceEntityCleanupUtil.deleteJobAsync(datastore, actualJobId, force.orElse(false));
       if (error.isPresent()) {
         errorCount++;
       }
-      logger.infofmt("%s: %s", actualJobId, error.or("deletion requested"));
+      logger.infofmt("%s: %s", actualJobId, error.orElse("deletion requested"));
       if (payloadChunkBuilder.isPresent()) {
         payloadChunkBuilder
             .get()
-            .append(String.format("%s: %s\n", actualJobId, error.or("deletion requested")));
+            .append(String.format("%s: %s\n", actualJobId, error.orElse("deletion requested")));
       }
     }
     logger.infofmt(

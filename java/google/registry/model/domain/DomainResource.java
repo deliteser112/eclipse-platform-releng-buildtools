@@ -24,7 +24,6 @@ import static google.registry.util.DateTimeUtils.earliestOf;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.EntitySubclass;
@@ -41,6 +40,7 @@ import google.registry.model.registry.Registry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -174,7 +174,7 @@ public class DomainResource extends DomainBase
 
   @Override
   public final TransferData getTransferData() {
-    return Optional.fromNullable(transferData).or(TransferData.EMPTY);
+    return Optional.ofNullable(transferData).orElse(TransferData.EMPTY);
   }
 
   @Override
@@ -328,7 +328,7 @@ public class DomainResource extends DomainBase
     return earliestOf(
         leapSafeAddYears(
             currentExpirationTime,
-            Optional.fromNullable(extendedRegistrationYears).or(0)),
+            Optional.ofNullable(extendedRegistrationYears).orElse(0)),
         leapSafeAddYears(now, MAX_REGISTRATION_YEARS));
   }
 

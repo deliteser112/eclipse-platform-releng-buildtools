@@ -23,9 +23,9 @@ import static google.registry.model.registry.label.ReservedList.getReservationTy
 import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
 import google.registry.model.registry.Registry;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -52,8 +52,8 @@ public final class StaticPremiumListPricingEngine implements PremiumPricingEngin
             isNameCollisionInSunrise ? "collision" : null));
     return DomainPrices.create(
         premiumPrice.isPresent(),
-        premiumPrice.or(registry.getStandardCreateCost()),
-        premiumPrice.or(registry.getStandardRenewCost(priceTime)),
-        Optional.<String>fromNullable(feeClass));
+        premiumPrice.orElse(registry.getStandardCreateCost()),
+        premiumPrice.orElse(registry.getStandardRenewCost(priceTime)),
+        Optional.<String>ofNullable(feeClass));
   }
 }

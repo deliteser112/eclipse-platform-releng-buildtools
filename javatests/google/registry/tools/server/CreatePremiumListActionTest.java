@@ -15,6 +15,7 @@
 package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.registry.label.PremiumListUtils.deletePremiumList;
 import static google.registry.model.registry.label.PremiumListUtils.getPremiumPrice;
 import static google.registry.testing.DatastoreHelper.createTlds;
@@ -91,6 +92,6 @@ public class CreatePremiumListActionTest {
     assertThat(response.getStatus()).isEqualTo(SC_OK);
     assertThat(loadPremiumListEntries(PremiumList.get("foo").get())).hasSize(2);
     assertThat(getPremiumPrice("rich", Registry.get("foo"))).hasValue(Money.parse("USD 25"));
-    assertThat(getPremiumPrice("diamond", Registry.get("foo"))).isAbsent();
+    assertThat(getPremiumPrice("diamond", Registry.get("foo"))).isEmpty();
   }
 }

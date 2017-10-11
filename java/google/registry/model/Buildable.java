@@ -18,10 +18,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.base.Optional;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import java.lang.reflect.Field;
+import java.util.Optional;
 
 /** Interface for {@link ImmutableObject} subclasses that have a builder. */
 public interface Buildable {
@@ -64,8 +64,8 @@ public interface Buildable {
         }
         if (idField != null
             && !idField.getType().equals(String.class)
-            && Optional.fromNullable((Long) ModelUtils.getFieldValue(instance, idField))
-                .or(0L) == 0) {
+            && Optional.ofNullable((Long) ModelUtils.getFieldValue(instance, idField))
+                .orElse(0L) == 0) {
           ModelUtils.setFieldValue(instance, idField, ObjectifyService.allocateId());
         }
         return instance;

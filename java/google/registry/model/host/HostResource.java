@@ -21,7 +21,6 @@ import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
@@ -35,6 +34,7 @@ import google.registry.model.annotations.ReportedOn;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.transfer.TransferData;
 import java.net.InetAddress;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -146,9 +146,9 @@ public class HostResource extends EppResource implements ForeignKeyedEppResource
         superordinateDomain != null
             && Key.create(superordinateDomain).equals(getSuperordinateDomain()));
     DateTime lastSuperordinateChange =
-        Optional.fromNullable(getLastSuperordinateChange()).or(getCreationTime());
+        Optional.ofNullable(getLastSuperordinateChange()).orElse(getCreationTime());
     DateTime lastTransferOfCurrentSuperordinate =
-        Optional.fromNullable(superordinateDomain.getLastTransferTime()).or(START_OF_TIME);
+        Optional.ofNullable(superordinateDomain.getLastTransferTime()).orElse(START_OF_TIME);
     return (lastSuperordinateChange.isBefore(lastTransferOfCurrentSuperordinate))
         ? superordinateDomain.getLastTransferTime()
         : getLastTransferTime();

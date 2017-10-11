@@ -16,7 +16,7 @@ package google.registry.util;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /** Utility methods related to preconditions checking. */

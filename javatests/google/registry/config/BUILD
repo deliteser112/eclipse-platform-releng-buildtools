@@ -12,8 +12,9 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//java/google/registry/config",
-        "//third_party/java/truth",
         "@com_google_guava",
+        "@com_google_truth",
+        "@com_google_truth_extensions_truth_java8_extension",
         "@junit",
     ],
 )

@@ -20,7 +20,6 @@ import static com.google.common.collect.Sets.union;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
@@ -36,6 +35,7 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.Duration;
 import org.xbill.DNS.AAAARecord;

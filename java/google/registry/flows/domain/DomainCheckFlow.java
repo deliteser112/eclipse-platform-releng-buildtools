@@ -27,7 +27,6 @@ import static google.registry.model.index.DomainApplicationIndex.loadActiveAppli
 import static google.registry.model.registry.label.ReservationType.getTypeOfHighestSeverity;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -63,6 +62,7 @@ import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.util.Clock;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -151,7 +151,7 @@ public final class DomainCheckFlow implements Flow {
     ImmutableList.Builder<DomainCheck> checks = new ImmutableList.Builder<>();
     for (String targetId : targetIds) {
       Optional<String> message = getMessageForCheck(domainNames.get(targetId), existingIds, now);
-      checks.add(DomainCheck.create(!message.isPresent(), targetId, message.orNull()));
+      checks.add(DomainCheck.create(!message.isPresent(), targetId, message.orElse(null)));
     }
     BeforeResponseReturnData responseData =
         customLogic.beforeResponse(
@@ -187,7 +187,7 @@ public final class DomainCheckFlow implements Flow {
     }
 
     return reservationTypes.isEmpty()
-        ? Optional.<String>absent()
+        ? Optional.<String>empty()
         : Optional.of(getTypeOfHighestSeverity(reservationTypes).getMessageForCheck());
   }
 

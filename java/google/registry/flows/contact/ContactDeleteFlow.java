@@ -23,7 +23,6 @@ import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
@@ -43,6 +42,7 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 

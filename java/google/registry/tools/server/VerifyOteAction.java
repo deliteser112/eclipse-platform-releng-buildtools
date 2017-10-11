@@ -25,7 +25,6 @@ import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
@@ -51,6 +50,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 
@@ -205,7 +205,7 @@ public class VerifyOteAction implements Runnable, JsonAction {
       this.requirement = requirement;
       this.typeFilter = typeFilter;
       if (eppInputFilter == null) {
-        this.eppInputFilter = Optional.<Predicate<EppInput>>absent();
+        this.eppInputFilter = Optional.<Predicate<EppInput>>empty();
       } else {
         this.eppInputFilter = Optional.of(eppInputFilter);
       }
@@ -260,7 +260,7 @@ public class VerifyOteAction implements Runnable, JsonAction {
       // xmlBytes can be null on contact create and update for safe-harbor compliance.
       final Optional<EppInput> eppInput =
           (xmlBytes == null)
-              ? Optional.<EppInput>absent()
+              ? Optional.<EppInput>empty()
               : Optional.of(unmarshal(EppInput.class, xmlBytes));
       if (!statCounts.addAll(
           EnumSet.allOf(StatType.class)

@@ -15,6 +15,7 @@
 package google.registry.tldconfig.idn;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableForTld;
 
 import com.google.common.collect.ImmutableList;
@@ -45,10 +46,10 @@ public class IdnLabelValidatorTest {
 
     // This should fail since it mixes Japanese characters with extended Latin characters. These are
     // allowed individually, but not together, since they are in separate IDN tables.
-    assertThat(findValidIdnTableForTld("みんなアシヨわみけæ", tld)).isAbsent();
+    assertThat(findValidIdnTableForTld("みんなアシヨわみけæ", tld)).isEmpty();
 
     // This fails because it has Cyrillic characters, which just aren't allowed in either IDN table.
-    assertThat(findValidIdnTableForTld("aЖЗ", tld)).isAbsent();
+    assertThat(findValidIdnTableForTld("aЖЗ", tld)).isEmpty();
 
     assertThat(findValidIdnTableForTld("abcdefghæ", tld)).isPresent();
     assertThat(findValidIdnTableForTld("happy", tld)).isPresent();
@@ -69,24 +70,24 @@ public class IdnLabelValidatorTest {
 
     // These fail because they have a KATAKANA MIDDLE DOT or IDEOGRAPHIC_CLOSING_MARK without any
     // Japanese non-exception characters.
-    assertThat(findValidIdnTableForTld("eco・driving", tld)).isAbsent();
-    assertThat(findValidIdnTableForTld("・ー・", tld)).isAbsent();
-    assertThat(findValidIdnTableForTld("〆〆example・・", tld)).isAbsent();
-    assertThat(findValidIdnTableForTld("abc〆", tld)).isAbsent();
-    assertThat(findValidIdnTableForTld("〆xyz", tld)).isAbsent();
-    assertThat(findValidIdnTableForTld("〆bar・", tld)).isAbsent();
+    assertThat(findValidIdnTableForTld("eco・driving", tld)).isEmpty();
+    assertThat(findValidIdnTableForTld("・ー・", tld)).isEmpty();
+    assertThat(findValidIdnTableForTld("〆〆example・・", tld)).isEmpty();
+    assertThat(findValidIdnTableForTld("abc〆", tld)).isEmpty();
+    assertThat(findValidIdnTableForTld("〆xyz", tld)).isEmpty();
+    assertThat(findValidIdnTableForTld("〆bar・", tld)).isEmpty();
 
     // This is a Japanese label with exactly 15 characters.
     assertThat(findValidIdnTableForTld("カレー・ライスaaaaaaaa", tld)).isPresent();
 
     // Should fail since it has Japanese characters but is more than 15 characters long.
-    assertThat(findValidIdnTableForTld("カレー・ライスaaaaaaaaa", tld)).isAbsent();
+    assertThat(findValidIdnTableForTld("カレー・ライスaaaaaaaaa", tld)).isEmpty();
 
     // Should fail since it has a prolonged sound mark that is not preceded by Hiragana or Katakana
     // characters.
-    assertThat(findValidIdnTableForTld("aー", tld)).isAbsent();
-    assertThat(findValidIdnTableForTld("-ー", tld)).isAbsent();
-    assertThat(findValidIdnTableForTld("0ー", tld)).isAbsent();
+    assertThat(findValidIdnTableForTld("aー", tld)).isEmpty();
+    assertThat(findValidIdnTableForTld("-ー", tld)).isEmpty();
+    assertThat(findValidIdnTableForTld("0ー", tld)).isEmpty();
   }
 
   @Test
@@ -112,6 +113,6 @@ public class IdnLabelValidatorTest {
         "idnTableListsPerTld",
         ImmutableMap.of("tld", ImmutableList.of(IdnTableEnum.EXTENDED_LATIN)));
     assertThat(findValidIdnTableForTld("foo", "tld")).isPresent();
-    assertThat(findValidIdnTableForTld("みんな",  "tld")).isAbsent();
+    assertThat(findValidIdnTableForTld("みんな",  "tld")).isEmpty();
   }
 }

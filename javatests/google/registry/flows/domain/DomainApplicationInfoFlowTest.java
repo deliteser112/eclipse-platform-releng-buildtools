@@ -14,7 +14,6 @@
 
 package google.registry.flows.domain;
 
-import static com.google.common.base.Predicates.equalTo;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -26,7 +25,6 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static google.registry.util.DatastoreServiceUtils.KEY_TO_KIND_FUNCTION;
 
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -343,9 +341,11 @@ public class DomainApplicationInfoFlowTest
                         keys.stream()
                             .map(KEY_TO_KIND_FUNCTION)
                             .anyMatch(
-                                Predicates.or(
-                                    equalTo(Key.getKind(ContactResource.class)),
-                                    equalTo(Key.getKind(HostResource.class)))))
+                                kind ->
+                                    ImmutableSet.of(
+                                            Key.getKind(ContactResource.class),
+                                            Key.getKind(HostResource.class))
+                                        .contains(kind)))
                 .count();
     assertThat(numReadsWithContactsOrHosts).isEqualTo(1);
   }

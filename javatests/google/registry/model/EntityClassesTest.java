@@ -16,6 +16,7 @@ package google.registry.model;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.EntityClasses.ALL_CLASSES;
 import static google.registry.model.EntityClasses.CLASS_TO_KIND_FUNCTION;
 import static google.registry.util.TypeUtils.hasAnnotation;

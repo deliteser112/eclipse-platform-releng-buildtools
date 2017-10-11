@@ -16,27 +16,33 @@ package google.registry.mapreduce.inputs;
 
 import com.google.appengine.tools.mapreduce.Input;
 import com.google.appengine.tools.mapreduce.InputReader;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogManifest;
 import java.util.List;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 /** Base class for {@link Input} classes that map over {@link CommitLogManifest}. */
 public class CommitLogManifestInput extends Input<Key<CommitLogManifest>> {
 
-  private static final long serialVersionUID = 2043552272352286428L;
+  private static final long serialVersionUID = 6744322799131602384L;
 
   /**
    * Cutoff date for result.
    *
-   * If present, all resulting CommitLogManifest will be dated prior to this date.
+   * <p>If present, all resulting CommitLogManifest will be dated prior to this date. This can't be
+   * of type {@code Optional<DateTime>} because Optional purposely isn't Serializable.
    */
-  private final Optional<DateTime> olderThan;
+  @Nullable
+  private final DateTime olderThan;
 
-  public CommitLogManifestInput(Optional<DateTime> olderThan) {
+  public CommitLogManifestInput() {
+    this.olderThan = null;
+  }
+
+  public CommitLogManifestInput(@Nullable DateTime olderThan) {
     this.olderThan = olderThan;
   }
 

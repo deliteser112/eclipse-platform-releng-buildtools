@@ -15,15 +15,16 @@
 package google.registry.request.lock;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.google.common.base.Optional;
 import google.registry.model.server.Lock;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 import org.joda.time.Duration;
@@ -77,7 +78,7 @@ public final class LockHandlerImplTest {
         assertThat(resourceName).isEqualTo("resourceName");
         assertThat(tld).isEqualTo("tld");
         assertThat(leaseLength).isEqualTo(ONE_DAY);
-        return Optional.fromNullable(acquiredLock);
+        return Optional.ofNullable(acquiredLock);
       }
     };
 

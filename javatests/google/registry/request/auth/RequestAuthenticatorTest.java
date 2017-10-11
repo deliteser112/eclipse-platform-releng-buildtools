@@ -16,13 +16,13 @@ package google.registry.request.auth;
 
 import static com.google.common.net.HttpHeaders.AUTHORIZATION;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.request.auth.RequestAuthenticator.AuthMethod;
@@ -34,6 +34,7 @@ import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeOAuthService;
 import google.registry.testing.FakeUserService;
+import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Rule;
@@ -155,7 +156,7 @@ public class RequestAuthenticatorTest {
     verifyZeroInteractions(mockUserService);
     assertThat(authResult).isPresent();
     assertThat(authResult.get().authLevel()).isEqualTo(AuthLevel.APP);
-    assertThat(authResult.get().userAuthInfo()).isAbsent();
+    assertThat(authResult.get().userAuthInfo()).isEmpty();
   }
 
   @Test
@@ -163,7 +164,7 @@ public class RequestAuthenticatorTest {
     Optional<AuthResult> authResult = runTest(mockUserService, AUTH_INTERNAL_ONLY);
 
     verifyZeroInteractions(mockUserService);
-    assertThat(authResult).isAbsent();
+    assertThat(authResult).isEmpty();
   }
 
   @Test
@@ -175,14 +176,14 @@ public class RequestAuthenticatorTest {
     verifyZeroInteractions(mockUserService);
     assertThat(authResult).isPresent();
     assertThat(authResult.get().authLevel()).isEqualTo(AuthLevel.APP);
-    assertThat(authResult.get().userAuthInfo()).isAbsent();
+    assertThat(authResult.get().userAuthInfo()).isEmpty();
   }
 
   @Test
   public void testAnyUserAnyMethod_notLoggedIn() throws Exception {
     Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_ANY_METHOD);
 
-    assertThat(authResult).isAbsent();
+    assertThat(authResult).isEmpty();
   }
 
   @Test
@@ -191,7 +192,7 @@ public class RequestAuthenticatorTest {
 
     Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_ANY_METHOD);
 
-    assertThat(authResult).isAbsent();
+    assertThat(authResult).isEmpty();
   }
 
   @Test
@@ -207,7 +208,7 @@ public class RequestAuthenticatorTest {
     assertThat(authResult.get().userAuthInfo()).isPresent();
     assertThat(authResult.get().userAuthInfo().get().user()).isEqualTo(testUser);
     assertThat(authResult.get().userAuthInfo().get().isUserAdmin()).isFalse();
-    assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo()).isAbsent();
+    assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo()).isEmpty();
   }
 
   @Test
@@ -221,14 +222,14 @@ public class RequestAuthenticatorTest {
     assertThat(authResult.get().authLevel()).isEqualTo(AuthLevel.USER);
     assertThat(authResult.get().userAuthInfo()).isPresent();
     assertThat(authResult.get().userAuthInfo().get().user()).isEqualTo(testUser);
-    assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo()).isAbsent();
+    assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo()).isEmpty();
   }
 
   @Test
   public void testAdminUserAnyMethod_notLoggedIn() throws Exception {
     Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ADMIN_USER_ANY_METHOD);
 
-    assertThat(authResult).isAbsent();
+    assertThat(authResult).isEmpty();
   }
 
   @Test
@@ -237,7 +238,7 @@ public class RequestAuthenticatorTest {
 
     Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ADMIN_USER_ANY_METHOD);
 
-    assertThat(authResult).isAbsent();
+    assertThat(authResult).isEmpty();
   }
 
   @Test
@@ -246,7 +247,7 @@ public class RequestAuthenticatorTest {
 
     Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ADMIN_USER_ANY_METHOD);
 
-    assertThat(authResult).isAbsent();
+    assertThat(authResult).isEmpty();
   }
 
   @Test
@@ -262,7 +263,7 @@ public class RequestAuthenticatorTest {
     assertThat(authResult.get().userAuthInfo()).isPresent();
     assertThat(authResult.get().userAuthInfo().get().user()).isEqualTo(testUser);
     assertThat(authResult.get().userAuthInfo().get().isUserAdmin()).isTrue();
-    assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo()).isAbsent();
+    assertThat(authResult.get().userAuthInfo().get().oauthTokenInfo()).isEmpty();
   }
 
   @Test
@@ -317,7 +318,7 @@ public class RequestAuthenticatorTest {
 
     Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_NO_LEGACY);
 
-    assertThat(authResult).isAbsent();
+    assertThat(authResult).isEmpty();
   }
 
   @Test
@@ -329,7 +330,7 @@ public class RequestAuthenticatorTest {
 
     Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_NO_LEGACY);
 
-    assertThat(authResult).isAbsent();
+    assertThat(authResult).isEmpty();
   }
 
   @Test
@@ -341,7 +342,7 @@ public class RequestAuthenticatorTest {
 
     Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_NO_LEGACY);
 
-    assertThat(authResult).isAbsent();
+    assertThat(authResult).isEmpty();
   }
 
   @Test
@@ -353,7 +354,7 @@ public class RequestAuthenticatorTest {
 
     Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_NO_LEGACY);
 
-    assertThat(authResult).isAbsent();
+    assertThat(authResult).isEmpty();
   }
 
   @Test
@@ -385,7 +386,7 @@ public class RequestAuthenticatorTest {
 
     Optional<AuthResult> authResult = runTest(fakeUserService, AUTH_ANY_USER_NO_LEGACY);
 
-    assertThat(authResult).isAbsent();
+    assertThat(authResult).isEmpty();
   }
 
   @Test

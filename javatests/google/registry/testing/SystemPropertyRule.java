@@ -17,11 +17,11 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.common.base.Optional;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import org.junit.rules.ExternalResource;
 
@@ -65,8 +65,8 @@ public final class SystemPropertyRule extends ExternalResource {
    */
   public SystemPropertyRule override(String key, @Nullable String value) {
     originals.computeIfAbsent(
-        key, k -> new Property(k, Optional.fromNullable(System.getProperty(k))));
-    Property property = new Property(key, Optional.fromNullable(value));
+        key, k -> new Property(k, Optional.ofNullable(System.getProperty(k))));
+    Property property = new Property(key, Optional.ofNullable(value));
     if (isRunning) {
       property.set();
     } else {

@@ -15,6 +15,7 @@
 package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
@@ -22,7 +23,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.Optional;
 import google.registry.groups.DirectoryGroupsConnection;
 import google.registry.groups.GroupsConnection.Role;
 import google.registry.request.HttpException.BadRequestException;
@@ -31,6 +31,7 @@ import google.registry.request.Response;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.InjectRule;
+import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,7 +62,7 @@ public class CreateGroupsActionTest {
     action.response = response;
     action.groupsConnection = connection;
     action.gSuiteDomainName = "domain-registry.example";
-    action.clientId = Optional.fromNullable(clientId);
+    action.clientId = Optional.ofNullable(clientId);
     action.run();
   }
 

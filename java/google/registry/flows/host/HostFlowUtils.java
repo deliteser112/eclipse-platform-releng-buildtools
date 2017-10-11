@@ -21,7 +21,6 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static java.util.stream.Collectors.joining;
 
 import com.google.common.base.Ascii;
-import com.google.common.base.Optional;
 import com.google.common.net.InternetDomainName;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
@@ -33,6 +32,7 @@ import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.util.Idn;
+import java.util.Optional;
 import org.joda.time.DateTime;
 
 /** Static utility functions for host flows. */
@@ -94,7 +94,7 @@ public class HostFlowUtils {
     Optional<InternetDomainName> tld = findTldForName(hostName);
     if (!tld.isPresent()) {
       // This is an host on a TLD we don't run, therefore obviously external, so we are done.
-      return Optional.absent();
+      return Optional.empty();
     }
     // This is a subordinate host
     String domainName =

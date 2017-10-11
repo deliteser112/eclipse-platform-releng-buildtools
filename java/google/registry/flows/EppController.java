@@ -22,7 +22,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import google.registry.flows.FlowModule.EppExceptionInProviderException;
@@ -35,6 +34,7 @@ import google.registry.model.eppoutput.Result.Code;
 import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.util.FormattingLogger;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.json.simple.JSONValue;
 
@@ -62,7 +62,7 @@ public final class EppController {
       boolean isDryRun,
       boolean isSuperuser,
       byte[] inputXmlBytes) {
-    eppMetricBuilder.setClientId(Optional.fromNullable(sessionMetadata.getClientId()));
+    eppMetricBuilder.setClientId(Optional.ofNullable(sessionMetadata.getClientId()));
     eppMetricBuilder.setPrivilegeLevel(isSuperuser ? "SUPERUSER" : "NORMAL");
     try {
       EppInput eppInput;

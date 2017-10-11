@@ -43,73 +43,73 @@ public final class LoadTestModule {
   @Parameter("delaySeconds")
   static int provideDelaySeconds(HttpServletRequest req) {
     return extractOptionalIntParameter(req, "delaySeconds")
-        .or(Minutes.ONE.toStandardSeconds().getSeconds());
+        .orElse(Minutes.ONE.toStandardSeconds().getSeconds());
   }
 
   @Provides
   @Parameter("runSeconds")
   static int provideRunSeconds(HttpServletRequest req) {
     return extractOptionalIntParameter(req, "runSeconds")
-        .or(Minutes.ONE.toStandardSeconds().getSeconds());
+        .orElse(Minutes.ONE.toStandardSeconds().getSeconds());
   }
 
   @Provides
   @Parameter("successfulDomainCreates")
   static int provideSuccessfulDomainCreates(HttpServletRequest req) {
-    return extractOptionalIntParameter(req, "successfulDomainCreates").or(0);
+    return extractOptionalIntParameter(req, "successfulDomainCreates").orElse(0);
   }
 
   @Provides
   @Parameter("failedDomainCreates")
   static int provideFailedDomainCreates(HttpServletRequest req) {
-    return extractOptionalIntParameter(req, "failedDomainCreates").or(0);
+    return extractOptionalIntParameter(req, "failedDomainCreates").orElse(0);
   }
 
   @Provides
   @Parameter("domainInfos")
   static int provideDomainInfos(HttpServletRequest req) {
-    return extractOptionalIntParameter(req, "domainInfos").or(0);
+    return extractOptionalIntParameter(req, "domainInfos").orElse(0);
   }
 
   @Provides
   @Parameter("domainChecks")
   static int provideDomainChecks(HttpServletRequest req) {
-    return extractOptionalIntParameter(req, "domainChecks").or(0);
+    return extractOptionalIntParameter(req, "domainChecks").orElse(0);
   }
 
   @Provides
   @Parameter("successfulContactCreates")
   static int provideSuccessfulContactCreates(HttpServletRequest req) {
-    return extractOptionalIntParameter(req, "successfulContactCreates").or(0);
+    return extractOptionalIntParameter(req, "successfulContactCreates").orElse(0);
   }
 
   @Provides
   @Parameter("failedContactCreates")
   static int provideFailedContactCreates(HttpServletRequest req) {
-    return extractOptionalIntParameter(req, "failedContactCreates").or(0);
+    return extractOptionalIntParameter(req, "failedContactCreates").orElse(0);
   }
 
   @Provides
   @Parameter("contactInfos")
   static int provideContactInfos(HttpServletRequest req) {
-    return extractOptionalIntParameter(req, "contactInfos").or(0);
+    return extractOptionalIntParameter(req, "contactInfos").orElse(0);
   }
 
   @Provides
   @Parameter("successfulHostCreates")
   static int provideSuccessfulHostCreates(HttpServletRequest req) {
-    return extractOptionalIntParameter(req, "successfulHostCreates").or(0);
+    return extractOptionalIntParameter(req, "successfulHostCreates").orElse(0);
   }
 
   @Provides
   @Parameter("failedHostCreates")
   static int provideFailedHostCreates(HttpServletRequest req) {
-    return extractOptionalIntParameter(req, "failedHostCreates").or(0);
+    return extractOptionalIntParameter(req, "failedHostCreates").orElse(0);
   }
 
   @Provides
   @Parameter("hostInfos")
   static int provideHostInfos(HttpServletRequest req) {
-    return extractOptionalIntParameter(req, "hostInfos").or(0);
+    return extractOptionalIntParameter(req, "hostInfos").orElse(0);
   }
 }

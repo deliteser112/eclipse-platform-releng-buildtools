@@ -18,11 +18,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 
-import com.google.common.base.Optional;
 import google.registry.model.pricing.PremiumPricingEngine;
 import google.registry.model.pricing.PremiumPricingEngine.DomainPrices;
 import google.registry.model.registry.Registry;
 import java.util.Map;
+import java.util.Optional;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 

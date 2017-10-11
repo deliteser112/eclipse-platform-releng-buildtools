@@ -14,9 +14,9 @@
 
 package google.registry.model.domain.fee06;
 
-import com.google.common.base.Optional;
 import google.registry.model.domain.fee.FeeCheckCommandExtensionItem;
 import google.registry.model.domain.fee.FeeExtensionCommandDescriptor;
+import java.util.Optional;
 import javax.xml.bind.annotation.XmlType;
 import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
@@ -79,6 +79,6 @@ public class FeeCheckCommandExtensionItemV06 extends FeeCheckCommandExtensionIte
 
   @Override
   public Optional<DateTime> getEffectiveDate() {
-    return Optional.absent();
+    return Optional.empty();
   }
 }

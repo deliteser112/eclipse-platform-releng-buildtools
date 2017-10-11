@@ -14,7 +14,6 @@
 
 package google.registry.flows.domain;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -35,13 +34,13 @@ import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static java.util.stream.Collectors.toSet;
 import static org.joda.money.CurrencyUnit.EUR;
 import static org.joda.money.CurrencyUnit.USD;
 
+import com.google.appengine.repackaged.com.google.common.collect.Sets;
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -87,6 +86,8 @@ import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferStatus;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -269,13 +270,13 @@ public class DomainTransferRequestFlowTest
                   .setBillingTime(
                       implicitTransferTime.plus(registry.getTransferGracePeriodLength()))
                   .setClientId("NewRegistrar")
-                  .setCost(transferCost.or(Money.of(USD, 11)))
+                  .setCost(transferCost.orElse(Money.of(USD, 11)))
                   .setPeriodYears(1)
                   .setParent(historyEntryTransferRequest)
                   .build());
     } else {
       // Superuser transfers with no bundled renewal have no transfer billing event.
-      optionalTransferBillingEvent = Optional.<BillingEvent.OneTime>absent();
+      optionalTransferBillingEvent = Optional.<BillingEvent.OneTime>empty();
     }
     // Construct the autorenew events for the losing/existing client and the gaining one. Note that
     // all of the other transfer flow tests happen on day 3 of the transfer, but the initial
@@ -290,18 +291,17 @@ public class DomainTransferRequestFlowTest
             .setEventTime(expectedExpirationTime)
             .build();
     // Construct extra billing events expected by the specific test.
-    ImmutableList<BillingEvent> extraBillingEvents =
+    Set<BillingEvent> extraBillingEvents =
         Stream.of(extraExpectedBillingEvents)
             .map(
                 (Function<BillingEvent.Cancellation.Builder, BillingEvent>)
                     builder -> builder.setParent(historyEntryTransferRequest).build())
-            .collect(toImmutableList());
-    // Assert that the billing events we constructed above actually exist in datastore.
-    assertBillingEvents(FluentIterable.from(extraBillingEvents)
-        .append(optionalTransferBillingEvent.asSet())
-        .append(losingClientAutorenew)
-        .append(gainingClientAutorenew)
-        .toArray(BillingEvent.class));
+            .collect(toSet());
+    // Assert that the billing events we constructed above actually exist in Datastore.
+    Set<BillingEvent> expectedBillingEvents =
+        Sets.newHashSet(losingClientAutorenew, gainingClientAutorenew);
+    optionalTransferBillingEvent.ifPresent(expectedBillingEvents::add);
+    assertBillingEvents(Sets.union(expectedBillingEvents, extraBillingEvents));
     // Assert that the domain's TransferData server-approve billing events match the above.
     if (expectTransferBillingEvent) {
       assertBillingEventsEqual(
@@ -315,16 +315,17 @@ public class DomainTransferRequestFlowTest
         gainingClientAutorenew);
     // Assert that the full set of server-approve billing events is exactly the extra ones plus
     // the transfer billing event (if present) and the gaining client autorenew.
+    Set<BillingEvent> expectedServeApproveBillingEvents = Sets.newHashSet(gainingClientAutorenew);
+    optionalTransferBillingEvent.ifPresent(expectedServeApproveBillingEvents::add);
     assertBillingEventsEqual(
         Iterables.filter(
-            ofy().load()
+            ofy()
+                .load()
                 // Use toArray() to coerce the type to something keys() will accept.
-                .keys(domain.getTransferData().getServerApproveEntities().toArray(new Key<?>[]{}))
+                .keys(domain.getTransferData().getServerApproveEntities().toArray(new Key<?>[] {}))
                 .values(),
             BillingEvent.class),
-        FluentIterable.from(extraBillingEvents)
-            .append(optionalTransferBillingEvent.asSet())
-            .append(gainingClientAutorenew));
+        Sets.union(expectedServeApproveBillingEvents, extraBillingEvents));
     // The domain's autorenew billing event should still point to the losing client's event.
     BillingEvent.Recurring domainAutorenewEvent =
         ofy().load().key(domain.getAutorenewBillingEvent()).now();
@@ -469,7 +470,7 @@ public class DomainTransferRequestFlowTest
         expectedXmlFilename,
         expectedExpirationTime,
         ImmutableMap.<String, String>of(),
-        Optional.<Money>absent(),
+        Optional.<Money>empty(),
         extraExpectedBillingEvents);
   }
 
@@ -483,7 +484,7 @@ public class DomainTransferRequestFlowTest
         expectedXmlFilename,
         domain.getRegistrationExpirationTime().plusYears(1),
         substitutions,
-        Optional.<Money>absent());
+        Optional.<Money>empty());
   }
 
   private void doSuccessfulTest(String commandFilename, String expectedXmlFilename)
@@ -755,7 +756,7 @@ public class DomainTransferRequestFlowTest
         "domain_transfer_request_response_su_ext_zero_period_nonzero_transfer_length.xml",
         domain.getRegistrationExpirationTime().plusYears(0),
         ImmutableMap.of("PERIOD", "0", "AUTOMATIC_TRANSFER_LENGTH", "5"),
-        Optional.<Money>absent(),
+        Optional.<Money>empty(),
         Period.create(0, Unit.YEARS),
         Duration.standardDays(5));
   }
@@ -771,7 +772,7 @@ public class DomainTransferRequestFlowTest
         "domain_transfer_request_response_su_ext_zero_period_zero_transfer_length.xml",
         domain.getRegistrationExpirationTime().plusYears(0),
         ImmutableMap.of("PERIOD", "0", "AUTOMATIC_TRANSFER_LENGTH", "0"),
-        Optional.<Money>absent(),
+        Optional.<Money>empty(),
         Period.create(0, Unit.YEARS),
         Duration.ZERO);
   }
@@ -787,7 +788,7 @@ public class DomainTransferRequestFlowTest
         "domain_transfer_request_response_su_ext_one_year_period_nonzero_transfer_length.xml",
         domain.getRegistrationExpirationTime().plusYears(1),
         ImmutableMap.of("PERIOD", "1", "AUTOMATIC_TRANSFER_LENGTH", "5"),
-        Optional.<Money>absent(),
+        Optional.<Money>empty(),
         Period.create(1, Unit.YEARS),
         Duration.standardDays(5));
   }
@@ -817,7 +818,7 @@ public class DomainTransferRequestFlowTest
         "domain_transfer_request_response_su_ext_zero_period_autorenew_grace.xml",
         domain.getRegistrationExpirationTime(),
         ImmutableMap.of("PERIOD", "0", "AUTOMATIC_TRANSFER_LENGTH", "0"),
-        Optional.<Money>absent(),
+        Optional.<Money>empty(),
         Period.create(0, Unit.YEARS),
         Duration.ZERO);
   }
@@ -1084,7 +1085,6 @@ public class DomainTransferRequestFlowTest
     thrown.expect(CurrencyValueScaleException.class);
     doFailingTest("domain_transfer_request_fee_bad_scale.xml", FEE_12_MAP);
   }
-
 
   private void runWrongFeeAmountTest(Map<String, String> substitutions) throws Exception {
     persistResource(

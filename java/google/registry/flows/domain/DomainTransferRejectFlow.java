@@ -31,7 +31,6 @@ import static google.registry.model.reporting.DomainTransactionRecord.Transactio
 import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
@@ -51,6 +50,7 @@ import google.registry.model.reporting.DomainTransactionRecord;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.transfer.TransferStatus;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 

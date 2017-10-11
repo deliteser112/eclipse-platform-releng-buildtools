@@ -15,6 +15,7 @@
 package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 
 import google.registry.testing.ExceptionRule;
 import org.junit.Rule;
@@ -44,11 +45,11 @@ public class PhoneNumberParameterTest {
 
   @Test
   public void testConvert_empty_returnsAbsent() throws Exception {
-    assertThat(instance.convert("")).isAbsent();
+    assertThat(instance.convert("")).isEmpty();
   }
 
   @Test
   public void testConvert_nullString_returnsAbsent() throws Exception {
-    assertThat(instance.convert("null")).isAbsent();
+    assertThat(instance.convert("null")).isEmpty();
   }
 }

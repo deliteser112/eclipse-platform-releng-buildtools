@@ -15,6 +15,7 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
@@ -28,7 +29,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -45,6 +45,7 @@ import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.ui.server.registrar.SessionUtils;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
@@ -160,8 +161,8 @@ public class RdapEntityActionTest {
     action.clock = clock;
     action.request = request;
     action.response = response;
-    action.registrarParam = Optional.<String>absent();
-    action.includeDeletedParam = Optional.<Boolean>absent();
+    action.registrarParam = Optional.<String>empty();
+    action.includeDeletedParam = Optional.<Boolean>empty();
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;

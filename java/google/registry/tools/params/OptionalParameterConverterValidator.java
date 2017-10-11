@@ -14,8 +14,8 @@
 
 package google.registry.tools.params;
 
-import com.google.common.base.Optional;
 import google.registry.util.TypeUtils.TypeInstantiator;
+import java.util.Optional;
 
 /**
  * Class for parameters that can handle special string "null" or empty values to
@@ -39,7 +39,7 @@ public class OptionalParameterConverterValidator<T, C extends ParameterConverter
   @Override
   public final Optional<T> convert(String value) {
     if (value.equals(NULL_STRING) || value.isEmpty()) {
-      return Optional.absent();
+      return Optional.empty();
     } else {
       return Optional.of(validator.convert(value));
     }

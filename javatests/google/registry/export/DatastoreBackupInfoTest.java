@@ -16,6 +16,7 @@ package google.registry.export;
 
 import static com.google.appengine.api.datastore.DatastoreServiceFactory.getDatastoreService;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
@@ -77,8 +78,8 @@ public class DatastoreBackupInfoTest {
     assertThat(backup.getName()).isEqualTo("backup1");
     assertThat(backup.getKinds()).containsExactly("one", "two", "three");
     assertThat(backup.getStartTime()).isEqualTo(startTime);
-    assertThat(backup.getCompleteTime()).isAbsent();
-    assertThat(backup.getGcsFilename()).isAbsent();
+    assertThat(backup.getCompleteTime()).isEmpty();
+    assertThat(backup.getGcsFilename()).isEmpty();
     assertThat(backup.getStatus()).isEqualTo(BackupStatus.PENDING);
 
     clock.setTo(startTime.plusMinutes(1));

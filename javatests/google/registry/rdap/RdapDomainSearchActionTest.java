@@ -16,6 +16,7 @@ package google.registry.rdap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistDomainAsDeleted;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -32,7 +33,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -60,6 +60,7 @@ import java.net.IDN;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
@@ -113,23 +114,23 @@ public class RdapDomainSearchActionTest {
     switch (requestType) {
       case NAME:
         action.nameParam = Optional.of(paramValue);
-        action.nsLdhNameParam = Optional.absent();
-        action.nsIpParam = Optional.absent();
+        action.nsLdhNameParam = Optional.empty();
+        action.nsIpParam = Optional.empty();
         break;
       case NS_LDH_NAME:
-        action.nameParam = Optional.absent();
+        action.nameParam = Optional.empty();
         action.nsLdhNameParam = Optional.of(paramValue);
-        action.nsIpParam = Optional.absent();
+        action.nsIpParam = Optional.empty();
         break;
       case NS_IP:
-        action.nameParam = Optional.absent();
-        action.nsLdhNameParam = Optional.absent();
+        action.nameParam = Optional.empty();
+        action.nsLdhNameParam = Optional.empty();
         action.nsIpParam = Optional.of(InetAddresses.forString(paramValue));
         break;
       default:
-        action.nameParam = Optional.absent();
-        action.nsLdhNameParam = Optional.absent();
-        action.nsIpParam = Optional.absent();
+        action.nameParam = Optional.empty();
+        action.nsLdhNameParam = Optional.empty();
+        action.nsIpParam = Optional.empty();
         break;
     }
     action.rdapResultSetMaxSize = 4;
@@ -359,8 +360,8 @@ public class RdapDomainSearchActionTest {
     action.clock = clock;
     action.request = request;
     action.response = response;
-    action.registrarParam = Optional.absent();
-    action.includeDeletedParam = Optional.absent();
+    action.registrarParam = Optional.empty();
+    action.includeDeletedParam = Optional.empty();
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;

@@ -16,8 +16,8 @@ package google.registry.model;
 
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
-import com.google.common.base.Optional;
 import google.registry.model.translators.UpdateAutoTimestampTranslatorFactory;
+import java.util.Optional;
 import org.joda.time.DateTime;
 
 /**
@@ -31,7 +31,7 @@ public class UpdateAutoTimestamp extends ImmutableObject {
 
   /** Returns the timestamp, or {@link #START_OF_TIME} if it's null. */
   public DateTime getTimestamp() {
-    return Optional.fromNullable(timestamp).or(START_OF_TIME);
+    return Optional.ofNullable(timestamp).orElse(START_OF_TIME);
   }
 
   public static UpdateAutoTimestamp create(DateTime timestamp) {

@@ -16,7 +16,6 @@ package google.registry.testing;
 
 import static com.google.common.truth.Truth.assertAbout;
 
-import com.google.common.base.Optional;
 import com.google.common.truth.FailureStrategy;
 import com.google.common.truth.SimpleSubjectBuilder;
 import com.google.common.truth.Subject;
@@ -24,6 +23,7 @@ import google.registry.model.domain.Period;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.TruthChainer.And;
 import java.util.Objects;
+import java.util.Optional;
 
 /** Utility methods for asserting things about {@link HistoryEntry} instances. */
 public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEntry> {
@@ -40,7 +40,7 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
 
   @Override
   public String actualCustomStringRepresentation() {
-    return Optional.fromNullable(customDisplaySubject).or(String.valueOf(actual()));
+    return Optional.ofNullable(customDisplaySubject).orElse(String.valueOf(actual()));
   }
 
   public HistoryEntrySubject withCustomDisplaySubject(String customDisplaySubject) {

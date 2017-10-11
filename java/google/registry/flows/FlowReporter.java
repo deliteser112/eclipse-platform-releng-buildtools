@@ -19,7 +19,6 @@ import static google.registry.xml.XmlTransformer.prettyPrint;
 import static java.util.Collections.EMPTY_LIST;
 
 import com.google.common.base.Ascii;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -29,6 +28,7 @@ import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.util.FormattingLogger;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.json.simple.JSONValue;
 
@@ -72,7 +72,7 @@ public class FlowReporter {
     // Explicitly log flow metadata separately from the EPP XML itself so that it stays compact
     // enough to be sure to fit in a single log entry (the XML part in rare cases could be long
     // enough to overflow into multiple log entries, breaking routine parsing of the JSON format).
-    String singleTargetId = eppInput.getSingleTargetId().or("");
+    String singleTargetId = eppInput.getSingleTargetId().orElse("");
     ImmutableList<String> targetIds = eppInput.getTargetIds();
     logger.infofmt(
         "%s: %s",
@@ -82,12 +82,12 @@ public class FlowReporter {
                 .put("serverTrid", trid.getServerTransactionId())
                 .put("clientId", clientId)
                 .put("commandType", eppInput.getCommandType())
-                .put("resourceType", eppInput.getResourceType().or(""))
+                .put("resourceType", eppInput.getResourceType().orElse(""))
                 .put("flowClassName", flowClass.getSimpleName())
                 .put("targetId", singleTargetId)
                 .put("targetIds", targetIds)
                 .put(
-                    "tld", eppInput.isDomainResourceType() ? extractTld(singleTargetId).or("") : "")
+                    "tld", eppInput.isDomainResourceType() ? extractTld(singleTargetId).orElse("") : "")
                 .put(
                     "tlds",
                     eppInput.isDomainResourceType() ? extractTlds(targetIds).asList() : EMPTY_LIST)
@@ -108,7 +108,7 @@ public class FlowReporter {
   private static final Optional<String> extractTld(String domainName) {
     int index = domainName.indexOf('.');
     return index == -1
-        ? Optional.<String>absent()
+        ? Optional.<String>empty()
         : Optional.of(Ascii.toLowerCase(domainName.substring(index + 1)));
   }
 

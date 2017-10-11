@@ -24,7 +24,6 @@ import static google.registry.flows.contact.ContactFlowUtils.createLosingTransfe
 import static google.registry.flows.contact.ContactFlowUtils.createTransferResponse;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.base.Optional;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ExtensionManager;
@@ -41,6 +40,7 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.transfer.TransferStatus;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 

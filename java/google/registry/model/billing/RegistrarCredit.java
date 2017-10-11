@@ -21,7 +21,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.assertTldExists;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
@@ -35,6 +34,7 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.ReportedOn;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
+import java.util.Optional;
 import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTime;
 
@@ -194,7 +194,7 @@ public final class RegistrarCredit extends ImmutableObject implements Buildable 
           Registry.get(instance.tld).getCurrency().equals(instance.currency),
           "Credits must be in the currency of the assigned TLD");
       instance.description =
-          Optional.fromNullable(instance.description).or(instance.getDefaultDescription());
+          Optional.ofNullable(instance.description).orElse(instance.getDefaultDescription());
       return super.build();
     }
   }

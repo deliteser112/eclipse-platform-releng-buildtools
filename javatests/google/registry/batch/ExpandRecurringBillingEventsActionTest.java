@@ -15,6 +15,7 @@
 package google.registry.batch;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.common.Cursor.CursorType.RECURRING_BILLING;
 import static google.registry.model.domain.Period.Unit.YEARS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -32,7 +33,6 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
@@ -57,6 +57,7 @@ import google.registry.testing.InjectRule;
 import google.registry.testing.mapreduce.MapreduceTestCase;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -89,7 +90,7 @@ public class ExpandRecurringBillingEventsActionTest
     action = new ExpandRecurringBillingEventsAction();
     action.mrRunner = makeDefaultRunner();
     action.clock = clock;
-    action.cursorTimeParam = Optional.absent();
+    action.cursorTimeParam = Optional.empty();
     createTld("tld");
     domain = persistActiveDomain("example.tld");
     historyEntry = persistResource(new HistoryEntry.Builder().setParent(domain).build());

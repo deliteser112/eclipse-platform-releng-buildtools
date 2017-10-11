@@ -18,9 +18,9 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import google.registry.testing.FakeClock;
+import java.util.Optional;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;

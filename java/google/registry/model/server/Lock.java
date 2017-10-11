@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
@@ -30,6 +29,7 @@ import google.registry.model.annotations.NotBackedUp.Reason;
 import google.registry.util.FormattingLogger;
 import google.registry.util.RequestStatusChecker;
 import google.registry.util.RequestStatusCheckerImpl;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -99,7 +99,7 @@ public class Lock extends ImmutableObject {
     // It's important to use transactNew rather than transact, because a Lock can be used to control
     // access to resources like GCS that can't be transactionally rolled back. Therefore, the lock
     // must be definitively acquired before it is used, even when called inside another transaction.
-    return Optional.fromNullable(ofy().transactNew(new Work<Lock>() {
+    return Optional.ofNullable(ofy().transactNew(new Work<Lock>() {
       @Override
       public Lock run() {
         String lockId = makeLockId(resourceName, tld);

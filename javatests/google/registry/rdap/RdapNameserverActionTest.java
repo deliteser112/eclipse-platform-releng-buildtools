@@ -15,6 +15,7 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
@@ -24,7 +25,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -39,6 +39,7 @@ import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.ui.server.registrar.SessionUtils;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
@@ -122,7 +123,7 @@ public class RdapNameserverActionTest {
   }
 
   private Object generateActualJson(String name) {
-    return generateActualJson(name, Optional.<String>absent(), Optional.<Boolean>absent());
+    return generateActualJson(name, Optional.<String>empty(), Optional.<Boolean>empty());
   }
 
   private Object generateActualJson(
@@ -282,7 +283,7 @@ public class RdapNameserverActionTest {
   public void testNameserver_found_sameRegistrarRequested() throws Exception {
     assertThat(
             generateActualJson(
-                "ns1.cat.lol", Optional.of("TheRegistrar"), Optional.<Boolean>absent()))
+                "ns1.cat.lol", Optional.of("TheRegistrar"), Optional.<Boolean>empty()))
         .isEqualTo(
             generateExpectedJsonWithTopLevelEntries(
                 "ns1.cat.lol",
@@ -309,14 +310,14 @@ public class RdapNameserverActionTest {
 
   @Test
   public void testDeletedNameserver_notFound_includeDeletedSetFalse() throws Exception {
-    generateActualJson("nsdeleted.cat.lol", Optional.<String>absent(), Optional.of(false));
+    generateActualJson("nsdeleted.cat.lol", Optional.<String>empty(), Optional.of(false));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
   public void testDeletedNameserver_notFound_notLoggedIn() throws Exception {
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
-    generateActualJson("nsdeleted.cat.lol", Optional.<String>absent(), Optional.of(true));
+    generateActualJson("nsdeleted.cat.lol", Optional.<String>empty(), Optional.of(true));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
@@ -324,7 +325,7 @@ public class RdapNameserverActionTest {
   public void testDeletedNameserver_notFound_loggedInAsDifferentRegistrar() throws Exception {
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("otherregistrar");
-    generateActualJson("nsdeleted.cat.lol", Optional.<String>absent(), Optional.of(true));
+    generateActualJson("nsdeleted.cat.lol", Optional.<String>empty(), Optional.of(true));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
@@ -333,7 +334,7 @@ public class RdapNameserverActionTest {
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
     assertThat(
-            generateActualJson("nsdeleted.cat.lol", Optional.<String>absent(), Optional.of(true)))
+            generateActualJson("nsdeleted.cat.lol", Optional.<String>empty(), Optional.of(true)))
         .isEqualTo(
             generateExpectedJsonWithTopLevelEntries(
                 "nsdeleted.cat.lol",
@@ -352,7 +353,7 @@ public class RdapNameserverActionTest {
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("irrelevant");
     newRdapNameserverAction(
             "nsdeleted.cat.lol",
-            Optional.<String>absent(),
+            Optional.<String>empty(),
             Optional.of(true),
             AuthResult.create(AuthLevel.USER, adminUserAuthInfo))
         .run();

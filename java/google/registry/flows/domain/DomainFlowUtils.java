@@ -40,7 +40,6 @@ import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -115,6 +114,7 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
@@ -490,7 +490,7 @@ public class DomainFlowUtils {
   @SuppressWarnings("unchecked")
   static void updateAutorenewRecurrenceEndTime(DomainResource domain, DateTime newEndTime) {
     Optional<PollMessage.Autorenew> autorenewPollMessage =
-        Optional.fromNullable(ofy().load().key(domain.getAutorenewPollMessage()).now());
+        Optional.ofNullable(ofy().load().key(domain.getAutorenewPollMessage()).now());
 
     // Construct an updated autorenew poll message. If the autorenew poll message no longer exists,
     // create a new one at the same id. This can happen if a transfer was requested on a domain
@@ -557,7 +557,7 @@ public class DomainFlowUtils {
         .setCommand(feeRequest.getCommandName(), feeRequest.getPhase(), feeRequest.getSubphase())
         .setCurrencyIfSupported(registry.getCurrency())
         .setPeriod(feeRequest.getPeriod())
-        .setClass(pricingLogic.getFeeClass(domainNameString, now).orNull());
+        .setClass(pricingLogic.getFeeClass(domainNameString, now).orElse(null));
 
     ImmutableList<Fee> fees = ImmutableList.of();
     switch (feeRequest.getCommandName()) {
@@ -939,22 +939,21 @@ public class DomainFlowUtils {
         .order("modificationTime")
         .list();
     Optional<HistoryEntry> entryToCancel =
-        Optional.fromJavaUtil(
-            Streams.findLast(
-                recentHistoryEntries
-                    .stream()
-                    .filter(
-                        historyEntry -> {
-                          // Look for add and renew transaction records that have yet to be reported
-                          for (DomainTransactionRecord record :
-                              historyEntry.getDomainTransactionRecords()) {
-                            if (cancelableFields.contains(record.getReportField())
-                                && record.getReportingTime().isAfter(now)) {
-                              return true;
-                            }
-                          }
-                          return false;
-                        })));
+        Streams.findLast(
+            recentHistoryEntries
+                .stream()
+                .filter(
+                    historyEntry -> {
+                      // Look for add and renew transaction records that have yet to be reported
+                      for (DomainTransactionRecord record :
+                          historyEntry.getDomainTransactionRecords()) {
+                        if (cancelableFields.contains(record.getReportField())
+                            && record.getReportingTime().isAfter(now)) {
+                          return true;
+                        }
+                      }
+                      return false;
+                    }));
     ImmutableSet.Builder<DomainTransactionRecord> recordsBuilder = new ImmutableSet.Builder<>();
     if (entryToCancel.isPresent()) {
       for (DomainTransactionRecord record : entryToCancel.get().getDomainTransactionRecords()) {

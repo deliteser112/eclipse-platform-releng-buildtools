@@ -21,7 +21,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -37,6 +36,7 @@ import google.registry.model.registrar.Registrar;
 import google.registry.xml.ValidationMode;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.joda.time.DateTime;
 
 /** Mapper for {@link RdeStagingAction}. */
@@ -119,10 +119,9 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
                 || resource instanceof HostResource)) {
           continue;
         }
-        for (DepositFragment fragment
-            : fragmenter.marshal(pending.watermark(), pending.mode()).asSet()) {
-          emit(pending, fragment);
-        }
+        fragmenter
+            .marshal(pending.watermark(), pending.mode())
+            .ifPresent(fragment -> emit(pending, fragment));
       }
     }
 
@@ -146,7 +145,7 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
       }
       EppResource resource = resourceAtTimes.get(watermark).now();
       if (resource == null) {
-        result = Optional.absent();
+        result = Optional.empty();
         cache.put(WatermarkModePair.create(watermark, RdeMode.FULL), result);
         cache.put(WatermarkModePair.create(watermark, RdeMode.THIN), result);
         return result;

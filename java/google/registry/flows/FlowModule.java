@@ -17,7 +17,6 @@ package google.registry.flows;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.nullToEmpty;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import dagger.Module;
 import dagger.Provides;
@@ -35,6 +34,7 @@ import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.eppoutput.Result;
 import google.registry.model.reporting.HistoryEntry;
 import java.lang.annotation.Documented;
+import java.util.Optional;
 import javax.inject.Qualifier;
 
 /** Module to choose and instantiate an EPP flow. */
@@ -194,7 +194,7 @@ public class FlowModule {
   @Provides
   @FlowScope
   static Optional<AuthInfo> provideOptionalAuthInfo(ResourceCommand resourceCommand) {
-    return Optional.fromNullable(((SingleResourceCommand) resourceCommand).getAuthInfo());
+    return Optional.ofNullable(((SingleResourceCommand) resourceCommand).getAuthInfo());
   }
 
   @Provides

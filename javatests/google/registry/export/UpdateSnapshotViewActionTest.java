@@ -16,6 +16,7 @@ package google.registry.export;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.export.UpdateSnapshotViewAction.QUEUE;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_DATASET_ID_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_KIND_PARAM;

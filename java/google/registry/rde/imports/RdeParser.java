@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import google.registry.xjc.rdecontact.XjcRdeContact;
 import google.registry.xjc.rdecontact.XjcRdeContactElement;
@@ -41,6 +40,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -116,31 +116,31 @@ public class RdeParser implements Closeable {
     }
 
     public Long getDomainCount() {
-      return Optional.fromNullable(counts.get(RDE_DOMAIN_URI)).or(0L);
+      return Optional.ofNullable(counts.get(RDE_DOMAIN_URI)).orElse(0L);
     }
 
     public Long getHostCount() {
-      return Optional.fromNullable(counts.get(RDE_HOST_URI)).or(0L);
+      return Optional.ofNullable(counts.get(RDE_HOST_URI)).orElse(0L);
     }
 
     public Long getContactCount() {
-      return Optional.fromNullable(counts.get(RDE_CONTACT_URI)).or(0L);
+      return Optional.ofNullable(counts.get(RDE_CONTACT_URI)).orElse(0L);
     }
 
     public Long getRegistrarCount() {
-      return Optional.fromNullable(counts.get(RDE_REGISTRAR_URI)).or(0L);
+      return Optional.ofNullable(counts.get(RDE_REGISTRAR_URI)).orElse(0L);
     }
 
     public Long getIdnCount() {
-      return Optional.fromNullable(counts.get(RDE_IDN_URI)).or(0L);
+      return Optional.ofNullable(counts.get(RDE_IDN_URI)).orElse(0L);
     }
 
     public Long getNndnCount() {
-      return Optional.fromNullable(counts.get(RDE_NNDN_URI)).or(0L);
+      return Optional.ofNullable(counts.get(RDE_NNDN_URI)).orElse(0L);
     }
 
     public Long getEppParamsCount() {
-      return Optional.fromNullable(counts.get(RDE_EPP_PARAMS_URI)).or(0L);
+      return Optional.ofNullable(counts.get(RDE_EPP_PARAMS_URI)).orElse(0L);
     }
 
     private RdeHeader(XjcRdeHeader header) {

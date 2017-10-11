@@ -27,7 +27,6 @@ import static google.registry.util.DiffUtils.prettyPrintEntityDeepDiff;
 import static java.util.stream.Collectors.joining;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -40,6 +39,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -104,7 +104,7 @@ public abstract class MutatingCommand extends ConfirmingCommand implements Remot
       if (type == ChangeType.UPDATE) {
         String diffText = prettyPrintEntityDeepDiff(
             oldEntity.toDiffableFieldMap(), newEntity.toDiffableFieldMap());
-        changeText = Optional.fromNullable(emptyToNull(diffText)).or("[no changes]\n");
+        changeText = Optional.ofNullable(emptyToNull(diffText)).orElse("[no changes]\n");
       } else {
         changeText = MoreObjects.firstNonNull(oldEntity, newEntity) + "\n";
       }

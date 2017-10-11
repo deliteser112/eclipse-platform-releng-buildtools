@@ -16,7 +16,7 @@ package google.registry.request.auth;
 
 import com.google.appengine.api.users.User;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 /** Extra information provided by the authentication mechanism about the user. */
 @AutoValue
@@ -39,7 +39,7 @@ public abstract class UserAuthInfo {
 
   public static UserAuthInfo create(
       User user, boolean isUserAdmin) {
-    return new AutoValue_UserAuthInfo(user, isUserAdmin, Optional.<OAuthTokenInfo>absent());
+    return new AutoValue_UserAuthInfo(user, isUserAdmin, Optional.<OAuthTokenInfo>empty());
   }
 
   public static UserAuthInfo create(

@@ -16,7 +16,6 @@ package google.registry.model.domain.fee11;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.ImmutableObject;
@@ -26,6 +25,7 @@ import google.registry.model.domain.fee.FeeCheckCommandExtensionItem;
 import google.registry.model.domain.fee.FeeCheckResponseExtensionItem;
 import google.registry.model.domain.fee.FeeExtensionCommandDescriptor;
 import google.registry.model.domain.fee11.FeeCheckCommandExtensionV11.FeeCheckCommandExtensionItemV11;
+import java.util.Optional;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
@@ -115,7 +115,7 @@ public class FeeCheckCommandExtensionV11 extends ImmutableObject
 
     @Override
     public Period getPeriod() {
-      return Optional.fromNullable(period).or(DEFAULT_PERIOD);
+      return Optional.ofNullable(period).orElse(DEFAULT_PERIOD);
     }
 
     @Override
@@ -140,7 +140,7 @@ public class FeeCheckCommandExtensionV11 extends ImmutableObject
 
     @Override
     public Optional<DateTime> getEffectiveDate() {
-      return Optional.absent();
+      return Optional.empty();
     }
   }
 }

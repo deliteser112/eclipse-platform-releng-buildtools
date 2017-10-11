@@ -15,6 +15,7 @@
 package google.registry.reporting;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.GcsTestingUtils.readGcsFile;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.any;
@@ -25,7 +26,6 @@ import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.util.concurrent.ListenableFuture;
 import google.registry.bigquery.BigqueryConnection;
@@ -35,6 +35,7 @@ import google.registry.gcs.GcsUtils;
 import google.registry.reporting.IcannReportingModule.ReportType;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeResponse;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -77,7 +78,7 @@ public class IcannReportingStagingActionTest {
     action.reportType = reportType;
     action.reportingBucket = "test-bucket";
     action.yearMonth = "2017-06";
-    action.subdir = Optional.absent();
+    action.subdir = Optional.empty();
     action.bigquery = bigquery;
     action.gcsUtils = new GcsUtils(gcsService, 1024);
     action.response = response;

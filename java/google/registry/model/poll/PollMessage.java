@@ -22,7 +22,6 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Converter;
-import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
@@ -47,6 +46,7 @@ import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferResponse.ContactTransferResponse;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import java.util.List;
+import java.util.Optional;
 import org.joda.time.DateTime;
 
 /**
@@ -351,7 +351,7 @@ public abstract class PollMessage extends ImmutableObject
       public Autorenew build() {
         Autorenew instance = getInstance();
         instance.autorenewEndTime =
-            Optional.fromNullable(instance.autorenewEndTime).or(END_OF_TIME);
+            Optional.ofNullable(instance.autorenewEndTime).orElse(END_OF_TIME);
         return super.build();
       }
     }

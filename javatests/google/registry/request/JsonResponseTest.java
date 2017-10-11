@@ -15,6 +15,7 @@
 package google.registry.request;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.request.JsonResponse.JSON_SAFETY_PREFIX;
 
 import com.google.common.collect.ImmutableMap;

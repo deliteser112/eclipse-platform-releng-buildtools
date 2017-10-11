@@ -16,6 +16,7 @@ package google.registry.model.registry.label;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.registry.label.DomainLabelMetrics.reservedListChecks;
 import static google.registry.model.registry.label.DomainLabelMetrics.reservedListHits;
 import static google.registry.model.registry.label.DomainLabelMetrics.reservedListProcessingTime;
