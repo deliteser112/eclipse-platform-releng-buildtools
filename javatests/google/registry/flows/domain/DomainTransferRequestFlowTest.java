@@ -768,7 +768,7 @@ public class DomainTransferRequestFlowTest
         ImmutableMap.of("PERIOD", "0", "AUTOMATIC_TRANSFER_LENGTH", "0"),
         Optional.<Money>absent(),
         Period.create(0, Unit.YEARS),
-        Duration.standardDays(0));
+        Duration.ZERO);
   }
 
   @Test
@@ -814,7 +814,7 @@ public class DomainTransferRequestFlowTest
         ImmutableMap.of("PERIOD", "0", "AUTOMATIC_TRANSFER_LENGTH", "0"),
         Optional.<Money>absent(),
         Period.create(0, Unit.YEARS),
-        Duration.standardDays(0));
+        Duration.ZERO);
   }
 
   @Test
