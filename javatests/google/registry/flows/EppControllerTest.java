@@ -53,6 +53,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -85,6 +86,12 @@ public class EppControllerTest extends ShardableTestCase {
   private final Clock clock = new FakeClock(START_TIME);
   private final TestLogHandler logHandler = new TestLogHandler();
 
+  /**
+   * Hold a strong reference to the logger whose output is being intercepted to prevent it being
+   * GCed.
+   */
+  private final Logger loggerToIntercept = Logger.getLogger(EppController.class.getCanonicalName());
+
   private final String domainCreateXml =
       loadFileWithSubstitutions(
           getClass(), "domain_create_prettyprinted.xml", ImmutableMap.<String, String>of());
@@ -93,7 +100,7 @@ public class EppControllerTest extends ShardableTestCase {
 
   @Before
   public void setUp() throws Exception {
-    Logger.getLogger(EppController.class.getCanonicalName()).addHandler(logHandler);
+    loggerToIntercept.addHandler(logHandler);
 
     when(sessionMetadata.getClientId()).thenReturn("some-client");
     when(flowComponentBuilder.flowModule(Matchers.<FlowModule>any()))
@@ -112,6 +119,11 @@ public class EppControllerTest extends ShardableTestCase {
     eppController.flowComponentBuilder = flowComponentBuilder;
     eppController.eppMetrics = eppMetrics;
     eppController.serverTridProvider = new FakeServerTridProvider();
+  }
+
+  @After
+  public void tearDown() {
+    loggerToIntercept.removeHandler(logHandler);
   }
 
   @Test
