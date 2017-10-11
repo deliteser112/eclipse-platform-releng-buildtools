@@ -172,9 +172,18 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
         .setMsg("Domain was auto-renewed.")
         .setParent(historyEntry)
         .build();
+    // Construct the post-transfer domain.
+    DomainResource partiallyApprovedDomain =
+        approvePendingTransfer(existingDomain, TransferStatus.CLIENT_APPROVED, now);
     DomainResource newDomain =
-        approvePendingTransfer(existingDomain, TransferStatus.CLIENT_APPROVED, now)
+        partiallyApprovedDomain
             .asBuilder()
+            // Update the transferredRegistrationExpirationTime here since approvePendingTransfer()
+            // doesn't know what to set it to and leaves it null.
+            .setTransferData(
+                partiallyApprovedDomain.getTransferData().asBuilder()
+                    .setTransferredRegistrationExpirationTime(newExpirationTime)
+                    .build())
             .setRegistrationExpirationTime(newExpirationTime)
             .setAutorenewBillingEvent(Key.create(autorenewEvent))
             .setAutorenewPollMessage(Key.create(gainingClientAutorenewPollMessage))

@@ -35,7 +35,6 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
-import google.registry.model.transfer.TransferData.Builder;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.model.transfer.TransferStatus;
@@ -115,8 +114,13 @@ public final class DomainTransferUtils {
     String targetId = existingDomain.getFullyQualifiedDomainName();
     // Create a TransferData for the server-approve case to use for the speculative poll messages.
     TransferData serverApproveTransferData =
-        createTransferDataBuilder(
-                existingDomain, trid, gainingClientId, automaticTransferTime, now)
+        new TransferData.Builder()
+            .setTransferRequestTrid(trid)
+            .setTransferRequestTime(now)
+            .setGainingClientId(gainingClientId)
+            .setLosingClientId(existingDomain.getCurrentSponsorClientId())
+            .setPendingTransferExpirationTime(automaticTransferTime)
+            .setTransferredRegistrationExpirationTime(serverApproveNewExpirationTime)
             .setTransferStatus(TransferStatus.SERVER_APPROVED)
             .build();
     Registry registry = Registry.get(existingDomain.getTld());
@@ -289,20 +293,6 @@ public final class DomainTransferUtils {
         .setBillingTime(automaticTransferTime.plus(registry.getTransferGracePeriodLength()))
         .setParent(historyEntry)
         .build();
-  }
-
-  private static Builder createTransferDataBuilder(
-      DomainResource existingDomain,
-      Trid trid,
-      String gainingClientId,
-      DateTime automaticTransferTime,
-      DateTime now) {
-    return new TransferData.Builder()
-        .setTransferRequestTrid(trid)
-        .setTransferRequestTime(now)
-        .setGainingClientId(gainingClientId)
-        .setLosingClientId(existingDomain.getCurrentSponsorClientId())
-        .setPendingTransferExpirationTime(automaticTransferTime);
   }
 
   private DomainTransferUtils() {}

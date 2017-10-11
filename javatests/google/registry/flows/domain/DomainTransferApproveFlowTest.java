@@ -116,6 +116,7 @@ public class DomainTransferApproveFlowTest
             oldTransferData.copyConstantFieldsToBuilder()
                 .setTransferStatus(TransferStatus.CLIENT_APPROVED)
                 .setPendingTransferExpirationTime(clock.nowUtc())
+                .setTransferredRegistrationExpirationTime(domain.getRegistrationExpirationTime())
                 .build());
   }
 

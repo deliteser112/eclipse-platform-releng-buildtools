@@ -913,6 +913,7 @@ class google.registry.model.transfer.TransferData {
   java.util.Set<com.googlecode.objectify.Key<? extends google.registry.model.transfer.TransferData$TransferServerApproveEntity>> serverApproveEntities;
   org.joda.time.DateTime pendingTransferExpirationTime;
   org.joda.time.DateTime transferRequestTime;
+  org.joda.time.DateTime transferredRegistrationExpirationTime;
 }
 class google.registry.model.transfer.TransferResponse$ContactTransferResponse {
   google.registry.model.transfer.TransferStatus transferStatus;

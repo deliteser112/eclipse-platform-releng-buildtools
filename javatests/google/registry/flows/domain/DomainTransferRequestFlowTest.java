@@ -130,8 +130,10 @@ public class DomainTransferRequestFlowTest
   }
 
   private void assertTransferRequested(
-      DomainResource domain, DateTime automaticTransferTime, Period expectedPeriod)
-      throws Exception {
+      DomainResource domain,
+      DateTime automaticTransferTime,
+      Period expectedPeriod,
+      DateTime expectedExpirationTime) throws Exception {
     assertAboutDomains().that(domain)
         .hasCurrentSponsorClientId("TheRegistrar").and()
         .hasStatusValue(StatusValue.PENDING_TRANSFER);
@@ -152,6 +154,7 @@ public class DomainTransferRequestFlowTest
                 .setTransferPeriod(expectedPeriod)
                 .setTransferStatus(TransferStatus.PENDING)
                 .setPendingTransferExpirationTime(automaticTransferTime)
+                .setTransferredRegistrationExpirationTime(expectedExpirationTime)
                 // Don't compare the server-approve entity fields; they're hard to reconstruct
                 // and logic later will check them.
                 .build());
@@ -178,6 +181,7 @@ public class DomainTransferRequestFlowTest
                 .setTransferPeriod(expectedPeriod)
                 .setTransferStatus(TransferStatus.SERVER_APPROVED)
                 .setPendingTransferExpirationTime(automaticTransferTime)
+                .setTransferredRegistrationExpirationTime(domain.getRegistrationExpirationTime())
                 // Server-approve entity fields should all be nulled out.
                 .build());
   }
@@ -219,7 +223,8 @@ public class DomainTransferRequestFlowTest
         .and()
         .hasOtherClientId("TheRegistrar");
     // Verify correct fields were set.
-    assertTransferRequested(domain, implicitTransferTime, Period.create(1, Unit.YEARS));
+    assertTransferRequested(
+        domain, implicitTransferTime, Period.create(1, Unit.YEARS), expectedExpirationTime);
 
     subordinateHost = reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc());
     assertAboutHosts().that(subordinateHost).hasNoHistoryEntries();
@@ -530,7 +535,7 @@ public class DomainTransferRequestFlowTest
         .and()
         .hasOtherClientId("TheRegistrar");
     // Verify correct fields were set.
-    assertTransferRequested(domain, implicitTransferTime, expectedPeriod);
+    assertTransferRequested(domain, implicitTransferTime, expectedPeriod, expectedExpirationTime);
 
     subordinateHost = reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc());
     assertAboutHosts().that(subordinateHost).hasNoHistoryEntries();

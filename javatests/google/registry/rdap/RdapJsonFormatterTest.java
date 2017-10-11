@@ -164,6 +164,8 @@ public class RdapJsonFormatterTest {
                                .setTransferRequestTime(clock.nowUtc().minusDays(1))
                                .setLosingClientId("TheRegistrar")
                                .setPendingTransferExpirationTime(clock.nowUtc().plusYears(100))
+                               .setTransferredRegistrationExpirationTime(
+                                   DateTime.parse("2111-10-08T00:44:59Z"))
                                .build())
                            .build())))
             .build());

@@ -69,7 +69,6 @@ import google.registry.model.reporting.DomainTransactionRecord.TransactionReport
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.transfer.TransferData;
-import google.registry.model.transfer.TransferData.Builder;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.model.transfer.TransferStatus;
@@ -206,7 +205,13 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     // Create the transfer data that represents the pending transfer.
     TransferData pendingTransferData =
         createPendingTransferData(
-            createTransferDataBuilder(existingDomain, automaticTransferTime, now),
+            new TransferData.Builder()
+                .setTransferRequestTrid(trid)
+                .setTransferRequestTime(now)
+                .setGainingClientId(gainingClientId)
+                .setLosingClientId(existingDomain.getCurrentSponsorClientId())
+                .setPendingTransferExpirationTime(automaticTransferTime)
+                .setTransferredRegistrationExpirationTime(serverApproveNewExpirationTime),
             serverApproveEntities,
             period);
     // Create a poll message to notify the losing registrar that a transfer was requested.
@@ -314,16 +319,6 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
                     TransactionReportField.TRANSFER_SUCCESSFUL,
                     1)))
         .build();
-  }
-
-  private Builder createTransferDataBuilder(
-      DomainResource existingDomain, DateTime automaticTransferTime, DateTime now) {
-    return new TransferData.Builder()
-        .setTransferRequestTrid(trid)
-        .setTransferRequestTime(now)
-        .setGainingClientId(gainingClientId)
-        .setLosingClientId(existingDomain.getCurrentSponsorClientId())
-        .setPendingTransferExpirationTime(automaticTransferTime);
   }
 
   private DomainTransferResponse createResponse(

@@ -103,6 +103,7 @@ import google.registry.model.transfer.TransferStatus;
 import google.registry.tmch.LordnTask;
 import java.util.Arrays;
 import java.util.List;
+import javax.annotation.Nullable;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 
@@ -457,20 +458,22 @@ public class DatastoreHelper {
   }
 
   public static PollMessage.OneTime createPollMessageForImplicitTransfer(
-      EppResource contact,
+      EppResource resource,
       HistoryEntry historyEntry,
       String clientId,
       DateTime requestTime,
       DateTime expirationTime,
-      DateTime now) {
+      DateTime now,
+      @Nullable DateTime extendedRegistrationExpirationTime) {
+    TransferData transferData =
+        createTransferDataBuilder(requestTime, expirationTime)
+            .setTransferredRegistrationExpirationTime(extendedRegistrationExpirationTime)
+            .build();
     return new PollMessage.OneTime.Builder()
         .setClientId(clientId)
         .setEventTime(expirationTime)
         .setMsg("Transfer server approved.")
-        .setResponseData(ImmutableList.of(
-            createTransferResponse(contact, createTransferDataBuilder(requestTime, expirationTime)
-                .build(),
-            now)))
+        .setResponseData(ImmutableList.of(createTransferResponse(resource, transferData, now)))
         .setParent(historyEntry)
         .build();
   }
@@ -519,7 +522,8 @@ public class DatastoreHelper {
                             "NewRegistrar",
                             requestTime,
                             expirationTime,
-                            now))),
+                            now,
+                            null))),
                     Key.create(persistResource(
                         createPollMessageForImplicitTransfer(
                             contact,
@@ -527,7 +531,8 @@ public class DatastoreHelper {
                             "TheRegistrar",
                             requestTime,
                             expirationTime,
-                            now)))))
+                            now,
+                            null)))))
                 .setTransferRequestTrid(Trid.create("transferClient-trid", "transferServer-trid"))
                 .build())
             .build());
@@ -591,6 +596,7 @@ public class DatastoreHelper {
         .addStatusValue(StatusValue.PENDING_TRANSFER)
         .setTransferData(transferDataBuilder
             .setPendingTransferExpirationTime(expirationTime)
+            .setTransferredRegistrationExpirationTime(extendedRegistrationExpirationTime)
             .setServerApproveBillingEvent(Key.create(transferBillingEvent))
             .setServerApproveAutorenewEvent(Key.create(gainingClientAutorenewEvent))
             .setServerApproveAutorenewPollMessage(Key.create(gainingClientAutorenewPollMessage))
@@ -605,7 +611,8 @@ public class DatastoreHelper {
                         "NewRegistrar",
                         requestTime,
                         expirationTime,
-                        now))),
+                        now,
+                        extendedRegistrationExpirationTime))),
                 Key.create(persistResource(
                     createPollMessageForImplicitTransfer(
                         domain,
@@ -613,7 +620,8 @@ public class DatastoreHelper {
                         "TheRegistrar",
                         requestTime,
                         expirationTime,
-                        now)))))
+                        now,
+                        extendedRegistrationExpirationTime)))))
             .setTransferRequestTrid(Trid.create("transferClient-trid", "transferServer-trid"))
             .build())
         .build());

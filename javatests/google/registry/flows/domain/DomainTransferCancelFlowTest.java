@@ -98,7 +98,8 @@ public class DomainTransferCancelFlowTest
             "NewRegistrar",
             TRANSFER_REQUEST_TIME,
             TRANSFER_EXPIRATION_TIME,
-            TRANSFER_REQUEST_TIME));
+            TRANSFER_REQUEST_TIME,
+            EXTENDED_REGISTRATION_EXPIRATION_TIME));
     assertPollMessages(
         "TheRegistrar",
         createPollMessageForImplicitTransfer(
@@ -107,7 +108,8 @@ public class DomainTransferCancelFlowTest
             "TheRegistrar",
             TRANSFER_REQUEST_TIME,
             TRANSFER_EXPIRATION_TIME,
-            TRANSFER_REQUEST_TIME));
+            TRANSFER_REQUEST_TIME,
+            EXTENDED_REGISTRATION_EXPIRATION_TIME));
     clock.advanceOneMilli();
 
     // Setup done; run the test.

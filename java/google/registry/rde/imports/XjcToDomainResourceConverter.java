@@ -236,13 +236,13 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
     if (data == null) {
       return TransferData.EMPTY;
     }
-    // TODO(b/25084229): read in the exDate and store it somewhere.
     return new TransferData.Builder()
         .setTransferStatus(TRANSFER_STATUS_MAPPER.xmlToEnum(data.getTrStatus().value()))
         .setGainingClientId(data.getReRr().getValue())
         .setLosingClientId(data.getAcRr().getValue())
         .setTransferRequestTime(data.getReDate())
         .setPendingTransferExpirationTime(data.getAcDate())
+        .setTransferredRegistrationExpirationTime(data.getExDate())
         .build();
   }
 
