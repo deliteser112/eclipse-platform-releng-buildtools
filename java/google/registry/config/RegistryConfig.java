@@ -1063,7 +1063,7 @@ public final class RegistryConfig {
           .put("/", RdapNoticeDescriptor.builder()
               .setTitle("RDAP Help")
               .setDescription(ImmutableList.of(
-                  "RDAP Help Topics (use /help/topic for information)",
+                  "RDAP Help Topics (use /help/index for information)",
                   "syntax",
                   "tos (Terms of Service)"))
               .setLinkValueSuffix("help/")
@@ -1071,7 +1071,7 @@ public final class RegistryConfig {
           .put("/index", RdapNoticeDescriptor.builder()
               .setTitle("RDAP Help")
               .setDescription(ImmutableList.of(
-                  "RDAP Help Topics (use /help/topic for information)",
+                  "RDAP Help Topics (use /help/index for information)",
                   "syntax",
                   "tos (Terms of Service)"))
               .setLinkValueSuffix("help/index")
