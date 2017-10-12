@@ -17,7 +17,6 @@ package google.registry.dns.writer.clouddns;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.newHostResource;
@@ -86,6 +85,7 @@ public class CloudDnsWriterTest {
   @Mock private Dns.Changes.Create createChangeRequest;
   @Mock private Callable<Void> mutateZoneCallable;
   @Captor ArgumentCaptor<String> recordNameCaptor;
+  @Captor ArgumentCaptor<String> zoneNameCaptor;
   @Captor ArgumentCaptor<Change> changeCaptor;
   private CloudDnsWriter writer;
   private ImmutableSet<ResourceRecordSet> stubZone;
@@ -101,7 +101,7 @@ public class CloudDnsWriterTest {
         new CloudDnsWriter(
             dnsConnection,
             "projectId",
-            "zoneName",
+            "triple.secret.tld", // used by testInvalidZoneNames()
             DEFAULT_A_TTL,
             DEFAULT_NS_TTL,
             DEFAULT_DS_TTL,
@@ -142,7 +142,7 @@ public class CloudDnsWriterTest {
               }
             });
 
-    when(changes.create(anyString(), anyString(), changeCaptor.capture()))
+    when(changes.create(anyString(), zoneNameCaptor.capture(), changeCaptor.capture()))
         .thenReturn(createChangeRequest);
     // Change our stub zone when a request to change the records is executed
     when(createChangeRequest.execute())
@@ -484,5 +484,20 @@ public class CloudDnsWriterTest {
     writer.publishHost("0.ip4.example.tld");
 
     verifyZone(fakeDomainRecords("example.tld", 1, 0, 0, 0));
+  }
+
+  @Test
+  public void testInvalidZoneNames() {
+    createTld("triple.secret.tld");
+    persistResource(
+        fakeDomain(
+                "example.triple.secret.tld",
+                ImmutableSet.of(persistResource(fakeHost("0.ip4.example.tld", IPv4))),
+                0)
+            .asBuilder()
+            .build());
+    writer.publishDomain("example.triple.secret.tld");
+    writer.commit();
+    assertThat(zoneNameCaptor.getValue()).isEqualTo("triple-secret-tld");
   }
 }

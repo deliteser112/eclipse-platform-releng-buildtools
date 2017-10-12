@@ -99,7 +99,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
       Retrier retrier) {
     this.dnsConnection = dnsConnection;
     this.projectId = projectId;
-    this.zoneName = zoneName;
+    this.zoneName = zoneName.replace('.', '-');
     this.defaultATtl = defaultATtl;
     this.defaultNsTtl = defaultNsTtl;
     this.defaultDsTtl = defaultDsTtl;
