@@ -16,7 +16,6 @@ package google.registry.rdap;
 
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -141,6 +140,13 @@ public class RdapActionBaseTest {
     assertThat(generateActualJson("no.thing")).isEqualTo(JSONValue.parse(
         loadFileWithSubstitutions(this.getClass(), "rdapjson_toplevel.json", null)));
     assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testContentType_rdapjson_utf8() throws Exception {
+    generateActualJson("no.thing");
+    assertThat(response.getContentType().toString())
+        .isEqualTo("application/rdap+json; charset=utf-8");
   }
 
   @Test

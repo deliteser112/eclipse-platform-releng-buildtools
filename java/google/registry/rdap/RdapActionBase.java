@@ -14,6 +14,7 @@
 
 package google.registry.rdap;
 
+import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
@@ -76,7 +77,8 @@ public abstract class RdapActionBase implements Runnable {
    */
   static final Pattern LDH_PATTERN = Pattern.compile("[-.a-zA-Z0-9*]+");
 
-  private static final MediaType RESPONSE_MEDIA_TYPE = MediaType.create("application", "rdap+json");
+  private static final MediaType RESPONSE_MEDIA_TYPE =
+      MediaType.create("application", "rdap+json").withCharset(UTF_8);
 
   @Inject HttpServletRequest request;
   @Inject Response response;
@@ -131,10 +133,10 @@ public abstract class RdapActionBase implements Runnable {
               requestMethod == Action.Method.HEAD,
               rdapLinkBase);
       response.setStatus(SC_OK);
+      response.setContentType(RESPONSE_MEDIA_TYPE);
       if (requestMethod != Action.Method.HEAD) {
         response.setPayload(JSONValue.toJSONString(rdapJson));
       }
-      response.setContentType(RESPONSE_MEDIA_TYPE);
     } catch (HttpException e) {
       setError(e.getResponseCode(), e.getResponseCodeString(), e.getMessage());
     } catch (URISyntaxException | IllegalArgumentException e) {
@@ -147,12 +149,12 @@ public abstract class RdapActionBase implements Runnable {
 
   void setError(int status, String title, String description) {
     response.setStatus(status);
+    response.setContentType(RESPONSE_MEDIA_TYPE);
     try {
       if (requestMethod != Action.Method.HEAD) {
         response.setPayload(
             JSONValue.toJSONString(rdapJsonFormatter.makeError(status, title, description)));
       }
-      response.setContentType(RESPONSE_MEDIA_TYPE);
     } catch (Exception ex) {
       if (requestMethod != Action.Method.HEAD) {
         response.setPayload("");
