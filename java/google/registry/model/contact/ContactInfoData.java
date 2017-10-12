@@ -28,7 +28,6 @@ import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.joda.time.DateTime;
 
-
 /** The {@link ResponseData} returned for an EPP info flow on a contact. */
 @XmlRootElement(name = "infData")
 @XmlType(propOrder = {

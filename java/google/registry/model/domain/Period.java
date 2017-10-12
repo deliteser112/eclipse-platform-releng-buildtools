@@ -14,7 +14,6 @@
 
 package google.registry.model.domain;
 
-
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.ImmutableObject;
 import javax.xml.bind.annotation.XmlAttribute;

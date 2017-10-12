@@ -26,7 +26,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import org.joda.time.DateTime;
 
-
 /** The {@link ResponseData} returned for an EPP info flow on a host. */
 @XmlRootElement(name = "infData")
 @XmlType(propOrder = {

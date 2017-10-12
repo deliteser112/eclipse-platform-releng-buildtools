@@ -14,7 +14,6 @@
 
 package google.registry.model.poll;
 
-
 import com.google.common.annotations.VisibleForTesting;
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.ImmutableObject;

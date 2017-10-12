@@ -43,14 +43,11 @@ import google.registry.keyring.kms.KmsKeyring.PublicKeyLabel;
 import google.registry.keyring.kms.KmsKeyring.StringKeyLabel;
 import google.registry.model.server.KmsSecret;
 import google.registry.model.server.KmsSecretRevision;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.inject.Inject;
-
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPublicKey;

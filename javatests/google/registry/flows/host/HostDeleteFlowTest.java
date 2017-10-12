@@ -13,6 +13,7 @@
 // limitations under the License.
 
 package google.registry.flows.host;
+
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;

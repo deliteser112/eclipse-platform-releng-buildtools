@@ -16,19 +16,15 @@ package google.registry.keyring.api;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
-
 import google.registry.util.ComparingInvocationHandler;
 import google.registry.util.FormattingLogger;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
-
 import javax.annotation.Nullable;
-
 import org.bouncycastle.bcpg.BCPGKey;
 import org.bouncycastle.bcpg.PublicKeyPacket;
 import org.bouncycastle.openpgp.PGPKeyPair;

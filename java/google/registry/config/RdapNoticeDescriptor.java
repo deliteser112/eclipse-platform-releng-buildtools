@@ -18,33 +18,35 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import javax.annotation.Nullable;
 
-  /**
-   * AutoValue class describing an RDAP Notice object.
-   *
-   * <p>This is used for injecting RDAP help pages.
-   */
-  @AutoValue
-  public abstract class RdapNoticeDescriptor {
-    public static Builder builder() {
-      return new AutoValue_RdapNoticeDescriptor.Builder();
-    }
+/**
+ * AutoValue class describing an RDAP Notice object.
+ *
+ * <p>This is used for injecting RDAP help pages.
+ */
+@AutoValue
+public abstract class RdapNoticeDescriptor {
 
-    @Nullable public abstract String getTitle();
-    public abstract ImmutableList<String> getDescription();
-    @Nullable public abstract String getTypeString();
-    @Nullable public abstract String getLinkValueSuffix();
-    @Nullable public abstract String getLinkHrefUrlString();
-
-    /** Builder class for {@link RdapNoticeDescriptor}. */
-    @AutoValue.Builder
-    public abstract static class Builder {
-      public abstract Builder setTitle(@Nullable String title);
-      public abstract Builder setDescription(Iterable<String> description);
-      public abstract Builder setTypeString(@Nullable String typeString);
-      public abstract Builder setLinkValueSuffix(@Nullable String linkValueSuffix);
-      public abstract Builder setLinkHrefUrlString(@Nullable String linkHrefUrlString);
-
-      public abstract RdapNoticeDescriptor build();
-    }
+  public static Builder builder() {
+    return new AutoValue_RdapNoticeDescriptor.Builder();
   }
+
+  @Nullable public abstract String getTitle();
+  public abstract ImmutableList<String> getDescription();
+  @Nullable public abstract String getTypeString();
+  @Nullable public abstract String getLinkValueSuffix();
+  @Nullable public abstract String getLinkHrefUrlString();
+
+  /** Builder class for {@link RdapNoticeDescriptor}. */
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    public abstract Builder setTitle(@Nullable String title);
+    public abstract Builder setDescription(Iterable<String> description);
+    public abstract Builder setTypeString(@Nullable String typeString);
+    public abstract Builder setLinkValueSuffix(@Nullable String linkValueSuffix);
+    public abstract Builder setLinkHrefUrlString(@Nullable String linkHrefUrlString);
+
+    public abstract RdapNoticeDescriptor build();
+  }
+}
 

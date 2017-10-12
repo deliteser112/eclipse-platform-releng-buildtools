@@ -14,7 +14,6 @@
 
 package google.registry.monitoring.metrics;
 
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import google.registry.monitoring.metrics.MetricSchema.Kind;

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 package google.registry.keyring.api;
+
 import static com.google.common.io.Resources.getResource;
 import static google.registry.keyring.api.PgpHelper.KeyRequirement.ENCRYPT_SIGN;
 import static google.registry.keyring.api.PgpHelper.lookupKeyPair;

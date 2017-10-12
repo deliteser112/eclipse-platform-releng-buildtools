@@ -14,7 +14,6 @@
 
 package google.registry.bigquery;
 
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Sets.newConcurrentHashSet;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;

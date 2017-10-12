@@ -14,7 +14,6 @@
 
 package google.registry.flows.session;
 
-
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 

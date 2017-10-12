@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
+
 import google.registry.tools.LevelDbLogReader.ChunkType;
 
 class LevelDbUtil {
@@ -73,7 +74,9 @@ class LevelDbUtil {
    */
   static int addRecord(byte[] bytes, int pos, ChunkType type, byte[] data) {
     checkArgument(
-        data.length < MAX_RECORD, "Record length (%d) > max record size (%d)", data.length,
+        data.length < MAX_RECORD,
+        "Record length (%s) > max record size (%s)",
+        data.length,
         MAX_RECORD);
     pos = addRecordHeader(bytes, pos, type, data.length);
 

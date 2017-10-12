@@ -18,7 +18,6 @@ import com.google.auto.value.AutoValue;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.rde.RdeMode;
 import java.io.Serializable;
-import java.util.Optional;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
