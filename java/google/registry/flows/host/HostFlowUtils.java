@@ -39,7 +39,7 @@ import org.joda.time.DateTime;
 public class HostFlowUtils {
 
   /** Checks that a host name is valid. */
-  static InternetDomainName validateHostName(String name) throws EppException {
+  public static InternetDomainName validateHostName(String name) throws EppException {
     checkArgumentNotNull(name, "Must specify host name to validate");
     if (name.length() > 253) {
       throw new HostNameTooLongException();

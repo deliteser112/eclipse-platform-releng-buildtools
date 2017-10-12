@@ -14,14 +14,17 @@
 
 package google.registry.rdap;
 
+import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
 import com.google.common.collect.ImmutableMap;
+import google.registry.flows.EppException;
 import google.registry.model.domain.DomainResource;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.request.Action;
+import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
@@ -57,7 +60,14 @@ public class RdapDomainAction extends RdapActionBase {
       String pathSearchString, boolean isHeadRequest, String linkBase) {
     DateTime now = clock.nowUtc();
     pathSearchString = canonicalizeName(pathSearchString);
-    validateDomainName(pathSearchString);
+    try {
+      validateDomainName(pathSearchString);
+    } catch (EppException e) {
+      throw new BadRequestException(
+          String.format(
+              "%s is not a valid %s: %s",
+              pathSearchString, getHumanReadableObjectTypeName(), e.getMessage()));
+    }
     // The query string is not used; the RDAP syntax is /rdap/domain/mydomain.com.
     DomainResource domainResource = loadByForeignKey(DomainResource.class, pathSearchString, now);
     if (domainResource == null) {

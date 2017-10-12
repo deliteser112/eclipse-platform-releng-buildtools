@@ -169,7 +169,7 @@ public class DomainFlowUtils {
    *
    * @see #validateDomainNameWithIdnTables(InternetDomainName)
    */
-  static InternetDomainName validateDomainName(String name)
+  public static InternetDomainName validateDomainName(String name)
       throws EppException {
     if (!ALLOWED_CHARS.matchesAllOf(name)) {
       throw new BadDomainNameCharacterException();

@@ -15,7 +15,6 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
@@ -94,6 +93,8 @@ public class RdapNameserverActionTest {
     // other registrar
     persistResource(
         makeRegistrar("otherregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE, 102L));
+    // external
+    makeAndPersistHostResource("ns1.domain.external", "9.10.11.12", clock.nowUtc().minusYears(1));
   }
 
   private RdapNameserverAction newRdapNameserverAction(
@@ -180,9 +181,12 @@ public class RdapNameserverActionTest {
 
   @Test
   public void testInvalidNameserver_returns400() throws Exception {
-    assertThat(generateActualJson("invalid/host/name")).isEqualTo(
-        generateExpectedJson(
-            "invalid/host/name is not a valid nameserver", null, "rdap_error_400.json"));
+    assertThat(generateActualJson("invalid/host/name"))
+        .isEqualTo(
+            generateExpectedJson(
+                "invalid/host/name is not a valid nameserver: Invalid host name",
+                null,
+                "rdap_error_400.json"));
     assertThat(response.getStatus()).isEqualTo(400);
   }
 
@@ -210,6 +214,20 @@ public class RdapNameserverActionTest {
   @Test
   public void testTrailingDot_getsIgnored() throws Exception {
     assertThat(generateActualJson("ns1.cat.lol."))
+        .isEqualTo(generateExpectedJsonWithTopLevelEntries(
+            "ns1.cat.lol",
+            ImmutableMap.of(
+                "HANDLE", "2-ROID",
+                "ADDRESSTYPE", "v4",
+                "ADDRESS", "1.2.3.4",
+                "STATUS", "active"),
+            "rdap_host.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testUpperCase_getsCanonicalized() throws Exception {
+    assertThat(generateActualJson("Ns1.CaT.lOl."))
         .isEqualTo(generateExpectedJsonWithTopLevelEntries(
             "ns1.cat.lol",
             ImmutableMap.of(
@@ -274,6 +292,20 @@ public class RdapNameserverActionTest {
                 "HANDLE", "8-ROID",
                 "ADDRESSTYPE", "v4",
                 "ADDRESS", "5.6.7.8",
+                "STATUS", "active"),
+            "rdap_host.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testExternalNameserver_works() throws Exception {
+    assertThat(generateActualJson("ns1.domain.external"))
+        .isEqualTo(generateExpectedJsonWithTopLevelEntries(
+            "ns1.domain.external",
+            ImmutableMap.of(
+                "HANDLE", "C-ROID",
+                "ADDRESSTYPE", "v4",
+                "ADDRESS", "9.10.11.12",
                 "STATUS", "active"),
             "rdap_host.json"));
     assertThat(response.getStatus()).isEqualTo(200);

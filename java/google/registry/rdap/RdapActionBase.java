@@ -19,8 +19,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.registry.Registries.findTldForName;
-import static google.registry.model.registry.Registries.getTlds;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -28,7 +26,6 @@ import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.net.InternetDomainName;
 import com.google.common.net.MediaType;
 import com.google.re2j.Pattern;
 import com.googlecode.objectify.Key;
@@ -39,8 +36,6 @@ import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.HttpException;
-import google.registry.request.HttpException.BadRequestException;
-import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
 import google.registry.request.RequestMethod;
@@ -245,18 +240,6 @@ public abstract class RdapActionBase implements Runnable {
             || (shouldIncludeDeleted()
                 && getAuthorization().isAuthorizedForClientId(registrar.getClientId())))
         && (!registrarParam.isPresent() || registrarParam.get().equals(registrar.getClientId()));
-  }
-
-  void validateDomainName(String name) {
-    try {
-      Optional<InternetDomainName> tld = findTldForName(InternetDomainName.from(name));
-      if (!tld.isPresent() || !getTlds().contains(tld.get().toString())) {
-        throw new NotFoundException(name + " not found");
-      }
-    } catch (IllegalArgumentException e) {
-      throw new BadRequestException(
-          name + " is not a valid " + getHumanReadableObjectTypeName());
-    }
   }
 
   String canonicalizeName(String name) {

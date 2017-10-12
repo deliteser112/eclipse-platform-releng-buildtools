@@ -16,7 +16,6 @@ package google.registry.rdap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistDomainAsDeleted;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -584,6 +583,11 @@ public class RdapDomainSearchActionTest {
   @Test
   public void testDomainMatch_found() throws Exception {
     runSuccessfulTestWithCatLol(RequestType.NAME, "cat.lol", "rdap_domain.json");
+  }
+
+  @Test
+  public void testDomainMatch_foundWithUpperCase() throws Exception {
+    runSuccessfulTestWithCatLol(RequestType.NAME, "CaT.lOl", "rdap_domain.json");
   }
 
   @Test

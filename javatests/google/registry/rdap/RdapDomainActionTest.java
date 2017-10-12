@@ -15,7 +15,6 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
@@ -322,21 +321,44 @@ public class RdapDomainActionTest {
     }
   }
 
+  private void assertProperResponseForCatLol(String queryString, String expectedOutputFile) {
+    assertJsonEqual(
+        generateActualJson(queryString),
+        generateExpectedJsonWithTopLevelEntries(
+            "cat.lol",
+            null,
+            "C-LOL",
+            expectedOutputFile.equals("rdap_domain.json")
+                ? ImmutableList.of("4-ROID", "6-ROID", "2-ROID")
+                : null,
+            expectedOutputFile));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
   @Test
   public void testInvalidDomain_returns400() throws Exception {
     assertJsonEqual(
         generateActualJson("invalid/domain/name"),
         generateExpectedJson(
-            "invalid/domain/name is not a valid domain name", null, "1", "rdap_error_400.json"));
+            "invalid/domain/name is not a valid domain name: Domain names can only contain a-z,"
+                + " 0-9, '.' and '-'",
+            null,
+            "1",
+            "rdap_error_400.json"));
     assertThat(response.getStatus()).isEqualTo(400);
   }
 
   @Test
-  public void testUnknownDomain_returns404() throws Exception {
+  public void testUnknownDomain_returns400() throws Exception {
     assertJsonEqual(
         generateActualJson("missingdomain.com"),
-        generateExpectedJson("missingdomain.com not found", null, "1", "rdap_error_404.json"));
-    assertThat(response.getStatus()).isEqualTo(404);
+        generateExpectedJson(
+            "missingdomain.com is not a valid domain name: Domain name is under tld com which"
+                + " doesn't exist",
+            null,
+            "1",
+            "rdap_error_400.json"));
+    assertThat(response.getStatus()).isEqualTo(400);
   }
 
   @Test
@@ -349,15 +371,7 @@ public class RdapDomainActionTest {
 
   @Test
   public void testValidDomain_works() throws Exception {
-    assertJsonEqual(
-        generateActualJson("cat.lol"),
-        generateExpectedJsonWithTopLevelEntries(
-            "cat.lol",
-            null,
-            "C-LOL",
-            ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
-            "rdap_domain.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    assertProperResponseForCatLol("cat.lol", "rdap_domain.json");
   }
 
   @Test
@@ -366,69 +380,34 @@ public class RdapDomainActionTest {
     action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
     when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(false);
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("noregistrar");
-    assertJsonEqual(
-        generateActualJson("cat.lol"),
-        generateExpectedJsonWithTopLevelEntries(
-            "cat.lol",
-            null,
-            "C-LOL",
-            ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
-            "rdap_domain.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    assertProperResponseForCatLol("cat.lol", "rdap_domain.json");
   }
 
   @Test
   public void testValidDomain_notLoggedIn_noContacts() throws Exception {
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
-    assertJsonEqual(
-        generateActualJson("cat.lol"),
-        generateExpectedJsonWithTopLevelEntries(
-            "cat.lol",
-            null,
-            "C-LOL",
-            null,
-            "rdap_domain_no_contacts.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    assertProperResponseForCatLol("cat.lol", "rdap_domain_no_contacts.json");
   }
 
   @Test
   public void testValidDomain_loggedInAsOtherRegistrar_noContacts() throws Exception {
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("otherregistrar");
-    assertJsonEqual(
-        generateActualJson("cat.lol"),
-        generateExpectedJsonWithTopLevelEntries(
-            "cat.lol",
-            null,
-            "C-LOL",
-            null,
-            "rdap_domain_no_contacts.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    assertProperResponseForCatLol("cat.lol", "rdap_domain_no_contacts.json");
+  }
+
+  @Test
+  public void testUpperCase_ignored() throws Exception {
+    assertProperResponseForCatLol("CaT.lOl", "rdap_domain.json");
   }
 
   @Test
   public void testTrailingDot_ignored() throws Exception {
-    assertJsonEqual(
-        generateActualJson("cat.lol."),
-        generateExpectedJsonWithTopLevelEntries(
-            "cat.lol",
-            null,
-            "C-LOL",
-            ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
-            "rdap_domain.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    assertProperResponseForCatLol("cat.lol.", "rdap_domain.json");
   }
 
   @Test
   public void testQueryParameter_ignored() throws Exception {
-    assertJsonEqual(
-        generateActualJson("cat.lol?key=value"),
-        generateExpectedJsonWithTopLevelEntries(
-            "cat.lol",
-            null,
-            "C-LOL",
-            ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
-            "rdap_domain.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    assertProperResponseForCatLol("cat.lol?key=value", "rdap_domain.json");
   }
 
   @Test

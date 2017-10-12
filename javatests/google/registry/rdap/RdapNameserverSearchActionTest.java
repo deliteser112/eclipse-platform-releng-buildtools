@@ -15,7 +15,6 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistResources;
@@ -303,6 +302,15 @@ public class RdapNameserverSearchActionTest {
   @Test
   public void testNameMatch_ns1_cat_lol_found() throws Exception {
     assertThat(generateActualJsonWithName("ns1.cat.lol"))
+        .isEqualTo(
+            generateExpectedJsonForNameserver(
+                "ns1.cat.lol", null, "2-ROID", "v4", "1.2.3.4", "rdap_host_linked.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameMatch_ns1_cat_lol_foundWithUpperCase() throws Exception {
+    assertThat(generateActualJsonWithName("Ns1.CaT.lOl"))
         .isEqualTo(
             generateExpectedJsonForNameserver(
                 "ns1.cat.lol", null, "2-ROID", "v4", "1.2.3.4", "rdap_host_linked.json"));

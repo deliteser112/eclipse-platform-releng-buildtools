@@ -14,15 +14,18 @@
 
 package google.registry.rdap;
 
+import static google.registry.flows.host.HostFlowUtils.validateHostName;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableMap;
+import google.registry.flows.EppException;
 import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.request.Action;
+import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
@@ -59,7 +62,14 @@ public class RdapNameserverAction extends RdapActionBase {
     DateTime now = clock.nowUtc();
     pathSearchString = canonicalizeName(pathSearchString);
     // The RDAP syntax is /rdap/nameserver/ns1.mydomain.com.
-    validateDomainName(pathSearchString);
+    try {
+      validateHostName(pathSearchString);
+    } catch (EppException e) {
+      throw new BadRequestException(
+          String.format(
+              "%s is not a valid %s: %s",
+              pathSearchString, getHumanReadableObjectTypeName(), e.getMessage()));
+    }
     // If there are no undeleted nameservers with the given name, the foreign key should point to
     // the most recently deleted one.
     HostResource hostResource =
