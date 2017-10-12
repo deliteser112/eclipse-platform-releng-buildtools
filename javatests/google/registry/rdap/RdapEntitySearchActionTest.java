@@ -440,6 +440,20 @@ public class RdapEntitySearchActionTest {
   }
 
   @Test
+  public void testNameMatchContact_found_wildcardSpecifyingSameRegistrar() throws Exception {
+    login("2-RegistrarTest");
+    action.registrarParam = Optional.of("2-RegistrarTest");
+    runSuccessfulNameTestWithBlinky("Blinky*", "rdap_contact.json");
+  }
+
+  @Test
+  public void testNameMatchContact_notFound_wildcardSpecifyingOtherRegistrar() throws Exception {
+    login("2-RegistrarTest");
+    action.registrarParam = Optional.of("2-RegistrarInact");
+    runNotFoundNameTest("Blinky*");
+  }
+
+  @Test
   public void testNameMatchContact_found_wildcardBoth() throws Exception {
     login("2-RegistrarTest");
     assertThat(generateActualJsonWithFullName("Blin*"))
@@ -654,6 +668,21 @@ public class RdapEntitySearchActionTest {
   public void testHandleMatchContact_found_wildcard() throws Exception {
     login("2-RegistrarTest");
     runSuccessfulHandleTestWithBlinky("2-RO*", "rdap_contact.json");
+  }
+
+  @Test
+  public void testHandleMatchContact_found_wildcardSpecifyingSameRegistrar() throws Exception {
+    action.registrarParam = Optional.of("2-RegistrarTest");
+    login("2-RegistrarTest");
+    runSuccessfulHandleTestWithBlinky("2-RO*", "rdap_contact.json");
+  }
+
+  @Test
+  public void testHandleMatchContact_notFound_wildcardSpecifyingDifferentRegistrar()
+      throws Exception {
+    action.registrarParam = Optional.of("2-Registrar");
+    login("2-RegistrarTest");
+    runNotFoundHandleTest("2-RO*");
   }
 
   @Test
