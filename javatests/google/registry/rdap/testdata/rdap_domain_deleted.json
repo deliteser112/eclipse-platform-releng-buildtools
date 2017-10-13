@@ -75,8 +75,7 @@
     },
     {
       "status": [
-        "active",
-        "associated"
+        "active"
       ],
       "handle": "%NAMESERVER2ROID%",
       "links": [
@@ -111,8 +110,7 @@
   "entities": [
     {
       "status": [
-        "active",
-        "associated"
+        "active"
       ],
       "handle": "%CONTACT1ROID%",
       "roles": [
@@ -204,8 +202,7 @@
     },
     {
       "status": [
-        "active",
-        "associated"
+        "active"
       ],
       "handle": "%CONTACT2ROID%",
       "roles": [
@@ -297,8 +294,7 @@
     },
     {
       "status": [
-        "active",
-        "associated"
+        "active"
       ],
       "handle": "%CONTACT3ROID%",
       "roles": [

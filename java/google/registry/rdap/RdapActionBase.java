@@ -215,16 +215,28 @@ public abstract class RdapActionBase implements Runnable {
   }
 
   /**
-   * Returns true if the EPP resource should be visible. This is true iff:
+   * Returns true if the request is authorized to see the resource.
+   *
+   * <p>This is true if the resource is not deleted, or the request wants to see deleted items, and
+   * is authorized to do so.
+   */
+  boolean isAuthorized(EppResource eppResource, DateTime now) {
+    return now.isBefore(eppResource.getDeletionTime())
+            || (shouldIncludeDeleted()
+                && getAuthorization()
+                    .isAuthorizedForClientId(eppResource.getPersistedCurrentSponsorClientId()));
+  }
+
+  /**
+   * Returns true if the EPP resource should be visible.
+   *
+   * <p>This is true iff:
    * 1. The resource is not deleted, or the request wants to see deleted items, and is authorized to
    *    do so, and:
    * 2. The request did not specify a registrar to filter on, or the registrar matches.
    */
   boolean shouldBeVisible(EppResource eppResource, DateTime now) {
-    return (now.isBefore(eppResource.getDeletionTime())
-            || (shouldIncludeDeleted()
-                && getAuthorization()
-                    .isAuthorizedForClientId(eppResource.getPersistedCurrentSponsorClientId())))
+    return isAuthorized(eppResource, now)
         && (!registrarParam.isPresent()
             || registrarParam.get().equals(eppResource.getPersistedCurrentSponsorClientId()));
   }
@@ -366,6 +378,11 @@ public abstract class RdapActionBase implements Runnable {
    * @param query an already-defined query to be run; a filter on currentSponsorClientId will be
    *        added if appropriate
    * @param now the time as of which to evaluate the query
+   * @param checkForVisibility true if the results should be checked to make sure they are visible;
+   *        normally this should be equal to the shouldIncludeDeleted setting, but in cases where
+   *        the query could not check deletion status (due to Datastore limitations such as the
+   *        limit of one field queried for inequality, for instance), it may need to be set to true
+   *        even when not including deleted records
    * @return an {@link RdapResourcesAndIncompletenessWarningType} object containing the list of
    *         resources and an incompleteness warning flag, which is set to MIGHT_BE_INCOMPLETE iff
    *         any resources were excluded due to lack of visibility, and the resulting list of
@@ -373,12 +390,12 @@ public abstract class RdapActionBase implements Runnable {
    *         fetched enough resources
    */
   <T extends EppResource> RdapResourcesAndIncompletenessWarningType<T> getMatchingResources(
-      Query<T> query, DateTime now) {
+      Query<T> query, boolean checkForVisibility, DateTime now) {
     Optional<String> desiredRegistrar = getDesiredRegistrar();
     if (desiredRegistrar.isPresent()) {
       query = query.filter("currentSponsorClientId", desiredRegistrar.get());
     }
-    if (!shouldIncludeDeleted()) {
+    if (!checkForVisibility) {
       return RdapResourcesAndIncompletenessWarningType.create(query.list());
     }
     // If we are including deleted resources, we need to check that we're authorized for each one.

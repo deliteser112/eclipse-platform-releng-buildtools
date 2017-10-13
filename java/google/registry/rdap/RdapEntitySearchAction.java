@@ -175,7 +175,8 @@ public class RdapEntitySearchAction extends RdapActionBase {
             shouldIncludeDeleted()
                 ? (RESULT_SET_SIZE_SCALING_FACTOR * (rdapResultSetMaxSize + 1))
                 : (rdapResultSetMaxSize + 1));
-    return makeSearchResults(getMatchingResources(query, now), registrars, now);
+    return makeSearchResults(
+        getMatchingResources(query, shouldIncludeDeleted(), now), registrars, now);
   }
 
   /**
@@ -226,7 +227,8 @@ public class RdapEntitySearchAction extends RdapActionBase {
               shouldIncludeDeleted()
                   ? (RESULT_SET_SIZE_SCALING_FACTOR * (rdapResultSetMaxSize + 1))
                   : (rdapResultSetMaxSize + 1));
-      return makeSearchResults(getMatchingResources(query, now), registrars, now);
+      return makeSearchResults(
+          getMatchingResources(query, shouldIncludeDeleted(), now), registrars, now);
     }
   }
 

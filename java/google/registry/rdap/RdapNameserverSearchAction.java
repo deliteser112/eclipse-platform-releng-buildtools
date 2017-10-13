@@ -219,7 +219,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
             shouldIncludeDeleted()
                 ? (RESULT_SET_SIZE_SCALING_FACTOR * (rdapResultSetMaxSize + 1))
                 : (rdapResultSetMaxSize + 1));
-    return makeSearchResults(getMatchingResources(query, now), now);
+    return makeSearchResults(getMatchingResources(query, shouldIncludeDeleted(), now), now);
   }
 
   /** Searches for nameservers by IP address, returning a JSON array of nameserver info maps. */
@@ -234,7 +234,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
             shouldIncludeDeleted()
                 ? (RESULT_SET_SIZE_SCALING_FACTOR * (rdapResultSetMaxSize + 1))
                 : (rdapResultSetMaxSize + 1));
-    return makeSearchResults(getMatchingResources(query, now), now);
+    return makeSearchResults(getMatchingResources(query, shouldIncludeDeleted(), now), now);
   }
 
   /**

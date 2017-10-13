@@ -18,6 +18,7 @@ import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
+import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.flows.EppException;
@@ -69,8 +70,10 @@ public class RdapDomainAction extends RdapActionBase {
               pathSearchString, getHumanReadableObjectTypeName(), e.getMessage()));
     }
     // The query string is not used; the RDAP syntax is /rdap/domain/mydomain.com.
-    DomainResource domainResource = loadByForeignKey(DomainResource.class, pathSearchString, now);
-    if (domainResource == null) {
+    DomainResource domainResource =
+        loadByForeignKey(
+            DomainResource.class, pathSearchString, shouldIncludeDeleted() ? START_OF_TIME : now);
+    if ((domainResource == null) || !shouldBeVisible(domainResource, now)) {
       throw new NotFoundException(pathSearchString + " not found");
     }
     return rdapJsonFormatter.makeRdapJsonForDomain(

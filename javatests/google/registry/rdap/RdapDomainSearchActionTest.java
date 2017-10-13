@@ -89,7 +89,8 @@ public class RdapDomainSearchActionTest {
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
   private final SessionUtils sessionUtils = mock(SessionUtils.class);
   private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
-  UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
+  private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
+  private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
 
   private final RdapDomainSearchAction action = new RdapDomainSearchAction();
 
@@ -104,6 +105,7 @@ public class RdapDomainSearchActionTest {
   private ContactResource contact3;
   private HostResource hostNs1CatLol;
   private HostResource hostNs2CatLol;
+  private HistoryEntry historyEntryCatLolCreate;
   private Map<String, HostResource> hostNameToHostMap = new HashMap<>();
 
   enum RequestType { NONE, NAME, NS_LDH_NAME, NS_IP }
@@ -246,7 +248,7 @@ public class RdapDomainSearchActionTest {
                 registrar),
             hostNs1CatLol,
             addHostToMap(makeAndPersistHostResource(
-                "ns2.external.tld", "bad:f00d:cafe:0:0:0:15:beef", clock.nowUtc().minusYears(2))),
+                "ns2.external.tld", "bad:f00d:cafe:0:0:0:16:beef", clock.nowUtc().minusYears(2))),
             registrar)
         .asBuilder()
         .setCreationTimeForTest(clock.nowUtc().minusYears(3))
@@ -287,7 +289,7 @@ public class RdapDomainSearchActionTest {
     // cat.1.test
     createTld("1.test");
     registrar =
-        persistResource(makeRegistrar("unicoderegistrar", "1.test", Registrar.State.ACTIVE));
+        persistResource(makeRegistrar("multiregistrar", "1.test", Registrar.State.ACTIVE));
     persistSimpleResources(makeRegistrarContacts(registrar));
     domainMultipart = persistResource(makeDomainResource(
             "cat.1.test",
@@ -319,8 +321,10 @@ public class RdapDomainSearchActionTest {
         .setCreationTimeForTest(clock.nowUtc().minusYears(3))
         .build());
 
+    persistResource(makeRegistrar("otherregistrar", "other", Registrar.State.ACTIVE));
+
     // history entries
-    persistResource(
+    historyEntryCatLolCreate = persistResource(
         makeHistoryEntry(
             domainCatLol,
             HistoryEntry.Type.DOMAIN_CREATE,
@@ -366,8 +370,17 @@ public class RdapDomainSearchActionTest {
     action.rdapWhoisServer = null;
     action.sessionUtils = sessionUtils;
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+  }
+
+  private void login(String clientId) {
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("evilregistrar");
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn(clientId);
+  }
+
+  private void loginAsAdmin() {
+    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("irrelevant");
+    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
   }
 
   private Object generateExpectedJsonForTwoDomains() {
@@ -477,6 +490,98 @@ public class RdapDomainSearchActionTest {
     return new JSONObject(builder.build());
   }
 
+  private void deleteCatLol() {
+    persistResource(
+        domainCatLol
+            .asBuilder()
+            .setCreationTimeForTest(clock.nowUtc().minusYears(1))
+            .setDeletionTime(clock.nowUtc().minusMonths(6))
+            .build());
+    persistResource(
+        historyEntryCatLolCreate
+            .asBuilder()
+            .setModificationTime(clock.nowUtc().minusYears(1))
+            .build());
+    persistResource(
+        makeHistoryEntry(
+            domainCatLol,
+            HistoryEntry.Type.DOMAIN_DELETE,
+            Period.create(1, Period.Unit.YEARS),
+            "deleted",
+            clock.nowUtc().minusMonths(6)));
+  }
+
+  private void createManyDomainsAndHosts(
+      int numActiveDomains, int numTotalDomainsPerActiveDomain, int numHosts) {
+    ImmutableSet.Builder<Key<HostResource>> hostKeysBuilder = new ImmutableSet.Builder<>();
+    ImmutableSet.Builder<String> subordinateHostnamesBuilder = new ImmutableSet.Builder<>();
+    String mainDomainName = String.format("domain%d.lol", numTotalDomainsPerActiveDomain);
+    for (int i = 1; i <= numHosts; i++) {
+      String hostName = String.format("ns%d.%s", i, mainDomainName);
+      subordinateHostnamesBuilder.add(hostName);
+      HostResource host = makeAndPersistHostResource(
+          hostName, String.format("5.5.%d.%d", 5 + i / 250, i % 250), clock.nowUtc().minusYears(1));
+      hostKeysBuilder.add(Key.create(host));
+    }
+    ImmutableSet<Key<HostResource>> hostKeys = hostKeysBuilder.build();
+    // Create all the domains at once, then persist them in parallel, for increased efficiency.
+    ImmutableList.Builder<DomainResource> domainsBuilder = new ImmutableList.Builder<>();
+    for (int i = 1; i <= numActiveDomains * numTotalDomainsPerActiveDomain; i++) {
+      String domainName = String.format("domain%d.lol", i);
+      DomainResource.Builder builder =
+          makeDomainResource(
+              domainName, contact1, contact2, contact3, null, null, registrar)
+          .asBuilder()
+          .setNameservers(hostKeys)
+          .setCreationTimeForTest(clock.nowUtc().minusYears(3));
+      if (domainName.equals(mainDomainName)) {
+        builder.setSubordinateHosts(subordinateHostnamesBuilder.build());
+      }
+      if (i % numTotalDomainsPerActiveDomain != 0) {
+        builder = builder.setDeletionTime(clock.nowUtc().minusDays(1));
+      }
+      domainsBuilder.add(builder.build());
+    }
+    persistResources(domainsBuilder.build());
+  }
+
+  private Object readMultiDomainFile(
+      String fileName,
+      String domainName1,
+      String domainHandle1,
+      String domainName2,
+      String domainHandle2,
+      String domainName3,
+      String domainHandle3,
+      String domainName4,
+      String domainHandle4) {
+    return JSONValue.parse(loadFileWithSubstitutions(
+        this.getClass(),
+        fileName,
+        new ImmutableMap.Builder<String, String>()
+            .put("DOMAINNAME1", domainName1)
+            .put("DOMAINHANDLE1", domainHandle1)
+            .put("DOMAINNAME2", domainName2)
+            .put("DOMAINHANDLE2", domainHandle2)
+            .put("DOMAINNAME3", domainName3)
+            .put("DOMAINHANDLE3", domainHandle3)
+            .put("DOMAINNAME4", domainName4)
+            .put("DOMAINHANDLE4", domainHandle4)
+            .build()));
+  }
+
+  private void checkNumberOfDomainsInResult(Object obj, int expected) {
+    assertThat(obj).isInstanceOf(Map.class);
+
+    @SuppressWarnings("unchecked")
+    Map<String, Object> map = (Map<String, Object>) obj;
+
+    @SuppressWarnings("unchecked")
+    List<Object> domains = (List<Object>) map.get("domainSearchResults");
+
+    assertThat(domains).hasSize(expected);
+  }
+
   private void runSuccessfulTestWithCatLol(
       RequestType requestType, String queryString, String fileName) {
     runSuccessfulTest(
@@ -582,26 +687,38 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testDomainMatch_found() throws Exception {
+    login("evilregistrar");
     runSuccessfulTestWithCatLol(RequestType.NAME, "cat.lol", "rdap_domain.json");
   }
 
   @Test
   public void testDomainMatch_foundWithUpperCase() throws Exception {
+    login("evilregistrar");
     runSuccessfulTestWithCatLol(RequestType.NAME, "CaT.lOl", "rdap_domain.json");
   }
 
   @Test
+  public void testDomainMatch_found_sameRegistrarRequested() throws Exception {
+    login("evilregistrar");
+    action.registrarParam = Optional.of("evilregistrar");
+    runSuccessfulTestWithCatLol(RequestType.NAME, "cat.lol", "rdap_domain.json");
+  }
+
+  @Test
+  public void testDomainMatch_notFound_differentRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("otherregistrar");
+    runNotFoundTest(RequestType.NAME, "cat.lol", "No domains found");
+  }
+
+  @Test
   public void testDomainMatch_found_asAdministrator() throws Exception {
-    UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
-    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(false);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("noregistrar");
+    loginAsAdmin();
     runSuccessfulTestWithCatLol(RequestType.NAME, "cat.lol", "rdap_domain.json");
   }
 
   @Test
   public void testDomainMatch_found_loggedInAsOtherRegistrar() throws Exception {
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("otherregistrar");
+    login("otherregistrar");
     runSuccessfulTestWithCatLol(
         RequestType.NAME, "cat.lol", "rdap_domain_no_contacts_with_remark.json");
   }
@@ -618,11 +735,13 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testDomainMatch_cat2_lol_found() throws Exception {
+    login("evilregistrar");
     runSuccessfulTestWithCat2Lol(RequestType.NAME, "cat2.lol", "rdap_domain_cat2.json");
   }
 
   @Test
   public void testDomainMatch_cat_example_found() throws Exception {
+    login("evilregistrar");
     runSuccessfulTest(
         RequestType.NAME,
         "cat.example",
@@ -706,10 +825,29 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
+  public void testDomainMatch_qstar_lol_notFound() throws Exception {
+    runNotFoundTest(RequestType.NAME, "q*.lol", "No domains found");
+  }
+
+  @Test
   public void testDomainMatch_star_lol_found() throws Exception {
     assertThat(generateActualJson(RequestType.NAME, "*.lol"))
         .isEqualTo(generateExpectedJsonForTwoDomains("cat2.lol", "17-LOL", "cat.lol", "C-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testDomainMatch_star_lol_found_sameRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("evilregistrar");
+    assertThat(generateActualJson(RequestType.NAME, "*.lol"))
+        .isEqualTo(generateExpectedJsonForTwoDomains("cat2.lol", "17-LOL", "cat.lol", "C-LOL"));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testDomainMatch_star_lol_notFound_differentRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("otherregistrar");
+    runNotFoundTest(RequestType.NAME, "*.lol", "No domains found");
   }
 
   @Test
@@ -726,7 +864,21 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
+  public void testDomainMatch_cat_star_foundOne_sameRegistrarRequested() throws Exception {
+    login("evilregistrar");
+    action.registrarParam = Optional.of("evilregistrar");
+    runSuccessfulTestWithCatLol(RequestType.NAME, "cat.*", "rdap_domain.json");
+  }
+
+  @Test
+  public void testDomainMatch_cat_star_notFound_differentRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("otherregistrar");
+    runNotFoundTest(RequestType.NAME, "cat.*", "No domains found");
+  }
+
+  @Test
   public void testDomainMatch_cat_lstar_found() throws Exception {
+    login("evilregistrar");
     runSuccessfulTestWithCatLol(RequestType.NAME, "cat.l*", "rdap_domain.json");
   }
 
@@ -764,6 +916,37 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
+  public void testDomainMatchDeletedDomain_notFound_deletedNotRequested() throws Exception {
+    login("evilregistrar");
+    persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
+    runNotFoundTest(RequestType.NAME, "cat.lol", "No domains found");
+  }
+
+  @Test
+  public void testDomainMatchDeletedDomain_found_loggedInAsSameRegistrar() throws Exception {
+    login("evilregistrar");
+    action.includeDeletedParam = Optional.of(true);
+    deleteCatLol();
+    runSuccessfulTestWithCatLol(RequestType.NAME, "cat.lol", "rdap_domain_deleted.json");
+  }
+
+  @Test
+  public void testDomainMatchDeletedDomain_notFound_loggedInAsOtherRegistrar() throws Exception {
+    login("otherregistrar");
+    action.includeDeletedParam = Optional.of(true);
+    persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
+    runNotFoundTest(RequestType.NAME, "cat.lol", "No domains found");
+  }
+
+  @Test
+  public void testDomainMatchDeletedDomain_found_loggedInAsAdmin() throws Exception {
+    loginAsAdmin();
+    action.includeDeletedParam = Optional.of(true);
+    deleteCatLol();
+    runSuccessfulTestWithCatLol(RequestType.NAME, "cat.lol", "rdap_domain_deleted.json");
+  }
+
+  @Test
   public void testDomainMatchDeletedDomainWithWildcard_notFound() throws Exception {
     persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
     runNotFoundTest(RequestType.NAME, "cat.lo*", "No domains found");
@@ -782,77 +965,6 @@ public class RdapDomainSearchActionTest {
   public void testDomainMatchDomainInTestTld_notFound() throws Exception {
     persistResource(Registry.get("lol").asBuilder().setTldType(Registry.TldType.TEST).build());
     runNotFoundTest(RequestType.NAME, "cat.lol", "No domains found");
-  }
-
-  private void createManyDomainsAndHosts(
-      int numActiveDomains, int numTotalDomainsPerActiveDomain, int numHosts) {
-    ImmutableSet.Builder<Key<HostResource>> hostKeysBuilder = new ImmutableSet.Builder<>();
-    ImmutableSet.Builder<String> subordinateHostsBuilder = new ImmutableSet.Builder<>();
-    String mainDomainName = String.format("domain%d.lol", numTotalDomainsPerActiveDomain);
-    for (int i = 1; i <= numHosts; i++) {
-      String hostName = String.format("ns%d.%s", i, mainDomainName);
-      subordinateHostsBuilder.add(hostName);
-      HostResource host = makeAndPersistHostResource(
-          hostName, String.format("5.5.%d.%d", 5 + i / 250, i % 250), clock.nowUtc().minusYears(1));
-      hostKeysBuilder.add(Key.create(host));
-    }
-    ImmutableSet<Key<HostResource>> hostKeys = hostKeysBuilder.build();
-    // Create all the domains at once, then persist them in parallel, for increased efficiency.
-    ImmutableList.Builder<DomainResource> domainsBuilder = new ImmutableList.Builder<>();
-    for (int i = 1; i <= numActiveDomains * numTotalDomainsPerActiveDomain; i++) {
-      String domainName = String.format("domain%d.lol", i);
-      DomainResource.Builder builder =
-          makeDomainResource(
-              domainName, contact1, contact2, contact3, null, null, registrar)
-          .asBuilder()
-          .setNameservers(hostKeys)
-          .setCreationTimeForTest(clock.nowUtc().minusYears(3));
-      if (domainName.equals(mainDomainName)) {
-        builder.setSubordinateHosts(subordinateHostsBuilder.build());
-      }
-      if (i % numTotalDomainsPerActiveDomain != 0) {
-        builder = builder.setDeletionTime(clock.nowUtc().minusDays(1));
-      }
-      domainsBuilder.add(builder.build());
-    }
-    persistResources(domainsBuilder.build());
-  }
-
-  private Object readMultiDomainFile(
-      String fileName,
-      String domainName1,
-      String domainHandle1,
-      String domainName2,
-      String domainHandle2,
-      String domainName3,
-      String domainHandle3,
-      String domainName4,
-      String domainHandle4) {
-    return JSONValue.parse(loadFileWithSubstitutions(
-        this.getClass(),
-        fileName,
-        new ImmutableMap.Builder<String, String>()
-            .put("DOMAINNAME1", domainName1)
-            .put("DOMAINHANDLE1", domainHandle1)
-            .put("DOMAINNAME2", domainName2)
-            .put("DOMAINHANDLE2", domainHandle2)
-            .put("DOMAINNAME3", domainName3)
-            .put("DOMAINHANDLE3", domainHandle3)
-            .put("DOMAINNAME4", domainName4)
-            .put("DOMAINHANDLE4", domainHandle4)
-            .build()));
-  }
-
-  private void checkNumberOfDomainsInResult(Object obj, int expected) {
-    assertThat(obj).isInstanceOf(Map.class);
-
-    @SuppressWarnings("unchecked")
-    Map<String, Object> map = (Map<String, Object>) obj;
-
-    @SuppressWarnings("unchecked")
-    List<Object> domains = (List<Object>) map.get("domainSearchResults");
-
-    assertThat(domains).hasSize(expected);
   }
 
   @Test
@@ -973,8 +1085,37 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
+  public void testNameserverMatch_foundMultiple_sameRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("TheRegistrar");
+    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.cat.lol"))
+        .isEqualTo(generateExpectedJsonForTwoDomains());
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameserverMatch_notFound_differentRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("otherregistrar");
+    runNotFoundTest(RequestType.NS_LDH_NAME, "ns1.cat.lol", "No matching nameservers found");
+  }
+
+  @Test
   public void testNameserverMatchWithWildcard_found() throws Exception {
+    login("evilregistrar");
     runSuccessfulTestWithCatLol(RequestType.NS_LDH_NAME, "ns2.cat.l*", "rdap_domain.json");
+  }
+
+  @Test
+  public void testNameserverMatchWithWildcard_found_sameRegistrarRequested() throws Exception {
+    login("evilregistrar");
+    action.registrarParam = Optional.of("TheRegistrar");
+    runSuccessfulTestWithCatLol(RequestType.NS_LDH_NAME, "ns2.cat.l*", "rdap_domain.json");
+  }
+
+  @Test
+  public void testNameserverMatchWithWildcard_notFound_differentRegistrarRequested()
+      throws Exception {
+    action.registrarParam = Optional.of("otherregistrar");
+    runNotFoundTest(RequestType.NS_LDH_NAME, "ns2.cat.l*", "No matching nameservers found");
   }
 
   @Test
@@ -983,14 +1124,14 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
-  public void testNameserverMatchWithNoPrefixWildcardAndDomainSuffix_found() throws Exception {
+  public void testNameserverMatchWithNoPrefixAndDomainSuffix_found() throws Exception {
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "*.cat.lol"))
         .isEqualTo(generateExpectedJsonForTwoDomains());
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
-  public void testNameserverMatchWithOneCharacterPrefixWildcardAndDomainSuffix_found()
+  public void testNameserverMatchWithOneCharacterPrefixAndDomainSuffix_found()
       throws Exception {
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "n*.cat.lol"))
         .isEqualTo(generateExpectedJsonForTwoDomains());
@@ -998,7 +1139,24 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
-  public void testNameserverMatchWithTwoCharacterPrefixWildcardAndDomainSuffix_found()
+  public void
+      testNameserverMatchWithOneCharacterPrefixAndDomainSuffix_found_sameRegistrarRequested()
+          throws Exception {
+    action.registrarParam = Optional.of("TheRegistrar");
+    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "n*.cat.lol"))
+        .isEqualTo(generateExpectedJsonForTwoDomains());
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testNameserverMatchWithPrefixAndDomainSuffix_notFound_differentRegistrarRequested()
+      throws Exception {
+    action.registrarParam = Optional.of("otherregistrar");
+    runNotFoundTest(RequestType.NS_LDH_NAME, "n*.cat.lol", "No matching nameservers found");
+  }
+
+  @Test
+  public void testNameserverMatchWithTwoCharacterPrefixAndDomainSuffix_found()
       throws Exception {
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns*.cat.lol"))
         .isEqualTo(generateExpectedJsonForTwoDomains());
@@ -1019,11 +1177,13 @@ public class RdapDomainSearchActionTest {
 
   @Test
   public void testNameserverMatch_ns2_cat_lol_found() throws Exception {
+    login("evilregistrar");
     runSuccessfulTestWithCatLol(RequestType.NS_LDH_NAME, "ns2.cat.lol", "rdap_domain.json");
   }
 
   @Test
   public void testNameserverMatch_ns2_dog_lol_found() throws Exception {
+    login("evilregistrar");
     runSuccessfulTestWithCat2Lol(RequestType.NS_LDH_NAME, "ns2.dog.lol", "rdap_domain_cat2.json");
   }
 
@@ -1093,7 +1253,40 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
+  public void testNameserverMatchDeletedDomain_notFound() throws Exception {
+    action.includeDeletedParam = Optional.of(true);
+    deleteCatLol();
+    runNotFoundTest(RequestType.NS_LDH_NAME, "ns2.cat.lol", "No domains found");
+  }
+
+  @Test
+  public void testNameserverMatchDeletedDomain_found_loggedInAsSameRegistrar() throws Exception {
+    login("evilregistrar");
+    action.includeDeletedParam = Optional.of(true);
+    deleteCatLol();
+    runSuccessfulTestWithCatLol(RequestType.NS_LDH_NAME, "ns2.cat.lol", "rdap_domain_deleted.json");
+  }
+
+  @Test
+  public void testNameserverMatchDeletedDomain_notFound_loggedInAsOtherRegistrar()
+      throws Exception {
+    login("otherregistrar");
+    action.includeDeletedParam = Optional.of(true);
+    persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
+    runNotFoundTest(RequestType.NS_LDH_NAME, "ns2.cat.lol", "No domains found");
+  }
+
+  @Test
+  public void testNameserverMatchDeletedDomain_found_loggedInAsAdmin() throws Exception {
+    loginAsAdmin();
+    action.includeDeletedParam = Optional.of(true);
+    deleteCatLol();
+    runSuccessfulTestWithCatLol(RequestType.NS_LDH_NAME, "ns2.cat.lol", "rdap_domain_deleted.json");
+  }
+
+  @Test
   public void testNameserverMatchOneDeletedDomain_foundTheOther() throws Exception {
+    login("evilregistrar");
     persistDomainAsDeleted(domainCatExample, clock.nowUtc().minusDays(1));
     runSuccessfulTestWithCatLol(RequestType.NS_LDH_NAME, "ns1.cat.lol", "rdap_domain.json");
   }
@@ -1254,10 +1447,25 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
-  public void testAddressMatchV6Address_foundMultiple() throws Exception {
-    assertThat(generateActualJson(RequestType.NS_IP, "bad:f00d:cafe:0:0:0:15:beef"))
+  public void testAddressMatchV4Address_foundMultiple_sameRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("TheRegistrar");
+    assertThat(generateActualJson(RequestType.NS_IP, "1.2.3.4"))
         .isEqualTo(generateExpectedJsonForTwoDomains());
     assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testAddressMatchV4Address_notFound_differentRegistrarRequested() throws Exception {
+    action.registrarParam = Optional.of("otherregistrar");
+    runNotFoundTest(RequestType.NS_IP, "1.2.3.4", "No domains found");
+  }
+
+  @Test
+  public void testAddressMatchV6Address_foundOne() throws Exception {
+    runSuccessfulTestWithCatLol(
+        RequestType.NS_IP,
+        "bad:f00d:cafe:0:0:0:15:beef",
+        "rdap_domain_no_contacts_with_remark.json");
   }
 
   @Test
@@ -1275,7 +1483,41 @@ public class RdapDomainSearchActionTest {
   }
 
   @Test
+  public void testAddressMatchDeletedDomain_notFound() throws Exception {
+    action.includeDeletedParam = Optional.of(true);
+    deleteCatLol();
+    runNotFoundTest(RequestType.NS_IP, "bad:f00d:cafe:0:0:0:15:beef", "No domains found");
+  }
+
+  @Test
+  public void testAddressMatchDeletedDomain_found_loggedInAsSameRegistrar() throws Exception {
+    login("evilregistrar");
+    action.includeDeletedParam = Optional.of(true);
+    deleteCatLol();
+    runSuccessfulTestWithCatLol(
+        RequestType.NS_IP, "bad:f00d:cafe:0:0:0:15:beef", "rdap_domain_deleted.json");
+  }
+
+  @Test
+  public void testAddressMatchDeletedDomain_notFound_loggedInAsOtherRegistrar() throws Exception {
+    login("otherregistrar");
+    action.includeDeletedParam = Optional.of(true);
+    persistDomainAsDeleted(domainCatLol, clock.nowUtc().minusDays(1));
+    runNotFoundTest(RequestType.NS_IP, "bad:f00d:cafe:0:0:0:15:beef", "No domains found");
+  }
+
+  @Test
+  public void testAddressMatchDeletedDomain_found_loggedInAsAdmin() throws Exception {
+    loginAsAdmin();
+    action.includeDeletedParam = Optional.of(true);
+    deleteCatLol();
+    runSuccessfulTestWithCatLol(
+        RequestType.NS_IP, "bad:f00d:cafe:0:0:0:15:beef", "rdap_domain_deleted.json");
+  }
+
+  @Test
   public void testAddressMatchOneDeletedDomain_foundTheOther() throws Exception {
+    login("evilregistrar");
     persistDomainAsDeleted(domainCatExample, clock.nowUtc().minusDays(1));
     assertThat(generateActualJson(RequestType.NS_IP, "1.2.3.4"))
         .isEqualTo(
