@@ -58,7 +58,7 @@ public class CreateCdnsTldTest extends CommandTestCase<CreateCdnsTld> {
 
   @Test
   public void testBasicFunctionality() throws Exception {
-    runCommand("--dns_name=tld.", "--name=tld", "--description=test run");
+    runCommand("--dns_name=tld.", "--name=tld", "--description=test run", "--force");
     verify(request).execute();
     assertThat(projectId.getValue()).isEqualTo("test-project");
     ManagedZone zone = requestBody.getValue();
@@ -69,7 +69,7 @@ public class CreateCdnsTldTest extends CommandTestCase<CreateCdnsTld> {
 
   @Test
   public void testNameDefault() throws Exception {
-    runCommand("--dns_name=tld.", "--description=test run");
+    runCommand("--dns_name=tld.", "--description=test run", "--force");
     ManagedZone zone = requestBody.getValue();
     assertThat(zone.getNameServerSet()).isEqualTo("cloud-dns-registry-test");
     assertThat(zone.getDnsName()).isEqualTo("tld.");

@@ -28,11 +28,12 @@ import google.registry.config.RegistryConfig.Config;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 @Parameters(separators = " =", commandDescription = "Create a Managed Zone for a TLD in Cloud DNS.")
-class CreateCdnsTld implements Command {
+class CreateCdnsTld extends ConfirmingCommand {
 
   @Parameter(names = "--description", description = "Description of the new TLD.")
   String description;
@@ -55,21 +56,38 @@ class CreateCdnsTld implements Command {
   @Config("projectId")
   String projectId;
 
+  private static final String KEY_VALUE_FORMAT = "  %s = %s";
+
+  private ManagedZone requestBody;
+
   @Override
-  public void run() throws IOException, GeneralSecurityException {
-    ManagedZone requestBody = new ManagedZone();
+  protected void init() throws IOException, GeneralSecurityException {
+    requestBody = new ManagedZone();
     requestBody.setDescription(description);
     // TODO(b/67413698): allow parameterizing the nameserver set once it's safe to do so.
     requestBody.setNameServerSet("cloud-dns-registry-test");
     requestBody.setDnsName(dnsName);
     requestBody.setName((name != null) ? name : dnsName);
+  }
 
+  @Override
+  protected String prompt() {
+    return String.format(
+        "Creating TLD with:\n%s\n%s",
+        String.format(KEY_VALUE_FORMAT, "projectId", projectId),
+        requestBody
+            .entrySet()
+            .stream()
+            .map(entry -> String.format(KEY_VALUE_FORMAT, entry.getKey(), entry.getValue()))
+            .collect(Collectors.joining("\n")));
+  }
+
+  @Override
+  public String execute() throws IOException, GeneralSecurityException {
     Dns dnsService = createDnsService();
     Dns.ManagedZones.Create request = dnsService.managedZones().create(projectId, requestBody);
-
     ManagedZone response = request.execute();
-
-    System.err.println("Created managed zone: " + response);
+    return String.format("Created managed zone: %s", response);
   }
 
   @VisibleForTesting
