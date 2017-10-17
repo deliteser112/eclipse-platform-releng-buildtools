@@ -18,6 +18,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 
+import com.google.auto.value.AutoValue;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
@@ -48,6 +50,12 @@ import org.joda.time.Duration;
 public class Lock extends ImmutableObject {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+
+  /** Disposition of locking, for monitoring. */
+  enum LockState { IN_USE, FREE, TIMED_OUT, OWNER_DIED }
+
+  @VisibleForTesting
+  static LockMetrics lockMetrics = new LockMetrics();
 
   /** The name of the locked resource. */
   @Id
@@ -90,19 +98,82 @@ public class Lock extends ImmutableObject {
     return String.format("%s-%s", tld, resourceName);
   }
 
+  @AutoValue
+  abstract static class AcquireResult {
+    public abstract DateTime transactionTime();
+    public abstract @Nullable Lock existingLock();
+    public abstract @Nullable Lock newLock();
+    public abstract LockState lockState();
+
+    public static AcquireResult create(
+        DateTime transactionTime,
+        @Nullable Lock existingLock,
+        @Nullable Lock newLock,
+        LockState lockState) {
+      return new AutoValue_Lock_AcquireResult(transactionTime, existingLock, newLock, lockState);
+    }
+  }
+
+  private static void logAcquireResult(AcquireResult acquireResult) {
+    try {
+      Lock lock = acquireResult.existingLock();
+      DateTime now = acquireResult.transactionTime();
+      switch (acquireResult.lockState()) {
+        case IN_USE:
+          logger.infofmt(
+              "Existing lock by request %s is still valid now %s (until %s) lock: %s",
+              lock.requestLogId,
+              now,
+              lock.expirationTime,
+              lock.lockId);
+          break;
+        case TIMED_OUT:
+          logger.infofmt(
+              "Existing lock by request %s is timed out now %s (was valid until %s) lock: %s",
+              lock.requestLogId,
+              now,
+              lock.expirationTime,
+              lock.lockId);
+          break;
+        case OWNER_DIED:
+          logger.infofmt(
+              "Existing lock is valid now %s (until %s), but owner (%s) isn't running lock: %s",
+              now,
+              lock.expirationTime,
+              lock.requestLogId,
+              lock.lockId);
+          break;
+        case FREE:
+          // There was no existing lock
+          break;
+      }
+      Lock newLock = acquireResult.newLock();
+      if (acquireResult.newLock() != null) {
+        logger.infofmt(
+            "acquire succeeded %s lock: %s",
+            newLock,
+            newLock.lockId);
+      }
+    } catch (Throwable e) {
+      // We might get here if there is a NullPointerException for example, if AcquireResult wasn't
+      // constructed correctly. Simply log it for debugging but continue as if nothing happened
+      logger.warningfmt(e, "Error while logging AcquireResult %s. Continuing.", acquireResult);
+    }
+  }
+
   /** Try to acquire a lock. Returns absent if it can't be acquired. */
   public static Optional<Lock> acquire(
       final String resourceName,
       @Nullable final String tld,
       final Duration leaseLength,
       final RequestStatusChecker requestStatusChecker) {
+    String lockId = makeLockId(resourceName, tld);
     // It's important to use transactNew rather than transact, because a Lock can be used to control
     // access to resources like GCS that can't be transactionally rolled back. Therefore, the lock
     // must be definitively acquired before it is used, even when called inside another transaction.
-    return Optional.ofNullable(ofy().transactNew(new Work<Lock>() {
+    AcquireResult acquireResult = ofy().transactNew(new Work<AcquireResult>() {
       @Override
-      public Lock run() {
-        String lockId = makeLockId(resourceName, tld);
+      public AcquireResult run() {
         DateTime now = ofy().getTransactionTime();
 
         // Checking if an unexpired lock still exists - if so, the lock can't be acquired.
@@ -111,29 +182,18 @@ public class Lock extends ImmutableObject {
           logger.infofmt(
               "Loaded existing lock: %s for request: %s", lock.lockId, lock.requestLogId);
         }
-        // TODO(b/63982642): remove check on requestLogId being null once migration is done
-        // Until then we assume missing requestLogId means the app is still running (since we have
-        // no information to the contrary)
-        if (lock != null
-            && !isAtOrAfter(now, lock.expirationTime)
-            && (lock.requestLogId == null || requestStatusChecker.isRunning(lock.requestLogId))) {
-          logger.infofmt(
-              "Existing lock by request %s is still valid now %s (until %s) lock: %s",
-              lock.requestLogId,
-              now,
-              lock.expirationTime,
-              lockId);
-          return null;
+        LockState lockState;
+        if (lock == null) {
+          lockState = LockState.FREE;
+        } else if (isAtOrAfter(now, lock.expirationTime)) {
+          lockState = LockState.TIMED_OUT;
+        } else if (!requestStatusChecker.isRunning(lock.requestLogId)) {
+          lockState = LockState.OWNER_DIED;
+        } else {
+          lockState = LockState.IN_USE;
+          return AcquireResult.create(now, lock, null, lockState);
         }
 
-        if (lock != null) {
-          logger.infofmt(
-              "Existing lock by request %s is timed out now %s (was valid until %s) lock: %s",
-              lock.requestLogId,
-              now,
-              lock.expirationTime,
-              lockId);
-        }
         Lock newLock = create(
             resourceName,
             tld,
@@ -142,12 +202,12 @@ public class Lock extends ImmutableObject {
         // Locks are not parented under an EntityGroupRoot (so as to avoid write contention) and
         // don't need to be backed up.
         ofy().saveWithoutBackup().entity(newLock);
-        logger.infofmt(
-            "acquire succeeded %s lock: %s",
-            newLock,
-            lockId);
-        return newLock;
-      }}));
+        return AcquireResult.create(now, lock, newLock, lockState);
+      }});
+
+    logAcquireResult(acquireResult);
+    lockMetrics.record(resourceName, tld, acquireResult.lockState());
+    return Optional.ofNullable(acquireResult.newLock());
   }
 
   /** Release the lock. */
