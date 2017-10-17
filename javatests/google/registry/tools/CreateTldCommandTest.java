@@ -37,6 +37,7 @@ import java.io.PrintStream;
 import java.math.BigDecimal;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.junit.Before;
 import org.junit.Test;
@@ -333,7 +334,9 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         IllegalArgumentException.class,
         "Don't pass both --initial_tld_state and --tld_state_transitions");
     runCommandForced(
-        String.format("--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE", now, now.plus(1)),
+        String.format(
+            "--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE",
+            now, now.plus(Duration.millis(1))),
         "--initial_tld_state=GENERAL_AVAILABILITY",
         "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");

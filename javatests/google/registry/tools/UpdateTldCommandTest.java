@@ -530,7 +530,9 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
     thrown.expect(
         ParameterException.class, "not formatted correctly or has transition times out of order");
     runCommandForced(
-        String.format("--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE", now, now.minus(1)),
+        String.format(
+            "--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE",
+            now, now.minus(Duration.millis(1))),
         "xn--q9jyb4c");
   }
 
@@ -630,7 +632,9 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
     thrown.expect(
         ParameterException.class, "not formatted correctly or has transition times out of order");
     runCommandForced(
-        String.format("--renew_billing_cost_transitions=\"%s=USD 1,%s=USD 2\"", now, now.minus(1)),
+        String.format(
+            "--renew_billing_cost_transitions=\"%s=USD 1,%s=USD 2\"",
+            now, now.minus(Duration.millis(1))),
         "xn--q9jyb4c");
   }
 

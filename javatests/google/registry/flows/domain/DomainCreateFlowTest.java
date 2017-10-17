@@ -154,7 +154,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   public DomainCreateFlowTest() {
     setEppInput("domain_create.xml");
-    clock.setTo(DateTime.parse("1999-04-03T22:00:00.0Z").minus(1));
+    clock.setTo(DateTime.parse("1999-04-03T22:00:00.0Z").minus(Duration.millis(1)));
   }
 
   @Before

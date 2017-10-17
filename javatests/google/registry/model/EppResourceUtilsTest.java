@@ -70,7 +70,7 @@ public class EppResourceUtilsTest {
         newHostResource("ns1.cat.tld").asBuilder()
             .setCreationTimeForTest(clock.nowUtc())
             .build());
-    assertThat(loadAtPointInTime(host, clock.nowUtc().minus(1)).now()).isNull();
+    assertThat(loadAtPointInTime(host, clock.nowUtc().minus(Duration.millis(1))).now()).isNull();
   }
 
   @Test
