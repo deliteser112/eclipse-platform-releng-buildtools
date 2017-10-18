@@ -35,13 +35,13 @@ import google.registry.flows.contact.ContactTransferQueryFlow;
 import google.registry.flows.contact.ContactTransferRejectFlow;
 import google.registry.flows.contact.ContactTransferRequestFlow;
 import google.registry.flows.contact.ContactUpdateFlow;
-import google.registry.flows.domain.ClaimsCheckFlow;
 import google.registry.flows.domain.DomainAllocateFlow;
 import google.registry.flows.domain.DomainApplicationCreateFlow;
 import google.registry.flows.domain.DomainApplicationDeleteFlow;
 import google.registry.flows.domain.DomainApplicationInfoFlow;
 import google.registry.flows.domain.DomainApplicationUpdateFlow;
 import google.registry.flows.domain.DomainCheckFlow;
+import google.registry.flows.domain.DomainClaimsCheckFlow;
 import google.registry.flows.domain.DomainCreateFlow;
 import google.registry.flows.domain.DomainDeleteFlow;
 import google.registry.flows.domain.DomainInfoFlow;
@@ -191,7 +191,7 @@ public class FlowPicker {
       }
       if (CheckType.CLAIMS.equals(extension.getCheckType())
           && LaunchPhase.CLAIMS.equals(extension.getPhase())) {
-        return ClaimsCheckFlow.class;
+        return DomainClaimsCheckFlow.class;
       }
       return null;
     }};

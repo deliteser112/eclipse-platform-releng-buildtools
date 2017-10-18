@@ -1,26 +1,5 @@
 # Nomulus EPP Command API Documentation
 
-## ClaimsCheckFlow
-
-### Description
-
-An EPP flow that checks whether strings are trademarked.
-
-
-### Errors
-
-*   2002
-    *   Command is not allowed in the current registry phase.
-    *   Claims checks are not allowed during sunrise.
-*   2004
-    *   Domain name is under tld which doesn't exist.
-*   2201
-    *   Registrar is not authorized to access this TLD.
-*   2304
-    *   The claims period for this TLD has ended.
-*   2306
-    *   Too many resource checks requested in one check command.
-
 ## ContactCheckFlow
 
 ### Description
@@ -503,6 +482,27 @@ information.
     *   Unknown fee command name.
     *   By server policy, fee check names must be listed in the availability
         check.
+
+## DomainClaimsCheckFlow
+
+### Description
+
+An EPP flow that checks whether domain labels are trademarked.
+
+
+### Errors
+
+*   2002
+    *   Command is not allowed in the current registry phase.
+    *   Claims checks are not allowed during sunrise.
+*   2004
+    *   Domain name is under tld which doesn't exist.
+*   2201
+    *   Registrar is not authorized to access this TLD.
+*   2304
+    *   The claims period for this TLD has ended.
+*   2306
+    *   Too many resource checks requested in one check command.
 
 ## DomainCreateFlow
 

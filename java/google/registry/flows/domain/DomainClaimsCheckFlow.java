@@ -53,17 +53,17 @@ import javax.inject.Inject;
 import org.joda.time.DateTime;
 
 /**
- * An EPP flow that checks whether strings are trademarked.
+ * An EPP flow that checks whether domain labels are trademarked.
  *
  * @error {@link google.registry.flows.exceptions.TooManyResourceChecksException}
  * @error {@link DomainFlowUtils.BadCommandForRegistryPhaseException}
  * @error {@link DomainFlowUtils.ClaimsPeriodEndedException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.TldDoesNotExistException}
- * @error {@link ClaimsCheckNotAllowedInSunrise}
+ * @error {@link DomainClaimsCheckNotAllowedInSunrise}
  */
 @ReportingSpec(ActivityReportField.DOMAIN_CHECK)  // Claims check is a special domain check.
-public final class ClaimsCheckFlow implements Flow {
+public final class DomainClaimsCheckFlow implements Flow {
 
   @Inject ExtensionManager extensionManager;
   @Inject ResourceCommand resourceCommand;
@@ -72,7 +72,9 @@ public final class ClaimsCheckFlow implements Flow {
   @Inject Clock clock;
   @Inject @Config("maxChecks") int maxChecks;
   @Inject EppResponse.Builder responseBuilder;
-  @Inject ClaimsCheckFlow() {}
+
+  @Inject
+  DomainClaimsCheckFlow() {}
 
   @Override
   public EppResponse run() throws EppException {
@@ -95,7 +97,7 @@ public final class ClaimsCheckFlow implements Flow {
           DateTime now = clock.nowUtc();
           verifyNotInPredelegation(registry, now);
           if (registry.getTldState(now) == TldState.SUNRISE) {
-            throw new ClaimsCheckNotAllowedInSunrise();
+            throw new DomainClaimsCheckNotAllowedInSunrise();
           }
           verifyClaimsPeriodNotEnded(registry, now);
         }
@@ -111,8 +113,8 @@ public final class ClaimsCheckFlow implements Flow {
   }
 
   /** Claims checks are not allowed during sunrise. */
-  static class ClaimsCheckNotAllowedInSunrise extends CommandUseErrorException {
-    public ClaimsCheckNotAllowedInSunrise() {
+  static class DomainClaimsCheckNotAllowedInSunrise extends CommandUseErrorException {
+    public DomainClaimsCheckNotAllowedInSunrise() {
       super("Claims checks are not allowed during sunrise");
     }
   }

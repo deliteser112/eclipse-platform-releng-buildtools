@@ -22,7 +22,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.ResourceFlowTestCase;
-import google.registry.flows.domain.ClaimsCheckFlow.ClaimsCheckNotAllowedInSunrise;
+import google.registry.flows.domain.DomainClaimsCheckFlow.DomainClaimsCheckNotAllowedInSunrise;
 import google.registry.flows.domain.DomainFlowUtils.BadCommandForRegistryPhaseException;
 import google.registry.flows.domain.DomainFlowUtils.ClaimsPeriodEndedException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
@@ -34,10 +34,11 @@ import google.registry.model.registry.Registry.TldState;
 import org.junit.Before;
 import org.junit.Test;
 
-/** Unit tests for {@link ClaimsCheckFlow}. */
-public class ClaimsCheckFlowTest extends ResourceFlowTestCase<ClaimsCheckFlow, DomainResource> {
+/** Unit tests for {@link DomainClaimsCheckFlow}. */
+public class DomainClaimsCheckFlowTest
+    extends ResourceFlowTestCase<DomainClaimsCheckFlow, DomainResource> {
 
-  public ClaimsCheckFlowTest() {
+  public DomainClaimsCheckFlowTest() {
     setEppInput("domain_check_claims.xml");
   }
 
@@ -132,8 +133,8 @@ public class ClaimsCheckFlowTest extends ResourceFlowTestCase<ClaimsCheckFlow, D
             .setAllowedTlds(ImmutableSet.<String>of())
             .build());
     assertTransactionalFlow(false);
-    assertNoHistory();  // Checks don't create a history event.
-    assertNoBillingEvents();  // Checks are always free.
+    assertNoHistory(); // Checks don't create a history event.
+    assertNoBillingEvents(); // Checks are always free.
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_check_claims_response.xml"));
   }
@@ -152,7 +153,7 @@ public class ClaimsCheckFlowTest extends ResourceFlowTestCase<ClaimsCheckFlow, D
     createTld("tld", TldState.SUNRISE);
     persistResource(Registry.get("tld").asBuilder().build());
     setEppInput("domain_check_claims.xml");
-    thrown.expect(ClaimsCheckNotAllowedInSunrise.class);
+    thrown.expect(DomainClaimsCheckNotAllowedInSunrise.class);
     runFlow();
   }
 
