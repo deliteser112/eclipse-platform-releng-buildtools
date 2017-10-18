@@ -22,8 +22,6 @@ import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registry;
 import google.registry.request.HttpException.NoContentException;
 import google.registry.request.HttpException.ServiceUnavailableException;
-import google.registry.request.Parameter;
-import google.registry.request.RequestParameters;
 import google.registry.request.lock.LockHandler;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
@@ -70,7 +68,6 @@ class EscrowTaskRunner {
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Inject Clock clock;
-  @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
   @Inject LockHandler lockHandler;
   @Inject EscrowTaskRunner() {}
 
@@ -113,12 +110,13 @@ class EscrowTaskRunner {
                   });
           return null;
         };
-    String lockName = String.format("%s %s", task.getClass().getSimpleName(), registry.getTld());
-    if (!lockHandler.executeWithLocks(lockRunner, tld, timeout, lockName)) {
+    String lockName = String.format("EscrowTaskRunner %s", task.getClass().getSimpleName());
+    if (!lockHandler.executeWithLocks(lockRunner, registry.getTldStr(), timeout, lockName)) {
       // This will happen if either: a) the task is double-executed; b) the task takes a long time
       // to run and the retry task got executed while the first one is still running. In both
       // situations the safest thing to do is to just return 503 so the task gets retried later.
-      throw new ServiceUnavailableException("Lock in use: " + lockName);
+      throw new ServiceUnavailableException(
+          String.format("Lock in use: %s for TLD: %s", lockName, registry.getTldStr()));
     }
   }
 }

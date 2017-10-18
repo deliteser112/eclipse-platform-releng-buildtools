@@ -15,7 +15,6 @@
 package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -67,7 +66,6 @@ public class EscrowTaskRunnerTest {
     registry = Registry.get("lol");
     runner = new EscrowTaskRunner();
     runner.clock = clock;
-    runner.tld = "lol";
     runner.lockHandler = new FakeLockHandler(true);
     DateTimeZone.setDefault(DateTimeZone.forID("America/New_York"));  // Make sure UTC stuff works.
   }
@@ -108,11 +106,11 @@ public class EscrowTaskRunnerTest {
 
   @Test
   public void testRun_lockIsntAvailable_throws503() throws Exception {
-    String lockName = task.getClass().getSimpleName() + " lol";
+    String lockName = "EscrowTaskRunner " + task.getClass().getSimpleName();
     clock.setTo(DateTime.parse("2006-06-06T00:30:00Z"));
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, DateTime.parse("2006-06-06TZ"), registry));
-    thrown.expect(ServiceUnavailableException.class, "Lock in use: " + lockName);
+    thrown.expect(ServiceUnavailableException.class, "Lock in use: " + lockName + " for TLD: lol");
     runner.lockHandler = new FakeLockHandler(false);
     runner.lockRunAndRollForward(
         task, registry, standardSeconds(30), CursorType.RDE_STAGING, standardDays(1));
