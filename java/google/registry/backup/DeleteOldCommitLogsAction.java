@@ -96,7 +96,7 @@ public final class DeleteOldCommitLogsAction implements Runnable {
           .setDefaultMapShards(NUM_MAP_SHARDS)
           .setDefaultReduceShards(NUM_REDUCE_SHARDS)
           .runMapreduce(
-              new DeleteOldCommitLogsMapper(),
+              new DeleteOldCommitLogsMapper(deletionThreshold),
               new DeleteOldCommitLogsReducer(deletionThreshold, isDryRun),
               ImmutableList.of(
                   new CommitLogManifestInput(deletionThreshold),
@@ -114,9 +114,15 @@ public final class DeleteOldCommitLogsAction implements Runnable {
   private static class DeleteOldCommitLogsMapper
       extends Mapper<Key<?>, Key<CommitLogManifest>, Boolean> {
 
-    private static final long serialVersionUID = -1960845380164573834L;
+    private static final long serialVersionUID = 8008689353479902948L;
 
     private static final String KIND_MANIFEST = Key.getKind(CommitLogManifest.class);
+
+    private final DateTime threshold;
+
+    DeleteOldCommitLogsMapper(DateTime threshold) {
+      this.threshold = threshold;
+    }
 
     @Override
     public void map(final Key<?> key) {
@@ -153,11 +159,70 @@ public final class DeleteOldCommitLogsAction implements Runnable {
 
       getContext().incrementCounter("EPP resources found");
       EppResource eppResource = (EppResource) object;
+      if (eppResource.getCreationTime().isAfter(threshold)) {
+        getContext().incrementCounter("EPP resources newer than threshold");
+      }
       for (Key<CommitLogManifest> manifestKey : eppResource.getRevisions().values()) {
         emit(manifestKey, false);
       }
       getContext()
           .incrementCounter("EPP resource revisions found", eppResource.getRevisions().size());
+      checkAndLogRevisionCoverageError(eppResource);
+    }
+
+    /**
+     * Check if given eppResource has the required revisions.
+     *
+     * <p>Revisions are used to recreate the state of the resource at a given day in the past
+     * "commitLogDatastoreRenention". To do that, we need at least one revision that's older than
+     * this duration (is dated before "threshold"), or at least one revision within a day of the
+     * resource's creation if it was created after the threshold.
+     *
+     * <p>Here we check that the given eppResource has the revisions it needs.
+     *
+     * <p>It's just a sanity check - since we're relying on the revisions to be correct for the
+     * deletion to work. We want to alert any problems we find in the revisions.
+     *
+     * <p>This really checks {@link CommitLogRevisionsTranslatorFactory#transformBeforeSave}.
+     * There's nothing we can do at this point to prevent the damage - we only report on it.
+     */
+    private void checkAndLogRevisionCoverageError(EppResource eppResource) {
+      // First - check if there even are revisions
+      if (eppResource.getRevisions().isEmpty()) {
+        getContext().incrementCounter("EPP resources missing all revisions (SEE LOGS)");
+        logger.severefmt("EPP resource missing all revisions: %s", Key.create(eppResource));
+        return;
+      }
+      // Next, check if there's a revision that's older than "CommitLogDatastoreRetention". There
+      // should have been at least one at the time this resource was saved.
+      //
+      // Alternatively, if the resource is newer than the threshold - there should be at least one
+      // revision within a day of the creation time.
+      DateTime oldestRevisionDate = eppResource.getRevisions().firstKey();
+      if (oldestRevisionDate.isBefore(threshold)
+          || oldestRevisionDate.isBefore(eppResource.getCreationTime().plusDays(1))) {
+        // We're OK!
+        return;
+      }
+      // The oldest revision date is newer than the threshold! This shouldn't happen.
+      getContext().incrementCounter("EPP resources missing pre-threshold revision (SEE LOGS)");
+      logger.severefmt(
+          "EPP resource missing old enough revision: "
+          + "%s (created on %s) has %s revisions between %s and %s, while threshold is %s",
+          Key.create(eppResource),
+          eppResource.getCreationTime(),
+          eppResource.getRevisions().size(),
+          eppResource.getRevisions().firstKey(),
+          eppResource.getRevisions().lastKey(),
+          threshold);
+      // We want to see how bad it is though: if the difference is less than a day then this might
+      // still be OK (we only need logs for the end of the day). But if it's more than a day, then
+      // we are 100% sure we can't recreate all the history we need from the revisions.
+      Duration interval = new Duration(threshold, oldestRevisionDate);
+      if (interval.isLongerThan(Duration.standardDays(1))) {
+        getContext()
+            .incrementCounter("EPP resources missing pre-(threshold+1d) revision (SEE LOGS)");
+      }
     }
   }
 
