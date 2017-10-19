@@ -33,7 +33,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.hash.BloomFilter;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
@@ -113,13 +112,12 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
       // encoding on them.
       revision.probablePremiumLabels =
           BloomFilter.create(unencodedCharsFunnel(), premiumLabels.size());
-      for (String label : premiumLabels) {
-        revision.probablePremiumLabels.put(label);
-      }
+      premiumLabels.forEach(revision.probablePremiumLabels::put);
       try {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         revision.probablePremiumLabels.writeTo(bos);
-        checkArgument(bos.size() <= MAX_BLOOM_FILTER_BYTES,
+        checkArgument(
+            bos.size() <= MAX_BLOOM_FILTER_BYTES,
             "Too many premium labels were specified; Bloom filter exceeds max entity size");
       } catch (IOException e) {
         throw new IllegalStateException("Could not serialize premium labels Bloom filter", e);
@@ -137,26 +135,28 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
   static final LoadingCache<String, PremiumList> cachePremiumLists =
       CacheBuilder.newBuilder()
           .expireAfterWrite(getDomainLabelListCacheDuration().getMillis(), MILLISECONDS)
-          .build(new CacheLoader<String, PremiumList>() {
-            @Override
-            public PremiumList load(final String listName) {
-              return ofy().doTransactionless(new Work<PremiumList>() {
+          .build(
+              new CacheLoader<String, PremiumList>() {
                 @Override
-                public PremiumList run() {
-                  return ofy().load()
-                      .type(PremiumList.class)
-                      .parent(getCrossTldKey())
-                      .id(listName)
-                      .now();
-                }});
-            }});
+                public PremiumList load(final String listName) {
+                  return ofy()
+                      .doTransactionless(
+                          () ->
+                              ofy()
+                                  .load()
+                                  .type(PremiumList.class)
+                                  .parent(getCrossTldKey())
+                                  .id(listName)
+                                  .now());
+                }
+              });
 
   /**
    * In-memory cache for {@link PremiumListRevision}s, used for retrieving Bloom filters quickly.
    *
-   * <p>This is cached for a long duration (essentially indefinitely) because a given
-   * {@link PremiumListRevision} is immutable and cannot ever be changed once created, so its cache
-   * need not ever expire.
+   * <p>This is cached for a long duration (essentially indefinitely) because a given {@link
+   * PremiumListRevision} is immutable and cannot ever be changed once created, so its cache need
+   * not ever expire.
    */
   static final LoadingCache<Key<PremiumListRevision>, PremiumListRevision>
       cachePremiumListRevisions =
@@ -166,14 +166,9 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
                   new CacheLoader<Key<PremiumListRevision>, PremiumListRevision>() {
                     @Override
                     public PremiumListRevision load(final Key<PremiumListRevision> revisionKey) {
-                      return ofy()
-                          .doTransactionless(
-                              new Work<PremiumListRevision>() {
-                                @Override
-                                public PremiumListRevision run() {
-                                  return ofy().load().key(revisionKey).now();
-                                }});
-                    }});
+                      return ofy().doTransactionless(() -> ofy().load().key(revisionKey).now());
+                    }
+                  });
 
   /**
    * In-memory cache for {@link PremiumListEntry}s for a given label and {@link PremiumListRevision}
@@ -206,10 +201,7 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
               @Override
               public Optional<PremiumListEntry> load(final Key<PremiumListEntry> entryKey) {
                 return ofy()
-                    .doTransactionless(
-                        () -> {
-                            return Optional.ofNullable(ofy().load().key(entryKey).now());
-                          });
+                    .doTransactionless(() -> Optional.ofNullable(ofy().load().key(entryKey).now()));
               }
             });
   }

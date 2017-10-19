@@ -36,6 +36,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.common.net.InternetDomainName;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.googlecode.objectify.Key;
@@ -45,7 +46,6 @@ import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.mapper.Mapper;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.DomainLabelMetrics.MetricsReservedListMatch;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -96,6 +96,7 @@ public final class ReservedList
 
     /** Mapper for use with @Mapify */
     static class LabelMapper implements Mapper<String, ReservedListEntry> {
+
       @Override
       public String getKey(ReservedListEntry entry) {
         return entry.getLabel();
@@ -130,7 +131,8 @@ public final class ReservedList
           entry.allowedNameservers = Joiner.on(',').join(allowedNameservers);
         }
       } else {
-        checkArgument(reservationType != RESERVED_FOR_ANCHOR_TENANT,
+        checkArgument(
+            reservationType != RESERVED_FOR_ANCHOR_TENANT,
             "Anchor tenant reservations must have an auth code configured");
         checkArgument(
             reservationType != NAMESERVER_RESTRICTED,
@@ -143,13 +145,13 @@ public final class ReservedList
     }
 
     private static void checkNameserversAreValid(Set<String> nameservers) {
-      for (String nameserver : nameservers) {
-        // A domain name with fewer than two parts cannot be a hostname, as a nameserver should be.
-        checkArgument(
-            InternetDomainName.from(nameserver).parts().size() >= 3,
-            "%s is not a valid nameserver hostname",
-            nameserver);
-      }
+      // A domain name with fewer than two parts cannot be a hostname, as a nameserver should be.
+      nameservers.forEach(
+          (ns) ->
+              checkArgument(
+                  InternetDomainName.from(ns).parts().size() >= 3,
+                  "%s is not a valid nameserver hostname",
+                  ns));
     }
 
     @Override
@@ -218,7 +220,7 @@ public final class ReservedList
     }
     return getReservedListEntries(label, tld)
         .stream()
-        .map((ReservedListEntry reservedListEntry) -> reservedListEntry.reservationType)
+        .map(ReservedListEntry::getValue)
         .collect(toImmutableSet());
   }
 
@@ -230,15 +232,13 @@ public final class ReservedList
    */
   public static boolean matchesAnchorTenantReservation(
       InternetDomainName domainName, String authCode) {
-    ImmutableSet<ReservedListEntry> entries =
-        getReservedListEntries(domainName.parts().get(0), domainName.parent().toString());
 
-    Set<String> domainAuthCodes = new HashSet<>();
-    for (ReservedListEntry entry : entries) {
-      if (entry.reservationType == RESERVED_FOR_ANCHOR_TENANT) {
-        domainAuthCodes.add(entry.getAuthCode());
-      }
-    }
+    ImmutableSet<String> domainAuthCodes =
+        getReservedListEntries(domainName.parts().get(0), domainName.parent().toString())
+            .stream()
+            .filter((entry) -> entry.reservationType == RESERVED_FOR_ANCHOR_TENANT)
+            .map(ReservedListEntry::getAuthCode)
+            .collect(toImmutableSet());
     checkState(
         domainAuthCodes.size() <= 1, "There are conflicting auth codes for domain: %s", domainName);
 
@@ -253,22 +253,13 @@ public final class ReservedList
    * domain is not set with {@code NAMESERVER_RESTRICTED} reservation type.
    */
   public static ImmutableSet<String> getAllowedNameservers(InternetDomainName domainName) {
-    HashSet<String> allowedNameservers = new HashSet<>();
-    boolean foundFirstNameserverRestricted = false;
-    for (ReservedListEntry entry :
-        getReservedListEntries(domainName.parts().get(0), domainName.parent().toString())) {
-      if (entry.reservationType == NAMESERVER_RESTRICTED) {
-        if (foundFirstNameserverRestricted) {
-          allowedNameservers.retainAll(entry.getAllowedNameservers());
-        } else {
-          allowedNameservers = new HashSet<String>(entry.getAllowedNameservers());
-          foundFirstNameserverRestricted = true;
-        }
-      }
-    }
-    return ImmutableSet.copyOf(allowedNameservers);
+    return getReservedListEntries(domainName.parts().get(0), domainName.parent().toString())
+        .stream()
+        .filter((entry) -> entry.reservationType == NAMESERVER_RESTRICTED)
+        .map(ReservedListEntry::getAllowedNameservers)
+        .reduce((types1, types2) -> Sets.intersection(types1, types2).immutableCopy())
+        .orElse(ImmutableSet.of());
   }
-
 
   /**
    * Helper function to retrieve the entries associated with this label and TLD, or an empty set if
@@ -276,15 +267,13 @@ public final class ReservedList
    */
   private static ImmutableSet<ReservedListEntry> getReservedListEntries(String label, String tld) {
     DateTime startTime = DateTime.now(UTC);
-    Registry registry = Registry.get(checkNotNull(tld, "tld"));
-    ImmutableSet<Key<ReservedList>> reservedLists = registry.getReservedLists();
-    ImmutableSet<ReservedList> lists = loadReservedLists(reservedLists);
+    Registry registry = Registry.get(checkNotNull(tld, "tld must not be null"));
     ImmutableSet.Builder<ReservedListEntry> entriesBuilder = new ImmutableSet.Builder<>();
     ImmutableSet.Builder<MetricsReservedListMatch> metricMatchesBuilder =
         new ImmutableSet.Builder<>();
 
     // Loop through all reservation lists and add each of them.
-    for (ReservedList rl : lists) {
+    for (ReservedList rl : loadReservedLists(registry.getReservedLists())) {
       if (rl.getReservedListEntries().containsKey(label)) {
         ReservedListEntry entry = rl.getReservedListEntries().get(label);
         entriesBuilder.add(entry);
@@ -300,17 +289,20 @@ public final class ReservedList
 
   private static ImmutableSet<ReservedList> loadReservedLists(
       ImmutableSet<Key<ReservedList>> reservedListKeys) {
-    ImmutableSet.Builder<ReservedList> builder = new ImmutableSet.Builder<>();
-    for (Key<ReservedList> listKey : reservedListKeys) {
-      try {
-        builder.add(cache.get(listKey.getName()));
-      } catch (ExecutionException e) {
-        throw new UncheckedExecutionException(String.format(
-            "Could not load the reserved list '%s' from the cache", listKey.getName()), e);
-      }
-    }
-
-    return builder.build();
+    return reservedListKeys
+        .stream()
+        .map(
+            (listKey) -> {
+              try {
+                return cache.get(listKey.getName());
+              } catch (ExecutionException e) {
+                throw new UncheckedExecutionException(
+                    String.format(
+                        "Could not load the reserved list '%s' from the cache", listKey.getName()),
+                    e);
+              }
+            })
+        .collect(toImmutableSet());
   }
 
   private static LoadingCache<String, ReservedList> cache =

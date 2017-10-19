@@ -16,18 +16,14 @@ package google.registry.model.registry.label;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.googlecode.objectify.Key;
 import google.registry.model.registry.Registry;
-import google.registry.model.registry.label.PremiumList.PremiumListEntry;
 import google.registry.model.registry.label.PremiumList.PremiumListRevision;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
@@ -93,8 +89,4 @@ public class PremiumListTest {
             ImmutableList.of(
                 "lol,USD 100", "rofl,USD 90", "paper,USD 80", "wood,USD 70", "lol,USD 200"));
   }
-
-  /** Gets the label of a premium list entry. */
-  public static final Function<Key<PremiumListEntry>, String> GET_ENTRY_NAME_FUNCTION =
-      Key::getName;
 }

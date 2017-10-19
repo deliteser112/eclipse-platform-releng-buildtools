@@ -16,6 +16,7 @@ package google.registry.model.registry.label;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.registry.Registries.getTlds;
 
@@ -136,14 +137,11 @@ public abstract class BaseDomainLabelList<T extends Comparable<?>, R extends Dom
 
   /** Gets the names of the tlds that reference this list. */
   public final ImmutableSet<String> getReferencingTlds() {
-    ImmutableSet.Builder<String> builder = new ImmutableSet.Builder<>();
     Key<? extends BaseDomainLabelList<?, ?>> key = Key.create(this);
-    for (String tld : getTlds()) {
-      if (refersToKey(Registry.get(tld), key)) {
-        builder.add(tld);
-      }
-    }
-    return builder.build();
+    return getTlds()
+        .stream()
+        .filter((tld) -> refersToKey(Registry.get(tld), key))
+        .collect(toImmutableSet());
   }
 
   protected abstract boolean refersToKey(
