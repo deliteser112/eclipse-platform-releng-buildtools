@@ -21,6 +21,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistResources;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistDeletedContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
@@ -48,6 +49,7 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
+import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Rule;
@@ -130,11 +132,8 @@ public class RdapEntitySearchActionTest {
         clock.nowUtc(),
         registrarTest);
 
-    makeAndPersistContactResource(
+    makeAndPersistDeletedContactResource(
         "clyde",
-        "Clyde (愚図た)",
-        "clyde@c.tld",
-        ImmutableList.of("123 Example Blvd <script>"),
         clock.nowUtc().minusYears(1),
         registrarDeleted,
         clock.nowUtc().minusMonths(6));
@@ -219,7 +218,7 @@ public class RdapEntitySearchActionTest {
     builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
     RdapTestHelper.addNotices(builder, "https://example.com/rdap/");
     RdapTestHelper.addNonDomainBoilerplateRemarks(builder);
-    return builder.build();
+    return new JSONObject(builder.build());
   }
 
   private void createManyContactsAndRegistrars(
@@ -421,16 +420,14 @@ public class RdapEntitySearchActionTest {
   }
 
   @Test
-  public void testNameMatchContact_found_notLoggedIn() throws Exception {
-    runSuccessfulNameTestWithBlinky(
-        "Blinky (赤ベイ)", "rdap_contact_no_personal_data_with_remark.json");
+  public void testNameMatchContact_notFound_notLoggedIn() throws Exception {
+    runNotFoundNameTest("Blinky (赤ベイ)");
   }
 
   @Test
-  public void testNameMatchContact_found_loggedInAsOtherRegistrar() throws Exception {
+  public void testNameMatchContact_notFound_loggedInAsOtherRegistrar() throws Exception {
     login("2-Registrar");
-    runSuccessfulNameTestWithBlinky(
-        "Blinky (赤ベイ)", "rdap_contact_no_personal_data_with_remark.json");
+    runNotFoundNameTest("Blinky (赤ベイ)");
   }
 
   @Test
@@ -475,17 +472,17 @@ public class RdapEntitySearchActionTest {
   }
 
   @Test
-  public void testNameMatchContact_found_deletedWhenLoggedInAsSameRegistrar() throws Exception {
+  public void testNameMatchContact_notFound_deletedWhenLoggedInAsSameRegistrar() throws Exception {
     login("2-Registrar");
     action.includeDeletedParam = Optional.of(true);
-    runSuccessfulNameTest(
-        "Cl*",
-        "6-ROID",
-        "Clyde (愚図た)",
-        "removed",
-        "clyde@c.tld",
-        "\"123 Example Blvd <script>\"",
-        "rdap_contact_deleted.json");
+    runNotFoundNameTest("Cl*");
+  }
+
+  @Test
+  public void testNameMatchContact_notFound_deletedWhenLoggedInAsAdmin() throws Exception {
+    loginAsAdmin();
+    action.includeDeletedParam = Optional.of(true);
+    runNotFoundNameTest("Cl*");
   }
 
   @Test
@@ -641,6 +638,91 @@ public class RdapEntitySearchActionTest {
   }
 
   @Test
+  public void testHandleMatchContact_notFound_deleted() throws Exception {
+    login("2-RegistrarTest");
+    runNotFoundHandleTest("6-ROID");
+  }
+
+  @Test
+  public void testHandleMatchContact_notFound_deletedWhenLoggedInAsOtherRegistrar()
+      throws Exception {
+    login("2-RegistrarTest");
+    action.includeDeletedParam = Optional.of(true);
+    runNotFoundHandleTest("6-ROID");
+  }
+
+  @Test
+  public void testHandleMatchContact_found_deletedWhenLoggedInAsSameRegistrar() throws Exception {
+    login("2-Registrar");
+    action.includeDeletedParam = Optional.of(true);
+    runSuccessfulHandleTest(
+        "6-ROID",
+        "6-ROID",
+        "",
+        "removed",
+        "",
+        "",
+        "rdap_contact_deleted.json");
+  }
+
+  @Test
+  public void testHandleMatchContact_found_deletedWhenLoggedInAsAdmin() throws Exception {
+    loginAsAdmin();
+    action.includeDeletedParam = Optional.of(true);
+    runSuccessfulHandleTest(
+        "6-ROID",
+        "6-ROID",
+        "",
+        "removed",
+        "",
+        "",
+        "rdap_contact_deleted.json");
+  }
+
+  @Test
+  public void testHandleMatchContact_notFound_deletedWildcard() throws Exception {
+    login("2-RegistrarTest");
+    runNotFoundHandleTest("6-ROI*");
+  }
+
+  @Test
+  public void testHandleMatchContact_notFound_deletedWildcardWhenLoggedInAsOtherRegistrar()
+      throws Exception {
+    login("2-RegistrarTest");
+    action.includeDeletedParam = Optional.of(true);
+    runNotFoundHandleTest("6-ROI*");
+  }
+
+  @Test
+  public void testHandleMatchContact_found_deletedWildcardWhenLoggedInAsSameRegistrar()
+      throws Exception {
+    login("2-Registrar");
+    action.includeDeletedParam = Optional.of(true);
+    runSuccessfulHandleTest(
+        "6-ROI*",
+        "6-ROID",
+        "",
+        "removed",
+        "",
+        "",
+        "rdap_contact_deleted.json");
+  }
+
+  @Test
+  public void testHandleMatchContact_found_deletedWildcardWhenLoggedInAsAdmin() throws Exception {
+    loginAsAdmin();
+    action.includeDeletedParam = Optional.of(true);
+    runSuccessfulHandleTest(
+        "6-ROI*",
+        "6-ROID",
+        "",
+        "removed",
+        "",
+        "",
+        "rdap_contact_deleted.json");
+  }
+
+  @Test
   public void testHandleMatchRegistrar_found() throws Exception {
     runSuccessfulHandleTest("20", "20", "Yes Virginia <script>", "rdap_registrar.json");
   }
@@ -683,6 +765,12 @@ public class RdapEntitySearchActionTest {
     action.registrarParam = Optional.of("2-Registrar");
     login("2-RegistrarTest");
     runNotFoundHandleTest("2-RO*");
+  }
+
+  @Test
+  public void testHandleMatchContact_found_deleted() throws Exception {
+    login("2-RegistrarTest");
+    runSuccessfulHandleTestWithBlinky("2-RO*", "rdap_contact.json");
   }
 
   @Test

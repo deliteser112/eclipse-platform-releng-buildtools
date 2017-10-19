@@ -32,23 +32,7 @@
   [
     "vcard",
     [
-      ["version", {}, "text", "4.0"],
-      ["fn", {}, "text", "%FULLNAME%"],
-      ["org", {}, "text", "GOOGLE INCORPORATED <script>"],
-      ["adr", {}, "text",
-        [
-          "",
-          "",
-          %ADDRESS%,
-          "KOKOMO",
-          "BM",
-          "31337",
-          "United States"
-        ]
-      ],
-      ["tel", {"type" : ["voice"]}, "uri", "tel:+1.2126660420"],
-      ["tel", {"type" : ["fax"]}, "uri", "tel:+1.2126660420"],
-      ["email", {}, "text", "%EMAIL%"]
+      ["version", {}, "text", "4.0"]
     ]
   ]
 }

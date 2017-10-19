@@ -19,6 +19,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistDeletedContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
@@ -148,11 +149,8 @@ public class RdapEntityActionTest {
             clock.nowUtc(),
             registrarLol);
     deletedContact =
-        makeAndPersistContactResource(
+        makeAndPersistDeletedContactResource(
             "8372808-DEL",
-            "(◕‿◕)",
-            "lol@cat.みんな",
-            ImmutableList.of("2 Smiley Row"),
             clock.nowUtc().minusYears(1),
             registrarLol,
             clock.nowUtc().minusMonths(6));
@@ -400,9 +398,9 @@ public class RdapEntityActionTest {
     action.includeDeletedParam = Optional.of(true);
     runSuccessfulTest(
         deletedContact.getRepoId(),
-        "(◕‿◕)",
-        "active",
-        "\"2 Smiley Row\"",
+        "",
+        "removed",
+        "",
         false,
         "rdap_contact_deleted.json");
   }
@@ -413,9 +411,9 @@ public class RdapEntityActionTest {
     action.includeDeletedParam = Optional.of(true);
     runSuccessfulTest(
         deletedContact.getRepoId(),
-        "(◕‿◕)",
-        "active",
-        "\"2 Smiley Row\"",
+        "",
+        "removed",
+        "",
         false,
         "rdap_contact_deleted.json");
   }

@@ -228,6 +228,25 @@ public final class FullFieldsTestEntityHelper {
     return builder.build();
   }
 
+  public static ContactResource makeWipedOutContactResource(
+      String id,
+      @Nullable Registrar registrar,
+      @Nullable DateTime deletionTime) {
+    ContactResource.Builder builder = new ContactResource.Builder()
+        .setContactId(id)
+        .setRepoId(generateNewContactHostRoid())
+        .setCreationTimeForTest(DateTime.parse("2000-10-08T00:45:00Z"));
+    if (registrar != null) {
+      builder
+          .setCreationClientId(registrar.getClientId())
+          .setPersistedCurrentSponsorClientId(registrar.getClientId());
+    }
+    if (deletionTime != null) {
+      builder.setDeletionTime(deletionTime);
+    }
+    return builder.build();
+  }
+
   public static ContactResource makeAndPersistContactResource(
       String id,
       String name,
@@ -281,6 +300,20 @@ public final class FullFieldsTestEntityHelper {
       persistResource(makeHistoryEntry(
           contactResource, HistoryEntry.Type.CONTACT_DELETE, null, "deleted", deletionTime));
     }
+    return contactResource;
+  }
+
+  public static ContactResource makeAndPersistDeletedContactResource(
+      String id,
+      DateTime creationTime,
+      Registrar registrar,
+      DateTime deletionTime) {
+    ContactResource contactResource =
+        persistResource(makeWipedOutContactResource(id, registrar, deletionTime));
+    persistResource(makeHistoryEntry(
+        contactResource, HistoryEntry.Type.CONTACT_CREATE, null, "created", creationTime));
+    persistResource(makeHistoryEntry(
+        contactResource, HistoryEntry.Type.CONTACT_DELETE, null, "deleted", deletionTime));
     return contactResource;
   }
 

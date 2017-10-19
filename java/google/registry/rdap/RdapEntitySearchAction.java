@@ -130,17 +130,20 @@ public class RdapEntitySearchAction extends RdapActionBase {
    * <p>According to RFC 7482 section 6.1, punycode is only used for domain name labels, so we can
    * assume that entity names are regular unicode.
    *
-   * <p>Searches for deleted entities are treated like wildcard searches, because they can return
-   * multiple entities.
+   * <p>The includeDeleted flag is ignored when searching for contacts, because contact names are
+   * set to null when the contact is deleted, so a deleted contact can never have a name.
+   *
+   * <p>Since we are restricting access to contact names, we don't want name searches to return
+   * contacts whose names are not visible. That would allow unscrupulous users to query by name
+   * and infer that all returned contacts contain that name string. So we check the authorization
+   * level to determine what to do.
    *
    * @see <a href="https://newgtlds.icann.org/sites/default/files/agreements/agreement-approved-09jan14-en.htm">1.6
    * of Section 4 of the Base Registry Agreement</a>
    */
   private RdapSearchResults searchByName(final RdapSearchPattern partialStringQuery, DateTime now) {
-    // For wildcard searches, and searches that include deleted items, make sure the initial string
-    // is long enough, and don't allow suffixes.
-    if ((partialStringQuery.getHasWildcard() || shouldIncludeDeleted())
-        && (partialStringQuery.getSuffix() != null)) {
+    // For wildcard searches, make sure the initial string is long enough, and don't allow suffixes.
+    if (partialStringQuery.getHasWildcard() && (partialStringQuery.getSuffix() != null)) {
       throw new UnprocessableEntityException(
           partialStringQuery.getHasWildcard()
               ? "Suffixes not allowed in wildcard entity name searches"
@@ -164,19 +167,28 @@ public class RdapEntitySearchAction extends RdapActionBase {
             .limit(rdapResultSetMaxSize + 1)
             .collect(toImmutableList());
     // Get the contact matches and return the results, fetching an additional contact to detect
-    // truncation. If we are including deleted entries, we must fetch more entries, in case some
-    // get excluded due to permissioning.
-    Query<ContactResource> query =
-        queryItems(
-            ContactResource.class,
-            "searchName",
-            partialStringQuery,
-            shouldIncludeDeleted(),
-            shouldIncludeDeleted()
-                ? (RESULT_SET_SIZE_SCALING_FACTOR * (rdapResultSetMaxSize + 1))
-                : (rdapResultSetMaxSize + 1));
-    return makeSearchResults(
-        getMatchingResources(query, shouldIncludeDeleted(), now), registrars, now);
+    // truncation. Don't bother searching for contacts by name if the request would not be able to
+    // see any names anyway.
+    RdapResourcesAndIncompletenessWarningType<ContactResource>
+        resourcesAndIncompletenessWarningType;
+    RdapAuthorization authorization = getAuthorization();
+    if (authorization.role() == RdapAuthorization.Role.PUBLIC) {
+      resourcesAndIncompletenessWarningType =
+          RdapResourcesAndIncompletenessWarningType.create(ImmutableList.of());
+    } else {
+      Query<ContactResource> query =
+          queryItems(
+              ContactResource.class,
+              "searchName",
+              partialStringQuery,
+              false,
+              rdapResultSetMaxSize + 1);
+      if (authorization.role() != RdapAuthorization.Role.ADMINISTRATOR) {
+        query = query.filter("currentSponsorClientId in", authorization.clientIds());
+      }
+      resourcesAndIncompletenessWarningType = getMatchingResources(query, false, now);
+    }
+    return makeSearchResults(resourcesAndIncompletenessWarningType, registrars, now);
   }
 
   /**
@@ -185,7 +197,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
    * <p>Searches for deleted entities are treated like wildcard searches.
    *
    * <p>We don't allow suffixes after a wildcard in entity searches. Suffixes are used in domain
-   * searches to specify a TLD, and in nameserver searches to specify an in-bailiwick domain name.
+   * searches to specify a TLD, and in nameserver searches to specify a locally managed domain name.
    * In both cases, the suffix can be turned into an additional query filter field. For contacts,
    * there is no equivalent string suffix that can be used as a query filter, so we disallow use.
    */
