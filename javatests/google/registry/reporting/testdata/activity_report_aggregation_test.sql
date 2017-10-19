@@ -19,8 +19,6 @@
 SELECT
   RealTlds.tld AS tld,
   SUM(IF(metricName = 'operational-registrars', count, 0)) AS operational_registrars,
-  SUM(IF(metricName = 'ramp-up-registrars', count, 0)) AS ramp_up_registrars,
-  SUM(IF(metricName = 'pre-ramp-up-registrars', count, 0)) AS pre_ramp_up_registrars,
   -- We use the Centralized Zone Data Service.
   "CZDS" AS zfa_passwords,
   SUM(IF(metricName = 'whois-43-queries', count, 0)) AS whois_43_queries,
@@ -65,7 +63,7 @@ SELECT
   -- filter so that only metrics with that TLD or a NULL TLD are counted
   -- towards a given TLD.
 FROM (
-SELECT tldStr as tld
+SELECT tldStr AS tld
 FROM `domain-registry-alpha.latest_datastore_export.Registry`
 WHERE tldType = 'REAL'
 ) as RealTlds
@@ -82,16 +80,16 @@ CROSS JOIN(
     SELECT STRING(NULL) AS tld, STRING(NULL) AS metricName, 0 as count
     UNION ALL
     SELECT * FROM
-    `domain-registry-alpha.icann_reporting.registrar_operating_status_201706`
+    `domain-registry-alpha.icann_reporting.registrar_operating_status_201709`
     UNION ALL
     SELECT * FROM
-    `domain-registry-alpha.icann_reporting.dns_counts_201706`
+    `domain-registry-alpha.icann_reporting.dns_counts_201709`
     UNION ALL
     SELECT * FROM
-    `domain-registry-alpha.icann_reporting.epp_metrics_201706`
+    `domain-registry-alpha.icann_reporting.epp_metrics_201709`
     UNION ALL
     SELECT * FROM
-    `domain-registry-alpha.icann_reporting.whois_counts_201706`
+    `domain-registry-alpha.icann_reporting.whois_counts_201709`
     -- END INTERMEDIARY DATA SOURCES --
     )) AS TldMetrics
 WHERE RealTlds.tld = TldMetrics.tld OR TldMetrics.tld IS NULL

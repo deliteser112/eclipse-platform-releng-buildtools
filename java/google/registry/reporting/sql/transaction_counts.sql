@@ -65,8 +65,6 @@ FROM (
   WHERE reportingTime
   BETWEEN TIMESTAMP('%EARLIEST_REPORT_TIME%')
   AND TIMESTAMP('%LATEST_REPORT_TIME%')
-    -- Ignore prober data
-  AND NOT ENDS_WITH(tld, "test")
   GROUP BY
     tld,
     clientId,

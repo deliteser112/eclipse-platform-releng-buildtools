@@ -15,14 +15,13 @@
 
   -- Query for DNS metrics.
 
-  -- This is a no-op until after we transition to Google Cloud DNS, which
-  -- will likely export metrics via Stackdriver.
+  -- You must configure this yourself to enable activity reporting, according
+  -- to whatever metrics your DNS provider makes available. We hope to make
+  -- this available in the open-source build in the near future.
 
 SELECT
-  -- DNS metrics apply to all tlds, which requires the 'null' magic value.
   STRING(NULL) AS tld,
   metricName,
-  -- TODO(b/63388735): Change this to actually query Google Cloud DNS when ready.
   -1 AS count
 FROM ((
   SELECT 'dns-udp-queries' AS metricName)

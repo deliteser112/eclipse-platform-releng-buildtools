@@ -39,7 +39,7 @@ FROM (
       -- Extract the logged JSON payload.
       REGEXP_EXTRACT(logMessage, r'FLOW-LOG-SIGNATURE-METADATA: (.*)\n?$')
       AS json
-    FROM `domain-registry-alpha.icann_reporting.monthly_logs_201706` AS logs
+    FROM `domain-registry-alpha.icann_reporting.monthly_logs_201709` AS logs
     JOIN
       UNNEST(logs.logMessage) AS logMessage
     WHERE

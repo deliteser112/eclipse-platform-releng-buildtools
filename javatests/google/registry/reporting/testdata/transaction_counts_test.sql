@@ -63,10 +63,8 @@ FROM (
     WHERE entries.domainTransactionRecords IS NOT NULL )
   -- Only look at this month's data
   WHERE reportingTime
-  BETWEEN TIMESTAMP('2017-06-01 00:00:00')
-  AND TIMESTAMP('2017-06-30 23:59:59')
-    -- Ignore prober data
-  AND NOT ENDS_WITH(tld, "test")
+  BETWEEN TIMESTAMP('2017-09-01 00:00:00')
+  AND TIMESTAMP('2017-09-30 23:59:59')
   GROUP BY
     tld,
     clientId,

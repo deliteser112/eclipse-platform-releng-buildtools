@@ -26,5 +26,5 @@ FROM
   UNNEST(allowedTlds) as allowed_tlds
 WHERE (type = 'REAL' OR type = 'INTERNAL')
 -- Filter out prober data
-AND NOT ENDS_WITH(allowed_tlds, "test")
+AND NOT ENDS_WITH(allowed_tlds, ".test")
 ORDER BY tld, registrarName

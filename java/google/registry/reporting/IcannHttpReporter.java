@@ -14,7 +14,9 @@
 
 package google.registry.reporting;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.net.MediaType.CSV_UTF_8;
+import static google.registry.model.registry.Registries.assertTldExists;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.api.client.http.ByteArrayContent;
@@ -23,6 +25,8 @@ import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpTransport;
+import com.google.common.base.Ascii;
+import com.google.common.base.Splitter;
 import com.google.common.io.ByteStreams;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyModule.Key;
@@ -35,16 +39,22 @@ import google.registry.xjc.iirdea.XjcIirdeaResult;
 import google.registry.xml.XmlException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.List;
 import javax.inject.Inject;
+import org.joda.time.YearMonth;
+import org.joda.time.format.DateTimeFormat;
 
 /**
  * Class that uploads a CSV file to ICANN's endpoint via an HTTP PUT call.
  *
- * <p> It uses basic authorization credentials as specified in the "Registry Interfaces" draft.
+ * <p>It uses basic authorization credentials as specified in the "Registry Interfaces" draft.
+ *
+ * <p>Note that there's a lot of hard-coded logic extracting parameters from the report filenames.
+ * These are safe, as long as they follow the tld-reportType-yearMonth.csv filename format.
  *
  * @see IcannReportingUploadAction
- * @see <a href=https://tools.ietf.org/html/draft-lozano-icann-registry-interfaces-07#page-9>
- *   ICANN Reporting Specification</a>
+ * @see <a href=https://tools.ietf.org/html/draft-lozano-icann-registry-interfaces-07#page-9>ICANN
+ *     Reporting Specification</a>
  */
 public class IcannHttpReporter {
 
@@ -57,29 +67,24 @@ public class IcannHttpReporter {
   @Inject IcannHttpReporter() {}
 
   /** Uploads {@code reportBytes} to ICANN. */
-  public void send(
-      byte[] reportBytes,
-      String tld,
-      String yearMonth,
-      ReportType reportType) throws XmlException, IOException {
-    GenericUrl uploadUrl = new GenericUrl(makeUrl(tld, yearMonth, reportType));
+  public void send(byte[] reportBytes, String reportFilename) throws XmlException, IOException {
+    validateReportFilename(reportFilename);
+    GenericUrl uploadUrl = new GenericUrl(makeUrl(reportFilename));
     HttpRequest request =
         httpTransport
             .createRequestFactory()
             .buildPutRequest(uploadUrl, new ByteArrayContent(CSV_UTF_8.toString(), reportBytes));
 
     HttpHeaders headers = request.getHeaders();
-    headers.setBasicAuthentication(tld + "_ry", password);
+    headers.setBasicAuthentication(getTld(reportFilename) + "_ry", password);
     headers.setContentType(CSV_UTF_8.toString());
     request.setHeaders(headers);
     request.setFollowRedirects(false);
 
     HttpResponse response = null;
     logger.infofmt(
-        "Sending %s report to %s with content length %s",
-        reportType,
-        uploadUrl.toString(),
-        request.getContent().getLength());
+        "Sending report to %s with content length %s",
+        uploadUrl.toString(), request.getContent().getLength());
     try {
       response = request.execute();
       byte[] content;
@@ -117,9 +122,31 @@ public class IcannHttpReporter {
     return result;
   }
 
-  private String makeUrl(String tld, String yearMonth, ReportType reportType) {
-    String urlPrefix = getUrlPrefix(reportType);
-    return String.format("%s/%s/%s", urlPrefix, tld, yearMonth);
+  /** Verifies a given report filename matches the pattern tld-reportType-yyyyMM.csv. */
+  private void validateReportFilename(String filename) {
+    checkArgument(
+        filename.matches("[a-z0-9.\\-]+-((activity)|(transactions))-[0-9]{6}\\.csv"),
+        "Expected file format: tld-reportType-yyyyMM.csv, got %s instead",
+        filename);
+    assertTldExists(getTld(filename));
+  }
+
+  private String getTld(String filename) {
+    // Extract the TLD, up to second-to-last hyphen in the filename (works with international TLDs)
+    return filename.substring(0, filename.lastIndexOf('-', filename.lastIndexOf('-') - 1));
+  }
+
+  private String makeUrl(String filename) {
+    // Filename is in the format tld-reportType-yearMonth.csv
+    String tld = getTld(filename);
+    // Remove the tld- prefix and csv suffix
+    String remainder = filename.substring(tld.length() + 1, filename.length() - 4);
+    List<String> elements = Splitter.on('-').splitToList(remainder);
+    ReportType reportType = ReportType.valueOf(Ascii.toUpperCase(elements.get(0)));
+    // Re-add hyphen between year and month, because ICANN is inconsistent between filename and URL
+    String yearMonth =
+        YearMonth.parse(elements.get(1), DateTimeFormat.forPattern("yyyyMM")).toString("yyyy-MM");
+    return String.format("%s/%s/%s", getUrlPrefix(reportType), tld, yearMonth);
   }
 
   private String getUrlPrefix(ReportType reportType) {
@@ -131,7 +158,7 @@ public class IcannHttpReporter {
       default:
         throw new IllegalStateException(
             String.format(
-                "Received invalid reportType! Expected ACTIVITY or TRANSACTIONS, got %s.",
+                "Received invalid reportTypes! Expected ACTIVITY or TRANSACTIONS, got %s.",
                 reportType));
     }
   }

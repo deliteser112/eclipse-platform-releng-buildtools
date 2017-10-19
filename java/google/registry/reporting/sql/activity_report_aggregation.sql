@@ -19,8 +19,6 @@
 SELECT
   RealTlds.tld AS tld,
   SUM(IF(metricName = 'operational-registrars', count, 0)) AS operational_registrars,
-  SUM(IF(metricName = 'ramp-up-registrars', count, 0)) AS ramp_up_registrars,
-  SUM(IF(metricName = 'pre-ramp-up-registrars', count, 0)) AS pre_ramp_up_registrars,
   -- We use the Centralized Zone Data Service.
   "CZDS" AS zfa_passwords,
   SUM(IF(metricName = 'whois-43-queries', count, 0)) AS whois_43_queries,
@@ -65,7 +63,7 @@ SELECT
   -- filter so that only metrics with that TLD or a NULL TLD are counted
   -- towards a given TLD.
 FROM (
-SELECT tldStr as tld
+SELECT tldStr AS tld
 FROM `%PROJECT_ID%.%DATASTORE_EXPORT_DATA_SET%.%REGISTRY_TABLE%`
 WHERE tldType = 'REAL'
 ) as RealTlds

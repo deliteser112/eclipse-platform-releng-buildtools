@@ -18,7 +18,7 @@ import static com.google.common.net.MediaType.CSV_UTF_8;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.testing.DatastoreHelper.createTld;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.api.client.http.LowLevelHttpRequest;
@@ -29,11 +29,14 @@ import com.google.api.client.testing.http.MockLowLevelHttpResponse;
 import com.google.api.client.util.Base64;
 import com.google.api.client.util.StringUtils;
 import com.google.common.io.ByteSource;
-import google.registry.reporting.IcannReportingModule.ReportType;
 import google.registry.request.HttpException.InternalServerErrorException;
+import google.registry.testing.AppEngineRule;
+import google.registry.testing.ExceptionRule;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -46,8 +49,13 @@ public class IcannHttpReporterTest {
 
   private static final ByteSource IIRDEA_GOOD_XML = ReportingTestData.get("iirdea_good.xml");
   private static final ByteSource IIRDEA_BAD_XML = ReportingTestData.get("iirdea_bad.xml");
+  private static final byte[] FAKE_PAYLOAD = "test,csv\n1,2".getBytes(UTF_8);
 
   private MockLowLevelHttpRequest mockRequest;
+
+  @Rule public final ExceptionRule thrown = new ExceptionRule();
+
+  @Rule public AppEngineRule appEngineRule = new AppEngineRule.Builder().withDatastore().build();
 
   private MockHttpTransport createMockTransport (final ByteSource iirdeaResponse) {
     return new MockHttpTransport() {
@@ -69,7 +77,11 @@ public class IcannHttpReporterTest {
     };
   }
 
-  private static final byte[] FAKE_PAYLOAD = "test,csv\n1,2".getBytes(UTF_8);
+  @Before
+  public void setUp() {
+    createTld("test");
+    createTld("xn--abc123");
+  }
 
   private IcannHttpReporter createReporter() {
     IcannHttpReporter reporter = new IcannHttpReporter();
@@ -83,7 +95,7 @@ public class IcannHttpReporterTest {
   @Test
   public void testSuccess() throws Exception {
     IcannHttpReporter reporter = createReporter();
-    reporter.send(FAKE_PAYLOAD, "test", "2017-06", ReportType.TRANSACTIONS);
+    reporter.send(FAKE_PAYLOAD, "test-transactions-201706.csv");
 
     assertThat(mockRequest.getUrl()).isEqualTo("https://fake-transactions.url/test/2017-06");
     Map<String, List<String>> headers = mockRequest.getHeaders();
@@ -95,14 +107,64 @@ public class IcannHttpReporterTest {
   }
 
   @Test
+  public void testSuccess_internationalTld() throws Exception {
+    IcannHttpReporter reporter = createReporter();
+    reporter.send(FAKE_PAYLOAD, "xn--abc123-transactions-201706.csv");
+
+    assertThat(mockRequest.getUrl()).isEqualTo("https://fake-transactions.url/xn--abc123/2017-06");
+    Map<String, List<String>> headers = mockRequest.getHeaders();
+    String userPass = "xn--abc123_ry:fakePass";
+    String expectedAuth =
+        String.format("Basic %s", Base64.encodeBase64String(StringUtils.getBytesUtf8(userPass)));
+    assertThat(headers.get("authorization")).containsExactly(expectedAuth);
+    assertThat(headers.get("content-type")).containsExactly(CSV_UTF_8.toString());
+  }
+
+  @Test
   public void testFail_BadIirdeaResponse() throws Exception {
     IcannHttpReporter reporter = createReporter();
     reporter.httpTransport = createMockTransport(IIRDEA_BAD_XML);
     try {
-      reporter.send(FAKE_PAYLOAD, "test", "2017-06", ReportType.TRANSACTIONS);
+      reporter.send(FAKE_PAYLOAD, "test-transactions-201706.csv");
       assertWithMessage("Expected InternalServerErrorException to be thrown").fail();
     } catch (InternalServerErrorException expected) {
       assertThat(expected).hasMessageThat().isEqualTo("The structure of the report is invalid.");
     }
+  }
+
+  @Test
+  public void testFail_invalidFilename_nonSixDigitYearMonth() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "Expected file format: tld-reportType-yyyyMM.csv, got test-transactions-20176.csv instead");
+    IcannHttpReporter reporter = createReporter();
+    reporter.send(FAKE_PAYLOAD, "test-transactions-20176.csv");
+  }
+
+  @Test
+  public void testFail_invalidFilename_notActivityOrTransactions() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "Expected file format: tld-reportType-yyyyMM.csv, got test-invalid-201706.csv instead");
+    IcannHttpReporter reporter = createReporter();
+    reporter.send(FAKE_PAYLOAD, "test-invalid-201706.csv");
+  }
+
+  @Test
+  public void testFail_invalidFilename_invalidTldName() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "Expected file format: tld-reportType-yyyyMM.csv, got n!-n-activity-201706.csv instead");
+    IcannHttpReporter reporter = createReporter();
+    reporter.send(FAKE_PAYLOAD, "n!-n-activity-201706.csv");
+  }
+
+  @Test
+  public void testFail_invalidFilename_tldDoesntExist() throws Exception {
+    thrown.expect(
+        IllegalArgumentException.class,
+        "TLD hello does not exist");
+    IcannHttpReporter reporter = createReporter();
+    reporter.send(FAKE_PAYLOAD, "hello-activity-201706.csv");
   }
 }

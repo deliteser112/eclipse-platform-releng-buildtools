@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.request.RequestParameters.extractBooleanParameter;
 import static google.registry.request.RequestParameters.extractEnumParameter;
 import static google.registry.request.RequestParameters.extractOptionalDatetimeParameter;
+import static google.registry.request.RequestParameters.extractOptionalEnumParameter;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredDatetimeParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
@@ -145,6 +146,25 @@ public class RequestParametersTest {
     when(req.getParameter("spin")).thenReturn("sing");
     thrown.expect(BadRequestException.class, "spin");
     extractEnumParameter(req, Club.class, "spin");
+  }
+
+  @Test
+  public void testOptionalExtractEnumValue_givenValue_returnsValue() throws Exception {
+    when(req.getParameter("spin")).thenReturn("DANCE");
+    assertThat(extractOptionalEnumParameter(req, Club.class, "spin")).hasValue(Club.DANCE);
+  }
+
+  @Test
+  public void testOptionalExtractEnumValue_noValue_returnsAbsent() throws Exception {
+    when(req.getParameter("spin")).thenReturn("");
+    assertThat(extractOptionalEnumParameter(req, Club.class, "spin")).isEmpty();
+  }
+
+  @Test
+  public void testOptionalExtractEnumValue_nonExistentValue_throwsBadRequest() throws Exception {
+    when(req.getParameter("spin")).thenReturn("sing");
+    thrown.expect(BadRequestException.class, "spin");
+    extractOptionalEnumParameter(req, Club.class, "spin");
   }
 
   @Test

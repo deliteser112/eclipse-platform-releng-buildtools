@@ -1,0 +1,264 @@
+// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package google.registry.reporting;
+
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static google.registry.reporting.IcannReportingModule.MANIFEST_FILE_NAME;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.google.api.services.bigquery.model.TableFieldSchema;
+import com.google.appengine.tools.cloudstorage.GcsFilename;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableTable;
+import com.google.common.collect.ListMultimap;
+import google.registry.bigquery.BigqueryConnection;
+import google.registry.bigquery.BigqueryUtils.TableType;
+import google.registry.config.RegistryConfig.Config;
+import google.registry.gcs.GcsUtils;
+import google.registry.reporting.IcannReportingModule.ReportType;
+import google.registry.request.Parameter;
+import google.registry.util.FormattingLogger;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
+
+/**
+ * Class containing methods for staging ICANN monthly reports on GCS.
+ *
+ * <p>The main entrypoint is stageReports, which generates a given type of reports.
+ */
+public class IcannReportingStager {
+
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+
+  @Inject @Config("icannReportingBucket") String reportingBucket;
+  @Inject @Parameter(IcannReportingModule.PARAM_YEAR_MONTH) String yearMonth;
+
+  @Inject
+  @Parameter(IcannReportingModule.PARAM_SUBDIR)
+  String subdir;
+
+  @Inject ActivityReportingQueryBuilder activityQueryBuilder;
+  @Inject TransactionsReportingQueryBuilder transactionsQueryBuilder;
+  @Inject GcsUtils gcsUtils;
+  @Inject BigqueryConnection bigquery;
+
+  @Inject
+  IcannReportingStager() {}
+
+  /**
+   * Creates and stores reports of a given type on GCS.
+   *
+   * <p>This is factored out to facilitate choosing which reports to upload,
+   */
+  ImmutableList<String> stageReports(ReportType reportType) throws Exception {
+    QueryBuilder queryBuilder =
+        (reportType == ReportType.ACTIVITY) ? activityQueryBuilder : transactionsQueryBuilder;
+
+
+    ImmutableMap<String, String> viewQueryMap = queryBuilder.getViewQueryMap();
+    // Generate intermediary views
+    for (Entry<String, String> entry : viewQueryMap.entrySet()) {
+      createIntermediaryTableView(entry.getKey(), entry.getValue(), reportType);
+    }
+
+    // Get an in-memory table of the aggregate query's result
+    ImmutableTable<Integer, TableFieldSchema, Object> reportTable =
+        bigquery.queryToLocalTableSync(queryBuilder.getReportQuery());
+
+    // Get report headers from the table schema and convert into CSV format
+    String headerRow = constructRow(getHeaders(reportTable.columnKeySet()));
+    logger.infofmt("Headers: %s", headerRow);
+
+    return (reportType == ReportType.ACTIVITY)
+        ? stageActivityReports(headerRow, reportTable.rowMap().values())
+        : stageTransactionsReports(headerRow, reportTable.rowMap().values());
+  }
+
+  private void createIntermediaryTableView(String queryName, String query, ReportType reportType)
+      throws ExecutionException, InterruptedException {
+    // Later views depend on the results of earlier ones, so query everything synchronously
+    logger.infofmt("Generating intermediary view %s", queryName);
+    bigquery.query(
+        query,
+        bigquery.buildDestinationTable(queryName)
+            .description(String.format(
+                "An intermediary view to generate %s reports for this month.", reportType))
+            .type(TableType.VIEW)
+            .build()
+    ).get();
+  }
+
+  private Iterable<String> getHeaders(ImmutableSet<TableFieldSchema> fields) {
+    return fields
+        .stream()
+        .map((schema) -> schema.getName().replace('_', '-'))
+        .collect(ImmutableList.toImmutableList());
+  }
+
+  /** Creates and stores activity reports on GCS, returns a list of files stored. */
+  private ImmutableList<String> stageActivityReports(
+      String headerRow, ImmutableCollection<Map<TableFieldSchema, Object>> rows)
+      throws IOException {
+    ImmutableList.Builder<String> manifestBuilder = new ImmutableList.Builder<>();
+    // Create a report csv for each tld from query table, and upload to GCS
+    for (Map<TableFieldSchema, Object> row : rows) {
+      // Get the tld (first cell in each row)
+      String tld = row.values().iterator().next().toString();
+      if (isNullOrEmpty(tld)) {
+        throw new RuntimeException("Found an empty row in the activity report table!");
+      }
+      ImmutableList<String> rowStrings = ImmutableList.of(constructRow(row.values()));
+      // Create and upload the activity report with a single row
+      manifestBuilder.add(
+          saveReportToGcs(tld, createReport(headerRow, rowStrings), ReportType.ACTIVITY));
+    }
+    return manifestBuilder.build();
+  }
+
+  /** Creates and stores transactions reports on GCS, returns a list of files stored. */
+  private ImmutableList<String> stageTransactionsReports(
+      String headerRow, ImmutableCollection<Map<TableFieldSchema, Object>> rows)
+      throws IOException {
+    // Map from tld to rows
+    ListMultimap<String, String> tldToRows = ArrayListMultimap.create();
+    // Map from tld to totals
+    HashMap<String, List<Integer>> tldToTotals = new HashMap<>();
+    for (Map<TableFieldSchema, Object> row : rows) {
+      // Get the tld (first cell in each row)
+      String tld = row.values().iterator().next().toString();
+      if (isNullOrEmpty(tld)) {
+        throw new RuntimeException("Found an empty row in the transactions report table!");
+      }
+      tldToRows.put(tld, constructRow(row.values()));
+      // Construct totals for each tld, skipping non-summable columns (TLD, registrar name, iana-id)
+      if (!tldToTotals.containsKey(tld)) {
+        tldToTotals.put(tld, new ArrayList<>(Collections.nCopies(row.values().size() - 3, 0)));
+      }
+      addToTotal(tldToTotals.get(tld), row);
+    }
+    ImmutableList.Builder<String> manifestBuilder = new ImmutableList.Builder<>();
+    // Create and upload a transactions report for each tld via its rows
+    for (String tld : tldToRows.keySet()) {
+      // Append the totals row
+      tldToRows.put(tld, constructTotalRow(tldToTotals.get(tld)));
+      manifestBuilder.add(
+          saveReportToGcs(
+              tld, createReport(headerRow, tldToRows.get(tld)), ReportType.TRANSACTIONS));
+    }
+    return manifestBuilder.build();
+  }
+
+  /** Adds a row's values to an existing list of integers (totals). */
+  private void addToTotal(List<Integer> totals, Map<TableFieldSchema, Object> row) {
+    List<Integer> rowVals =
+        row.values()
+            .stream()
+            // Ignore TLD, Registrar name and IANA id
+            .skip(3)
+            .map((Object o) -> Integer.parseInt(o.toString()))
+            .collect(Collectors.toList());
+    checkState(
+        rowVals.size() == totals.size(),
+        "Number of elements in totals not equal to number of elements in row!");
+    for (int i = 0; i < rowVals.size(); i++) {
+      totals.set(i, totals.get(i) + rowVals.get(i));
+    }
+  }
+
+  /** Returns a list of integers (totals) as a comma separated string. */
+  private String constructTotalRow(List<Integer> totals) {
+    StringBuilder rowString = new StringBuilder("Totals,,");
+    rowString.append(
+        totals.stream().map((Integer i) -> i.toString()).collect(Collectors.joining(",")));
+    return rowString.toString();
+  }
+
+  /**
+   * Makes a row of the report by appending the string representation of all objects in an iterable
+   * with commas separating individual fields.
+   *
+   * <p>This discards the first object, which is assumed to be the TLD field.
+   * */
+  private String constructRow(Iterable<? extends Object> iterable) {
+    Iterator<? extends Object> rowIter = iterable.iterator();
+    StringBuilder rowString = new StringBuilder();
+    // Skip the TLD column
+    rowIter.next();
+    while (rowIter.hasNext()) {
+      rowString.append(String.format("%s,", rowIter.next().toString()));
+    }
+    // Remove trailing comma
+    rowString.deleteCharAt(rowString.length() - 1);
+    return rowString.toString();
+  }
+
+  /**
+   * Constructs a report given its headers and rows as a string.
+   *
+   * <p>Note that activity reports will only have one row, while transactions reports may have
+   * multiple rows.
+   */
+  private String createReport(String headers, List<String> rows) {
+    StringBuilder reportCsv = new StringBuilder(headers);
+    for (String row : rows) {
+      // Add CRLF between rows per ICANN specification
+      reportCsv.append("\r\n");
+      reportCsv.append(row);
+    }
+    logger.infofmt("Created report:\n%s", reportCsv.toString());
+    return reportCsv.toString();
+  }
+
+  /** Stores a report on GCS, returning the name of the file stored. */
+  private String saveReportToGcs(String tld, String reportCsv, ReportType reportType)
+      throws IOException {
+    // Upload resulting CSV file to GCS
+    byte[] reportBytes = reportCsv.getBytes(UTF_8);
+    String reportFilename = ReportingUtils.createFilename(tld, yearMonth, reportType);
+    String reportBucketname = ReportingUtils.createReportingBucketName(reportingBucket, subdir);
+    final GcsFilename gcsFilename = new GcsFilename(reportBucketname, reportFilename);
+    gcsUtils.createFromBytes(gcsFilename, reportBytes);
+    logger.infofmt(
+        "Wrote %d bytes to file location %s",
+        reportBytes.length,
+        gcsFilename.toString());
+    return reportFilename;
+  }
+
+  /** Creates and stores a manifest file on GCS, indicating which reports were generated. */
+  void createAndUploadManifest(ImmutableList<String> filenames) throws IOException {
+    String reportBucketname = ReportingUtils.createReportingBucketName(reportingBucket, subdir);
+    final GcsFilename gcsFilename = new GcsFilename(reportBucketname, MANIFEST_FILE_NAME);
+    StringBuilder manifestString = new StringBuilder();
+    filenames.forEach((filename) -> manifestString.append(filename).append("\n"));
+    gcsUtils.createFromBytes(gcsFilename, manifestString.toString().getBytes(UTF_8));
+    logger.infofmt(
+        "Wrote %d filenames to manifest at %s", filenames.size(), gcsFilename.toString());
+  }
+}

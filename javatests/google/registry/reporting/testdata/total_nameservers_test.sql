@@ -45,12 +45,12 @@ JOIN (
     `domain-registry-alpha.latest_datastore_export.DomainBase`,
     UNNEST(nsHosts) AS hosts
   WHERE _d = 'DomainResource'
-  AND creationTime <= TIMESTAMP("2017-06-30 23:59:59")
-  AND deletionTime > TIMESTAMP("2017-06-30 23:59:59") ) AS domain_table
+  AND creationTime <= TIMESTAMP("2017-09-30 23:59:59")
+  AND deletionTime > TIMESTAMP("2017-09-30 23:59:59") ) AS domain_table
 ON
   host_table.__key__.name = domain_table.referencedHostName
-WHERE creationTime <= TIMESTAMP("2017-06-30 23:59:59")
-AND deletionTime > TIMESTAMP("2017-06-30 23:59:59")
+WHERE creationTime <= TIMESTAMP("2017-09-30 23:59:59")
+AND deletionTime > TIMESTAMP("2017-09-30 23:59:59")
 GROUP BY tld, registrarName
 ORDER BY tld, registrarName
 

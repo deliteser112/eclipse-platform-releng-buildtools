@@ -14,22 +14,24 @@
 
 package google.registry.reporting;
 
-import static google.registry.request.RequestParameters.extractEnumParameter;
+import static google.registry.request.RequestParameters.extractOptionalEnumParameter;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
-import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.MoreExecutors;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.bigquery.BigqueryConnection;
+import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
+import google.registry.util.Clock;
 import java.util.Optional;
-import java.util.concurrent.Executors;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.Duration;
+import org.joda.time.format.DateTimeFormat;
 
 /** Module for dependencies required by ICANN monthly transactions/activity reporting. */
 @Module
@@ -41,43 +43,78 @@ public final class IcannReportingModule {
     ACTIVITY
   }
 
+  static final String PARAM_OPTIONAL_YEAR_MONTH = "yearMonthOptional";
   static final String PARAM_YEAR_MONTH = "yearMonth";
-  static final String PARAM_REPORT_TYPE = "reportType";
+  static final String PARAM_OPTIONAL_SUBDIR = "subdirOptional";
   static final String PARAM_SUBDIR = "subdir";
+  static final String PARAM_REPORT_TYPE = "reportType";
   static final String ICANN_REPORTING_DATA_SET = "icann_reporting";
   static final String DATASTORE_EXPORT_DATA_SET = "latest_datastore_export";
-  private static final String BIGQUERY_SCOPE =  "https://www.googleapis.com/auth/bigquery";
+  static final String MANIFEST_FILE_NAME = "MANIFEST.txt";
+  private static final String DEFAULT_SUBDIR = "icann/monthly";
+  private static final String BIGQUERY_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 
+  /** Extracts an optional yearMonth in yyyy-MM format from the request. */
+  @Provides
+  @Parameter(PARAM_OPTIONAL_YEAR_MONTH)
+  static Optional<String> provideYearMonthOptional(HttpServletRequest req) {
+    return extractOptionalParameter(req, PARAM_YEAR_MONTH);
+  }
+
+  /** Provides the yearMonth in yyyy-MM format, defaults to one month prior to run time. */
   @Provides
   @Parameter(PARAM_YEAR_MONTH)
-  static String provideYearMonth(HttpServletRequest req) {
-    return extractRequiredParameter(req, PARAM_YEAR_MONTH);
+  static String provideYearMonth(
+      @Parameter(PARAM_OPTIONAL_YEAR_MONTH) Optional<String> yearMonthOptional, Clock clock) {
+    String yearMonth =
+        yearMonthOptional.orElse(
+            DateTimeFormat.forPattern("yyyy-MM").print(clock.nowUtc().minusMonths(1)));
+    if (!yearMonth.matches("[0-9]{4}-[0-9]{2}")) {
+      throw new BadRequestException(
+          String.format("yearMonth must be in yyyy-MM format, got %s instead", yearMonth));
+    }
+    return yearMonth;
   }
 
+  /** Provides an optional subdirectory to store/upload reports to, extracted from the request. */
   @Provides
-  @Parameter(PARAM_REPORT_TYPE)
-  static ReportType provideReportType(HttpServletRequest req) {
-    return extractEnumParameter(req, ReportType.class, PARAM_REPORT_TYPE);
-  }
-
-  @Provides
-  @Parameter(PARAM_SUBDIR)
-  static Optional<String> provideSubdir(HttpServletRequest req) {
+  @Parameter(PARAM_OPTIONAL_SUBDIR)
+  static Optional<String> provideSubdirOptional(HttpServletRequest req) {
     return extractOptionalParameter(req, PARAM_SUBDIR);
   }
 
+  /** Provides the subdirectory to store/upload reports to, defaults to icann/monthly/yearMonth. */
   @Provides
-  static QueryBuilder provideQueryBuilder(
-      @Parameter(PARAM_REPORT_TYPE) ReportType reportType,
-      ActivityReportingQueryBuilder activityBuilder,
-      TransactionsReportingQueryBuilder transactionsBuilder) {
-    return reportType == ReportType.ACTIVITY ? activityBuilder : transactionsBuilder;
+  @Parameter(PARAM_SUBDIR)
+  static String provideSubdir(
+      @Parameter(PARAM_OPTIONAL_SUBDIR) Optional<String> subdirOptional,
+      @Parameter(PARAM_YEAR_MONTH) String yearMonth) {
+    String subdir = subdirOptional.orElse(String.format("%s/%s", DEFAULT_SUBDIR, yearMonth));
+    if (subdir.startsWith("/") || subdir.endsWith("/")) {
+      throw new BadRequestException(
+          String.format("subdir must not start or end with a \"/\", got %s instead.", subdir));
+    }
+    return subdir;
+  }
+
+  /** Provides an optional reportType to store/upload reports to, extracted from the request. */
+  @Provides
+  static Optional<ReportType> provideReportTypeOptional(HttpServletRequest req) {
+    return extractOptionalEnumParameter(req, ReportType.class, PARAM_REPORT_TYPE);
+  }
+
+  /** Provides a list of reportTypes specified. If absent, we default to both report types. */
+  @Provides
+  @Parameter(PARAM_REPORT_TYPE)
+  static ImmutableList<ReportType> provideReportTypes(Optional<ReportType> reportTypeOptional) {
+    return reportTypeOptional.map(ImmutableList::of)
+        .orElseGet(() -> ImmutableList.of(ReportType.ACTIVITY, ReportType.TRANSACTIONS));
   }
 
   /**
    * Constructs a BigqueryConnection with default settings.
    *
-   * <p> We use Bigquery to generate activity reports via large aggregate SQL queries.
+   * <p>We use Bigquery to generate ICANN monthly reports via large aggregate SQL queries.
    *
    * @see ActivityReportingQueryBuilder
    * @see google.registry.tools.BigqueryParameters for justifications of defaults.
@@ -87,13 +124,14 @@ public final class IcannReportingModule {
     try {
       GoogleCredential credential = GoogleCredential
           .getApplicationDefault(transport, new JacksonFactory());
-      BigqueryConnection connection = new BigqueryConnection.Builder()
-          .setExecutorService(Executors.newFixedThreadPool(20))
-          .setCredential(credential.createScoped(ImmutableList.of(BIGQUERY_SCOPE)))
-          .setDatasetId(ICANN_REPORTING_DATA_SET)
-          .setOverwrite(true)
-          .setPollInterval(Duration.standardSeconds(1))
-          .build();
+      BigqueryConnection connection =
+          new BigqueryConnection.Builder()
+              .setExecutorService(MoreExecutors.newDirectExecutorService())
+              .setCredential(credential.createScoped(ImmutableList.of(BIGQUERY_SCOPE)))
+              .setDatasetId(ICANN_REPORTING_DATA_SET)
+              .setOverwrite(true)
+              .setPollInterval(Duration.standardSeconds(1))
+              .build();
       connection.initialize();
       return connection;
     } catch (Throwable e) {
@@ -101,3 +139,4 @@ public final class IcannReportingModule {
     }
   }
 }
+

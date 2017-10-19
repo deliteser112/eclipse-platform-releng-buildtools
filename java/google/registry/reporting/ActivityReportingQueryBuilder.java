@@ -36,12 +36,12 @@ import org.joda.time.format.DateTimeFormatter;
 public final class ActivityReportingQueryBuilder implements QueryBuilder {
 
   // Names for intermediary tables for overall activity reporting query.
-  static final String ACTIVITY_REPORT_AGGREGATION = "activity_report_aggregation";
-  static final String MONTHLY_LOGS = "monthly_logs";
   static final String REGISTRAR_OPERATING_STATUS = "registrar_operating_status";
   static final String DNS_COUNTS = "dns_counts";
+  static final String MONTHLY_LOGS = "monthly_logs";
   static final String EPP_METRICS = "epp_metrics";
   static final String WHOIS_COUNTS = "whois_counts";
+  static final String ACTIVITY_REPORT_AGGREGATION = "activity_report_aggregation";
 
   @Inject @Config("projectId") String projectId;
   @Inject @Parameter(IcannReportingModule.PARAM_YEAR_MONTH) String yearMonth;
@@ -81,7 +81,6 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
             .build();
     queriesBuilder.put(getTableName(REGISTRAR_OPERATING_STATUS), operationalRegistrarsQuery);
 
-    // TODO(b/62626209): Make this use the CloudDNS counts instead.
     String dnsCountsQuery =
         SqlTemplate.create(getQueryFromFile("dns_counts.sql")).build();
     queriesBuilder.put(getTableName(DNS_COUNTS), dnsCountsQuery);
@@ -135,6 +134,7 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
     return queriesBuilder.build();
   }
 
+
   /** Returns the table name of the query, suffixed with the yearMonth in _YYYYMM format. */
   private String getTableName(String queryName) {
     return String.format("%s_%s", queryName, yearMonth.replace("-", ""));
@@ -149,4 +149,3 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
     return Resources.getResource(ActivityReportingQueryBuilder.class, "sql/" + filename);
   }
 }
-

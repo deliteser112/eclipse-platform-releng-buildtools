@@ -14,115 +14,108 @@
 
 package google.registry.reporting;
 
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
-import static google.registry.model.registry.Registries.assertTldExists;
+import static google.registry.reporting.IcannReportingModule.MANIFEST_FILE_NAME;
 import static google.registry.request.Action.Method.POST;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
-import google.registry.reporting.IcannReportingModule.ReportType;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
-import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 import javax.inject.Inject;
 
 /**
- * Action that uploads the monthly transaction and activity reports from Cloud Storage to ICANN via
- * an HTTP PUT.
+ * Action that uploads the monthly activity/transactions reports from GCS to ICANN via an HTTP PUT.
  *
+ * <p>This should be run after {@link IcannReportingStagingAction}, which writes out the month's
+ * reports and a MANIFEST.txt file. This action reads the filenames from the MANIFEST.txt, and
+ * attempts to upload every file in the manifest to ICANN's endpoint.
+ *
+ * <p>Parameters:
+ *
+ * <p>subdir: the subdirectory of gs://[project-id]-reporting/ to retrieve reports from. For
+ * example: "manual/dir" means reports will be stored under gs://[project-id]-reporting/manual/dir.
+ * Defaults to "icann/monthly/[last month in yyyy-MM format]".
  */
-@Action(
-  path = IcannReportingUploadAction.PATH,
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+@Action(path = IcannReportingUploadAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public final class IcannReportingUploadAction implements Runnable {
 
   static final String PATH = "/_dr/task/icannReportingUpload";
-  static final String DEFAULT_SUBDIR = "icann/monthly";
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @Inject @Config("icannReportingBucket") String icannReportingBucket;
-  @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
-  @Inject @Parameter(IcannReportingModule.PARAM_YEAR_MONTH) String yearMonth;
-  @Inject @Parameter(IcannReportingModule.PARAM_REPORT_TYPE) ReportType reportType;
-  @Inject @Parameter(IcannReportingModule.PARAM_SUBDIR) Optional<String> subdir;
+  @Inject
+  @Config("icannReportingBucket")
+  String reportingBucket;
+
+  @Inject
+  @Parameter(IcannReportingModule.PARAM_SUBDIR)
+  String subdir;
+
   @Inject GcsUtils gcsUtils;
   @Inject IcannHttpReporter icannReporter;
-  @Inject Response response;
   @Inject Retrier retrier;
+  @Inject Response response;
 
   @Inject
   IcannReportingUploadAction() {}
 
   @Override
   public void run() {
-    validateParams();
-    String reportFilename = createFilename(tld, yearMonth, reportType);
-    String reportBucketname = createReportingBucketName(icannReportingBucket, subdir, yearMonth);
-    logger.infofmt("Reading ICANN report %s from bucket %s", reportFilename, reportBucketname);
-    final GcsFilename gcsFilename = new GcsFilename(reportBucketname, reportFilename);
-    checkState(
-        gcsUtils.existsAndNotEmpty(gcsFilename),
-        "ICANN report object %s in bucket %s not found",
-        gcsFilename.getObjectName(),
-        gcsFilename.getBucketName());
+    String reportBucketname = ReportingUtils.createReportingBucketName(reportingBucket, subdir);
+    ImmutableList<String> manifestedFiles = getManifestedFiles(reportBucketname);
+    // Report on all manifested files
+    for (String reportFilename : manifestedFiles) {
+      logger.infofmt("Reading ICANN report %s from bucket %s", reportFilename, reportBucketname);
+      final GcsFilename gcsFilename = new GcsFilename(reportBucketname, reportFilename);
+      verifyFileExists(gcsFilename);
+      retrier.callWithRetry(
+          () -> {
+            final byte[] payload = readBytesFromGcs(gcsFilename);
+            icannReporter.send(payload, reportFilename);
+            response.setContentType(PLAIN_TEXT_UTF_8);
+            response.setPayload(String.format("OK, sending: %s", new String(payload, UTF_8)));
+            return null;
+          },
+          IOException.class);
+    }
+  }
 
-    retrier.callWithRetry(
-        () -> {
-          final byte[] payload = readReportFromGcs(gcsFilename);
-          icannReporter.send(payload, tld, yearMonth, reportType);
-          response.setContentType(PLAIN_TEXT_UTF_8);
-          response.setPayload(
-              String.format("OK, sending: %s", new String(payload, StandardCharsets.UTF_8)));
-          return null;
-        },
+  private ImmutableList<String> getManifestedFiles(String reportBucketname) {
+    GcsFilename manifestFilename = new GcsFilename(reportBucketname, MANIFEST_FILE_NAME);
+    verifyFileExists(manifestFilename);
+    return retrier.callWithRetry(
+        () ->
+            ImmutableList.copyOf(
+                Splitter.on('\n')
+                    .omitEmptyStrings()
+                    .split(new String(readBytesFromGcs(manifestFilename), UTF_8))),
         IOException.class);
   }
 
-  private byte[] readReportFromGcs(GcsFilename reportFilename) throws IOException {
+  private byte[] readBytesFromGcs(GcsFilename reportFilename) throws IOException {
     try (InputStream gcsInput = gcsUtils.openInputStream(reportFilename)) {
       return ByteStreams.toByteArray(gcsInput);
     }
   }
 
-  static String createFilename(String tld, String yearMonth, ReportType reportType) {
-    // Report files use YYYYMM naming instead of standard YYYY-MM, per ICANN requirements.
-    String fileYearMonth = yearMonth.substring(0, 4) + yearMonth.substring(5, 7);
-    return String.format("%s-%s-%s.csv", tld, reportType.toString().toLowerCase(), fileYearMonth);
-  }
-
-  static String createReportingBucketName(
-      String reportingBucket, Optional<String> subdir, String yearMonth) {
-    return subdir.isPresent()
-        ? String.format("%s/%s", reportingBucket, subdir.get())
-        : String.format("%s/%s/%s", reportingBucket, DEFAULT_SUBDIR, yearMonth);
-
-  }
-
-  private void validateParams() {
-    assertTldExists(tld);
-    checkState(
-        yearMonth.matches("[0-9]{4}-[0-9]{2}"),
-        "yearMonth must be in YYYY-MM format, got %s instead.",
-        yearMonth);
-    if (subdir.isPresent()) {
-      checkState(
-          !subdir.get().startsWith("/") && !subdir.get().endsWith("/"),
-          "subdir must not start or end with a \"/\", got %s instead.",
-          subdir.get());
-    }
+  private void verifyFileExists(GcsFilename gcsFilename) {
+    checkArgument(
+        gcsUtils.existsAndNotEmpty(gcsFilename),
+        "Object %s in bucket %s not found",
+        gcsFilename.getObjectName(),
+        gcsFilename.getBucketName());
   }
 }

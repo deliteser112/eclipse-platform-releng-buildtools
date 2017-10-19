@@ -15,7 +15,6 @@
 package google.registry.reporting;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -30,7 +29,7 @@ public class ActivityReportingQueryBuilderTest {
 
   private ActivityReportingQueryBuilder getQueryBuilder() {
     ActivityReportingQueryBuilder queryBuilder = new ActivityReportingQueryBuilder();
-    queryBuilder.yearMonth = "2017-06";
+    queryBuilder.yearMonth = "2017-09";
     queryBuilder.projectId = "domain-registry-alpha";
     return queryBuilder;
   }
@@ -41,28 +40,28 @@ public class ActivityReportingQueryBuilderTest {
     assertThat(queryBuilder.getReportQuery())
         .isEqualTo(
             "#standardSQL\nSELECT * FROM "
-                + "`domain-registry-alpha.icann_reporting.activity_report_aggregation_201706`");
+                + "`domain-registry-alpha.icann_reporting.activity_report_aggregation_201709`");
   }
 
   @Test
   public void testIntermediaryQueryMatch() throws IOException {
-    ActivityReportingQueryBuilder queryBuilder = getQueryBuilder();
-    ImmutableList<String> queryNames =
+    ImmutableList<String> expectedQueryNames =
         ImmutableList.of(
             ActivityReportingQueryBuilder.REGISTRAR_OPERATING_STATUS,
-            ActivityReportingQueryBuilder.DNS_COUNTS,
             ActivityReportingQueryBuilder.MONTHLY_LOGS,
+            ActivityReportingQueryBuilder.DNS_COUNTS,
             ActivityReportingQueryBuilder.EPP_METRICS,
             ActivityReportingQueryBuilder.WHOIS_COUNTS,
             ActivityReportingQueryBuilder.ACTIVITY_REPORT_AGGREGATION);
 
+    ActivityReportingQueryBuilder queryBuilder = getQueryBuilder();
     ImmutableMap<String, String> actualQueries = queryBuilder.getViewQueryMap();
-    for (String queryName : queryNames) {
-      String actualTableName = String.format("%s_201706", queryName);
+    for (String queryName : expectedQueryNames) {
+      String actualTableName = String.format("%s_201709", queryName);
       String testFilename = String.format("%s_test.sql", queryName);
       assertThat(actualQueries.get(actualTableName))
           .isEqualTo(ReportingTestData.getString(testFilename));
     }
   }
-}
 
+}

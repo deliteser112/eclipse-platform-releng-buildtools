@@ -20,7 +20,8 @@
 
 SELECT
   registrars.tld as tld,
-  registrars.registrar_name as registrar_name,
+  -- Surround registrar names with quotes to handle names containing a comma.
+  FORMAT("\"%s\"", registrars.registrar_name) as registrar_name,
   registrars.iana_id as iana_id,
   SUM(IF(metrics.metricName = 'TOTAL_DOMAINS', metrics.metricValue, 0)) AS total_domains,
   SUM(IF(metrics.metricName = 'TOTAL_NAMESERVERS', metrics.metricValue, 0)) AS total_nameservers,
@@ -62,26 +63,33 @@ SELECT
   0 AS agp_exemptions_granted,
   0 AS agp_exempted_domains,
   SUM(IF(metrics.metricName = 'ATTEMPTED_ADDS', metrics.metricValue, 0)) AS attempted_adds
-FROM (
-  SELECT *
-  FROM `domain-registry-alpha.icann_reporting.registrar_iana_id_201706`) AS registrars
+FROM
+-- Only produce reports for real TLDs
+(SELECT tldStr AS tld
+  FROM `domain-registry-alpha.latest_datastore_export.Registry`
+  WHERE tldType = 'REAL') AS registries
+JOIN
+(SELECT *
+  FROM `domain-registry-alpha.icann_reporting.registrar_iana_id_201709`)
+  AS registrars
+ON registries.tld = registrars.tld
 -- We LEFT JOIN to produce reports even if the registrar made no transactions
 LEFT OUTER JOIN (
   -- Gather all intermediary data views
   SELECT *
-  FROM `domain-registry-alpha.icann_reporting.total_domains_201706`
+  FROM `domain-registry-alpha.icann_reporting.total_domains_201709`
   UNION ALL
   SELECT *
-  FROM `domain-registry-alpha.icann_reporting.total_nameservers_201706`
+  FROM `domain-registry-alpha.icann_reporting.total_nameservers_201709`
   UNION ALL
   SELECT *
-  FROM `domain-registry-alpha.icann_reporting.transaction_counts_201706`
+  FROM `domain-registry-alpha.icann_reporting.transaction_counts_201709`
   UNION ALL
   SELECT *
-  FROM `domain-registry-alpha.icann_reporting.transaction_transfer_losing_201706`
+  FROM `domain-registry-alpha.icann_reporting.transaction_transfer_losing_201709`
   UNION ALL
   SELECT *
-  FROM `domain-registry-alpha.icann_reporting.attempted_adds_201706` ) AS metrics
+  FROM `domain-registry-alpha.icann_reporting.attempted_adds_201709` ) AS metrics
 -- Join on tld and registrar name
 ON registrars.tld = metrics.tld
 AND registrars.registrar_name = metrics.registrar_name

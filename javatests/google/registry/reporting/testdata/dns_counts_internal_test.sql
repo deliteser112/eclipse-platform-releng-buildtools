@@ -13,15 +13,12 @@
   -- See the License for the specific language governing permissions and
   -- limitations under the License.
 
-  -- Query that counts the number of real registrars in system.
+  -- Retrieve per-TLD DNS query counts.
 
-SELECT
-  -- Applies to all TLDs, hence the 'null' magic value.
-  STRING(NULL) AS tld,
-  'operational-registrars' AS metricName,
-  COUNT(registrarName) AS count
-FROM
-  `domain-registry-alpha.latest_datastore_export.Registrar`
-WHERE
-  (type = 'REAL' OR type = 'INTERNAL')
-GROUP BY metricName
+  -- This is a hack to enable using DNS counts from the internal-only #plx
+  -- workflow. See other references to b/67301320 in the codebase to see the
+  -- full extent of the hackery.
+  -- TODO(b/67301320): Delete this when we can make open-source DNS metrics.
+
+SELECT *
+FROM `domain-registry-alpha.icann_reporting.dns_counts_from_plx`

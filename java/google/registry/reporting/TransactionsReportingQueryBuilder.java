@@ -158,6 +158,8 @@ public final class TransactionsReportingQueryBuilder implements QueryBuilder {
     String aggregateQuery =
         SqlTemplate.create(getQueryFromFile("transactions_report_aggregation.sql"))
             .put("PROJECT_ID", projectId)
+            .put("DATASTORE_EXPORT_DATA_SET", DATASTORE_EXPORT_DATA_SET)
+            .put("REGISTRY_TABLE", "Registry")
             .put("ICANN_REPORTING_DATA_SET", ICANN_REPORTING_DATA_SET)
             .put("REGISTRAR_IANA_ID_TABLE", getTableName(REGISTRAR_IANA_ID))
             .put("TOTAL_DOMAINS_TABLE", getTableName(TOTAL_DOMAINS))

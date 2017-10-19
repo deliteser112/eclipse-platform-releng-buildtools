@@ -52,8 +52,8 @@ FROM (
       FROM
         `domain-registry-alpha.appengine_logs.appengine_googleapis_com_request_log_*`
       WHERE _TABLE_SUFFIX
-      BETWEEN '20170601'
-      AND '20170630')
+      BETWEEN '20170901'
+      AND '20170930')
     JOIN UNNEST(logMessage) AS logMessages
     -- Look for metadata logs from epp and registrar console requests
     WHERE requestPath IN ('/_dr/epp', '/_dr/epptool', '/registrar-xhr')

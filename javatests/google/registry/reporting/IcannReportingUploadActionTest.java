@@ -16,10 +16,6 @@ package google.registry.reporting;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.common.truth.Truth8.assertThat;
-import static google.registry.reporting.IcannReportingModule.ReportType.ACTIVITY;
-import static google.registry.reporting.IcannReportingModule.ReportType.TRANSACTIONS;
-import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.GcsTestingUtils.writeGcsFile;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.doThrow;
@@ -38,7 +34,6 @@ import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
 import google.registry.util.Retrier;
 import java.io.IOException;
-import java.util.Optional;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,37 +47,37 @@ public class IcannReportingUploadActionTest {
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   private static final byte[] FAKE_PAYLOAD = "test,csv\n13,37".getBytes(UTF_8);
+  private static final byte[] MANIFEST_PAYLOAD = "test-transactions-201706.csv\n".getBytes(UTF_8);
   private final IcannHttpReporter mockReporter = mock(IcannHttpReporter.class);
   private final FakeResponse response = new FakeResponse();
   private final GcsService gcsService = GcsServiceFactory.createGcsService();
   private final GcsFilename reportFile =
       new GcsFilename("basin/icann/monthly/2017-06", "test-transactions-201706.csv");
+  private final GcsFilename manifestFile =
+      new GcsFilename("basin/icann/monthly/2017-06", "MANIFEST.txt");
 
   private IcannReportingUploadAction createAction() {
     IcannReportingUploadAction action = new IcannReportingUploadAction();
     action.icannReporter = mockReporter;
     action.gcsUtils = new GcsUtils(gcsService, 1024);
     action.retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
-    action.yearMonth = "2017-06";
-    action.reportType = TRANSACTIONS;
-    action.subdir = Optional.empty();
-    action.tld = "test";
-    action.icannReportingBucket = "basin";
+    action.subdir = "icann/monthly/2017-06";
+    action.reportingBucket = "basin";
     action.response = response;
     return action;
   }
 
   @Before
   public void before() throws Exception {
-    createTld("test");
     writeGcsFile(gcsService, reportFile, FAKE_PAYLOAD);
+    writeGcsFile(gcsService, manifestFile, MANIFEST_PAYLOAD);
   }
 
   @Test
   public void testSuccess() throws Exception {
     IcannReportingUploadAction action = createAction();
     action.run();
-    verify(mockReporter).send(FAKE_PAYLOAD, "test", "2017-06", TRANSACTIONS);
+    verify(mockReporter).send(FAKE_PAYLOAD, "test-transactions-201706.csv");
     verifyNoMoreInteractions(mockReporter);
     assertThat(((FakeResponse) action.response).getPayload())
         .isEqualTo("OK, sending: test,csv\n13,37");
@@ -94,90 +89,26 @@ public class IcannReportingUploadActionTest {
     doThrow(new IOException("Expected exception."))
         .doNothing()
         .when(mockReporter)
-        .send(FAKE_PAYLOAD, "test", "2017-06", TRANSACTIONS);
+        .send(FAKE_PAYLOAD, "test-transactions-201706.csv");
     action.run();
-    verify(mockReporter, times(2)).send(FAKE_PAYLOAD, "test", "2017-06", TRANSACTIONS);
+    verify(mockReporter, times(2)).send(FAKE_PAYLOAD, "test-transactions-201706.csv");
     verifyNoMoreInteractions(mockReporter);
     assertThat(((FakeResponse) action.response).getPayload())
         .isEqualTo("OK, sending: test,csv\n13,37");
   }
 
   @Test
-  public void testFail_NonexisistentTld() throws Exception {
+  public void testFail_FileNotFound() throws Exception {
     IcannReportingUploadAction action = createAction();
-    action.tld = "invalidTld";
+    action.subdir = "somewhere/else";
     try {
       action.run();
-      assertWithMessage("Expected IllegalArgumentException to be thrown").fail();
+      assertWithMessage("Expected IllegalStateException to be thrown").fail();
     } catch (IllegalArgumentException expected) {
       assertThat(expected)
           .hasMessageThat()
-          .isEqualTo("TLD invalidTld does not exist");
+          .isEqualTo("Object MANIFEST.txt in bucket basin/somewhere/else not found");
     }
-  }
-
-  @Test
-  public void testFail_InvalidYearMonth() throws Exception {
-    IcannReportingUploadAction action = createAction();
-    action.yearMonth = "2017-3";
-    try {
-      action.run();
-      assertWithMessage("Expected IllegalStateException to be thrown").fail();
-    } catch (IllegalStateException expected) {
-      assertThat(expected)
-          .hasMessageThat()
-          .isEqualTo("yearMonth must be in YYYY-MM format, got 2017-3 instead.");
-    }
-  }
-
-  @Test
-  public void testFail_InvalidSubdir() throws Exception {
-    IcannReportingUploadAction action = createAction();
-    action.subdir = Optional.of("/subdir/with/slash");
-    try {
-      action.run();
-      assertWithMessage("Expected IllegalStateException to be thrown").fail();
-    } catch (IllegalStateException expected) {
-      assertThat(expected)
-          .hasMessageThat()
-          .isEqualTo(
-              "subdir must not start or end with a \"/\", got /subdir/with/slash instead.");
-    }
-  }
-
-  @Test
-  public void testFail_FileNotFound() throws Exception {
-    IcannReportingUploadAction action = createAction();
-    action.yearMonth = "1234-56";
-    try {
-      action.run();
-      assertWithMessage("Expected IllegalStateException to be thrown").fail();
-    } catch (IllegalStateException expected) {
-      assertThat(expected)
-          .hasMessageThat()
-          .isEqualTo(
-              "ICANN report object test-transactions-123456.csv "
-                  + "in bucket basin/icann/monthly/1234-56 not found");
-    }
-  }
-
-  @Test
-  public void testSuccess_CreateFilename() throws Exception{
-    assertThat(IcannReportingUploadAction.createFilename("test", "2017-06", ACTIVITY))
-        .isEqualTo("test-activity-201706.csv");
-    assertThat(IcannReportingUploadAction.createFilename("foo", "1234-56", TRANSACTIONS))
-        .isEqualTo("foo-transactions-123456.csv");
-  }
-
-  @Test
-  public void testSuccess_CreateBucketname() throws Exception{
-    assertThat(
-        IcannReportingUploadAction
-            .createReportingBucketName("gs://my-reporting", Optional.<String>empty(), "2017-06"))
-        .isEqualTo("gs://my-reporting/icann/monthly/2017-06");
-    assertThat(
-        IcannReportingUploadAction
-            .createReportingBucketName("gs://my-reporting", Optional.of("manual"), "2017-06"))
-        .isEqualTo("gs://my-reporting/manual");
   }
 }
+

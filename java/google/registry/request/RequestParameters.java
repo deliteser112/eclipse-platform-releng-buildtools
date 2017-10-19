@@ -99,6 +99,20 @@ public final class RequestParameters {
   }
 
   /**
+   * Returns the first GET or POST parameter associated with {@code name}, absent otherwise.
+   *
+   * @throws BadRequestException if request parameter named {@code name} is not equal to any of the
+   *     values in {@code enumClass}
+   */
+  public static <C extends Enum<C>> Optional<C> extractOptionalEnumParameter(
+      HttpServletRequest req, Class<C> enumClass, String name) {
+    String stringParam = req.getParameter(name);
+    return isNullOrEmpty(stringParam)
+        ? Optional.empty()
+        : Optional.of(extractEnumParameter(req, enumClass, name));
+  }
+
+  /**
    * Returns the first GET or POST parameter associated with {@code name}.
    *
    * @throws BadRequestException if request parameter named {@code name} is absent, empty, or not

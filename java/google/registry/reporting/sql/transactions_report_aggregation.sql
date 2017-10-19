@@ -20,7 +20,8 @@
 
 SELECT
   registrars.tld as tld,
-  registrars.registrar_name as registrar_name,
+  -- Surround registrar names with quotes to handle names containing a comma.
+  FORMAT("\"%s\"", registrars.registrar_name) as registrar_name,
   registrars.iana_id as iana_id,
   SUM(IF(metrics.metricName = 'TOTAL_DOMAINS', metrics.metricValue, 0)) AS total_domains,
   SUM(IF(metrics.metricName = 'TOTAL_NAMESERVERS', metrics.metricValue, 0)) AS total_nameservers,
@@ -62,9 +63,16 @@ SELECT
   0 AS agp_exemptions_granted,
   0 AS agp_exempted_domains,
   SUM(IF(metrics.metricName = 'ATTEMPTED_ADDS', metrics.metricValue, 0)) AS attempted_adds
-FROM (
-  SELECT *
-  FROM `%PROJECT_ID%.%ICANN_REPORTING_DATA_SET%.%REGISTRAR_IANA_ID_TABLE%`) AS registrars
+FROM
+-- Only produce reports for real TLDs
+(SELECT tldStr AS tld
+  FROM `%PROJECT_ID%.%DATASTORE_EXPORT_DATA_SET%.%REGISTRY_TABLE%`
+  WHERE tldType = 'REAL') AS registries
+JOIN
+(SELECT *
+  FROM `%PROJECT_ID%.%ICANN_REPORTING_DATA_SET%.%REGISTRAR_IANA_ID_TABLE%`)
+  AS registrars
+ON registries.tld = registrars.tld
 -- We LEFT JOIN to produce reports even if the registrar made no transactions
 LEFT OUTER JOIN (
   -- Gather all intermediary data views
