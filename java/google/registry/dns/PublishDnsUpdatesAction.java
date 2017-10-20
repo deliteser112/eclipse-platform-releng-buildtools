@@ -20,7 +20,8 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.net.InternetDomainName;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.dns.DnsMetrics.Status;
+import google.registry.dns.DnsMetrics.CommitStatus;
+import google.registry.dns.DnsMetrics.PublishStatus;
 import google.registry.dns.writer.DnsWriter;
 import google.registry.model.registry.Registry;
 import google.registry.request.Action;
@@ -28,11 +29,13 @@ import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
 import google.registry.request.lock.LockHandler;
+import google.registry.util.Clock;
 import google.registry.util.DomainNameUtils;
 import google.registry.util.FormattingLogger;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 /** Task that sends domain and host updates to the DNS server. */
@@ -48,6 +51,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
   public static final String PARAM_DNS_WRITER = "dnsWriter";
   public static final String PARAM_DOMAINS = "domains";
   public static final String PARAM_HOSTS = "hosts";
+  public static final String LOCK_NAME = "DNS updates";
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -70,17 +74,17 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
   @Inject @Parameter(PARAM_HOSTS) Set<String> hosts;
   @Inject @Parameter(PARAM_TLD) String tld;
   @Inject LockHandler lockHandler;
+  @Inject Clock clock;
   @Inject PublishDnsUpdatesAction() {}
 
   /** Runs the task. */
   @Override
   public void run() {
-    String lockName = String.format("DNS zone %s", tld);
     // If executeWithLocks fails to get the lock, it does not throw an exception, simply returns
     // false. We need to make sure to take note of this error; otherwise, a failed lock might result
     // in the update task being dequeued and dropped. A message will already have been logged
     // to indicate the problem.
-    if (!lockHandler.executeWithLocks(this, tld, timeout, lockName)) {
+    if (!lockHandler.executeWithLocks(this, tld, timeout, LOCK_NAME)) {
       throw new ServiceUnavailableException("Lock failure");
     }
   }
@@ -94,30 +98,65 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
 
   /** Steps through the domain and host refreshes contained in the parameters and processes them. */
   private void processBatch() {
+    DateTime timeAtStart = clock.nowUtc();
+
     DnsWriter writer = dnsWriterProxy.getByClassNameForTld(dnsWriter, tld);
+
+    int domainsPublished = 0;
+    int domainsRejected = 0;
     for (String domain : nullToEmpty(domains)) {
       if (!DomainNameUtils.isUnder(
           InternetDomainName.from(domain), InternetDomainName.from(tld))) {
-        dnsMetrics.incrementPublishDomainRequests(tld, Status.REJECTED);
         logger.severefmt("%s: skipping domain %s not under tld", tld, domain);
+        domainsRejected += 1;
       } else {
-        dnsMetrics.incrementPublishDomainRequests(tld, Status.ACCEPTED);
         writer.publishDomain(domain);
         logger.infofmt("%s: published domain %s", tld, domain);
+        domainsPublished += 1;
       }
     }
+    dnsMetrics.incrementPublishDomainRequests(domainsPublished, PublishStatus.ACCEPTED);
+    dnsMetrics.incrementPublishDomainRequests(domainsRejected, PublishStatus.REJECTED);
+
+    int hostsPublished = 0;
+    int hostsRejected = 0;
     for (String host : nullToEmpty(hosts)) {
       if (!DomainNameUtils.isUnder(
           InternetDomainName.from(host), InternetDomainName.from(tld))) {
-        dnsMetrics.incrementPublishHostRequests(tld, Status.REJECTED);
         logger.severefmt("%s: skipping host %s not under tld", tld, host);
+        hostsRejected += 1;
       } else {
-        dnsMetrics.incrementPublishHostRequests(tld, Status.ACCEPTED);
         writer.publishHost(host);
         logger.infofmt("%s: published host %s", tld, host);
+        hostsPublished += 1;
       }
     }
+    dnsMetrics.incrementPublishHostRequests(hostsPublished, PublishStatus.ACCEPTED);
+    dnsMetrics.incrementPublishHostRequests(hostsRejected, PublishStatus.REJECTED);
+
     // If we got here it means we managed to stage the entire batch without any errors.
-    writer.commit();
+    // Next we will commit the batch.
+    CommitStatus commitStatus = CommitStatus.FAILURE;
+    try {
+      writer.commit();
+      // No error was thrown
+      commitStatus = CommitStatus.SUCCESS;
+    } finally {
+      Duration duration = new Duration(timeAtStart, clock.nowUtc());
+      dnsMetrics.recordCommit(
+          commitStatus,
+          duration,
+          domainsPublished,
+          hostsPublished);
+      logger.info(
+          "writer.commit() statistics"
+          + "\nTLD: " + tld
+          + "\ncommitStatus: " + commitStatus
+          + "\nduration: " + duration
+          + "\ndomainsPublished: " + domainsPublished
+          + "\ndomainsRejected: " + domainsRejected
+          + "\nhostsPublished: " + hostsPublished
+          + "\nhostsRejected: " + hostsRejected);
+    }
   }
 }

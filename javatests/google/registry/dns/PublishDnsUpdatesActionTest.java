@@ -19,13 +19,13 @@ import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import google.registry.dns.DnsMetrics.Status;
+import google.registry.dns.DnsMetrics.CommitStatus;
+import google.registry.dns.DnsMetrics.PublishStatus;
 import google.registry.dns.writer.DnsWriter;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.ofy.Ofy;
@@ -90,6 +90,7 @@ public class PublishDnsUpdatesActionTest {
     action.dnsWriterProxy = new DnsWriterProxy(ImmutableMap.of("mock", dnsWriter));
     action.dnsMetrics = dnsMetrics;
     action.lockHandler = lockHandler;
+    action.clock = clock;
     return action;
   }
 
@@ -103,7 +104,11 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
 
-    verify(dnsMetrics).incrementPublishHostRequests("xn--q9jyb4c", Status.ACCEPTED);
+    verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
+    verify(dnsMetrics).incrementPublishHostRequests(1, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.REJECTED);
+    verify(dnsMetrics).recordCommit(CommitStatus.SUCCESS, Duration.ZERO, 0, 1);
     verifyNoMoreInteractions(dnsMetrics);
   }
 
@@ -117,7 +122,11 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
 
-    verify(dnsMetrics).incrementPublishDomainRequests("xn--q9jyb4c", Status.ACCEPTED);
+    verify(dnsMetrics).incrementPublishDomainRequests(1, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
+    verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.REJECTED);
+    verify(dnsMetrics).recordCommit(CommitStatus.SUCCESS, Duration.ZERO, 1, 0);
     verifyNoMoreInteractions(dnsMetrics);
   }
 
@@ -137,8 +146,11 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
 
-    verify(dnsMetrics, times(2)).incrementPublishDomainRequests("xn--q9jyb4c", Status.ACCEPTED);
-    verify(dnsMetrics, times(3)).incrementPublishHostRequests("xn--q9jyb4c", Status.ACCEPTED);
+    verify(dnsMetrics).incrementPublishDomainRequests(2, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
+    verify(dnsMetrics).incrementPublishHostRequests(3, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.REJECTED);
+    verify(dnsMetrics).recordCommit(CommitStatus.SUCCESS, Duration.ZERO, 2, 3);
     verifyNoMoreInteractions(dnsMetrics);
   }
 
@@ -152,8 +164,11 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
 
-    verify(dnsMetrics, times(2)).incrementPublishDomainRequests("xn--q9jyb4c", Status.REJECTED);
-    verify(dnsMetrics, times(3)).incrementPublishHostRequests("xn--q9jyb4c", Status.REJECTED);
+    verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishDomainRequests(2, PublishStatus.REJECTED);
+    verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishHostRequests(3, PublishStatus.REJECTED);
+    verify(dnsMetrics).recordCommit(CommitStatus.SUCCESS, Duration.ZERO, 0, 0);
     verifyNoMoreInteractions(dnsMetrics);
   }
 
