@@ -100,7 +100,7 @@ public class RestoreCommitLogsAction implements Runnable {
     Map<Integer, DateTime> bucketTimestamps = new HashMap<>();
     CommitLogCheckpoint lastCheckpoint = null;
     for (GcsFileMetadata metadata : diffFiles) {
-      logger.info("Restoring: " + metadata.getFilename().getObjectName());
+      logger.infofmt("Restoring: %s", metadata.getFilename().getObjectName());
       try (InputStream input = Channels.newInputStream(
           gcsService.openPrefetchingReadChannel(metadata.getFilename(), 0, BLOCK_SIZE))) {
         PeekingIterator<ImmutableObject> commitLogs =
@@ -160,7 +160,7 @@ public class RestoreCommitLogsAction implements Runnable {
 
   private void saveRaw(final List<Entity> entitiesToSave) {
     if (dryRun) {
-      logger.info("Would have saved " + entitiesToSave);
+      logger.infofmt("Would have saved entities: %s", entitiesToSave);
       return;
     }
     retry(() -> datastoreService.put(entitiesToSave));
@@ -168,7 +168,7 @@ public class RestoreCommitLogsAction implements Runnable {
 
   private void saveOfy(final Iterable<? extends ImmutableObject> objectsToSave) {
     if (dryRun) {
-      logger.info("Would have saved " + asList(objectsToSave));
+      logger.infofmt("Would have saved entities: %s", objectsToSave);
       return;
     }
     retry(() -> ofy().saveWithoutBackup().entities(objectsToSave).now());
@@ -176,12 +176,12 @@ public class RestoreCommitLogsAction implements Runnable {
 
   private Result<?> deleteAsync(Set<Key<?>> keysToDelete) {
     if (dryRun) {
-      logger.info("Would have deleted " + keysToDelete);
+      logger.infofmt("Would have deleted entities: %s", keysToDelete);
     }
     return dryRun || keysToDelete.isEmpty()
         ? new ResultNow<Void>(null)
         : ofy().deleteWithoutBackup().keys(keysToDelete);
-   }
+  }
 
   /** Retrier for saves and deletes, since we can't proceed with any failures. */
   private void retry(final Runnable runnable) {
