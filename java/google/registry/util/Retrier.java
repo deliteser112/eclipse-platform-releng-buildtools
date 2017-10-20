@@ -119,7 +119,7 @@ public class Retrier implements Serializable {
   };
 
   /**
-   * Retries a unit of work in the face of transient errors.
+   * Retries a unit of work in the face of transient errors and returns the result.
    *
    * <p>Retrying is done a fixed number of times, with exponential backoff, if the exception that is
    * thrown is on a whitelist of retryable errors. If the error is not on the whitelist, or if the
@@ -143,8 +143,20 @@ public class Retrier implements Serializable {
         moreRetryableErrors);
   }
 
+  /** Retries a unit of work in the face of transient errors. */
+  @SafeVarargs
+  public final void callWithRetry(
+      VoidCallable callable,
+      Class<? extends Throwable> retryableError,
+      Class<? extends Throwable>... moreRetryableErrors) {
+    callWithRetry(
+        callable.asCallable(),
+        retryableError,
+        moreRetryableErrors);
+  }
+
   /**
-   * Retries a unit of work in the face of transient errors.
+   * Retries a unit of work in the face of transient errors and returns the result.
    *
    * <p>Retrying is done a fixed number of times, with exponential backoff, if the exception that is
    * thrown is on a whitelist of retryable errors. If the error is not on the whitelist, or if the

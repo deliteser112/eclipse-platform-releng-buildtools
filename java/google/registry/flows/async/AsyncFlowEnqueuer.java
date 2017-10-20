@@ -106,11 +106,6 @@ public final class AsyncFlowEnqueuer {
    * enqueuing a task.
    */
   private void addTaskToQueueWithRetry(final Queue queue, final TaskOptions task) {
-    retrier.callWithRetry(
-        () -> {
-          queue.add(task);
-          return null;
-        },
-        TransientFailureException.class);
+    retrier.callWithRetry(() -> queue.add(task), TransientFailureException.class);
   }
 }

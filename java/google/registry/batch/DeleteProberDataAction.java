@@ -31,8 +31,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
-import com.googlecode.objectify.Work;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.dns.DnsQueue;
 import google.registry.mapreduce.MapreduceRunner;
@@ -204,9 +202,7 @@ public class DeleteProberDataAction implements Runnable {
       final Key<EppResourceIndex> eppIndex = Key.create(EppResourceIndex.create(domainKey));
       final Key<? extends ForeignKeyIndex<?>> fki = ForeignKeyIndex.createKey(domain);
 
-      int entitiesDeleted = ofy().transact(new Work<Integer>() {
-        @Override
-        public Integer run() {
+      int entitiesDeleted = ofy().transact(() -> {
           // This ancestor query selects all descendant HistoryEntries, BillingEvents, PollMessages,
           // and TLD-specific entities, as well as the domain itself.
           List<Key<Object>> domainAndDependentKeys = ofy().load().ancestor(domainKey).keys().list();
@@ -221,16 +217,13 @@ public class DeleteProberDataAction implements Runnable {
             ofy().deleteWithoutBackup().keys(allKeys);
           }
           return allKeys.size();
-        }
-      });
+        });
       getContext().incrementCounter("domains hard-deleted");
       getContext().incrementCounter("total entities hard-deleted", entitiesDeleted);
     }
 
     private void softDeleteDomain(final DomainResource domain) {
-      ofy().transactNew(new VoidWork() {
-        @Override
-        public void vrun() {
+      ofy().transactNew(() -> {
           DomainResource deletedDomain = domain
               .asBuilder()
               .setDeletionTime(ofy().getTransactionTime())
@@ -251,7 +244,7 @@ public class DeleteProberDataAction implements Runnable {
           updateForeignKeyIndexDeletionTime(deletedDomain);
           dnsQueue.addDomainRefreshTask(deletedDomain.getFullyQualifiedDomainName());
         }
-      });
+      );
     }
   }
 }

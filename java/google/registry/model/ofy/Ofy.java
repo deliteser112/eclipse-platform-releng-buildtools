@@ -200,11 +200,39 @@ public class Ofy {
     return inTransaction() ? work.run() : transactNew(work);
   }
 
+  /**
+   * Execute a transaction.
+   *
+   * <p>This overload is used for transactions that don't return a value, formerly implemented using
+   * VoidWork.
+   */
+  public void transact(Runnable work) {
+    transact(
+        () -> {
+          work.run();
+          return null;
+        });
+  }
+
   /** Pause the current transaction (if any) and complete this one before returning to it. */
   public <R> R transactNew(Work<R> work) {
     // Wrap the Work in a CommitLoggedWork so that we can give transactions a frozen view of time
     // and maintain commit logs for them.
     return transactCommitLoggedWork(new CommitLoggedWork<>(work, getClock()));
+  }
+
+  /**
+   * Pause the current transaction (if any) and complete this one before returning to it.
+   *
+   * <p>This overload is used for transactions that don't return a value, formerly implemented using
+   * VoidWork.
+   */
+  public void transactNew(Runnable work) {
+    transactNew(
+        () -> {
+          work.run();
+          return null;
+        });
   }
 
   /**

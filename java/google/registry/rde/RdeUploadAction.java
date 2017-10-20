@@ -18,6 +18,7 @@ import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 import static com.google.common.base.Verify.verify;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.jcraft.jsch.ChannelSftp.OVERWRITE;
+import static google.registry.model.common.Cursor.CursorType.RDE_UPLOAD_SFTP;
 import static google.registry.model.common.Cursor.getCursorTimeOrStartOfTime;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.rde.RdeMode.FULL;
@@ -29,7 +30,6 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.ByteStreams;
-import com.googlecode.objectify.VoidWork;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import dagger.Lazy;
@@ -139,7 +139,7 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
       throw new ServiceUnavailableException("Waiting for RdeStagingAction to complete");
     }
     DateTime sftpCursorTime = getCursorTimeOrStartOfTime(
-        ofy().load().key(Cursor.createKey(CursorType.RDE_UPLOAD_SFTP, Registry.get(tld))).now());
+        ofy().load().key(Cursor.createKey(RDE_UPLOAD_SFTP, Registry.get(tld))).now());
     if (sftpCursorTime.plus(sftpCooldown).isAfter(clock.nowUtc())) {
       // Fail the task good and hard so it retries until the cooldown passes.
       logger.infofmt("tld=%s cursor=%s sftpCursor=%s", tld, watermark, sftpCursorTime);
@@ -161,15 +161,15 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
           return null;
         },
         JSchException.class);
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        Cursor cursor =
-            Cursor.create(
-                CursorType.RDE_UPLOAD_SFTP, ofy().getTransactionTime(), Registry.get(tld));
-        ofy().save().entity(cursor).now();
-      }
-    });
+    ofy()
+        .transact(
+            () ->
+                ofy()
+                    .save()
+                    .entity(
+                        Cursor.create(
+                            RDE_UPLOAD_SFTP, ofy().getTransactionTime(), Registry.get(tld)))
+                    .now());
     response.setContentType(PLAIN_TEXT_UTF_8);
     response.setPayload(String.format("OK %s %s\n", tld, watermark));
   }

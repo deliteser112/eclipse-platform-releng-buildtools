@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
-import com.googlecode.objectify.VoidWork;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.groups.GroupsConnection;
 import google.registry.groups.GroupsConnection.Role;
@@ -134,12 +133,7 @@ public final class SyncGroupMembersAction implements Runnable {
         new ImmutableMap.Builder<>();
     for (final Registrar registrar : dirtyRegistrars) {
       try {
-        retrier.callWithRetry(
-            () -> {
-              syncRegistrarContacts(registrar);
-              return null;
-            },
-            RuntimeException.class);
+        retrier.callWithRetry(() -> syncRegistrarContacts(registrar), RuntimeException.class);
         resultsBuilder.put(registrar, Optional.<Throwable>empty());
       } catch (Throwable e) {
         logger.severe(e, e.getMessage());
@@ -171,11 +165,7 @@ public final class SyncGroupMembersAction implements Runnable {
         registrarsToSave.add(result.getKey().asBuilder().setContactsRequireSyncing(false).build());
       }
     }
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-          ofy().save().entities(registrarsToSave.build());
-      }});
+    ofy().transactNew(() -> ofy().save().entities(registrarsToSave.build()));
     return errors;
   }
 

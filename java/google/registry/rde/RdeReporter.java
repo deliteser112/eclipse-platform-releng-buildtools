@@ -44,7 +44,6 @@ import java.io.ByteArrayInputStream;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
 /**
@@ -81,21 +80,20 @@ public class RdeReporter {
     req.addHeader(new HTTPHeader(AUTHORIZATION, "Basic " + token));
     req.setPayload(reportBytes);
     logger.infofmt("Sending report:\n%s", new String(reportBytes, UTF_8));
-    HTTPResponse rsp = retrier.callWithRetry(
-        new Callable<HTTPResponse>() {
-          @Override
-          public HTTPResponse call() throws Exception {
-            HTTPResponse rsp = urlFetchService.fetch(req);
-            switch (rsp.getResponseCode()) {
-              case SC_OK:
-              case SC_BAD_REQUEST:
-                break;
-              default:
-                throw new UrlFetchException("PUT failed", req, rsp);
-            }
-            return rsp;
-          }
-        }, SocketTimeoutException.class);
+    HTTPResponse rsp =
+        retrier.callWithRetry(
+            () -> {
+              HTTPResponse rsp1 = urlFetchService.fetch(req);
+              switch (rsp1.getResponseCode()) {
+                case SC_OK:
+                case SC_BAD_REQUEST:
+                  break;
+                default:
+                  throw new UrlFetchException("PUT failed", req, rsp1);
+              }
+              return rsp1;
+            },
+            SocketTimeoutException.class);
 
     // Ensure the XML response is valid.
     XjcIirdeaResult result = parseResult(rsp);

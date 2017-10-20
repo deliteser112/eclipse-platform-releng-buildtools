@@ -153,25 +153,27 @@ public class RestoreCommitLogsAction implements Runnable {
     try {
       deleteResult.now();
     } catch (Exception e) {
-      retry(() -> deleteAsync(manifest.getDeletions()).now());
+      retrier.callWithRetry(
+          () -> deleteAsync(manifest.getDeletions()).now(), RuntimeException.class);
     }
     return manifest;
   }
 
-  private void saveRaw(final List<Entity> entitiesToSave) {
+  private void saveRaw(List<Entity> entitiesToSave) {
     if (dryRun) {
       logger.infofmt("Would have saved entities: %s", entitiesToSave);
       return;
     }
-    retry(() -> datastoreService.put(entitiesToSave));
+    retrier.callWithRetry(() -> datastoreService.put(entitiesToSave), RuntimeException.class);
   }
 
-  private void saveOfy(final Iterable<? extends ImmutableObject> objectsToSave) {
+  private void saveOfy(Iterable<? extends ImmutableObject> objectsToSave) {
     if (dryRun) {
       logger.infofmt("Would have saved entities: %s", objectsToSave);
       return;
     }
-    retry(() -> ofy().saveWithoutBackup().entities(objectsToSave).now());
+    retrier.callWithRetry(
+        () -> ofy().saveWithoutBackup().entities(objectsToSave).now(), RuntimeException.class);
   }
 
   private Result<?> deleteAsync(Set<Key<?>> keysToDelete) {
@@ -183,13 +185,4 @@ public class RestoreCommitLogsAction implements Runnable {
         : ofy().deleteWithoutBackup().keys(keysToDelete);
   }
 
-  /** Retrier for saves and deletes, since we can't proceed with any failures. */
-  private void retry(final Runnable runnable) {
-    retrier.callWithRetry(
-        () -> {
-          runnable.run();
-          return null;
-        },
-        RuntimeException.class);
-  }
 }

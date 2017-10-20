@@ -59,7 +59,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Multiset;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import google.registry.batch.DeleteContactsAndHostsAction.DeletionResult.Type;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.async.AsyncFlowMetrics;
@@ -179,18 +178,13 @@ public class DeleteContactsAndHostsAction implements Runnable {
     }
     final List<TaskHandle> tasks =
         deletionRequests.stream().map(DeletionRequest::task).collect(toImmutableList());
-    retrier.callWithRetry(
-        () -> {
-          queue.deleteTask(tasks);
-          return null;
-        },
-        TransientFailureException.class);
-    for (DeletionRequest deletionRequest : deletionRequests) {
-      asyncFlowMetrics.recordAsyncFlowResult(
-          deletionRequest.getMetricOperationType(),
-          OperationResult.STALE,
-          deletionRequest.requestedTime());
-    }
+    retrier.callWithRetry(() -> queue.deleteTask(tasks), TransientFailureException.class);
+    deletionRequests.forEach(
+        deletionRequest ->
+            asyncFlowMetrics.recordAsyncFlowResult(
+                deletionRequest.getMetricOperationType(),
+                OperationResult.STALE,
+                deletionRequest.requestedTime()));
   }
 
   private void runMapreduce(ImmutableList<DeletionRequest> deletionRequests) {
@@ -280,15 +274,15 @@ public class DeleteContactsAndHostsAction implements Runnable {
     public void reduce(final DeletionRequest deletionRequest, ReducerInput<Boolean> values) {
       final boolean hasNoActiveReferences = !Iterators.contains(values, true);
       logger.infofmt("Processing async deletion request for %s", deletionRequest.key());
-      DeletionResult result = ofy().transactNew(new Work<DeletionResult>() {
-        @Override
-        @SuppressWarnings("unchecked")
-        public DeletionResult run() {
-          DeletionResult deletionResult =
-              attemptToDeleteResource(deletionRequest, hasNoActiveReferences);
-          getQueue(QUEUE_ASYNC_DELETE).deleteTask(deletionRequest.task());
-          return deletionResult;
-        }});
+      DeletionResult result =
+          ofy()
+              .transactNew(
+                  () -> {
+                    DeletionResult deletionResult =
+                        attemptToDeleteResource(deletionRequest, hasNoActiveReferences);
+                    getQueue(QUEUE_ASYNC_DELETE).deleteTask(deletionRequest.task());
+                    return deletionResult;
+                  });
       asyncFlowMetrics.recordAsyncFlowResult(
           deletionRequest.getMetricOperationType(),
           result.getMetricOperationResult(),
@@ -369,10 +363,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
         } else {
           resourceToSaveBuilder = resource.asBuilder();
         }
-        resourceToSave = resourceToSaveBuilder
-            .setDeletionTime(now)
-            .setStatusValues(null)
-            .build();
+        resourceToSave = resourceToSaveBuilder.setDeletionTime(now).setStatusValues(null).build();
         performDeleteTasks(resource, resourceToSave, now, historyEntry);
         updateForeignKeyIndexDeletionTime(resourceToSave);
       } else {

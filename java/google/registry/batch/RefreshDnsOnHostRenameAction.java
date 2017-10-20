@@ -178,10 +178,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
       }
       if (referencingHostKey != null) {
         retrier.callWithRetry(
-            () -> {
-              dnsQueue.addDomainRefreshTask(domain.getFullyQualifiedDomainName());
-              return null;
-            },
+            () -> dnsQueue.addDomainRefreshTask(domain.getFullyQualifiedDomainName()),
             TransientFailureException.class);
         logger.infofmt(
             "Enqueued DNS refresh for domain %s referenced by host %s.",
@@ -242,15 +239,9 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
     }
     final List<TaskHandle> tasks =
         refreshRequests.stream().map(DnsRefreshRequest::task).collect(toImmutableList());
-    retrier.callWithRetry(
-        () -> {
-          queue.deleteTask(tasks);
-          return null;
-        },
-        TransientFailureException.class);
-    for (DnsRefreshRequest refreshRequest : refreshRequests) {
-      asyncFlowMetrics.recordAsyncFlowResult(DNS_REFRESH, result, refreshRequest.requestedTime());
-    }
+    retrier.callWithRetry(() -> queue.deleteTask(tasks), TransientFailureException.class);
+    refreshRequests.forEach(
+        r -> asyncFlowMetrics.recordAsyncFlowResult(DNS_REFRESH, result, r.requestedTime()));
   }
 
   /** A class that encapsulates the values of a request to refresh DNS for a renamed host. */
