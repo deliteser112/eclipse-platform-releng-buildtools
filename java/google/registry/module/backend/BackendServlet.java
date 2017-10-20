@@ -15,7 +15,7 @@
 package google.registry.module.backend;
 
 import com.google.appengine.api.LifecycleManager;
-import com.google.appengine.api.LifecycleManager.ShutdownHook;
+import dagger.Lazy;
 import google.registry.monitoring.metrics.MetricReporter;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
@@ -32,7 +32,7 @@ public final class BackendServlet extends HttpServlet {
 
   private static final BackendComponent component = DaggerBackendComponent.create();
   private static final BackendRequestHandler requestHandler = component.requestHandler();
-  private static final MetricReporter metricReporter = component.metricReporter();
+  private static final Lazy<MetricReporter> metricReporter = component.metricReporter();
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Override
@@ -40,7 +40,7 @@ public final class BackendServlet extends HttpServlet {
     Security.addProvider(new BouncyCastleProvider());
 
     try {
-      metricReporter.startAsync().awaitRunning(10, TimeUnit.SECONDS);
+      metricReporter.get().startAsync().awaitRunning(10, TimeUnit.SECONDS);
       logger.info("Started up MetricReporter");
     } catch (TimeoutException timeoutException) {
       logger.severefmt("Failed to initialize MetricReporter: %s", timeoutException);
@@ -48,15 +48,12 @@ public final class BackendServlet extends HttpServlet {
 
     LifecycleManager.getInstance()
         .setShutdownHook(
-            new ShutdownHook() {
-              @Override
-              public void shutdown() {
-                try {
-                  metricReporter.stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
-                  logger.info("Shut down MetricReporter");
-                } catch (TimeoutException timeoutException) {
-                  logger.severefmt("Failed to stop MetricReporter: %s", timeoutException);
-                }
+            () -> {
+              try {
+                metricReporter.get().stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
+                logger.info("Shut down MetricReporter");
+              } catch (TimeoutException timeoutException) {
+                logger.severefmt("Failed to stop MetricReporter: %s", timeoutException);
               }
             });
   }

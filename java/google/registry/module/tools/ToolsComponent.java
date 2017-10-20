@@ -32,6 +32,7 @@ import google.registry.request.Modules.DatastoreServiceModule;
 import google.registry.request.Modules.GoogleCredentialModule;
 import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.ModulesServiceModule;
+import google.registry.request.Modules.NetHttpTransportModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.request.Modules.UserServiceModule;
@@ -43,31 +44,33 @@ import javax.inject.Singleton;
 /** Dagger component with instance lifetime for "tools" App Engine module. */
 @Singleton
 @Component(
-    modules = {
-        AppIdentityCredentialModule.class,
-        AuthModule.class,
-        ConfigModule.class,
-        CustomLogicFactoryModule.class,
-        DatastoreServiceModule.class,
-        DirectoryModule.class,
-        DriveModule.class,
-        GcsServiceModule.class,
-        GoogleCredentialModule.class,
-        GroupsModule.class,
-        GroupssettingsModule.class,
-        Jackson2Module.class,
-        KeyModule.class,
-        KeyringModule.class,
-        KmsModule.class,
-        ModulesServiceModule.class,
-        ServerTridProviderModule.class,
-        SystemClockModule.class,
-        SystemSleeperModule.class,
-        ToolsRequestComponentModule.class,
-        UrlFetchTransportModule.class,
-        UseAppIdentityCredentialForGoogleApisModule.class,
-        UserServiceModule.class,
-    })
+  modules = {
+    AppIdentityCredentialModule.class,
+    AuthModule.class,
+    ConfigModule.class,
+    CustomLogicFactoryModule.class,
+    DatastoreServiceModule.class,
+    DirectoryModule.class,
+    DriveModule.class,
+    GcsServiceModule.class,
+    GoogleCredentialModule.class,
+    GroupsModule.class,
+    GroupssettingsModule.class,
+    Jackson2Module.class,
+    KeyModule.class,
+    KeyringModule.class,
+    KmsModule.class,
+    ModulesServiceModule.class,
+    NetHttpTransportModule.class,
+    ServerTridProviderModule.class,
+    SystemClockModule.class,
+    SystemSleeperModule.class,
+    ToolsRequestComponentModule.class,
+    UrlFetchTransportModule.class,
+    UseAppIdentityCredentialForGoogleApisModule.class,
+    UserServiceModule.class,
+  }
+)
 interface ToolsComponent {
   ToolsRequestHandler requestHandler();
 }

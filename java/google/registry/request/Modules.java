@@ -20,8 +20,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.api.client.extensions.appengine.http.UrlFetchTransport;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.extensions.appengine.auth.oauth2.AppIdentityCredential;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -118,6 +120,24 @@ public final class Modules {
   }
 
   /**
+   * Dagger module that provides standard {@link NetHttpTransport}. Used in non App Engine
+   * environment.
+   */
+  @Module
+  public static final class NetHttpTransportModule {
+
+    @Provides
+    @Singleton
+    static NetHttpTransport provideNetHttpTransport() {
+      try {
+        return GoogleNetHttpTransport.newTrustedTransport();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  /**
    * Dagger module providing {@link AppIdentityCredential}.
    *
    * <p>This can be used to authenticate to Google APIs using the identity of your GAE app.
@@ -140,8 +160,8 @@ public final class Modules {
   @Module
   public abstract static class UseAppIdentityCredentialForGoogleApisModule {
     @Binds
-    abstract Function<Set<String>, ? extends HttpRequestInitializer>
-        provideHttpRequestInitializer(Function<Set<String>, AppIdentityCredential> credential);
+    abstract Function<Set<String>, ? extends HttpRequestInitializer> provideHttpRequestInitializer(
+        Function<Set<String>, AppIdentityCredential> credential);
   }
 
   /**
@@ -155,8 +175,8 @@ public final class Modules {
   @Module
   public abstract static class UseGoogleCredentialForGoogleApisModule {
     @Binds
-    abstract Function<Set<String>, ? extends HttpRequestInitializer>
-        provideHttpRequestInitializer(Function<Set<String>, GoogleCredential> credential);
+    abstract Function<Set<String>, ? extends HttpRequestInitializer> provideHttpRequestInitializer(
+        Function<Set<String>, GoogleCredential> credential);
   }
 
   /**
@@ -169,8 +189,8 @@ public final class Modules {
    * this authentication method should only be used for the following situations:
    *
    * <ol>
-   * <li>Locally-running programs (which aren't executing on the App Engine platform)
-   * <li>Spreadsheet service (which can't use {@link AppIdentityCredential} due to an old library)
+   *   <li>Locally-running programs (which aren't executing on the App Engine platform)
+   *   <li>Spreadsheet service (which can't use {@link AppIdentityCredential} due to an old library)
    * </ol>
    *
    * @see google.registry.keyring.api.Keyring#getJsonCredential()
@@ -181,12 +201,14 @@ public final class Modules {
     @Provides
     @Singleton
     static GoogleCredential provideGoogleCredential(
-        HttpTransport httpTransport,
+        NetHttpTransport netHttpTransport,
         JsonFactory jsonFactory,
         @Key("jsonCredential") String jsonCredential) {
       try {
         return GoogleCredential.fromStream(
-            new ByteArrayInputStream(jsonCredential.getBytes(UTF_8)), httpTransport, jsonFactory);
+            new ByteArrayInputStream(jsonCredential.getBytes(UTF_8)),
+            netHttpTransport,
+            jsonFactory);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -199,7 +221,7 @@ public final class Modules {
     }
 
     /**
-     * Provides a GoogleCredential that will connect to GAE using delegated admin access.  This is
+     * Provides a GoogleCredential that will connect to GAE using delegated admin access. This is
      * needed for API calls requiring domain admin access to the relevant GAFYD using delegated
      * scopes, e.g. the Directory API and the Groupssettings API.
      *

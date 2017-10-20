@@ -15,6 +15,7 @@
 package google.registry.module.frontend;
 
 import dagger.Component;
+import dagger.Lazy;
 import google.registry.braintree.BraintreeModule;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.flows.ServerTridProviderModule;
@@ -26,8 +27,10 @@ import google.registry.module.frontend.FrontendRequestComponent.FrontendRequestC
 import google.registry.monitoring.metrics.MetricReporter;
 import google.registry.monitoring.whitebox.StackdriverModule;
 import google.registry.request.Modules.AppIdentityCredentialModule;
+import google.registry.request.Modules.GoogleCredentialModule;
 import google.registry.request.Modules.Jackson2Module;
 import google.registry.request.Modules.ModulesServiceModule;
+import google.registry.request.Modules.NetHttpTransportModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.request.Modules.UserServiceModule;
@@ -40,29 +43,33 @@ import javax.inject.Singleton;
 /** Dagger component with instance lifetime for "default" App Engine module. */
 @Singleton
 @Component(
-    modules = {
-        AppIdentityCredentialModule.class,
-        AuthModule.class,
-        BraintreeModule.class,
-        ConfigModule.class,
-        ConsoleConfigModule.class,
-        CustomLogicFactoryModule.class,
-        FrontendMetricsModule.class,
-        FrontendRequestComponentModule.class,
-        Jackson2Module.class,
-        KeyModule.class,
-        KeyringModule.class,
-        KmsModule.class,
-        ModulesServiceModule.class,
-        ServerTridProviderModule.class,
-        StackdriverModule.class,
-        SystemClockModule.class,
-        SystemSleeperModule.class,
-        UrlFetchTransportModule.class,
-        UseAppIdentityCredentialForGoogleApisModule.class,
-        UserServiceModule.class,
-    })
+  modules = {
+    AppIdentityCredentialModule.class,
+    AuthModule.class,
+    BraintreeModule.class,
+    ConfigModule.class,
+    ConsoleConfigModule.class,
+    CustomLogicFactoryModule.class,
+    FrontendMetricsModule.class,
+    FrontendRequestComponentModule.class,
+    GoogleCredentialModule.class,
+    Jackson2Module.class,
+    KeyModule.class,
+    KeyringModule.class,
+    KmsModule.class,
+    ModulesServiceModule.class,
+    NetHttpTransportModule.class,
+    ServerTridProviderModule.class,
+    StackdriverModule.class,
+    SystemClockModule.class,
+    SystemSleeperModule.class,
+    UrlFetchTransportModule.class,
+    UseAppIdentityCredentialForGoogleApisModule.class,
+    UserServiceModule.class,
+  }
+)
 interface FrontendComponent {
   FrontendRequestHandler requestHandler();
-  MetricReporter metricReporter();
+
+  Lazy<MetricReporter> metricReporter();
 }

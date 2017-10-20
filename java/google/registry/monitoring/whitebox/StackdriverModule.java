@@ -14,16 +14,16 @@
 
 package google.registry.monitoring.whitebox;
 
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.HttpTransport;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.monitoring.v3.MonitoringScopes;
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
-import com.google.appengine.api.ThreadManager;
 import com.google.appengine.api.modules.ModulesService;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfig.Config;
@@ -43,9 +43,9 @@ public final class StackdriverModule {
 
   @Provides
   static Monitoring provideMonitoring(
-      HttpTransport transport,
+      NetHttpTransport transport,
       JsonFactory jsonFactory,
-      Function<Set<String>, ? extends HttpRequestInitializer> credential,
+      Function<Set<String>, GoogleCredential> credential,
       @Config("projectId") String projectId) {
     return new Monitoring.Builder(transport, jsonFactory, credential.apply(MonitoringScopes.all()))
         .setApplicationName(projectId)
@@ -87,6 +87,8 @@ public final class StackdriverModule {
   static MetricReporter provideMetricReporter(
       MetricWriter metricWriter, @Config("metricsWriteInterval") Duration writeInterval) {
     return new MetricReporter(
-        metricWriter, writeInterval.getStandardSeconds(), ThreadManager.backgroundThreadFactory());
+        metricWriter,
+        writeInterval.getStandardSeconds(),
+        new ThreadFactoryBuilder().setDaemon(true).build());
   }
 }
