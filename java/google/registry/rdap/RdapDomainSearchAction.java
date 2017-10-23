@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 import com.google.common.primitives.Booleans;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
@@ -44,7 +45,7 @@ import google.registry.util.FormattingLogger;
 import google.registry.util.Idn;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -71,7 +72,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
 
   public static final int RESULT_SET_SIZE_SCALING_FACTOR = 30;
 
-  public static final int MAX_NAMESERVERS_IN_FIRST_STAGE = 1000;
+  public static final int MAX_NAMESERVERS_IN_FIRST_STAGE = 300;
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -282,9 +283,9 @@ public class RdapDomainSearchAction extends RdapActionBase {
     // must be present, to avoid querying every host in the system. This restriction is enforced by
     // {@link queryItems}.
     //
-    // Only return the first 1000 nameservers. This could result in an incomplete result set if
-    // a search asks for something like "ns*", but we need to enforce a limit in order to avoid
-    // arbitrarily long-running queries.
+    // Only return the first MAX_NAMESERVERS_IN_FIRST_STAGE nameservers. This could result in an
+    // incomplete result set if a search asks for something like "ns*", but we need to enforce a
+    // limit in order to avoid arbitrarily long-running queries.
     Query<HostResource> query =
         queryItems(
             HostResource.class,
@@ -379,9 +380,9 @@ public class RdapDomainSearchAction extends RdapActionBase {
    * <p>In theory, we could have any number of hosts using the same IP address. To make sure we get
    * all the associated domains, we have to retrieve all of them, and use them to look up domains.
    * This could open us up to a kind of DoS attack if huge number of hosts are defined on a single
-   * IP. To avoid this, fetch only the first 1000 nameservers. In all normal circumstances, this
-   * should be orders of magnitude more than there actually are. But it could result in us missing
-   * some domains.
+   * IP. To avoid this, fetch only the first {@link #MAX_NAMESERVERS_IN_FIRST_STAGE} nameservers. In
+   * all normal circumstances, this should be orders of magnitude more than there actually are. But
+   * it could result in us missing some domains.
    *
    * <p>The includeDeleted parameter does NOT cause deleted nameservers to be searched, only deleted
    * domains which used to be connected to an undeleted nameserver.
@@ -413,9 +414,12 @@ public class RdapDomainSearchAction extends RdapActionBase {
     // We must break the query up into chunks, because the in operator is limited to 30 subqueries.
     // Since it is possible for the same domain to show up more than once in our result list (if
     // we do a wildcard nameserver search that returns multiple nameservers used by the same
-    // domain), we must create a set of resulting {@link DomainResource} objects. But we use a
-    // LinkedHashSet to preserve the order in which we found the domains.
-    LinkedHashSet<DomainResource> domains = new LinkedHashSet<>();
+    // domain), we must create a set of resulting {@link DomainResource} objects. Use a sorted set,
+    // and fetch all domains, to make sure that we can return the first domains in alphabetical
+    // order.
+    ImmutableSortedSet.Builder<DomainResource> domainSetBuilder =
+        ImmutableSortedSet.orderedBy(
+            Comparator.comparing(DomainResource::getFullyQualifiedDomainName));
     int numHostKeysSearched = 0;
     for (List<Key<HostResource>> chunk : Iterables.partition(hostKeys, 30)) {
       numHostKeysSearched += chunk.size();
@@ -425,22 +429,25 @@ public class RdapDomainSearchAction extends RdapActionBase {
       if (!shouldIncludeDeleted()) {
         query = query.filter("deletionTime >", now);
       }
-      for (DomainResource domain : query.limit(rdapResultSetMaxSize + 1)) {
-        if (!domains.contains(domain) && isAuthorized(domain, now)) {
-          if (domains.size() >= rdapResultSetMaxSize) {
-            return makeSearchResults(
-                ImmutableList.copyOf(domains), IncompletenessWarningType.TRUNCATED, now);
-          }
-          domains.add(domain);
-        }
-      }
+      Streams.stream(query)
+          .filter(domain -> isAuthorized(domain, now))
+          .forEach(domain -> domainSetBuilder.add(domain));
     }
-    return makeSearchResults(
-        ImmutableList.copyOf(domains),
-        (numHostKeysSearched >= MAX_NAMESERVERS_IN_FIRST_STAGE)
-            ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
-            : IncompletenessWarningType.NONE,
-        now);
+    List<DomainResource> domains = domainSetBuilder.build().asList();
+    if (domains.size() > rdapResultSetMaxSize) {
+      return makeSearchResults(
+          domains.subList(0, rdapResultSetMaxSize), IncompletenessWarningType.TRUNCATED, now);
+    } else {
+      // If everything that we found will fit in the result, check whether there might have been
+      // more results that got dropped because the first stage limit on number of nameservers. If
+      // so, indicate the result might be incomplete.
+      return makeSearchResults(
+          domains,
+          (numHostKeysSearched >= MAX_NAMESERVERS_IN_FIRST_STAGE)
+              ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
+              : IncompletenessWarningType.NONE,
+          now);
+    }
   }
 
   /** Output JSON for a list of domains, with no incompleteness warnings. */

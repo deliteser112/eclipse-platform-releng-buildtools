@@ -516,7 +516,7 @@ public class RdapDomainSearchActionTest {
     ImmutableSet.Builder<Key<HostResource>> hostKeysBuilder = new ImmutableSet.Builder<>();
     ImmutableSet.Builder<String> subordinateHostnamesBuilder = new ImmutableSet.Builder<>();
     String mainDomainName = String.format("domain%d.lol", numTotalDomainsPerActiveDomain);
-    for (int i = 1; i <= numHosts; i++) {
+    for (int i = numHosts; i >= 1; i--) {
       String hostName = String.format("ns%d.%s", i, mainDomainName);
       subordinateHostnamesBuilder.add(hostName);
       HostResource host = makeAndPersistHostResource(
@@ -526,7 +526,7 @@ public class RdapDomainSearchActionTest {
     ImmutableSet<Key<HostResource>> hostKeys = hostKeysBuilder.build();
     // Create all the domains at once, then persist them in parallel, for increased efficiency.
     ImmutableList.Builder<DomainResource> domainsBuilder = new ImmutableList.Builder<>();
-    for (int i = 1; i <= numActiveDomains * numTotalDomainsPerActiveDomain; i++) {
+    for (int i = numActiveDomains * numTotalDomainsPerActiveDomain; i >= 1; i--) {
       String domainName = String.format("domain%d.lol", i);
       DomainResource.Builder builder =
           makeDomainResource(
@@ -621,6 +621,29 @@ public class RdapDomainSearchActionTest {
         .isEqualTo(
             generateExpectedJsonForDomain(
                 name, punycodeName, handle, contactRoids, nameservers, fileName));
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  private void runSuccessfulTestWithFourDomains(
+      RequestType requestType,
+      String queryString,
+      String domainRoid1,
+      String domainRoid2,
+      String domainRoid3,
+      String domainRoid4,
+      String fileName) {
+    assertThat(generateActualJson(requestType, queryString))
+        .isEqualTo(
+            readMultiDomainFile(
+                fileName,
+                "domain1.lol",
+                domainRoid1,
+                "domain2.lol",
+                domainRoid2,
+                "domain3.lol",
+                domainRoid3,
+                "domain4.lol",
+                domainRoid4));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -997,11 +1020,11 @@ public class RdapDomainSearchActionTest {
         .isEqualTo(readMultiDomainFile(
             "rdap_incomplete_domain_result_set.json",
             "domain100.lol",
-            "A6-LOL",
+            "A7-LOL",
             "domain150.lol",
-            "D8-LOL",
+            "75-LOL",
             "domain200.lol",
-            "10A-LOL",
+            "43-LOL",
             "domainunused.lol",
             "unused-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
@@ -1010,35 +1033,27 @@ public class RdapDomainSearchActionTest {
   @Test
   public void testDomainMatch_nontruncatedResultsSet() throws Exception {
     createManyDomainsAndHosts(4, 1, 2);
-    assertThat(generateActualJson(RequestType.NAME, "domain*.lol"))
-        .isEqualTo(readMultiDomainFile(
-            "rdap_nontruncated_domains.json",
-            "domain1.lol",
-            "43-LOL",
-            "domain2.lol",
-            "44-LOL",
-            "domain3.lol",
-            "45-LOL",
-            "domain4.lol",
-            "46-LOL"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithFourDomains(
+        RequestType.NAME,
+        "domain*.lol",
+        "46-LOL",
+        "45-LOL",
+        "44-LOL",
+        "43-LOL",
+        "rdap_nontruncated_domains.json");
   }
 
   @Test
   public void testDomainMatch_truncatedResultsSet() throws Exception {
     createManyDomainsAndHosts(5, 1, 2);
-    assertThat(generateActualJson(RequestType.NAME, "domain*.lol"))
-        .isEqualTo(readMultiDomainFile(
-            "rdap_domains_four_truncated.json",
-            "domain1.lol",
-            "43-LOL",
-            "domain2.lol",
-            "44-LOL",
-            "domain3.lol",
-            "45-LOL",
-            "domain4.lol",
-            "46-LOL"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithFourDomains(
+        RequestType.NAME,
+        "domain*.lol",
+        "47-LOL",
+        "46-LOL",
+        "45-LOL",
+        "44-LOL",
+        "rdap_domains_four_truncated.json");
   }
 
   @Test
@@ -1046,18 +1061,14 @@ public class RdapDomainSearchActionTest {
     // Don't use 10 or more domains for this test, because domain10.lol will come before
     // domain2.lol, and you'll get the wrong domains in the result set.
     createManyDomainsAndHosts(9, 1, 2);
-    assertThat(generateActualJson(RequestType.NAME, "domain*.lol"))
-        .isEqualTo(readMultiDomainFile(
-            "rdap_domains_four_truncated.json",
-            "domain1.lol",
-            "43-LOL",
-            "domain2.lol",
-            "44-LOL",
-            "domain3.lol",
-            "45-LOL",
-            "domain4.lol",
-            "46-LOL"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithFourDomains(
+        RequestType.NAME,
+        "domain*.lol",
+        "4B-LOL",
+        "4A-LOL",
+        "49-LOL",
+        "48-LOL",
+        "rdap_domains_four_truncated.json");
   }
 
   @Test
@@ -1067,13 +1078,13 @@ public class RdapDomainSearchActionTest {
         .isEqualTo(readMultiDomainFile(
             "rdap_domains_four_truncated.json",
             "domain12.lol",
-            "4E-LOL",
+            "55-LOL",
             "domain18.lol",
-            "54-LOL",
+            "4F-LOL",
             "domain24.lol",
-            "5A-LOL",
+            "49-LOL",
             "domain30.lol",
-            "60-LOL"));
+            "43-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -1244,7 +1255,7 @@ public class RdapDomainSearchActionTest {
     runNotFoundTest(RequestType.NS_LDH_NAME, "ns1.missing.com", "No matching nameservers found");
   }
 
-  // todo (b/27378695): reenable or delete this test
+  // TODO(b/27378695): reenable or delete this test
   @Ignore
   @Test
   public void testNameserverMatchDomainsInTestTld_notFound() throws Exception {
@@ -1354,52 +1365,40 @@ public class RdapDomainSearchActionTest {
   @Test
   public void testNameserverMatch_nontruncatedResultsSet() throws Exception {
     createManyDomainsAndHosts(4, 1, 2);
-    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.domain1.lol"))
-        .isEqualTo(readMultiDomainFile(
-            "rdap_nontruncated_domains.json",
-            "domain1.lol",
-            "43-LOL",
-            "domain2.lol",
-            "44-LOL",
-            "domain3.lol",
-            "45-LOL",
-            "domain4.lol",
-            "46-LOL"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithFourDomains(
+        RequestType.NS_LDH_NAME,
+        "ns1.domain1.lol",
+        "46-LOL",
+        "45-LOL",
+        "44-LOL",
+        "43-LOL",
+        "rdap_nontruncated_domains.json");
   }
 
   @Test
   public void testNameserverMatch_truncatedResultsSet() throws Exception {
     createManyDomainsAndHosts(5, 1, 2);
-    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.domain1.lol"))
-        .isEqualTo(readMultiDomainFile(
-            "rdap_domains_four_truncated.json",
-            "domain1.lol",
-            "43-LOL",
-            "domain2.lol",
-            "44-LOL",
-            "domain3.lol",
-            "45-LOL",
-            "domain4.lol",
-            "46-LOL"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithFourDomains(
+        RequestType.NS_LDH_NAME,
+        "ns1.domain1.lol",
+        "47-LOL",
+        "46-LOL",
+        "45-LOL",
+        "44-LOL",
+        "rdap_domains_four_truncated.json");
   }
 
   @Test
   public void testNameserverMatch_reallyTruncatedResultsSet() throws Exception {
     createManyDomainsAndHosts(9, 1, 2);
-    assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns1.domain1.lol"))
-        .isEqualTo(readMultiDomainFile(
-            "rdap_domains_four_truncated.json",
-            "domain1.lol",
-            "43-LOL",
-            "domain2.lol",
-            "44-LOL",
-            "domain3.lol",
-            "45-LOL",
-            "domain4.lol",
-            "46-LOL"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithFourDomains(
+        RequestType.NS_LDH_NAME,
+        "ns1.domain1.lol",
+        "4B-LOL",
+        "4A-LOL",
+        "49-LOL",
+        "48-LOL",
+        "rdap_domains_four_truncated.json");
   }
 
   @Test
@@ -1412,13 +1411,13 @@ public class RdapDomainSearchActionTest {
         .isEqualTo(readMultiDomainFile(
             "rdap_nontruncated_domains.json",
             "domain1.lol",
-            "B7-LOL",
+            "BA-LOL",
             "domain2.lol",
-            "B8-LOL",
-            "domain3.lol",
             "B9-LOL",
+            "domain3.lol",
+            "B8-LOL",
             "domain4.lol",
-            "BA-LOL"));
+            "B7-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -1429,9 +1428,9 @@ public class RdapDomainSearchActionTest {
         .isEqualTo(readMultiDomainFile(
             "rdap_incomplete_domains.json",
             "domain1.lol",
-            "13C7-LOL",
-            "domain2.lol",
             "13C8-LOL",
+            "domain2.lol",
+            "13C7-LOL",
             "x",
             "x",
             "x",
@@ -1473,7 +1472,7 @@ public class RdapDomainSearchActionTest {
     runNotFoundTest(RequestType.NS_IP, "127.0.0.1", "No domains found");
   }
 
-  // todo (b/27378695): reenable or delete this test
+  // TODO(b/27378695): reenable or delete this test
   @Ignore
   @Test
   public void testAddressMatchDomainsInTestTld_notFound() throws Exception {
@@ -1547,51 +1546,39 @@ public class RdapDomainSearchActionTest {
   @Test
   public void testAddressMatch_nontruncatedResultsSet() throws Exception {
     createManyDomainsAndHosts(4, 1, 2);
-    assertThat(generateActualJson(RequestType.NS_IP, "5.5.5.1"))
-        .isEqualTo(readMultiDomainFile(
-            "rdap_nontruncated_domains.json",
-            "domain1.lol",
-            "43-LOL",
-            "domain2.lol",
-            "44-LOL",
-            "domain3.lol",
-            "45-LOL",
-            "domain4.lol",
-            "46-LOL"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithFourDomains(
+        RequestType.NS_IP,
+        "5.5.5.1",
+        "46-LOL",
+        "45-LOL",
+        "44-LOL",
+        "43-LOL",
+        "rdap_nontruncated_domains.json");
   }
 
   @Test
   public void testAddressMatch_truncatedResultsSet() throws Exception {
     createManyDomainsAndHosts(5, 1, 2);
-    assertThat(generateActualJson(RequestType.NS_IP, "5.5.5.1"))
-        .isEqualTo(readMultiDomainFile(
-            "rdap_domains_four_truncated.json",
-            "domain1.lol",
-            "43-LOL",
-            "domain2.lol",
-            "44-LOL",
-            "domain3.lol",
-            "45-LOL",
-            "domain4.lol",
-            "46-LOL"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithFourDomains(
+        RequestType.NS_IP,
+        "5.5.5.1",
+        "47-LOL",
+        "46-LOL",
+        "45-LOL",
+        "44-LOL",
+        "rdap_domains_four_truncated.json");
   }
 
   @Test
   public void testAddressMatch_reallyTruncatedResultsSet() throws Exception {
     createManyDomainsAndHosts(9, 1, 2);
-    assertThat(generateActualJson(RequestType.NS_IP, "5.5.5.1"))
-        .isEqualTo(readMultiDomainFile(
-            "rdap_domains_four_truncated.json",
-            "domain1.lol",
-            "43-LOL",
-            "domain2.lol",
-            "44-LOL",
-            "domain3.lol",
-            "45-LOL",
-            "domain4.lol",
-            "46-LOL"));
-    assertThat(response.getStatus()).isEqualTo(200);
+    runSuccessfulTestWithFourDomains(
+        RequestType.NS_IP,
+        "5.5.5.1",
+        "4B-LOL",
+        "4A-LOL",
+        "49-LOL",
+        "48-LOL",
+        "rdap_domains_four_truncated.json");
   }
 }
