@@ -33,7 +33,6 @@ import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
@@ -78,7 +77,6 @@ public class RdapNameserverSearchActionTest {
   private DomainResource domainCatLol;
   private HostResource hostNs1CatLol;
   private HostResource hostNs2CatLol;
-  private HostResource hostNs1Cat2Lol;
 
   private Object generateActualJsonWithName(String name) {
     action.nameParam = Optional.of(name);
@@ -87,7 +85,7 @@ public class RdapNameserverSearchActionTest {
   }
 
   private Object generateActualJsonWithIp(String ipString) {
-    action.ipParam = Optional.of(InetAddresses.forString(ipString));
+    action.ipParam = Optional.of(ipString);
     action.run();
     return JSONValue.parse(response.getPayload());
   }
@@ -104,7 +102,7 @@ public class RdapNameserverSearchActionTest {
         "ns1.cat.lol", "1.2.3.4", clock.nowUtc().minusYears(1));
     hostNs2CatLol = makeAndPersistHostResource(
         "ns2.cat.lol", "bad:f00d:cafe::15:beef", clock.nowUtc().minusYears(1));
-    hostNs1Cat2Lol = makeAndPersistHostResource(
+    makeAndPersistHostResource(
         "ns1.cat2.lol", "1.2.3.3", "bad:f00d:cafe::15:beef", clock.nowUtc().minusYears(1));
     makeAndPersistHostResource("ns1.cat.external", null, null, clock.nowUtc().minusYears(1));
 
@@ -487,8 +485,8 @@ public class RdapNameserverSearchActionTest {
   @Test
   public void testNameMatchDeletedHost_foundTheOtherHost() throws Exception {
     persistResource(
-        hostNs1Cat2Lol.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    assertThat(generateActualJsonWithIp("bad:f00d:cafe::15:beef"))
+        hostNs1CatLol.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
+    assertThat(generateActualJsonWithName("ns*.cat.lol"))
         .isEqualTo(
             generateExpectedJsonForNameserver(
                 "ns2.cat.lol",
@@ -584,6 +582,12 @@ public class RdapNameserverSearchActionTest {
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
     generateActualJsonWithName("nsdeleted.cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
+  public void testAddressMatch_invalidAddress() throws Exception {
+    generateActualJsonWithIp("It is to laugh");
+    assertThat(response.getStatus()).isEqualTo(400);
   }
 
   @Test

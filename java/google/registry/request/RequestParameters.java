@@ -20,9 +20,7 @@ import static com.google.common.base.Strings.nullToEmpty;
 
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.net.InetAddresses;
 import google.registry.request.HttpException.BadRequestException;
-import java.net.InetAddress;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
@@ -213,26 +211,6 @@ public final class RequestParameters {
       }
     }
     return datesBuilder.build();
-  }
-
-  /**
-   * Returns first request parameter associated with {@code name} parsed as an optional
-   * {@link InetAddress} (which might be IPv6).
-   *
-   * @throws BadRequestException if request parameter named {@code name} is present but could not
-   *     be parsed as an {@link InetAddress}
-   */
-  public static Optional<InetAddress> extractOptionalInetAddressParameter(
-      HttpServletRequest req, String name) {
-    Optional<String> paramVal = extractOptionalParameter(req, name);
-    if (!paramVal.isPresent()) {
-      return Optional.empty();
-    }
-    try {
-      return Optional.of(InetAddresses.forString(paramVal.get()));
-    } catch (IllegalArgumentException e) {
-      throw new BadRequestException("Not an IPv4 or IPv6 address: " + name);
-    }
   }
 
   private static boolean equalsFalse(@Nullable String value) {

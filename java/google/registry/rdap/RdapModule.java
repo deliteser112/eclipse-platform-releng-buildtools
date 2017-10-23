@@ -18,7 +18,6 @@ import dagger.Module;
 import dagger.Provides;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
-import java.net.InetAddress;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
@@ -40,14 +39,14 @@ public final class RdapModule {
 
   @Provides
   @Parameter("nsIp")
-  static Optional<InetAddress> provideNsIp(HttpServletRequest req) {
-    return RequestParameters.extractOptionalInetAddressParameter(req, "nsIp");
+  static Optional<String> provideNsIp(HttpServletRequest req) {
+    return RequestParameters.extractOptionalParameter(req, "nsIp");
   }
 
   @Provides
   @Parameter("ip")
-  static Optional<InetAddress> provideIp(HttpServletRequest req) {
-    return RequestParameters.extractOptionalInetAddressParameter(req, "ip");
+  static Optional<String> provideIp(HttpServletRequest req) {
+    return RequestParameters.extractOptionalParameter(req, "ip");
   }
 
   @Provides

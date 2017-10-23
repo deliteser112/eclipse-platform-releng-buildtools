@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
+import com.google.common.net.InetAddresses;
 import com.google.common.primitives.Booleans;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
@@ -79,7 +80,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
   @Inject Clock clock;
   @Inject @Parameter("name") Optional<String> nameParam;
   @Inject @Parameter("nsLdhName") Optional<String> nsLdhNameParam;
-  @Inject @Parameter("nsIp") Optional<InetAddress> nsIpParam;
+  @Inject @Parameter("nsIp") Optional<String> nsIpParam;
   @Inject RdapDomainSearchAction() {}
 
   @Override
@@ -132,7 +133,13 @@ public class RdapDomainSearchAction extends RdapActionBase {
           RdapSearchPattern.create(nsLdhNameParam.get(), true), now);
     } else {
       // syntax: /rdap/domains?nsIp=1.2.3.4
-      results = searchByNameserverIp(nsIpParam.get(), now);
+      InetAddress inetAddress;
+      try {
+        inetAddress = InetAddresses.forString(nsIpParam.get());
+      } catch (IllegalArgumentException e) {
+        throw new BadRequestException("Invalid value of nsIp parameter");
+      }
+      results = searchByNameserverIp(inetAddress, now);
     }
     if (results.jsonList().isEmpty()) {
       throw new NotFoundException("No domains found");

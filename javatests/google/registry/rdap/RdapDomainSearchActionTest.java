@@ -126,7 +126,7 @@ public class RdapDomainSearchActionTest {
       case NS_IP:
         action.nameParam = Optional.empty();
         action.nsLdhNameParam = Optional.empty();
-        action.nsIpParam = Optional.of(InetAddresses.forString(paramValue));
+        action.nsIpParam = Optional.of(paramValue);
         break;
       default:
         action.nameParam = Optional.empty();
@@ -1436,6 +1436,12 @@ public class RdapDomainSearchActionTest {
             "x",
             "x"));
     assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testAddressMatchV4Address_invalidAddress() throws Exception {
+    generateActualJson(RequestType.NS_IP, "1.2.3.4.5.6.7.8.9");
+    assertThat(response.getStatus()).isEqualTo(400);
   }
 
   @Test
