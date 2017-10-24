@@ -28,6 +28,7 @@ import google.registry.bigquery.BigqueryConnection;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
 import google.registry.util.Clock;
+import google.registry.util.SendEmailService;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.Duration;
@@ -137,6 +138,11 @@ public final class IcannReportingModule {
     } catch (Throwable e) {
       throw new RuntimeException("Could not initialize BigqueryConnection!", e);
     }
+  }
+
+  @Provides
+  static SendEmailService provideSendEmailService() {
+    return new SendEmailService();
   }
 }
 

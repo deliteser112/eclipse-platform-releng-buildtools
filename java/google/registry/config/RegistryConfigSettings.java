@@ -115,6 +115,8 @@ public class RegistryConfigSettings {
   public static class IcannReporting {
     public String icannTransactionsReportingUploadUrl;
     public String icannActivityReportingUploadUrl;
+    public String icannReportingEmailSenderDomain;
+    public String icannReportingEmailRecipient;
   }
 
   /** Configuration for Registry Data Escrow (RDE). */

@@ -292,7 +292,7 @@ public final class RegistryConfig {
     @Provides
     @Config("dnsDefaultATtl")
     public static Duration provideDnsDefaultATtl() {
-      return Duration.standardSeconds(180);
+      return Duration.standardMinutes(3);
     }
 
     /**
@@ -303,7 +303,7 @@ public final class RegistryConfig {
     @Provides
     @Config("dnsDefaultNsTtl")
     public static Duration provideDnsDefaultNsTtl() {
-      return Duration.standardSeconds(180);
+      return Duration.standardMinutes(3);
     }
 
     /**
@@ -314,7 +314,7 @@ public final class RegistryConfig {
     @Provides
     @Config("dnsDefaultDsTtl")
     public static Duration provideDnsDefaultDsTtl() {
-      return Duration.standardSeconds(180);
+      return Duration.standardMinutes(3);
     }
 
     /**
@@ -498,6 +498,30 @@ public final class RegistryConfig {
     }
 
     /**
+     * Returns the email address from which we send ICANN reporting email summaries from.
+     *
+     * @see google.registry.reporting.ReportingEmailUtils
+     */
+    @Provides
+    @Config("icannReportingSenderEmailAddress")
+    public static String provideIcannReportingEmailSenderAddress(
+        @Config("projectId") String projectId, RegistryConfigSettings config) {
+      return String.format(
+          "%s@%s", projectId, config.icannReporting.icannReportingEmailSenderDomain);
+    }
+
+    /**
+     * Returns the email address from which we send ICANN reporting email summaries to.
+     *
+     * @see google.registry.reporting.ReportingEmailUtils
+     */
+    @Provides
+    @Config("icannReportingRecipientEmailAddress")
+    public static String provideIcannReportingEmailRecipientAddress(RegistryConfigSettings config) {
+      return config.icannReporting.icannReportingEmailRecipient;
+    }
+
+    /**
      * Returns the Google Cloud Storage bucket for staging escrow deposits pending upload.
      *
      * @see google.registry.rde.RdeStagingAction
@@ -552,7 +576,7 @@ public final class RegistryConfig {
     @Provides
     @Config("rdeReportLockTimeout")
     public static Duration provideRdeReportLockTimeout() {
-      return Duration.standardSeconds(60);
+      return Duration.standardMinutes(1);
     }
 
     /**

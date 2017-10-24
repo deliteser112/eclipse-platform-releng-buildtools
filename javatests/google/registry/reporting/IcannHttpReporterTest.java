@@ -17,7 +17,6 @@ package google.registry.reporting;
 import static com.google.common.net.MediaType.CSV_UTF_8;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -29,7 +28,6 @@ import com.google.api.client.testing.http.MockLowLevelHttpResponse;
 import com.google.api.client.util.Base64;
 import com.google.api.client.util.StringUtils;
 import com.google.common.io.ByteSource;
-import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import java.io.IOException;
@@ -124,12 +122,7 @@ public class IcannHttpReporterTest {
   public void testFail_BadIirdeaResponse() throws Exception {
     IcannHttpReporter reporter = createReporter();
     reporter.httpTransport = createMockTransport(IIRDEA_BAD_XML);
-    try {
-      reporter.send(FAKE_PAYLOAD, "test-transactions-201706.csv");
-      assertWithMessage("Expected InternalServerErrorException to be thrown").fail();
-    } catch (InternalServerErrorException expected) {
-      assertThat(expected).hasMessageThat().isEqualTo("The structure of the report is invalid.");
-    }
+    assertThat(reporter.send(FAKE_PAYLOAD, "test-transactions-201706.csv")).isFalse();
   }
 
   @Test

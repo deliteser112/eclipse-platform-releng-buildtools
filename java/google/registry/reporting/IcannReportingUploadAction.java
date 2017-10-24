@@ -23,6 +23,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
@@ -34,6 +35,7 @@ import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 /**
@@ -68,29 +70,55 @@ public final class IcannReportingUploadAction implements Runnable {
   @Inject IcannHttpReporter icannReporter;
   @Inject Retrier retrier;
   @Inject Response response;
+  @Inject ReportingEmailUtils emailUtils;
 
   @Inject
   IcannReportingUploadAction() {}
 
   @Override
   public void run() {
-    String reportBucketname = ReportingUtils.createReportingBucketName(reportingBucket, subdir);
+    String reportBucketname = String.format("%s/%s", reportingBucket, subdir);
     ImmutableList<String> manifestedFiles = getManifestedFiles(reportBucketname);
+    ImmutableMap.Builder<String, Boolean> reportSummaryBuilder = new ImmutableMap.Builder<>();
     // Report on all manifested files
     for (String reportFilename : manifestedFiles) {
       logger.infofmt("Reading ICANN report %s from bucket %s", reportFilename, reportBucketname);
       final GcsFilename gcsFilename = new GcsFilename(reportBucketname, reportFilename);
       verifyFileExists(gcsFilename);
-      retrier.callWithRetry(
-          () -> {
-            final byte[] payload = readBytesFromGcs(gcsFilename);
-            icannReporter.send(payload, reportFilename);
-            response.setContentType(PLAIN_TEXT_UTF_8);
-            response.setPayload(String.format("OK, sending: %s", new String(payload, UTF_8)));
-            return null;
-          },
-          IOException.class);
+      boolean success = false;
+      try {
+        success =
+            retrier.callWithRetry(
+                () -> {
+                  final byte[] payload = readBytesFromGcs(gcsFilename);
+                  return icannReporter.send(payload, reportFilename);
+                },
+                IOException.class);
+      } catch (RuntimeException e) {
+        logger.warningfmt("Upload to %s failed due to %s", gcsFilename.toString(), e.toString());
+      }
+      reportSummaryBuilder.put(reportFilename, success);
     }
+    emailUploadResults(reportSummaryBuilder.build());
+    response.setContentType(PLAIN_TEXT_UTF_8);
+    response.setPayload(
+        String.format("OK, attempted uploading %d reports", manifestedFiles.size()));
+  }
+
+  private void emailUploadResults(ImmutableMap<String, Boolean> reportSummary) {
+    emailUtils.emailResults(
+        String.format(
+            "ICANN Monthly report upload summary: %d/%d succeeded",
+            reportSummary.values().stream().filter((b) -> b).count(), reportSummary.size()),
+        String.format(
+            "Report Filename - Upload status:\n%s",
+            reportSummary
+                .entrySet()
+                .stream()
+                .map(
+                    (e) ->
+                        String.format("%s - %s", e.getKey(), e.getValue() ? "SUCCESS" : "FAILURE"))
+                .collect(Collectors.joining("\n"))));
   }
 
   private ImmutableList<String> getManifestedFiles(String reportBucketname) {

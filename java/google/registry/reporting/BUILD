@@ -21,6 +21,7 @@ java_library(
         "//java/google/registry/xml",
         "@com_google_api_client",
         "@com_google_apis_google_api_services_bigquery",
+        "@com_google_appengine_api_1_0_sdk",
         "@com_google_appengine_tools_appengine_gcs_client",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",

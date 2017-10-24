@@ -18,16 +18,17 @@ import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
-import com.google.common.base.Throwables;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.MediaType;
+import google.registry.bigquery.BigqueryJobFailureException;
 import google.registry.reporting.IcannReportingModule.ReportType;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
-import java.util.Arrays;
+import google.registry.util.Retrier;
 import javax.inject.Inject;
 
 /**
@@ -60,31 +61,50 @@ public final class IcannReportingStagingAction implements Runnable {
   ImmutableList<ReportType> reportTypes;
 
   @Inject IcannReportingStager stager;
+  @Inject Retrier retrier;
   @Inject Response response;
+  @Inject ReportingEmailUtils emailUtils;
   @Inject IcannReportingStagingAction() {}
 
   @Override
   public void run() {
-    try {
-      ImmutableList.Builder<String> manifestedFilesBuilder = new ImmutableList.Builder<>();
-      for (ReportType reportType : reportTypes) {
-        manifestedFilesBuilder.addAll(stager.stageReports(reportType));
-      }
-      ImmutableList<String> manifestedFiles = manifestedFilesBuilder.build();
-      stager.createAndUploadManifest(manifestedFiles);
+    retrier.callWithRetry(
+        () -> {
+          ImmutableList.Builder<String> manifestedFilesBuilder = new ImmutableList.Builder<>();
+          for (ReportType reportType : reportTypes) {
+            manifestedFilesBuilder.addAll(stager.stageReports(reportType));
+          }
+          ImmutableList<String> manifestedFiles = manifestedFilesBuilder.build();
+          stager.createAndUploadManifest(manifestedFiles);
 
-      logger.infofmt("Completed staging %d report files.", manifestedFiles.size());
-      response.setStatus(SC_OK);
-      response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
-      response.setPayload("Completed staging action.");
-    } catch (Exception e) {
-      logger.severe("Reporting staging action failed!");
-      logger.severe(Throwables.getStackTraceAsString(e));
-      response.setStatus(SC_INTERNAL_SERVER_ERROR);
-      response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
-      response.setPayload(
-          String.format("Caught exception:\n%s\n%s", e.getMessage(),
-              Arrays.toString(e.getStackTrace())));
-    }
+          logger.infofmt("Completed staging %d report files.", manifestedFiles.size());
+          emailUtils.emailResults(
+              "ICANN Monthly report staging summary [SUCCESS]",
+              String.format(
+                  "Completed staging the following %d ICANN reports:\n%s",
+                  manifestedFiles.size(), Joiner.on('\n').join(manifestedFiles)));
+
+          response.setStatus(SC_OK);
+          response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
+          response.setPayload("Completed staging action.");
+          return null;
+        },
+        new Retrier.FailureReporter() {
+          @Override
+          public void beforeRetry(Throwable thrown, int failures, int maxAttempts) {}
+
+          @Override
+          public void afterFinalFailure(Throwable thrown, int failures) {
+            emailUtils.emailResults(
+                "ICANN Monthly report staging summary [FAILURE]",
+                String.format(
+                    "Staging failed due to %s, check logs for more details.", thrown.toString()));
+            logger.severefmt("Staging action failed due to %s", thrown.toString());
+            response.setStatus(SC_INTERNAL_SERVER_ERROR);
+            response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
+            response.setPayload(String.format("Staging failed due to %s", thrown.toString()));
+          }
+        },
+        BigqueryJobFailureException.class);
   }
 }

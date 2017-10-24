@@ -54,7 +54,7 @@ public final class BigqueryJobFailureException extends RuntimeException {
   @Nullable
   private final GoogleJsonError jsonError;
 
-  private BigqueryJobFailureException(
+  public BigqueryJobFailureException(
       String message,
       @Nullable Throwable cause,
       @Nullable JobStatus jobStatus,

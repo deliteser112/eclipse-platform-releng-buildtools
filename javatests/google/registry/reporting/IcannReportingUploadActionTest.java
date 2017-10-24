@@ -18,11 +18,11 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.testing.GcsTestingUtils.writeGcsFile;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
@@ -46,15 +46,14 @@ public class IcannReportingUploadActionTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
-  private static final byte[] FAKE_PAYLOAD = "test,csv\n13,37".getBytes(UTF_8);
-  private static final byte[] MANIFEST_PAYLOAD = "test-transactions-201706.csv\n".getBytes(UTF_8);
+  private static final byte[] PAYLOAD_SUCCESS = "test,csv\n13,37".getBytes(UTF_8);
+  private static final byte[] PAYLOAD_FAIL = "ahah,csv\n12,34".getBytes(UTF_8);
+  private static final byte[] MANIFEST_PAYLOAD =
+      "test-transactions-201706.csv\na-activity-201706.csv\n".getBytes(UTF_8);
   private final IcannHttpReporter mockReporter = mock(IcannHttpReporter.class);
+  private final ReportingEmailUtils emailUtils = mock(ReportingEmailUtils.class);
   private final FakeResponse response = new FakeResponse();
   private final GcsService gcsService = GcsServiceFactory.createGcsService();
-  private final GcsFilename reportFile =
-      new GcsFilename("basin/icann/monthly/2017-06", "test-transactions-201706.csv");
-  private final GcsFilename manifestFile =
-      new GcsFilename("basin/icann/monthly/2017-06", "MANIFEST.txt");
 
   private IcannReportingUploadAction createAction() {
     IcannReportingUploadAction action = new IcannReportingUploadAction();
@@ -63,40 +62,84 @@ public class IcannReportingUploadActionTest {
     action.retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
     action.subdir = "icann/monthly/2017-06";
     action.reportingBucket = "basin";
+    action.emailUtils = emailUtils;
     action.response = response;
     return action;
   }
 
   @Before
   public void before() throws Exception {
-    writeGcsFile(gcsService, reportFile, FAKE_PAYLOAD);
-    writeGcsFile(gcsService, manifestFile, MANIFEST_PAYLOAD);
+    writeGcsFile(
+        gcsService,
+        new GcsFilename("basin/icann/monthly/2017-06", "test-transactions-201706.csv"),
+        PAYLOAD_SUCCESS);
+    writeGcsFile(
+        gcsService,
+        new GcsFilename("basin/icann/monthly/2017-06", "a-activity-201706.csv"),
+        PAYLOAD_FAIL);
+    writeGcsFile(
+        gcsService,
+        new GcsFilename("basin/icann/monthly/2017-06", "MANIFEST.txt"),
+        MANIFEST_PAYLOAD);
+    when(mockReporter.send(PAYLOAD_SUCCESS, "test-transactions-201706.csv")).thenReturn(true);
+    when(mockReporter.send(PAYLOAD_FAIL, "a-activity-201706.csv")).thenReturn(false);
   }
 
   @Test
   public void testSuccess() throws Exception {
     IcannReportingUploadAction action = createAction();
     action.run();
-    verify(mockReporter).send(FAKE_PAYLOAD, "test-transactions-201706.csv");
+    verify(mockReporter).send(PAYLOAD_SUCCESS, "test-transactions-201706.csv");
+    verify(mockReporter).send(PAYLOAD_FAIL, "a-activity-201706.csv");
     verifyNoMoreInteractions(mockReporter);
     assertThat(((FakeResponse) action.response).getPayload())
-        .isEqualTo("OK, sending: test,csv\n13,37");
+        .isEqualTo("OK, attempted uploading 2 reports");
+    verify(emailUtils)
+        .emailResults(
+            "ICANN Monthly report upload summary: 1/2 succeeded",
+            "Report Filename - Upload status:\n"
+                + "test-transactions-201706.csv - SUCCESS\n"
+                + "a-activity-201706.csv - FAILURE");
   }
 
   @Test
   public void testSuccess_WithRetry() throws Exception {
     IcannReportingUploadAction action = createAction();
-    doThrow(new IOException("Expected exception."))
-        .doNothing()
-        .when(mockReporter)
-        .send(FAKE_PAYLOAD, "test-transactions-201706.csv");
+    when(mockReporter.send(PAYLOAD_SUCCESS, "test-transactions-201706.csv"))
+        .thenThrow(new IOException("Expected exception."))
+        .thenReturn(true);
     action.run();
-    verify(mockReporter, times(2)).send(FAKE_PAYLOAD, "test-transactions-201706.csv");
+    verify(mockReporter, times(2)).send(PAYLOAD_SUCCESS, "test-transactions-201706.csv");
+    verify(mockReporter).send(PAYLOAD_FAIL, "a-activity-201706.csv");
     verifyNoMoreInteractions(mockReporter);
     assertThat(((FakeResponse) action.response).getPayload())
-        .isEqualTo("OK, sending: test,csv\n13,37");
+        .isEqualTo("OK, attempted uploading 2 reports");
+    verify(emailUtils)
+        .emailResults(
+            "ICANN Monthly report upload summary: 1/2 succeeded",
+            "Report Filename - Upload status:\n"
+                + "test-transactions-201706.csv - SUCCESS\n"
+                + "a-activity-201706.csv - FAILURE");
   }
 
+  @Test
+  public void testFailure_firstUnrecoverable_stillAttemptsUploadingBoth() throws Exception {
+    IcannReportingUploadAction action = createAction();
+    when(mockReporter.send(PAYLOAD_SUCCESS, "test-transactions-201706.csv"))
+        .thenThrow(new IOException("Expected exception"));
+    action.run();
+    verify(mockReporter, times(3)).send(PAYLOAD_SUCCESS, "test-transactions-201706.csv");
+    verify(mockReporter).send(PAYLOAD_FAIL, "a-activity-201706.csv");
+    verifyNoMoreInteractions(mockReporter);
+    assertThat(((FakeResponse) action.response).getPayload())
+        .isEqualTo("OK, attempted uploading 2 reports");
+    verify(emailUtils)
+        .emailResults(
+            "ICANN Monthly report upload summary: 0/2 succeeded",
+            "Report Filename - Upload status:\n"
+                + "test-transactions-201706.csv - FAILURE\n"
+                + "a-activity-201706.csv - FAILURE");
+  }
   @Test
   public void testFail_FileNotFound() throws Exception {
     IcannReportingUploadAction action = createAction();

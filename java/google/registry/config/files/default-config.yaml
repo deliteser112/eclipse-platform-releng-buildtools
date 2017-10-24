@@ -160,6 +160,12 @@ icannReporting:
   # URL we PUT monthly ICANN activity reports to.
   icannActivityReportingUploadUrl: https://ry-api.icann.org/report/registry-functions-activity
 
+  # Domain for the email address we send reporting pipeline summary emails from.
+  icannReportingEmailSenderDomain: appspotmail.com
+
+  # Address we send reporting pipeline summary emails to.
+  icannReportingEmailRecipient: email@example.com
+
 rde:
   # URL prefix of ICANN's server to upload RDE reports to. Nomulus adds /TLD/ID
   # to the end of this to construct the full URL.

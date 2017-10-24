@@ -31,7 +31,6 @@ import com.google.common.io.ByteStreams;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.reporting.IcannReportingModule.ReportType;
-import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.util.FormattingLogger;
 import google.registry.xjc.XjcXmlTransformer;
 import google.registry.xjc.iirdea.XjcIirdeaResponseElement;
@@ -66,8 +65,8 @@ public class IcannHttpReporter {
   @Inject @Config("icannActivityReportingUploadUrl") String icannActivityUrl;
   @Inject IcannHttpReporter() {}
 
-  /** Uploads {@code reportBytes} to ICANN. */
-  public void send(byte[] reportBytes, String reportFilename) throws XmlException, IOException {
+  /** Uploads {@code reportBytes} to ICANN, returning whether or not it succeeded. */
+  public boolean send(byte[] reportBytes, String reportFilename) throws XmlException, IOException {
     validateReportFilename(reportFilename);
     GenericUrl uploadUrl = new GenericUrl(makeUrl(reportFilename));
     HttpRequest request =
@@ -85,6 +84,7 @@ public class IcannHttpReporter {
     logger.infofmt(
         "Sending report to %s with content length %s",
         uploadUrl.toString(), request.getContent().getLength());
+    boolean success = true;
     try {
       response = request.execute();
       byte[] content;
@@ -93,25 +93,28 @@ public class IcannHttpReporter {
       } finally {
         response.getContent().close();
       }
-      logger.infofmt("Received response code %s", response.getStatusCode());
-      logger.infofmt("Response content: %s", new String(content, UTF_8));
+      logger.infofmt(
+          "Received response code %s with content %s",
+          response.getStatusCode(), new String(content, UTF_8));
       XjcIirdeaResult result = parseResult(content);
       if (result.getCode().getValue() != 1000) {
+        success = false;
         logger.warningfmt(
             "PUT rejected, status code %s:\n%s\n%s",
             result.getCode(),
             result.getMsg(),
             result.getDescription());
-        throw new InternalServerErrorException(result.getMsg());
       }
     } finally {
       if (response != null) {
         response.disconnect();
       } else {
+        success = false;
         logger.warningfmt(
             "Received null response from ICANN server at %s", uploadUrl.toString());
       }
     }
+    return success;
   }
 
   private XjcIirdeaResult parseResult(byte[] content) throws XmlException, IOException {

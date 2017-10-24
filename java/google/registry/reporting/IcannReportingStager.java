@@ -21,6 +21,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
+import com.google.common.base.Ascii;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -93,7 +94,6 @@ public class IcannReportingStager {
 
     // Get report headers from the table schema and convert into CSV format
     String headerRow = constructRow(getHeaders(reportTable.columnKeySet()));
-    logger.infofmt("Headers: %s", headerRow);
 
     return (reportType == ReportType.ACTIVITY)
         ? stageActivityReports(headerRow, reportTable.rowMap().values())
@@ -231,7 +231,6 @@ public class IcannReportingStager {
       reportCsv.append("\r\n");
       reportCsv.append(row);
     }
-    logger.infofmt("Created report:\n%s", reportCsv.toString());
     return reportCsv.toString();
   }
 
@@ -240,8 +239,11 @@ public class IcannReportingStager {
       throws IOException {
     // Upload resulting CSV file to GCS
     byte[] reportBytes = reportCsv.getBytes(UTF_8);
-    String reportFilename = ReportingUtils.createFilename(tld, yearMonth, reportType);
-    String reportBucketname = ReportingUtils.createReportingBucketName(reportingBucket, subdir);
+    String reportFilename =
+        String.format(
+            "%s-%s-%s.csv",
+            tld, Ascii.toLowerCase(reportType.toString()), yearMonth.replace("-", ""));
+    String reportBucketname = String.format("%s/%s", reportingBucket, subdir);
     final GcsFilename gcsFilename = new GcsFilename(reportBucketname, reportFilename);
     gcsUtils.createFromBytes(gcsFilename, reportBytes);
     logger.infofmt(
@@ -253,7 +255,7 @@ public class IcannReportingStager {
 
   /** Creates and stores a manifest file on GCS, indicating which reports were generated. */
   void createAndUploadManifest(ImmutableList<String> filenames) throws IOException {
-    String reportBucketname = ReportingUtils.createReportingBucketName(reportingBucket, subdir);
+    String reportBucketname = String.format("%s/%s", reportingBucket, subdir);
     final GcsFilename gcsFilename = new GcsFilename(reportBucketname, MANIFEST_FILE_NAME);
     StringBuilder manifestString = new StringBuilder();
     filenames.forEach((filename) -> manifestString.append(filename).append("\n"));
