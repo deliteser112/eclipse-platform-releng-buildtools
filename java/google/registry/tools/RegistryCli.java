@@ -79,7 +79,7 @@ final class RegistryCli {
     commandInstances.put("help", helpCommand);
 
     for (Map.Entry<String, ? extends Class<? extends Command>> entry : commands.entrySet()) {
-      Command command = entry.getValue().newInstance();
+      Command command = entry.getValue().getDeclaredConstructor().newInstance();
       jcommander.addCommand(entry.getKey(), command);
       commandInstances.put(entry.getKey(), command);
     }
