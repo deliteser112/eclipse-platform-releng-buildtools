@@ -62,7 +62,7 @@ public class RemoveIpAddressCommand extends MutatingEppToolCommand {
         continue;
       }
 
-      ArrayList<SoyMapData> ipAddresses = new ArrayList<SoyMapData>();
+      ArrayList<SoyMapData> ipAddresses = new ArrayList<>();
       for (InetAddress address : host.getInetAddresses()) {
         SoyMapData dataMap = new SoyMapData(
             "address", address.getHostAddress(),

@@ -141,7 +141,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
                 tlds, exportTime, dnsDefaultATtl, dnsDefaultNsTtl, dnsDefaultDsTtl),
             new GenerateBindFileReducer(bucket, exportTime, gcsBufferSize),
             ImmutableList.of(
-                new NullInput<EppResource>(),
+                new NullInput<>(),
                 createEntityInput(DomainResource.class)));
     ImmutableList<String> filenames =
         tlds.stream()

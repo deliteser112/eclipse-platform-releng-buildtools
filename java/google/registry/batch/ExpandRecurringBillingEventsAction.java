@@ -113,7 +113,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
             new ExpandRecurringBillingEventsReducer(isDryRun, persistedCursorTime),
             // Add an extra shard that maps over a null recurring event (see the mapper for why).
             ImmutableList.of(
-                new NullInput<Recurring>(),
+                new NullInput<>(),
                 createChildEntityInput(
                     ImmutableSet.<Class<? extends DomainResource>>of(DomainResource.class),
                     ImmutableSet.<Class<? extends Recurring>>of(Recurring.class))))));

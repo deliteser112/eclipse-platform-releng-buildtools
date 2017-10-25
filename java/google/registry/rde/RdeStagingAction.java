@@ -237,7 +237,7 @@ public final class RdeStagingAction implements Runnable {
             reducer,
             ImmutableList.of(
                 // Add an extra shard that maps over a null resource. See the mapper code for why.
-                new NullInput<EppResource>(),
+                new NullInput<>(),
                 EppResourceInputs.createEntityInput(EppResource.class)))));
   }
 

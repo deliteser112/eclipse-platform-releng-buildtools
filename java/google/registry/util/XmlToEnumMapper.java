@@ -33,7 +33,7 @@ public final class XmlToEnumMapper<T extends Enum<?>> {
    * Creates a new {@link XmlToEnumMapper} from xml value to enum value.
    */
   public static <T extends Enum<?>> XmlToEnumMapper<T> create(T[] enumValues) {
-    return new XmlToEnumMapper<T>(enumValues);
+    return new XmlToEnumMapper<>(enumValues);
   }
 
   private XmlToEnumMapper(T[] enumValues) {

@@ -284,8 +284,7 @@ public class SessionUtilsTest {
 
   @Test
   public void testHasAccessToRegistrar_accessRevoked_returnsFalse() throws Exception {
-    RegistrarContact.updateContacts(
-        loadRegistrar(DEFAULT_CLIENT_ID), new java.util.HashSet<RegistrarContact>());
+    RegistrarContact.updateContacts(loadRegistrar(DEFAULT_CLIENT_ID), new java.util.HashSet<>());
     assertThat(SessionUtils.hasAccessToRegistrar(DEFAULT_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID))
         .isFalse();
   }

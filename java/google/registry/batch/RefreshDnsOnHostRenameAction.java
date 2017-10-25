@@ -139,7 +139,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
               new RefreshDnsOnHostRenameReducer(refreshRequests, retrier),
               // Add an extra NullInput so that the reducer always fires exactly once.
               ImmutableList.of(
-                  new NullInput<DomainResource>(), createEntityInput(DomainResource.class)))));
+                  new NullInput<>(), createEntityInput(DomainResource.class)))));
     } catch (Throwable t) {
       logger.severefmt(t, "Error while kicking off mapreduce to refresh DNS for renamed hosts.");
     }

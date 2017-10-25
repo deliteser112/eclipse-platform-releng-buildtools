@@ -83,8 +83,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
   private final String projectId;
   private final String zoneName;
   private final Dns dnsConnection;
-  private final HashMap<String, ImmutableSet<ResourceRecordSet>> desiredRecords =
-      new HashMap<String, ImmutableSet<ResourceRecordSet>>();
+  private final HashMap<String, ImmutableSet<ResourceRecordSet>> desiredRecords = new HashMap<>();
 
   @Inject
   CloudDnsWriter(

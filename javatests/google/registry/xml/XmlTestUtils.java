@@ -208,34 +208,34 @@ public class XmlTestUtils {
         }
         set.add(simpleEntry.getValue());
       }
-      return new AbstractMap.SimpleEntry<String, Object>(mappedKey, set);
+      return new AbstractMap.SimpleEntry<>(mappedKey, set);
     }
     if (obj instanceof Number) {
-      return new AbstractMap.SimpleEntry<String, Object>(null, obj.toString());
+      return new AbstractMap.SimpleEntry<>(null, obj.toString());
     }
     if (obj instanceof Boolean) {
-      return new AbstractMap.SimpleEntry<String, Object>(null, ((Boolean) obj) ? "1" : "0");
+      return new AbstractMap.SimpleEntry<>(null, ((Boolean) obj) ? "1" : "0");
     }
     if (obj instanceof String) {
       // Turn stringified booleans into integers. Both are acceptable as xml boolean values, but
       // we use "true" and "false" whereas the samples use "1" and "0".
       if (obj.equals("true")) {
-        return new AbstractMap.SimpleEntry<String, Object>(null, "1");
+        return new AbstractMap.SimpleEntry<>(null, "1");
       }
       if (obj.equals("false")) {
-        return new AbstractMap.SimpleEntry<String, Object>(null, "0");
+        return new AbstractMap.SimpleEntry<>(null, "0");
       }
       String string = obj.toString();
       // We use a slightly different datetime format (both legal) than the samples, so normalize
       // both into Datetime objects.
       try {
-        return new AbstractMap.SimpleEntry<String, Object>(
+        return new AbstractMap.SimpleEntry<>(
             null, ISODateTimeFormat.dateTime().parseDateTime(string).toDateTime(UTC));
       } catch (IllegalArgumentException e) {
         // It wasn't a DateTime.
       }
       try {
-        return new AbstractMap.SimpleEntry<String, Object>(
+        return new AbstractMap.SimpleEntry<>(
             null, ISODateTimeFormat.dateTimeNoMillis().parseDateTime(string).toDateTime(UTC));
       } catch (IllegalArgumentException e) {
         // It wasn't a DateTime.
@@ -243,12 +243,12 @@ public class XmlTestUtils {
       try {
         if (!InternetDomainName.isValid(string)) {
           // It's not a domain name, but it is an InetAddress. Ergo, it's an ip address.
-          return new AbstractMap.SimpleEntry<String, Object>(null, InetAddresses.forString(string));
+          return new AbstractMap.SimpleEntry<>(null, InetAddresses.forString(string));
         }
       } catch (IllegalArgumentException e) {
         // Not an ip address.
       }
-      return new AbstractMap.SimpleEntry<String, Object>(null, string);
+      return new AbstractMap.SimpleEntry<>(null, string);
     }
     return new AbstractMap.SimpleEntry<>(null, checkNotNull(obj));
   }

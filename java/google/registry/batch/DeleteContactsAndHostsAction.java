@@ -200,7 +200,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
               new DeleteEppResourceReducer(),
               ImmutableList.of(
                   // Add an extra shard that maps over a null domain. See the mapper code for why.
-                  new NullInput<DomainBase>(),
+                  new NullInput<>(),
                   EppResourceInputs.createEntityInput(DomainBase.class)))));
     } catch (Throwable t) {
       logger.severefmt(t, "Error while kicking off mapreduce to delete contacts/hosts");

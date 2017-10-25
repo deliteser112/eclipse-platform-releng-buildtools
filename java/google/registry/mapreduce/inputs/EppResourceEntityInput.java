@@ -37,6 +37,6 @@ class EppResourceEntityInput<R extends EppResource> extends EppResourceBaseInput
 
   @Override
   protected InputReader<R> bucketToReader(Key<EppResourceIndexBucket> bucketKey) {
-    return new EppResourceEntityReader<R>(bucketKey, resourceClasses);
+    return new EppResourceEntityReader<>(bucketKey, resourceClasses);
   }
 }

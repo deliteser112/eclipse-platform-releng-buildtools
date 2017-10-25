@@ -29,7 +29,7 @@ abstract class RdapResourcesAndIncompletenessWarningType<T extends EppResource> 
 
   static <S extends EppResource> RdapResourcesAndIncompletenessWarningType<S> create(
       List<S> resources, IncompletenessWarningType incompletenessWarningType) {
-    return new AutoValue_RdapResourcesAndIncompletenessWarningType<S>(
+    return new AutoValue_RdapResourcesAndIncompletenessWarningType<>(
         resources, incompletenessWarningType);
   }
 

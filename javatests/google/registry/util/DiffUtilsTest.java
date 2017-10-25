@@ -62,10 +62,10 @@ public class DiffUtilsTest {
 
   @Test
   public void test_emptyToNullCollection_doesntDisplay() {
-    Map<String, Object> mapA = new HashMap<String, Object>();
+    Map<String, Object> mapA = new HashMap<>();
     mapA.put("a", "jim");
     mapA.put("b", null);
-    Map<String, Object> mapB = new HashMap<String, Object>();
+    Map<String, Object> mapB = new HashMap<>();
     mapB.put("a", "tim");
     mapB.put("b", ImmutableSet.of());
     // This ensures that it is not outputting a diff of b: null -> [].

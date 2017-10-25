@@ -168,7 +168,7 @@ class MapreduceEntityCleanupUtil {
    */
   private ImmutableSet<String> getPossibleIdsForPipelineJob(
       BaseDatastoreService datastore, String jobId) {
-    return getPossibleIdsForPipelineJobRecur(datastore, jobId, new HashSet<String>());
+    return getPossibleIdsForPipelineJobRecur(datastore, jobId, new HashSet<>());
   }
 
   /**

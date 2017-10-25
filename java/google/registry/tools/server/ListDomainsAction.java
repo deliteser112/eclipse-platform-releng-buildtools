@@ -58,8 +58,7 @@ public final class ListDomainsAction extends ListObjectsAction<DomainResource> {
     checkArgument(!tlds.isEmpty(), "Must specify TLDs to query");
     assertTldsExist(tlds);
     ImmutableSortedSet.Builder<DomainResource> builder =
-        new ImmutableSortedSet.Builder<DomainResource>(
-            comparing(DomainResource::getFullyQualifiedDomainName));
+        new ImmutableSortedSet.Builder<>(comparing(DomainResource::getFullyQualifiedDomainName));
     for (List<String> batch : Lists.partition(tlds.asList(), MAX_NUM_SUBQUERIES)) {
       builder.addAll(queryNotDeleted(DomainResource.class, clock.nowUtc(), "tld in", batch));
     }

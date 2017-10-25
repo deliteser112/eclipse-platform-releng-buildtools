@@ -171,8 +171,7 @@ public final class RegistrarCreditBalance extends ImmutableObject implements Bui
           ofy().load().type(RegistrarCreditBalance.class).ancestor(registrarCredit)) {
         // Create the submap at this key if it doesn't exist already.
         Map<DateTime, Money> submap =
-            Optional.ofNullable(map.get(balance.effectiveTime))
-                .orElse(new HashMap<DateTime, Money>());
+            Optional.ofNullable(map.get(balance.effectiveTime)).orElse(new HashMap<>());
         submap.put(balance.writtenTime, balance.amount);
         map.put(balance.effectiveTime, submap);
       }

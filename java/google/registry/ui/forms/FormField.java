@@ -359,7 +359,7 @@ public final class FormField<I, O> {
     public Builder<I, O> matches(Pattern pattern, @Nullable String errorMessage) {
       checkState(CharSequence.class.isAssignableFrom(typeOut));
       return transform(
-          new MatchesFunction<O>(checkNotNull(pattern), Optional.ofNullable(errorMessage)));
+          new MatchesFunction<>(checkNotNull(pattern), Optional.ofNullable(errorMessage)));
     }
 
     /** Alias for {@link #matches(Pattern, String) matches(pattern, null)} */
@@ -404,7 +404,7 @@ public final class FormField<I, O> {
       checkState(CharSequence.class.isAssignableFrom(typeOut)
           || Collection.class.isAssignableFrom(typeOut)
           || Number.class.isAssignableFrom(typeOut));
-      return transform(new RangeFunction<O>(checkNotNull(range)));
+      return transform(new RangeFunction<>(checkNotNull(range)));
     }
 
     /**
@@ -471,7 +471,7 @@ public final class FormField<I, O> {
     public <C extends Enum<C>> Builder<I, C> asEnum(Class<C> enumClass) {
       checkArgument(enumClass.isEnum());
       checkState(String.class.isAssignableFrom(typeOut));
-      return transform(enumClass, new ToEnumFunction<O, C>(enumClass));
+      return transform(enumClass, new ToEnumFunction<>(enumClass));
     }
 
     /**

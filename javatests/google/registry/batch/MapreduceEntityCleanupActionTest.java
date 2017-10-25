@@ -73,7 +73,7 @@ public class MapreduceEntityCleanupActionTest
   private final FakeClock clock = new FakeClock(DateTime.now(UTC));
   private final FakeResponse response = new FakeResponse();
 
-  private static final ImmutableList<List<String>> inputStrings = ImmutableList.<List<String>>of(
+  private static final ImmutableList<List<String>> inputStrings = ImmutableList.of(
       ImmutableList.of("a", "b", "c"),
       ImmutableList.of("d", "e", "f", "g", "h"),
       ImmutableList.of("i", "j", "k"),
@@ -119,23 +119,19 @@ public class MapreduceEntityCleanupActionTest
   }
 
   private void setAnyJobAndDaysOld(int daysOld) {
-    setJobIdJobNameAndDaysOld(
-        Optional.<String>empty(), Optional.<String>empty(), Optional.<Integer>of(daysOld));
+    setJobIdJobNameAndDaysOld(Optional.empty(), Optional.empty(), Optional.of(daysOld));
   }
 
   private void setJobId(String jobId) {
-    setJobIdJobNameAndDaysOld(
-        Optional.of(jobId), Optional.<String>empty(), Optional.<Integer>empty());
+    setJobIdJobNameAndDaysOld(Optional.of(jobId), Optional.empty(), Optional.empty());
   }
 
   private void setJobName(String jobName) {
-    setJobIdJobNameAndDaysOld(
-        Optional.<String>empty(), Optional.of(jobName), Optional.<Integer>empty());
+    setJobIdJobNameAndDaysOld(Optional.empty(), Optional.of(jobName), Optional.empty());
   }
 
   private void setJobNameAndDaysOld(String jobName, int daysOld) {
-    setJobIdJobNameAndDaysOld(
-        Optional.<String>empty(), Optional.of(jobName), Optional.<Integer>of(daysOld));
+    setJobIdJobNameAndDaysOld(Optional.empty(), Optional.of(jobName), Optional.of(daysOld));
   }
 
   private void setJobIdJobNameAndDaysOld(
@@ -144,9 +140,9 @@ public class MapreduceEntityCleanupActionTest
     action = new MapreduceEntityCleanupAction(
         jobId,
         jobName,
-        Optional.<Integer>empty(), // numJobsToDelete
+        Optional.empty(), // numJobsToDelete
         daysOld,
-        Optional.<Boolean>empty(), // force
+        Optional.empty(), // force
         mapreduceEntityCleanupUtil,
         clock,
         DatastoreServiceFactory.getDatastoreService(),

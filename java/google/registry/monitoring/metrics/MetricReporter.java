@@ -62,7 +62,7 @@ public class MetricReporter extends AbstractScheduledService {
         writeInterval,
         threadFactory,
         MetricRegistryImpl.getDefault(),
-        new ArrayBlockingQueue<Optional<ImmutableList<MetricPoint<?>>>>(1000));
+        new ArrayBlockingQueue<>(1000));
   }
 
   @VisibleForTesting

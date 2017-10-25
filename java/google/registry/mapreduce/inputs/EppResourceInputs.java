@@ -53,10 +53,9 @@ public final class EppResourceInputs {
   public static <R extends EppResource> Input<R> createEntityInput(
       Class<? extends R> resourceClass,
       Class<? extends R>... moreResourceClasses) {
-    return new EppResourceEntityInput<R>(
+    return new EppResourceEntityInput<>(
         ImmutableSet.copyOf(asList(resourceClass, moreResourceClasses)));
   }
-
 
   /**
    * Returns a MapReduce {@link Input} that loads all {@link ImmutableObject} objects of a given
