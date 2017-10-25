@@ -140,10 +140,7 @@ public class SignedMarkRevocationList extends ImmutableObject {
   /** Returns {@code true} if the SMD ID has been revoked at the given point in time. */
   public boolean isSmdRevoked(String smdId, DateTime now) {
     DateTime revoked = revokes.get(checkNotNull(smdId, "smdId"));
-    if (revoked == null) {
-      return false;
-    }
-    return isBeforeOrAt(revoked, now);
+    return revoked != null && isBeforeOrAt(revoked, now);
   }
 
   /** Returns the creation timestamp specified at the top of the SMDRL CSV file. */

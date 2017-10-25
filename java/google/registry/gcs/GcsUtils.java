@@ -81,10 +81,7 @@ public class GcsUtils {
       logger.warning(e, "Failed to check if GCS file exists");
       return false;
     }
-    if (metadata == null) {
-      return false;
-    }
-    return metadata.getLength() > 0;
+    return metadata != null && metadata.getLength() > 0;
   }
 
   /** Determines most appropriate {@link GcsFileOptions} based on filename extension. */

@@ -130,14 +130,8 @@ public class CloudDnsWriterTest {
                         stubZone
                             .stream()
                             .filter(
-                                resourceRecordSet -> {
-                                  if (resourceRecordSet == null) {
-                                    return false;
-                                  }
-                                  return resourceRecordSet
-                                      .getName()
-                                      .equals(recordNameCaptor.getValue());
-                                })
+                                rs ->
+                                    rs != null && rs.getName().equals(recordNameCaptor.getValue()))
                             .collect(toImmutableList()));
               }
             });
