@@ -418,10 +418,11 @@ public class DatastoreHelper {
   }
 
   public static void createTld(String tld, ImmutableSortedMap<DateTime, TldState> tldStates) {
-    createTld(
-        tld,
-        Ascii.toUpperCase(tld.replaceFirst(ACE_PREFIX_REGEX, "").replace('.', '_')),
-        tldStates);
+    // Coerce the TLD string into a valid ROID suffix.
+    String roidSuffix =
+        Ascii.toUpperCase(tld.replaceFirst(ACE_PREFIX_REGEX, "").replace('.', '_'))
+            .replace('-', '_');
+    createTld(tld, roidSuffix.length() > 8 ? roidSuffix.substring(0, 8) : roidSuffix, tldStates);
   }
 
   public static void createTld(

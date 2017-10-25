@@ -17,7 +17,6 @@ package google.registry.model.registry;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.ReservedListTest.GET_NAME_FUNCTION;
@@ -29,6 +28,8 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.EUR;
 import static org.joda.money.CurrencyUnit.USD;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.expectThrows;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
@@ -487,5 +488,28 @@ public class RegistryTest extends EntityTestCase {
     Registry.get("tld").asBuilder()
         .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
         .build();
+  }
+
+  @Test
+  public void testFailure_roidSuffixTooLong() {
+    IllegalArgumentException e =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> Registry.get("tld").asBuilder().setRoidSuffix("123456789"));
+    assertThat(e).hasMessageThat().isEqualTo("ROID suffix must be in format ^[A-Z0-9_]{1,8}$");
+  }
+
+  @Test
+  public void testFailure_roidSuffixNotUppercased() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> Registry.get("tld").asBuilder().setRoidSuffix("abcd"));
+  }
+
+  @Test
+  public void testFailure_roidSuffixContainsInvalidCharacters() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> Registry.get("tld").asBuilder().setRoidSuffix("ABC-DEF"));
   }
 }

@@ -68,6 +68,7 @@ import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -852,7 +853,13 @@ public class Registry extends ImmutableObject implements Buildable {
       return this;
     }
 
+    private static final Pattern ROID_SUFFIX_PATTERN = Pattern.compile("^[A-Z0-9_]{1,8}$");
+
     public Builder setRoidSuffix(String roidSuffix) {
+      checkArgument(
+          ROID_SUFFIX_PATTERN.matcher(roidSuffix).matches(),
+          "ROID suffix must be in format %s",
+          ROID_SUFFIX_PATTERN.pattern());
       getInstance().roidSuffix = roidSuffix;
       return this;
     }

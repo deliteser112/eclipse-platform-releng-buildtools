@@ -16,7 +16,6 @@ package google.registry.tools;
 
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.registry.label.ReservedListTest.GET_NAME_FUNCTION;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
@@ -78,13 +77,13 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_multipleArguments() throws Exception {
     thrown.expect(IllegalArgumentException.class, "Can't create more than one TLD at a time");
-    runCommandForced("--roid_suffix=blah", "--dns_writers=VoidDnsWriter", "xn--q9jyb4c", "test");
+    runCommandForced("--roid_suffix=BLAH", "--dns_writers=VoidDnsWriter", "xn--q9jyb4c", "test");
   }
 
   @Test
   public void testFailure_multipleDuplicateArguments() throws Exception {
     thrown.expect(IllegalArgumentException.class, "Can't create more than one TLD at a time");
-    runCommandForced("--roid_suffix=blah", "--dns_writers=VoidDnsWriter", "test", "test");
+    runCommandForced("--roid_suffix=BLAH", "--dns_writers=VoidDnsWriter", "test", "test");
   }
 
   @Test
