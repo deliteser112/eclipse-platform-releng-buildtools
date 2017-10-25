@@ -161,11 +161,10 @@ public class AsyncFlowMetrics {
   }
 
   public void recordContactHostDeletionBatchSize(long batchSize) {
-    asyncFlowBatchSize.record(
-        Double.valueOf(batchSize), CONTACT_AND_HOST_DELETE.getMetricLabelValue());
+    asyncFlowBatchSize.record(batchSize, CONTACT_AND_HOST_DELETE.getMetricLabelValue());
   }
 
   public void recordDnsRefreshBatchSize(long batchSize) {
-    asyncFlowBatchSize.record(Double.valueOf(batchSize), DNS_REFRESH.getMetricLabelValue());
+    asyncFlowBatchSize.record(batchSize, DNS_REFRESH.getMetricLabelValue());
   }
 }
