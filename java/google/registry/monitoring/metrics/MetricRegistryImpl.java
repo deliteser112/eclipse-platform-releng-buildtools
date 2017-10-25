@@ -36,7 +36,14 @@ public final class MetricRegistryImpl implements MetricRegistry {
   /** The canonical registry for metrics. The map key is the metric name. */
   private final ConcurrentHashMap<String, Metric<?>> registeredMetrics = new ConcurrentHashMap<>();
 
-  private MetricRegistryImpl() {}
+  
+  /**
+   * Production code must use {@link getDefault}, since this returns the {@link MetricRegistry}
+   * that {@link MetricReporter} uses.  Test code that does not use {@link MetricReporter} can
+   * use this constructor to get an isolated instance of the registry.
+   */
+  @VisibleForTesting
+  public MetricRegistryImpl() {}
 
   public static MetricRegistryImpl getDefault() {
     return INSTANCE;
