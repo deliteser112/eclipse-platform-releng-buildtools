@@ -5,7 +5,7 @@ for retrieving registry information. It returns data similar to the WHOIS
 service, but in a JSON-structured format. This document describes the Nomulus
 system's support for the RDAP protocol.
 
-## Quick example {#quick_example}
+## Quick example <a id="quick_example"></a>
 
 RDAP information is available via regular Web queries. For example, if your App
 Engine project ID is `project-id`, and `tld` is a TLD managed by that instance
@@ -22,7 +22,7 @@ though and see the information. You can also use the Chrome browser developer
 console's network pane, then send the request and look at the Preview tab to see
 the response in an expandable tree format.
 
-## Introduction to RDAP {#introduction}
+## Introduction to RDAP <a id="introduction"></a>
 
 RDAP is a next-generation protocol for dissemination of registry data. It is
 eventually intended to replace the WHOIS protocol. RDAP was defined in 2015 in a
@@ -53,7 +53,7 @@ registries to implement RDAP and, if desired, make modifications to the protocol
 to support desired extra features. Nomulus is participating in this program. The
 experimental extra features supported by Nomulus are described later.
 
-## Nomulus RDAP request endpoints {#endpoints}
+## Nomulus RDAP request endpoints <a id="endpoints"></a>
 
 The suite of URL endpoint paths is listed below. The paths should be tacked onto
 the usual App Engine server name. For example, if the App Engine project ID is
@@ -67,13 +67,13 @@ The search endpoints (those with a query string) can return more than one match.
 The maximum result set size is limited by a configuration parameter, currently
 set to 100.
 
-### /rdap/autnum/ {#autnum}
+### /rdap/autnum/ <a id="autnum"></a>
 
 The RDAP protocol defines an autnum endpoint, but autonomous system numbers are
 not supported by registries, so queries of this type will always return an
 error.
 
-### /rdap/domain/ {#domain}
+### /rdap/domain/ <a id="domain"></a>
 
 Look up a single domain by name. The full domain name is specified at the end of
 the path.
@@ -82,7 +82,7 @@ the path.
     /rdap/domain/abc.tld
 ```
 
-### /rdap/domains? {#domains}
+### /rdap/domains? <a id="domains"></a>
 
 Search for one or more domains. The RDAP specification supports three kinds of
 searches: by domain name, by nameserver name, or by nameserver IP address. It
@@ -157,7 +157,7 @@ Wildcards are not supported for IP address lookup.
     /rdap/domains?nsIp=1.2.3.4
 ```
 
-### /rdap/entity/ {#entity}
+### /rdap/entity/ <a id="entity"></a>
 
 Look up a single entity by name. The entity ID is specified at the end of the
 path. Two types of entities can be looked up: registrars (looked up by IANA
@@ -170,7 +170,7 @@ only appear as part of information about a registrar.
     /rdap/entity/ROID
 ```
 
-### /rdap/entities? {#entities}
+### /rdap/entities? <a id="entities"></a>
 
 Search for one or more entities (registrars or contacts). The RDAP specification
 supports two kinds of searches: by full name or by handle. In either case,
@@ -218,7 +218,7 @@ be returned for a wildcard entity search.
     /rdap/entities?handle=ROID-12*
 ```
 
-### /rdap/help/ {#help}
+### /rdap/help/ <a id="help"></a>
 
 Retrieve help information. The desired help topic is specified at the end of the
 path; if no topic is specified, the help index is returned.
@@ -229,12 +229,12 @@ path; if no topic is specified, the help index is returned.
     /rdap/help/syntax
 ```
 
-### /rdap/ip/ {#ip}
+### /rdap/ip/ <a id="ip"></a>
 
 IP addresses are not supported by registries, so queries of this type will
 always return an error.
 
-### /rdap/nameserver/ {#nameserver}
+### /rdap/nameserver/ <a id="nameserver"></a>
 
 Look up a single nameserver by fully qualified host name. The name is specified
 at the end of the path.
@@ -243,7 +243,7 @@ at the end of the path.
     /rdap/nameserver/ns1.abc.tld
 ```
 
-### /rdap/nameservers? {#nameserver}
+### /rdap/nameservers? <a id="nameservers"></a>
 
 Search for one or more nameservers. The RDAP specification supports two kinds of
 searches: by name or by IP address. The format for both is the same as for the
@@ -258,12 +258,12 @@ details.
     /rdap/nameservers?ip=1.2.3.4
 ```
 
-## Experimental features {#experimental_features}
+## Experimental features <a id="experimental_features"></a>
 
 As part of the RDAP Pilot Project, Nomulus incorporates a few extra features in
 the RDAP endpoints.
 
-### Authentication {#authentication}
+### Authentication <a id="authentication"></a>
 
 The RDAP RFCs do not include support for authentication or access controls. We
 have implemented an experimental version that allows for authenticated access to
@@ -301,7 +301,7 @@ If you can see the registrar console, you are logged in correctly. Then change
 the URL to an RDAP query on that same Nomulus instance, and you will be able to
 see all data for your associated registrar.
 
-### `registrar` parameter {#registrar_parameter}
+### `registrar` parameter <a id="registrar_parameter"></a>
 
 Ordinarily, all matching domains, hosts and contacts are included in the
 returned result set. A request can specify that only items owned by a specific
@@ -315,7 +315,7 @@ This could be useful when designing a registrar user interface that uses RDAP as
 a backend. Note that this parameter only excludes items; it does not cause items
 to be shown that otherwise would not.
 
-### `includeDeleted` parameter {#includedeleted_parameter}
+### `includeDeleted` parameter <a id="includedeleted_parameter"></a>
 
 Ordinarily, deleted domains, hosts and contacts are not included in search
 results. Authorized requests can specify that deleted items be included, by
