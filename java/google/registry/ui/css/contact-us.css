@@ -1,5 +1,4 @@
-#domain-registrar-contact-us
-.description * {
+#domain-registrar-contact-us .description * {
   color: #999 !important;
   line-height: 140%;
 }

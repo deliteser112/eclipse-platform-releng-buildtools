@@ -1030,7 +1030,7 @@ Component: Sidebars
 .kd-content-sidebar .kd-zippy .row a {
   margin-left: 16px;
 }
-.kd-content-sidebar li
+.kd-content-sidebar li,
 .kd-content-sidebar ul ul{
   margin-left:28px;
 }

@@ -154,7 +154,7 @@ td.setting p {
   display: none;
 }
 
-div.checkbox-with-label input[type='checkbox']
+div.checkbox-with-label input[type='checkbox'],
 div.checkbox-with-label input[type='checkbox'] + label {
   display: inline-block;
 }
