@@ -17,7 +17,6 @@ package google.registry.cron;
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.collect.Lists.transform;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;

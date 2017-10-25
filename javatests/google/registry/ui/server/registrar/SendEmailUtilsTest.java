@@ -15,7 +15,6 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailAddress;
 import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDisplayName;
 import static org.mockito.Matchers.any;

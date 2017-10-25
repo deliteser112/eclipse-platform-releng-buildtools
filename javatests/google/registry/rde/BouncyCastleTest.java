@@ -15,7 +15,6 @@
 package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.util.HexDumper.dumpHex;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.bouncycastle.bcpg.CompressionAlgorithmTags.ZIP;

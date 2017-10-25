@@ -15,7 +15,6 @@
 package google.registry.tmch;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static org.joda.time.Duration.millis;
 import static org.joda.time.Duration.standardDays;
