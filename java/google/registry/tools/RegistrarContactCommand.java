@@ -184,7 +184,7 @@ final class RegistrarContactCommand extends MutatingCommand {
         break;
       case CREATE:
         stageEntityChange(null, createContact(registrar));
-        if ((visibleInDomainWhoisAsAbuse != null) && visibleInDomainWhoisAsAbuse.booleanValue()) {
+        if ((visibleInDomainWhoisAsAbuse != null) && visibleInDomainWhoisAsAbuse) {
           unsetOtherWhoisAbuseFlags(contacts, null /* emailAddressNotToChange */ );
         }
         break;
@@ -201,7 +201,7 @@ final class RegistrarContactCommand extends MutatingCommand {
             "Cannot clear visible_in_domain_whois_as_abuse flag, as that would leave no domain"
                 + " WHOIS abuse contacts; instead, set the flag on another contact");
         stageEntityChange(oldContact, newContact);
-        if ((visibleInDomainWhoisAsAbuse != null) && visibleInDomainWhoisAsAbuse.booleanValue()) {
+        if ((visibleInDomainWhoisAsAbuse != null) && visibleInDomainWhoisAsAbuse) {
           unsetOtherWhoisAbuseFlags(contacts, oldContact.getEmailAddress());
         }
         break;
