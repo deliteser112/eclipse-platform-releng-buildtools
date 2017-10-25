@@ -15,7 +15,7 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -125,12 +125,7 @@ public class ComparingInvocationHandlerTest {
     when(myActualMock.func(3, "str")).thenThrow(myException);
     when(mySecondMock.func(3, "str")).thenReturn(SECOND_RESULT);
 
-    try {
-      comparator.func(3, "str");
-      fail("Should have thrown MyException");
-    } catch (MyException expected) {
-    }
-
+    assertThrows(MyException.class, () -> comparator.func(3, "str"));
     assertThat(log)
         .containsExactly(
             String.format(
@@ -162,12 +157,7 @@ public class ComparingInvocationHandlerTest {
     when(myActualMock.func(3, "str")).thenThrow(myException);
     when(mySecondMock.func(3, "str")).thenThrow(myOtherException);
 
-    try {
-      comparator.func(3, "str");
-      fail("Should have thrown MyException");
-    } catch (MyException expected) {
-    }
-
+    assertThrows(MyException.class, () -> comparator.func(3, "str"));
     assertThat(log).isEmpty();
   }
 
@@ -179,12 +169,7 @@ public class ComparingInvocationHandlerTest {
     when(myActualMock.func(3, "str")).thenThrow(myException);
     when(mySecondMock.func(3, "str")).thenThrow(myOtherException);
 
-    try {
-      comparator.func(3, "str");
-      fail("Should have thrown MyException");
-    } catch (MyException expected) {
-    }
-
+    assertThrows(MyException.class, () -> comparator.func(3, "str"));
     assertThat(log)
         .containsExactly(
             String.format(
