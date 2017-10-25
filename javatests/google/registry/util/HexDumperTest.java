@@ -15,7 +15,6 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import google.registry.testing.ExceptionRule;
@@ -37,7 +36,7 @@ public class HexDumperTest {
     String input = "";
     String output = "[0 bytes total]\n";
     assertThat(input).isEmpty();
-    assertThat(HexDumper.dumpHex(input.getBytes())).isEqualTo(output);
+    assertThat(HexDumper.dumpHex(input.getBytes(UTF_8))).isEqualTo(output);
   }
 
   @Test
@@ -46,7 +45,7 @@ public class HexDumperTest {
     String output = "[11 bytes total]\n"
         + "00000000  68 65 6c 6c  6f 20 77 6f  72 6c 64                  hello world     \n";
     assertThat(input).hasLength(11);
-    assertThat(HexDumper.dumpHex(input.getBytes())).isEqualTo(output);
+    assertThat(HexDumper.dumpHex(input.getBytes(UTF_8))).isEqualTo(output);
   }
 
   @Test
@@ -64,7 +63,7 @@ public class HexDumperTest {
         + "00000064  65 20 62 75  79 2c 20 63  6f 6d 65 20  62 75 79 3a  e buy, come buy:\n"
         + "00000080  0a                                                  .               \n";
     assertThat(input).hasLength(81);
-    assertThat(HexDumper.dumpHex(input.getBytes())).isEqualTo(output);
+    assertThat(HexDumper.dumpHex(input.getBytes(UTF_8))).isEqualTo(output);
   }
 
   @Test
@@ -73,7 +72,7 @@ public class HexDumperTest {
     String output = "[16 bytes total]\n"
         + "00000000  68 65 6c 6c  6f 20 77 6f  72 6c 64 64  64 64 64 64  hello worldddddd\n";
     assertThat(input).hasLength(16);
-    assertThat(HexDumper.dumpHex(input.getBytes())).isEqualTo(output);
+    assertThat(HexDumper.dumpHex(input.getBytes(UTF_8))).isEqualTo(output);
   }
 
   @Test
@@ -114,7 +113,7 @@ public class HexDumperTest {
   @Test
   public void testLineBuffering() throws Exception {
     // Assume that we have some data that's N bytes long.
-    byte[] data = "Sweet to tongue and sound to eye; Come buy, come buy.".getBytes();
+    byte[] data = "Sweet to tongue and sound to eye; Come buy, come buy.".getBytes(UTF_8);
     // And a streaming HexDumper that displays N+1 characters per row.
     int perLine = data.length + 1;
     try (StringWriter out = new StringWriter();
@@ -141,11 +140,11 @@ public class HexDumperTest {
   public void testFlush() throws Exception {
     try (StringWriter out = new StringWriter();
         HexDumper dumper = new HexDumper(out)) {
-      dumper.write("hello ".getBytes());
+      dumper.write("hello ".getBytes(UTF_8));
       assertThat(out.toString()).isEmpty();
       dumper.flush();
       assertThat(out.toString()).isEqualTo("00000000  68 65 6c 6c  6f 20 ");
-      dumper.write("world".getBytes());
+      dumper.write("world".getBytes(UTF_8));
       assertThat(out.toString()).isEqualTo("00000000  68 65 6c 6c  6f 20 ");
       dumper.flush();
       assertThat(out.toString()).isEqualTo("00000000  68 65 6c 6c  6f 20 77 6f  72 6c 64 ");
@@ -164,7 +163,7 @@ public class HexDumperTest {
         + "00000002  6c  l\n"
         + "00000003  6c  l\n"
         + "00000004  6f  o\n";
-    assertThat(HexDumper.dumpHex(input.getBytes(), 1, 0)).isEqualTo(output);
+    assertThat(HexDumper.dumpHex(input.getBytes(UTF_8), 1, 0)).isEqualTo(output);
   }
 
   @Test

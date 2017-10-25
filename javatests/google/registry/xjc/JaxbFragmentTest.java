@@ -15,8 +15,8 @@
 package google.registry.xjc;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import google.registry.xjc.rdehost.XjcRdeHostElement;
 import java.io.ByteArrayInputStream;
@@ -40,7 +40,7 @@ public class JaxbFragmentTest {
   public void testJavaSerialization() throws Exception {
     // Load rdeHost xml fragment into a jaxb object, wrap it, marshal, unmarshal, verify host.
     // The resulting host name should be "ns1.example1.test", from the original xml fragment.
-    try (InputStream source = new ByteArrayInputStream(HOST_FRAGMENT.getBytes())) {
+    try (InputStream source = new ByteArrayInputStream(HOST_FRAGMENT.getBytes(UTF_8))) {
       // Load xml
       JaxbFragment<XjcRdeHostElement> hostFragment =
           JaxbFragment.create(XjcXmlTransformer.unmarshal(XjcRdeHostElement.class, source));

@@ -17,7 +17,6 @@ package google.registry.util;
 import static com.google.common.io.BaseEncoding.base64;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.common.truth.Truth8.assertThat;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.testing.EqualsTester;
@@ -273,7 +272,7 @@ public class PosixTarHeaderTest {
     assertThat(header.getMtime().toString(ISODateTimeFormat.date())).isEqualTo("2013-08-16");
 
     assertThat(input.read(block)).isEqualTo(512);
-    assertThat(new String(block, 0, likeTears.length())).isEqualTo(likeTears);
+    assertThat(new String(block, 0, likeTears.length(), UTF_8)).isEqualTo(likeTears);
 
     assertThat(input.read(block)).isEqualTo(512);
     header = PosixTarHeader.from(block);
@@ -287,7 +286,7 @@ public class PosixTarHeaderTest {
     assertThat(header.getMtime().toString(ISODateTimeFormat.date())).isEqualTo("2013-08-16");
 
     assertThat(input.read(block)).isEqualTo(512);
-    assertThat(new String(block, 0, inRain.length())).isEqualTo(inRain);
+    assertThat(new String(block, 0, inRain.length(), UTF_8)).isEqualTo(inRain);
 
     assertThat(input.read(block)).isEqualTo(512);
     assertWithMessage("End of archive marker corrupt").that(block).isEqualTo(new byte[512]);
@@ -327,7 +326,7 @@ public class PosixTarHeaderTest {
     assertThat(header.getMtime().toString(ISODateTimeFormat.date())).isEqualTo("2013-08-16");
 
     assertThat(input.read(block)).isEqualTo(512);
-    assertThat(new String(block, 0, likeTears.length())).isEqualTo(likeTears);
+    assertThat(new String(block, 0, likeTears.length(), UTF_8)).isEqualTo(likeTears);
 
     assertThat(input.read(block)).isEqualTo(512);
     header = PosixTarHeader.from(block);
@@ -341,7 +340,7 @@ public class PosixTarHeaderTest {
     assertThat(header.getMtime().toString(ISODateTimeFormat.date())).isEqualTo("2013-08-16");
 
     assertThat(input.read(block)).isEqualTo(512);
-    assertThat(new String(block, 0, inRain.length())).isEqualTo(inRain);
+    assertThat(new String(block, 0, inRain.length(), UTF_8)).isEqualTo(inRain);
 
     assertThat(input.read(block)).isEqualTo(512);
     assertWithMessage("End of archive marker corrupt").that(block).isEqualTo(new byte[512]);
@@ -381,7 +380,7 @@ public class PosixTarHeaderTest {
     assertThat(header.getMtime().toString(ISODateTimeFormat.date())).isEqualTo("2013-08-16");
 
     assertThat(input.read(block)).isEqualTo(512);
-    assertThat(new String(block, 0, likeTears.length())).isEqualTo(likeTears);
+    assertThat(new String(block, 0, likeTears.length(), UTF_8)).isEqualTo(likeTears);
 
     assertThat(input.read(block)).isEqualTo(512);
     header = PosixTarHeader.from(block);
@@ -395,7 +394,7 @@ public class PosixTarHeaderTest {
     assertThat(header.getMtime().toString(ISODateTimeFormat.date())).isEqualTo("2013-08-16");
 
     assertThat(input.read(block)).isEqualTo(512);
-    assertThat(new String(block, 0, inRain.length())).isEqualTo(inRain);
+    assertThat(new String(block, 0, inRain.length(), UTF_8)).isEqualTo(inRain);
 
     assertThat(input.read(block)).isEqualTo(512);
     assertWithMessage("End of archive marker corrupt").that(block).isEqualTo(new byte[512]);
@@ -436,7 +435,7 @@ public class PosixTarHeaderTest {
     assertThat(header.getMtime().toString(ISODateTimeFormat.date())).isEqualTo("2013-08-16");
 
     assertThat(input.read(block)).isEqualTo(512);
-    assertThat(new String(block, 0, likeTears.length())).isEqualTo(likeTears);
+    assertThat(new String(block, 0, likeTears.length(), UTF_8)).isEqualTo(likeTears);
 
     assertThat(input.read(block)).isEqualTo(512);
     header = PosixTarHeader.from(block);
@@ -451,7 +450,7 @@ public class PosixTarHeaderTest {
     assertThat(header.getMtime().toString(ISODateTimeFormat.date())).isEqualTo("2013-08-16");
 
     assertThat(input.read(block)).isEqualTo(512);
-    assertThat(new String(block, 0, inRain.length())).isEqualTo(inRain);
+    assertThat(new String(block, 0, inRain.length(), UTF_8)).isEqualTo(inRain);
 
     assertThat(input.read(block)).isEqualTo(512);
     assertWithMessage("End of archive marker corrupt").that(block).isEqualTo(new byte[512]);

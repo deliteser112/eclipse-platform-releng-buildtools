@@ -16,7 +16,6 @@ package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.SystemInfo.hasCommand;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assume.assumeTrue;
@@ -53,7 +52,7 @@ public class PosixTarHeaderSystemTest {
 
     // We have some data (in memory) that we'll call hello.txt.
     String fileName = "hello.txt";
-    byte[] fileData = "hello world\n".getBytes();
+    byte[] fileData = "hello world\n".getBytes(UTF_8);
 
     // We're going to put it in a new tar archive (on the filesystem) named hello.tar.
     String tarName = "hello.tar";
@@ -152,8 +151,8 @@ public class PosixTarHeaderSystemTest {
     String one = "the first line";
     String two = "the second line";
     File cwd = folder.getRoot();
-    Files.write(one.getBytes(), new File(cwd, "one"));
-    Files.write(two.getBytes(), new File(cwd, "two"));
+    Files.write(one.getBytes(UTF_8), new File(cwd, "one"));
+    Files.write(two.getBytes(UTF_8), new File(cwd, "two"));
 
     String[] cmd = {"tar", "--format=ustar", "-cf", "lines.tar", "one", "two"};
     String[] env = {"PATH=" + System.getenv("PATH")};
@@ -171,7 +170,7 @@ public class PosixTarHeaderSystemTest {
       assertThat(header.getName()).isEqualTo("one");
       assertThat(header.getSize()).isEqualTo(one.length());
       assertThat(input.read(block)).isEqualTo(512);
-      assertThat(one).isEqualTo(new String(block, 0, one.length()));
+      assertThat(one).isEqualTo(new String(block, 0, one.length(), UTF_8));
 
       assertThat(input.read(block)).isEqualTo(512);
       header = PosixTarHeader.from(block);
@@ -179,7 +178,7 @@ public class PosixTarHeaderSystemTest {
       assertThat(header.getName()).isEqualTo("two");
       assertThat(header.getSize()).isEqualTo(two.length());
       assertThat(input.read(block)).isEqualTo(512);
-      assertThat(two).isEqualTo(new String(block, 0, two.length()));
+      assertThat(two).isEqualTo(new String(block, 0, two.length(), UTF_8));
 
       assertThat(input.read(block)).isEqualTo(512);
       assertWithMessage("End of archive marker corrupt").that(block).isEqualTo(new byte[512]);
@@ -194,7 +193,7 @@ public class PosixTarHeaderSystemTest {
     assumeTrue(hasCommand("tar"));
 
     String truth = "No one really knows\n";
-    Files.write(truth.getBytes(), folder.newFile("truth.txt"));
+    Files.write(truth.getBytes(UTF_8), folder.newFile("truth.txt"));
 
     String[] cmd = {"tar", "-cf", "steam.tar", "truth.txt"};
     String[] env = {"PATH=" + System.getenv("PATH")};
@@ -213,7 +212,7 @@ public class PosixTarHeaderSystemTest {
       assertThat(header.getName()).isEqualTo("truth.txt");
       assertThat(header.getSize()).isEqualTo(truth.length());
       assertThat(input.read(block)).isEqualTo(512);
-      assertThat(truth).isEqualTo(new String(block, 0, truth.length()));
+      assertThat(truth).isEqualTo(new String(block, 0, truth.length(), UTF_8));
 
       assertThat(input.read(block)).isEqualTo(512);
       assertWithMessage("End of archive marker corrupt").that(block).isEqualTo(new byte[512]);

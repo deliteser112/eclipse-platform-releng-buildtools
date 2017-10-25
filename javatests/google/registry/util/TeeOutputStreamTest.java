@@ -15,7 +15,7 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
 import com.google.common.collect.ImmutableSet;
@@ -43,14 +43,14 @@ public class TeeOutputStreamTest {
     // Write shared data using the tee output stream.
     try (OutputStream tee =
         new TeeOutputStream(asList(outputA, outputB, outputC))) {
-      tee.write("hello ".getBytes());
-      tee.write("hello world!".getBytes(), 6, 5);
+      tee.write("hello ".getBytes(UTF_8));
+      tee.write("hello world!".getBytes(UTF_8), 6, 5);
       tee.write('!');
     }
     // Write some more data to the different streams - they should not have been closed.
-    outputA.write("a".getBytes());
-    outputB.write("b".getBytes());
-    outputC.write("c".getBytes());
+    outputA.write("a".getBytes(UTF_8));
+    outputB.write("b".getBytes(UTF_8));
+    outputC.write("c".getBytes(UTF_8));
     // Check the results.
     assertThat(outputA.toString()).isEqualTo("hello world!a");
     assertThat(outputB.toString()).isEqualTo("hello world!b");
@@ -77,7 +77,7 @@ public class TeeOutputStreamTest {
     OutputStream tee = new TeeOutputStream(asList(outputA));
     tee.close();
     thrown.expect(IllegalStateException.class, "outputstream closed");
-    tee.write("hello".getBytes());
+    tee.write("hello".getBytes(UTF_8));
   }
 
   @Test
@@ -85,6 +85,6 @@ public class TeeOutputStreamTest {
     OutputStream tee = new TeeOutputStream(asList(outputA));
     tee.close();
     thrown.expect(IllegalStateException.class, "outputstream closed");
-    tee.write("hello".getBytes(), 1, 3);
+    tee.write("hello".getBytes(UTF_8), 1, 3);
   }
 }
