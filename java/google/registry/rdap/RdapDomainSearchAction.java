@@ -238,12 +238,18 @@ public class RdapDomainSearchAction extends RdapActionBase {
 
   /** Searches for domains by domain name with a TLD suffix. */
   private RdapSearchResults searchByDomainNameByTld(String tld, DateTime now) {
-    // Since we aren't searching on fullyQualifiedDomainName, we can perform our one allowed
-    // inequality query on deletion time.
+    // Even though we are not searching on fullyQualifiedDomainName, we want the results to come
+    // back ordered by name, so we are still in the same boat as
+    // searchByDomainNameWithInitialString, unable to perform an inequality query on deletion time.
+    // Don't use queryItems, because it doesn't handle pending deletes.
     Query<DomainResource> query =
-        queryItems(
-            DomainResource.class, "tld", tld, shouldIncludeDeleted(), rdapResultSetMaxSize + 1);
-    return makeSearchResults(getMatchingResources(query, shouldIncludeDeleted(), now), now);
+        ofy()
+            .load()
+            .type(DomainResource.class)
+            .filter("tld", tld)
+            .order("fullyQualifiedDomainName")
+            .limit(RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize);
+    return makeSearchResults(getMatchingResources(query, true, now), now);
   }
 
   /**

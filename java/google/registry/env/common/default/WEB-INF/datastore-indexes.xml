@@ -79,6 +79,12 @@
     </datastore-index>
     <datastore-index kind="DomainBase" ancestor="false" source="manual">
         <property name="^i" direction="asc"/>
+        <property name="currentSponsorClientId" direction="asc"/>
+        <property name="tld" direction="asc"/>
+        <property name="fullyQualifiedDomainName" direction="asc"/>
+    </datastore-index>
+    <datastore-index kind="DomainBase" ancestor="false" source="manual">
+        <property name="^i" direction="asc"/>
         <property name="tld" direction="asc"/>
         <property name="fullyQualifiedDomainName" direction="asc"/>
     </datastore-index>

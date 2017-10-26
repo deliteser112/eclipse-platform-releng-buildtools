@@ -855,7 +855,7 @@ public class RdapDomainSearchActionTest {
   @Test
   public void testDomainMatch_star_lol_found() throws Exception {
     assertThat(generateActualJson(RequestType.NAME, "*.lol"))
-        .isEqualTo(generateExpectedJsonForTwoDomains("cat2.lol", "17-LOL", "cat.lol", "C-LOL"));
+        .isEqualTo(generateExpectedJsonForTwoDomains("cat.lol", "C-LOL", "cat2.lol", "17-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -863,7 +863,7 @@ public class RdapDomainSearchActionTest {
   public void testDomainMatch_star_lol_found_sameRegistrarRequested() throws Exception {
     action.registrarParam = Optional.of("evilregistrar");
     assertThat(generateActualJson(RequestType.NAME, "*.lol"))
-        .isEqualTo(generateExpectedJsonForTwoDomains("cat2.lol", "17-LOL", "cat.lol", "C-LOL"));
+        .isEqualTo(generateExpectedJsonForTwoDomains("cat.lol", "C-LOL", "cat2.lol", "17-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -1054,6 +1054,22 @@ public class RdapDomainSearchActionTest {
         "45-LOL",
         "44-LOL",
         "rdap_domains_four_truncated.json");
+  }
+
+  @Test
+  public void testDomainMatch_tldSearchOrderedProperly() throws Exception {
+    createManyDomainsAndHosts(4, 1, 2);
+    assertThat(generateActualJson(RequestType.NAME, "*.lol"))
+        .isEqualTo(readMultiDomainFile(
+            "rdap_domains_four_truncated.json",
+            "cat.lol",
+            "C-LOL",
+            "cat2.lol",
+            "17-LOL",
+            "domain1.lol",
+            "46-LOL",
+            "domain2.lol",
+            "45-LOL"));
   }
 
   @Test
