@@ -16,7 +16,6 @@ package google.registry.tools.server;
 
 import static com.google.appengine.tools.pipeline.PipelineServiceFactory.newPipelineService;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.appengine.tools.mapreduce.Counters;
 import com.google.appengine.tools.mapreduce.MapReduceResult;

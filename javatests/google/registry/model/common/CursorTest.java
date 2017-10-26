@@ -15,7 +15,6 @@
 package google.registry.model.common;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.common.Cursor.CursorType.BRDA;
 import static google.registry.model.common.Cursor.CursorType.RDE_UPLOAD;
 import static google.registry.model.common.Cursor.CursorType.RECURRING_BILLING;

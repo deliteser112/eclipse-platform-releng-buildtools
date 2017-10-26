@@ -15,7 +15,6 @@
 package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.testing.ExceptionRule;

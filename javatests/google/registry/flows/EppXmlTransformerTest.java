@@ -16,7 +16,6 @@
 package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.util.ResourceUtils.readResourceBytes;
 

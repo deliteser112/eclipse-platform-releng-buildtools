@@ -15,7 +15,6 @@
 package google.registry.config;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

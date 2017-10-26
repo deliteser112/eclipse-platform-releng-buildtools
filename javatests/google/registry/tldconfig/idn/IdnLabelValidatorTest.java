@@ -14,7 +14,6 @@
 
 package google.registry.tldconfig.idn;
 
-import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.tldconfig.idn.IdnLabelValidator.findValidIdnTableForTld;
 

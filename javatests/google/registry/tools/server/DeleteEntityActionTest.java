@@ -16,7 +16,6 @@ package google.registry.tools.server;
 
 import static com.google.appengine.api.datastore.DatastoreServiceFactory.getDatastoreService;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static com.googlecode.objectify.Key.create;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 

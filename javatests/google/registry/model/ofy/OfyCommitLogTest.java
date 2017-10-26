@@ -16,7 +16,6 @@ package google.registry.model.ofy;
 
 import static com.google.appengine.api.datastore.EntityTranslator.convertToPb;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static com.googlecode.objectify.ObjectifyService.register;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.CommitLogBucket.getBucketKey;

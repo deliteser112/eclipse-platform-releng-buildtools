@@ -15,7 +15,6 @@
 package google.registry.model;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.annotation.Id;

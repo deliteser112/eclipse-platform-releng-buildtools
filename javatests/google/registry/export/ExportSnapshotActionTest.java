@@ -15,7 +15,6 @@
 package google.registry.export;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.export.CheckSnapshotAction.CHECK_SNAPSHOT_KINDS_TO_LOAD_PARAM;
 import static google.registry.export.CheckSnapshotAction.CHECK_SNAPSHOT_NAME_PARAM;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;

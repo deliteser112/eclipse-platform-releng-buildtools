@@ -15,7 +15,6 @@
 package google.registry.monitoring.metrics;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 
 import org.junit.Rule;
 import org.junit.Test;

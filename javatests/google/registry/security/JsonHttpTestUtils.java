@@ -17,7 +17,6 @@ package google.registry.security;
 import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.security.JsonHttp.JSON_SAFETY_PREFIX;
 
 import com.google.common.base.Supplier;

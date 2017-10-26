@@ -15,7 +15,6 @@
 package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import google.registry.testing.AppEngineRule;

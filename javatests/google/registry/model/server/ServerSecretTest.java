@@ -15,7 +15,6 @@
 package google.registry.model.server;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import google.registry.model.ofy.RequestCapturingAsyncDatastoreService;

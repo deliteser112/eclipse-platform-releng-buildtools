@@ -15,7 +15,6 @@
 package google.registry.whois;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;

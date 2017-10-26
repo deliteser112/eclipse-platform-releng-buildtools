@@ -16,7 +16,6 @@ package google.registry.export;
 
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_FILE_PARAM;
 import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_ID_PARAM;
 import static google.registry.export.LoadSnapshotAction.LOAD_SNAPSHOT_KINDS_PARAM;

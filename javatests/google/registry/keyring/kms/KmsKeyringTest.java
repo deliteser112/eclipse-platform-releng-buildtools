@@ -15,7 +15,6 @@
 package google.registry.keyring.kms;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.persistResources;
 
 import com.google.common.collect.ImmutableList;

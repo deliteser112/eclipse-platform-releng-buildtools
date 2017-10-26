@@ -15,7 +15,6 @@
 package google.registry.testing.mapreduce;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.config.RegistryConfig.getEppResourceIndexBucketCount;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.mockito.Mockito.mock;
