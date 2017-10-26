@@ -51,16 +51,16 @@ public class RdapHelpAction extends RdapActionBase {
 
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase) {
+      String pathSearchString, boolean isHeadRequest) {
     // We rely on addTopLevelEntries to notice if we are sending the TOS notice, and not add a
     // duplicate boilerplate entry.
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     rdapJsonFormatter.addTopLevelEntries(
         builder,
         BoilerplateType.OTHER,
-        ImmutableList.of(rdapJsonFormatter.getJsonHelpNotice(pathSearchString, rdapLinkBase)),
+        ImmutableList.of(rdapJsonFormatter.getJsonHelpNotice(pathSearchString, fullServletPath)),
         ImmutableList.<ImmutableMap<String, Object>>of(),
-        rdapLinkBase);
+        fullServletPath);
     return builder.build();
   }
 }

@@ -58,7 +58,7 @@ public class RdapDomainAction extends RdapActionBase {
 
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase) {
+      String pathSearchString, boolean isHeadRequest) {
     DateTime now = clock.nowUtc();
     pathSearchString = canonicalizeName(pathSearchString);
     try {
@@ -79,7 +79,7 @@ public class RdapDomainAction extends RdapActionBase {
     return rdapJsonFormatter.makeRdapJsonForDomain(
         domainResource,
         true,
-        rdapLinkBase,
+        fullServletPath,
         rdapWhoisServer,
         now,
         OutputDataType.FULL,

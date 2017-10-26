@@ -71,7 +71,7 @@ public class RdapActionBaseTest {
 
     @Override
     public ImmutableMap<String, Object> getJsonObjectForResource(
-        String pathSearchString, boolean isHeadRequest, String linkBase) {
+        String pathSearchString, boolean isHeadRequest) {
       if (pathSearchString.equals("IllegalArgumentException")) {
         throw new IllegalArgumentException();
       }
@@ -103,16 +103,16 @@ public class RdapActionBaseTest {
 
   private Object generateActualJson(String domainName) {
     action.requestPath = RdapTestAction.PATH + domainName;
+    action.fullServletPath = "http://myserver.example.com" + RdapTestAction.PATH;
     action.requestMethod = GET;
-    action.rdapLinkBase = "http://myserver.example.com/";
     action.run();
     return JSONValue.parse(response.getPayload());
   }
 
   private String generateHeadPayload(String domainName) {
     action.requestPath = RdapTestAction.PATH + domainName;
+    action.fullServletPath = "http://myserver.example.com" + RdapTestAction.PATH;
     action.requestMethod = HEAD;
-    action.rdapLinkBase = "http://myserver.example.com/";
     action.run();
     return response.getPayload();
   }

@@ -215,10 +215,6 @@ misc:
   # to. Leave this null to disable syncing.
   sheetExportId: null
 
-rdap:
-  # Base URL (with trailing slash) for RDAP links.
-  baseUrl: http://domain-registry.example/rdap/
-
 # Braintree is a credit card payment processor that is used on the registrar
 # console to allow registrars to pay their invoices.
 braintree:

@@ -91,6 +91,20 @@ public final class RequestModule {
   }
 
   @Provides
+  @FullServletPath
+  static String provideFullServletPath(HttpServletRequest req) {
+    // Include the port only if it differs from the default for the scheme.
+    if ((req.getScheme().equals("http") && (req.getServerPort() == 80))
+        || (req.getScheme().equals("https") && (req.getServerPort() == 443))) {
+      return String.format("%s://%s%s", req.getScheme(), req.getServerName(), req.getServletPath());
+    } else {
+      return String.format(
+          "%s://%s:%d%s",
+          req.getScheme(), req.getServerName(), req.getServerPort(), req.getServletPath());
+    }
+  }
+
+  @Provides
   @RequestMethod
   static Action.Method provideRequestMethod(HttpServletRequest req) {
     return Action.Method.valueOf(req.getMethod());

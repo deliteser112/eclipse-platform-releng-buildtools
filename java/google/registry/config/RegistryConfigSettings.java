@@ -32,7 +32,6 @@ public class RegistryConfigSettings {
   public RegistrarConsole registrarConsole;
   public Monitoring monitoring;
   public Misc misc;
-  public Rdap rdap;
   public Braintree braintree;
   public Kms kms;
   public RegistryTool registryTool;
@@ -146,11 +145,6 @@ public class RegistryConfigSettings {
   /** Miscellaneous configuration that doesn't quite fit in anywhere else. */
   public static class Misc {
     public String sheetExportId;
-  }
-
-  /** Configuration for RDAP. */
-  public static class Rdap {
-    public String baseUrl;
   }
 
   /** Configuration for Braintree credit card payment processing. */

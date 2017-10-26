@@ -157,11 +157,11 @@ public class RdapEntityActionTest {
     action = new RdapEntityAction();
     action.clock = clock;
     action.request = request;
+    action.fullServletPath = "https://example.com/rdap";
     action.response = response;
     action.registrarParam = Optional.<String>empty();
     action.includeDeletedParam = Optional.<Boolean>empty();
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
-    action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
     action.sessionUtils = sessionUtils;
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);

@@ -53,7 +53,7 @@ public class RdapAutnumAction extends RdapActionBase {
 
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase) {
+      String pathSearchString, boolean isHeadRequest) {
     throw new NotImplementedException("Domain Name Registry information only");
   }
 }

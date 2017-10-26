@@ -84,7 +84,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
   /** Parses the parameters and calls the appropriate search function. */
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase) {
+      String pathSearchString, boolean isHeadRequest) {
     DateTime now = clock.nowUtc();
     // RDAP syntax example: /rdap/entities?fn=Bobby%20Joe*.
     // The pathSearchString is not used by search commands.
@@ -114,7 +114,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
         BoilerplateType.ENTITY,
         results.getIncompletenessWarnings(),
         ImmutableList.<ImmutableMap<String, Object>>of(),
-        rdapLinkBase);
+        fullServletPath);
     return jsonBuilder.build();
   }
 
@@ -313,7 +313,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
           contact,
           false,
           Optional.<DesignatedContact.Type>empty(),
-          rdapLinkBase,
+          fullServletPath,
           rdapWhoisServer,
           now,
           outputDataType,
@@ -325,7 +325,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
             ImmutableList.copyOf(jsonOutputList), IncompletenessWarningType.TRUNCATED);
       }
       jsonOutputList.add(rdapJsonFormatter.makeRdapJsonForRegistrar(
-          registrar, false, rdapLinkBase, rdapWhoisServer, now, outputDataType));
+          registrar, false, fullServletPath, rdapWhoisServer, now, outputDataType));
     }
     return RdapSearchResults.create(
         ImmutableList.copyOf(jsonOutputList),

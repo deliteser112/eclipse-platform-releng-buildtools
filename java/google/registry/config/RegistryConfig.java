@@ -762,17 +762,6 @@ public final class RegistryConfig {
     }
 
     /**
-     * Base for RDAP link paths.
-     *
-     * @see google.registry.rdap.RdapActionBase
-     */
-    @Provides
-    @Config("rdapLinkBase")
-    public static String provideRdapLinkBase(RegistryConfigSettings config) {
-      return config.rdap.baseUrl;
-    }
-
-    /**
      * WHOIS server displayed in RDAP query responses. As per Gustavo Lozano of ICANN, this should
      * be omitted, but the ICANN operational profile doesn't actually say that, so it's good to have
      * the ability to reinstate this field if necessary.

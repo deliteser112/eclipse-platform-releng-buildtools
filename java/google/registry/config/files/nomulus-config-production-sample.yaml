@@ -58,9 +58,6 @@ registrarConsole:
 misc:
   sheetExportId: placeholder
 
-rdap:
-  baseUrl: placeholder
-
 # You only need to specify this section if using Braintree.
 braintree:
   merchantId: placeholder

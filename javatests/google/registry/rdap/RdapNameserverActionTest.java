@@ -111,12 +111,12 @@ public class RdapNameserverActionTest {
     RdapNameserverAction action = new RdapNameserverAction();
     action.clock = clock;
     action.request = request;
+    action.fullServletPath = "https://example.tld/rdap";
     action.response = response;
     action.requestPath = RdapNameserverAction.PATH.concat(input);
     action.registrarParam = desiredRegistrar;
     action.includeDeletedParam = includeDeleted;
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
-    action.rdapLinkBase = "https://example.tld/rdap/";
     action.rdapWhoisServer = null;
     action.authResult = authResult;
     action.sessionUtils = sessionUtils;

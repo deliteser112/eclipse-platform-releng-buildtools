@@ -35,6 +35,7 @@ import google.registry.model.EppResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
+import google.registry.request.FullServletPath;
 import google.registry.request.HttpException;
 import google.registry.request.HttpException.UnprocessableEntityException;
 import google.registry.request.Parameter;
@@ -79,12 +80,12 @@ public abstract class RdapActionBase implements Runnable {
   @Inject Response response;
   @Inject @RequestMethod Action.Method requestMethod;
   @Inject @RequestPath String requestPath;
+  @Inject @FullServletPath String fullServletPath;
   @Inject AuthResult authResult;
   @Inject SessionUtils sessionUtils;
   @Inject RdapJsonFormatter rdapJsonFormatter;
   @Inject @Parameter("registrar") Optional<String> registrarParam;
   @Inject @Parameter("includeDeleted") Optional<Boolean> includeDeletedParam;
-  @Inject @Config("rdapLinkBase") String rdapLinkBase;
   @Inject @Config("rdapWhoisServer") @Nullable String rdapWhoisServer;
   @Inject @Config("rdapResultSetMaxSize") int rdapResultSetMaxSize;
 
@@ -103,11 +104,10 @@ public abstract class RdapActionBase implements Runnable {
    *        building a map, to make sure that the request would return a 500 status if it were
    *        invoked using GET. So this field should usually be ignored, unless there's some
    *        expensive task required to create the map which will never result in a request failure.
-   * @param linkBase the base URL for RDAP link structures
    * @return A map (probably containing nested maps and lists) with the final JSON response data.
    */
   abstract ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase);
+      String pathSearchString, boolean isHeadRequest);
 
   @Override
   public void run() {
@@ -124,9 +124,7 @@ public abstract class RdapActionBase implements Runnable {
           "%s doesn't start with %s", pathProper, getActionPath());
       ImmutableMap<String, Object> rdapJson =
           getJsonObjectForResource(
-              pathProper.substring(getActionPath().length()),
-              requestMethod == Action.Method.HEAD,
-              rdapLinkBase);
+              pathProper.substring(getActionPath().length()), requestMethod == Action.Method.HEAD);
       response.setStatus(SC_OK);
       response.setContentType(RESPONSE_MEDIA_TYPE);
       if (requestMethod != Action.Method.HEAD) {

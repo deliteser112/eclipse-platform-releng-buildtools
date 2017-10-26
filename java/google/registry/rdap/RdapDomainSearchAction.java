@@ -100,7 +100,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
    */
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase) {
+      String pathSearchString, boolean isHeadRequest) {
     DateTime now = clock.nowUtc();
     // RDAP syntax example: /rdap/domains?name=exam*.com.
     // The pathSearchString is not used by search commands.
@@ -151,7 +151,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
         BoilerplateType.DOMAIN,
         results.getIncompletenessWarnings(),
         ImmutableList.<ImmutableMap<String, Object>>of(),
-        rdapLinkBase);
+        fullServletPath);
     return builder.build();
   }
 
@@ -497,7 +497,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
     for (DomainResource domain : domains) {
       jsonList.add(
           rdapJsonFormatter.makeRdapJsonForDomain(
-              domain, false, rdapLinkBase, rdapWhoisServer, now, outputDataType, authorization));
+              domain, false, fullServletPath, rdapWhoisServer, now, outputDataType, authorization));
       if (jsonList.size() >= rdapResultSetMaxSize) {
         break;
       }

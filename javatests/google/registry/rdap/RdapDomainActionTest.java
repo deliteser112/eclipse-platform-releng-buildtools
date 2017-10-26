@@ -256,11 +256,11 @@ public class RdapDomainActionTest {
     action = new RdapDomainAction();
     action.clock = clock;
     action.request = request;
+    action.fullServletPath = "https://example.com/rdap";
     action.response = response;
     action.registrarParam = Optional.empty();
     action.includeDeletedParam = Optional.empty();
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
-    action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
     action.sessionUtils = sessionUtils;
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);

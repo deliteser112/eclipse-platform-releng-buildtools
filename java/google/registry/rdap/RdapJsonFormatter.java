@@ -410,8 +410,14 @@ public class RdapJsonFormatter {
     if (parameters.getTypeString() != null) {
       jsonBuilder.put("typeString", parameters.getTypeString());
     }
+    String linkBaseNotNull = nullToEmpty(linkBase);
+    String linkValueSuffixNotNull = nullToEmpty(parameters.getLinkValueSuffix());
     String linkValueString =
-        nullToEmpty(linkBase) + nullToEmpty(parameters.getLinkValueSuffix());
+        String.format(
+            "%s%s%s",
+            linkBaseNotNull,
+            (linkBaseNotNull.endsWith("/") || linkValueSuffixNotNull.startsWith("/")) ? "" : "/",
+            linkValueSuffixNotNull);
     if (parameters.getLinkHrefUrlString() == null) {
       jsonBuilder.put("links", ImmutableList.of(ImmutableMap.of(
           "value", linkValueString,

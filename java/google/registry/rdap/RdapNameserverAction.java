@@ -58,7 +58,7 @@ public class RdapNameserverAction extends RdapActionBase {
 
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase) {
+      String pathSearchString, boolean isHeadRequest) {
     DateTime now = clock.nowUtc();
     pathSearchString = canonicalizeName(pathSearchString);
     // The RDAP syntax is /rdap/nameserver/ns1.mydomain.com.
@@ -79,6 +79,6 @@ public class RdapNameserverAction extends RdapActionBase {
       throw new NotFoundException(pathSearchString + " not found");
     }
     return rdapJsonFormatter.makeRdapJsonForHost(
-        hostResource, true, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL);
+        hostResource, true, fullServletPath, rdapWhoisServer, now, OutputDataType.FULL);
   }
 }

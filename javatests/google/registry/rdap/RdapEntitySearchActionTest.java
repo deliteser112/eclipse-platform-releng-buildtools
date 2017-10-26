@@ -140,11 +140,11 @@ public class RdapEntitySearchActionTest {
 
     action.clock = clock;
     action.request = request;
+    action.fullServletPath = "https://example.com/rdap";
     action.requestPath = RdapEntitySearchAction.PATH;
     action.response = response;
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapResultSetMaxSize = 4;
-    action.rdapLinkBase = "https://example.com/rdap/";
     action.rdapWhoisServer = null;
     action.fnParam = Optional.empty();
     action.handleParam = Optional.empty();

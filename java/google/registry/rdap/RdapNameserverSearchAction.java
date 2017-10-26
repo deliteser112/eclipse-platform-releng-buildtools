@@ -87,7 +87,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
    */
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase) {
+      String pathSearchString, boolean isHeadRequest) {
     DateTime now = clock.nowUtc();
     // RDAP syntax example: /rdap/nameservers?name=ns*.example.com.
     // The pathSearchString is not used by search commands.
@@ -126,7 +126,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
         BoilerplateType.NAMESERVER,
         results.getIncompletenessWarnings(),
         ImmutableList.<ImmutableMap<String, Object>>of(),
-        rdapLinkBase);
+        fullServletPath);
     return jsonBuilder.build();
   }
 
@@ -175,7 +175,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     return RdapSearchResults.create(
         ImmutableList.of(
             rdapJsonFormatter.makeRdapJsonForHost(
-                hostResource, false, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL)));
+                hostResource, false, fullServletPath, rdapWhoisServer, now, OutputDataType.FULL)));
   }
 
   /** Searches for nameservers by name using the superordinate domain as a suffix. */
@@ -267,7 +267,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     for (HostResource host : Iterables.limit(hosts, rdapResultSetMaxSize)) {
       jsonListBuilder.add(
           rdapJsonFormatter.makeRdapJsonForHost(
-              host, false, rdapLinkBase, rdapWhoisServer, now, outputDataType));
+              host, false, fullServletPath, rdapWhoisServer, now, outputDataType));
     }
     ImmutableList<ImmutableMap<String, Object>> jsonList = jsonListBuilder.build();
     return RdapSearchResults.create(

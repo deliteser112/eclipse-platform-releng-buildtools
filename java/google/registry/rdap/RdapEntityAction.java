@@ -73,7 +73,7 @@ public class RdapEntityAction extends RdapActionBase {
 
   @Override
   public ImmutableMap<String, Object> getJsonObjectForResource(
-      String pathSearchString, boolean isHeadRequest, String linkBase) {
+      String pathSearchString, boolean isHeadRequest) {
     DateTime now = clock.nowUtc();
     // The query string is not used; the RDAP syntax is /rdap/entity/handle (the handle is the roid
     // for contacts and the client identifier for registrars). Since RDAP's concept of an entity
@@ -90,7 +90,7 @@ public class RdapEntityAction extends RdapActionBase {
             contactResource,
             true,
             Optional.<DesignatedContact.Type>empty(),
-            rdapLinkBase,
+            fullServletPath,
             rdapWhoisServer,
             now,
             OutputDataType.FULL,
@@ -103,7 +103,7 @@ public class RdapEntityAction extends RdapActionBase {
       Optional<Registrar> registrar = getRegistrarByIanaIdentifier(ianaIdentifier);
       if (registrar.isPresent() && shouldBeVisible(registrar.get())) {
         return rdapJsonFormatter.makeRdapJsonForRegistrar(
-            registrar.get(), true, rdapLinkBase, rdapWhoisServer, now, OutputDataType.FULL);
+            registrar.get(), true, fullServletPath, rdapWhoisServer, now, OutputDataType.FULL);
       }
     }
     // At this point, we have failed to find either a contact or a registrar.

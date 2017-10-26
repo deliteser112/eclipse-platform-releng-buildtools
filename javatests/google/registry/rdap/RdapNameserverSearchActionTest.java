@@ -141,12 +141,12 @@ public class RdapNameserverSearchActionTest {
 
     inject.setStaticField(Ofy.class, "clock", clock);
     action.clock = clock;
+    action.fullServletPath = "https://example.tld/rdap";
     action.requestPath = RdapNameserverSearchAction.PATH;
     action.request = request;
     action.response = response;
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapResultSetMaxSize = 4;
-    action.rdapLinkBase = "https://example.tld/rdap/";
     action.rdapWhoisServer = null;
     action.ipParam = Optional.empty();
     action.nameParam = Optional.empty();
