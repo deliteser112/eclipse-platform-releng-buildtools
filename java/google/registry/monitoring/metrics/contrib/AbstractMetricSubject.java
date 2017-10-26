@@ -107,7 +107,7 @@ abstract class AbstractMetricSubject<T, S extends AbstractMetricSubject<T, S>>
     }
     if (!metricPoint.value().equals(value)) {
       failWithBadResults(
-          String.format("has a value of %s for labels", value),
+          String.format("has a value of %s for labels", getMessageRepresentation(value)),
           Joiner.on(':').join(labels),
           "has a value of",
           getMessageRepresentation(metricPoint.value()));

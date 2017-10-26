@@ -16,12 +16,17 @@ package google.registry.monitoring.metrics.contrib;
 
 import static com.google.common.truth.Truth.assertAbout;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.BoundType;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import com.google.common.truth.FailureMetadata;
 import google.registry.monitoring.metrics.Distribution;
+import google.registry.monitoring.metrics.ImmutableDistribution;
 import google.registry.monitoring.metrics.Metric;
 import google.registry.monitoring.metrics.MetricPoint;
+import google.registry.monitoring.metrics.MutableDistribution;
 import java.util.Map;
 import javax.annotation.Nullable;
 
@@ -36,6 +41,8 @@ import javax.annotation.Nullable;
  *       .hasNoOtherValues();
  *   assertThat(myDistributionMetric)
  *       .doesNotHaveAnyValueForLabels("label1", "label2");
+ *   assertThat(myDistributionMetric)
+ *       .hasDataSetForLabels(ImmutableSet.of(data1, data2, data3), "label1", "label2");
  * </pre>
  *
  * <p>The assertions treat an empty distribution as no value at all. This is not how the data is
@@ -93,5 +100,26 @@ public final class DistributionMetricSubject
     }
     sb.append('}');
     return sb.toString();
+  }
+
+  /**
+   * Asserts that the distribution for the given label can be constructed from the given data set.
+   *
+   * <p>Note that this only tests that the distribution has the same binned histogram as it would if
+   * it had recorded the specified data points. It could have in fact collected different data
+   * points that resulted in the same histogram, but that information is lost to us and cannot be
+   * tested.
+   */
+  public And<DistributionMetricSubject> hasDataSetForLabels(
+      ImmutableSet<? extends Number> dataSet, String... labels) {
+    ImmutableList<MetricPoint<Distribution>> metricPoints = actual().getTimestampedValues();
+    if (metricPoints.isEmpty()) {
+      failWithBadResults(
+          "has a distribution for labels", Joiner.on(':').join(labels), "has", "no values");
+    }
+    MutableDistribution targetDistribution =
+        new MutableDistribution(metricPoints.get(0).value().distributionFitter());
+    dataSet.forEach(data -> targetDistribution.add(data.doubleValue()));
+    return hasValueForLabels(ImmutableDistribution.copyOf(targetDistribution), labels);
   }
 }

@@ -15,9 +15,8 @@
 package google.registry.monitoring.metrics.contrib;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.monitoring.metrics.contrib.DistributionMetricSubject.assertThat;
-import static org.junit.Assert.fail;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableSet;
 import google.registry.monitoring.metrics.EventMetric;
@@ -54,17 +53,15 @@ public class DistributionMetricSubjectTest {
 
   @Test
   public void testWrongNumberOfLabels_fails() {
-    try {
-      assertThat(metric).hasAnyValueForLabels("Domestic");
-      fail("Expected assertion error");
-    } catch (AssertionError e) {
-      assertThat(e)
-          .hasMessageThat()
-          .isEqualTo(
-              "Not true that </test/event/sheep> has a value for labels <Domestic>."
-              + " It has labeled values <[Bighorn:Blue =>"
-              + " {[4.0..16.0)=1}, Domestic:Green => {[1.0..4.0)=1}]>");
-    }
+    AssertionError e =
+        expectThrows(
+            AssertionError.class, () -> assertThat(metric).hasAnyValueForLabels("Domestic"));
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo(
+            "Not true that </test/event/sheep> has a value for labels <Domestic>."
+                + " It has labeled values <[Bighorn:Blue =>"
+                + " {[4.0..16.0)=1}, Domestic:Green => {[1.0..4.0)=1}]>");
   }
 
   @Test
@@ -89,33 +86,104 @@ public class DistributionMetricSubjectTest {
 
   @Test
   public void testDoesNotHaveValueForLabels_failure() {
-    try {
-      assertThat(metric).doesNotHaveAnyValueForLabels("Domestic", "Green");
-      fail("Expected assertion error");
-    } catch (AssertionError e) {
-      assertThat(e)
-          .hasMessageThat()
-          .isEqualTo(
-              "Not true that </test/event/sheep> has no value for labels <Domestic:Green>."
-              + " It has a value of <{[1.0..4.0)=1}>");
-    }
+    AssertionError e =
+        expectThrows(
+            AssertionError.class,
+            () -> assertThat(metric).doesNotHaveAnyValueForLabels("Domestic", "Green"));
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo(
+            "Not true that </test/event/sheep> has no value for labels <Domestic:Green>."
+                + " It has a value of <{[1.0..4.0)=1}>");
   }
 
   @Test
   public void testUnexpectedValue_failure() {
-    try {
-      assertThat(metric)
-          .hasAnyValueForLabels("Domestic", "Green")
-          .and()
-          .hasNoOtherValues();
-      fail("Expected assertion error");
-    } catch (AssertionError e) {
-      assertThat(e)
-          .hasMessageThat()
-          .isEqualTo(
-              "Not true that </test/event/sheep> has <no other nondefault values>."
-              + " It has labeled values <[Bighorn:Blue =>"
-              + " {[4.0..16.0)=1}, Domestic:Green => {[1.0..4.0)=1}]>");
-    }
+    AssertionError e =
+        expectThrows(
+            AssertionError.class,
+            () ->
+                assertThat(metric)
+                    .hasAnyValueForLabels("Domestic", "Green")
+                    .and()
+                    .hasNoOtherValues());
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo(
+            "Not true that </test/event/sheep> has <no other nondefault values>."
+                + " It has labeled values <[Bighorn:Blue =>"
+                + " {[4.0..16.0)=1}, Domestic:Green => {[1.0..4.0)=1}]>");
+  }
+
+  @Test
+  public void testExpectedDataSet_success() {
+    metric.record(7.5, "Domestic", "Green");
+    assertThat(metric).hasDataSetForLabels(ImmutableSet.of(2.5, 7.5), "Domestic", "Green");
+  }
+
+  @Test
+  public void testExpectedDataSetsChained_success() {
+    metric.record(7.5, "Domestic", "Green");
+    assertThat(metric)
+        .hasDataSetForLabels(ImmutableSet.of(2.5, 7.5), "Domestic", "Green")
+        .and()
+        .hasDataSetForLabels(ImmutableSet.of(10), "Bighorn", "Blue")
+        .and()
+        .hasNoOtherValues();
+  }
+
+  @Test
+  public void testUnexpectedDataSet_failure() {
+    AssertionError e =
+        expectThrows(
+            AssertionError.class,
+            () ->
+                assertThat(metric)
+                    .hasDataSetForLabels(ImmutableSet.of(2.5, 7.5), "Domestic", "Green"));
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo(
+            "Not true that </test/event/sheep> has a value of"
+                + " {[1.0..4.0)=1,[4.0..16.0)=1} for labels <Domestic:Green>."
+                + " It has a value of <{[1.0..4.0)=1}>");
+  }
+
+  @Test
+  public void testNonExistentLabels_failure() {
+    AssertionError e =
+        expectThrows(
+            AssertionError.class,
+            () ->
+                assertThat(metric)
+                    .hasDataSetForLabels(ImmutableSet.of(2.5, 7.5), "Domestic", "Blue"));
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo(
+            "Not true that </test/event/sheep> has a value for labels <Domestic:Blue>."
+                + " It has labeled values <[Bighorn:Blue => {[4.0..16.0)=1},"
+                + " Domestic:Green => {[1.0..4.0)=1}]>");
+  }
+
+  @Test
+  public void testEmptyMetric_failure() {
+    EventMetric emptyMetric =
+        MetricRegistryImpl.getDefault()
+            .newEventMetric(
+                "/test/event/goat",
+                "Sheep Latency",
+                "sheeplatency",
+                LABEL_DESCRIPTORS,
+                EventMetric.DEFAULT_FITTER);
+    AssertionError e =
+        expectThrows(
+            AssertionError.class,
+            () ->
+                assertThat(emptyMetric)
+                    .hasDataSetForLabels(ImmutableSet.of(2.5, 7.5), "Domestic", "Blue"));
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo(
+            "Not true that </test/event/goat> has a distribution for labels <Domestic:Blue>."
+                + " It has <no values>");
   }
 }
