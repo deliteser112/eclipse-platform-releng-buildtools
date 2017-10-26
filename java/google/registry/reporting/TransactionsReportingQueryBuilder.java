@@ -20,13 +20,14 @@ import static google.registry.reporting.IcannReportingModule.ICANN_REPORTING_DAT
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.request.Parameter;
 import google.registry.util.ResourceUtils;
 import google.registry.util.SqlTemplate;
 import java.io.IOException;
 import java.net.URL;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
+import org.joda.time.LocalTime;
+import org.joda.time.YearMonth;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -36,7 +37,9 @@ import org.joda.time.format.DateTimeFormatter;
 public final class TransactionsReportingQueryBuilder implements QueryBuilder {
 
   @Inject @Config("projectId") String projectId;
-  @Inject @Parameter(IcannReportingModule.PARAM_YEAR_MONTH) String yearMonth;
+
+  @Inject YearMonth yearMonth;
+
   @Inject TransactionsReportingQueryBuilder() {}
 
   static final String TRANSACTIONS_REPORT_AGGREGATION = "transactions_report_aggregation";
@@ -61,15 +64,9 @@ public final class TransactionsReportingQueryBuilder implements QueryBuilder {
   @Override
   public ImmutableMap<String, String> getViewQueryMap() throws IOException {
     // Set the earliest date to to yearMonth on day 1 at 00:00:00
-    DateTime earliestReportTime =
-        DateTimeFormat.forPattern("yyyy-MM")
-            .parseDateTime(yearMonth)
-            .withDayOfMonth(1)
-            .withHourOfDay(0)
-            .withMinuteOfHour(0)
-            .withSecondOfMinute(0);
-    // Set the latest date to yearMonth on the last day at 23:59:59
-    DateTime latestReportTime = earliestReportTime.plusMonths(1).minusSeconds(1);
+    DateTime earliestReportTime = yearMonth.toLocalDate(1).toDateTime(new LocalTime(0, 0, 0));
+    // Set the latest date to yearMonth on the last day at 23:59:59.999
+    DateTime latestReportTime = earliestReportTime.plusMonths(1).minusMillis(1);
     return createQueryMap(earliestReportTime, latestReportTime);
   }
 
@@ -95,7 +92,7 @@ public final class TransactionsReportingQueryBuilder implements QueryBuilder {
             .build();
     queriesBuilder.put(getTableName(TOTAL_DOMAINS), totalDomainsQuery);
 
-    DateTimeFormatter timestampFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+    DateTimeFormatter timestampFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
     String totalNameserversQuery =
         SqlTemplate.create(getQueryFromFile("total_nameservers.sql"))
             .put("PROJECT_ID", projectId)
@@ -173,9 +170,9 @@ public final class TransactionsReportingQueryBuilder implements QueryBuilder {
     return queriesBuilder.build();
   }
 
-  /** Returns the table name of the query, suffixed with the yearMonth in _YYYYMM format. */
+  /** Returns the table name of the query, suffixed with the yearMonth in _yyyyMM format. */
   private String getTableName(String queryName) {
-    return String.format("%s_%s", queryName, yearMonth.replace("-", ""));
+    return String.format("%s_%s", queryName, DateTimeFormat.forPattern("yyyyMM").print(yearMonth));
   }
 
   /** Returns {@link String} for file in {@code reporting/sql/} directory. */

@@ -131,4 +131,3 @@ public class IcannReportingStagingActionTest {
                 + " check logs for more details.");
   }
 }
-

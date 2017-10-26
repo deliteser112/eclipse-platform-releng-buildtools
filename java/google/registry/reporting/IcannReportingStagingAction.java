@@ -24,7 +24,6 @@ import com.google.common.net.MediaType;
 import google.registry.bigquery.BigqueryJobFailureException;
 import google.registry.reporting.IcannReportingModule.ReportType;
 import google.registry.request.Action;
-import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
@@ -56,10 +55,7 @@ public final class IcannReportingStagingAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @Inject
-  @Parameter(IcannReportingModule.PARAM_REPORT_TYPE)
-  ImmutableList<ReportType> reportTypes;
-
+  @Inject ImmutableList<ReportType> reportTypes;
   @Inject IcannReportingStager stager;
   @Inject Retrier retrier;
   @Inject Response response;

@@ -16,6 +16,7 @@ package google.registry.reporting;
 
 import static google.registry.request.RequestParameters.extractOptionalEnumParameter;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
@@ -29,10 +30,15 @@ import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
 import google.registry.util.Clock;
 import google.registry.util.SendEmailService;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
 import java.util.Optional;
+import javax.inject.Qualifier;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.Duration;
+import org.joda.time.YearMonth;
 import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 /** Module for dependencies required by ICANN monthly transactions/activity reporting. */
 @Module
@@ -44,9 +50,7 @@ public final class IcannReportingModule {
     ACTIVITY
   }
 
-  static final String PARAM_OPTIONAL_YEAR_MONTH = "yearMonthOptional";
   static final String PARAM_YEAR_MONTH = "yearMonth";
-  static final String PARAM_OPTIONAL_SUBDIR = "subdirOptional";
   static final String PARAM_SUBDIR = "subdir";
   static final String PARAM_REPORT_TYPE = "reportType";
   static final String ICANN_REPORTING_DATA_SET = "icann_reporting";
@@ -55,42 +59,45 @@ public final class IcannReportingModule {
   private static final String DEFAULT_SUBDIR = "icann/monthly";
   private static final String BIGQUERY_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
 
-  /** Extracts an optional yearMonth in yyyy-MM format from the request. */
+  /** Extracts an optional YearMonth in yyyy-MM format from the request. */
   @Provides
-  @Parameter(PARAM_OPTIONAL_YEAR_MONTH)
-  static Optional<String> provideYearMonthOptional(HttpServletRequest req) {
-    return extractOptionalParameter(req, PARAM_YEAR_MONTH);
+  @Parameter(PARAM_YEAR_MONTH)
+  static Optional<YearMonth> provideYearMonthOptional(HttpServletRequest req) {
+    DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM");
+    Optional<String> optionalYearMonthStr = extractOptionalParameter(req, PARAM_YEAR_MONTH);
+    try {
+      return optionalYearMonthStr.map(s -> YearMonth.parse(s, formatter));
+    } catch (IllegalArgumentException e) {
+      throw new BadRequestException(
+          String.format(
+              "yearMonth must be in yyyy-MM format, got %s instead",
+              optionalYearMonthStr.orElse("UNSPECIFIED YEARMONTH")));
+    }
   }
 
   /** Provides the yearMonth in yyyy-MM format, defaults to one month prior to run time. */
   @Provides
-  @Parameter(PARAM_YEAR_MONTH)
-  static String provideYearMonth(
-      @Parameter(PARAM_OPTIONAL_YEAR_MONTH) Optional<String> yearMonthOptional, Clock clock) {
-    String yearMonth =
-        yearMonthOptional.orElse(
-            DateTimeFormat.forPattern("yyyy-MM").print(clock.nowUtc().minusMonths(1)));
-    if (!yearMonth.matches("[0-9]{4}-[0-9]{2}")) {
-      throw new BadRequestException(
-          String.format("yearMonth must be in yyyy-MM format, got %s instead", yearMonth));
-    }
-    return yearMonth;
+  static YearMonth provideYearMonth(
+      @Parameter(PARAM_YEAR_MONTH) Optional<YearMonth> yearMonthOptional, Clock clock) {
+    return yearMonthOptional.orElseGet(() -> new YearMonth(clock.nowUtc().minusMonths(1)));
   }
 
   /** Provides an optional subdirectory to store/upload reports to, extracted from the request. */
   @Provides
-  @Parameter(PARAM_OPTIONAL_SUBDIR)
+  @Parameter(PARAM_SUBDIR)
   static Optional<String> provideSubdirOptional(HttpServletRequest req) {
     return extractOptionalParameter(req, PARAM_SUBDIR);
   }
 
   /** Provides the subdirectory to store/upload reports to, defaults to icann/monthly/yearMonth. */
   @Provides
-  @Parameter(PARAM_SUBDIR)
+  @ReportingSubdir
   static String provideSubdir(
-      @Parameter(PARAM_OPTIONAL_SUBDIR) Optional<String> subdirOptional,
-      @Parameter(PARAM_YEAR_MONTH) String yearMonth) {
-    String subdir = subdirOptional.orElse(String.format("%s/%s", DEFAULT_SUBDIR, yearMonth));
+      @Parameter(PARAM_SUBDIR) Optional<String> subdirOptional, YearMonth yearMonth) {
+    String subdir =
+        subdirOptional.orElse(
+            String.format(
+                "%s/%s", DEFAULT_SUBDIR, DateTimeFormat.forPattern("yyyy-MM").print(yearMonth)));
     if (subdir.startsWith("/") || subdir.endsWith("/")) {
       throw new BadRequestException(
           String.format("subdir must not start or end with a \"/\", got %s instead.", subdir));
@@ -100,14 +107,15 @@ public final class IcannReportingModule {
 
   /** Provides an optional reportType to store/upload reports to, extracted from the request. */
   @Provides
+  @Parameter(PARAM_REPORT_TYPE)
   static Optional<ReportType> provideReportTypeOptional(HttpServletRequest req) {
     return extractOptionalEnumParameter(req, ReportType.class, PARAM_REPORT_TYPE);
   }
 
   /** Provides a list of reportTypes specified. If absent, we default to both report types. */
   @Provides
-  @Parameter(PARAM_REPORT_TYPE)
-  static ImmutableList<ReportType> provideReportTypes(Optional<ReportType> reportTypeOptional) {
+  static ImmutableList<ReportType> provideReportTypes(
+      @Parameter(PARAM_REPORT_TYPE) Optional<ReportType> reportTypeOptional) {
     return reportTypeOptional.map(ImmutableList::of)
         .orElseGet(() -> ImmutableList.of(ReportType.ACTIVITY, ReportType.TRANSACTIONS));
   }
@@ -144,5 +152,11 @@ public final class IcannReportingModule {
   static SendEmailService provideSendEmailService() {
     return new SendEmailService();
   }
+
+  /** Dagger qualifier for the subdirectory we stage to/upload from. */
+  @Qualifier
+  @Documented
+  @Retention(RUNTIME)
+  public @interface ReportingSubdir {}
 }
 

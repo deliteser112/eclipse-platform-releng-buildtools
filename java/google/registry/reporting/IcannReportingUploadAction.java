@@ -27,8 +27,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteStreams;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
+import google.registry.reporting.IcannReportingModule.ReportingSubdir;
 import google.registry.request.Action;
-import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
@@ -62,8 +62,7 @@ public final class IcannReportingUploadAction implements Runnable {
   @Config("icannReportingBucket")
   String reportingBucket;
 
-  @Inject
-  @Parameter(IcannReportingModule.PARAM_SUBDIR)
+  @Inject @ReportingSubdir
   String subdir;
 
   @Inject GcsUtils gcsUtils;

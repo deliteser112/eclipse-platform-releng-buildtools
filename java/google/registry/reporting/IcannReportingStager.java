@@ -34,7 +34,7 @@ import google.registry.bigquery.BigqueryUtils.TableType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.reporting.IcannReportingModule.ReportType;
-import google.registry.request.Parameter;
+import google.registry.reporting.IcannReportingModule.ReportingSubdir;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,6 +47,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
+import org.joda.time.YearMonth;
+import org.joda.time.format.DateTimeFormat;
 
 /**
  * Class containing methods for staging ICANN monthly reports on GCS.
@@ -58,10 +60,9 @@ public class IcannReportingStager {
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Inject @Config("icannReportingBucket") String reportingBucket;
-  @Inject @Parameter(IcannReportingModule.PARAM_YEAR_MONTH) String yearMonth;
 
-  @Inject
-  @Parameter(IcannReportingModule.PARAM_SUBDIR)
+  @Inject YearMonth yearMonth;
+  @Inject @ReportingSubdir
   String subdir;
 
   @Inject ActivityReportingQueryBuilder activityQueryBuilder;
@@ -242,7 +243,9 @@ public class IcannReportingStager {
     String reportFilename =
         String.format(
             "%s-%s-%s.csv",
-            tld, Ascii.toLowerCase(reportType.toString()), yearMonth.replace("-", ""));
+            tld,
+            Ascii.toLowerCase(reportType.toString()),
+            DateTimeFormat.forPattern("yyyyMM").print(yearMonth));
     String reportBucketname = String.format("%s/%s", reportingBucket, subdir);
     final GcsFilename gcsFilename = new GcsFilename(reportBucketname, reportFilename);
     gcsUtils.createFromBytes(gcsFilename, reportBytes);

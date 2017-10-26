@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
+import org.joda.time.YearMonth;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -29,7 +30,7 @@ public class ActivityReportingQueryBuilderTest {
 
   private ActivityReportingQueryBuilder getQueryBuilder() {
     ActivityReportingQueryBuilder queryBuilder = new ActivityReportingQueryBuilder();
-    queryBuilder.yearMonth = "2017-09";
+    queryBuilder.yearMonth = new YearMonth(2017, 9);
     queryBuilder.projectId = "domain-registry-alpha";
     return queryBuilder;
   }
