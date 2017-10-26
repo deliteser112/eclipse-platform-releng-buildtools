@@ -574,10 +574,10 @@ def com_google_appengine_remote_api():
 def com_google_appengine_testing():
   java_import_external(
       name = "com_google_appengine_testing",
-      jar_sha256 = "ec59a2cc5b502c57b46a5ffff9eb11c3f9b64ead390318fc0bb063cade27c9f4",
+      jar_sha256 = "f18c93f08b45a56330dcf5625a75e169af37ff1a1d62e0ee4af668c568266fd3",
       jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/appengine/appengine-testing/1.9.48/appengine-testing-1.9.48.jar",
-          "http://repo1.maven.org/maven2/com/google/appengine/appengine-testing/1.9.48/appengine-testing-1.9.48.jar",
+        "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/appengine/appengine-testing/1.9.58/appengine-testing-1.9.58.jar",
+        "http://repo1.maven.org/maven2/com/google/appengine/appengine-testing/1.9.58/appengine-testing-1.9.58.jar",
       ],
       licenses = ["permissive"],  # Google App Engine Terms of Service: https://cloud.google.com/terms/
       testonly_ = True,
@@ -1174,6 +1174,7 @@ def com_google_truth_extensions_truth_java8_extension():
       name = "com_google_truth_extensions_truth_java8_extension",
       jar_sha256 = "44566c46783296856c80b14fc3b324d0616c192fa0090214b0eaf1b0b5697266",
       jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/central.maven.org/maven2/com/google/truth/extensions/truth-java8-extension/0.36/truth-java8-extension-0.36.jar",
           "http://central.maven.org/maven2/com/google/truth/extensions/truth-java8-extension/0.36/truth-java8-extension-0.36.jar",
       ],
       licenses = ["notice"],  # The Apache Software License, Version 2.0
