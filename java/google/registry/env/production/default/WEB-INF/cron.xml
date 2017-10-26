@@ -251,4 +251,23 @@
     <target>backend</target>
   </cron>
 
+  <cron>
+    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/icannReportingStaging&runInEmpty]]></url>
+    <description>
+      Create ICANN activity and transaction reports for last month, storing them in
+      gs://domain-registry-alpha-reporting/icann/monthly/yyyy-MM
+    </description>
+    <schedule>2 of month 09:00</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/icannReportingUpload&runInEmpty]]></url>
+    <description>
+      Upload ICANN activity and transaction reports for last month to ICANN, fetching them from
+      gs://domain-registry-alpha-reporting/icann/monthly/yyyy-MM
+    </description>
+    <schedule>4 of month 09:00</schedule>
+    <target>backend</target>
+  </cron>
 </cronentries>

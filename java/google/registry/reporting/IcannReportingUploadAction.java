@@ -19,6 +19,7 @@ import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static google.registry.reporting.IcannReportingModule.MANIFEST_FILE_NAME;
 import static google.registry.request.Action.Method.POST;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.base.Splitter;
@@ -99,6 +100,7 @@ public final class IcannReportingUploadAction implements Runnable {
       reportSummaryBuilder.put(reportFilename, success);
     }
     emailUploadResults(reportSummaryBuilder.build());
+    response.setStatus(SC_OK);
     response.setContentType(PLAIN_TEXT_UTF_8);
     response.setPayload(
         String.format("OK, attempted uploading %d reports", manifestedFiles.size()));
