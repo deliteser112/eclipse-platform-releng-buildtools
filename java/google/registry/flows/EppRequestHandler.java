@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package google.registry.flows;
 
 import static google.registry.flows.EppXmlTransformer.marshalWithLenientRetry;
+import static google.registry.model.eppoutput.Result.Code.SUCCESS_AND_CLOSE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.net.MediaType;
+import google.registry.model.eppoutput.EppOutput;
 import google.registry.request.Response;
 import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
@@ -35,7 +36,9 @@ public class EppRequestHandler {
 
   @Inject EppController eppController;
   @Inject Response response;
-  @Inject EppRequestHandler() {}
+
+  @Inject
+  EppRequestHandler() {}
 
   /** Handle an EPP request and write out a servlet response. */
   public void executeEpp(
@@ -46,23 +49,27 @@ public class EppRequestHandler {
       boolean isSuperuser,
       byte[] inputXmlBytes) {
     try {
-      response.setPayload(new String(
-          marshalWithLenientRetry(
-              eppController.handleEppCommand(
-                  sessionMetadata,
-                  credentials,
-                  eppRequestSource,
-                  isDryRun,
-                  isSuperuser,
-                  inputXmlBytes)),
-          UTF_8));
+      EppOutput eppOutput =
+          eppController.handleEppCommand(
+              sessionMetadata, credentials, eppRequestSource, isDryRun, isSuperuser, inputXmlBytes);
+      response.setPayload(new String(marshalWithLenientRetry(eppOutput), UTF_8));
       response.setContentType(APPLICATION_EPP_XML);
       // Note that we always return 200 (OK) even if the EppController returns an error response.
-      // This is because returning an non-OK HTTP status code will cause the proxy server to
+      // This is because returning a non-OK HTTP status code will cause the proxy server to
       // silently close the connection without returning any data. The only time we will ever return
       // a non-OK status (400) is if we fail to muster even an EPP error response message. In that
       // case it's better to close the connection than to return garbage.
       response.setStatus(SC_OK);
+      // Per RFC 5734, a server receiving a logout command must end the EPP session and close the
+      // TCP connection. Since the app itself only gets HttpServletRequest and is not aware of TCP
+      // sessions, it simply sets the HTTP response header to indicate the connection should be
+      // closed by the proxy. Whether the EPP proxy actually terminates the connection with the
+      // client is up to its implementation.
+      // See: https://tools.ietf.org/html/rfc5734#section-2
+      if (eppOutput.isResponse()
+          && eppOutput.getResponse().getResult().getCode() == SUCCESS_AND_CLOSE) {
+        response.setHeader("Epp-Session", "close");
+      }
     } catch (Exception e) {
       logger.warning(e, "handleEppCommand general exception");
       response.setStatus(SC_BAD_REQUEST);
