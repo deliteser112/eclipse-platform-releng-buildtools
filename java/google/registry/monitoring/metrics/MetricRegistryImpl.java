@@ -36,11 +36,10 @@ public final class MetricRegistryImpl implements MetricRegistry {
   /** The canonical registry for metrics. The map key is the metric name. */
   private final ConcurrentHashMap<String, Metric<?>> registeredMetrics = new ConcurrentHashMap<>();
 
-  
   /**
-   * Production code must use {@link getDefault}, since this returns the {@link MetricRegistry}
-   * that {@link MetricReporter} uses.  Test code that does not use {@link MetricReporter} can
-   * use this constructor to get an isolated instance of the registry.
+   * Production code must use {@link #getDefault}, since this returns the {@link MetricRegistry}
+   * that {@link MetricReporter} uses. Test code that does not use {@link MetricReporter} can use
+   * this constructor to get an isolated instance of the registry.
    */
   @VisibleForTesting
   public MetricRegistryImpl() {}
@@ -144,9 +143,14 @@ public final class MetricRegistryImpl implements MetricRegistry {
    * write intervals.
    */
   @VisibleForTesting
-  void unregisterMetric(String name) {
+  public void unregisterMetric(String name) {
     registeredMetrics.remove(name);
     logger.info("Unregistered metric: " + name);
+  }
+
+  @VisibleForTesting
+  public void unregisterAllMetrics() {
+    registeredMetrics.clear();
   }
 
   /** Registers a metric. */

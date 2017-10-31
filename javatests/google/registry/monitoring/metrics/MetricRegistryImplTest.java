@@ -37,19 +37,14 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class MetricRegistryImplTest {
 
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   private final LabelDescriptor label =
       LabelDescriptor.create("test_labelname", "test_labeldescription");
 
   @After
   public void clearMetrics() {
-    ImmutableList<Metric<?>> metrics = MetricRegistryImpl.getDefault().getRegisteredMetrics();
-
-    for (Metric<?> metric : metrics) {
-      MetricRegistryImpl.getDefault().unregisterMetric(metric.getMetricSchema().name());
-    }
+    MetricRegistryImpl.getDefault().unregisterAllMetrics();
   }
 
   @Test
