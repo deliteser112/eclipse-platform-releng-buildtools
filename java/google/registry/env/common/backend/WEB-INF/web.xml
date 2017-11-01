@@ -57,6 +57,19 @@
     <url-pattern>/_dr/task/brdaCopy</url-pattern>
   </servlet-mapping>
 
+  <!-- Billing -->
+
+  <!--
+    Generates the invoice CSV for the month, which we send to billing to charge
+    registrars for their registrations.
+  -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/generateInvoices</url-pattern>
+  </servlet-mapping>
+
+  <!-- ICANN Monthly Reporting -->
+
   <!--
     Monthly ICANN transaction and activity reports. This task generates report
     files (in CSV format) and stores them in GCS under

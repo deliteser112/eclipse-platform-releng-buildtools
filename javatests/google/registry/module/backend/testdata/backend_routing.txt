@@ -14,6 +14,7 @@ PATH                                   CLASS                              METHOD
 /_dr/task/exportDomainLists            ExportDomainListsAction            POST     n  INTERNAL     APP IGNORED
 /_dr/task/exportReservedTerms          ExportReservedTermsAction          POST     n  INTERNAL     APP IGNORED
 /_dr/task/exportSnapshot               ExportSnapshotAction               POST     y  INTERNAL     APP IGNORED
+/_dr/task/generateInvoices             GenerateInvoicesAction             POST     n  INTERNAL     APP IGNORED
 /_dr/task/icannReportingStaging        IcannReportingStagingAction        POST     n  INTERNAL     APP IGNORED
 /_dr/task/icannReportingUpload         IcannReportingUploadAction         POST     n  INTERNAL,API APP ADMIN
 /_dr/task/importRdeContacts            RdeContactImportAction             GET      n  INTERNAL     APP IGNORED

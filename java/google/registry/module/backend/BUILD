@@ -11,6 +11,7 @@ java_library(
         "//java/google/registry/backup",
         "//java/google/registry/batch",
         "//java/google/registry/bigquery",
+        "//java/google/registry/billing",
         "//java/google/registry/config",
         "//java/google/registry/cron",
         "//java/google/registry/dns",

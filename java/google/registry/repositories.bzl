@@ -29,10 +29,15 @@ def domain_registry_repositories(
     omit_com_fasterxml_jackson_core_jackson_databind=False,
     omit_com_google_api_client=False,
     omit_com_google_api_client_appengine=False,
+    omit_com_google_api_client_jackson2=False,
+    omit_com_google_api_client_java6=False,
     omit_com_google_api_client_servlet=False,
     omit_com_google_apis_google_api_services_admin_directory=False,
     omit_com_google_apis_google_api_services_bigquery=False,
+    omit_com_google_apis_google_api_services_clouddebugger=False,
     omit_com_google_apis_google_api_services_cloudkms=False,
+    omit_com_google_apis_google_api_services_cloudresourcemanager=False,
+    omit_com_google_apis_google_api_services_dataflow=False,
     omit_com_google_apis_google_api_services_dns=False,
     omit_com_google_apis_google_api_services_drive=False,
     omit_com_google_apis_google_api_services_groupssettings=False,
@@ -48,10 +53,14 @@ def domain_registry_repositories(
     omit_com_google_appengine_tools_appengine_mapreduce=False,
     omit_com_google_appengine_tools_appengine_pipeline=False,
     omit_com_google_appengine_tools_sdk=False,
+    omit_com_google_auth_library_credentials=False,
+    omit_com_google_auth_library_oauth2_http=False,
     omit_com_google_auto_common=False,
     omit_com_google_auto_factory=False,
     omit_com_google_auto_service=False,
     omit_com_google_auto_value=False,
+    omit_com_google_cloud_bigdataoss_gcsio=False,
+    omit_com_google_cloud_bigdataoss_util=False,
     omit_com_google_code_findbugs_jsr305=False,
     omit_com_google_dagger=False,
     omit_com_google_dagger_compiler=False,
@@ -81,6 +90,7 @@ def domain_registry_repositories(
     omit_com_sun_xml_bind_jaxb_core=False,
     omit_com_sun_xml_bind_jaxb_impl=False,
     omit_com_sun_xml_bind_jaxb_xjc=False,
+    omit_com_thoughtworks_paranamer=False,
     omit_commons_codec=False,
     omit_commons_logging=False,
     omit_dnsjava=False,
@@ -92,6 +102,13 @@ def domain_registry_repositories(
     omit_javax_xml_bind_jaxb_api=False,
     omit_joda_time=False,
     omit_junit=False,
+    omit_org_apache_avro=False,
+    omit_org_apache_beam_runners_google_cloud_dataflow_java=False,
+    omit_org_apache_beam_sdks_common_runner_api=False,
+    omit_org_apache_beam_sdks_java_core=False,
+    omit_org_apache_beam_sdks_java_extensions_google_cloud_platform_core=False,
+    omit_org_apache_beam_sdks_java_io_google_cloud_platform=False,
+    omit_org_apache_commons_compress=False,
     omit_org_apache_ftpserver_core=False,
     omit_org_apache_httpcomponents_httpclient=False,
     omit_org_apache_httpcomponents_httpcore=False,
@@ -101,16 +118,25 @@ def domain_registry_repositories(
     omit_org_bouncycastle_bcpg_jdk15on=False,
     omit_org_bouncycastle_bcpkix_jdk15on=False,
     omit_org_bouncycastle_bcprov_jdk15on=False,
+    omit_org_codehaus_jackson_core_asl=False,
+    omit_org_codehaus_jackson_mapper_asl=False,
+    omit_org_hamcrest_all=False,
     omit_org_hamcrest_core=False,
     omit_org_hamcrest_library=False,
     omit_org_joda_money=False,
     omit_org_json=False,
+    omit_org_khronos_opengl_api=False,
     omit_org_mockito_all=False,
     omit_org_mortbay_jetty=False,
     omit_org_mortbay_jetty_servlet_api=False,
     omit_org_mortbay_jetty_util=False,
+    omit_org_osgi_core=False,
     omit_org_slf4j_api=False,
-    omit_org_yaml_snakeyaml=False):
+    omit_org_tukaani_xz=False,
+    omit_org_xerial_snappy_java=False,
+    omit_org_yaml_snakeyaml=False,
+    omit_xerces_xmlParserAPIs=False,
+    omit_xpp3=False,):
   """Imports dependencies for Nomulus."""
   domain_registry_bazel_check()
   if not omit_com_beust_jcommander:
@@ -127,14 +153,24 @@ def domain_registry_repositories(
     com_google_api_client()
   if not omit_com_google_api_client_appengine:
     com_google_api_client_appengine()
+  if not omit_com_google_api_client_jackson2:
+    com_google_api_client_jackson2()
+  if not omit_com_google_api_client_java6:
+    com_google_api_client_java6()
   if not omit_com_google_api_client_servlet:
     com_google_api_client_servlet()
   if not omit_com_google_apis_google_api_services_admin_directory:
     com_google_apis_google_api_services_admin_directory()
   if not omit_com_google_apis_google_api_services_bigquery:
     com_google_apis_google_api_services_bigquery()
+  if not omit_com_google_apis_google_api_services_clouddebugger:
+    com_google_apis_google_api_services_clouddebugger()
   if not omit_com_google_apis_google_api_services_cloudkms:
     com_google_apis_google_api_services_cloudkms()
+  if not omit_com_google_apis_google_api_services_cloudresourcemanager:
+    com_google_apis_google_api_services_cloudresourcemanager()
+  if not omit_com_google_apis_google_api_services_dataflow:
+    com_google_apis_google_api_services_dataflow()
   if not omit_com_google_apis_google_api_services_dns:
     com_google_apis_google_api_services_dns()
   if not omit_com_google_apis_google_api_services_drive:
@@ -165,6 +201,10 @@ def domain_registry_repositories(
     com_google_appengine_tools_appengine_pipeline()
   if not omit_com_google_appengine_tools_sdk:
     com_google_appengine_tools_sdk()
+  if not omit_com_google_auth_library_credentials:
+    com_google_auth_library_credentials()
+  if not omit_com_google_auth_library_oauth2_http:
+    com_google_auth_library_oauth2_http()
   if not omit_com_google_auto_common:
     com_google_auto_common()
   if not omit_com_google_auto_factory:
@@ -173,6 +213,10 @@ def domain_registry_repositories(
     com_google_auto_service()
   if not omit_com_google_auto_value:
     com_google_auto_value()
+  if not omit_com_google_cloud_bigdataoss_gcsio:
+    com_google_cloud_bigdataoss_gcsio()
+  if not omit_com_google_cloud_bigdataoss_util:
+    com_google_cloud_bigdataoss_util()
   if not omit_com_google_code_findbugs_jsr305:
     com_google_code_findbugs_jsr305()
   if not omit_com_google_dagger:
@@ -231,6 +275,8 @@ def domain_registry_repositories(
     com_sun_xml_bind_jaxb_impl()
   if not omit_com_sun_xml_bind_jaxb_xjc:
     com_sun_xml_bind_jaxb_xjc()
+  if not omit_com_thoughtworks_paranamer:
+    com_thoughtworks_paranamer()
   if not omit_commons_codec:
     commons_codec()
   if not omit_commons_logging:
@@ -253,6 +299,20 @@ def domain_registry_repositories(
     joda_time()
   if not omit_junit:
     junit()
+  if not omit_org_apache_avro:
+    org_apache_avro()
+  if not omit_org_apache_beam_runners_google_cloud_dataflow_java:
+    org_apache_beam_runners_google_cloud_dataflow_java()
+  if not omit_org_apache_beam_sdks_common_runner_api:
+    org_apache_beam_sdks_common_runner_api()
+  if not omit_org_apache_beam_sdks_java_core:
+    org_apache_beam_sdks_java_core()
+  if not omit_org_apache_beam_sdks_java_extensions_google_cloud_platform_core:
+    org_apache_beam_sdks_java_extensions_google_cloud_platform_core()
+  if not omit_org_apache_beam_sdks_java_io_google_cloud_platform:
+    org_apache_beam_sdks_java_io_google_cloud_platform()
+  if not omit_org_apache_commons_compress:
+    org_apache_commons_compress()
   if not omit_org_apache_ftpserver_core:
     org_apache_ftpserver_core()
   if not omit_org_apache_httpcomponents_httpclient:
@@ -271,6 +331,12 @@ def domain_registry_repositories(
     org_bouncycastle_bcpkix_jdk15on()
   if not omit_org_bouncycastle_bcprov_jdk15on:
     org_bouncycastle_bcprov_jdk15on()
+  if not omit_org_codehaus_jackson_core_asl:
+    org_codehaus_jackson_core_asl()
+  if not omit_org_codehaus_jackson_mapper_asl:
+    org_codehaus_jackson_mapper_asl()
+  if not omit_org_hamcrest_all:
+    org_hamcrest_all()
   if not omit_org_hamcrest_core:
     org_hamcrest_core()
   if not omit_org_hamcrest_library:
@@ -279,6 +345,8 @@ def domain_registry_repositories(
     org_joda_money()
   if not omit_org_json:
     org_json()
+  if not omit_org_khronos_opengl_api:
+    org_khronos_opengl_api()
   if not omit_org_mockito_all:
     org_mockito_all()
   if not omit_org_mortbay_jetty:
@@ -287,10 +355,20 @@ def domain_registry_repositories(
     org_mortbay_jetty_servlet_api()
   if not omit_org_mortbay_jetty_util:
     org_mortbay_jetty_util()
+  if not omit_org_osgi_core:
+    org_osgi_core()
   if not omit_org_slf4j_api:
     org_slf4j_api()
+  if not omit_org_tukaani_xz:
+    org_tukaani_xz()
+  if not omit_org_xerial_snappy_java:
+    org_xerial_snappy_java()
   if not omit_org_yaml_snakeyaml:
     org_yaml_snakeyaml()
+  if not omit_xerces_xmlParserAPIs:
+    xerces_xmlParserAPIs()
+  if not omit_xpp3:
+    xpp3()
 
 def com_beust_jcommander():
   java_import_external(
@@ -1285,6 +1363,18 @@ def com_sun_xml_bind_jaxb_xjc():
       ]),
   )
 
+def com_thoughtworks_paranamer():
+  java_import_external(
+      name = "com_thoughtworks_paranamer",
+      jar_sha256 = "63e3f53f8f70784b65c25b2ee475813979d6d0e7f7b2510b364c4e1f4a803ccc",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.7/paranamer-2.7.jar",
+          "http://repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.7/paranamer-2.7.jar",
+          "http://maven.ibiblio.org/maven2/com/thoughtworks/paranamer/paranamer/2.7/paranamer-2.7.jar",
+      ],
+      licenses = ["notice"],  # BSD
+)
+
 def commons_codec():
   java_import_external(
       name = "commons_codec",
@@ -1411,6 +1501,61 @@ def junit():
       deps = ["@org_hamcrest_core"],
   )
 
+def org_apache_avro():
+  java_import_external(
+      name = "org_apache_avro",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "f754a0830ce67a5a9fa67a54ec15d103ef15e1c850d7b26faf7b647eeddc82d3",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/avro/avro/1.8.2/avro-1.8.2.jar",
+          "http://repo1.maven.org/maven2/org/apache/avro/avro/1.8.2/avro-1.8.2.jar",
+      ],
+      deps = [
+          "@org_codehaus_jackson_core_asl",
+          "@org_codehaus_jackson_mapper_asl",
+          "@com_thoughtworks_paranamer",
+          "@org_xerial_snappy_java",
+          "@org_apache_commons_compress",
+          "@org_tukaani_xz",
+          "@org_slf4j_api",
+      ],
+  )
+
+def org_apache_beam_sdks_java_core():
+  java_import_external(
+      name = "org_apache_beam_sdks_java_core",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "26beb110b6ef8e8bec729c44960c17581c18542216e9e0e6546d3592be7cd2e0",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-core/2.1.0/beam-sdks-java-core-2.1.0.jar",
+          "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-core/2.1.0/beam-sdks-java-core-2.1.0.jar",
+      ],
+      deps = [
+          "@com_google_code_findbugs_jsr305",
+          "@com_fasterxml_jackson_core",
+          "@com_fasterxml_jackson_core_jackson_annotations",
+          "@com_fasterxml_jackson_core_jackson_databind",
+          "@org_slf4j_api",
+          "@org_apache_avro",
+          "@org_xerial_snappy_java",
+          "@joda_time",
+          "@com_google_auto_value",
+          "@org_hamcrest_all",
+      ],
+  )
+
+def org_apache_commons_compress():
+  java_import_external(
+      name = "org_apache_commons_compress",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "5fca136503f86ecc6cb61fbd17b137d59e56b45c7a5494e6b8fd3cabd4697fbd",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.8.1/commons-compress-1.8.1.jar",
+          "http://repo1.maven.org/maven2/org/apache/commons/commons-compress/1.8.1/commons-compress-1.8.1.jar",
+          "http://maven.ibiblio.org/maven2/org/apache/commons/commons-compress/1.8.1/commons-compress-1.8.1.jar",
+      ],
+  )
+
 def org_apache_ftpserver_core():
   java_import_external(
       name = "org_apache_ftpserver_core",
@@ -1527,6 +1672,44 @@ def org_bouncycastle_bcprov_jdk15on():
       licenses = ["notice"],  # Bouncy Castle Licence
   )
 
+def org_codehaus_jackson_core_asl():
+  java_import_external(
+      name = "org_codehaus_jackson_core_asl",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "440a9cb5ca95b215f953d3a20a6b1a10da1f09b529a9ddea5f8a4905ddab4f5a",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/maven.ibiblio.org/maven2/org/codehaus/jackson/jackson-core-asl/1.9.13/jackson-core-asl-1.9.13.jar",
+          "http://maven.ibiblio.org/maven2/org/codehaus/jackson/jackson-core-asl/1.9.13/jackson-core-asl-1.9.13.jar",
+          "http://repo1.maven.org/maven2/org/codehaus/jackson/jackson-core-asl/1.9.13/jackson-core-asl-1.9.13.jar",
+      ],
+)
+
+def org_codehaus_jackson_mapper_asl():
+  java_import_external(
+      name = "org_codehaus_jackson_mapper_asl",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "74e7a07a76f2edbade29312a5a2ebccfa019128bc021ece3856d76197e9be0c2",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/maven.ibiblio.org/maven2/org/codehaus/jackson/jackson-mapper-asl/1.9.13/jackson-mapper-asl-1.9.13.jar",
+          "http://maven.ibiblio.org/maven2/org/codehaus/jackson/jackson-mapper-asl/1.9.13/jackson-mapper-asl-1.9.13.jar",
+          "http://repo1.maven.org/maven2/org/codehaus/jackson/jackson-mapper-asl/1.9.13/jackson-mapper-asl-1.9.13.jar",
+      ],
+      deps = ["@org_codehaus_jackson_core_asl"],
+)
+
+def org_hamcrest_all():
+  java_import_external(
+      name = "org_hamcrest_all",
+      neverlink = 1,
+      licenses = ["notice"],  # New BSD License
+      jar_sha256 = "4877670629ab96f34f5f90ab283125fcd9acb7e683e66319a68be6eb2cca60de",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/hamcrest/hamcrest-all/1.3/hamcrest-all-1.3.jar",
+          "http://repo1.maven.org/maven2/org/hamcrest/hamcrest-all/1.3/hamcrest-all-1.3.jar",
+          "http://maven.ibiblio.org/maven2/org/hamcrest/hamcrest-all/1.3/hamcrest-all-1.3.jar",
+      ],
+)
+
 def org_hamcrest_core():
   java_import_external(
       name = "org_hamcrest_core",
@@ -1536,7 +1719,7 @@ def org_hamcrest_core():
           "http://repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
       ],
       licenses = ["notice"],  # New BSD License
-      testonly_ = True,
+      #testonly_ = True,
   )
 
 def org_hamcrest_library():
@@ -1632,6 +1815,19 @@ def org_mortbay_jetty_util():
       deps = ["@org_mortbay_jetty_servlet_api"],
   )
 
+def org_osgi_core():
+  java_import_external(
+      name = "org_osgi_core",
+      neverlink = 1,
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "76c1f055f04987d1dc59f3efea30e548376ef7b9dadf2256b3f39600855541ab",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/maven.ibiblio.org/maven2/org/osgi/org.osgi.core/4.3.0/org.osgi.core-4.3.0.jar",
+          "http://maven.ibiblio.org/maven2/org/osgi/org.osgi.core/4.3.0/org.osgi.core-4.3.0.jar",
+          "http://repo1.maven.org/maven2/org/osgi/org.osgi.core/4.3.0/org.osgi.core-4.3.0.jar",
+      ],
+  )
+
 def org_slf4j_api():
   java_import_external(
       name = "org_slf4j_api",
@@ -1641,6 +1837,30 @@ def org_slf4j_api():
           "http://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.16/slf4j-api-1.7.16.jar",
       ],
       licenses = ["notice"],  # MIT License
+  )
+
+def org_tukaani_xz():
+  java_import_external(
+      name = "org_tukaani_xz",
+      licenses = ["unencumbered"],  # Public Domain
+      jar_sha256 = "86f30fa8775fa3a62cdb39d1ed78a6019164c1058864048d42cbee244e26e840",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/maven.ibiblio.org/maven2/org/tukaani/xz/1.5/xz-1.5.jar",
+          "http://maven.ibiblio.org/maven2/org/tukaani/xz/1.5/xz-1.5.jar",
+          "http://repo1.maven.org/maven2/org/tukaani/xz/1.5/xz-1.5.jar",
+      ],
+  )
+
+def org_xerial_snappy_java():
+  java_import_external(
+      name = "org_xerial_snappy_java",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "18563b50e6691b37ab9428ef639a0f66def91337b3c0d9b3dcf20b0dd7ae78ba",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/xerial/snappy/snappy-java/1.1.4-M3/snappy-java-1.1.4-M3.jar",
+          "http://repo1.maven.org/maven2/org/xerial/snappy/snappy-java/1.1.4-M3/snappy-java-1.1.4-M3.jar",
+      ],
+      deps = ["@org_osgi_core"],
   )
 
 def org_yaml_snakeyaml():
@@ -1654,7 +1874,283 @@ def org_yaml_snakeyaml():
       ],
   )
 
+def com_google_api_client_jackson2():
+  java_import_external(
+      name = "com_google_api_client_jackson2",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "b86e3bdd3b6504741b90de51f06b2236cedfedd0069f942b22adb0b60553de4a",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client-jackson2/1.20.0/google-api-client-jackson2-1.20.0.jar",
+          "http://repo1.maven.org/maven2/com/google/api-client/google-api-client-jackson2/1.20.0/google-api-client-jackson2-1.20.0.jar",
+      ],
+      deps = [
+          "@com_google_api_client",
+          "@com_google_http_client_jackson2",
+      ],
+)
 
+def com_google_api_client_java6():
+  java_import_external(
+      name = "com_google_api_client_java6",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "df4f423f33f467d248e51deb555404771f7bc41430b2d4d1e49966c79c0b207b",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client-java6/1.20.0/google-api-client-java6-1.20.0.jar",
+          "http://repo1.maven.org/maven2/com/google/api-client/google-api-client-java6/1.20.0/google-api-client-java6-1.20.0.jar",
+      ],
+      deps = [
+          "@com_google_api_client",
+          "@com_google_oauth_client_java6",
+      ],
+)
+
+def com_google_apis_google_api_services_clouddebugger():
+  java_import_external(
+      name = "com_google_apis_google_api_services_clouddebugger",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "5b8dddc70bb63aa373dcf1dc35ec79444c5feb77417b3f83ebe30ec1e9305e47",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-clouddebugger/v2-rev8-1.22.0/google-api-services-clouddebugger-v2-rev8-1.22.0.jar",
+          "http://repo1.maven.org/maven2/com/google/apis/google-api-services-clouddebugger/v2-rev8-1.22.0/google-api-services-clouddebugger-v2-rev8-1.22.0.jar",
+      ],
+      deps = ["@com_google_api_client"],
+)
+
+def com_google_apis_google_api_services_cloudresourcemanager():
+  java_import_external(
+      name = "com_google_apis_google_api_services_cloudresourcemanager",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "88ebb190d354afaa26f6dc1739e8c713ca2591131d72fe7bb14e670b3f23cacb",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-cloudresourcemanager/v1-rev6-1.22.0/google-api-services-cloudresourcemanager-v1-rev6-1.22.0.jar",
+          "http://repo1.maven.org/maven2/com/google/apis/google-api-services-cloudresourcemanager/v1-rev6-1.22.0/google-api-services-cloudresourcemanager-v1-rev6-1.22.0.jar",
+      ],
+      deps = ["@com_google_api_client"],
+)
+
+def com_google_apis_google_api_services_dataflow():
+  java_import_external(
+      name = "com_google_apis_google_api_services_dataflow",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "c990c200a48fec60cf11dc146c49ca2f6e865748b0f900ab32fcb4b3341d8f38",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-dataflow/v1b3-rev196-1.22.0/google-api-services-dataflow-v1b3-rev196-1.22.0.jar",
+          "http://repo1.maven.org/maven2/com/google/apis/google-api-services-dataflow/v1b3-rev196-1.22.0/google-api-services-dataflow-v1b3-rev196-1.22.0.jar",
+      ],
+      deps = ["@com_google_api_client"],
+)
+
+def com_google_auth_library_credentials():
+  java_import_external(
+      name = "com_google_auth_library_credentials",
+      licenses = ["notice"],  # BSD New license
+      jar_sha256 = "df13b1a2d547816e1eaf0cb73c34b85e09a725540f186eb1519de73b15489e9d",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/auth/google-auth-library-credentials/0.7.1/google-auth-library-credentials-0.7.1.jar",
+          "http://repo1.maven.org/maven2/com/google/auth/google-auth-library-credentials/0.7.1/google-auth-library-credentials-0.7.1.jar",
+      ],
+)
+
+def com_google_auth_library_oauth2_http():
+  java_import_external(
+      name = "com_google_auth_library_oauth2_http",
+      licenses = ["notice"],  # BSD New license
+      jar_sha256 = "abc33ebd2411e928f85383b7bd6f33f8ab59dd95d67d363b5af090ffd6adbd98",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/auth/google-auth-library-oauth2-http/0.7.1/google-auth-library-oauth2-http-0.7.1.jar",
+          "http://repo1.maven.org/maven2/com/google/auth/google-auth-library-oauth2-http/0.7.1/google-auth-library-oauth2-http-0.7.1.jar",
+      ],
+      deps = [
+          "@com_google_auth_library_credentials",
+          "@com_google_http_client",
+          "@com_google_http_client_jackson2",
+          "@com_google_guava",
+      ],
+)
+
+def com_google_cloud_bigdataoss_gcsio():
+  java_import_external(
+      name = "com_google_cloud_bigdataoss_gcsio",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "8ef468b82542ae8d0428b0c60eb6009bf05f2b80e34715ee6bb27c5def66b5be",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/cloud/bigdataoss/gcsio/1.4.5/gcsio-1.4.5.jar",
+          "http://repo1.maven.org/maven2/com/google/cloud/bigdataoss/gcsio/1.4.5/gcsio-1.4.5.jar",
+      ],
+      deps = [
+          "@com_google_api_client_java6",
+          "@com_google_api_client_jackson2",
+          "@com_google_apis_google_api_services_storage",
+          "@com_google_code_findbugs_jsr305",
+          "@com_google_guava",
+          "@com_google_oauth_client",
+          "@com_google_oauth_client_java6",
+          #"@junit",
+          "@org_slf4j_api",
+          "@com_google_cloud_bigdataoss_util",
+      ],
+)
+
+def com_google_cloud_bigdataoss_util():
+  java_import_external(
+      name = "com_google_cloud_bigdataoss_util",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "56c93d9cf72a2725c45c6d26530c7065900a7c962ec8f7c0edc5f4164652753d",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/com/google/cloud/bigdataoss/util/1.4.5/util-1.4.5.jar",
+          "http://maven.ibiblio.org/maven2/com/google/cloud/bigdataoss/util/1.4.5/util-1.4.5.jar",
+      ],
+      deps = [
+          "@com_google_api_client_java6",
+          "@com_google_api_client_jackson2",
+          "@com_google_apis_google_api_services_storage",
+          "@com_google_code_findbugs_jsr305",
+          "@com_google_guava",
+          "@com_google_oauth_client",
+          "@com_google_oauth_client_java6",
+          #"@junit",
+          "@org_slf4j_api",
+      ],
+)
+
+def org_apache_beam_runners_google_cloud_dataflow_java():
+  java_import_external(
+      name = "org_apache_beam_runners_google_cloud_dataflow_java",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "244e9adee402aa6b56fd29bc358db16c5f027d0d9c9677960f0c64d8f27ed1f1",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/org/apache/beam/beam-runners-google-cloud-dataflow-java/2.1.0/beam-runners-google-cloud-dataflow-java-2.1.0.jar",
+          "http://maven.ibiblio.org/maven2/org/apache/beam/beam-runners-google-cloud-dataflow-java/2.1.0/beam-runners-google-cloud-dataflow-java-2.1.0.jar",
+      ],
+      deps = [
+          "@org_apache_beam_sdks_java_core",
+          "@org_apache_beam_sdks_java_extensions_google_cloud_platform_core",
+          "@org_apache_beam_sdks_common_runner_api",
+          "@org_apache_beam_sdks_java_io_google_cloud_platform",
+          "@com_google_api_client",
+          "@com_google_http_client",
+          "@com_google_http_client_jackson2",
+          "@com_google_apis_google_api_services_dataflow",
+          "@com_google_apis_google_api_services_clouddebugger",
+          "@com_google_apis_google_api_services_storage",
+          "@com_google_auth_library_credentials",
+          "@com_google_auth_library_oauth2_http",
+          "@com_google_cloud_bigdataoss_util",
+          "@org_apache_avro",
+          "@joda_time",
+          "@com_google_code_findbugs_jsr305",
+          "@com_fasterxml_jackson_core",
+          "@com_fasterxml_jackson_core_jackson_annotations",
+          "@com_fasterxml_jackson_core_jackson_databind",
+          "@org_slf4j_api",
+          "@com_google_auto_value",
+          "@org_hamcrest_all",
+          #"@junit",
+      ],
+)
+
+def org_apache_beam_sdks_common_runner_api():
+  java_import_external(
+      name = "org_apache_beam_sdks_common_runner_api",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "8af98f525b86bd8efc6c25f0008573c877b040b04d9e4b3284d12c86e12c7593",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-common-runner-api/2.1.0/beam-sdks-common-runner-api-2.1.0.jar",
+          "http://maven.ibiblio.org/maven2/org/apache/beam/beam-sdks-common-runner-api/2.1.0/beam-sdks-common-runner-api-2.1.0.jar",
+      ],
+)
+
+def org_apache_beam_sdks_java_extensions_google_cloud_platform_core():
+  java_import_external(
+      name = "org_apache_beam_sdks_java_extensions_google_cloud_platform_core",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "89cc7f65ef9f446f60145f17da32d454196a2771282823aa732d2bdd5b3b39c9",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-extensions-google-cloud-platform-core/2.1.0/beam-sdks-java-extensions-google-cloud-platform-core-2.1.0.jar",
+          "http://maven.ibiblio.org/maven2/org/apache/beam/beam-sdks-java-extensions-google-cloud-platform-core/2.1.0/beam-sdks-java-extensions-google-cloud-platform-core-2.1.0.jar",
+      ],
+      deps = [
+          "@org_apache_beam_sdks_java_core",
+          "@com_google_http_client_jackson2",
+          "@com_google_auth_library_oauth2_http",
+          "@com_google_api_client",
+          "@com_google_cloud_bigdataoss_gcsio",
+          "@com_google_cloud_bigdataoss_util",
+          "@com_google_apis_google_api_services_cloudresourcemanager",
+          "@com_google_apis_google_api_services_storage",
+          "@com_google_auth_library_credentials",
+          "@com_google_code_findbugs_jsr305",
+          "@com_google_http_client",
+          "@org_slf4j_api",
+          "@joda_time",
+          "@com_fasterxml_jackson_core_jackson_annotations",
+          "@com_fasterxml_jackson_core_jackson_databind",
+          "@com_google_auto_value",
+          "@org_hamcrest_all",
+          #"@junit",
+      ],
+)
+
+def org_apache_beam_sdks_java_io_google_cloud_platform():
+  java_import_external(
+      name = "org_apache_beam_sdks_java_io_google_cloud_platform",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "a1a502fd7b960859d4ec50de1f4b55927b32a5e9583a7b40371110c3d6a4f297",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/org/apache/beam/beam-sdks-java-io-google-cloud-platform/2.1.0/beam-sdks-java-io-google-cloud-platform-2.1.0.jar",
+          "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-io-google-cloud-platform/2.1.0/beam-sdks-java-io-google-cloud-platform-2.1.0.jar",
+      ],
+      deps = [
+          "@org_apache_beam_sdks_java_extensions_google_cloud_platform_core",
+          "@com_fasterxml_jackson_core_jackson_databind",
+          "@com_google_api_client",
+          "@com_google_http_client_jackson2",
+          "@com_google_auth_library_oauth2_http",
+          "@com_google_guava",
+          "@com_google_code_findbugs_jsr305",
+          "@org_apache_avro",
+          #"@junit",
+      ],
+)
+
+def org_khronos_opengl_api():
+  java_import_external(
+      name = "org_khronos_opengl_api",
+      licenses = ["notice"],  # Apache 2.0
+      jar_sha256 = "cc08393220f706ef9299b453cd88f741382cee49dbeea2c667b4be1435768145",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/org/khronos/opengl-api/gl1.1-android-2.1_r1/opengl-api-gl1.1-android-2.1_r1.jar",
+          "http://maven.ibiblio.org/maven2/org/khronos/opengl-api/gl1.1-android-2.1_r1/opengl-api-gl1.1-android-2.1_r1.jar",
+      ],
+)
+
+def xerces_xmlParserAPIs():
+  java_import_external(
+      name = "xerces_xmlParserAPIs",
+      licenses = ["TODO"],  # NO LICENSE DECLARED
+      jar_sha256 = "1c2867be1faa73c67e9232631241eb1df4cd0763048646e7bb575a9980e9d7e5",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/xerces/xmlParserAPIs/2.6.2/xmlParserAPIs-2.6.2.jar",
+          "http://maven.ibiblio.org/maven2/xerces/xmlParserAPIs/2.6.2/xmlParserAPIs-2.6.2.jar",
+      ],
+)
+
+def xpp3():
+  java_import_external(
+      name = "xpp3",
+      # Indiana University Extreme! Lab Software License, vesion 1.1.1
+      # http://www.extreme.indiana.edu/viewcvs/~checkout~/XPP3/java/LICENSE.txt
+      # Public Domain
+      # http://creativecommons.org/licenses/publicdomain
+      # Apache Software License, version 1.1
+      # http://www.apache.org/licenses/LICENSE-1.1
+      licenses = ["TODO"],
+      jar_sha256 = "0341395a481bb887803957145a6a37879853dd625e9244c2ea2509d9bb7531b9",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/xpp3/xpp3/1.1.4c/xpp3-1.1.4c.jar",
+          "http://repo1.maven.org/maven2/xpp3/xpp3/1.1.4c/xpp3-1.1.4c.jar",
+      ],
+)
 
 def _check_bazel_version(project, bazel_version):
   if "bazel_version" not in dir(native):

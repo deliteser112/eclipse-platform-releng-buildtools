@@ -28,6 +28,7 @@ import google.registry.batch.MapreduceEntityCleanupAction;
 import google.registry.batch.RefreshDnsOnHostRenameAction;
 import google.registry.batch.ResaveAllEppResourcesAction;
 import google.registry.batch.VerifyEntityIntegrityAction;
+import google.registry.billing.GenerateInvoicesAction;
 import google.registry.cron.CommitLogFanoutAction;
 import google.registry.cron.CronModule;
 import google.registry.cron.TldFanoutAction;
@@ -114,6 +115,7 @@ interface BackendRequestComponent {
   ExportDomainListsAction exportDomainListsAction();
   ExportReservedTermsAction exportReservedTermsAction();
   ExportSnapshotAction exportSnapshotAction();
+  GenerateInvoicesAction generateInvoicesAction();
   IcannReportingStagingAction icannReportingStagingAction();
   IcannReportingUploadAction icannReportingUploadAction();
   LoadSnapshotAction loadSnapshotAction();
