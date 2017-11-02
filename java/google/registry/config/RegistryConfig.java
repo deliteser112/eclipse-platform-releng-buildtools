@@ -1104,6 +1104,7 @@ public final class RegistryConfig {
                   "entities?handle=XXXX",
                   "help/XXXX"))
               .setLinkValueSuffix("help/syntax")
+              .setLinkHrefUrlString("https://github.com/google/nomulus/blob/master/docs/rdap.md")
               .build())
           .put("/tos", RdapNoticeDescriptor.builder()
               .setTitle("RDAP Terms of Service")

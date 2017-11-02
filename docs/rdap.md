@@ -15,10 +15,10 @@ of Nomulus, enter the following in a Web browser:
     https://project-id.appspot.com/rdap/domains?name=*.tld
 ```
 
-You should get back a long string of JSON apparent gobbledygook, listing the
+You should get back a long string of apparent JSON gobbledygook, listing the
 first 100 domains under that TLD. There are a number of online JSON formatters;
 paste the result string into one of them, and you should be able to scroll
-though and see the information. You can also use the Chrome browser developer
+through and see the information. You can also use the Chrome browser developer
 console's network pane, then send the request and look at the Preview tab to see
 the response in an expandable tree format.
 
