@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.ofy.Ofy;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
+import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
@@ -62,6 +63,11 @@ public class RdapActionBaseTest {
     @Override
     public String getHumanReadableObjectTypeName() {
       return "human-readable string";
+    }
+
+    @Override
+    public EndpointType getEndpointType() {
+      return EndpointType.HELP;
     }
 
     @Override

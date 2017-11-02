@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableMap;
 import google.registry.flows.EppException;
 import google.registry.model.domain.DomainResource;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
+import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
@@ -54,6 +55,11 @@ public class RdapDomainAction extends RdapActionBase {
   @Override
   public String getActionPath() {
     return PATH;
+  }
+
+  @Override
+  public EndpointType getEndpointType() {
+    return EndpointType.DOMAIN;
   }
 
   @Override

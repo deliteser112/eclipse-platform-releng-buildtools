@@ -33,6 +33,7 @@ import com.googlecode.objectify.cmd.Query;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.EppResource;
 import google.registry.model.registrar.Registrar;
+import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.FullServletPath;
@@ -91,6 +92,9 @@ public abstract class RdapActionBase implements Runnable {
 
   /** Returns a string like "domain name" or "nameserver", used for error strings. */
   abstract String getHumanReadableObjectTypeName();
+
+  /** Returns the endpoint type used for recording metrics. */
+  abstract EndpointType getEndpointType();
 
   /** Returns the servlet action path; used to extract the search string from the incoming path. */
   abstract String getActionPath();
@@ -381,23 +385,24 @@ public abstract class RdapActionBase implements Runnable {
    *        the query could not check deletion status (due to Datastore limitations such as the
    *        limit of one field queried for inequality, for instance), it may need to be set to true
    *        even when not including deleted records
-   * @return an {@link RdapResourcesAndIncompletenessWarningType} object containing the list of
+   * @return an {@link RdapResultSet} object containing the list of
    *         resources and an incompleteness warning flag, which is set to MIGHT_BE_INCOMPLETE iff
    *         any resources were excluded due to lack of visibility, and the resulting list of
    *         resources is less than the maximum allowable, which indicates that we may not have
    *         fetched enough resources
    */
-  <T extends EppResource> RdapResourcesAndIncompletenessWarningType<T> getMatchingResources(
+  <T extends EppResource> RdapResultSet<T> getMatchingResources(
       Query<T> query, boolean checkForVisibility, DateTime now) {
     Optional<String> desiredRegistrar = getDesiredRegistrar();
     if (desiredRegistrar.isPresent()) {
       query = query.filter("currentSponsorClientId", desiredRegistrar.get());
     }
     if (!checkForVisibility) {
-      return RdapResourcesAndIncompletenessWarningType.create(query.list());
+      return RdapResultSet.create(query.list());
     }
     // If we are including deleted resources, we need to check that we're authorized for each one.
     List<T> resources = new ArrayList<>();
+    int numResourcesQueried = 0;
     boolean someExcluded = false;
     for (T resource : query) {
       if (shouldBeVisible(resource, now)) {
@@ -405,14 +410,16 @@ public abstract class RdapActionBase implements Runnable {
       } else {
         someExcluded = true;
       }
+      numResourcesQueried++;
       if (resources.size() > rdapResultSetMaxSize) {
         break;
       }
     }
-    return RdapResourcesAndIncompletenessWarningType.create(
+    return RdapResultSet.create(
         resources,
         (someExcluded && (resources.size() < rdapResultSetMaxSize + 1))
             ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
-            : IncompletenessWarningType.NONE);
+            : IncompletenessWarningType.NONE,
+        numResourcesQueried);
   }
 }

@@ -29,6 +29,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
+import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
@@ -73,6 +74,11 @@ public class RdapNameserverSearchAction extends RdapActionBase {
   @Override
   public String getHumanReadableObjectTypeName() {
     return "nameserver search";
+  }
+
+  @Override
+  public EndpointType getEndpointType() {
+    return EndpointType.NAMESERVERS;
   }
 
   @Override
@@ -244,17 +250,9 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     return makeSearchResults(getMatchingResources(query, shouldIncludeDeleted(), now), now);
   }
 
-  /**
-   * Output JSON for a lists of hosts contained in an {@link
-   * RdapResourcesAndIncompletenessWarningType}.
-   */
-  private RdapSearchResults makeSearchResults(
-      RdapResourcesAndIncompletenessWarningType<HostResource> resourcesAndIncompletenessWarningType,
-      DateTime now) {
-    return makeSearchResults(
-        resourcesAndIncompletenessWarningType.resources(),
-        resourcesAndIncompletenessWarningType.incompletenessWarningType(),
-        now);
+  /** Output JSON for a lists of hosts contained in an {@link RdapResultSet}. */
+  private RdapSearchResults makeSearchResults(RdapResultSet<HostResource> resultSet, DateTime now) {
+    return makeSearchResults(resultSet.resources(), resultSet.incompletenessWarningType(), now);
   }
 
   /** Output JSON for a list of hosts. */

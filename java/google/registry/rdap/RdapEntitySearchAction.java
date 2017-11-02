@@ -31,6 +31,7 @@ import google.registry.model.domain.DesignatedContact;
 import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
+import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
@@ -74,6 +75,11 @@ public class RdapEntitySearchAction extends RdapActionBase {
   @Override
   public String getHumanReadableObjectTypeName() {
     return "entity search";
+  }
+
+  @Override
+  public EndpointType getEndpointType() {
+    return EndpointType.ENTITIES;
   }
 
   @Override
@@ -169,12 +175,10 @@ public class RdapEntitySearchAction extends RdapActionBase {
     // Get the contact matches and return the results, fetching an additional contact to detect
     // truncation. Don't bother searching for contacts by name if the request would not be able to
     // see any names anyway.
-    RdapResourcesAndIncompletenessWarningType<ContactResource>
-        resourcesAndIncompletenessWarningType;
+    RdapResultSet<ContactResource> resultSet;
     RdapAuthorization authorization = getAuthorization();
     if (authorization.role() == RdapAuthorization.Role.PUBLIC) {
-      resourcesAndIncompletenessWarningType =
-          RdapResourcesAndIncompletenessWarningType.create(ImmutableList.of());
+      resultSet = RdapResultSet.create(ImmutableList.of());
     } else {
       Query<ContactResource> query =
           queryItems(
@@ -186,9 +190,9 @@ public class RdapEntitySearchAction extends RdapActionBase {
       if (authorization.role() != RdapAuthorization.Role.ADMINISTRATOR) {
         query = query.filter("currentSponsorClientId in", authorization.clientIds());
       }
-      resourcesAndIncompletenessWarningType = getMatchingResources(query, false, now);
+      resultSet = getMatchingResources(query, false, now);
     }
-    return makeSearchResults(resourcesAndIncompletenessWarningType, registrars, now);
+    return makeSearchResults(resultSet, registrars, now);
   }
 
   /**
@@ -264,15 +268,9 @@ public class RdapEntitySearchAction extends RdapActionBase {
    * arguments.
    */
   private RdapSearchResults makeSearchResults(
-      RdapResourcesAndIncompletenessWarningType<ContactResource>
-          resourcesAndIncompletenessWarningType,
-      List<Registrar> registrars,
-      DateTime now) {
+      RdapResultSet<ContactResource> resultSet, List<Registrar> registrars, DateTime now) {
     return makeSearchResults(
-        resourcesAndIncompletenessWarningType.resources(),
-        resourcesAndIncompletenessWarningType.incompletenessWarningType(),
-        registrars,
-        now);
+        resultSet.resources(), resultSet.incompletenessWarningType(), registrars, now);
   }
 
   /**

@@ -18,6 +18,7 @@ import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 
 import com.google.common.collect.ImmutableMap;
+import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.NotImplementedException;
 import google.registry.request.auth.Auth;
@@ -44,6 +45,11 @@ public class RdapAutnumAction extends RdapActionBase {
   @Override
   public String getHumanReadableObjectTypeName() {
     return "autnum";
+  }
+
+  @Override
+  public EndpointType getEndpointType() {
+    return EndpointType.AUTNUM;
   }
 
   @Override

@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableMap;
 import google.registry.flows.EppException;
 import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
+import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
@@ -49,6 +50,11 @@ public class RdapNameserverAction extends RdapActionBase {
   @Override
   public String getHumanReadableObjectTypeName() {
     return "nameserver";
+  }
+
+  @Override
+  public EndpointType getEndpointType() {
+    return EndpointType.NAMESERVER;
   }
 
   @Override

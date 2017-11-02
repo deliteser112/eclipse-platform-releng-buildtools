@@ -27,6 +27,7 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
+import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotFoundException;
@@ -64,6 +65,11 @@ public class RdapEntityAction extends RdapActionBase {
   @Override
   public String getHumanReadableObjectTypeName() {
     return "entity";
+  }
+
+  @Override
+  public EndpointType getEndpointType() {
+    return EndpointType.ENTITY;
   }
 
   @Override

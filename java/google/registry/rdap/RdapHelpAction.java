@@ -20,6 +20,7 @@ import static google.registry.request.Action.Method.HEAD;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
+import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.request.Action;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
@@ -42,6 +43,11 @@ public class RdapHelpAction extends RdapActionBase {
   @Override
   public String getHumanReadableObjectTypeName() {
     return "help";
+  }
+
+  @Override
+  public EndpointType getEndpointType() {
+    return EndpointType.HELP;
   }
 
   @Override

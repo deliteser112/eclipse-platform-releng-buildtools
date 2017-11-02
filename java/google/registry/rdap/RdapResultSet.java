@@ -20,17 +20,18 @@ import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import java.util.List;
 
 @AutoValue
-abstract class RdapResourcesAndIncompletenessWarningType<T extends EppResource> {
+abstract class RdapResultSet<T extends EppResource> {
 
-  static <S extends EppResource> RdapResourcesAndIncompletenessWarningType<S> create(
-      List<S> resources) {
-    return create(resources, IncompletenessWarningType.NONE);
+  static <S extends EppResource> RdapResultSet<S> create(List<S> resources) {
+    return create(resources, IncompletenessWarningType.NONE, resources.size());
   }
 
-  static <S extends EppResource> RdapResourcesAndIncompletenessWarningType<S> create(
-      List<S> resources, IncompletenessWarningType incompletenessWarningType) {
-    return new AutoValue_RdapResourcesAndIncompletenessWarningType<>(
-        resources, incompletenessWarningType);
+  static <S extends EppResource> RdapResultSet<S> create(
+      List<S> resources,
+      IncompletenessWarningType incompletenessWarningType,
+      int numResourcesRetrieved) {
+    return new AutoValue_RdapResultSet<>(
+        resources, incompletenessWarningType, numResourcesRetrieved);
   }
 
   /** List of EPP resources. */
@@ -38,5 +39,8 @@ abstract class RdapResourcesAndIncompletenessWarningType<T extends EppResource> 
 
   /** Type of warning to display regarding possible incomplete data. */
   abstract IncompletenessWarningType incompletenessWarningType();
+
+  /** Number of resources retrieved from the database in the process of assembling the data set. */
+  abstract int numResourcesRetrieved();
 }
 

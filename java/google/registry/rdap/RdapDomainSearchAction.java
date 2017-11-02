@@ -34,6 +34,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
+import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
@@ -86,6 +87,11 @@ public class RdapDomainSearchAction extends RdapActionBase {
   @Override
   public String getHumanReadableObjectTypeName() {
     return "domain search";
+  }
+
+  @Override
+  public EndpointType getEndpointType() {
+    return EndpointType.DOMAINS;
   }
 
   @Override
@@ -468,15 +474,10 @@ public class RdapDomainSearchAction extends RdapActionBase {
     return makeSearchResults(domains, IncompletenessWarningType.NONE, now);
   }
 
-  /** Output JSON from data in an {@link RdapResourcesAndIncompletenessWarningType} object. */
+  /** Output JSON from data in an {@link RdapResultSet} object. */
   private RdapSearchResults makeSearchResults(
-      RdapResourcesAndIncompletenessWarningType<DomainResource>
-          resourcesAndIncompletenessWarningType,
-      DateTime now) {
-    return makeSearchResults(
-        resourcesAndIncompletenessWarningType.resources(),
-        resourcesAndIncompletenessWarningType.incompletenessWarningType(),
-        now);
+      RdapResultSet<DomainResource> resultSet, DateTime now) {
+    return makeSearchResults(resultSet.resources(), resultSet.incompletenessWarningType(), now);
   }
 
   /**
