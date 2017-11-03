@@ -105,10 +105,10 @@ public final class DistributionMetricSubject
   /**
    * Asserts that the distribution for the given label can be constructed from the given data set.
    *
-   * <p>Note that this only tests that the distribution has the same binned histogram as it would if
-   * it had recorded the specified data points. It could have in fact collected different data
-   * points that resulted in the same histogram, but that information is lost to us and cannot be
-   * tested.
+   * <p>Note that this only tests that the distribution has the same binned histogram, along with
+   * the same mean, and sum of squared deviation as it would if it had recorded the specified data
+   * points. It could have in fact collected different data points that resulted in the same
+   * distribution, but that information is lost to us and cannot be tested.
    */
   public And<DistributionMetricSubject> hasDataSetForLabels(
       ImmutableSet<? extends Number> dataSet, String... labels) {
