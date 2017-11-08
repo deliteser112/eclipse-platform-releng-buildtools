@@ -18,17 +18,24 @@ import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
+import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.TaskOptions;
+import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.MediaType;
 import google.registry.bigquery.BigqueryJobFailureException;
 import google.registry.reporting.IcannReportingModule.ReportType;
+import google.registry.reporting.IcannReportingModule.ReportingSubdir;
 import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
 import javax.inject.Inject;
+import org.joda.time.Duration;
+import org.joda.time.YearMonth;
+import org.joda.time.format.DateTimeFormat;
 
 /**
  * Action that generates monthly ICANN activity and transactions reports.
@@ -54,7 +61,10 @@ public final class IcannReportingStagingAction implements Runnable {
   static final String PATH = "/_dr/task/icannReportingStaging";
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final String CRON_QUEUE = "retryable-cron-tasks";
 
+  @Inject YearMonth yearMonth;
+  @Inject @ReportingSubdir String subdir;
   @Inject ImmutableList<ReportType> reportTypes;
   @Inject IcannReportingStager stager;
   @Inject Retrier retrier;
@@ -83,6 +93,16 @@ public final class IcannReportingStagingAction implements Runnable {
           response.setStatus(SC_OK);
           response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
           response.setPayload("Completed staging action.");
+
+          logger.infofmt("Enqueueing report upload :");
+          TaskOptions uploadTask = TaskOptions.Builder.withUrl(IcannReportingUploadAction.PATH)
+              .method(Method.POST)
+              .countdownMillis(Duration.standardMinutes(2).getMillis())
+              .param(
+                  IcannReportingModule.PARAM_YEAR_MONTH,
+                  DateTimeFormat.forPattern("yyyy-MM").print(yearMonth))
+              .param(IcannReportingModule.PARAM_SUBDIR, subdir);
+          QueueFactory.getQueue(CRON_QUEUE).add(uploadTask);
           return null;
         },
         new Retrier.FailureReporter() {

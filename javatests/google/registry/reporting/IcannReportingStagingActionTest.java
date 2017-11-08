@@ -16,6 +16,8 @@ package google.registry.reporting;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,7 +30,9 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.Retrier;
+import org.joda.time.YearMonth;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,6 +53,7 @@ public class IcannReportingStagingActionTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .withLocalModules()
+      .withTaskQueue()
       .build();
 
   @Before
@@ -57,8 +62,20 @@ public class IcannReportingStagingActionTest {
     when(stager.stageReports(ReportType.TRANSACTIONS)).thenReturn(ImmutableList.of("c", "d"));
   }
 
+  private static void assertUploadTaskEnqueued(String yearMonth, String subDir) throws Exception {
+    TaskMatcher matcher =
+        new TaskMatcher()
+            .url("/_dr/task/icannReportingUpload")
+            .method("POST")
+            .param("yearMonth", yearMonth)
+            .param("subdir", subDir);
+    assertTasksEnqueued("retryable-cron-tasks", matcher);
+  }
+
   private IcannReportingStagingAction createAction(ImmutableList<ReportType> reportingMode) {
     IcannReportingStagingAction action = new IcannReportingStagingAction();
+    action.yearMonth = new YearMonth(2017, 6);
+    action.subdir = "default/dir";
     action.reportTypes = reportingMode;
     action.response = response;
     action.stager = stager;
@@ -77,6 +94,7 @@ public class IcannReportingStagingActionTest {
         .emailResults(
             "ICANN Monthly report staging summary [SUCCESS]",
             "Completed staging the following 2 ICANN reports:\na\nb");
+    assertUploadTaskEnqueued("2017-06", "default/dir");
   }
 
   @Test
@@ -91,6 +109,7 @@ public class IcannReportingStagingActionTest {
         .emailResults(
             "ICANN Monthly report staging summary [SUCCESS]",
             "Completed staging the following 4 ICANN reports:\na\nb\nc\nd");
+    assertUploadTaskEnqueued("2017-06", "default/dir");
   }
 
   @Test
@@ -108,6 +127,7 @@ public class IcannReportingStagingActionTest {
         .emailResults(
             "ICANN Monthly report staging summary [SUCCESS]",
             "Completed staging the following 4 ICANN reports:\na\nb\nc\nd");
+    assertUploadTaskEnqueued("2017-06", "default/dir");
   }
 
   @Test
@@ -129,5 +149,7 @@ public class IcannReportingStagingActionTest {
             "ICANN Monthly report staging summary [FAILURE]",
             "Staging failed due to BigqueryJobFailureException: Expected failure,"
                 + " check logs for more details.");
+    // Assert no upload task enqueued
+    assertNoTasksEnqueued("retryable-cron-tasks");
   }
 }
