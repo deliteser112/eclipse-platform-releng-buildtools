@@ -212,7 +212,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
         }
       }
     }
-    return makeSearchResults(hostList, IncompletenessWarningType.NONE, now);
+    return makeSearchResults(hostList, IncompletenessWarningType.COMPLETE, now);
   }
 
   /**

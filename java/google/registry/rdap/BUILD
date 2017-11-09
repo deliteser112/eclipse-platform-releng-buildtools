@@ -11,6 +11,7 @@ java_library(
         "//java/google/registry/config",
         "//java/google/registry/flows",
         "//java/google/registry/model",
+        "//java/google/registry/monitoring/metrics",
         "//java/google/registry/request",
         "//java/google/registry/request/auth",
         "//java/google/registry/ui/server/registrar",

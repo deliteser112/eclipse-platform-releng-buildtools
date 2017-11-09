@@ -419,7 +419,7 @@ public abstract class RdapActionBase implements Runnable {
         resources,
         (someExcluded && (resources.size() < rdapResultSetMaxSize + 1))
             ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
-            : IncompletenessWarningType.NONE,
+            : IncompletenessWarningType.COMPLETE,
         numResourcesQueried);
   }
 }

@@ -464,14 +464,14 @@ public class RdapDomainSearchAction extends RdapActionBase {
           domains,
           (numHostKeysSearched >= MAX_NAMESERVERS_IN_FIRST_STAGE)
               ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
-              : IncompletenessWarningType.NONE,
+              : IncompletenessWarningType.COMPLETE,
           now);
     }
   }
 
   /** Output JSON for a list of domains, with no incompleteness warnings. */
   private RdapSearchResults makeSearchResults(List<DomainResource> domains, DateTime now) {
-    return makeSearchResults(domains, IncompletenessWarningType.NONE, now);
+    return makeSearchResults(domains, IncompletenessWarningType.COMPLETE, now);
   }
 
   /** Output JSON from data in an {@link RdapResultSet} object. */

@@ -23,7 +23,7 @@ import java.util.List;
 abstract class RdapResultSet<T extends EppResource> {
 
   static <S extends EppResource> RdapResultSet<S> create(List<S> resources) {
-    return create(resources, IncompletenessWarningType.NONE, resources.size());
+    return create(resources, IncompletenessWarningType.COMPLETE, resources.size());
   }
 
   static <S extends EppResource> RdapResultSet<S> create(
@@ -43,4 +43,3 @@ abstract class RdapResultSet<T extends EppResource> {
   /** Number of resources retrieved from the database in the process of assembling the data set. */
   abstract int numResourcesRetrieved();
 }
-

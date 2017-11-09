@@ -14,6 +14,7 @@ java_library(
     deps = [
         "//java/google/registry/config",
         "//java/google/registry/model",
+        "//java/google/registry/monitoring/metrics/contrib",
         "//java/google/registry/rdap",
         "//java/google/registry/request",
         "//java/google/registry/request/auth",

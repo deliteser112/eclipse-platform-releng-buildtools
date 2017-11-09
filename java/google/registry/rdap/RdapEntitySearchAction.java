@@ -219,7 +219,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
           ((contactResource != null) && shouldBeVisible(contactResource, now))
               ? ImmutableList.of(contactResource)
               : ImmutableList.of(),
-          IncompletenessWarningType.NONE,
+          IncompletenessWarningType.COMPLETE,
           getMatchingRegistrars(partialStringQuery.getInitialString()),
           now);
     // Handle queries with a wildcard (or including deleted), but no suffix. Because the handle
@@ -328,6 +328,6 @@ public class RdapEntitySearchAction extends RdapActionBase {
         ImmutableList.copyOf(jsonOutputList),
         (jsonOutputList.size() < rdapResultSetMaxSize)
             ? incompletenessWarningType
-            : IncompletenessWarningType.NONE);
+            : IncompletenessWarningType.COMPLETE);
   }
 }

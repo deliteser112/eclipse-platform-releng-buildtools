@@ -33,7 +33,7 @@ abstract class RdapSearchResults {
   enum IncompletenessWarningType {
 
     /** Result set is complete. */
-    NONE,
+    COMPLETE,
 
     /** Result set has been limited to the maximum size. */
     TRUNCATED,
@@ -46,7 +46,7 @@ abstract class RdapSearchResults {
   }
 
   static RdapSearchResults create(ImmutableList<ImmutableMap<String, Object>> jsonList) {
-    return create(jsonList, IncompletenessWarningType.NONE);
+    return create(jsonList, IncompletenessWarningType.COMPLETE);
   }
 
   static RdapSearchResults create(
