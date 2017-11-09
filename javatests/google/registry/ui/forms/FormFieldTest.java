@@ -32,7 +32,6 @@ import com.google.common.collect.Lists;
 import com.google.common.testing.NullPointerTester;
 import com.google.re2j.Pattern;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.junit.Rule;
 import org.junit.Test;
@@ -241,7 +240,7 @@ public class FormFieldTest {
 
   @Test
   public void testAsList_empty_returnsEmpty() {
-    assertThat(FormField.named("lol").asList().build().convert(ImmutableList.<String>of()).get())
+    assertThat(FormField.named("lol").asList().build().convert(ImmutableList.of()).get())
         .isEmpty();
   }
 
@@ -253,7 +252,7 @@ public class FormFieldTest {
         .emptyToNull()
         .required()
         .build()
-        .convert(ImmutableList.<String>of());
+        .convert(ImmutableList.of());
   }
 
   @Test
@@ -262,7 +261,7 @@ public class FormFieldTest {
         .asList()
         .emptyToNull()
         .build()
-        .convert(ImmutableList.<String>of()))
+        .convert(ImmutableList.of()))
         .isEmpty();
   }
 
@@ -377,7 +376,7 @@ public class FormFieldTest {
                 FormField.named("cat").emptyToNull().required().build().extractUntyped(input).get())
         .asList()
         .build()
-        .convert(ImmutableList.<Map<String, ?>>of(ImmutableMap.of("cat", "")));
+        .convert(ImmutableList.of(ImmutableMap.of("cat", "")));
   }
 
   @Test

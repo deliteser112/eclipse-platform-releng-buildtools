@@ -89,8 +89,8 @@ public class RdapActionBaseTest {
       rdapJsonFormatter.addTopLevelEntries(
           builder,
           BoilerplateType.OTHER,
-          ImmutableList.<ImmutableMap<String, Object>>of(),
-          ImmutableList.<ImmutableMap<String, Object>>of(),
+          ImmutableList.of(),
+          ImmutableList.of(),
           "http://myserver.example.com/");
       return builder.build();
     }

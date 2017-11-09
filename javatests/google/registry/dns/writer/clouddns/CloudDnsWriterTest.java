@@ -32,7 +32,6 @@ import com.google.api.services.dns.model.Change;
 import com.google.api.services.dns.model.ResourceRecordSet;
 import com.google.api.services.dns.model.ResourceRecordSetsListResponse;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.net.InetAddresses;
@@ -305,12 +304,12 @@ public class CloudDnsWriterTest {
   public void testLoadDomain_nonExistentDomain() throws Exception {
     writer.publishDomain("example.tld");
 
-    verifyZone(ImmutableSet.<ResourceRecordSet>of());
+    verifyZone(ImmutableSet.of());
   }
 
   @Test
   public void testLoadDomain_noDsDataOrNameservers() throws Exception {
-    persistResource(fakeDomain("example.tld", ImmutableSet.<HostResource>of(), 0));
+    persistResource(fakeDomain("example.tld", ImmutableSet.of(), 0));
     writer.publishDomain("example.tld");
 
     verifyZone(fakeDomainRecords("example.tld", 0, 0, 0, 0));
@@ -319,7 +318,7 @@ public class CloudDnsWriterTest {
   @Test
   public void testLoadDomain_deleteOldData() throws Exception {
     stubZone = fakeDomainRecords("example.tld", 2, 2, 2, 2);
-    persistResource(fakeDomain("example.tld", ImmutableSet.<HostResource>of(), 0));
+    persistResource(fakeDomain("example.tld", ImmutableSet.of(), 0));
     writer.publishDomain("example.tld");
 
     verifyZone(fakeDomainRecords("example.tld", 0, 0, 0, 0));
@@ -378,7 +377,7 @@ public class CloudDnsWriterTest {
     writer.publishHost("ns1.example.com");
 
     // external hosts should not be published in our zone
-    verifyZone(ImmutableSet.<ResourceRecordSet>of());
+    verifyZone(ImmutableSet.of());
   }
 
   @Test
@@ -409,7 +408,7 @@ public class CloudDnsWriterTest {
     CloudDnsWriter spyWriter = spy(writer);
     when(mutateZoneCallable.call()).thenThrow(ZoneStateException.class).thenReturn(null);
     when(spyWriter.getMutateZoneCallback(
-        Matchers.<ImmutableMap<String, ImmutableSet<ResourceRecordSet>>>any()))
+        Matchers.any()))
         .thenReturn(mutateZoneCallable);
     spyWriter.commit();
 
@@ -428,7 +427,7 @@ public class CloudDnsWriterTest {
             .build());
     writer.publishDomain("example.tld");
 
-    verifyZone(ImmutableSet.<ResourceRecordSet>of());
+    verifyZone(ImmutableSet.of());
   }
 
   @Test
@@ -444,7 +443,7 @@ public class CloudDnsWriterTest {
 
     writer.publishDomain("example.tld");
 
-    verifyZone(ImmutableSet.<ResourceRecordSet>of());
+    verifyZone(ImmutableSet.of());
   }
 
   @Test
@@ -459,7 +458,7 @@ public class CloudDnsWriterTest {
             .build());
     writer.publishDomain("example.tld");
 
-    verifyZone(ImmutableSet.<ResourceRecordSet>of());
+    verifyZone(ImmutableSet.of());
   }
 
   @Test

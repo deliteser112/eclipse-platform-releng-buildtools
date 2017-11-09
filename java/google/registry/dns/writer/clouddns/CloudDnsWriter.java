@@ -121,7 +121,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
     // desiredRecordsBuilder is populated with an empty set to indicate that all existing records
     // should be deleted.
     if (!domainResource.isPresent() || !domainResource.get().shouldPublishToDns()) {
-      desiredRecords.put(absoluteDomainName, ImmutableSet.<ResourceRecordSet>of());
+      desiredRecords.put(absoluteDomainName, ImmutableSet.of());
       return;
     }
 
@@ -189,7 +189,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
 
     // Return early if the host is deleted.
     if (!host.isPresent()) {
-      desiredRecords.put(absoluteHostName, ImmutableSet.<ResourceRecordSet>of());
+      desiredRecords.put(absoluteHostName, ImmutableSet.of());
       return;
     }
 

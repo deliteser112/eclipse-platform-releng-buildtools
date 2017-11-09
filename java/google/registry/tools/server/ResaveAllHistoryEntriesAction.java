@@ -58,8 +58,8 @@ public class ResaveAllHistoryEntriesAction implements Runnable {
         .runMapOnly(
             new ResaveAllHistoryEntriesActionMapper(),
             ImmutableList.of(EppResourceInputs.createChildEntityInput(
-                ImmutableSet.<Class<? extends EppResource>>of(EppResource.class),
-                ImmutableSet.<Class<? extends HistoryEntry>>of(HistoryEntry.class))))));
+                ImmutableSet.of(EppResource.class),
+                ImmutableSet.of(HistoryEntry.class))))));
   }
 
   /** Mapper to re-save all HistoryEntry entities. */

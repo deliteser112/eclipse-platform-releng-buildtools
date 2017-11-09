@@ -82,7 +82,7 @@ public class RegistrarPaymentSetupActionTest {
             CurrencyUnit.JPY, "torment");
     String blanketsOfSadness = "our hearts are beating, but no one is breathing";
     when(clientTokenGateway.generate()).thenReturn(blanketsOfSadness);
-    assertThat(action.handleJsonRequest(ImmutableMap.<String, Object>of()))
+    assertThat(action.handleJsonRequest(ImmutableMap.of()))
         .containsExactly(
             "status", "SUCCESS",
             "message", "Success",
@@ -113,7 +113,7 @@ public class RegistrarPaymentSetupActionTest {
     when(sessionUtils.getRegistrarForAuthResult(
             any(HttpServletRequest.class), any(AuthResult.class)))
         .thenReturn(registrar);
-    assertThat(action.handleJsonRequest(ImmutableMap.<String, Object>of()))
+    assertThat(action.handleJsonRequest(ImmutableMap.of()))
         .containsExactly(
             "status", "ERROR",
             "message", "not-using-cc-billing",

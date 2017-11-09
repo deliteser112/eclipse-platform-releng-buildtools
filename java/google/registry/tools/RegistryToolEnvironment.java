@@ -48,7 +48,7 @@ enum RegistryToolEnvironment {
   }
 
   private RegistryToolEnvironment(RegistryEnvironment actualEnvironment) {
-    this(actualEnvironment, ImmutableMap.<String, String>of());
+    this(actualEnvironment, ImmutableMap.of());
   }
 
   /**

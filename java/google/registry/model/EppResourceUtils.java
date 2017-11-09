@@ -164,7 +164,7 @@ public final class EppResourceUtils {
         ofy().load().type(clazz)
             .filter(filterDefinition, filterValue)
             .filter("deletionTime >", now.toDate()),
-        EppResourceUtils.<T>transformAtTime(now));
+        EppResourceUtils.transformAtTime(now));
   }
 
   /**

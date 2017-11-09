@@ -92,7 +92,7 @@ public class RegistrarSettingsActionTestCase {
     action.sessionUtils = sessionUtils;
     action.authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
     action.jsonActionRunner = new JsonActionRunner(
-        ImmutableMap.<String, Object>of(), new JsonResponse(new ResponseImpl(rsp)));
+        ImmutableMap.of(), new JsonResponse(new ResponseImpl(rsp)));
     action.registrarChangesNotificationEmailAddresses = ImmutableList.of(
         "notification@test.example", "notification2@test.example");
     action.sendEmailUtils =

@@ -382,7 +382,7 @@ public class StackdriverWriter implements MetricWriter {
 
     List<LabelDescriptor> encodedLabels = descriptor.getLabels();
     // The MetricDescriptors returned by the GCM API have null fields rather than empty lists
-    encodedLabels = encodedLabels == null ? ImmutableList.<LabelDescriptor>of() : encodedLabels;
+    encodedLabels = encodedLabels == null ? ImmutableList.of() : encodedLabels;
 
     ImmutableMap.Builder<String, String> labelValues = new ImmutableMap.Builder<>();
     int i = 0;

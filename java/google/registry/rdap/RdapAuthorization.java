@@ -54,9 +54,9 @@ public abstract class RdapAuthorization extends ImmutableObject {
   }
 
   public static final RdapAuthorization PUBLIC_AUTHORIZATION =
-      create(Role.PUBLIC, ImmutableList.<String>of());
+      create(Role.PUBLIC, ImmutableList.of());
 
   public static final RdapAuthorization ADMINISTRATOR_AUTHORIZATION =
-      create(Role.ADMINISTRATOR, ImmutableList.<String>of());
+      create(Role.ADMINISTRATOR, ImmutableList.of());
 }
 

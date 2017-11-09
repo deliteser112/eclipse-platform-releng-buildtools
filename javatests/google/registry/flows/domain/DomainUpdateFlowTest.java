@@ -17,7 +17,6 @@ package google.registry.flows.domain;
 import static com.google.common.collect.Sets.union;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
@@ -592,7 +591,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         "domain_update_dsdata_rem_all.xml",
         ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
             12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))),
-        ImmutableSet.<DelegationSignerData>of());
+        ImmutableSet.of());
   }
 
   @Test
@@ -975,10 +974,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
-        loadRegistrar("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistReferencedEntities();
     persistDomain();
     thrown.expect(NotAuthorizedForTldException.class);
@@ -988,10 +984,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   @Test
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     persistResource(
-        loadRegistrar("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistReferencedEntities();
     persistDomain();
     clock.advanceOneMilli();

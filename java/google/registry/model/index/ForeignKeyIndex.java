@@ -59,7 +59,7 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
   static final ImmutableMap<
           Class<? extends EppResource>, Class<? extends ForeignKeyIndex<?>>>
       RESOURCE_CLASS_TO_FKI_CLASS =
-          ImmutableMap.<Class<? extends EppResource>, Class<? extends ForeignKeyIndex<?>>>of(
+          ImmutableMap.of(
               ContactResource.class, ForeignKeyContactIndex.class,
               DomainResource.class, ForeignKeyDomainIndex.class,
               HostResource.class, ForeignKeyHostIndex.class);
@@ -119,7 +119,7 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
   public static <E extends EppResource> Key<ForeignKeyIndex<E>> createKey(E resource) {
     @SuppressWarnings("unchecked")
     Class<E> resourceClass = (Class<E>) resource.getClass();
-    return Key.<ForeignKeyIndex<E>>create(mapToFkiClass(resourceClass), resource.getForeignKey());
+    return Key.create(mapToFkiClass(resourceClass), resource.getForeignKey());
   }
 
   /**

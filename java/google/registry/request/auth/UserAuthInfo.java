@@ -39,7 +39,7 @@ public abstract class UserAuthInfo {
 
   public static UserAuthInfo create(
       User user, boolean isUserAdmin) {
-    return new AutoValue_UserAuthInfo(user, isUserAdmin, Optional.<OAuthTokenInfo>empty());
+    return new AutoValue_UserAuthInfo(user, isUserAdmin, Optional.empty());
   }
 
   public static UserAuthInfo create(

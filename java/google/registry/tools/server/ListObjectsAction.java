@@ -236,7 +236,7 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
     if (isHeaderRowInUse(data)) {
       // Add a row of headers (column names mapping to themselves).
       Map<String, String> headerRow =
-          Maps.asMap(data.columnKeySet(), Functions.<String>identity());
+          Maps.asMap(data.columnKeySet(), Functions.identity());
       lines.add(rowFormatter.apply(headerRow));
 
       // Add a row of separator lines (column names mapping to '-' * column width).

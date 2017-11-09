@@ -184,7 +184,7 @@ public class DomainAllocateFlow implements TransactionalFlow {
         // Names on the collision list will not be delegated. Set server hold.
         .setStatusValues(getReservationTypes(domainName).contains(ReservationType.NAME_COLLISION)
             ? ImmutableSet.of(StatusValue.SERVER_HOLD)
-            : ImmutableSet.<StatusValue>of())
+            : ImmutableSet.of())
         .setRegistrant(command.getRegistrant())
         .setAuthInfo(command.getAuthInfo())
         .setFullyQualifiedDomainName(targetId)
@@ -405,7 +405,7 @@ public class DomainAllocateFlow implements TransactionalFlow {
     FeeCreateCommandExtension feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);
     return (feeCreate == null)
-        ? ImmutableList.<FeeTransformResponseExtension>of()
+        ? ImmutableList.of()
         : ImmutableList.of(createFeeCreateResponse(feeCreate, feesAndCredits));
   }
 

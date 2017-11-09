@@ -62,7 +62,7 @@ public class BackupUtils {
       protected ImmutableObject computeNext() {
         EntityProto proto = new EntityProto();
         if (proto.parseDelimitedFrom(input)) {  // False means end of stream; other errors throw.
-          return ofy().load().<ImmutableObject>fromEntity(EntityTranslator.createFromPb(proto));
+          return ofy().load().fromEntity(EntityTranslator.createFromPb(proto));
         }
         return endOfData();
       }};

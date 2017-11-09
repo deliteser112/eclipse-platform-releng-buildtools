@@ -144,9 +144,7 @@ public class CheckApiAction implements Runnable {
   }
 
   private Map<String, Object> fail(String reason) {
-    return ImmutableMap.<String, Object>of(
-        "status", "error",
-        "reason", reason);
+    return ImmutableMap.of("status", "error", "reason", reason);
   }
 
   /** Dagger module for the check api endpoint. */

@@ -191,7 +191,7 @@ final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
                     .collect(toImmutableSet()))
             .setDsData(
                 domain.getSecDNS() == null
-                    ? ImmutableSet.<DelegationSignerData>of()
+                    ? ImmutableSet.of()
                     : domain
                         .getSecDNS()
                         .getDsDatas()

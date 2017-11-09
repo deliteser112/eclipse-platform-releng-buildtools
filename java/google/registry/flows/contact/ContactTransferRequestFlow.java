@@ -128,7 +128,7 @@ public final class ContactTransferRequestFlow implements TransactionalFlow {
     TransferData pendingTransferData = serverApproveTransferData.asBuilder()
         .setTransferStatus(TransferStatus.PENDING)
         .setServerApproveEntities(
-            ImmutableSet.<Key<? extends TransferData.TransferServerApproveEntity>>of(
+            ImmutableSet.of(
                 Key.create(serverApproveGainingPollMessage),
                 Key.create(serverApproveLosingPollMessage)))
         .build();

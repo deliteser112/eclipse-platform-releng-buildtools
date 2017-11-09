@@ -210,6 +210,6 @@ public final class DomainPricingLogic {
         return Optional.of(token);
       }
     }
-    return Optional.<LrpTokenEntity>empty();
+    return Optional.empty();
   }
 }

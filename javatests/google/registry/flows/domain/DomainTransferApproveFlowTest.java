@@ -16,7 +16,6 @@ package google.registry.flows.domain;
 
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.NET_ADDS_4_YR;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;
@@ -309,7 +308,7 @@ public class DomainTransferApproveFlowTest
                     .build())
             .toArray(BillingEvent.class));
     // There should be no grace period.
-    assertGracePeriods(domain.getGracePeriods(), ImmutableMap.<GracePeriod, BillingEvent>of());
+    assertGracePeriods(domain.getGracePeriods(), ImmutableMap.of());
   }
 
   private void doSuccessfulTest(String tld, String commandFilename, String expectedXmlFilename)
@@ -497,10 +496,7 @@ public class DomainTransferApproveFlowTest
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
-        loadRegistrar("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     thrown.expect(NotAuthorizedForTldException.class);
     doSuccessfulTest("tld", "domain_transfer_approve.xml", "domain_transfer_approve_response.xml");
   }
@@ -508,10 +504,7 @@ public class DomainTransferApproveFlowTest
   @Test
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     persistResource(
-        loadRegistrar("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     runFlowAssertResponse(
         CommitMode.LIVE,
         UserPrivileges.SUPERUSER,

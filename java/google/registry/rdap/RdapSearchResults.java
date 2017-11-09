@@ -69,6 +69,6 @@ abstract class RdapSearchResults {
     if (incompletenessWarningType() == IncompletenessWarningType.MIGHT_BE_INCOMPLETE) {
       return POSSIBLY_INCOMPLETE_NOTICES;
     }
-    return ImmutableList.<ImmutableMap<String, Object>>of();
+    return ImmutableList.of();
   }
 }

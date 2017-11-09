@@ -221,8 +221,9 @@ public abstract class PollMessage extends ImmutableObject
 
     @Override
     public ImmutableList<ResponseExtension> getResponseExtensions() {
-      return (launchInfoResponseExtension == null) ? ImmutableList.<ResponseExtension>of() :
-          ImmutableList.<ResponseExtension>of(launchInfoResponseExtension);
+      return (launchInfoResponseExtension == null)
+          ? ImmutableList.of()
+          : ImmutableList.of(launchInfoResponseExtension);
     }
 
     /** A builder for {@link OneTime} since it is immutable. */
@@ -313,7 +314,7 @@ public abstract class PollMessage extends ImmutableObject
     public ImmutableList<ResponseData> getResponseData() {
       // Note that the event time is when the auto-renew occured, so the expiration time in the
       // response should be 1 year past that, since it denotes the new expiration time.
-      return ImmutableList.<ResponseData>of(
+      return ImmutableList.of(
           DomainRenewData.create(getTargetId(), getEventTime().plusYears(1)));
     }
 

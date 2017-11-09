@@ -41,8 +41,8 @@ class ChildEntityInput<R extends EppResource, I extends ImmutableObject>
       ImmutableSet<Class<? extends I>> childResourceClasses) {
     this.resourceClasses = resourceClasses;
     this.childResourceClasses = childResourceClasses;
-    checkNoInheritanceRelationships(ImmutableSet.<Class<?>>copyOf(resourceClasses));
-    checkNoInheritanceRelationships(ImmutableSet.<Class<?>>copyOf(childResourceClasses));
+    checkNoInheritanceRelationships(ImmutableSet.copyOf(resourceClasses));
+    checkNoInheritanceRelationships(ImmutableSet.copyOf(childResourceClasses));
   }
 
   @Override

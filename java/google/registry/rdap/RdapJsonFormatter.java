@@ -482,7 +482,7 @@ public class RdapJsonFormatter {
       remarks = ImmutableList.of(RdapIcannStandardInformation.SUMMARY_DATA_REMARK);
     } else {
       remarks = displayContacts
-        ? ImmutableList.<ImmutableMap<String, Object>>of()
+        ? ImmutableList.of()
         : ImmutableList.of(RdapIcannStandardInformation.DOMAIN_CONTACTS_HIDDEN_DATA_REMARK);
       ImmutableList<Object> events = makeEvents(domainResource, now);
       if (!events.isEmpty()) {
@@ -537,7 +537,7 @@ public class RdapJsonFormatter {
           jsonBuilder,
           BoilerplateType.DOMAIN,
           remarks,
-          ImmutableList.<ImmutableMap<String, Object>>of(), linkBase);
+          ImmutableList.of(), linkBase);
     } else if (!remarks.isEmpty()) {
       jsonBuilder.put(REMARKS, remarks);
     }
@@ -633,7 +633,7 @@ public class RdapJsonFormatter {
           jsonBuilder,
           BoilerplateType.NAMESERVER,
           remarks,
-          ImmutableList.<ImmutableMap<String, Object>>of(), linkBase);
+          ImmutableList.of(), linkBase);
     } else if (!remarks.isEmpty()) {
       jsonBuilder.put(REMARKS, remarks);
     }
@@ -735,7 +735,7 @@ public class RdapJsonFormatter {
           jsonBuilder,
           BoilerplateType.ENTITY,
           remarksBuilder.build(),
-          ImmutableList.<ImmutableMap<String, Object>>of(),
+          ImmutableList.of(),
           linkBase);
     } else {
       ImmutableList<ImmutableMap<String, Object>> remarks = remarksBuilder.build();
@@ -841,7 +841,7 @@ public class RdapJsonFormatter {
           jsonBuilder,
           BoilerplateType.ENTITY,
           remarks,
-          ImmutableList.<ImmutableMap<String, Object>>of(),
+          ImmutableList.of(),
           linkBase);
     } else if (!remarks.isEmpty()) {
       jsonBuilder.put(REMARKS, remarks);
@@ -1036,7 +1036,7 @@ public class RdapJsonFormatter {
     jsonBuilder.add(nullToEmpty(address.getState()));
     jsonBuilder.add(nullToEmpty(address.getZip()));
     jsonBuilder.add(new Locale("en", address.getCountryCode()).getDisplayCountry(new Locale("en")));
-    return ImmutableList.<Object>of(
+    return ImmutableList.of(
         "adr",
         ImmutableMap.of(),
         "text",
@@ -1046,7 +1046,7 @@ public class RdapJsonFormatter {
   /** Creates a vCard phone number entry. */
   private static ImmutableList<Object> makePhoneEntry(
       ImmutableMap<String, ImmutableList<String>> type, String phoneNumber) {
-    return ImmutableList.<Object>of("tel", type, "uri", phoneNumber);
+    return ImmutableList.of("tel", type, "uri", phoneNumber);
   }
 
   /** Creates a phone string in URI format, as per the vCard spec. */
@@ -1111,7 +1111,7 @@ public class RdapJsonFormatter {
    *        RFC 7483: JSON Responses for the Registration Data Access Protocol (RDAP)</a>
    */
   ImmutableMap<String, Object> makeError(int status, String title, String description) {
-    return ImmutableMap.<String, Object>of(
+    return ImmutableMap.of(
         "rdapConformance", CONFORMANCE_LIST,
         "lang", "en",
         "errorCode", (long) status,

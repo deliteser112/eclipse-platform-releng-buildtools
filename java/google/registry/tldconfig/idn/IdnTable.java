@@ -122,7 +122,7 @@ public final class IdnTable {
       }
 
       int codepoint = readCodepoint(line);
-      rangeSet.add(Range.<Integer>singleton(codepoint));
+      rangeSet.add(Range.singleton(codepoint));
     }
     return new IdnTable(language, url, policy, rangeSet.build(), languageValidator);
   }

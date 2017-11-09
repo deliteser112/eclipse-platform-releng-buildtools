@@ -109,7 +109,7 @@ public final class PublishDetailReportAction implements Runnable, JsonAction {
             driveFolderId,
             gcsBucketName,
             gcsObjectName);
-        return ImmutableMap.<String, Object>of("driveId", driveId);
+        return ImmutableMap.of("driveId", driveId);
       } catch (FileNotFoundException e) {
         throw new IllegalArgumentException(e.getMessage(), e);
       }

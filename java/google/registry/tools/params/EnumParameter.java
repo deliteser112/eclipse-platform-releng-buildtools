@@ -25,6 +25,6 @@ public abstract class EnumParameter<T extends Enum<T>> extends ParameterConverte
 
   @Override
   public T convert(String value) {
-    return Enum.<T>valueOf(new TypeInstantiator<T>(getClass()){}.getExactType(), value);
+    return Enum.valueOf(new TypeInstantiator<T>(getClass()){}.getExactType(), value);
   }
 }

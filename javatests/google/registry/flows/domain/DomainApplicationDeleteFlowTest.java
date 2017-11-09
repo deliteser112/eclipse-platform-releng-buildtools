@@ -15,7 +15,6 @@
 package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.EppResourceUtils.isLinked;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.index.ForeignKeyIndex.loadAndGetKey;
@@ -163,26 +162,18 @@ public class DomainApplicationDeleteFlowTest
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     persistResource(
-        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
-    persistResource(
-        loadRegistrar("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     thrown.expect(NotAuthorizedForTldException.class);
     runFlow();
   }
   
   @Test
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     persistResource(
-        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
-    persistResource(
-        loadRegistrar("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response.xml"));

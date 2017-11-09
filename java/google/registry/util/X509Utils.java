@@ -35,7 +35,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.CertificateRevokedException;
-import java.security.cert.Extension;
 import java.security.cert.X509CRL;
 import java.security.cert.X509CRLEntry;
 import java.security.cert.X509Certificate;
@@ -149,7 +148,7 @@ public final class X509Utils {
           checkNotNull(entry.getRevocationDate(), "revocationDate"),
           checkNotNull(entry.getRevocationReason(), "revocationReason"),
           firstNonNull(entry.getCertificateIssuer(), crl.getIssuerX500Principal()),
-          ImmutableMap.<String, Extension>of());
+          ImmutableMap.of());
     }
   }
 

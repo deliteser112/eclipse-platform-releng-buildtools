@@ -85,28 +85,28 @@ public class CollectionUtils {
 
   /** Defensive copy helper for {@link Set}. */
   public static <V> ImmutableSet<V> nullToEmptyImmutableCopy(Set<V> data) {
-    return data == null ? ImmutableSet.<V>of() : ImmutableSet.copyOf(data);
+    return data == null ? ImmutableSet.of() : ImmutableSet.copyOf(data);
   }
 
   /** Defensive copy helper for {@link Set}. */
   public static <V extends Comparable<V>>
       ImmutableSortedSet<V> nullToEmptyImmutableSortedCopy(Set<V> data) {
-    return data == null ? ImmutableSortedSet.<V>of() : ImmutableSortedSet.copyOf(data);
+    return data == null ? ImmutableSortedSet.of() : ImmutableSortedSet.copyOf(data);
   }
 
   /** Defensive copy helper for {@link SortedMap}. */
   public static <K, V> ImmutableSortedMap<K, V> nullToEmptyImmutableCopy(SortedMap<K, V> data) {
-    return data == null ? ImmutableSortedMap.<K, V>of() : ImmutableSortedMap.copyOfSorted(data);
+    return data == null ? ImmutableSortedMap.of() : ImmutableSortedMap.copyOfSorted(data);
   }
 
   /** Defensive copy helper for {@link List}. */
   public static <V> ImmutableList<V> nullToEmptyImmutableCopy(List<V> data) {
-    return data == null ? ImmutableList.<V>of() : ImmutableList.copyOf(data);
+    return data == null ? ImmutableList.of() : ImmutableList.copyOf(data);
   }
 
   /** Defensive copy helper for {@link Map}. */
   public static <K, V> ImmutableMap<K, V> nullToEmptyImmutableCopy(Map<K, V> data) {
-    return data == null ? ImmutableMap.<K, V>of() : ImmutableMap.copyOf(data);
+    return data == null ? ImmutableMap.of() : ImmutableMap.copyOf(data);
   }
 
   /**

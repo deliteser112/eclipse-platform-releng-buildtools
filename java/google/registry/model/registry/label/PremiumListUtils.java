@@ -73,7 +73,7 @@ public final class PremiumListUtils {
   public static Optional<Money> getPremiumPrice(String label, Registry registry) {
     // If the registry has no configured premium list, then no labels are premium.
     if (registry.getPremiumList() == null) {
-      return Optional.<Money>empty();
+      return Optional.empty();
     }
     DateTime startTime = DateTime.now(UTC);
     String listName = registry.getPremiumList().getName();
@@ -103,7 +103,7 @@ public final class PremiumListUtils {
 
   private static CheckResults checkStatus(PremiumListRevision premiumListRevision, String label) {
     if (!premiumListRevision.getProbablePremiumLabels().mightContain(label)) {
-      return CheckResults.create(BLOOM_FILTER_NEGATIVE, Optional.<Money>empty());
+      return CheckResults.create(BLOOM_FILTER_NEGATIVE, Optional.empty());
     }
 
     Key<PremiumListEntry> entryKey =
@@ -115,7 +115,7 @@ public final class PremiumListUtils {
         if (entry.isPresent()) {
           return CheckResults.create(CACHED_POSITIVE, Optional.of(entry.get().getValue()));
         } else {
-          return CheckResults.create(CACHED_NEGATIVE, Optional.<Money>empty());
+          return CheckResults.create(CACHED_NEGATIVE, Optional.empty());
         }
       }
 
@@ -123,7 +123,7 @@ public final class PremiumListUtils {
       if (entry.isPresent()) {
         return CheckResults.create(UNCACHED_POSITIVE, Optional.of(entry.get().getValue()));
       } else {
-        return CheckResults.create(UNCACHED_NEGATIVE, Optional.<Money>empty());
+        return CheckResults.create(UNCACHED_NEGATIVE, Optional.empty());
       }
     } catch (InvalidCacheLoadException | ExecutionException e) {
       throw new RuntimeException("Could not load premium list entry " + entryKey, e);

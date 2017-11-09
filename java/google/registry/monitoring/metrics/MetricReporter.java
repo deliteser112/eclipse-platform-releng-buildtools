@@ -117,7 +117,7 @@ public class MetricReporter extends AbstractScheduledService {
     runOneIteration();
 
     // Offer a poision pill to inform the exporter to stop.
-    writeQueue.offer(Optional.<ImmutableList<MetricPoint<?>>>empty());
+    writeQueue.offer(Optional.empty());
     try {
       metricExporter.awaitTerminated(10, TimeUnit.SECONDS);
       logger.info("Shut down MetricExporter");

@@ -118,11 +118,11 @@ public final class TldFanoutAction implements Runnable {
     Set<String> tlds =
         difference(
             Streams.concat(
-                    Streams.stream(runInEmpty ? ImmutableSet.of("") : ImmutableSet.<String>of()),
+                    Streams.stream(runInEmpty ? ImmutableSet.of("") : ImmutableSet.of()),
                     Streams.stream(
-                        forEachRealTld ? getTldsOfType(REAL) : ImmutableSet.<String>of()),
+                        forEachRealTld ? getTldsOfType(REAL) : ImmutableSet.of()),
                     Streams.stream(
-                        forEachTestTld ? getTldsOfType(TEST) : ImmutableSet.<String>of()))
+                        forEachTestTld ? getTldsOfType(TEST) : ImmutableSet.of()))
                 .collect(toImmutableSet()),
             excludes);
     Multimap<String, String> flowThruParams = filterKeys(params, not(in(CONTROL_PARAMS)));

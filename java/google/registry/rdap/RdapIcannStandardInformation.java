@@ -27,7 +27,7 @@ public class RdapIcannStandardInformation {
 
   /** Required by ICANN RDAP Profile section 1.4.10. */
   private static final ImmutableMap<String, Object> CONFORMANCE_REMARK =
-      ImmutableMap.<String, Object>of(
+      ImmutableMap.of(
           "description",
           ImmutableList.of(
               "This response conforms to the RDAP Operational Profile for gTLD Registries and"
@@ -35,7 +35,7 @@ public class RdapIcannStandardInformation {
 
   /** Required by ICANN RDAP Profile section 1.5.18. */
   private static final ImmutableMap<String, Object> DOMAIN_STATUS_CODES_REMARK =
-      ImmutableMap.<String, Object> of(
+      ImmutableMap.of(
           "title",
           "EPP Status Codes",
           "description",
@@ -51,7 +51,7 @@ public class RdapIcannStandardInformation {
 
   /** Required by ICANN RDAP Profile section 1.5.20. */
   private static final ImmutableMap<String, Object> INACCURACY_COMPLAINT_FORM_REMARK =
-      ImmutableMap.<String, Object> of(
+      ImmutableMap.of(
           "description",
           ImmutableList.of(
               "URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf"),
@@ -78,7 +78,7 @@ public class RdapIcannStandardInformation {
    * @see <a href="http://mm.icann.org/pipermail/gtld-tech/2016-October/000822.html">Questions about the ICANN RDAP Profile</a>
    */
   static final ImmutableMap<String, Object> SUMMARY_DATA_REMARK =
-      ImmutableMap.<String, Object> of(
+      ImmutableMap.of(
           "title",
           "Incomplete Data",
           "description",
@@ -93,7 +93,7 @@ public class RdapIcannStandardInformation {
    * @see <a href="http://mm.icann.org/pipermail/gtld-tech/2016-October/000822.html">Questions about the ICANN RDAP Profile</a>
    */
   static final ImmutableMap<String, Object> TRUNCATED_RESULT_SET_NOTICE =
-      ImmutableMap.<String, Object> of(
+      ImmutableMap.of(
           "title",
           "Search Policy",
           "description",
@@ -110,7 +110,7 @@ public class RdapIcannStandardInformation {
    * there were too many nameservers in the first stage results.
    */
   static final ImmutableMap<String, Object> POSSIBLY_INCOMPLETE_RESULT_SET_NOTICE =
-      ImmutableMap.<String, Object>of(
+      ImmutableMap.of(
           "title",
           "Search Policy",
           "description",
@@ -125,7 +125,7 @@ public class RdapIcannStandardInformation {
 
   /** Included when the requester is not logged in as the owner of the domain being returned. */
   static final ImmutableMap<String, Object> DOMAIN_CONTACTS_HIDDEN_DATA_REMARK =
-      ImmutableMap.<String, Object> of(
+      ImmutableMap.of(
           "title",
           "Contacts Hidden",
           "description",
@@ -135,7 +135,7 @@ public class RdapIcannStandardInformation {
 
   /** Included when requester is not logged in as the owner of the contact being returned. */
   static final ImmutableMap<String, Object> CONTACT_PERSONAL_DATA_HIDDEN_DATA_REMARK =
-      ImmutableMap.<String, Object> of(
+      ImmutableMap.of(
           "title",
           "Contact Personal Data Hidden",
           "description",

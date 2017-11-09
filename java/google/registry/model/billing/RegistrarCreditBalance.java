@@ -211,7 +211,7 @@ public final class RegistrarCreditBalance extends ImmutableObject implements Bui
     private Optional<Money> getMostRecentlyWrittenBalance(
         Map.Entry<DateTime, ImmutableSortedMap<DateTime, Money>> balancesAtEffectiveTime) {
       return balancesAtEffectiveTime == null
-          ? Optional.<Money>empty()
+          ? Optional.empty()
           // Don't use Optional.ofNullable() here since it's an error if there's a empty submap.
           : Optional.of(balancesAtEffectiveTime.getValue().lastEntry().getValue());
     }

@@ -95,7 +95,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
         response,
         IMPORT_BUCKET_NAME,
         IMPORT_FILE_NAME,
-        Optional.<Integer>of(3));
+        Optional.of(3));
   }
 
   @Test

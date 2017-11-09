@@ -37,7 +37,7 @@ public abstract class AuthResult {
   }
 
   public static AuthResult create(AuthLevel authLevel) {
-    return new AutoValue_AuthResult(authLevel, Optional.<UserAuthInfo>empty());
+    return new AutoValue_AuthResult(authLevel, Optional.empty());
   }
 
   public static AuthResult create(AuthLevel authLevel, @Nullable UserAuthInfo userAuthInfo) {

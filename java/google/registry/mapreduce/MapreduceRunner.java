@@ -203,8 +203,8 @@ public class MapreduceRunner {
             .setMapper(mapper)
             .setReducer(reducer)
             .setOutput(output)
-            .setKeyMarshaller(Marshallers.<K>getSerializationMarshaller())
-            .setValueMarshaller(Marshallers.<V>getSerializationMarshaller())
+            .setKeyMarshaller(Marshallers.getSerializationMarshaller())
+            .setValueMarshaller(Marshallers.getSerializationMarshaller())
             .setNumReducers(httpParamReduceShards.orElse(defaultReduceShards))
             .build(),
         new MapReduceSettings.Builder()

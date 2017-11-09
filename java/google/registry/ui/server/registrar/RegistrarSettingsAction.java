@@ -43,7 +43,6 @@ import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormException;
 import google.registry.ui.forms.FormFieldException;
 import google.registry.ui.server.RegistrarFormFields;
-import google.registry.util.CidrAddressBlock;
 import google.registry.util.CollectionUtils;
 import google.registry.util.DiffUtils;
 import java.util.HashSet;
@@ -192,7 +191,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     builder.setIpAddressWhitelist(
         RegistrarFormFields.IP_ADDRESS_WHITELIST_FIELD
             .extractUntyped(args)
-            .orElse(ImmutableList.<CidrAddressBlock>of()));
+            .orElse(ImmutableList.of()));
     RegistrarFormFields.CLIENT_CERTIFICATE_FIELD
         .extractUntyped(args)
         .ifPresent(

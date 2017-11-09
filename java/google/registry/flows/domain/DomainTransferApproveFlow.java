@@ -119,7 +119,7 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
     // the transfer period to zero. There is not a transfer cost if the transfer period is zero.
     Optional<BillingEvent.OneTime> billingEvent =
         (transferData.getTransferPeriod().getValue() == 0)
-            ? Optional.<BillingEvent.OneTime>empty()
+            ? Optional.empty()
             : Optional.of(
                 new BillingEvent.OneTime.Builder()
                     .setReason(Reason.TRANSFER)
@@ -192,7 +192,7 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
                 (billingEvent.isPresent())
                     ? ImmutableSet.of(
                         GracePeriod.forBillingEvent(GracePeriodStatus.TRANSFER, billingEvent.get()))
-                    : ImmutableSet.<GracePeriod>of())
+                    : ImmutableSet.of())
             .build();
     // Create a poll message for the gaining client.
     PollMessage gainingClientPollMessage = createGainingTransferPollMessage(

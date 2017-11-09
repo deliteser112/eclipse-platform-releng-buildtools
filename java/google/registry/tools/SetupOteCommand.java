@@ -201,16 +201,16 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
 
     // Storing names and credentials in a list of tuples for later play-back.
     List<List<String>> registrars = new ArrayList<>();
-    registrars.add(ImmutableList.<String>of(
+    registrars.add(ImmutableList.of(
         registrar + "-1", passwordGenerator.createString(PASSWORD_LENGTH),
         registrar + "-sunrise"));
-    registrars.add(ImmutableList.<String>of(
+    registrars.add(ImmutableList.of(
         registrar + "-2", passwordGenerator.createString(PASSWORD_LENGTH),
         registrar + "-landrush"));
-    registrars.add(ImmutableList.<String>of(
+    registrars.add(ImmutableList.of(
         registrar + "-3", passwordGenerator.createString(PASSWORD_LENGTH),
         registrar + "-ga"));
-    registrars.add(ImmutableList.<String>of(
+    registrars.add(ImmutableList.of(
         registrar + "-4", passwordGenerator.createString(PASSWORD_LENGTH),
         registrar + "-ga"));
 

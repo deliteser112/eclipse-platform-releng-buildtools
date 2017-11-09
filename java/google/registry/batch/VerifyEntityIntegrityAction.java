@@ -102,7 +102,7 @@ public class VerifyEntityIntegrityAction implements Runnable {
   @VisibleForTesting
   static BatchComponent component = DaggerBatchComponent.create();
   private static final ImmutableSet<Class<?>> RESOURCE_CLASSES =
-      ImmutableSet.<Class<?>>of(
+      ImmutableSet.of(
           ForeignKeyDomainIndex.class,
           DomainApplicationIndex.class,
           ForeignKeyHostIndex.class,
@@ -307,7 +307,7 @@ public class VerifyEntityIntegrityAction implements Runnable {
     }
 
     private void mapForeignKeyIndex(ForeignKeyIndex<?> fki) {
-      Key<ForeignKeyIndex<?>> fkiKey = Key.<ForeignKeyIndex<?>>create(fki);
+      Key<ForeignKeyIndex<?>> fkiKey = Key.create(fki);
       @SuppressWarnings("cast")
       EppResource resource = verifyExistence(fkiKey, fki.getResourceKey());
       if (resource != null) {
@@ -368,7 +368,7 @@ public class VerifyEntityIntegrityAction implements Runnable {
 
     private <E> void verifyExistence(Key<?> source, Set<Key<E>> targets) {
       Set<Key<E>> missingEntityKeys =
-          Sets.difference(targets, ofy().load().<E>keys(targets).keySet());
+          Sets.difference(targets, ofy().load().keys(targets).keySet());
       integrity().checkOneToMany(
           missingEntityKeys.isEmpty(),
           source,

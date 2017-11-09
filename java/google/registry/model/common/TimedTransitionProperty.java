@@ -162,7 +162,7 @@ public class TimedTransitionProperty<V, T extends TimedTransitionProperty.TimedT
     Map<DateTime, V> newInnerMap = new HashMap<>(currentMap);
     newInnerMap.put(transitionTime, transitionValue);
     ImmutableSortedMap<DateTime, V> newMap =
-        ImmutableSortedMap.<DateTime, V>copyOf(newInnerMap);
+        ImmutableSortedMap.copyOf(newInnerMap);
     validateTimedTransitionMap(newMap, allowedTransitions, allowedTransitionMapName);
     return fromValueMap(newMap, transitionClass);
   }

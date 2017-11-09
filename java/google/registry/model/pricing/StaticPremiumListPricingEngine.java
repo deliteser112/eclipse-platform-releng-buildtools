@@ -54,6 +54,6 @@ public final class StaticPremiumListPricingEngine implements PremiumPricingEngin
         premiumPrice.isPresent(),
         premiumPrice.orElse(registry.getStandardCreateCost()),
         premiumPrice.orElse(registry.getStandardRenewCost(priceTime)),
-        Optional.<String>ofNullable(feeClass));
+        Optional.ofNullable(feeClass));
   }
 }

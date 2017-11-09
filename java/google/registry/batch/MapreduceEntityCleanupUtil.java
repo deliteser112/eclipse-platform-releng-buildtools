@@ -92,7 +92,7 @@ class MapreduceEntityCleanupUtil {
       boolean ignoreState,
       Optional<String> cursor) {
     if (maxJobs.isPresent() && (maxJobs.get() <= 0)) {
-      return EligibleJobResults.create(ImmutableSet.<String>of(), Optional.empty());
+      return EligibleJobResults.create(ImmutableSet.of(), Optional.empty());
     }
     Set<String> eligibleJobs = new HashSet<>();
     Pair<? extends Iterable<JobRecord>, String> pair =
@@ -185,7 +185,7 @@ class MapreduceEntityCleanupUtil {
   private ImmutableSet<String> getPossibleIdsForPipelineJobRecur(
       BaseDatastoreService datastore, String jobId, Set<String> handledJobIds) {
     if (handledJobIds.contains(jobId)) {
-      return ImmutableSet.<String>of();
+      return ImmutableSet.of();
     }
     handledJobIds.add(jobId);
 
@@ -193,7 +193,7 @@ class MapreduceEntityCleanupUtil {
     try {
       jobRecord = PipelineManager.getJob(jobId);
     } catch (NoSuchObjectException e) {
-      return ImmutableSet.<String>of();
+      return ImmutableSet.of();
     }
 
     ImmutableSet.Builder<String> idSetBuilder = new ImmutableSet.Builder<>();

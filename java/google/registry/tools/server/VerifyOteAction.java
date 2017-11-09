@@ -177,7 +177,7 @@ public class VerifyOteAction implements Runnable, JsonAction {
     HOST_CREATES_SUBORDINATE(1, equalTo(Type.HOST_CREATE), IS_SUBORDINATE),
     HOST_DELETES(1, equalTo(Type.HOST_DELETE)),
     HOST_UPDATES(1, equalTo(Type.HOST_UPDATE)),
-    UNCLASSIFIED_FLOWS(0, Predicates.<HistoryEntry.Type>alwaysFalse());
+    UNCLASSIFIED_FLOWS(0, Predicates.alwaysFalse());
 
     /** The number of StatTypes with a non-zero requirement. */
     private static final int NUM_REQUIREMENTS =
@@ -205,7 +205,7 @@ public class VerifyOteAction implements Runnable, JsonAction {
       this.requirement = requirement;
       this.typeFilter = typeFilter;
       if (eppInputFilter == null) {
-        this.eppInputFilter = Optional.<Predicate<EppInput>>empty();
+        this.eppInputFilter = Optional.empty();
       } else {
         this.eppInputFilter = Optional.of(eppInputFilter);
       }
@@ -260,7 +260,7 @@ public class VerifyOteAction implements Runnable, JsonAction {
       // xmlBytes can be null on contact create and update for safe-harbor compliance.
       final Optional<EppInput> eppInput =
           (xmlBytes == null)
-              ? Optional.<EppInput>empty()
+              ? Optional.empty()
               : Optional.of(unmarshal(EppInput.class, xmlBytes));
       if (!statCounts.addAll(
           EnumSet.allOf(StatType.class)

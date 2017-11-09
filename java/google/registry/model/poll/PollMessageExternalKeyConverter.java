@@ -51,7 +51,7 @@ public class PollMessageExternalKeyConverter extends Converter<Key<PollMessage>,
    * belongs to.
    */
   public static final ImmutableBiMap<Class<? extends EppResource>, Long> EXTERNAL_KEY_CLASS_ID_MAP =
-      ImmutableBiMap.<Class<? extends EppResource>, Long>of(
+      ImmutableBiMap.of(
           DomainBase.class, 1L,
           ContactResource.class, 2L,
           HostResource.class, 3L);

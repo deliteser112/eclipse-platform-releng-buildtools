@@ -73,7 +73,6 @@ import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.model.transfer.TransferStatus;
 import java.util.Optional;
 import javax.inject.Inject;
-import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 /**
@@ -160,7 +159,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
     // If the period is zero, then there is no fee for the transfer.
     Optional<FeesAndCredits> feesAndCredits =
         (period.getValue() == 0)
-            ? Optional.<FeesAndCredits>empty()
+            ? Optional.empty()
             : Optional.of(pricingLogic.getTransferPrice(registry, targetId, now));
     if (feesAndCredits.isPresent()) {
       validateFeeChallenge(targetId, tld, now, feeTransfer, feesAndCredits.get());
@@ -200,7 +199,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
             gainingClientId,
             (feesAndCredits.isPresent())
                 ? Optional.of(feesAndCredits.get().getTotalCost())
-                : Optional.<Money>empty(),
+                : Optional.empty(),
             now);
     // Create the transfer data that represents the pending transfer.
     TransferData pendingTransferData =
@@ -337,7 +336,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   private static ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
       Optional<FeesAndCredits> feesAndCredits, FeeTransferCommandExtension feeTransfer) {
     return (feeTransfer == null || !feesAndCredits.isPresent())
-        ? ImmutableList.<FeeTransformResponseExtension>of()
+        ? ImmutableList.of()
         : ImmutableList.of(feeTransfer.createResponseBuilder()
             .setFees(feesAndCredits.get().getFees())
             .setCredits(feesAndCredits.get().getCredits())

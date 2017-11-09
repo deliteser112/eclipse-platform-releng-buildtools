@@ -47,7 +47,6 @@ import google.registry.flows.custom.DomainRenewFlowCustomLogic.BeforeResponsePar
 import google.registry.flows.custom.DomainRenewFlowCustomLogic.BeforeResponseReturnData;
 import google.registry.flows.custom.DomainRenewFlowCustomLogic.BeforeSaveParameters;
 import google.registry.flows.custom.EntityChanges;
-import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -189,7 +188,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
                 .setEntityChanges(
                     EntityChanges.newBuilder()
                         .setSaves(
-                            ImmutableSet.<ImmutableObject>of(
+                            ImmutableSet.of(
                                 newDomain,
                                 historyEntry,
                                 explicitRenewEvent,
@@ -264,7 +263,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
   private ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
       Money renewCost, FeeRenewCommandExtension feeRenew) {
     return (feeRenew == null)
-        ? ImmutableList.<FeeTransformResponseExtension>of()
+        ? ImmutableList.of()
         : ImmutableList.of(feeRenew.createResponseBuilder()
             .setCurrency(renewCost.getCurrencyUnit())
             .setFees(ImmutableList.of(Fee.create(renewCost.getAmount(), FeeType.RENEW)))

@@ -134,7 +134,7 @@ public final class SyncGroupMembersAction implements Runnable {
     for (final Registrar registrar : dirtyRegistrars) {
       try {
         retrier.callWithRetry(() -> syncRegistrarContacts(registrar), RuntimeException.class);
-        resultsBuilder.put(registrar, Optional.<Throwable>empty());
+        resultsBuilder.put(registrar, Optional.empty());
       } catch (Throwable e) {
         logger.severe(e, e.getMessage());
         resultsBuilder.put(registrar, Optional.of(e));

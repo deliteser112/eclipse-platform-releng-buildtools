@@ -503,7 +503,7 @@ public class DomainFlowUtils {
         : newAutorenewPollMessage(domain)
             .setId(existingAutorenewKey.getId())
             .setAutorenewEndTime(newEndTime)
-            .setParentKey(existingAutorenewKey.<HistoryEntry>getParent())
+            .setParentKey(existingAutorenewKey.getParent())
             .build();
 
     // If the resultant autorenew poll message would have no poll messages to deliver, then just
@@ -734,10 +734,10 @@ public class DomainFlowUtils {
       throw new SecDnsAllUsageException();  // Explicit all=false is meaningless.
     }
     Set<DelegationSignerData> toAdd = (add == null)
-        ? ImmutableSet.<DelegationSignerData>of()
+        ? ImmutableSet.of()
         : add.getDsData();
     Set<DelegationSignerData> toRemove = (remove == null)
-        ? ImmutableSet.<DelegationSignerData>of()
+        ? ImmutableSet.of()
         : (remove.getAll() == null) ? remove.getDsData() : oldDsData;
     // RFC 5910 specifies that removes are processed before adds.
     return ImmutableSet.copyOf(union(difference(oldDsData, toRemove), toAdd));

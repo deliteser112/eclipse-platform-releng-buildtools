@@ -156,7 +156,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
         builder,
         BoilerplateType.DOMAIN,
         results.getIncompletenessWarnings(),
-        ImmutableList.<ImmutableMap<String, Object>>of(),
+        ImmutableList.of(),
         fullServletPath);
     return builder.build();
   }
@@ -210,7 +210,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
         loadByForeignKey(DomainResource.class, partialStringQuery.getInitialString(), now);
     ImmutableList<DomainResource> results =
         ((domainResource == null) || !shouldBeVisible(domainResource, now))
-            ? ImmutableList.<DomainResource>of()
+            ? ImmutableList.of()
             : ImmutableList.of(domainResource);
     return makeSearchResults(results, now);
   }

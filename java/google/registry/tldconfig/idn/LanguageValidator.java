@@ -21,7 +21,7 @@ abstract class LanguageValidator {
 
   /** A registry of all known language validators keyed by their language code. */
   private static final ImmutableMap<String, LanguageValidator> LANGUAGE_VALIDATORS =
-      ImmutableMap.<String, LanguageValidator>of("ja", new JapaneseLanguageValidator());
+      ImmutableMap.of("ja", new JapaneseLanguageValidator());
 
   /** Return the language validator for the given language code (if one exists). */
   static Optional<LanguageValidator> get(String language) {

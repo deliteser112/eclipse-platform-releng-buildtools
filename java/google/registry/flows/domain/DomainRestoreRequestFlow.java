@@ -263,7 +263,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
   private static ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
       Money restoreCost, Money renewCost, FeeUpdateCommandExtension feeUpdate) {
     return (feeUpdate == null)
-        ? ImmutableList.<FeeTransformResponseExtension>of()
+        ? ImmutableList.of()
         : ImmutableList.of(feeUpdate.createResponseBuilder()
             .setCurrency(restoreCost.getCurrencyUnit())
             .setFees(ImmutableList.of(

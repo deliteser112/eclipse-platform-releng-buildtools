@@ -159,8 +159,8 @@ public class RdapEntityActionTest {
     action.request = request;
     action.fullServletPath = "https://example.com/rdap";
     action.response = response;
-    action.registrarParam = Optional.<String>empty();
-    action.includeDeletedParam = Optional.<Boolean>empty();
+    action.registrarParam = Optional.empty();
+    action.includeDeletedParam = Optional.empty();
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapWhoisServer = null;
     action.sessionUtils = sessionUtils;

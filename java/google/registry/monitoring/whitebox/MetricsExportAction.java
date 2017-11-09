@@ -67,7 +67,7 @@ public class MetricsExportAction implements Runnable {
       // Filter out the special parameters that the Action is called with.  Everything that's left
       // is returned in a Map that is suitable to pass to Bigquery as row data.
       Map<String, Object> jsonRows =
-          ImmutableMap.<String, Object>copyOf(
+          ImmutableMap.copyOf(
               filterKeys(parameters, not(in(SPECIAL_PARAMS))).entries());
       TableDataInsertAllResponse response = bigquery.tabledata()
           .insertAll(

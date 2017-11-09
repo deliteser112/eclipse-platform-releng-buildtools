@@ -83,14 +83,14 @@ public class RdeHostInputTest {
   @Test
   public void testZeroHostsDefaultShards_returnsOneReader() throws Exception {
     pushToGcs(DEPOSIT_0_HOST);
-    assertNumberOfReaders(Optional.<Integer>empty(), 1);
+    assertNumberOfReaders(Optional.empty(), 1);
   }
 
   /** Escrow file with zero hosts results in expected reader configuration */
   @Test
   public void testZeroHostsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_0_HOST);
-    assertReaderConfigurations(Optional.<Integer>empty(), 0, 0, 100);
+    assertReaderConfigurations(Optional.empty(), 0, 0, 100);
   }
 
   /** Escrow file with zero hosts and 75 shards results in one reader */
@@ -104,14 +104,14 @@ public class RdeHostInputTest {
   @Test
   public void testOneHostDefaultShards_returnsOneReader() throws Exception {
     pushToGcs(DEPOSIT_1_HOST);
-    assertNumberOfReaders(Optional.<Integer>empty(), 1);
+    assertNumberOfReaders(Optional.empty(), 1);
   }
 
   /** Escrow file with one host results in expected reader configuration */
   @Test
   public void testOneHostDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_1_HOST);
-    assertReaderConfigurations(Optional.<Integer>empty(), 0, 0, 100);
+    assertReaderConfigurations(Optional.empty(), 0, 0, 100);
   }
 
   /** Escrow file with one host and 75 shards results in one reader */
@@ -125,14 +125,14 @@ public class RdeHostInputTest {
   @Test
   public void test199HostsDefaultShards_returnsOneReader() throws Exception {
     pushToGcs(DEPOSIT_199_HOST);
-    assertNumberOfReaders(Optional.<Integer>empty(), 1);
+    assertNumberOfReaders(Optional.empty(), 1);
   }
 
   /** Escrow file with 199 hosts results in expected reader configuration */
   @Test
   public void test199HostsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_199_HOST);
-    assertReaderConfigurations(Optional.<Integer>empty(), 0, 0, 199);
+    assertReaderConfigurations(Optional.empty(), 0, 0, 199);
   }
 
   /** Escrow file with 199 hosts and 75 shards results in one reader */
@@ -146,15 +146,15 @@ public class RdeHostInputTest {
   @Test
   public void test200HostsDefaultShards_returnsTwoReaders() throws Exception {
     pushToGcs(DEPOSIT_200_HOST);
-    assertNumberOfReaders(Optional.<Integer>empty(), 2);
+    assertNumberOfReaders(Optional.empty(), 2);
   }
 
   /** Escrow file with 200 hosts results in expected reader configurations */
   @Test
   public void test200HostsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_200_HOST);
-    assertReaderConfigurations(Optional.<Integer>empty(), 0, 0, 100);
-    assertReaderConfigurations(Optional.<Integer>empty(), 1, 100, 100);
+    assertReaderConfigurations(Optional.empty(), 0, 0, 100);
+    assertReaderConfigurations(Optional.empty(), 1, 100, 100);
   }
 
   /** Escrow file with 200 hosts and 75 shards results in two readers */
@@ -168,7 +168,7 @@ public class RdeHostInputTest {
   @Test
   public void test1000HostsDefaultShards_returns10Readers() throws Exception {
     pushToGcs(DEPOSIT_1000_HOST);
-    assertNumberOfReaders(Optional.<Integer>empty(), 10);
+    assertNumberOfReaders(Optional.empty(), 10);
   }
 
   /** Escrow file with 1000 hosts results in expected reader configurations */
@@ -176,7 +176,7 @@ public class RdeHostInputTest {
   public void test1000HostsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_1000_HOST);
     for (int i = 0; i < 10; i++) {
-      assertReaderConfigurations(Optional.<Integer>empty(), i, i * 100, 100);
+      assertReaderConfigurations(Optional.empty(), i, i * 100, 100);
     }
   }
 
@@ -191,7 +191,7 @@ public class RdeHostInputTest {
   @Test
   public void test10000HostsDefaultShards_returns50Readers() throws Exception {
     pushToGcs(DEPOSIT_10000_HOST);
-    assertNumberOfReaders(Optional.<Integer>empty(), 50);
+    assertNumberOfReaders(Optional.empty(), 50);
   }
 
   /** Escrow file with 10000 hosts results in expected reader configurations */
@@ -199,7 +199,7 @@ public class RdeHostInputTest {
   public void test10000HostsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_10000_HOST);
     for (int i = 0; i < 50; i++) {
-      assertReaderConfigurations(Optional.<Integer>empty(), i, i * 200, 200);
+      assertReaderConfigurations(Optional.empty(), i, i * 200, 200);
     }
   }
 

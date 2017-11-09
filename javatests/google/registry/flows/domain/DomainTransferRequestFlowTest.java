@@ -276,7 +276,7 @@ public class DomainTransferRequestFlowTest
                   .build());
     } else {
       // Superuser transfers with no bundled renewal have no transfer billing event.
-      optionalTransferBillingEvent = Optional.<BillingEvent.OneTime>empty();
+      optionalTransferBillingEvent = Optional.empty();
     }
     // Construct the autorenew events for the losing/existing client and the gaining one. Note that
     // all of the other transfer flow tests happen on day 3 of the transfer, but the initial
@@ -347,9 +347,7 @@ public class DomainTransferRequestFlowTest
                   null),
               optionalTransferBillingEvent.get()));
     } else {
-      assertGracePeriods(
-          domainAfterAutomaticTransfer.getGracePeriods(),
-          ImmutableMap.<GracePeriod, BillingEvent>of());
+      assertGracePeriods(domainAfterAutomaticTransfer.getGracePeriods(), ImmutableMap.of());
     }
   }
 
@@ -469,8 +467,8 @@ public class DomainTransferRequestFlowTest
         commandFilename,
         expectedXmlFilename,
         expectedExpirationTime,
-        ImmutableMap.<String, String>of(),
-        Optional.<Money>empty(),
+        ImmutableMap.of(),
+        Optional.empty(),
         extraExpectedBillingEvents);
   }
 
@@ -484,7 +482,7 @@ public class DomainTransferRequestFlowTest
         expectedXmlFilename,
         domain.getRegistrationExpirationTime().plusYears(1),
         substitutions,
-        Optional.<Money>empty());
+        Optional.empty());
   }
 
   private void doSuccessfulTest(String commandFilename, String expectedXmlFilename)
@@ -568,7 +566,7 @@ public class DomainTransferRequestFlowTest
   }
 
   private void runTest(String commandFilename, UserPrivileges userPrivileges) throws Exception {
-    runTest(commandFilename, userPrivileges, ImmutableMap.<String, String>of());
+    runTest(commandFilename, userPrivileges, ImmutableMap.of());
   }
 
   private void doFailingTest(
@@ -577,7 +575,7 @@ public class DomainTransferRequestFlowTest
   }
 
   private void doFailingTest(String commandFilename) throws Exception {
-    runTest(commandFilename, UserPrivileges.NORMAL, ImmutableMap.<String, String> of());
+    runTest(commandFilename, UserPrivileges.NORMAL, ImmutableMap.of());
   }
 
   @Test
@@ -756,7 +754,7 @@ public class DomainTransferRequestFlowTest
         "domain_transfer_request_response_su_ext_zero_period_nonzero_transfer_length.xml",
         domain.getRegistrationExpirationTime().plusYears(0),
         ImmutableMap.of("PERIOD", "0", "AUTOMATIC_TRANSFER_LENGTH", "5"),
-        Optional.<Money>empty(),
+        Optional.empty(),
         Period.create(0, Unit.YEARS),
         Duration.standardDays(5));
   }
@@ -772,7 +770,7 @@ public class DomainTransferRequestFlowTest
         "domain_transfer_request_response_su_ext_zero_period_zero_transfer_length.xml",
         domain.getRegistrationExpirationTime().plusYears(0),
         ImmutableMap.of("PERIOD", "0", "AUTOMATIC_TRANSFER_LENGTH", "0"),
-        Optional.<Money>empty(),
+        Optional.empty(),
         Period.create(0, Unit.YEARS),
         Duration.ZERO);
   }
@@ -788,7 +786,7 @@ public class DomainTransferRequestFlowTest
         "domain_transfer_request_response_su_ext_one_year_period_nonzero_transfer_length.xml",
         domain.getRegistrationExpirationTime().plusYears(1),
         ImmutableMap.of("PERIOD", "1", "AUTOMATIC_TRANSFER_LENGTH", "5"),
-        Optional.<Money>empty(),
+        Optional.empty(),
         Period.create(1, Unit.YEARS),
         Duration.standardDays(5));
   }
@@ -818,7 +816,7 @@ public class DomainTransferRequestFlowTest
         "domain_transfer_request_response_su_ext_zero_period_autorenew_grace.xml",
         domain.getRegistrationExpirationTime(),
         ImmutableMap.of("PERIOD", "0", "AUTOMATIC_TRANSFER_LENGTH", "0"),
-        Optional.<Money>empty(),
+        Optional.empty(),
         Period.create(0, Unit.YEARS),
         Duration.ZERO);
   }
@@ -895,10 +893,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_notAuthorizedForTld() throws Exception {
     setupDomain("example", "tld");
     persistResource(
-        loadRegistrar("NewRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("NewRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     thrown.expect(NotAuthorizedForTldException.class);
     doSuccessfulTest("domain_transfer_request.xml", "domain_transfer_request_response.xml");
   }
@@ -907,10 +902,7 @@ public class DomainTransferRequestFlowTest
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     setupDomain("example", "tld");
     persistResource(
-        loadRegistrar("NewRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("NewRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     clock.advanceOneMilli();
     // We don't verify the results; just check that the flow doesn't fail.
     runTest("domain_transfer_request.xml", UserPrivileges.SUPERUSER);

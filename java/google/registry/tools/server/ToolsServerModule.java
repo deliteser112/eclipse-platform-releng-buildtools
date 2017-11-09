@@ -49,7 +49,7 @@ public class ToolsServerModule {
   @Parameter("fullFieldNames")
   static Optional<Boolean> provideFullFieldNames(HttpServletRequest req) {
     String s = emptyToNull(req.getParameter(ListObjectsAction.FULL_FIELD_NAMES_PARAM));
-    return (s == null) ? Optional.<Boolean>empty() : Optional.of(Boolean.parseBoolean(s));
+    return (s == null) ? Optional.empty() : Optional.of(Boolean.parseBoolean(s));
   }
 
   @Provides
@@ -74,7 +74,7 @@ public class ToolsServerModule {
   @Parameter("printHeaderRow")
   static Optional<Boolean> providePrintHeaderRow(HttpServletRequest req) {
     String s = emptyToNull(req.getParameter(ListObjectsAction.PRINT_HEADER_ROW_PARAM));
-    return (s == null) ? Optional.<Boolean>empty() : Optional.of(Boolean.parseBoolean(s));
+    return (s == null) ? Optional.empty() : Optional.of(Boolean.parseBoolean(s));
   }
 
   @Provides

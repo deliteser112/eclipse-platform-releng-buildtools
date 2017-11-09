@@ -53,7 +53,6 @@ import google.registry.model.poll.PollMessage.Autorenew;
 import google.registry.model.rde.RdeMode;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
-import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
@@ -331,7 +330,7 @@ public class DomainResourceToXjcConverterTest {
                     .setMsg("Domain was auto-renewed.")
                     .setParent(historyEntry)
                     .build())))
-            .setServerApproveEntities(ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
+            .setServerApproveEntities(ImmutableSet.of(
                 Key.create(billingEvent)))
             .setTransferRequestTime(DateTime.parse("1919-01-01T00:00:00Z"))
             .setTransferStatus(TransferStatus.PENDING)

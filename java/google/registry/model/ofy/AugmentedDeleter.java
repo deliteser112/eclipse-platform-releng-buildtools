@@ -50,13 +50,13 @@ abstract class AugmentedDeleter implements Deleter {
 
   @Override
   public Result<Void> entity(Object entity) {
-    handleDeletion(Arrays.<Key<?>>asList(Key.create(entity)));
+    handleDeletion(Arrays.asList(Key.create(entity)));
     return delegate.entity(entity);
   }
 
   @Override
   public Result<Void> key(Key<?> key) {
-    handleDeletion(Arrays.<Key<?>>asList(key));
+    handleDeletion(Arrays.asList(key));
     return delegate.keys(key);
   }
 

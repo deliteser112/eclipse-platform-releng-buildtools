@@ -48,7 +48,6 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.poll.PollMessage.Autorenew;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
-import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.FakeClock;
 import google.registry.util.Idn;
@@ -173,7 +172,7 @@ final class RdeFixtures {
                     .setMsg("Domain was auto-renewed.")
                     .setParent(historyEntry)
                     .build())))
-            .setServerApproveEntities(ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
+            .setServerApproveEntities(ImmutableSet.of(
                 Key.create(billingEvent)))
             .setTransferRequestTime(DateTime.parse("1919-01-01T00:00:00Z"))
             .setTransferStatus(TransferStatus.PENDING)

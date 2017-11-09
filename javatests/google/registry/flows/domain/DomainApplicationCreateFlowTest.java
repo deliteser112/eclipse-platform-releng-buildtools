@@ -18,7 +18,6 @@ import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
@@ -1092,10 +1091,7 @@ public class DomainApplicationCreateFlowTest
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
-        loadRegistrar("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistContactsAndHosts();
     thrown.expect(NotAuthorizedForTldException.class);
     runFlow();
@@ -1148,10 +1144,7 @@ public class DomainApplicationCreateFlowTest
   @Test
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     persistResource(
-        loadRegistrar("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistContactsAndHosts();
     clock.advanceOneMilli();
     runSuperuserFlow("domain_create_sunrise_encoded_signed_mark_response.xml");

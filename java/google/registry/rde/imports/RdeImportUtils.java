@@ -98,7 +98,7 @@ public class RdeImportUtils {
         resource.getClass().getCanonicalName(),
         resource.getForeignKey(),
         resource.getRepoId());
-    return ImmutableSet.<Object>of(ForeignKeyIndex.create(resource, resource.getDeletionTime()),
+    return ImmutableSet.of(ForeignKeyIndex.create(resource, resource.getDeletionTime()),
         EppResourceIndex.create(Key.create(resource)));
   }
 

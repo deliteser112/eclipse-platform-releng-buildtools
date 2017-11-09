@@ -56,7 +56,7 @@ public class RdapTestHelper {
     switch (contactNoticeType) {
       case DOMAIN:
         noticesBuilder.add(
-            ImmutableMap.<String, Object>of(
+            ImmutableMap.of(
                 "title", "Contacts Hidden",
                 "description",
                     ImmutableList.of("Domain contacts are visible only to the owning registrar."),
@@ -64,7 +64,7 @@ public class RdapTestHelper {
         break;
       case CONTACT:
         noticesBuilder.add(
-            ImmutableMap.<String, Object>of(
+            ImmutableMap.of(
                 "title", "Contact Personal Data Hidden",
                 "description",
                     ImmutableList.of(
@@ -75,7 +75,7 @@ public class RdapTestHelper {
         break;
     }
     noticesBuilder.add(
-        ImmutableMap.<String, Object>of(
+        ImmutableMap.of(
             "title", "RDAP Terms of Service",
             "description",
                 ImmutableList.of(
@@ -119,7 +119,7 @@ public class RdapTestHelper {
     ImmutableList.Builder<ImmutableMap<String, Object>> remarksBuilder =
         getBuilderWithOthersAdded(otherRemarks);
     remarksBuilder.add(
-        ImmutableMap.<String, Object>of(
+        ImmutableMap.of(
             "description",
             ImmutableList.of(
                 "This response conforms to the RDAP Operational Profile for gTLD Registries and"
@@ -139,20 +139,20 @@ public class RdapTestHelper {
         getBuilderWithOthersAdded(otherRemarks);
     if (addNoContactRemark) {
       remarksBuilder.add(
-          ImmutableMap.<String, Object>of(
+          ImmutableMap.of(
               "title", "Contacts Hidden",
               "description",
                   ImmutableList.of("Domain contacts are visible only to the owning registrar."),
               "type", "object truncated due to unexplainable reasons"));
     }
     remarksBuilder.add(
-        ImmutableMap.<String, Object>of(
+        ImmutableMap.of(
             "description",
             ImmutableList.of(
                 "This response conforms to the RDAP Operational Profile for gTLD Registries and"
                     + " Registrars version 1.0")));
     remarksBuilder.add(
-        ImmutableMap.<String, Object>of(
+        ImmutableMap.of(
             "title",
             "EPP Status Codes",
             "description",
@@ -167,7 +167,7 @@ public class RdapTestHelper {
                     "href", "https://icann.org/epp",
                     "type", "text/html"))));
     remarksBuilder.add(
-        ImmutableMap.<String, Object>of(
+        ImmutableMap.of(
             "description",
             ImmutableList.of(
                 "URL of the ICANN Whois Inaccuracy Complaint Form: https://www.icann.org/wicf"),

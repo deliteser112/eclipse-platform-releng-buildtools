@@ -121,7 +121,7 @@ public class FlowPicker {
   /** Session flows like login and logout are keyed only on the {@link InnerCommand} type. */
   private static final FlowProvider SESSION_FLOW_PROVIDER = new FlowProvider() {
     private final Map<Class<?>, Class<? extends Flow>> commandFlows =
-      ImmutableMap.<Class<?>, Class<? extends Flow>>of(
+      ImmutableMap.of(
           Login.class, LoginFlow.class,
           Logout.class, LogoutFlow.class);
 
@@ -240,7 +240,7 @@ public class FlowPicker {
   private static final FlowProvider APPLICATION_CRUD_FLOW_PROVIDER = new FlowProvider() {
 
     private final Map<Class<? extends ResourceCommand>, Class<? extends Flow>> applicationFlows =
-        ImmutableMap.<Class<? extends ResourceCommand>, Class<? extends Flow>>of(
+        ImmutableMap.of(
             DomainCommand.Create.class, DomainApplicationCreateFlow.class,
             DomainCommand.Delete.class, DomainApplicationDeleteFlow.class,
             DomainCommand.Info.class, DomainApplicationInfoFlow.class,

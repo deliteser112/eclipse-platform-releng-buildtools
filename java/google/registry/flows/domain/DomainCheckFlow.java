@@ -187,7 +187,7 @@ public final class DomainCheckFlow implements Flow {
     }
 
     return reservationTypes.isEmpty()
-        ? Optional.<String>empty()
+        ? Optional.empty()
         : Optional.of(getTypeOfHighestSeverity(reservationTypes).getMessageForCheck());
   }
 

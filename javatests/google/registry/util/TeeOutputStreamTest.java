@@ -61,7 +61,7 @@ public class TeeOutputStreamTest {
   @SuppressWarnings("resource")
   public void testConstructor_failsWithEmptyIterable() {
     thrown.expect(IllegalArgumentException.class);
-    new TeeOutputStream(ImmutableSet.<OutputStream>of());
+    new TeeOutputStream(ImmutableSet.of());
   }
 
   @Test

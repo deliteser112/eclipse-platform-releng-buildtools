@@ -150,7 +150,7 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
                     String.format(
                         GCS_PATH_FORMAT, bucket, String.format(FILENAME_FORMAT, tld, exportTime)))
             .collect(toImmutableList());
-    return ImmutableMap.<String, Object>of(
+    return ImmutableMap.of(
         "jobPath", createJobPath(jobId),
         "filenames", filenames);
   }

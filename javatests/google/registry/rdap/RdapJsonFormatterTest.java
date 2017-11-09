@@ -472,7 +472,7 @@ public class RdapJsonFormatterTest {
             rdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceTech,
                 false,
-                Optional.<DesignatedContact.Type>empty(),
+                Optional.empty(),
                 LINK_BASE,
                 WHOIS_SERVER,
                 clock.nowUtc(),
@@ -487,7 +487,7 @@ public class RdapJsonFormatterTest {
             rdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceNotLinked,
                 false,
-                Optional.<DesignatedContact.Type>empty(),
+                Optional.empty(),
                 LINK_BASE,
                 WHOIS_SERVER,
                 clock.nowUtc(),
@@ -626,8 +626,8 @@ public class RdapJsonFormatterTest {
     rdapJsonFormatter.addTopLevelEntries(
         builder,
         RdapJsonFormatter.BoilerplateType.OTHER,
-        ImmutableList.<ImmutableMap<String, Object>>of(),
-        ImmutableList.<ImmutableMap<String, Object>>of(),
+        ImmutableList.of(),
+        ImmutableList.of(),
         LINK_BASE);
     assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel.json"));
   }
@@ -640,7 +640,7 @@ public class RdapJsonFormatterTest {
         builder,
         RdapJsonFormatter.BoilerplateType.OTHER,
         ImmutableList.of(rdapJsonFormatter.getJsonHelpNotice("/tos", LINK_BASE)),
-        ImmutableList.<ImmutableMap<String, Object>>of(),
+        ImmutableList.of(),
         LINK_BASE);
     assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel.json"));
   }
@@ -652,8 +652,8 @@ public class RdapJsonFormatterTest {
     rdapJsonFormatter.addTopLevelEntries(
         builder,
         RdapJsonFormatter.BoilerplateType.DOMAIN,
-        ImmutableList.<ImmutableMap<String, Object>>of(),
-        ImmutableList.<ImmutableMap<String, Object>>of(),
+        ImmutableList.of(),
+        ImmutableList.of(),
         LINK_BASE);
     assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel_domain.json"));
   }
@@ -666,7 +666,7 @@ public class RdapJsonFormatterTest {
         builder,
         RdapJsonFormatter.BoilerplateType.DOMAIN,
         ImmutableList.of(rdapJsonFormatter.getJsonHelpNotice("/tos", LINK_BASE)),
-        ImmutableList.<ImmutableMap<String, Object>>of(),
+        ImmutableList.of(),
         LINK_BASE);
     assertThat(builder.build()).isEqualTo(loadJson("rdapjson_toplevel_domain.json"));
   }

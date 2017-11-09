@@ -86,7 +86,6 @@ import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.eppcommon.AuthInfo;
-import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CreateData.DomainCreateData;
@@ -305,7 +304,7 @@ public class DomainCreateFlow implements TransactionalFlow {
             .setStatusValues(
                 registry.getDomainCreateRestricted()
                     ? ImmutableSet.of(SERVER_UPDATE_PROHIBITED, SERVER_TRANSFER_PROHIBITED)
-                    : ImmutableSet.<StatusValue>of())
+                    : ImmutableSet.of())
             .setContacts(command.getContacts())
             .addGracePeriod(GracePeriod.forBillingEvent(GracePeriodStatus.ADD, createBillingEvent))
             .build();
@@ -411,7 +410,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         .setFlags(
             isAnchorTenant
                 ? ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT)
-                : ImmutableSet.<BillingEvent.Flag>of())
+                : ImmutableSet.of())
         .setParent(historyEntry)
         .build();
   }
@@ -471,7 +470,7 @@ public class DomainCreateFlow implements TransactionalFlow {
   private static ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
       FeeCreateCommandExtension feeCreate, FeesAndCredits feesAndCredits) {
     return (feeCreate == null)
-        ? ImmutableList.<FeeTransformResponseExtension>of()
+        ? ImmutableList.of()
         : ImmutableList.of(createFeeCreateResponse(feeCreate, feesAndCredits));
   }
 

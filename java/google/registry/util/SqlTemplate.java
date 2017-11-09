@@ -42,7 +42,7 @@ public final class SqlTemplate {
 
   /** Returns a new immutable SQL template builder object, for query parameter substitution. */
   public static SqlTemplate create(String template) {
-    return new SqlTemplate(template, ImmutableMap.<String, String>of());
+    return new SqlTemplate(template, ImmutableMap.of());
   }
 
   /**

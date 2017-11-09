@@ -70,7 +70,7 @@ public final class RequestParameters {
     String stringParam = req.getParameter(name);
     try {
       return isNullOrEmpty(stringParam)
-          ? Optional.<Integer>empty()
+          ? Optional.empty()
           : Optional.of(Integer.valueOf(stringParam));
     } catch (NumberFormatException e) {
       throw new BadRequestException("Expected integer: " + name);
@@ -93,7 +93,7 @@ public final class RequestParameters {
   /** Returns all GET or POST parameters associated with {@code name}. */
   public static ImmutableSet<String> extractSetOfParameters(HttpServletRequest req, String name) {
     String[] parameters = req.getParameterValues(name);
-    return parameters == null ? ImmutableSet.<String>of() : ImmutableSet.copyOf(parameters);
+    return parameters == null ? ImmutableSet.of() : ImmutableSet.copyOf(parameters);
   }
 
   /**
@@ -135,7 +135,7 @@ public final class RequestParameters {
       HttpServletRequest req, String name) {
     String stringParam = req.getParameter(name);
     return isNullOrEmpty(stringParam)
-        ? Optional.<Boolean>empty()
+        ? Optional.empty()
         : Optional.of(Boolean.valueOf(stringParam));
   }
 
@@ -179,7 +179,7 @@ public final class RequestParameters {
     String stringParam = req.getParameter(name);
     try {
       return isNullOrEmpty(stringParam)
-          ? Optional.<DateTime>empty()
+          ? Optional.empty()
           : Optional.of(DateTime.parse(stringParam));
     } catch (IllegalArgumentException e) {
       throw new BadRequestException("Bad ISO 8601 timestamp: " + name);
@@ -198,7 +198,7 @@ public final class RequestParameters {
       HttpServletRequest req, String name) {
     String[] stringParams = req.getParameterValues(name);
     if (stringParams == null) {
-      return ImmutableSet.<DateTime>of();
+      return ImmutableSet.of();
     }
     ImmutableSet.Builder<DateTime> datesBuilder = new ImmutableSet.Builder<>();
     for (String stringParam : stringParams) {

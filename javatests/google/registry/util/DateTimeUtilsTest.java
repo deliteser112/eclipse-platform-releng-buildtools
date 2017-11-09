@@ -77,12 +77,12 @@ public class DateTimeUtilsTest {
   @Test
   public void testFailure_earliestOfEmpty() {
     thrown.expect(IllegalArgumentException.class);
-    earliestOf(ImmutableList.<DateTime>of());
+    earliestOf(ImmutableList.of());
   }
 
   @Test
   public void testFailure_latestOfEmpty() {
     thrown.expect(IllegalArgumentException.class);
-    earliestOf(ImmutableList.<DateTime>of());
+    earliestOf(ImmutableList.of());
   }
 }

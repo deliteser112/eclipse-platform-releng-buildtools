@@ -115,10 +115,7 @@ public class DomainClaimsCheckFlowTest
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
-        loadRegistrar("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     thrown.expect(NotAuthorizedForTldException.class);
     runFlow();
   }
@@ -128,10 +125,7 @@ public class DomainClaimsCheckFlowTest
     persistClaimsList(
         ImmutableMap.of("example2", "2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001"));
     persistResource(
-        loadRegistrar("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     assertTransactionalFlow(false);
     assertNoHistory(); // Checks don't create a history event.
     assertNoBillingEvents(); // Checks are always free.
@@ -161,9 +155,8 @@ public class DomainClaimsCheckFlowTest
   public void testFailure_multipleTlds_oneHasEndedClaims() throws Exception {
     createTld("tld1");
     createTld("tld2");
-    persistResource(Registry.get("tld2").asBuilder()
-        .setClaimsPeriodEnd(clock.nowUtc().minusMillis(1))
-        .build());
+    persistResource(
+        Registry.get("tld2").asBuilder().setClaimsPeriodEnd(clock.nowUtc().minusMillis(1)).build());
     setEppInput("domain_check_claims_multiple_tlds.xml");
     thrown.expect(ClaimsPeriodEndedException.class);
     runFlow();

@@ -33,7 +33,7 @@ import org.joda.time.DateTime;
 /** Metadata for an {@link Ofy} transaction that saves commit logs. */
 class TransactionInfo {
 
-  private static final Predicate<Object> IS_DELETE = Predicates.<Object>equalTo(Delete.SENTINEL);
+  private static final Predicate<Object> IS_DELETE = Predicates.equalTo(Delete.SENTINEL);
 
   private enum Delete { SENTINEL }
 

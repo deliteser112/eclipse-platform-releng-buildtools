@@ -86,7 +86,7 @@ public class TldFanoutActionTest {
     action.queue = getLast(params.get("queue"));
     action.excludes = params.containsKey("exclude")
         ? ImmutableSet.copyOf(Splitter.on(',').split(params.get("exclude").get(0)))
-        : ImmutableSet.<String>of();
+        : ImmutableSet.of();
     action.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
     action.response = response;
     action.runInEmpty = params.containsKey("runInEmpty");

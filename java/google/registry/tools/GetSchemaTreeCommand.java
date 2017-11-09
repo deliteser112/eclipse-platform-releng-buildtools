@@ -99,7 +99,7 @@ final class GetSchemaTreeCommand implements Command {
     // Build up the superclass to subclass mapping.
     superclassToSubclasses = Multimaps.invertFrom(
         Multimaps.forMap(subclassToSuperclass),
-        TreeMultimap.<Class<?>, Class<?>>create(arbitrary(), new PrintableNameOrdering()));
+        TreeMultimap.create(arbitrary(), new PrintableNameOrdering()));
     printTree(Object.class, 0);
   }
 

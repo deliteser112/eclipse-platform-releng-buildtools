@@ -137,7 +137,7 @@ abstract class EppResourceBaseReader<T> extends InputReader<T> {
       ImmutableSet<Class<? extends R>> resourceClasses) {
     // Ignore EppResource when finding kinds, since it doesn't have one and doesn't imply filtering.
     return resourceClasses.contains(EppResource.class)
-        ? ImmutableSet.<String>of()
+        ? ImmutableSet.of()
         : resourceClasses.stream().map(CLASS_TO_KIND_FUNCTION).collect(toImmutableSet());
   }
 }

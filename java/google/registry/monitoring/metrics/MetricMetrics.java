@@ -29,7 +29,7 @@ final class MetricMetrics {
               "/metrics/push_intervals",
               "Count of push intervals.",
               "Push Intervals",
-              ImmutableSet.<LabelDescriptor>of());
+              ImmutableSet.of());
   private static final ImmutableSet<LabelDescriptor> LABELS =
       ImmutableSet.of(
           LabelDescriptor.create("kind", "Metric Kind"),

@@ -265,7 +265,7 @@ public class MapreduceEntityCleanupActionTest
     createMapreduce("jobname");
     executeTasksUntilEmpty(QUEUE_NAME, clock);
     setJobIdJobNameAndDaysOld(
-        Optional.<String>empty(), Optional.<String>empty(), Optional.<Integer>empty());
+        Optional.empty(), Optional.empty(), Optional.empty());
 
     action.run();
 
@@ -349,11 +349,11 @@ public class MapreduceEntityCleanupActionTest
     executeTasksUntilEmpty(QUEUE_NAME, clock);
     clock.setTo(DateTime.now(UTC));
     action = new MapreduceEntityCleanupAction(
-        Optional.<String>empty(), // jobId
-        Optional.<String>empty(), // jobName
-        Optional.<Integer>of(1), // numJobsToDelete
-        Optional.<Integer>of(0), // daysOld
-        Optional.<Boolean>empty(), // force
+        Optional.empty(), // jobId
+        Optional.empty(), // jobName
+        Optional.of(1), // numJobsToDelete
+        Optional.of(0), // daysOld
+        Optional.empty(), // force
         mapreduceEntityCleanupUtil,
         clock,
         DatastoreServiceFactory.getDatastoreService(),
@@ -428,10 +428,10 @@ public class MapreduceEntityCleanupActionTest
     clock.setTo(DateTime.now(UTC));
     action = new MapreduceEntityCleanupAction(
         Optional.of(jobId2), // jobId
-        Optional.<String>empty(), // jobName
-        Optional.<Integer>empty(), // numJobsToDelete
-        Optional.<Integer>empty(), // daysOld
-        Optional.<Boolean>empty(), // force
+        Optional.empty(), // jobName
+        Optional.empty(), // numJobsToDelete
+        Optional.empty(), // daysOld
+        Optional.empty(), // force
         mapreduceEntityCleanupUtil,
         clock,
         DatastoreServiceFactory.getDatastoreService(),
@@ -453,7 +453,7 @@ public class MapreduceEntityCleanupActionTest
   @Test
   public void testDeleteOfRunningJob_fails() throws Exception {
     String jobId = createMapreduce("jobname");
-    executeTasks(QUEUE_NAME, clock, Optional.<Integer>of(10));
+    executeTasks(QUEUE_NAME, clock, Optional.of(10));
     setJobId(jobId);
 
     action.run();
@@ -469,13 +469,13 @@ public class MapreduceEntityCleanupActionTest
   @Test
   public void testDeleteOfRunningJob_succeedsWithForce() throws Exception {
     String jobId = createMapreduce("jobname");
-    executeTasks(QUEUE_NAME, clock, Optional.<Integer>of(10));
+    executeTasks(QUEUE_NAME, clock, Optional.of(10));
     clock.setTo(DateTime.now(UTC));
     action = new MapreduceEntityCleanupAction(
         Optional.of(jobId),
-        Optional.<String>empty(), // jobName
-        Optional.<Integer>empty(), // numJobsToDelete
-        Optional.<Integer>empty(), // daysOld
+        Optional.empty(), // jobName
+        Optional.empty(), // numJobsToDelete
+        Optional.empty(), // daysOld
         Optional.of(true), // force
         mapreduceEntityCleanupUtil,
         clock,
@@ -497,7 +497,7 @@ public class MapreduceEntityCleanupActionTest
   @Test
   public void testJobIdAndJobName_fails() throws Exception {
     setJobIdJobNameAndDaysOld(
-        Optional.of("jobid"), Optional.of("jobname"), Optional.<Integer>empty());
+        Optional.of("jobid"), Optional.of("jobname"), Optional.empty());
 
     action.run();
 
@@ -509,7 +509,7 @@ public class MapreduceEntityCleanupActionTest
 
   @Test
   public void testJobIdAndDaysOld_fails() throws Exception {
-    setJobIdJobNameAndDaysOld(Optional.of("jobid"), Optional.<String>empty(), Optional.of(0));
+    setJobIdJobNameAndDaysOld(Optional.of("jobid"), Optional.empty(), Optional.of(0));
 
     action.run();
 
@@ -524,10 +524,10 @@ public class MapreduceEntityCleanupActionTest
   public void testJobIdAndNumJobs_fails() throws Exception {
     action = new MapreduceEntityCleanupAction(
         Optional.of("jobid"),
-        Optional.<String>empty(), // jobName
+        Optional.empty(), // jobName
         Optional.of(1), // numJobsToDelete
-        Optional.<Integer>empty(), // daysOld
-        Optional.<Boolean>empty(), // force
+        Optional.empty(), // daysOld
+        Optional.empty(), // force
         mapreduceEntityCleanupUtil,
         clock,
         DatastoreServiceFactory.getDatastoreService(),
@@ -545,11 +545,11 @@ public class MapreduceEntityCleanupActionTest
   @Test
   public void testDeleteZeroJobs_throwsUsageError() throws Exception {
     new MapreduceEntityCleanupAction(
-            Optional.<String>empty(), // jobId
-            Optional.<String>empty(), // jobName
-            Optional.<Integer>of(0), // numJobsToDelete
-            Optional.<Integer>empty(), // daysOld
-            Optional.<Boolean>empty(), // force
+            Optional.empty(), // jobId
+            Optional.empty(), // jobName
+            Optional.of(0), // numJobsToDelete
+            Optional.empty(), // daysOld
+            Optional.empty(), // force
             mapreduceEntityCleanupUtil,
             clock,
             DatastoreServiceFactory.getDatastoreService(),

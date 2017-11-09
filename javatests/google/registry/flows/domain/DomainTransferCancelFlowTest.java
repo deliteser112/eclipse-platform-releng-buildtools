@@ -15,7 +15,6 @@
 package google.registry.flows.domain;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.RESTORED_DOMAINS;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;
 import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_CREATE;
@@ -304,10 +303,7 @@ public class DomainTransferCancelFlowTest
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
-        loadRegistrar("NewRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("NewRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     thrown.expect(NotAuthorizedForTldException.class);
     doSuccessfulTest("domain_transfer_cancel.xml", "domain_transfer_cancel_response.xml");
   }
@@ -315,15 +311,10 @@ public class DomainTransferCancelFlowTest
   @Test
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     persistResource(
-        loadRegistrar("NewRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("NewRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE,
-        UserPrivileges.SUPERUSER,
-        readFile("domain_transfer_cancel_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_transfer_cancel_response.xml"));
   }
 
   // NB: No need to test pending delete status since pending transfers will get cancelled upon

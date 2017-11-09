@@ -261,7 +261,7 @@ public class XmlTestUtils {
         XML.toJSONObject(xml),
         null,
         ImmutableSet.copyOf(ignoredPaths),
-        ImmutableMap.<String, String>of()).getValue();
+        ImmutableMap.of()).getValue();
   }
 }
 

@@ -94,7 +94,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
     reqJson.put("contacts",
         ImmutableList.of(AppEngineRule.makeRegistrarContact2()
             .asBuilder()
-            .setTypes(ImmutableList.<RegistrarContact.Type>of())
+            .setTypes(ImmutableList.of())
             .build().toJsonMap()));
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",

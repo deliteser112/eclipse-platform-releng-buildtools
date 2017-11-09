@@ -115,8 +115,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
             ImmutableList.of(
                 new NullInput<>(),
                 createChildEntityInput(
-                    ImmutableSet.<Class<? extends DomainResource>>of(DomainResource.class),
-                    ImmutableSet.<Class<? extends Recurring>>of(Recurring.class))))));
+                    ImmutableSet.of(DomainResource.class), ImmutableSet.of(Recurring.class))))));
   }
 
   /** Mapper to expand {@link Recurring} billing events into synthetic {@link OneTime} events. */

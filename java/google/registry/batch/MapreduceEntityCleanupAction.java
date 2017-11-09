@@ -211,7 +211,7 @@ public class MapreduceEntityCleanupAction implements Runnable {
 
   private String requestDeletion(Set<String> actualJobIds, boolean verbose) {
     Optional<StringBuilder> payloadChunkBuilder =
-        verbose ? Optional.of(new StringBuilder()) : Optional.<StringBuilder>empty();
+        verbose ? Optional.of(new StringBuilder()) : Optional.empty();
     int errorCount = 0;
     for (String actualJobId : actualJobIds) {
       Optional<String> error =

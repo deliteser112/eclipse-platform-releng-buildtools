@@ -81,7 +81,7 @@ public final class RequestStatusCheckerImplTest {
   // it's a request that has just started running recently.
   @Test public void testIsRunning_unrecognized() {
     when(RequestStatusCheckerImpl.logService.fetch(expectedLogQuery("12345678")))
-        .thenReturn(ImmutableList.<RequestLogs>of());
+        .thenReturn(ImmutableList.of());
     assertThat(requestStatusChecker.isRunning("12345678")).isTrue();
     assertAboutLogs()
         .that(logHandler)

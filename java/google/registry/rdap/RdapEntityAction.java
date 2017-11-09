@@ -24,7 +24,6 @@ import com.google.common.primitives.Longs;
 import com.google.re2j.Pattern;
 import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DesignatedContact;
 import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.rdap.RdapMetrics.EndpointType;
@@ -95,7 +94,7 @@ public class RdapEntityAction extends RdapActionBase {
         return rdapJsonFormatter.makeRdapJsonForContact(
             contactResource,
             true,
-            Optional.<DesignatedContact.Type>empty(),
+            Optional.empty(),
             fullServletPath,
             rdapWhoisServer,
             now,

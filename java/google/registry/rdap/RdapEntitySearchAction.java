@@ -27,7 +27,6 @@ import com.google.common.primitives.Booleans;
 import com.google.common.primitives.Longs;
 import com.googlecode.objectify.cmd.Query;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DesignatedContact;
 import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
@@ -119,7 +118,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
         jsonBuilder,
         BoilerplateType.ENTITY,
         results.getIncompletenessWarnings(),
-        ImmutableList.<ImmutableMap<String, Object>>of(),
+        ImmutableList.of(),
         fullServletPath);
     return jsonBuilder.build();
   }
@@ -219,7 +218,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
       return makeSearchResults(
           ((contactResource != null) && shouldBeVisible(contactResource, now))
               ? ImmutableList.of(contactResource)
-              : ImmutableList.<ContactResource>of(),
+              : ImmutableList.of(),
           IncompletenessWarningType.NONE,
           getMatchingRegistrars(partialStringQuery.getInitialString()),
           now);
@@ -230,7 +229,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
     } else {
       ImmutableList<Registrar> registrars =
           partialStringQuery.getHasWildcard()
-              ? ImmutableList.<Registrar>of()
+              ? ImmutableList.of()
               : getMatchingRegistrars(partialStringQuery.getInitialString());
       // Get the contact matches and return the results, fetching an additional contact to detect
       // truncation. If we are including deleted entries, we must fetch more entries, in case some
@@ -257,7 +256,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
     Optional<Registrar> registrar = getRegistrarByIanaIdentifier(ianaIdentifier);
     return (registrar.isPresent() && shouldBeVisible(registrar.get()))
         ? ImmutableList.of(registrar.get())
-        : ImmutableList.<Registrar>of();
+        : ImmutableList.of();
   }
 
   /**
@@ -310,7 +309,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
       jsonOutputList.add(rdapJsonFormatter.makeRdapJsonForContact(
           contact,
           false,
-          Optional.<DesignatedContact.Type>empty(),
+          Optional.empty(),
           fullServletPath,
           rdapWhoisServer,
           now,

@@ -45,7 +45,7 @@ public final class TmchCrlAction implements Runnable {
   public void run() {
     try {
       tmchCertificateAuthority.updateCrl(
-          new String(marksdb.fetch(tmchCrlUrl, Optional.<String>empty()), UTF_8),
+          new String(marksdb.fetch(tmchCrlUrl, Optional.empty()), UTF_8),
           tmchCrlUrl.toString());
     } catch (IOException | GeneralSecurityException e) {
       throw new RuntimeException("Failed to update ICANN TMCH CRL.", e);

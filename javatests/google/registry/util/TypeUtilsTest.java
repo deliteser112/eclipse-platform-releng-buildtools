@@ -34,20 +34,20 @@ public class TypeUtilsTest {
   @Test
   public void test_getClassFromString_validClass() {
     Class<? extends Serializable> clazz =
-        TypeUtils.<Serializable>getClassFromString("java.util.ArrayList", Serializable.class);
+        TypeUtils.getClassFromString("java.util.ArrayList", Serializable.class);
     assertThat(clazz).isEqualTo(ArrayList.class);
   }
 
   @Test
   public void test_getClassFromString_notAssignableFrom() {
     thrown.expect(IllegalArgumentException.class, "ArrayList does not implement/extend Integer");
-    TypeUtils.<Integer>getClassFromString("java.util.ArrayList", Integer.class);
+    TypeUtils.getClassFromString("java.util.ArrayList", Integer.class);
   }
 
   @Test
   public void test_getClassFromString_unknownClass() {
     thrown.expect(
         IllegalArgumentException.class, "Failed to load class com.fake.company.nonexistent.Class");
-    TypeUtils.<Object>getClassFromString("com.fake.company.nonexistent.Class", Object.class);
+    TypeUtils.getClassFromString("com.fake.company.nonexistent.Class", Object.class);
   }
 }

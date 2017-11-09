@@ -192,7 +192,7 @@ final class GenerateAuctionDataCommand implements RemoteApiCommand {
     Optional<ContactAddress> address =
         Optional.ofNullable(postalInfo.isPresent() ? postalInfo.get().getAddress() : null);
     List<String> street =
-        address.isPresent() ? address.get().getStreet() : ImmutableList.<String>of();
+        address.isPresent() ? address.get().getStreet() : ImmutableList.of();
     Optional<ContactPhoneNumber> phoneNumber = Optional.ofNullable(registrant.getVoiceNumber());
 
     // Each line containing an auction participant has the following format:
@@ -235,7 +235,7 @@ final class GenerateAuctionDataCommand implements RemoteApiCommand {
             Optional.ofNullable(registrar.getLocalizedAddress())
                 .orElse(registrar.getInternationalizedAddress()));
     List<String> street =
-        address.isPresent() ? address.get().getStreet() : ImmutableList.<String>of();
+        address.isPresent() ? address.get().getStreet() : ImmutableList.of();
 
     // Each line containing the registrar of an auction participant has the following format:
     //

@@ -44,6 +44,6 @@ final class ListDomainsCommand extends ListObjectsCommand {
   ImmutableMap<String, Object> getParameterMap() {
     String tldsParam = Joiner.on(',').join(tlds);
     checkArgument(tldsParam.length() < 1024, "Total length of TLDs is too long for URL parameter");
-    return ImmutableMap.<String, Object>of("tlds", tldsParam);
+    return ImmutableMap.of("tlds", tldsParam);
   }
 }

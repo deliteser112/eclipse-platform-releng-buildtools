@@ -116,7 +116,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
     Set<ImmutableObject> ibEntities = persistLotsOfDomains("ib-any.test");
     runMapreduce();
     assertDeleted(ibEntities);
-    assertNotDeleted(ImmutableSet.<ImmutableObject>of(nic, fkiNic));
+    assertNotDeleted(ImmutableSet.of(nic, fkiNic));
   }
 
   @Test
@@ -254,7 +254,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
         ForeignKeyIndex.load(DomainResource.class, fqdn, START_OF_TIME);
     EppResourceIndex eppIndex =
         ofy().load().entity(EppResourceIndex.create(Key.create(domain))).now();
-    return ImmutableSet.<ImmutableObject>of(
+    return ImmutableSet.of(
         domain, historyEntry, billingEvent, pollMessage, fki, eppIndex);
   }
 

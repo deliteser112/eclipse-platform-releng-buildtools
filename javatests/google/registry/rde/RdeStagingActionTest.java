@@ -151,11 +151,11 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.pendingDepositChecker.rdeInterval = Duration.standardDays(1);
     action.response = response;
     action.transactionCooldown = Duration.ZERO;
-    action.directory = Optional.<String>empty();
-    action.modeStrings = ImmutableSet.<String>of();
-    action.tlds = ImmutableSet.<String>of();
-    action.watermarks = ImmutableSet.<DateTime>of();
-    action.revision = Optional.<Integer>empty();
+    action.directory = Optional.empty();
+    action.modeStrings = ImmutableSet.of();
+    action.tlds = ImmutableSet.of();
+    action.watermarks = ImmutableSet.of();
+    action.revision = Optional.empty();
   }
 
   @Test
@@ -246,7 +246,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.manual = true;
     action.directory = Optional.of("test/");
-    action.modeStrings = ImmutableSet.<String>of();
+    action.modeStrings = ImmutableSet.of();
     action.tlds = ImmutableSet.of("lol");
     action.watermarks = ImmutableSet.of(clock.nowUtc());
     thrown.expect(BadRequestException.class);
@@ -273,7 +273,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.manual = true;
     action.directory = Optional.of("test/");
     action.modeStrings = ImmutableSet.of("full");
-    action.tlds = ImmutableSet.<String>of();
+    action.tlds = ImmutableSet.of();
     action.watermarks = ImmutableSet.of(clock.nowUtc());
     thrown.expect(BadRequestException.class);
     action.run();

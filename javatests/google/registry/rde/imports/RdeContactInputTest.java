@@ -66,14 +66,14 @@ public class RdeContactInputTest {
   @Test
   public void testZeroContactsDefaultShards_returnsOneReader() throws Exception {
     pushToGcs(DEPOSIT_0_CONTACT);
-    assertNumberOfReaders(Optional.<Integer>empty(), 1);
+    assertNumberOfReaders(Optional.empty(), 1);
   }
 
   /** Escrow file with zero contacts results in expected reader configuration */
   @Test
   public void testZeroContactsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_0_CONTACT);
-    assertReaderConfigurations(Optional.<Integer>empty(), 0, 0, 100);
+    assertReaderConfigurations(Optional.empty(), 0, 0, 100);
   }
 
   /** Escrow file with zero contacts and 75 shards results in one reader */
@@ -87,14 +87,14 @@ public class RdeContactInputTest {
   @Test
   public void testOneContactDefaultShards_returnsOneReader() throws Exception {
     pushToGcs(DEPOSIT_1_CONTACT);
-    assertNumberOfReaders(Optional.<Integer>empty(), 1);
+    assertNumberOfReaders(Optional.empty(), 1);
   }
 
   /** Escrow file with one contact results in expected reader configuration */
   @Test
   public void testOneContactDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_1_CONTACT);
-    assertReaderConfigurations(Optional.<Integer>empty(), 0, 0, 100);
+    assertReaderConfigurations(Optional.empty(), 0, 0, 100);
   }
 
   /** Escrow file with one contact and 75 shards results in one reader */
@@ -108,14 +108,14 @@ public class RdeContactInputTest {
   @Test
   public void test199ContactsDefaultShards_returnsOneReader() throws Exception {
     pushToGcs(DEPOSIT_199_CONTACT);
-    assertNumberOfReaders(Optional.<Integer>empty(), 1);
+    assertNumberOfReaders(Optional.empty(), 1);
   }
 
   /** Escrow file with 199 contacts results in expected reader configuration */
   @Test
   public void test199ContactsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_199_CONTACT);
-    assertReaderConfigurations(Optional.<Integer>empty(), 0, 0, 199);
+    assertReaderConfigurations(Optional.empty(), 0, 0, 199);
   }
 
   /** Escrow file with 199 contacts and 75 shards results in one reader */
@@ -129,15 +129,15 @@ public class RdeContactInputTest {
   @Test
   public void test200ContactsDefaultShards_returnsTwoReaders() throws Exception {
     pushToGcs(DEPOSIT_200_CONTACT);
-    assertNumberOfReaders(Optional.<Integer>empty(), 2);
+    assertNumberOfReaders(Optional.empty(), 2);
   }
 
   /** Escrow file with 200 contacts results in expected reader configurations */
   @Test
   public void test200ContactsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_200_CONTACT);
-    assertReaderConfigurations(Optional.<Integer>empty(), 0, 0, 100);
-    assertReaderConfigurations(Optional.<Integer>empty(), 1, 100, 100);
+    assertReaderConfigurations(Optional.empty(), 0, 0, 100);
+    assertReaderConfigurations(Optional.empty(), 1, 100, 100);
   }
 
   /** Escrow file with 200 contacts and 75 shards results in two readers */
@@ -151,7 +151,7 @@ public class RdeContactInputTest {
   @Test
   public void test1000ContactsDefaultShards_returns10Readers() throws Exception {
     pushToGcs(DEPOSIT_1000_CONTACT);
-    assertNumberOfReaders(Optional.<Integer>empty(), 10);
+    assertNumberOfReaders(Optional.empty(), 10);
   }
 
   /** Escrow file with 1000 contacts results in expected reader configurations */
@@ -159,7 +159,7 @@ public class RdeContactInputTest {
   public void test1000ContactsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_1000_CONTACT);
     for (int i = 0; i < 10; i++) {
-      assertReaderConfigurations(Optional.<Integer>empty(), i, i * 100, 100);
+      assertReaderConfigurations(Optional.empty(), i, i * 100, 100);
     }
   }
 
@@ -174,7 +174,7 @@ public class RdeContactInputTest {
   @Test
   public void test10000ContactsDefaultShards_returns50Readers() throws Exception {
     pushToGcs(DEPOSIT_10000_CONTACT);
-    assertNumberOfReaders(Optional.<Integer>empty(), 50);
+    assertNumberOfReaders(Optional.empty(), 50);
   }
 
   /** Escrow file with 10000 contacts results in expected reader configurations */
@@ -182,7 +182,7 @@ public class RdeContactInputTest {
   public void test10000ContactsDefaultShardsReaderConfigurations() throws Exception {
     pushToGcs(DEPOSIT_10000_CONTACT);
     for (int i = 0; i < 50; i++) {
-      assertReaderConfigurations(Optional.<Integer>empty(), i, i * 200, 200);
+      assertReaderConfigurations(Optional.empty(), i, i * 200, 200);
     }
   }
 

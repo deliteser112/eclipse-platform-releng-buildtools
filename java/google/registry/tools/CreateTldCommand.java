@@ -109,6 +109,6 @@ class CreateTldCommand extends CreateOrUpdateTldCommand {
   Optional<Map.Entry<DateTime, TldState>> getTldStateTransitionToAdd() {
     return initialTldState != null
         ? Optional.of(Maps.immutableEntry(START_OF_TIME, initialTldState))
-        : Optional.<Map.Entry<DateTime, TldState>>empty();
+        : Optional.empty();
   }
 }

@@ -16,7 +16,6 @@ package google.registry.flows.domain;
 
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.flows.domain.DomainTransferFlowTestCase.persistWithPendingTransfer;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -261,7 +260,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   private void doImmediateDeleteTest(GracePeriodStatus gracePeriodStatus, String responseFilename)
       throws Exception {
-    doImmediateDeleteTest(gracePeriodStatus, responseFilename, ImmutableMap.<String, String>of());
+    doImmediateDeleteTest(gracePeriodStatus, responseFilename, ImmutableMap.of());
   }
 
   private void doImmediateDeleteTest(
@@ -289,7 +288,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   @Test
   public void testSuccess_addGracePeriodResultsInImmediateDelete() throws Exception {
-    sessionMetadata.setServiceExtensionUris(ImmutableSet.<String>of());
+    sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
     doImmediateDeleteTest(GracePeriodStatus.ADD, "domain_delete_response.xml");
   }
 
@@ -313,12 +312,12 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   @Test
   public void testSuccess_sunrushAddGracePeriodResultsInImmediateDelete() throws Exception {
-    sessionMetadata.setServiceExtensionUris(ImmutableSet.<String>of());
+    sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
     doImmediateDeleteTest(GracePeriodStatus.SUNRUSH_ADD, "domain_delete_response.xml");
   }
 
   private void doSuccessfulTest_noAddGracePeriod(String responseFilename) throws Exception {
-    doSuccessfulTest_noAddGracePeriod(responseFilename, ImmutableMap.<String, String>of());
+    doSuccessfulTest_noAddGracePeriod(responseFilename, ImmutableMap.of());
   }
 
   private void doSuccessfulTest_noAddGracePeriod(
@@ -372,7 +371,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   @Test
   public void testSuccess_noAddGracePeriodResultsInPendingDelete() throws Exception {
-    sessionMetadata.setServiceExtensionUris(ImmutableSet.<String>of());
+    sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
     doSuccessfulTest_noAddGracePeriod("domain_delete_response_pending.xml");
   }
 
@@ -415,7 +414,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   @Test
   public void testSuccess_nonDefaultRedemptionGracePeriod() throws Exception {
-    sessionMetadata.setServiceExtensionUris(ImmutableSet.<String>of());
+    sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -426,7 +425,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   @Test
   public void testSuccess_nonDefaultPendingDeleteLength() throws Exception {
-    sessionMetadata.setServiceExtensionUris(ImmutableSet.<String>of());
+    sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -588,7 +587,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   @Test
   public void testUnlinkingOfResources() throws Exception {
-    sessionMetadata.setServiceExtensionUris(ImmutableSet.<String>of());
+    sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
     setUpSuccessfulTest();
     // Persist the billing event so it can be retrieved for cancellation generation and checking.
     BillingEvent.OneTime graceBillingEvent =
@@ -597,11 +596,11 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setUpGracePeriods(GracePeriod.forBillingEvent(GracePeriodStatus.ADD, graceBillingEvent));
     // Add a nameserver.
     HostResource host = persistResource(newHostResource("ns1.example.tld"));
-    persistResource(loadByForeignKey(
-        DomainResource.class, getUniqueIdFromCommand(), clock.nowUtc())
-        .asBuilder()
-        .setNameservers(ImmutableSet.of(Key.create(host)))
-        .build());
+    persistResource(
+        loadByForeignKey(DomainResource.class, getUniqueIdFromCommand(), clock.nowUtc())
+            .asBuilder()
+            .setNameservers(ImmutableSet.of(Key.create(host)))
+            .build());
     // Persist another domain that's already been deleted and references this contact and host.
     persistResource(
         newDomainResource("example1.tld")
@@ -702,10 +701,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   public void testFailure_notAuthorizedForTld() throws Exception {
     setUpSuccessfulTest();
     persistResource(
-        loadRegistrar("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     thrown.expect(NotAuthorizedForTldException.class);
     runFlow();
   }
@@ -714,10 +710,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     setUpSuccessfulTest();
     persistResource(
-        loadRegistrar("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response_pending.xml"));

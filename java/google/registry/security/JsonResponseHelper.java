@@ -33,7 +33,7 @@ public final class JsonResponseHelper {
   /** Creates a JSON response message securely to the browser client with a parser breaker. */
   public static ImmutableMap<String, Object> create(
       Status status, String message, Iterable<? extends Map<String, ?>> results) {
-    return ImmutableMap.<String, Object>of(
+    return ImmutableMap.of(
         "status", status.toString(),
         "message", checkNotNull(message, "message"),
         "results", ImmutableList.copyOf(results));
@@ -41,7 +41,7 @@ public final class JsonResponseHelper {
 
   /** Same as {@link #create(Status, String, Iterable)} but with zero results. */
   public static ImmutableMap<String, Object> create(Status status, String message) {
-    return create(status, message, ImmutableList.<Map<String, ?>>of());
+    return create(status, message, ImmutableList.of());
   }
 
   /** Same as {@link #create(Status, String, Iterable)} but with only one results. */
@@ -53,7 +53,7 @@ public final class JsonResponseHelper {
   /** Creates a JSON response message when a submitted form field is invalid. */
   public static ImmutableMap<String, Object> createFormFieldError(
       String message, String formFieldName) {
-    return ImmutableMap.<String, Object>of(
+    return ImmutableMap.of(
         "status", Status.ERROR.toString(),
         "message", checkNotNull(message, "message"),
         "field", checkNotNull(formFieldName, "formFieldName"),

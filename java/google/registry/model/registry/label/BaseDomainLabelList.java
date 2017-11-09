@@ -132,7 +132,7 @@ public abstract class BaseDomainLabelList<T extends Comparable<?>, R extends Dom
     } else {
       line = line.trim();
     }
-    return line.isEmpty() ? ImmutableList.<String>of() : ImmutableList.<String>of(line, comment);
+    return line.isEmpty() ? ImmutableList.of() : ImmutableList.of(line, comment);
   }
 
   /** Gets the names of the tlds that reference this list. */

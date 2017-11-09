@@ -116,7 +116,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
                 CidrAddressBlock.create(InetAddresses.forString("192.168.1.1"), 32),
                 CidrAddressBlock.create(InetAddresses.forString("2001:db8::1"), 128)))
             .build());
-    credentials = new TlsCredentials(GOOD_CERT, Optional.<String>empty(), "goo.example");
+    credentials = new TlsCredentials(GOOD_CERT, Optional.empty(), "goo.example");
     doFailingTest("login_valid.xml", BadRegistrarIpAddressException.class);
   }
 

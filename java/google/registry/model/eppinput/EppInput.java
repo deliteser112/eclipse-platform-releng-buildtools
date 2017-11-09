@@ -131,7 +131,7 @@ public class EppInput extends ImmutableObject {
     ResourceCommand resourceCommand = getResourceCommand();
     return resourceCommand instanceof SingleResourceCommand
         ? Optional.of(((SingleResourceCommand) resourceCommand).getTargetId())
-        : Optional.<String>empty();
+        : Optional.empty();
   }
 
   /**

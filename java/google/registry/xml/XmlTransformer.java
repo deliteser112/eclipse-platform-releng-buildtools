@@ -240,7 +240,7 @@ public class XmlTransformer {
    */
   public void marshalStrict(Object root, Result result) throws XmlException {
     try {
-      getMarshaller(schema, ImmutableMap.<String, Object>of())
+      getMarshaller(schema, ImmutableMap.of())
           .marshal(checkNotNull(root, "root"), checkNotNull(result, "result"));
     } catch (JAXBException e) {
       throw new XmlException(e);

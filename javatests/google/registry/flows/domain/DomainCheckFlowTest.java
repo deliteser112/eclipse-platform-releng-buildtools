@@ -287,10 +287,7 @@ public class DomainCheckFlowTest
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
-        loadRegistrar("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     thrown.expect(NotAuthorizedForTldException.class);
     runFlow();
   }
@@ -299,10 +296,7 @@ public class DomainCheckFlowTest
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     persistActiveDomain("example2.tld");
     persistResource(
-        loadRegistrar("TheRegistrar")
-            .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of())
-            .build());
+        loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_check_one_tld_response.xml"));
   }
@@ -415,7 +409,7 @@ public class DomainCheckFlowTest
    */
   @Test
   public void testAvailExtension_premiumDomainsAreUnavailableWithoutExtension() throws Exception {
-    sessionMetadata.setServiceExtensionUris(ImmutableSet.<String>of());
+    sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
     createTld("example");
     setEppInput("domain_check_premium.xml");
     doCheckTest(create(false, "rich.example", "Premium names require EPP ext."));
@@ -427,7 +421,7 @@ public class DomainCheckFlowTest
    */
   @Test
   public void testAvailExtension_premiumDomainsAvailableIfNotRequiredByTld() throws Exception {
-    sessionMetadata.setServiceExtensionUris(ImmutableSet.<String>of());
+    sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
     createTld("example");
     persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
     setEppInput("domain_check_premium.xml");

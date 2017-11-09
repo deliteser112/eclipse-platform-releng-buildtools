@@ -137,7 +137,7 @@ public final class FormField<I, O> {
   /** Returns an optional form field named {@code name} with a specific {@code inputType}. */
   public static <T> Builder<T, T> named(String name, Class<T> typeIn) {
     checkArgument(!name.isEmpty());
-    return new Builder<>(name, checkNotNull(typeIn), typeIn, Functions.<T>identity());
+    return new Builder<>(name, checkNotNull(typeIn), typeIn, Functions.identity());
   }
 
   /**

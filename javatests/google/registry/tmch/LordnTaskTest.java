@@ -91,7 +91,7 @@ public class LordnTaskTest {
   @Test
   public void test_convertTasksToCsv_doesntFailOnEmptyTasks() throws Exception {
     assertThat(
-        LordnTask.convertTasksToCsv(ImmutableList.<TaskHandle> of(), clock.nowUtc(), "col1,col2"))
+        LordnTask.convertTasksToCsv(ImmutableList.of(), clock.nowUtc(), "col1,col2"))
             .isEqualTo("1,2010-05-01T10:11:12.000Z,0\ncol1,col2\n");
   }
 
@@ -187,7 +187,7 @@ public class LordnTaskTest {
     when(queue.leaseTasks(any(LeaseOptions.class)))
         .thenThrow(TransientFailureException.class)
         .thenThrow(DeadlineExceededException.class)
-        .thenReturn(ImmutableList.<TaskHandle>of(task), ImmutableList.<TaskHandle>of());
+        .thenReturn(ImmutableList.of(task), ImmutableList.of());
     assertThat(LordnTask.loadAllTasks(queue, "tld")).containsExactly(task);
   }
 

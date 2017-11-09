@@ -178,7 +178,7 @@ public abstract class EppMetric implements BigQueryMetric {
     public Builder setTlds(ImmutableSet<String> tlds) {
       switch (tlds.size()) {
         case 0:
-          setTld(Optional.<String>empty());
+          setTld(Optional.empty());
           break;
         case 1:
           String tld = Iterables.getOnlyElement(tlds);

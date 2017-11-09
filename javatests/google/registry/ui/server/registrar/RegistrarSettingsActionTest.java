@@ -74,7 +74,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
             any(HttpServletRequest.class), any(AuthResult.class)))
         .thenThrow(new ForbiddenException("Not authorized to access Registrar Console"));
     try {
-      action.handleJsonRequest(ImmutableMap.<String, Object>of());
+      action.handleJsonRequest(ImmutableMap.of());
       fail("expected ForbiddenException");
     } catch (ForbiddenException ex) {
       assertNoTasksEnqueued("sheet");
@@ -86,7 +86,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
    */
   @Test
   public void testRead_authorized_returnsRegistrarJson() throws Exception {
-    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.<String, Object>of());
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of());
     assertThat(response).containsEntry("status", "SUCCESS");
     assertThat(response).containsEntry("results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
   }

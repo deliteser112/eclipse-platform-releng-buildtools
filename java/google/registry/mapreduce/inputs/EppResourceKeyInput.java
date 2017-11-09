@@ -36,7 +36,7 @@ class EppResourceKeyInput<R extends EppResource> extends EppResourceBaseInput<Ke
 
   public EppResourceKeyInput(ImmutableSet<Class<? extends R>> resourceClasses) {
     this.resourceClasses = resourceClasses;
-    checkNoInheritanceRelationships(ImmutableSet.<Class<?>>copyOf(resourceClasses));
+    checkNoInheritanceRelationships(ImmutableSet.copyOf(resourceClasses));
   }
 
   @Override

@@ -123,7 +123,7 @@ class UpdateTldCommand extends CreateOrUpdateTldCommand {
   Optional<Map.Entry<DateTime, TldState>> getTldStateTransitionToAdd() {
     return setCurrentTldState != null
         ? Optional.of(Maps.immutableEntry(DateTime.now(DateTimeZone.UTC), setCurrentTldState))
-        : Optional.<Map.Entry<DateTime, TldState>>empty();
+        : Optional.empty();
   }
 
   @Override

@@ -245,7 +245,7 @@ public final class Modules {
           // GoogleCredential constructor.  We don't yet know the actual scopes to use here, and it
           // is thus the responsibility of every user of a delegated admin credential to call
           // createScoped() on it first to get the version with the correct scopes set.
-          .setServiceAccountScopes(ImmutableSet.<String>of())
+          .setServiceAccountScopes(ImmutableSet.of())
           .setServiceAccountUser(gSuiteAdminAccountEmailAddress)
           .build();
     }

@@ -201,7 +201,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         : clock.nowUtc().plus(Registry.get(domainTld).getAddGracePeriodLength());
     ImmutableSet<BillingEvent.Flag> billingFlags = isAnchorTenant
         ? ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT)
-        : ImmutableSet.<BillingEvent.Flag>of();
+        : ImmutableSet.of();
     HistoryEntry historyEntry = getHistoryEntries(domain).get(0);
     assertAboutDomains().that(domain)
         .hasRegistrationExpirationTime(
@@ -319,7 +319,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
       String domainTld,
       String responseXmlFile,
       UserPrivileges userPrivileges) throws Exception {
-    doSuccessfulTest(domainTld, responseXmlFile, userPrivileges, ImmutableMap.<String, String>of());
+    doSuccessfulTest(domainTld, responseXmlFile, userPrivileges, ImmutableMap.of());
   }
 
   private void doSuccessfulTest(
@@ -788,7 +788,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testFailure_claimsNoticeProvided_nameNotOnClaimsList() throws Exception {
     setEppInput("domain_create_claim_notice.xml");
-    persistClaimsList(ImmutableMap.<String, String>of());
+    persistClaimsList(ImmutableMap.of());
     persistContactsAndHosts();
     thrown.expect(UnexpectedClaimsNoticeException.class);
     runFlow();
@@ -1599,7 +1599,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(
         loadRegistrar("TheRegistrar")
             .asBuilder()
-            .setAllowedTlds(ImmutableSet.<String>of("irrelevant"))
+            .setAllowedTlds(ImmutableSet.of("irrelevant"))
             .build());
     persistContactsAndHosts();
     thrown.expect(NotAuthorizedForTldException.class);

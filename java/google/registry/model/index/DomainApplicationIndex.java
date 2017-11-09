@@ -134,7 +134,7 @@ public class DomainApplicationIndex extends BackupGroupRoot {
   public static DomainApplicationIndex createUpdatedInstance(DomainApplication application) {
     DomainApplicationIndex existing = load(application.getFullyQualifiedDomainName());
     ImmutableSet<Key<DomainApplication>> newKeys = CollectionUtils.union(
-        (existing == null ? ImmutableSet.<Key<DomainApplication>>of() : existing.getKeys()),
+        (existing == null ? ImmutableSet.of() : existing.getKeys()),
         Key.create(application));
     return createWithSpecifiedKeys(application.getFullyQualifiedDomainName(), newKeys);
   }

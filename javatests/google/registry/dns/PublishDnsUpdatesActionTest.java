@@ -84,8 +84,8 @@ public class PublishDnsUpdatesActionTest {
     PublishDnsUpdatesAction action = new PublishDnsUpdatesAction();
     action.timeout = Duration.standardSeconds(10);
     action.tld = tld;
-    action.hosts = ImmutableSet.<String>of();
-    action.domains = ImmutableSet.<String>of();
+    action.hosts = ImmutableSet.of();
+    action.domains = ImmutableSet.of();
     action.dnsWriter = "mock";
     action.dnsWriterProxy = new DnsWriterProxy(ImmutableMap.of("mock", dnsWriter));
     action.dnsMetrics = dnsMetrics;

@@ -104,7 +104,7 @@ public class LordnLogTest {
   @Test
   public void testFailure_parseEmpty() throws Exception {
     thrown.expect(Exception.class);
-    LordnLog.parse(ImmutableList.<String>of());
+    LordnLog.parse(ImmutableList.of());
   }
 
   @Test

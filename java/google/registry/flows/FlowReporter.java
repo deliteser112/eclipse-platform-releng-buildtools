@@ -108,7 +108,7 @@ public class FlowReporter {
   private static final Optional<String> extractTld(String domainName) {
     int index = domainName.indexOf('.');
     return index == -1
-        ? Optional.<String>empty()
+        ? Optional.empty()
         : Optional.of(Ascii.toLowerCase(domainName.substring(index + 1)));
   }
 

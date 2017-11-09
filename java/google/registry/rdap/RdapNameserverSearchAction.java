@@ -131,7 +131,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
         jsonBuilder,
         BoilerplateType.NAMESERVER,
         results.getIncompletenessWarnings(),
-        ImmutableList.<ImmutableMap<String, Object>>of(),
+        ImmutableList.of(),
         fullServletPath);
     return jsonBuilder.build();
   }

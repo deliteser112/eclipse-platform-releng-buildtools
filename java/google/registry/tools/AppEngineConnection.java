@@ -129,7 +129,7 @@ class AppEngineConnection implements Connection {
   public Map<String, Object> sendJson(String endpoint, Map<String, ?> object) throws IOException {
     String response = send(
         endpoint,
-        ImmutableMap.<String, Object>of(),
+        ImmutableMap.of(),
         JSON_UTF_8,
         JSONValue.toJSONString(object).getBytes(UTF_8));
     return (Map<String, Object>) JSONValue.parse(response.substring(JSON_SAFETY_PREFIX.length()));

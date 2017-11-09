@@ -203,7 +203,7 @@ public class DnsUpdateWriter extends BaseDnsWriter {
         union(
             domain.getSubordinateHosts(),
             (additionalHost == null
-                ? ImmutableSet.<String>of()
+                ? ImmutableSet.of()
                 : ImmutableSet.of(additionalHost)))) {
       update.delete(toAbsoluteName(hostName), Type.ANY);
     }

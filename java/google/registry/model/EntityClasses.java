@@ -63,7 +63,7 @@ public final class EntityClasses {
   /** Set of entity classes. */
   @SuppressWarnings("unchecked") // varargs
   public static final ImmutableSet<Class<? extends ImmutableObject>> ALL_CLASSES =
-      ImmutableSet.<Class<? extends ImmutableObject>>of(
+      ImmutableSet.of(
           BillingEvent.Cancellation.class,
           BillingEvent.Modification.class,
           BillingEvent.OneTime.class,

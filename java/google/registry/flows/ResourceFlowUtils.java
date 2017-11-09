@@ -251,7 +251,7 @@ public final class ResourceFlowUtils {
           B extends Builder<R, B> & BuilderWithTransferData<B>>
       R approvePendingTransfer(R resource, TransferStatus transferStatus, DateTime now) {
     checkArgument(transferStatus.isApproved(), "Not an approval transfer status");
-    B builder = ResourceFlowUtils.<R, B>resolvePendingTransfer(resource, transferStatus, now);
+    B builder = ResourceFlowUtils.resolvePendingTransfer(resource, transferStatus, now);
     return builder
         .setLastTransferTime(now)
         .setPersistedCurrentSponsorClientId(resource.getTransferData().getGainingClientId())

@@ -65,7 +65,7 @@ public class RdapHelpAction extends RdapActionBase {
         builder,
         BoilerplateType.OTHER,
         ImmutableList.of(rdapJsonFormatter.getJsonHelpNotice(pathSearchString, fullServletPath)),
-        ImmutableList.<ImmutableMap<String, Object>>of(),
+        ImmutableList.of(),
         fullServletPath);
     return builder.build();
   }
