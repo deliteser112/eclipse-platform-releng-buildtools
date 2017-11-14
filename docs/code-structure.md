@@ -32,7 +32,7 @@ The Nomulus codebase uses external targets pulled in from Maven Central, these
 are declared in `java/google/registry/repositories.bzl`. The dependencies of
 these external targets are not managed by Bazel; you must manually add all of
 the dependencies or use the
-[generate_workspace](https://github.com/bazelbuild/bazel/tree/master/src/tools/generate_workspace
+[generate_workspace](https://docs.bazel.build/versions/master/generate-workspace.html)
 tool to do it.
 
 ### Generating EAR/WAR archives for deployment
