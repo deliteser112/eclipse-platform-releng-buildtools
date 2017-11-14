@@ -64,7 +64,6 @@ import org.joda.time.DateTime;
 public class RdapNameserverSearchAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/nameservers";
-  private static final int RESULT_SET_SIZE_SCALING_FACTOR = 30;
 
   @Inject Clock clock;
   @Inject @Parameter("name") Optional<String> nameParam;
@@ -223,31 +222,31 @@ public class RdapNameserverSearchAction extends RdapActionBase {
   private RdapSearchResults searchByNameUsingPrefix(
       final RdapSearchPattern partialStringQuery, final DateTime now) {
     // Add 1 so we can detect truncation.
+    int querySizeLimit = getStandardQuerySizeLimit();
     Query<HostResource> query =
         queryItems(
             HostResource.class,
             "fullyQualifiedHostName",
             partialStringQuery,
             shouldIncludeDeleted(),
-            shouldIncludeDeleted()
-                ? (RESULT_SET_SIZE_SCALING_FACTOR * (rdapResultSetMaxSize + 1))
-                : (rdapResultSetMaxSize + 1));
-    return makeSearchResults(getMatchingResources(query, shouldIncludeDeleted(), now), now);
+            querySizeLimit);
+    return makeSearchResults(
+        getMatchingResources(query, shouldIncludeDeleted(), now, querySizeLimit), now);
   }
 
   /** Searches for nameservers by IP address, returning a JSON array of nameserver info maps. */
   private RdapSearchResults searchByIp(final InetAddress inetAddress, DateTime now) {
     // Add 1 so we can detect truncation.
+    int querySizeLimit = getStandardQuerySizeLimit();
     Query<HostResource> query =
         queryItems(
             HostResource.class,
             "inetAddresses",
             inetAddress.getHostAddress(),
             shouldIncludeDeleted(),
-            shouldIncludeDeleted()
-                ? (RESULT_SET_SIZE_SCALING_FACTOR * (rdapResultSetMaxSize + 1))
-                : (rdapResultSetMaxSize + 1));
-    return makeSearchResults(getMatchingResources(query, shouldIncludeDeleted(), now), now);
+            querySizeLimit);
+    return makeSearchResults(
+        getMatchingResources(query, shouldIncludeDeleted(), now, querySizeLimit), now);
   }
 
   /** Output JSON for a lists of hosts contained in an {@link RdapResultSet}. */

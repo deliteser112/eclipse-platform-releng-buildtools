@@ -64,8 +64,6 @@ public class RdapEntitySearchAction extends RdapActionBase {
 
   public static final String PATH = "/rdap/entities";
 
-  private static final int RESULT_SET_SIZE_SCALING_FACTOR = 30;
-
   @Inject Clock clock;
   @Inject @Parameter("fn") Optional<String> fnParam;
   @Inject @Parameter("handle") Optional<String> handleParam;
@@ -189,7 +187,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
       if (authorization.role() != RdapAuthorization.Role.ADMINISTRATOR) {
         query = query.filter("currentSponsorClientId in", authorization.clientIds());
       }
-      resultSet = getMatchingResources(query, false, now);
+      resultSet = getMatchingResources(query, false, now, rdapResultSetMaxSize + 1);
     }
     return makeSearchResults(resultSet, registrars, now);
   }
@@ -234,16 +232,17 @@ public class RdapEntitySearchAction extends RdapActionBase {
       // Get the contact matches and return the results, fetching an additional contact to detect
       // truncation. If we are including deleted entries, we must fetch more entries, in case some
       // get excluded due to permissioning.
+      int querySizeLimit = getStandardQuerySizeLimit();
       Query<ContactResource> query =
           queryItemsByKey(
               ContactResource.class,
               partialStringQuery,
               shouldIncludeDeleted(),
-              shouldIncludeDeleted()
-                  ? (RESULT_SET_SIZE_SCALING_FACTOR * (rdapResultSetMaxSize + 1))
-                  : (rdapResultSetMaxSize + 1));
+              querySizeLimit);
       return makeSearchResults(
-          getMatchingResources(query, shouldIncludeDeleted(), now), registrars, now);
+          getMatchingResources(query, shouldIncludeDeleted(), now, querySizeLimit),
+          registrars,
+          now);
     }
   }
 

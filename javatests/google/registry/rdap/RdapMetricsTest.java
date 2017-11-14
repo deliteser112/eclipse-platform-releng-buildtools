@@ -47,7 +47,7 @@ public class RdapMetricsTest {
     return RdapMetrics.RdapMetricInformation.builder()
         .setEndpointType(EndpointType.DOMAINS)
         .setSearchType(SearchType.NONE)
-        .setWildcardType(WildcardType.NO_WILDCARD)
+        .setWildcardType(WildcardType.INVALID)
         .setPrefixLength(0)
         .setIncludeDeleted(false)
         .setRegistrarSpecified(false)
@@ -80,7 +80,7 @@ public class RdapMetricsTest {
     rdapMetrics.updateMetrics(
         getBuilder().setPrefixLength(6).setNumDomainsRetrieved(1).build());
     assertThat(RdapMetrics.numberOfDomainsRetrieved)
-        .hasDataSetForLabels(ImmutableSet.of(1), "DOMAINS", "NONE", "NO_WILDCARD", "5+", "NO")
+        .hasDataSetForLabels(ImmutableSet.of(1), "DOMAINS", "NONE", "INVALID", "5+", "NO")
         .and()
         .hasNoOtherValues();
   }
@@ -110,7 +110,7 @@ public class RdapMetricsTest {
             .setIncompletenessWarningType(IncompletenessWarningType.COMPLETE)
             .build());
     assertThat(RdapMetrics.responses)
-        .hasValueForLabels(1, "DOMAINS", "NONE", "NO_WILDCARD", "200", "COMPLETE")
+        .hasValueForLabels(1, "DOMAINS", "NONE", "INVALID", "200", "COMPLETE")
         .and()
         .hasNoOtherValues();
   }
@@ -122,7 +122,7 @@ public class RdapMetricsTest {
             .setIncompletenessWarningType(IncompletenessWarningType.TRUNCATED)
             .build());
     assertThat(RdapMetrics.responses)
-        .hasValueForLabels(1, "DOMAINS", "NONE", "NO_WILDCARD", "200", "TRUNCATED")
+        .hasValueForLabels(1, "DOMAINS", "NONE", "INVALID", "200", "TRUNCATED")
         .and()
         .hasNoOtherValues();
   }
@@ -134,7 +134,7 @@ public class RdapMetricsTest {
             .setIncompletenessWarningType(IncompletenessWarningType.MIGHT_BE_INCOMPLETE)
             .build());
     assertThat(RdapMetrics.responses)
-        .hasValueForLabels(1, "DOMAINS", "NONE", "NO_WILDCARD", "200", "MIGHT_BE_INCOMPLETE")
+        .hasValueForLabels(1, "DOMAINS", "NONE", "INVALID", "200", "MIGHT_BE_INCOMPLETE")
         .and()
         .hasNoOtherValues();
   }
@@ -172,6 +172,7 @@ public class RdapMetricsTest {
     rdapMetrics.updateMetrics(
         getBuilder()
             .setSearchType(SearchType.BY_DOMAIN_NAME)
+            .setWildcardType(WildcardType.NO_WILDCARD)
             .setPrefixLength(7)
             .setNumDomainsRetrieved(1)
             .build());

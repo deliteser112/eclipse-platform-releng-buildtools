@@ -46,6 +46,7 @@ import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.request.Action;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
@@ -91,8 +92,8 @@ public class RdapDomainSearchActionTest {
   private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
   private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
   private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
-
   private final RdapDomainSearchAction action = new RdapDomainSearchAction();
+  private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
 
   private Registrar registrar;
   private DomainResource domainCatLol;
@@ -362,6 +363,7 @@ public class RdapDomainSearchActionTest {
 
     action.clock = clock;
     action.request = request;
+    action.requestMethod = Action.Method.GET;
     action.fullServletPath = "https://example.com/rdap";
     action.response = response;
     action.registrarParam = Optional.empty();
@@ -370,6 +372,7 @@ public class RdapDomainSearchActionTest {
     action.rdapWhoisServer = null;
     action.sessionUtils = sessionUtils;
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+    action.rdapMetrics = rdapMetrics;
   }
 
   private void login(String clientId) {

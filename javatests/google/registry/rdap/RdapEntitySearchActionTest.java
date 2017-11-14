@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableMap;
 import google.registry.model.ImmutableObject;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
+import google.registry.request.Action;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
@@ -71,6 +72,7 @@ public class RdapEntitySearchActionTest {
   private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
   private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
   private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
+  private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
   private final RdapEntitySearchAction action = new RdapEntitySearchAction();
 
   private Registrar registrarDeleted;
@@ -140,6 +142,7 @@ public class RdapEntitySearchActionTest {
 
     action.clock = clock;
     action.request = request;
+    action.requestMethod = Action.Method.GET;
     action.fullServletPath = "https://example.com/rdap";
     action.requestPath = RdapEntitySearchAction.PATH;
     action.response = response;
@@ -152,6 +155,7 @@ public class RdapEntitySearchActionTest {
     action.includeDeletedParam = Optional.empty();
     action.sessionUtils = sessionUtils;
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+    action.rdapMetrics = rdapMetrics;
   }
 
   private void login(String registrar) {

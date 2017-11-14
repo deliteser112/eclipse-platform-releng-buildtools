@@ -21,6 +21,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistH
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
@@ -29,6 +30,11 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
+import google.registry.rdap.RdapMetrics.EndpointType;
+import google.registry.rdap.RdapMetrics.SearchType;
+import google.registry.rdap.RdapMetrics.WildcardType;
+import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
+import google.registry.request.Action;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
@@ -68,6 +74,7 @@ public class RdapNameserverActionTest {
   private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
   private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
   private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
+  private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
 
   @Before
   public void setUp() throws Exception {
@@ -111,6 +118,7 @@ public class RdapNameserverActionTest {
     RdapNameserverAction action = new RdapNameserverAction();
     action.clock = clock;
     action.request = request;
+    action.requestMethod = Action.Method.GET;
     action.fullServletPath = "https://example.tld/rdap";
     action.response = response;
     action.requestPath = RdapNameserverAction.PATH.concat(input);
@@ -120,6 +128,7 @@ public class RdapNameserverActionTest {
     action.rdapWhoisServer = null;
     action.authResult = authResult;
     action.sessionUtils = sessionUtils;
+    action.rdapMetrics = rdapMetrics;
     return action;
   }
 
@@ -426,5 +435,24 @@ public class RdapNameserverActionTest {
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
     generateActualJson("ns1.cat.lol", Optional.of("otherregistrar"), Optional.of(false));
     assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
+  public void testMetrics() throws Exception {
+    generateActualJson("ns1.cat.lol");
+    verify(rdapMetrics)
+        .updateMetrics(
+            RdapMetrics.RdapMetricInformation.builder()
+                .setEndpointType(EndpointType.NAMESERVER)
+                .setSearchType(SearchType.NONE)
+                .setWildcardType(WildcardType.INVALID)
+                .setPrefixLength(0)
+                .setIncludeDeleted(false)
+                .setRegistrarSpecified(false)
+                .setRole(RdapAuthorization.Role.PUBLIC)
+                .setRequestMethod(Action.Method.GET)
+                .setStatusCode(200)
+                .setIncompletenessWarningType(IncompletenessWarningType.COMPLETE)
+                .build());
   }
 }

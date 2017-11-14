@@ -38,6 +38,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
+import google.registry.request.Action;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
@@ -73,6 +74,7 @@ public class RdapNameserverSearchActionTest {
   private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
   private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
   private final RdapNameserverSearchAction action = new RdapNameserverSearchAction();
+  private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
 
   private DomainResource domainCatLol;
   private HostResource hostNs1CatLol;
@@ -144,6 +146,7 @@ public class RdapNameserverSearchActionTest {
     action.fullServletPath = "https://example.tld/rdap";
     action.requestPath = RdapNameserverSearchAction.PATH;
     action.request = request;
+    action.requestMethod = Action.Method.GET;
     action.response = response;
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapResultSetMaxSize = 4;
@@ -154,6 +157,7 @@ public class RdapNameserverSearchActionTest {
     action.includeDeletedParam = Optional.empty();
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
     action.sessionUtils = sessionUtils;
+    action.rdapMetrics = rdapMetrics;
   }
 
   private Object generateExpectedJson(String expectedOutputFile) {

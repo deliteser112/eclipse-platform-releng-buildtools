@@ -294,7 +294,11 @@ public class RdapMetrics {
     }
 
     static Builder builder() {
-      return new AutoValue_RdapMetrics_RdapMetricInformation.Builder();
+      return new AutoValue_RdapMetrics_RdapMetricInformation.Builder()
+          .setSearchType(SearchType.NONE)
+          .setWildcardType(WildcardType.INVALID)
+          .setPrefixLength(0)
+          .setIncompletenessWarningType(IncompletenessWarningType.COMPLETE);
     }
   }
 }

@@ -239,7 +239,10 @@ public class RdapDomainSearchAction extends RdapActionBase {
       query = query.filter("tld", partialStringQuery.getSuffix());
     }
     // Always check for visibility, because we couldn't look at the deletionTime in the query.
-    return makeSearchResults(getMatchingResources(query, true, now), now);
+    return makeSearchResults(
+        getMatchingResources(
+            query, true, now, RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize),
+        now);
   }
 
   /** Searches for domains by domain name with a TLD suffix. */
@@ -255,7 +258,10 @@ public class RdapDomainSearchAction extends RdapActionBase {
             .filter("tld", tld)
             .order("fullyQualifiedDomainName")
             .limit(RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize);
-    return makeSearchResults(getMatchingResources(query, true, now), now);
+    return makeSearchResults(
+        getMatchingResources(
+            query, true, now, RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize),
+        now);
   }
 
   /**

@@ -26,6 +26,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
@@ -40,6 +41,11 @@ import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.rdap.RdapMetrics.EndpointType;
+import google.registry.rdap.RdapMetrics.SearchType;
+import google.registry.rdap.RdapMetrics.WildcardType;
+import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
+import google.registry.request.Action;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
@@ -82,6 +88,7 @@ public class RdapDomainActionTest {
   private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
   private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
   private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
+  private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
 
   private RdapDomainAction action;
 
@@ -256,6 +263,7 @@ public class RdapDomainActionTest {
     action = new RdapDomainAction();
     action.clock = clock;
     action.request = request;
+    action.requestMethod = Action.Method.GET;
     action.fullServletPath = "https://example.com/rdap";
     action.response = response;
     action.registrarParam = Optional.empty();
@@ -264,6 +272,7 @@ public class RdapDomainActionTest {
     action.rdapWhoisServer = null;
     action.sessionUtils = sessionUtils;
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+    action.rdapMetrics = rdapMetrics;
   }
 
   private void login(String clientId) {
@@ -616,5 +625,24 @@ public class RdapDomainActionTest {
             ImmutableList.of("ns1.cat.lol", "ns2.dodo.lol"),
             "rdap_domain_deleted.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testMetrics() throws Exception {
+    generateActualJson("cat.lol");
+    verify(rdapMetrics)
+        .updateMetrics(
+            RdapMetrics.RdapMetricInformation.builder()
+                .setEndpointType(EndpointType.DOMAIN)
+                .setSearchType(SearchType.NONE)
+                .setWildcardType(WildcardType.INVALID)
+                .setPrefixLength(0)
+                .setIncludeDeleted(false)
+                .setRegistrarSpecified(false)
+                .setRole(RdapAuthorization.Role.PUBLIC)
+                .setRequestMethod(Action.Method.GET)
+                .setStatusCode(200)
+                .setIncompletenessWarningType(IncompletenessWarningType.COMPLETE)
+                .build());
   }
 }

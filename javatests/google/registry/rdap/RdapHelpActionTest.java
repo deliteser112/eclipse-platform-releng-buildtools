@@ -16,12 +16,25 @@ package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
+import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.ofy.Ofy;
+import google.registry.rdap.RdapMetrics.EndpointType;
+import google.registry.rdap.RdapMetrics.SearchType;
+import google.registry.rdap.RdapMetrics.WildcardType;
+import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
+import google.registry.request.Action;
+import google.registry.request.auth.AuthLevel;
+import google.registry.request.auth.AuthResult;
+import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
+import google.registry.ui.server.registrar.SessionUtils;
+import java.util.Optional;
 import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 import org.junit.Before;
@@ -39,6 +52,10 @@ public class RdapHelpActionTest {
 
   private final FakeResponse response = new FakeResponse();
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
+  private final SessionUtils sessionUtils = mock(SessionUtils.class);
+  private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
+  private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
+  private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
 
   private RdapHelpAction action;
 
@@ -49,9 +66,15 @@ public class RdapHelpActionTest {
     action = new RdapHelpAction();
     action.clock = clock;
     action.fullServletPath = "https://example.tld/rdap";
+    action.requestMethod = Action.Method.GET;
+    action.sessionUtils = sessionUtils;
+    action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
+    action.includeDeletedParam = Optional.empty();
+    action.registrarParam = Optional.empty();
     action.response = response;
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapWhoisServer = null;
+    action.rdapMetrics = rdapMetrics;
   }
 
   private Object generateActualJson(String helpPath) {
@@ -112,5 +135,24 @@ public class RdapHelpActionTest {
     assertThat(generateActualJson("/tos"))
         .isEqualTo(generateExpectedJson("", "rdap_help_tos.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void testHelpActionMetrics() throws Exception {
+    generateActualJson("/tos");
+    verify(rdapMetrics)
+        .updateMetrics(
+            RdapMetrics.RdapMetricInformation.builder()
+                .setEndpointType(EndpointType.HELP)
+                .setSearchType(SearchType.NONE)
+                .setWildcardType(WildcardType.INVALID)
+                .setPrefixLength(0)
+                .setIncludeDeleted(false)
+                .setRegistrarSpecified(false)
+                .setRole(RdapAuthorization.Role.PUBLIC)
+                .setRequestMethod(Action.Method.GET)
+                .setStatusCode(200)
+                .setIncompletenessWarningType(IncompletenessWarningType.COMPLETE)
+                .build());
   }
 }

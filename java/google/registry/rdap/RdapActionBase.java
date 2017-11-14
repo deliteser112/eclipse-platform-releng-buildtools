@@ -34,6 +34,7 @@ import google.registry.config.RegistryConfig.Config;
 import google.registry.model.EppResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapMetrics.EndpointType;
+import google.registry.rdap.RdapMetrics.WildcardType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.FullServletPath;
@@ -73,6 +74,7 @@ public abstract class RdapActionBase implements Runnable {
    * hyphens. In this case, allow the wildcard asterisk as well.
    */
   static final Pattern LDH_PATTERN = Pattern.compile("[-.a-zA-Z0-9*]+");
+  private static final int RESULT_SET_SIZE_SCALING_FACTOR = 30;
 
   private static final MediaType RESPONSE_MEDIA_TYPE =
       MediaType.create("application", "rdap+json").withCharset(UTF_8);
@@ -89,6 +91,11 @@ public abstract class RdapActionBase implements Runnable {
   @Inject @Parameter("includeDeleted") Optional<Boolean> includeDeletedParam;
   @Inject @Config("rdapWhoisServer") @Nullable String rdapWhoisServer;
   @Inject @Config("rdapResultSetMaxSize") int rdapResultSetMaxSize;
+  @Inject RdapMetrics rdapMetrics;
+
+  /** Builder for metric recording. */
+  final RdapMetrics.RdapMetricInformation.Builder metricInformationBuilder =
+      RdapMetrics.RdapMetricInformation.builder();
 
   /** Returns a string like "domain name" or "nameserver", used for error strings. */
   abstract String getHumanReadableObjectTypeName();
@@ -115,6 +122,11 @@ public abstract class RdapActionBase implements Runnable {
 
   @Override
   public void run() {
+    metricInformationBuilder.setIncludeDeleted(includeDeletedParam.orElse(false));
+    metricInformationBuilder.setRegistrarSpecified(registrarParam.isPresent());
+    metricInformationBuilder.setRole(getAuthorization().role());
+    metricInformationBuilder.setRequestMethod(requestMethod);
+    metricInformationBuilder.setEndpointType(getEndpointType());
     try {
       // Extract what we're searching for from the request path. Some RDAP commands use trailing
       // data in the path itself (e.g. /rdap/domain/mydomain.com), and some use the query string
@@ -134,6 +146,7 @@ public abstract class RdapActionBase implements Runnable {
       if (requestMethod != Action.Method.HEAD) {
         response.setPayload(JSONValue.toJSONString(rdapJson));
       }
+      metricInformationBuilder.setStatusCode(SC_OK);
     } catch (HttpException e) {
       setError(e.getResponseCode(), e.getResponseCodeString(), e.getMessage());
     } catch (URISyntaxException | IllegalArgumentException e) {
@@ -142,9 +155,11 @@ public abstract class RdapActionBase implements Runnable {
       setError(SC_INTERNAL_SERVER_ERROR, "Internal Server Error", "An error was encountered");
       logger.severe(e, "Exception encountered while processing RDAP command");
     }
+    rdapMetrics.updateMetrics(metricInformationBuilder.build());
   }
 
   void setError(int status, String title, String description) {
+    metricInformationBuilder.setStatusCode(status);
     response.setStatus(status);
     response.setContentType(RESPONSE_MEDIA_TYPE);
     try {
@@ -262,6 +277,12 @@ public abstract class RdapActionBase implements Runnable {
       name = name.substring(0, name.length() - 1);
     }
     return name;
+  }
+
+  int getStandardQuerySizeLimit() {
+    return shouldIncludeDeleted()
+            ? (RESULT_SET_SIZE_SCALING_FACTOR * (rdapResultSetMaxSize + 1))
+            : (rdapResultSetMaxSize + 1);
   }
 
   /**
@@ -385,14 +406,16 @@ public abstract class RdapActionBase implements Runnable {
    *        the query could not check deletion status (due to Datastore limitations such as the
    *        limit of one field queried for inequality, for instance), it may need to be set to true
    *        even when not including deleted records
+   * @param querySizeLimit the maximum number of items the query is expected to return, usually
+   *        because the limit has been set
    * @return an {@link RdapResultSet} object containing the list of
    *         resources and an incompleteness warning flag, which is set to MIGHT_BE_INCOMPLETE iff
    *         any resources were excluded due to lack of visibility, and the resulting list of
-   *         resources is less than the maximum allowable, which indicates that we may not have
-   *         fetched enough resources
+   *         resources is less than the maximum allowable, and the number of items returned by the
+   *         query is greater than or equal to the maximum number we might have expected
    */
   <T extends EppResource> RdapResultSet<T> getMatchingResources(
-      Query<T> query, boolean checkForVisibility, DateTime now) {
+      Query<T> query, boolean checkForVisibility, DateTime now, int querySizeLimit) {
     Optional<String> desiredRegistrar = getDesiredRegistrar();
     if (desiredRegistrar.isPresent()) {
       query = query.filter("currentSponsorClientId", desiredRegistrar.get());
@@ -415,11 +438,40 @@ public abstract class RdapActionBase implements Runnable {
         break;
       }
     }
+    // The incompleteness problem comes about because we don't know how many items to fetch. We want
+    // to return rdapResultSetMaxSize worth of items, but some might be excluded, so we fetch more
+    // just in case. But how many more? That's the potential problem, addressed with the three way
+    // AND statement:
+    // 1. If we didn't exclude any items, then we can't have the incompleteness problem.
+    // 2. If have a full result set batch (rdapResultSetMaxSize items), we must by definition be
+    //    giving the user a complete result set.
+    // 3. If we started with fewer than querySizeLimit items, then there weren't any more items that
+    //    we missed. Even if we return fewer than rdapResultSetMaxSize items, it isn't because we
+    // didn't fetch enough to start.
+    // Only if all three conditions are true might things be incomplete. In other words, we fetched
+    // as many as our limit allowed, but then excluded so many that we wound up with less than a
+    // full result set's worth of results.
     return RdapResultSet.create(
         resources,
-        (someExcluded && (resources.size() < rdapResultSetMaxSize + 1))
+        (someExcluded
+                && (resources.size() < rdapResultSetMaxSize)
+                && (numResourcesQueried >= querySizeLimit))
             ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
             : IncompletenessWarningType.COMPLETE,
         numResourcesQueried);
+  }
+
+  RdapSearchPattern recordWildcardType(RdapSearchPattern partialStringQuery) {
+    if (!partialStringQuery.getHasWildcard()) {
+      metricInformationBuilder.setWildcardType(WildcardType.NO_WILDCARD);
+    } else if (partialStringQuery.getSuffix() == null) {
+      metricInformationBuilder.setWildcardType(WildcardType.PREFIX);
+    } else if (partialStringQuery.getInitialString().isEmpty()) {
+      metricInformationBuilder.setWildcardType(WildcardType.SUFFIX);
+    } else {
+      metricInformationBuilder.setWildcardType(WildcardType.PREFIX_AND_SUFFIX);
+    }
+    metricInformationBuilder.setPrefixLength(partialStringQuery.getInitialString().length());
+    return partialStringQuery;
   }
 }
