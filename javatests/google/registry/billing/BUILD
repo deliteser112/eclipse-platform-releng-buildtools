@@ -12,6 +12,8 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//java/google/registry/billing",
+        "//javatests/google/registry/testing",
+        "@com_google_apis_google_api_services_dataflow",
         "@com_google_dagger",
         "@com_google_guava",
         "@com_google_truth",
@@ -20,6 +22,7 @@ java_library(
         "@junit",
         "@org_apache_beam_runners_google_cloud_dataflow_java",
         "@org_apache_beam_sdks_java_core",
+        "@org_mockito_all",
     ],
 )
 

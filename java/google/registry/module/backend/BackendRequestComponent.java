@@ -28,6 +28,7 @@ import google.registry.batch.MapreduceEntityCleanupAction;
 import google.registry.batch.RefreshDnsOnHostRenameAction;
 import google.registry.batch.ResaveAllEppResourcesAction;
 import google.registry.batch.VerifyEntityIntegrityAction;
+import google.registry.billing.BillingModule;
 import google.registry.billing.GenerateInvoicesAction;
 import google.registry.cron.CommitLogFanoutAction;
 import google.registry.cron.CronModule;
@@ -86,6 +87,7 @@ import google.registry.tmch.TmchSmdrlAction;
         BackendModule.class,
         BackupModule.class,
         BatchModule.class,
+        BillingModule.class,
         CloudDnsWriterModule.class,
         CronModule.class,
         DnsModule.class,

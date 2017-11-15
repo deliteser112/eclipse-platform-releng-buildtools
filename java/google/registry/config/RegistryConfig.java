@@ -464,6 +464,17 @@ public final class RegistryConfig {
     }
 
     /**
+     * Returns the Google Cloud Storage bucket for storing Beam templates and results.
+     *
+     * @see google.registry.billing.GenerateInvoicesAction
+     */
+    @Provides
+    @Config("apacheBeamBucketUrl")
+    public static String provideApacheBeamBucketUrl(@Config("projectId") String projectId) {
+      return String.format("gs://%s-beam", projectId);
+    }
+
+    /**
      * Returns the Google Cloud Storage bucket for ICANN transaction and activity reports to
      * be uploaded.
      *
