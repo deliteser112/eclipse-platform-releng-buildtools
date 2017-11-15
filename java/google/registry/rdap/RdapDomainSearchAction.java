@@ -35,6 +35,8 @@ import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.rdap.RdapMetrics.EndpointType;
+import google.registry.rdap.RdapMetrics.SearchType;
+import google.registry.rdap.RdapMetrics.WildcardType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
@@ -120,6 +122,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
     }
     RdapSearchResults results;
     if (nameParam.isPresent()) {
+      metricInformationBuilder.setSearchType(SearchType.BY_DOMAIN_NAME);
       // syntax: /rdap/domains?name=exam*.com
       String asciiName;
       try {
@@ -127,8 +130,10 @@ public class RdapDomainSearchAction extends RdapActionBase {
       } catch (Exception e) {
         throw new BadRequestException("Invalid value of nsLdhName parameter");
       }
-      results = searchByDomainName(RdapSearchPattern.create(asciiName, true), now);
+      results = searchByDomainName(
+          recordWildcardType(RdapSearchPattern.create(asciiName, true)), now);
     } else if (nsLdhNameParam.isPresent()) {
+      metricInformationBuilder.setSearchType(SearchType.BY_NAMESERVER_NAME);
       // syntax: /rdap/domains?nsLdhName=ns1.exam*.com
       // RFC 7482 appears to say that Unicode domains must be specified using punycode when
       // passed to nsLdhName, so IDN.toASCII is not called here.
@@ -136,8 +141,11 @@ public class RdapDomainSearchAction extends RdapActionBase {
         throw new BadRequestException("Invalid value of nsLdhName parameter");
       }
       results = searchByNameserverLdhName(
-          RdapSearchPattern.create(nsLdhNameParam.get(), true), now);
+          recordWildcardType(RdapSearchPattern.create(nsLdhNameParam.get(), true)), now);
     } else {
+      metricInformationBuilder.setSearchType(SearchType.BY_NAMESERVER_ADDRESS);
+      metricInformationBuilder.setWildcardType(WildcardType.NO_WILDCARD);
+      metricInformationBuilder.setPrefixLength(nsIpParam.get().length());
       // syntax: /rdap/domains?nsIp=1.2.3.4
       InetAddress inetAddress;
       try {
@@ -227,22 +235,19 @@ public class RdapDomainSearchAction extends RdapActionBase {
     // initial string is at least a certain length, which we don't need in this case. Query the
     // domains directly, rather than the foreign keys, because then we have an index on TLD if we
     // need it.
-    // TODO(b/31546493): Add metrics to figure out how well this works.
+    int querySizeLimit = RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize;
     Query<DomainResource> query =
         ofy()
             .load()
             .type(DomainResource.class)
             .filter("fullyQualifiedDomainName <", partialStringQuery.getNextInitialString())
             .filter("fullyQualifiedDomainName >=", partialStringQuery.getInitialString())
-            .limit(RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize);
+            .limit(querySizeLimit);
     if (partialStringQuery.getSuffix() != null) {
       query = query.filter("tld", partialStringQuery.getSuffix());
     }
     // Always check for visibility, because we couldn't look at the deletionTime in the query.
-    return makeSearchResults(
-        getMatchingResources(
-            query, true, now, RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize),
-        now);
+    return makeSearchResults(getMatchingResources(query, true, now, querySizeLimit), now);
   }
 
   /** Searches for domains by domain name with a TLD suffix. */
@@ -251,17 +256,15 @@ public class RdapDomainSearchAction extends RdapActionBase {
     // back ordered by name, so we are still in the same boat as
     // searchByDomainNameWithInitialString, unable to perform an inequality query on deletion time.
     // Don't use queryItems, because it doesn't handle pending deletes.
+    int querySizeLimit = RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize;
     Query<DomainResource> query =
         ofy()
             .load()
             .type(DomainResource.class)
             .filter("tld", tld)
             .order("fullyQualifiedDomainName")
-            .limit(RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize);
-    return makeSearchResults(
-        getMatchingResources(
-            query, true, now, RESULT_SET_SIZE_SCALING_FACTOR * rdapResultSetMaxSize),
-        now);
+            .limit(querySizeLimit);
+    return makeSearchResults(getMatchingResources(query, true, now, querySizeLimit), now);
   }
 
   /**
@@ -277,6 +280,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
       final RdapSearchPattern partialStringQuery, final DateTime now) {
     Iterable<Key<HostResource>> hostKeys = getNameserverRefsByLdhName(partialStringQuery, now);
     if (Iterables.isEmpty(hostKeys)) {
+      metricInformationBuilder.setNumHostsRetrieved(0);
       throw new NotFoundException("No matching nameservers found");
     }
     return searchByNameserverRefs(hostKeys, now);
@@ -459,9 +463,13 @@ public class RdapDomainSearchAction extends RdapActionBase {
           .forEach(domain -> domainSetBuilder.add(domain));
     }
     List<DomainResource> domains = domainSetBuilder.build().asList();
+    metricInformationBuilder.setNumHostsRetrieved(numHostKeysSearched);
     if (domains.size() > rdapResultSetMaxSize) {
       return makeSearchResults(
-          domains.subList(0, rdapResultSetMaxSize), IncompletenessWarningType.TRUNCATED, now);
+          domains.subList(0, rdapResultSetMaxSize),
+          IncompletenessWarningType.TRUNCATED,
+          Optional.of((long) domains.size()),
+          now);
     } else {
       // If everything that we found will fit in the result, check whether there might have been
       // more results that got dropped because the first stage limit on number of nameservers. If
@@ -471,19 +479,25 @@ public class RdapDomainSearchAction extends RdapActionBase {
           (numHostKeysSearched >= MAX_NAMESERVERS_IN_FIRST_STAGE)
               ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
               : IncompletenessWarningType.COMPLETE,
+          (numHostKeysSearched > 0) ? Optional.of((long) domains.size()) : Optional.empty(),
           now);
     }
   }
 
   /** Output JSON for a list of domains, with no incompleteness warnings. */
   private RdapSearchResults makeSearchResults(List<DomainResource> domains, DateTime now) {
-    return makeSearchResults(domains, IncompletenessWarningType.COMPLETE, now);
+    return makeSearchResults(
+        domains, IncompletenessWarningType.COMPLETE, Optional.of((long) domains.size()), now);
   }
 
   /** Output JSON from data in an {@link RdapResultSet} object. */
   private RdapSearchResults makeSearchResults(
       RdapResultSet<DomainResource> resultSet, DateTime now) {
-    return makeSearchResults(resultSet.resources(), resultSet.incompletenessWarningType(), now);
+    return makeSearchResults(
+        resultSet.resources(),
+        resultSet.incompletenessWarningType(),
+        Optional.of((long) resultSet.numResourcesRetrieved()),
+        now);
   }
 
   /**
@@ -496,7 +510,11 @@ public class RdapDomainSearchAction extends RdapActionBase {
   private RdapSearchResults makeSearchResults(
       List<DomainResource> domains,
       IncompletenessWarningType incompletenessWarningType,
+      Optional<Long> numDomainsRetrieved,
       DateTime now) {
+    if (numDomainsRetrieved.isPresent()) {
+      metricInformationBuilder.setNumDomainsRetrieved(numDomainsRetrieved.get());
+    }
     OutputDataType outputDataType =
         (domains.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
     RdapAuthorization authorization = getAuthorization();
@@ -509,10 +527,11 @@ public class RdapDomainSearchAction extends RdapActionBase {
         break;
       }
     }
-    return RdapSearchResults.create(
-        ImmutableList.copyOf(jsonList),
+    IncompletenessWarningType finalIncompletenessWarningType =
         (jsonList.size() < domains.size())
             ? IncompletenessWarningType.TRUNCATED
-            : incompletenessWarningType);
+            : incompletenessWarningType;
+    metricInformationBuilder.setIncompletenessWarningType(finalIncompletenessWarningType);
+    return RdapSearchResults.create(ImmutableList.copyOf(jsonList), finalIncompletenessWarningType);
   }
 }
