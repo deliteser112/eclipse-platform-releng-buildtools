@@ -15,6 +15,10 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.rdap.RdapAuthorization.Role.ADMINISTRATOR;
+import static google.registry.rdap.RdapAuthorization.Role.PUBLIC;
+import static google.registry.rdap.RdapAuthorization.Role.REGISTRAR;
+import static google.registry.request.Action.Method.GET;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistResources;
@@ -27,6 +31,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
@@ -38,6 +43,10 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
+import google.registry.rdap.RdapMetrics.EndpointType;
+import google.registry.rdap.RdapMetrics.SearchType;
+import google.registry.rdap.RdapMetrics.WildcardType;
+import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
@@ -47,6 +56,7 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.ui.server.registrar.SessionUtils;
+import google.registry.util.Idn;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
@@ -74,6 +84,10 @@ public class RdapNameserverSearchActionTest {
   private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
   private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
   private final RdapNameserverSearchAction action = new RdapNameserverSearchAction();
+  private RdapAuthorization.Role metricRole = PUBLIC;
+  private SearchType metricSearchType = SearchType.NONE;
+  private WildcardType metricWildcardType = WildcardType.INVALID;
+  private int metricPrefixLength = 0;
   private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
 
   private DomainResource domainCatLol;
@@ -81,12 +95,15 @@ public class RdapNameserverSearchActionTest {
   private HostResource hostNs2CatLol;
 
   private Object generateActualJsonWithName(String name) {
+    metricSearchType = SearchType.BY_NAMESERVER_NAME;
+    rememberWildcardType(name);
     action.nameParam = Optional.of(name);
     action.run();
     return JSONValue.parse(response.getPayload());
   }
 
   private Object generateActualJsonWithIp(String ipString) {
+    metricSearchType = SearchType.BY_NAMESERVER_ADDRESS;
     action.ipParam = Optional.of(ipString);
     action.run();
     return JSONValue.parse(response.getPayload());
@@ -158,6 +175,19 @@ public class RdapNameserverSearchActionTest {
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
     action.sessionUtils = sessionUtils;
     action.rdapMetrics = rdapMetrics;
+  }
+
+  private void login(String clientId) {
+    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn(clientId);
+    metricRole = REGISTRAR;
+  }
+
+  private void loginAsAdmin() {
+    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(true);
+    when(sessionUtils.getRegistrarClientId(request)).thenReturn("irrelevant");
+    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
+    metricRole = ADMINISTRATOR;
   }
 
   private Object generateExpectedJson(String expectedOutputFile) {
@@ -238,11 +268,79 @@ public class RdapNameserverSearchActionTest {
             .build());
   }
 
+  private void rememberWildcardType(String queryString) {
+    try {
+      RdapSearchPattern partialStringQuery =
+          RdapSearchPattern.create(Idn.toASCII(queryString), true);
+      if (!partialStringQuery.getHasWildcard()) {
+        metricWildcardType = WildcardType.NO_WILDCARD;
+      } else if (partialStringQuery.getSuffix() == null) {
+        metricWildcardType = WildcardType.PREFIX;
+      } else if (partialStringQuery.getInitialString().isEmpty()) {
+        metricWildcardType = WildcardType.SUFFIX;
+      } else {
+        metricWildcardType = WildcardType.PREFIX_AND_SUFFIX;
+      }
+      metricPrefixLength = partialStringQuery.getInitialString().length();
+    } catch (Exception e) {
+      metricWildcardType = WildcardType.INVALID;
+      metricPrefixLength = 0;
+    }
+  }
+
+  private void verifyMetrics(long numHostsRetrieved) {
+    verifyMetrics(Optional.of(numHostsRetrieved), IncompletenessWarningType.COMPLETE);
+  }
+
+  private void verifyMetrics(
+      Optional<Long> numHostsRetrieved, IncompletenessWarningType incompletenessWarningType) {
+    RdapMetrics.RdapMetricInformation.Builder builder =
+        RdapMetrics.RdapMetricInformation.builder()
+            .setEndpointType(EndpointType.NAMESERVERS)
+            .setSearchType(metricSearchType)
+            .setWildcardType(metricWildcardType)
+            .setPrefixLength(metricPrefixLength)
+            .setIncludeDeleted(action.includeDeletedParam.isPresent())
+            .setRegistrarSpecified(action.registrarParam.isPresent())
+            .setRole(metricRole)
+            .setRequestMethod(GET)
+            .setStatusCode(200)
+            .setIncompletenessWarningType(incompletenessWarningType);
+    if (numHostsRetrieved.isPresent()) {
+      builder.setNumHostsRetrieved(numHostsRetrieved.get());
+    }
+    verify(rdapMetrics).updateMetrics(builder.build());
+  }
+
+  private void verifyErrorMetrics() {
+    verifyErrorMetrics(Optional.of(0L), 404);
+  }
+
+  private void verifyErrorMetrics(Optional<Long> numHostsRetrieved, int statusCode) {
+    RdapMetrics.RdapMetricInformation.Builder builder =
+        RdapMetrics.RdapMetricInformation.builder()
+            .setEndpointType(EndpointType.NAMESERVERS)
+            .setSearchType(metricSearchType)
+            .setWildcardType(metricWildcardType)
+            .setPrefixLength(metricPrefixLength)
+            .setIncludeDeleted(action.includeDeletedParam.isPresent())
+            .setRegistrarSpecified(action.registrarParam.isPresent())
+            .setRole(metricRole)
+            .setRequestMethod(GET)
+            .setStatusCode(statusCode)
+            .setIncompletenessWarningType(IncompletenessWarningType.COMPLETE);
+    if (numHostsRetrieved.isPresent()) {
+      builder.setNumHostsRetrieved(numHostsRetrieved.get());
+    }
+    verify(rdapMetrics).updateMetrics(builder.build());
+  }
+
   @Test
   public void testInvalidPath_rejected() throws Exception {
     action.requestPath = RdapDomainSearchAction.PATH + "/path";
     action.run();
     assertThat(response.getStatus()).isEqualTo(400);
+    verifyErrorMetrics(Optional.empty(), 400);
   }
 
   @Test
@@ -253,6 +351,7 @@ public class RdapNameserverSearchActionTest {
             generateExpectedJson(
                 "You must specify either name=XXXX or ip=YYYY", "rdap_error_400.json"));
     assertThat(response.getStatus()).isEqualTo(400);
+    verifyErrorMetrics(Optional.empty(), 400);
   }
 
   @Test
@@ -264,6 +363,7 @@ public class RdapNameserverSearchActionTest {
                     + " name labels, e.g. exam*.tld, ns*.example.tld",
                 "rdap_error_422.json"));
     assertThat(response.getStatus()).isEqualTo(422);
+    verifyErrorMetrics(Optional.empty(), 422);
   }
 
   @Test
@@ -274,6 +374,7 @@ public class RdapNameserverSearchActionTest {
                 "A suffix after a wildcard in a nameserver lookup must be an in-bailiwick domain",
                 "rdap_error_422.json"));
     assertThat(response.getStatus()).isEqualTo(422);
+    verifyErrorMetrics(Optional.empty(), 422);
   }
 
   @Test
@@ -281,6 +382,7 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithName("*.*"))
         .isEqualTo(generateExpectedJson("Only one wildcard allowed", "rdap_error_422.json"));
     assertThat(response.getStatus()).isEqualTo(422);
+    verifyErrorMetrics(Optional.empty(), 422);
   }
 
   @Test
@@ -290,6 +392,7 @@ public class RdapNameserverSearchActionTest {
             generateExpectedJson(
                 "Initial search string must be at least 2 characters", "rdap_error_422.json"));
     assertThat(response.getStatus()).isEqualTo(422);
+    verifyErrorMetrics(Optional.empty(), 422);
   }
 
   @Test
@@ -299,6 +402,7 @@ public class RdapNameserverSearchActionTest {
             generateExpectedJson(
                 "Initial search string must be at least 2 characters", "rdap_error_422.json"));
     assertThat(response.getStatus()).isEqualTo(422);
+    verifyErrorMetrics(Optional.empty(), 422);
   }
 
   @Test
@@ -308,6 +412,7 @@ public class RdapNameserverSearchActionTest {
             generateExpectedJsonForNameserver(
                 "ns1.cat.lol", null, "2-ROID", "v4", "1.2.3.4", "rdap_host_linked.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
@@ -317,6 +422,7 @@ public class RdapNameserverSearchActionTest {
             generateExpectedJsonForNameserver(
                 "ns1.cat.lol", null, "2-ROID", "v4", "1.2.3.4", "rdap_host_linked.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
@@ -324,6 +430,7 @@ public class RdapNameserverSearchActionTest {
     action.registrarParam = Optional.of("TheRegistrar");
     generateActualJsonWithName("ns1.cat.lol");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
@@ -331,6 +438,7 @@ public class RdapNameserverSearchActionTest {
     action.registrarParam = Optional.of("unicoderegistrar");
     generateActualJsonWithName("ns1.cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics(Optional.of(0L), 404);
   }
 
   @Test
@@ -344,6 +452,7 @@ public class RdapNameserverSearchActionTest {
                 "bad:f00d:cafe::15:beef",
                 "rdap_host_linked.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
@@ -351,6 +460,7 @@ public class RdapNameserverSearchActionTest {
     // ns1.cat2.lol has two IP addresses; just test that we are able to find it
     generateActualJsonWithName("ns1.cat2.lol");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
@@ -360,13 +470,17 @@ public class RdapNameserverSearchActionTest {
             generateExpectedJsonForNameserver(
                 "ns1.cat.external", null, "8-ROID", null, null, "rdap_host_external.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
   public void testNameMatch_ns1_cat_idn_unicode_badRequest() throws Exception {
     // name must use punycode.
     generateActualJsonWithName("ns1.cat.みんな");
+    metricWildcardType = WildcardType.INVALID;
+    metricPrefixLength = 0;
     assertThat(response.getStatus()).isEqualTo(400);
+    verifyErrorMetrics(Optional.empty(), 400);
   }
 
   @Test
@@ -381,6 +495,7 @@ public class RdapNameserverSearchActionTest {
                 "1.2.3.5",
                 "rdap_host_unicode.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
@@ -390,12 +505,14 @@ public class RdapNameserverSearchActionTest {
             generateExpectedJsonForNameserver(
                 "ns1.cat.1.test", null, "E-ROID", "v4", "1.2.3.6", "rdap_host.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
   public void testNameMatch_nsstar_cat_lol_found() throws Exception {
     generateActualJsonWithName("ns*.cat.lol");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(2);
   }
 
   @Test
@@ -403,6 +520,7 @@ public class RdapNameserverSearchActionTest {
     action.registrarParam = Optional.of("TheRegistrar");
     generateActualJsonWithName("ns*.cat.lol");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(2);
   }
 
   @Test
@@ -410,18 +528,21 @@ public class RdapNameserverSearchActionTest {
     action.registrarParam = Optional.of("unicoderegistrar");
     generateActualJsonWithName("ns*.cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics(Optional.of(2L), 404);
   }
 
   @Test
   public void testNameMatch_nstar_cat_lol_found() throws Exception {
     generateActualJsonWithName("n*.cat.lol");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(2);
   }
 
   @Test
   public void testNameMatch_star_cat_lol_found() throws Exception {
     generateActualJsonWithName("*.cat.lol");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(2);
   }
 
   @Test
@@ -429,6 +550,7 @@ public class RdapNameserverSearchActionTest {
     action.registrarParam = Optional.of("TheRegistrar");
     generateActualJsonWithName("*.cat.lol");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(2);
   }
 
   @Test
@@ -436,30 +558,35 @@ public class RdapNameserverSearchActionTest {
     action.registrarParam = Optional.of("unicoderegistrar");
     generateActualJsonWithName("*.cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics(Optional.of(2L), 404);
   }
 
   @Test
   public void testNameMatch_nsstar_found() throws Exception {
     generateActualJsonWithName("ns*");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(5);
   }
 
   @Test
   public void testNameMatch_ns1_cat_lstar_found() throws Exception {
     generateActualJsonWithName("ns1.cat.l*");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
   public void testNameMatch_ns1_castar_found() throws Exception {
     generateActualJsonWithName("ns1.ca*");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(5);
   }
 
   @Test
   public void testNameMatch_dogstar_notFound() throws Exception {
     generateActualJsonWithName("dog*");
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics();
   }
 
   @Test
@@ -468,6 +595,7 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithName("ns*.cat.lol"))
       .isEqualTo(generateExpectedJson("rdap_nontruncated_hosts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(4);
   }
 
   @Test
@@ -476,6 +604,7 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithName("ns*.cat.lol"))
       .isEqualTo(generateExpectedJson("rdap_truncated_hosts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(5);
   }
 
   @Test
@@ -484,6 +613,8 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithName("ns*.cat.lol"))
       .isEqualTo(generateExpectedJson("rdap_truncated_hosts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    // When searching names, we look for additional matches, in case some are not visible.
+    verifyMetrics(9);
   }
 
   @Test
@@ -500,6 +631,7 @@ public class RdapNameserverSearchActionTest {
                 "bad:f00d:cafe::15:beef",
                 "rdap_host_linked.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(2);
   }
 
   @Test
@@ -508,6 +640,7 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithName("ns1.cat.lol"))
         .isEqualTo(generateExpectedJson("No nameservers found", "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics();
   }
 
   @Test
@@ -516,6 +649,7 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithName("cat.lo*"))
         .isEqualTo(generateExpectedJson("No nameservers found", "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics();
   }
 
   @Test
@@ -523,46 +657,46 @@ public class RdapNameserverSearchActionTest {
     createDeletedHost();
     generateActualJsonWithName("nsdeleted.cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics();
   }
 
   @Test
   public void testNameMatchDeleted_notFound_notLoggedIn() throws Exception {
     createDeletedHost();
     action.includeDeletedParam = Optional.of(true);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
     generateActualJsonWithName("nsdeleted.cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics();
   }
 
   @Test
   public void testNameMatchDeleted_notFound_loggedInAsDifferentRegistrar() throws Exception {
     createDeletedHost();
     action.includeDeletedParam = Optional.of(true);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("unicoderegistrar");
+    login("unicoderegistrar");
     generateActualJsonWithName("nsdeleted.cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics(Optional.of(1L), 404);
   }
 
   @Test
   public void testNameMatchDeleted_found_loggedInAsCorrectRegistrar() throws Exception {
     createDeletedHost();
     action.includeDeletedParam = Optional.of(true);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
+    login("TheRegistrar");
     generateActualJsonWithName("nsdeleted.cat.lol");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
   public void testNameMatchDeleted_found_loggedInAsAdmin() throws Exception {
     createDeletedHost();
     action.includeDeletedParam = Optional.of(true);
-    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("irrelevant");
+    loginAsAdmin();
     generateActualJsonWithName("nsdeleted.cat.lol");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
@@ -570,10 +704,10 @@ public class RdapNameserverSearchActionTest {
     createDeletedHost();
     action.registrarParam = Optional.of("TheRegistrar");
     action.includeDeletedParam = Optional.of(true);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
+    login("TheRegistrar");
     generateActualJsonWithName("nsdeleted.cat.lol");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
@@ -582,16 +716,17 @@ public class RdapNameserverSearchActionTest {
     createDeletedHost();
     action.registrarParam = Optional.of("unicoderegistrar");
     action.includeDeletedParam = Optional.of(true);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
+    login("TheRegistrar");
     generateActualJsonWithName("nsdeleted.cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics();
   }
 
   @Test
   public void testAddressMatch_invalidAddress() throws Exception {
     generateActualJsonWithIp("It is to laugh");
     assertThat(response.getStatus()).isEqualTo(400);
+    verifyErrorMetrics(Optional.empty(), 400);
   }
 
   @Test
@@ -601,6 +736,7 @@ public class RdapNameserverSearchActionTest {
             generateExpectedJsonForNameserver(
                 "ns1.cat.lol", null, "2-ROID", "v4", "1.2.3.4", "rdap_host_linked.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
@@ -608,6 +744,7 @@ public class RdapNameserverSearchActionTest {
     action.registrarParam = Optional.of("TheRegistrar");
     generateActualJsonWithIp("1.2.3.4");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
@@ -615,6 +752,7 @@ public class RdapNameserverSearchActionTest {
     action.registrarParam = Optional.of("unicoderegistrar");
     generateActualJsonWithIp("1.2.3.4");
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics();
   }
 
   @Test
@@ -622,12 +760,14 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithIp("bad:f00d:cafe::15:beef"))
         .isEqualTo(generateExpectedJson("rdap_multiple_hosts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(2);
   }
 
   @Test
   public void testAddressMatchLocalhost_notFound() throws Exception {
     generateActualJsonWithIp("127.0.0.1");
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics();
   }
 
   @Test
@@ -636,6 +776,7 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithIp("1.2.3.4"))
         .isEqualTo(generateExpectedJson("No nameservers found", "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics();
   }
 
   @Test
@@ -644,6 +785,7 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithIp("5.5.5.1"))
       .isEqualTo(generateExpectedJson("rdap_nontruncated_hosts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(4);
   }
 
   @Test
@@ -652,6 +794,7 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithIp("5.5.5.1"))
       .isEqualTo(generateExpectedJson("rdap_truncated_hosts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(5);
   }
 
   @Test
@@ -660,6 +803,9 @@ public class RdapNameserverSearchActionTest {
     assertThat(generateActualJsonWithIp("5.5.5.1"))
       .isEqualTo(generateExpectedJson("rdap_truncated_hosts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
+    // When searching by address and not including deleted, we don't need to search for extra
+    // matches.
+    verifyMetrics(5);
   }
 
   @Test
@@ -667,46 +813,46 @@ public class RdapNameserverSearchActionTest {
     createDeletedHost();
     generateActualJsonWithIp("4.3.2.1");
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics();
   }
 
   @Test
   public void testAddressMatchDeleted_notFound_notLoggedIn() throws Exception {
     createDeletedHost();
     action.includeDeletedParam = Optional.of(true);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
     generateActualJsonWithIp("4.3.2.1");
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics();
   }
 
   @Test
   public void testAddressMatchDeleted_notFound_loggedInAsDifferentRegistrar() throws Exception {
     createDeletedHost();
     action.includeDeletedParam = Optional.of(true);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("unicoderegistrar");
+    login("unicoderegistrar");
     generateActualJsonWithIp("4.3.2.1");
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics(Optional.of(1L), 404);
   }
 
   @Test
   public void testAddressMatchDeleted_found_loggedInAsCorrectRegistrar() throws Exception {
     createDeletedHost();
     action.includeDeletedParam = Optional.of(true);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
+    login("TheRegistrar");
     generateActualJsonWithIp("4.3.2.1");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
   public void testAddressMatchDeleted_found_loggedInAsAdmin() throws Exception {
     createDeletedHost();
     action.includeDeletedParam = Optional.of(true);
-    action.authResult = AuthResult.create(AuthLevel.USER, adminUserAuthInfo);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("irrelevant");
+    loginAsAdmin();
     generateActualJsonWithIp("4.3.2.1");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
@@ -714,10 +860,10 @@ public class RdapNameserverSearchActionTest {
     createDeletedHost();
     action.registrarParam = Optional.of("TheRegistrar");
     action.includeDeletedParam = Optional.of(true);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
+    login("TheRegistrar");
     generateActualJsonWithIp("4.3.2.1");
     assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(1);
   }
 
   @Test
@@ -726,9 +872,9 @@ public class RdapNameserverSearchActionTest {
     createDeletedHost();
     action.registrarParam = Optional.of("unicoderegistrar");
     action.includeDeletedParam = Optional.of(true);
-    when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
-    when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
+    login("TheRegistrar");
     generateActualJsonWithIp("4.3.2.1");
     assertThat(response.getStatus()).isEqualTo(404);
+    verifyErrorMetrics();
   }
 }

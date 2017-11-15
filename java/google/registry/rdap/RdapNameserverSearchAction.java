@@ -30,6 +30,7 @@ import google.registry.model.host.HostResource;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.rdap.RdapMetrics.EndpointType;
+import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
@@ -105,14 +106,19 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     RdapSearchResults results;
     if (nameParam.isPresent()) {
       // syntax: /rdap/nameservers?name=exam*.com
+      metricInformationBuilder.setSearchType(SearchType.BY_NAMESERVER_NAME);
       if (!LDH_PATTERN.matcher(nameParam.get()).matches()) {
         throw new BadRequestException(
             "Name parameter must contain only letters, dots"
                 + " and hyphens, and an optional single wildcard");
       }
-      results = searchByName(RdapSearchPattern.create(Idn.toASCII(nameParam.get()), true), now);
+      results =
+          searchByName(
+              recordWildcardType(RdapSearchPattern.create(Idn.toASCII(nameParam.get()), true)),
+              now);
     } else {
       // syntax: /rdap/nameservers?ip=1.2.3.4
+      metricInformationBuilder.setSearchType(SearchType.BY_NAMESERVER_ADDRESS);
       InetAddress inetAddress;
       try {
         inetAddress = InetAddresses.forString(ipParam.get());
@@ -175,8 +181,10 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     HostResource hostResource =
         loadByForeignKey(HostResource.class, partialStringQuery.getInitialString(), now);
     if ((hostResource == null) || !shouldBeVisible(hostResource, now)) {
+      metricInformationBuilder.setNumHostsRetrieved(0);
       throw new NotFoundException("No nameservers found");
     }
+    metricInformationBuilder.setNumHostsRetrieved(1);
     return RdapSearchResults.create(
         ImmutableList.of(
             rdapJsonFormatter.makeRdapJsonForHost(
@@ -211,7 +219,11 @@ public class RdapNameserverSearchAction extends RdapActionBase {
         }
       }
     }
-    return makeSearchResults(hostList, IncompletenessWarningType.COMPLETE, now);
+    return makeSearchResults(
+        hostList,
+        IncompletenessWarningType.COMPLETE,
+        domainResource.getSubordinateHosts().size(),
+        now);
   }
 
   /**
@@ -251,12 +263,20 @@ public class RdapNameserverSearchAction extends RdapActionBase {
 
   /** Output JSON for a lists of hosts contained in an {@link RdapResultSet}. */
   private RdapSearchResults makeSearchResults(RdapResultSet<HostResource> resultSet, DateTime now) {
-    return makeSearchResults(resultSet.resources(), resultSet.incompletenessWarningType(), now);
+    return makeSearchResults(
+        resultSet.resources(),
+        resultSet.incompletenessWarningType(),
+        resultSet.numResourcesRetrieved(),
+        now);
   }
 
   /** Output JSON for a list of hosts. */
   private RdapSearchResults makeSearchResults(
-      List<HostResource> hosts, IncompletenessWarningType incompletenessWarningType, DateTime now) {
+      List<HostResource> hosts,
+      IncompletenessWarningType incompletenessWarningType,
+      int numHostsRetrieved,
+      DateTime now) {
+    metricInformationBuilder.setNumHostsRetrieved(numHostsRetrieved);
     OutputDataType outputDataType =
         (hosts.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
     ImmutableList.Builder<ImmutableMap<String, Object>> jsonListBuilder =
