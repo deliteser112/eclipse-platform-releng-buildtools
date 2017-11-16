@@ -75,7 +75,9 @@ public class OAuthAuthenticationMechanism implements AuthenticationMechanism {
     // OAuthService itself only looks at the first one anyway.
     String header = request.getHeader(AUTHORIZATION);
     if ((header == null) || !header.startsWith(BEARER_PREFIX)) {
-      logger.infofmt("missing or invalid authorization header");
+      if (header != null) {
+        logger.infofmt("invalid authorization header");
+      }
       return AuthResult.create(NONE);
     }
     // Assume that, if a bearer token is found, it's what OAuthService will use to attempt
