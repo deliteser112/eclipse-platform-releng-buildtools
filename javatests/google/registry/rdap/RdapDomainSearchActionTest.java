@@ -17,7 +17,6 @@ package google.registry.rdap;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.rdap.RdapAuthorization.Role.ADMINISTRATOR;
-import static google.registry.rdap.RdapAuthorization.Role.PUBLIC;
 import static google.registry.rdap.RdapAuthorization.Role.REGISTRAR;
 import static google.registry.request.Action.Method.POST;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -33,7 +32,6 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
@@ -84,7 +82,7 @@ import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdapDomainSearchAction}. */
 @RunWith(JUnit4.class)
-public class RdapDomainSearchActionTest {
+public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -101,11 +99,7 @@ public class RdapDomainSearchActionTest {
   private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
   private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
   private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
-  private RdapAuthorization.Role metricRole = PUBLIC;
-  private WildcardType metricWildcardType = WildcardType.INVALID;
-  private int metricPrefixLength = 0;
   private final RdapDomainSearchAction action = new RdapDomainSearchAction();
-  private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
 
   private Registrar registrar;
   private DomainResource domainCatLol;
@@ -675,26 +669,6 @@ public class RdapDomainSearchActionTest {
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
-  private void rememberWildcardType(String queryString) {
-    try {
-      RdapSearchPattern partialStringQuery =
-          RdapSearchPattern.create(Idn.toASCII(queryString), true);
-      if (!partialStringQuery.getHasWildcard()) {
-        metricWildcardType = WildcardType.NO_WILDCARD;
-      } else if (partialStringQuery.getSuffix() == null) {
-        metricWildcardType = WildcardType.PREFIX;
-      } else if (partialStringQuery.getInitialString().isEmpty()) {
-        metricWildcardType = WildcardType.SUFFIX;
-      } else {
-        metricWildcardType = WildcardType.PREFIX_AND_SUFFIX;
-      }
-      metricPrefixLength = partialStringQuery.getInitialString().length();
-    } catch (Exception e) {
-      metricWildcardType = WildcardType.INVALID;
-      metricPrefixLength = 0;
-    }
-  }
-
   private void verifyMetrics(SearchType searchType, Optional<Long> numDomainsRetrieved) {
     verifyMetrics(
         searchType, numDomainsRetrieved, Optional.empty(), IncompletenessWarningType.COMPLETE);
@@ -727,25 +701,16 @@ public class RdapDomainSearchActionTest {
       Optional<Long> numDomainsRetrieved,
       Optional<Long> numHostsRetrieved,
       IncompletenessWarningType incompletenessWarningType) {
-    RdapMetrics.RdapMetricInformation.Builder builder =
-        RdapMetrics.RdapMetricInformation.builder()
-            .setEndpointType(EndpointType.DOMAINS)
-            .setSearchType(searchType)
-            .setWildcardType(metricWildcardType)
-            .setPrefixLength(metricPrefixLength)
-            .setIncludeDeleted(action.includeDeletedParam.isPresent())
-            .setRegistrarSpecified(action.registrarParam.isPresent())
-            .setRole(metricRole)
-            .setRequestMethod(POST)
-            .setStatusCode(200)
-            .setIncompletenessWarningType(incompletenessWarningType);
-    if (numDomainsRetrieved.isPresent()) {
-      builder.setNumDomainsRetrieved(numDomainsRetrieved.get());
-    }
-    if (numHostsRetrieved.isPresent()) {
-      builder.setNumHostsRetrieved(numHostsRetrieved.get());
-    }
-    verify(rdapMetrics).updateMetrics(builder.build());
+    metricSearchType = searchType;
+    verifyMetrics(
+        EndpointType.DOMAINS,
+        POST,
+        action.includeDeletedParam.orElse(false),
+        action.registrarParam.isPresent(),
+        numDomainsRetrieved,
+        numHostsRetrieved,
+        Optional.empty(),
+        incompletenessWarningType);
   }
 
   private void verifyErrorMetrics(SearchType searchType) {
@@ -762,25 +727,8 @@ public class RdapDomainSearchActionTest {
       Optional<Long> numDomainsRetrieved,
       Optional<Long> numHostsRetrieved,
       int statusCode) {
-    RdapMetrics.RdapMetricInformation.Builder builder =
-        RdapMetrics.RdapMetricInformation.builder()
-            .setEndpointType(EndpointType.DOMAINS)
-            .setSearchType(searchType)
-            .setWildcardType(metricWildcardType)
-            .setPrefixLength(metricPrefixLength)
-            .setIncludeDeleted(action.includeDeletedParam.isPresent())
-            .setRegistrarSpecified(action.registrarParam.isPresent())
-            .setRole(metricRole)
-            .setRequestMethod(POST)
-            .setStatusCode(statusCode)
-            .setIncompletenessWarningType(IncompletenessWarningType.COMPLETE);
-    if (numDomainsRetrieved.isPresent()) {
-      builder.setNumDomainsRetrieved(numDomainsRetrieved.get());
-    }
-    if (numHostsRetrieved.isPresent()) {
-      builder.setNumHostsRetrieved(numHostsRetrieved.get());
-    }
-    verify(rdapMetrics).updateMetrics(builder.build());
+    metricStatusCode = statusCode;
+    verifyMetrics(searchType, numDomainsRetrieved, numHostsRetrieved);
   }
 
   @Test
@@ -934,6 +882,7 @@ public class RdapDomainSearchActionTest {
         ImmutableList.of("ns1.cat.xn--q9jyb4c", "ns2.cat.xn--q9jyb4c"),
         "rdap_domain_unicode_no_contacts_with_remark.json");
     // The unicode gets translated to ASCII before getting parsed into a search pattern.
+    metricPrefixLength = 15;
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(1L));
   }
 

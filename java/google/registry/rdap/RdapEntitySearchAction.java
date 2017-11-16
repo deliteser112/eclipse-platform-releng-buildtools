@@ -31,6 +31,7 @@ import google.registry.model.registrar.Registrar;
 import google.registry.rdap.RdapJsonFormatter.BoilerplateType;
 import google.registry.rdap.RdapJsonFormatter.OutputDataType;
 import google.registry.rdap.RdapMetrics.EndpointType;
+import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
@@ -99,13 +100,18 @@ public class RdapEntitySearchAction extends RdapActionBase {
     }
     RdapSearchResults results;
     if (fnParam.isPresent()) {
+      metricInformationBuilder.setSearchType(SearchType.BY_FULL_NAME);
       // syntax: /rdap/entities?fn=Bobby%20Joe*
       // The name is the contact name or registrar name (not registrar contact name).
-      results = searchByName(RdapSearchPattern.create(fnParam.get(), false), now);
+      results =
+          searchByName(recordWildcardType(RdapSearchPattern.create(fnParam.get(), false)), now);
     } else {
+      metricInformationBuilder.setSearchType(SearchType.BY_HANDLE);
       // syntax: /rdap/entities?handle=12345-*
       // The handle is either the contact roid or the registrar clientId.
-      results = searchByHandle(RdapSearchPattern.create(handleParam.get(), false), now);
+      results =
+          searchByHandle(
+              recordWildcardType(RdapSearchPattern.create(handleParam.get(), false)), now);
     }
     if (results.jsonList().isEmpty()) {
       throw new NotFoundException("No entities found");
@@ -213,11 +219,14 @@ public class RdapEntitySearchAction extends RdapActionBase {
           .type(ContactResource.class)
           .id(partialStringQuery.getInitialString())
           .now();
-      return makeSearchResults(
+      ImmutableList<ContactResource> contactResourceList =
           ((contactResource != null) && shouldBeVisible(contactResource, now))
               ? ImmutableList.of(contactResource)
-              : ImmutableList.of(),
+              : ImmutableList.of();
+      return makeSearchResults(
+          contactResourceList,
           IncompletenessWarningType.COMPLETE,
+          contactResourceList.size(),
           getMatchingRegistrars(partialStringQuery.getInitialString()),
           now);
     // Handle queries with a wildcard (or including deleted), but no suffix. Because the handle
@@ -235,10 +244,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
       int querySizeLimit = getStandardQuerySizeLimit();
       Query<ContactResource> query =
           queryItemsByKey(
-              ContactResource.class,
-              partialStringQuery,
-              shouldIncludeDeleted(),
-              querySizeLimit);
+              ContactResource.class, partialStringQuery, shouldIncludeDeleted(), querySizeLimit);
       return makeSearchResults(
           getMatchingResources(query, shouldIncludeDeleted(), now, querySizeLimit),
           registrars,
@@ -261,23 +267,30 @@ public class RdapEntitySearchAction extends RdapActionBase {
   /**
    * Builds a JSON array of entity info maps based on the specified contacts and registrars.
    *
-   * <p>This is a convenience wrapper for the four-argument makeSearchResults; it unpacks the two
-   * properties of the ContactsAndIncompletenessWarningType structure and passes them as separate
-   * arguments.
+   * <p>This is a convenience wrapper for the four-argument makeSearchResults; it unpacks the
+   * properties of the {@link RdapResultSet} structure and passes them as separate arguments.
    */
   private RdapSearchResults makeSearchResults(
       RdapResultSet<ContactResource> resultSet, List<Registrar> registrars, DateTime now) {
     return makeSearchResults(
-        resultSet.resources(), resultSet.incompletenessWarningType(), registrars, now);
+        resultSet.resources(),
+        resultSet.incompletenessWarningType(),
+        resultSet.numResourcesRetrieved(),
+        registrars,
+        now);
   }
 
   /**
    * Builds a JSON array of entity info maps based on the specified contacts and registrars.
    *
+   * <p>The number of contacts retrieved is recorded for use by the metrics.
+   *
    * @param contacts the list of contacts which can be returned
    * @param incompletenessWarningType MIGHT_BE_INCOMPLETE if the list of contacts might be
    *        incomplete; this only matters if the total count of contacts and registrars combined is
    *        less than a full result set's worth
+   * @param numContactsRetrieved the number of contacts retrieved in the process of generating the
+   *        results
    * @param registrars the list of registrars which can be returned
    * @param now the current date and time
    * @return an {@link RdapSearchResults} object
@@ -285,8 +298,11 @@ public class RdapEntitySearchAction extends RdapActionBase {
   private RdapSearchResults makeSearchResults(
       List<ContactResource> contacts,
       IncompletenessWarningType incompletenessWarningType,
+      int numContactsRetrieved,
       List<Registrar> registrars,
       DateTime now) {
+
+    metricInformationBuilder.setNumContactsRetrieved(numContactsRetrieved);
 
     // Determine what output data type to use, depending on whether more than one entity will be
     // returned.

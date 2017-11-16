@@ -16,7 +16,6 @@ package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.rdap.RdapAuthorization.Role.ADMINISTRATOR;
-import static google.registry.rdap.RdapAuthorization.Role.PUBLIC;
 import static google.registry.rdap.RdapAuthorization.Role.REGISTRAR;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -31,7 +30,6 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
@@ -56,7 +54,6 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.ui.server.registrar.SessionUtils;
-import google.registry.util.Idn;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
@@ -70,7 +67,7 @@ import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RdapNameserverSearchAction}. */
 @RunWith(JUnit4.class)
-public class RdapNameserverSearchActionTest {
+public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
@@ -84,11 +81,6 @@ public class RdapNameserverSearchActionTest {
   private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
   private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
   private final RdapNameserverSearchAction action = new RdapNameserverSearchAction();
-  private RdapAuthorization.Role metricRole = PUBLIC;
-  private SearchType metricSearchType = SearchType.NONE;
-  private WildcardType metricWildcardType = WildcardType.INVALID;
-  private int metricPrefixLength = 0;
-  private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
 
   private DomainResource domainCatLol;
   private HostResource hostNs1CatLol;
@@ -268,71 +260,31 @@ public class RdapNameserverSearchActionTest {
             .build());
   }
 
-  private void rememberWildcardType(String queryString) {
-    try {
-      RdapSearchPattern partialStringQuery =
-          RdapSearchPattern.create(Idn.toASCII(queryString), true);
-      if (!partialStringQuery.getHasWildcard()) {
-        metricWildcardType = WildcardType.NO_WILDCARD;
-      } else if (partialStringQuery.getSuffix() == null) {
-        metricWildcardType = WildcardType.PREFIX;
-      } else if (partialStringQuery.getInitialString().isEmpty()) {
-        metricWildcardType = WildcardType.SUFFIX;
-      } else {
-        metricWildcardType = WildcardType.PREFIX_AND_SUFFIX;
-      }
-      metricPrefixLength = partialStringQuery.getInitialString().length();
-    } catch (Exception e) {
-      metricWildcardType = WildcardType.INVALID;
-      metricPrefixLength = 0;
-    }
-  }
-
   private void verifyMetrics(long numHostsRetrieved) {
     verifyMetrics(Optional.of(numHostsRetrieved), IncompletenessWarningType.COMPLETE);
   }
 
   private void verifyMetrics(
       Optional<Long> numHostsRetrieved, IncompletenessWarningType incompletenessWarningType) {
-    RdapMetrics.RdapMetricInformation.Builder builder =
-        RdapMetrics.RdapMetricInformation.builder()
-            .setEndpointType(EndpointType.NAMESERVERS)
-            .setSearchType(metricSearchType)
-            .setWildcardType(metricWildcardType)
-            .setPrefixLength(metricPrefixLength)
-            .setIncludeDeleted(action.includeDeletedParam.isPresent())
-            .setRegistrarSpecified(action.registrarParam.isPresent())
-            .setRole(metricRole)
-            .setRequestMethod(GET)
-            .setStatusCode(200)
-            .setIncompletenessWarningType(incompletenessWarningType);
-    if (numHostsRetrieved.isPresent()) {
-      builder.setNumHostsRetrieved(numHostsRetrieved.get());
-    }
-    verify(rdapMetrics).updateMetrics(builder.build());
+    verifyMetrics(
+        EndpointType.NAMESERVERS,
+        GET,
+        action.includeDeletedParam.orElse(false),
+        action.registrarParam.isPresent(),
+        Optional.empty(),
+        numHostsRetrieved,
+        Optional.empty(),
+        incompletenessWarningType);
   }
 
   private void verifyErrorMetrics() {
-    verifyErrorMetrics(Optional.of(0L), 404);
+    metricStatusCode = 404;
+    verifyMetrics(0);
   }
 
   private void verifyErrorMetrics(Optional<Long> numHostsRetrieved, int statusCode) {
-    RdapMetrics.RdapMetricInformation.Builder builder =
-        RdapMetrics.RdapMetricInformation.builder()
-            .setEndpointType(EndpointType.NAMESERVERS)
-            .setSearchType(metricSearchType)
-            .setWildcardType(metricWildcardType)
-            .setPrefixLength(metricPrefixLength)
-            .setIncludeDeleted(action.includeDeletedParam.isPresent())
-            .setRegistrarSpecified(action.registrarParam.isPresent())
-            .setRole(metricRole)
-            .setRequestMethod(GET)
-            .setStatusCode(statusCode)
-            .setIncompletenessWarningType(IncompletenessWarningType.COMPLETE);
-    if (numHostsRetrieved.isPresent()) {
-      builder.setNumHostsRetrieved(numHostsRetrieved.get());
-    }
-    verify(rdapMetrics).updateMetrics(builder.build());
+    metricStatusCode = statusCode;
+    verifyMetrics(numHostsRetrieved, IncompletenessWarningType.COMPLETE);
   }
 
   @Test
