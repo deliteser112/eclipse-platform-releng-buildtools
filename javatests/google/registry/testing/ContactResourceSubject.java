@@ -17,7 +17,7 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertAbout;
 
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.SimpleSubjectBuilder;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
@@ -29,12 +29,8 @@ import org.joda.time.DateTime;
 public final class ContactResourceSubject
     extends AbstractEppResourceSubject<ContactResource, ContactResourceSubject> {
 
-  /** A factory for instances of this subject. */
-  private static class SubjectFactory
-      extends ReflectiveSubjectFactory<ContactResource, ContactResourceSubject>{}
-
-  public ContactResourceSubject(FailureStrategy strategy, ContactResource subject) {
-    super(strategy, checkNotNull(subject));
+  public ContactResourceSubject(FailureMetadata failureMetadata, ContactResource subject) {
+    super(failureMetadata, checkNotNull(subject));
   }
 
   public And<ContactResourceSubject> hasLocalizedPostalInfo(PostalInfo postalInfo) {
@@ -148,6 +144,6 @@ public final class ContactResourceSubject
 
   public static SimpleSubjectBuilder<ContactResourceSubject, ContactResource>
       assertAboutContacts() {
-    return assertAbout(new SubjectFactory());
+    return assertAbout(ContactResourceSubject::new);
   }
 }

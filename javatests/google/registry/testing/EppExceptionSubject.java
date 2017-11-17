@@ -18,10 +18,9 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.EppXmlTransformer.marshal;
 
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.SimpleSubjectBuilder;
 import com.google.common.truth.Subject;
-import com.google.common.truth.SubjectFactory;
 import google.registry.flows.EppException;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppOutput;
@@ -33,8 +32,8 @@ import google.registry.xml.XmlException;
 /** Utility methods for asserting things about {@link EppException} instances. */
 public class EppExceptionSubject extends Subject<EppExceptionSubject, EppException> {
 
-  public EppExceptionSubject(FailureStrategy strategy, EppException subject) {
-    super(strategy, subject);
+  public EppExceptionSubject(FailureMetadata failureMetadata, EppException subject) {
+    super(failureMetadata, subject);
   }
 
   public And<EppExceptionSubject> hasMessage(String expected) {
@@ -58,10 +57,6 @@ public class EppExceptionSubject extends Subject<EppExceptionSubject, EppExcepti
   }
 
   public static SimpleSubjectBuilder<EppExceptionSubject, EppException> assertAboutEppExceptions() {
-    return assertAbout(new SubjectFactory<EppExceptionSubject, EppException>() {
-      @Override
-      public EppExceptionSubject getSubject(FailureStrategy strategy, EppException subject) {
-        return new EppExceptionSubject(strategy, subject);
-      }});
+    return assertAbout(EppExceptionSubject::new);
   }
 }

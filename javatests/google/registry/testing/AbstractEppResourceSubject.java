@@ -22,7 +22,7 @@ import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntr
 import static google.registry.util.DiffUtils.prettyPrintEntityDeepDiff;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
@@ -39,8 +39,8 @@ import org.joda.time.DateTime;
 abstract class AbstractEppResourceSubject
     <T extends EppResource, S extends AbstractEppResourceSubject<T, S>> extends Subject<S, T> {
 
-  public AbstractEppResourceSubject(FailureStrategy strategy, T subject) {
-    super(strategy, checkNotNull(subject));
+  public AbstractEppResourceSubject(FailureMetadata failureMetadata, T subject) {
+    super(failureMetadata, checkNotNull(subject));
   }
 
   private List<HistoryEntry> getHistoryEntries() {

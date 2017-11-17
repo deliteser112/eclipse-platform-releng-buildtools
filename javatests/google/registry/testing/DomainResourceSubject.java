@@ -17,7 +17,7 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertAbout;
 
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.SimpleSubjectBuilder;
 import google.registry.model.domain.DomainResource;
 import google.registry.testing.TruthChainer.And;
@@ -27,10 +27,6 @@ import org.joda.time.DateTime;
 /** Truth subject for asserting things about {@link DomainResource} instances. */
 public final class DomainResourceSubject
     extends AbstractDomainBaseSubject<DomainResource, DomainResourceSubject> {
-
-  /** A factory for instances of this subject. */
-  private static class SubjectFactory
-      extends ReflectiveSubjectFactory<DomainResource, DomainResourceSubject>{}
 
   public And<DomainResourceSubject> hasRegistrationExpirationTime(DateTime expiration) {
     if (!Objects.equals(actual().getRegistrationExpirationTime(), expiration)) {
@@ -74,11 +70,11 @@ public final class DomainResourceSubject
     return hasValue(smdId, actual().getSmdId(), "has smdId");
   }
 
-  public DomainResourceSubject(FailureStrategy strategy, DomainResource subject) {
-    super(strategy, checkNotNull(subject));
+  public DomainResourceSubject(FailureMetadata failureMetadata, DomainResource subject) {
+    super(failureMetadata, checkNotNull(subject));
   }
 
   public static SimpleSubjectBuilder<DomainResourceSubject, DomainResource> assertAboutDomains() {
-    return assertAbout(new SubjectFactory());
+    return assertAbout(DomainResourceSubject::new);
   }
 }

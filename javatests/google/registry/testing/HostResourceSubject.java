@@ -17,7 +17,7 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertAbout;
 
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.SimpleSubjectBuilder;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.DomainResource;
@@ -29,16 +29,12 @@ import org.joda.time.DateTime;
 public final class HostResourceSubject
     extends AbstractEppResourceSubject<HostResource, HostResourceSubject> {
 
-  /** A factory for instances of this subject. */
-  private static class SubjectFactory
-      extends ReflectiveSubjectFactory<HostResource, HostResourceSubject>{}
-
-  public HostResourceSubject(FailureStrategy strategy, HostResource subject) {
-    super(strategy, checkNotNull(subject));
+  public HostResourceSubject(FailureMetadata failureMetadata, HostResource subject) {
+    super(failureMetadata, checkNotNull(subject));
   }
 
   public static SimpleSubjectBuilder<HostResourceSubject, HostResource> assertAboutHosts() {
-    return assertAbout(new SubjectFactory());
+    return assertAbout(HostResourceSubject::new);
   }
 
   public And<HostResourceSubject> hasLastTransferTime(DateTime lastTransferTime) {

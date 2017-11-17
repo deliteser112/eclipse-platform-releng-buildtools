@@ -17,30 +17,20 @@ package google.registry.testing;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertAbout;
 
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.SimpleSubjectBuilder;
-import com.google.common.truth.SubjectFactory;
 import google.registry.model.EppResource;
 
 /** Truth subject for asserting things about {@link EppResource} instances. */
 public final class GenericEppResourceSubject
     extends AbstractEppResourceSubject<EppResource, GenericEppResourceSubject> {
 
-  /** A factory for instances of this subject. */
-  private static class GenericEppResourceSubjectFactory
-      extends SubjectFactory<GenericEppResourceSubject, EppResource> {
-    @Override
-    public GenericEppResourceSubject getSubject(FailureStrategy strategy, EppResource subject) {
-      return new GenericEppResourceSubject(strategy, subject);
-    }
-  }
-
-  public GenericEppResourceSubject(FailureStrategy strategy, EppResource subject) {
-    super(strategy, checkNotNull(subject));
+  public GenericEppResourceSubject(FailureMetadata failureMetadata, EppResource subject) {
+    super(failureMetadata, checkNotNull(subject));
   }
 
   public static SimpleSubjectBuilder<GenericEppResourceSubject, EppResource>
       assertAboutEppResources() {
-    return assertAbout(new GenericEppResourceSubjectFactory());
+    return assertAbout(GenericEppResourceSubject::new);
   }
 }

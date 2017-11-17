@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.SimpleSubjectBuilder;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.Period;
@@ -76,16 +76,12 @@ public final class DomainApplicationSubject
     return andChainer();
   }
 
-  /** A factory for instances of this subject. */
-  private static class SubjectFactory
-      extends ReflectiveSubjectFactory<DomainApplication, DomainApplicationSubject>{}
-
-  public DomainApplicationSubject(FailureStrategy strategy, DomainApplication subject) {
-    super(strategy, checkNotNull(subject));
+  public DomainApplicationSubject(FailureMetadata failureMetadata, DomainApplication subject) {
+    super(failureMetadata, checkNotNull(subject));
   }
 
   public static SimpleSubjectBuilder<DomainApplicationSubject, DomainApplication>
       assertAboutApplications() {
-    return assertAbout(new SubjectFactory());
+    return assertAbout(DomainApplicationSubject::new);
   }
 }

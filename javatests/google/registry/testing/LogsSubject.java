@@ -20,7 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.TestLogHandler;
 import com.google.common.truth.Correspondence;
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.SimpleSubjectBuilder;
 import com.google.common.truth.StringSubject;
 import com.google.common.truth.Subject;
@@ -33,12 +33,8 @@ import java.util.logging.LogRecord;
 /** Utility methods for asserting things about logging {@link Handler} instances. */
 public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
 
-  /** A factory for instances of this subject. */
-  private static class SubjectFactory
-      extends ReflectiveSubjectFactory<TestLogHandler, LogsSubject> {}
-
-  public LogsSubject(FailureStrategy strategy, TestLogHandler subject) {
-    super(strategy, subject);
+  public LogsSubject(FailureMetadata failureMetadata, TestLogHandler subject) {
+    super(failureMetadata, subject);
   }
 
   private static final Correspondence<String, String> CONTAINS_CORRESPONDENCE =
@@ -88,6 +84,6 @@ public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
   }
 
   public static SimpleSubjectBuilder<LogsSubject, TestLogHandler> assertAboutLogs() {
-    return assertAbout(new SubjectFactory());
+    return assertAbout(LogsSubject::new);
   }
 }

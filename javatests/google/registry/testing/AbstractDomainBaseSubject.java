@@ -15,7 +15,7 @@
 package google.registry.testing;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.FailureMetadata;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.launch.LaunchNotice;
@@ -29,8 +29,8 @@ public abstract class AbstractDomainBaseSubject
     <T extends DomainBase, S extends AbstractDomainBaseSubject<T, S>>
     extends AbstractEppResourceSubject<T, S> {
 
-  public AbstractDomainBaseSubject(FailureStrategy strategy, T subject) {
-    super(strategy, subject);
+  public AbstractDomainBaseSubject(FailureMetadata failureMetadata, T subject) {
+    super(failureMetadata, subject);
   }
 
   public And<S> hasFullyQualifiedDomainName(String fullyQualifiedDomainName) {

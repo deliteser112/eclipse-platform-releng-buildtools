@@ -16,7 +16,7 @@ package google.registry.testing;
 
 import static com.google.common.truth.Truth.assertAbout;
 
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.SimpleSubjectBuilder;
 import com.google.common.truth.Subject;
 import google.registry.model.domain.Period;
@@ -30,12 +30,8 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
 
   private String customDisplaySubject;
 
-  /** A factory for instances of this subject. */
-  private static class SubjectFactory
-      extends ReflectiveSubjectFactory<HistoryEntry, HistoryEntrySubject>{}
-
-  public HistoryEntrySubject(FailureStrategy strategy, HistoryEntry subject) {
-    super(strategy, subject);
+  public HistoryEntrySubject(FailureMetadata failureMetadata, HistoryEntry subject) {
+    super(failureMetadata, subject);
   }
 
   @Override
@@ -105,6 +101,6 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
 
   public static SimpleSubjectBuilder<HistoryEntrySubject, HistoryEntry>
       assertAboutHistoryEntries() {
-    return assertAbout(new SubjectFactory());
+    return assertAbout(HistoryEntrySubject::new);
   }
 }

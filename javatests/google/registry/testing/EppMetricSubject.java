@@ -17,21 +17,19 @@ package google.registry.testing;
 import static com.google.common.truth.Truth.assertAbout;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
-import com.google.common.truth.FailureStrategy;
+import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
-import com.google.common.truth.SubjectFactory;
 import google.registry.model.eppoutput.Result.Code;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.TruthChainer.And;
 import java.util.Objects;
 import java.util.Optional;
-import javax.annotation.Nullable;
 
 /** Utility methods for asserting things about {@link EppMetric} instances. */
 public class EppMetricSubject extends Subject<EppMetricSubject, EppMetric> {
 
-  public EppMetricSubject(FailureStrategy strategy, EppMetric subject) {
-    super(strategy, subject);
+  public EppMetricSubject(FailureMetadata failureMetadata, EppMetric subject) {
+    super(failureMetadata, subject);
   }
 
   public static EppMetricSubject assertThat(EppMetric subject) {
@@ -84,13 +82,7 @@ public class EppMetricSubject extends Subject<EppMetricSubject, EppMetric> {
     return new And<>(this);
   }
 
-  /** {@link SubjectFactory} for assertions about {@link EppMetric} objects. */
-  private static final SubjectFactory<EppMetricSubject, EppMetric> SUBJECT_FACTORY =
-      new SubjectFactory<EppMetricSubject, EppMetric>() {
-        @Override
-        public EppMetricSubject getSubject(
-            FailureStrategy failureStrategy, @Nullable EppMetric target) {
-          return new EppMetricSubject(failureStrategy, target);
-        }
-      };
+  /** {@link Subject.Factory} for assertions about {@link EppMetric} objects. */
+  private static final Subject.Factory<EppMetricSubject, EppMetric> SUBJECT_FACTORY =
+      EppMetricSubject::new;
 }
