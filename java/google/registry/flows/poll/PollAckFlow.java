@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.poll.PollFlowUtils.getPollMessagesQuery;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_NO_MESSAGES;
+import static google.registry.model.ofy.ObjectifyService.allocateId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
@@ -32,6 +33,7 @@ import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.PollMessageId;
 import google.registry.flows.TransactionalFlow;
+import google.registry.model.domain.DomainResource;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.poll.MessageQueueInfo;
 import google.registry.model.poll.PollMessage;
@@ -106,14 +108,23 @@ public class PollAckFlow implements TransactionalFlow {
       // Move the eventTime of this autorenew poll message forward by a year.
       DateTime nextEventTime = autorenewPollMessage.getEventTime().plusYears(1);
 
-      // If the next event falls within the bounds of the end time, then just update the eventTime
-      // and re-save it for future autorenew poll messages to be delivered. Otherwise, this
-      // autorenew poll message has no more events to deliver and should be deleted.
+      // Delete the existing poll message, then optionally create a new one (with a different ID, to
+      // preserve global uniqueness of poll messages across all time) if there are more events to be
+      // delivered.
+      ofy().delete().entity(autorenewPollMessage);
       if (nextEventTime.isBefore(autorenewPollMessage.getAutorenewEndTime())) {
-        ofy().save().entity(autorenewPollMessage.asBuilder().setEventTime(nextEventTime).build());
+        PollMessage.Autorenew newAutorenewPollMessage =
+            autorenewPollMessage
+                .asBuilder()
+                .setId(allocateId())
+                .setEventTime(nextEventTime)
+                .build();
+        Key<DomainResource> domainKey = autorenewPollMessage.getParentKey().getParent();
+        DomainResource domain = ofy().load().key(domainKey).now();
+        DomainResource updatedDomain =
+            domain.asBuilder().setAutorenewPollMessage(Key.create(newAutorenewPollMessage)).build();
+        ofy().save().entities(newAutorenewPollMessage, updatedDomain);
         includeAckedMessageInCount = isBeforeOrAt(nextEventTime, now);
-      } else {
-        ofy().delete().entity(autorenewPollMessage);
       }
     }
     // We need to return the new queue length. If this was the last message in the queue being

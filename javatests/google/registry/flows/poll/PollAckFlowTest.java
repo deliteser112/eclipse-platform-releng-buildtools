@@ -14,13 +14,17 @@
 
 package google.registry.flows.poll;
 
+import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createHistoryEntryForEppResource;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
+import com.googlecode.objectify.Key;
 import google.registry.flows.FlowTestCase;
 import google.registry.flows.poll.PollAckFlow.InvalidMessageIdException;
 import google.registry.flows.poll.PollAckFlow.MessageDoesNotExistException;
@@ -29,6 +33,7 @@ import google.registry.flows.poll.PollAckFlow.NotAuthorizedToAckMessageException
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.poll.PollMessage;
+import google.registry.model.poll.PollMessage.Autorenew;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -66,8 +71,8 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
             .build());
   }
 
-  private void persistAutorenewPollMessage(DateTime eventTime, DateTime endTime) {
-    persistResource(
+  private PollMessage.Autorenew persistAutorenewPollMessage(DateTime eventTime, DateTime endTime) {
+    return persistResource(
         new PollMessage.Autorenew.Builder()
             .setId(MESSAGE_ID)
             .setClientId(getClientIdForFlow())
@@ -109,14 +114,25 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
 
   @Test
   public void testSuccess_recentActiveAutorenew() throws Exception {
-    persistAutorenewPollMessage(clock.nowUtc().minusMonths(6), END_OF_TIME);
+    PollMessage.Autorenew autorenew =
+        persistAutorenewPollMessage(clock.nowUtc().plusMonths(6), END_OF_TIME);
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile("poll_ack_response_empty.xml"));
+    MessageDoesNotExistException e =
+        expectThrows(
+            MessageDoesNotExistException.class,
+            () -> runFlowAssertResponse(readFile("poll_ack_response_empty.xml")));
+    assertThat(e).hasMessageThat().contains("given ID (1-3-EXAMPLE-4-3) doesn't exist");
+    // No changes should have been made to the autorenew since it wasn't delivered yet.
+    assertThat(ofy().load().entity(autorenew).now()).isEqualTo(autorenew);
   }
 
   @Test
   public void testSuccess_oldActiveAutorenew() throws Exception {
-    persistAutorenewPollMessage(clock.nowUtc().minusYears(2), END_OF_TIME);
+    DateTime autorenewDate = clock.nowUtc().minusYears(2);
+    PollMessage.Autorenew autorenew =
+        persistAutorenewPollMessage(autorenewDate, END_OF_TIME);
+    Long autorenewId = autorenew.getId();
+    assertThat(ofy().load().entity(autorenew).now().getEventTime()).isEqualTo(autorenewDate);
     // Create three other messages to be queued for retrieval to get our count right, since the poll
     // ack response wants there to be 4 messages in the queue when the ack comes back.
     for (int i = 1; i < 4; i++) {
@@ -124,6 +140,14 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
     }
     assertTransactionalFlow(true);
     runFlowAssertResponse(readFile("poll_ack_response.xml"));
+    // The previous autorenew should have been deleted.
+    assertThat(ofy().load().entity(autorenew).now()).isNull();
+    // Check that the domain now points to a new autorenew, with a different id, that will be
+    // delivered one year after the previous one.
+    Key<Autorenew> newPollMessageKey = ofy().load().entity(domain).now().getAutorenewPollMessage();
+    assertThat(ofy().load().key(newPollMessageKey).now().getEventTime())
+        .isEqualTo(autorenewDate.plusYears(1));
+    assertThat(newPollMessageKey.getId()).isNotEqualTo(autorenewId);
   }
 
   @Test
