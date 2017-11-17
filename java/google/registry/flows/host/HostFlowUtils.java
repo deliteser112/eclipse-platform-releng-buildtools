@@ -57,32 +57,21 @@ public class HostFlowUtils {
       if (!name.equals(hostName.toString())) {
         throw new HostNameNotNormalizedException(hostName.toString());
       }
-      // Checks whether a hostname is deep enough. Technically a host can be just one under a
-      // public suffix (e.g. example.com) but we require by policy that it has to be at least one
-      // part beyond that (e.g. ns1.example.com). The public suffix list includes all current
-      // ccTlds, so this check requires 4+ parts if it's a ccTld that doesn't delegate second
-      // level domains, such as .co.uk. But the list does not include new tlds, so in that case
-      // we just ensure 3+ parts. In the particular case where our own tld has a '.' in it, we know
-      // that there need to be 4 parts as well.
-      // TODO(b/63128999): Use better method (once implemented) that determines if it's a public
-      //                   suffix that domain names can be registered under.
-      if (hostName.isUnderPublicSuffix()) {
-        if (hostName.parent().isUnderPublicSuffix()) {
-          return hostName;
-        }
-      } else {
-        // We need to know how many parts the hostname has beyond the public suffix, but we don't
-        // know what the public suffix is. If the host is in bailiwick and we are hosting a
-        // multipart "tld" like .co.uk the public suffix might be 2 parts. Otherwise it's an
-        // unrecognized tld that's not on the public suffix list, so assume the tld alone is the
-        // public suffix.
-        Optional<InternetDomainName> tldParsed = findTldForName(hostName);
-        int suffixSize = tldParsed.isPresent() ? tldParsed.get().parts().size() : 1;
-        if (hostName.parts().size() >= suffixSize + 2) {
-          return hostName;
-        }
+      // The effective TLD is, in order of preference, the registry suffix, if the TLD is a real TLD
+      // published in the public suffix list (https://publicsuffix.org/, note that a registry suffix
+      // is in the "ICANN DOMAINS" in that list); or a TLD managed by Nomulus (in-bailiwick), found
+      // by #findTldForName; or just the last part of a domain name.
+      InternetDomainName effectiveTld =
+          hostName.isUnderRegistrySuffix()
+              ? hostName.registrySuffix()
+              : findTldForName(hostName).orElse(InternetDomainName.from("invalid"));
+      // Checks whether a hostname is deep enough. Technically a host can be just one level beneath
+      // the effective TLD (e.g. example.com) but we require by policy that it has to be at least
+      // one part beyond that (e.g. ns1.example.com).
+      if (hostName.parts().size() < effectiveTld.parts().size() + 2) {
+        throw new HostNameTooShallowException();
       }
-      throw new HostNameTooShallowException();
+      return hostName;
     } catch (IllegalArgumentException e) {
       throw new InvalidHostNameException();
     }
@@ -119,8 +108,7 @@ public class HostFlowUtils {
 
   /** Ensure that the superordinate domain is sponsored by the provided clientId. */
   static void verifySuperordinateDomainOwnership(
-      String clientId,
-      DomainResource superordinateDomain) throws EppException {
+      String clientId, DomainResource superordinateDomain) throws EppException {
     if (superordinateDomain != null
         && !clientId.equals(superordinateDomain.getCurrentSponsorClientId())) {
       throw new HostDomainNotOwnedException();
@@ -135,8 +123,8 @@ public class HostFlowUtils {
   }
 
   /** Ensure that the superordinate domain is not in pending delete. */
-  static void verifySuperordinateDomainNotInPendingDelete(
-      DomainResource superordinateDomain) throws EppException {
+  static void verifySuperordinateDomainNotInPendingDelete(DomainResource superordinateDomain)
+      throws EppException {
     if ((superordinateDomain != null)
         && superordinateDomain.getStatusValues().contains(StatusValue.PENDING_DELETE)) {
       throw new SuperordinateDomainInPendingDeleteException();
@@ -158,10 +146,10 @@ public class HostFlowUtils {
     }
   }
 
-  /** Host names must be at least two levels below the public suffix. */
+  /** Host names must be at least two levels below the registry suffix. */
   static class HostNameTooShallowException extends ParameterValuePolicyErrorException {
     public HostNameTooShallowException() {
-      super("Host names must be at least two levels below the public suffix");
+      super("Host names must be at least two levels below the registry suffix");
     }
   }
 

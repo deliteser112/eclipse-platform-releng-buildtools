@@ -1032,7 +1032,7 @@ allows creating a host name, and if necessary enqueues tasks to update DNS.
 *   2304
     *   Superordinate domain for this hostname is in pending delete.
 *   2306
-    *   Host names must be at least two levels below the public suffix.
+    *   Host names must be at least two levels below the registry suffix.
 
 ## HostDeleteFlow
 
@@ -1131,7 +1131,7 @@ are enqueued to update DNS accordingly.
     *   Cannot rename an external host.
 *   2306
     *   Cannot add and remove the same value.
-    *   Host names must be at least two levels below the public suffix.
+    *   Host names must be at least two levels below the registry suffix.
 
 ## LoginFlow
 
