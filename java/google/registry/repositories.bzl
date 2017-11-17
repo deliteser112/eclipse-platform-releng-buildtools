@@ -1486,10 +1486,10 @@ def joda_time():
 def junit():
   java_import_external(
       name = "junit",
-      jar_sha256 = "90a8e1603eeca48e7e879f3afbc9560715322985f39a274f6f6070b43f9d06fe",
+      jar_sha256 = "59721f0805e223d84b90677887d9ff567dc534d7c502ca903c0c2b17f05c116a",
       jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/junit/junit/4.11/junit-4.11.jar",
-          "http://repo1.maven.org/maven2/junit/junit/4.11/junit-4.11.jar",
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/junit/junit/4.12/junit-4.12.jar",
+          "http://repo1.maven.org/maven2/junit/junit/4.12/junit-4.12.jar",
       ],
       licenses = ["reciprocal"],  # Common Public License Version 1.0
       testonly_ = True,
