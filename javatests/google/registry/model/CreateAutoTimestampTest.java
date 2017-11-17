@@ -19,8 +19,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.googlecode.objectify.ObjectifyService;
-import com.googlecode.objectify.VoidWork;
-import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
 import google.registry.model.common.CrossTldSingleton;
 import google.registry.testing.AppEngineRule;
@@ -57,14 +55,15 @@ public class CreateAutoTimestampTest {
 
   @Test
   public void testSaveSetsTime() throws Exception {
-    DateTime transactionTime = ofy().transact(new Work<DateTime>() {
-      @Override
-      public DateTime run() {
-        TestObject object = new TestObject();
-        assertThat(object.createTime.getTimestamp()).isNull();
-        ofy().save().entity(object);
-        return ofy().getTransactionTime();
-      }});
+    DateTime transactionTime =
+        ofy()
+            .transact(
+                () -> {
+                  TestObject object = new TestObject();
+                  assertThat(object.createTime.getTimestamp()).isNull();
+                  ofy().save().entity(object);
+                  return ofy().getTransactionTime();
+                });
     ofy().clearSessionCache();
     assertThat(reload().createTime.timestamp).isEqualTo(transactionTime);
   }
@@ -72,13 +71,13 @@ public class CreateAutoTimestampTest {
   @Test
   public void testResavingRespectsOriginalTime() throws Exception {
     final DateTime oldCreateTime = DateTime.now(UTC).minusDays(1);
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        TestObject object = new TestObject();
-        object.createTime = CreateAutoTimestamp.create(oldCreateTime);
-        ofy().save().entity(object);
-      }});
+    ofy()
+        .transact(
+            () -> {
+              TestObject object = new TestObject();
+              object.createTime = CreateAutoTimestamp.create(oldCreateTime);
+              ofy().save().entity(object);
+            });
     ofy().clearSessionCache();
     assertThat(reload().createTime.timestamp).isEqualTo(oldCreateTime);
   }

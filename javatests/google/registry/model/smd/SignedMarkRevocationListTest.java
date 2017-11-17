@@ -21,7 +21,6 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.Duration.standardDays;
 
 import com.google.common.collect.ImmutableMap;
-import com.googlecode.objectify.VoidWork;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
@@ -49,14 +48,15 @@ public class SignedMarkRevocationListTest {
   public void testUnshardedSaveFails() throws Exception {
     thrown.expect(SignedMarkRevocationList.UnshardedSaveException.class);
     // Our @Entity's @OnSave method will notice that this shouldn't be saved.
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        SignedMarkRevocationList smdrl = SignedMarkRevocationList.create(
-            ofy().getTransactionTime(), ImmutableMap.of("a", ofy().getTransactionTime()));
-        smdrl.id = 1;  // Without an id this won't save anyways.
-        ofy().saveWithoutBackup().entity(smdrl).now();
-      }});
+    ofy()
+        .transact(
+            () -> {
+              SignedMarkRevocationList smdrl =
+                  SignedMarkRevocationList.create(
+                      ofy().getTransactionTime(), ImmutableMap.of("a", ofy().getTransactionTime()));
+              smdrl.id = 1; // Without an id this won't save anyways.
+              ofy().saveWithoutBackup().entity(smdrl).now();
+            });
   }
 
   @Test

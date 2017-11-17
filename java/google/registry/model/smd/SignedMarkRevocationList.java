@@ -30,7 +30,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.Entity;
@@ -157,31 +156,27 @@ public class SignedMarkRevocationList extends ImmutableObject {
   public SignedMarkRevocationList save() {
     ofy()
         .transact(
-            new VoidWork() {
-              @Override
-              public void vrun() {
-                ofy()
-                    .deleteWithoutBackup()
-                    .keys(
-                        ofy()
-                            .load()
-                            .type(SignedMarkRevocationList.class)
-                            .ancestor(getCrossTldKey())
-                            .keys());
-                ofy()
-                    .saveWithoutBackup()
-                    .entities(
-                        FluentIterable.from(CollectionUtils.partitionMap(revokes, SHARD_SIZE))
-                            .transform(
-                                (ImmutableMap<String, DateTime> shardRevokes) -> {
-                                  SignedMarkRevocationList shard =
-                                      create(creationTime, shardRevokes);
-                                  shard.id = allocateId();
-                                  shard.isShard =
-                                      true; // Avoid the exception in disallowUnshardedSaves().
-                                  return shard;
-                                }));
-              }
+            () -> {
+              ofy()
+                  .deleteWithoutBackup()
+                  .keys(
+                      ofy()
+                          .load()
+                          .type(SignedMarkRevocationList.class)
+                          .ancestor(getCrossTldKey())
+                          .keys());
+              ofy()
+                  .saveWithoutBackup()
+                  .entities(
+                      FluentIterable.from(CollectionUtils.partitionMap(revokes, SHARD_SIZE))
+                          .transform(
+                              (ImmutableMap<String, DateTime> shardRevokes) -> {
+                                SignedMarkRevocationList shard = create(creationTime, shardRevokes);
+                                shard.id = allocateId();
+                                shard.isShard =
+                                    true; // Avoid the exception in disallowUnshardedSaves().
+                                return shard;
+                              }));
             });
     return this;
   }

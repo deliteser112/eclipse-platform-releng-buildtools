@@ -30,7 +30,6 @@ import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
-import com.googlecode.objectify.VoidWork;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.KeyModule;
@@ -226,33 +225,39 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
       logger.info("Manual operation; not advancing cursor or enqueuing upload task");
       return;
     }
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        Registry registry = Registry.get(tld);
-        DateTime position = getCursorTimeOrStartOfTime(
-            ofy().load().key(Cursor.createKey(key.cursor(), registry)).now());
-        checkState(key.interval() != null, "Interval must be present");
-        DateTime newPosition = key.watermark().plus(key.interval());
-        if (!position.isBefore(newPosition)) {
-          logger.warning("Cursor has already been rolled forward.");
-          return;
-        }
-        verify(position.equals(key.watermark()),
-            "Partial ordering of RDE deposits broken: %s %s", position, key);
-        ofy().save().entity(Cursor.create(key.cursor(), newPosition, registry)).now();
-        logger.infofmt("Rolled forward %s on %s cursor to %s", key.cursor(), tld, newPosition);
-        RdeRevision.saveRevision(tld, watermark, mode, revision);
-        if (mode == RdeMode.FULL) {
-          taskEnqueuer.enqueue(getQueue("rde-upload"),
-              withUrl(RdeUploadAction.PATH)
-                  .param(RequestParameters.PARAM_TLD, tld));
-        } else {
-          taskEnqueuer.enqueue(getQueue("brda"),
-              withUrl(BrdaCopyAction.PATH)
-                  .param(RequestParameters.PARAM_TLD, tld)
-                  .param(RdeModule.PARAM_WATERMARK, watermark.toString()));
-        }
-      }});
+    ofy()
+        .transact(
+            () -> {
+              Registry registry = Registry.get(tld);
+              DateTime position =
+                  getCursorTimeOrStartOfTime(
+                      ofy().load().key(Cursor.createKey(key.cursor(), registry)).now());
+              checkState(key.interval() != null, "Interval must be present");
+              DateTime newPosition = key.watermark().plus(key.interval());
+              if (!position.isBefore(newPosition)) {
+                logger.warning("Cursor has already been rolled forward.");
+                return;
+              }
+              verify(
+                  position.equals(key.watermark()),
+                  "Partial ordering of RDE deposits broken: %s %s",
+                  position,
+                  key);
+              ofy().save().entity(Cursor.create(key.cursor(), newPosition, registry)).now();
+              logger.infofmt(
+                  "Rolled forward %s on %s cursor to %s", key.cursor(), tld, newPosition);
+              RdeRevision.saveRevision(tld, watermark, mode, revision);
+              if (mode == RdeMode.FULL) {
+                taskEnqueuer.enqueue(
+                    getQueue("rde-upload"),
+                    withUrl(RdeUploadAction.PATH).param(RequestParameters.PARAM_TLD, tld));
+              } else {
+                taskEnqueuer.enqueue(
+                    getQueue("brda"),
+                    withUrl(BrdaCopyAction.PATH)
+                        .param(RequestParameters.PARAM_TLD, tld)
+                        .param(RdeModule.PARAM_WATERMARK, watermark.toString()));
+              }
+            });
   }
 }

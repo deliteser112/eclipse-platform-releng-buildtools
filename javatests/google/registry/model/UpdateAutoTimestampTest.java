@@ -19,7 +19,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.googlecode.objectify.ObjectifyService;
-import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
 import google.registry.model.common.CrossTldSingleton;
 import google.registry.testing.AppEngineRule;
@@ -56,28 +55,30 @@ public class UpdateAutoTimestampTest {
 
   @Test
   public void testSaveSetsTime() throws Exception {
-    DateTime transactionTime = ofy().transact(new Work<DateTime>() {
-      @Override
-      public DateTime run() {
-        TestObject object = new TestObject();
-        assertThat(object.updateTime.timestamp).isNull();
-        ofy().save().entity(object);
-        return ofy().getTransactionTime();
-      }});
+    DateTime transactionTime =
+        ofy()
+            .transact(
+                () -> {
+                  TestObject object = new TestObject();
+                  assertThat(object.updateTime.timestamp).isNull();
+                  ofy().save().entity(object);
+                  return ofy().getTransactionTime();
+                });
     ofy().clearSessionCache();
     assertThat(reload().updateTime.timestamp).isEqualTo(transactionTime);
   }
 
   @Test
   public void testResavingOverwritesOriginalTime() throws Exception {
-    DateTime transactionTime = ofy().transact(new Work<DateTime>() {
-      @Override
-      public DateTime run() {
-        TestObject object = new TestObject();
-        object.updateTime = UpdateAutoTimestamp.create(DateTime.now(UTC).minusDays(1));
-        ofy().save().entity(object);
-        return ofy().getTransactionTime();
-      }});
+    DateTime transactionTime =
+        ofy()
+            .transact(
+                () -> {
+                  TestObject object = new TestObject();
+                  object.updateTime = UpdateAutoTimestamp.create(DateTime.now(UTC).minusDays(1));
+                  ofy().save().entity(object);
+                  return ofy().getTransactionTime();
+                });
     ofy().clearSessionCache();
     assertThat(reload().updateTime.timestamp).isEqualTo(transactionTime);
   }

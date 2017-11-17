@@ -16,7 +16,6 @@ package google.registry.rde;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registry;
@@ -99,15 +98,11 @@ class EscrowTaskRunner {
           task.runWithLock(nextRequiredRun);
           ofy()
               .transact(
-                  new VoidWork() {
-                    @Override
-                    public void vrun() {
+                  () ->
                       ofy()
                           .save()
                           .entity(
-                              Cursor.create(cursorType, nextRequiredRun.plus(interval), registry));
-                    }
-                  });
+                              Cursor.create(cursorType, nextRequiredRun.plus(interval), registry)));
           return null;
         };
     String lockName = String.format("EscrowTaskRunner %s", task.getClass().getSimpleName());

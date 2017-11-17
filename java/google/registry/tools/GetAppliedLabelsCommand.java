@@ -23,7 +23,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.internal.Sets;
-import com.googlecode.objectify.Work;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.tools.Command.RemoteApiCommand;
@@ -70,23 +69,24 @@ final class GetAppliedLabelsCommand implements RemoteApiCommand {
 
   /** Return a set of all fully-qualified domain names with open applications. */
   private static Set<String> getDomainApplicationMap(final String tld) {
-    return ofy().transact(new Work<Set<String>>() {
-      @Override
-      public Set<String> run() {
-        Set<String> labels = Sets.newHashSet();
-        List<DomainApplication> domainApplications;
-        domainApplications = ofy().load().type(DomainApplication.class).filter("tld", tld).list();
-        for (DomainApplication domainApplication : domainApplications) {
-          // Ignore deleted and rejected applications. They aren't under consideration.
-          ApplicationStatus applicationStatus = domainApplication.getApplicationStatus();
-          DateTime deletionTime = domainApplication.getDeletionTime();
-          if (applicationStatus == REJECTED
-              || isAtOrAfter(ofy().getTransactionTime(), deletionTime)) {
-            continue;
-          }
-          labels.add(domainApplication.getFullyQualifiedDomainName());
-        }
-        return labels;
-      }});
+    return ofy()
+        .transact(
+            () -> {
+              Set<String> labels = Sets.newHashSet();
+              List<DomainApplication> domainApplications;
+              domainApplications =
+                  ofy().load().type(DomainApplication.class).filter("tld", tld).list();
+              for (DomainApplication domainApplication : domainApplications) {
+                // Ignore deleted and rejected applications. They aren't under consideration.
+                ApplicationStatus applicationStatus = domainApplication.getApplicationStatus();
+                DateTime deletionTime = domainApplication.getDeletionTime();
+                if (applicationStatus == REJECTED
+                    || isAtOrAfter(ofy().getTransactionTime(), deletionTime)) {
+                  continue;
+                }
+                labels.add(domainApplication.getFullyQualifiedDomainName());
+              }
+              return labels;
+            });
   }
 }

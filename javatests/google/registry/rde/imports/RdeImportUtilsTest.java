@@ -34,8 +34,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import com.google.common.io.ByteSource;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
-import com.googlecode.objectify.Work;
 import google.registry.gcs.GcsUtils;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
@@ -111,11 +109,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   @Test
   public void testImportNewContact() {
     final ContactResource newContact = buildNewContact();
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        rdeImportUtils.importEppResource(newContact);
-      }});
+    ofy().transact(() -> rdeImportUtils.importEppResource(newContact));
     assertEppResourceIndexEntityFor(newContact);
     assertForeignKeyIndexFor(newContact);
 
@@ -138,11 +132,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
             .setLastEppUpdateTime(newContact.getLastEppUpdateTime().plusSeconds(1))
             .build();
     try {
-      ofy().transact(new VoidWork() {
-        @Override
-        public void vrun() {
-          rdeImportUtils.importEppResource(updatedContact);
-        }});
+      ofy().transact(() -> rdeImportUtils.importEppResource(updatedContact));
       fail("Expected ResourceExistsException");
     } catch (ResourceExistsException expected) {
       // verify the updated contact was not saved
@@ -158,11 +148,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   @Test
   public void testImportNewHost() throws UnknownHostException {
     final HostResource newHost = buildNewHost();
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        rdeImportUtils.importEppResource(newHost);
-      }});
+    ofy().transact(() -> rdeImportUtils.importEppResource(newHost));
 
     assertEppResourceIndexEntityFor(newHost);
     assertForeignKeyIndexFor(newHost);
@@ -186,11 +172,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
           .setLastEppUpdateTime(newHost.getLastEppUpdateTime().plusSeconds(1))
           .build();
     try {
-      ofy().transact(new VoidWork() {
-        @Override
-        public void vrun() {
-          rdeImportUtils.importEppResource(updatedHost);
-        }});
+      ofy().transact(() -> rdeImportUtils.importEppResource(updatedHost));
       fail("Expected ResourceExistsException");
     } catch (ResourceExistsException expected) {
       // verify the contact was not updated
@@ -205,12 +187,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   @Test
   public void testImportNewDomain() throws Exception {
     final DomainResource newDomain = buildNewDomain();
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        rdeImportUtils.importEppResource(newDomain);
-      }
-    });
+    ofy().transact(() -> rdeImportUtils.importEppResource(newDomain));
 
     DomainResource saved = getDomain("Dexample1-TEST");
     assertThat(saved.getFullyQualifiedDomainName())
@@ -229,15 +206,13 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   public void testImportExistingDomain() throws Exception {
     DomainResource newDomain = buildNewDomain();
     persistResource(newDomain);
-    final DomainResource updatedDomain = newDomain.asBuilder()
-        .setFullyQualifiedDomainName("1" + newDomain.getFullyQualifiedDomainName())
-        .build();
+    final DomainResource updatedDomain =
+        newDomain
+            .asBuilder()
+            .setFullyQualifiedDomainName("1" + newDomain.getFullyQualifiedDomainName())
+            .build();
     try {
-      ofy().transact(new VoidWork() {
-        @Override
-        public void vrun() {
-          rdeImportUtils.importEppResource(updatedDomain);
-        }});
+      ofy().transact(() -> rdeImportUtils.importEppResource(updatedDomain));
       fail("Expected ResourceExistsException");
     } catch (ResourceExistsException expected) {
       DomainResource saved = getDomain("Dexample1-TEST");
@@ -339,32 +314,19 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   /** Gets the contact with the specified ROID */
   private static ContactResource getContact(String repoId) {
     final Key<ContactResource> key = Key.create(ContactResource.class, repoId);
-    return ofy().transact(new Work<ContactResource>() {
-      @Override
-      public ContactResource run() {
-        return ofy().load().key(key).now();
-      }});
+    return ofy().transact(() -> ofy().load().key(key).now());
   }
 
   /** Gets the host with the specified ROID */
   private static HostResource getHost(String repoId) {
     final Key<HostResource> key = Key.create(HostResource.class, repoId);
-    return ofy().transact(new Work<HostResource>() {
-      @Override
-      public HostResource run() {
-        return ofy().load().key(key).now();
-      }
-    });
+    return ofy().transact(() -> ofy().load().key(key).now());
   }
 
   /** Gets the domain with the specified ROID */
   private static DomainResource getDomain(String repoId) {
     final Key<DomainResource> key = Key.create(DomainResource.class, repoId);
-    return ofy().transact(new Work<DomainResource>() {
-      @Override
-      public DomainResource run() {
-        return ofy().load().key(key).now();
-      }});
+    return ofy().transact(() -> ofy().load().key(key).now());
   }
 
   /** Confirms that a ForeignKeyIndex exists in Datastore for a given resource. */

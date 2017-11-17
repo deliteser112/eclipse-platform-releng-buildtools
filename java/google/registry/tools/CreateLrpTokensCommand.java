@@ -35,7 +35,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Files;
 import com.google.common.io.LineReader;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import google.registry.model.domain.LrpTokenEntity;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.KeyValueMapParameter.StringToIntegerMap;
@@ -162,23 +161,14 @@ public class CreateLrpTokensCommand implements RemoteApiCommand {
       }
       final ImmutableSet<LrpTokenEntity> tokensToSave = tokensToSaveBuilder.build();
       // Wrap in a retrier to deal with transient 404 errors (thrown as RemoteApiExceptions).
-      retrier.callWithRetry(
-          () -> {
-            saveTokens(tokensToSave);
-            return null;
-          },
-          RemoteApiException.class);
+      retrier.callWithRetry(() -> saveTokens(tokensToSave), RemoteApiException.class);
     } while (line != null);
   }
 
   @VisibleForTesting
   void saveTokens(final ImmutableSet<LrpTokenEntity> tokens) {
     Collection<LrpTokenEntity> savedTokens =
-        ofy().transact(new Work<Collection<LrpTokenEntity>>() {
-          @Override
-          public Collection<LrpTokenEntity> run() {
-            return ofy().save().entities(tokens).now().values();
-          }});
+        ofy().transact(() -> ofy().save().entities(tokens).now().values());
     for (LrpTokenEntity token : savedTokens) {
       System.out.printf("%s,%s%n", token.getAssignee(), token.getToken());
     }

@@ -22,7 +22,6 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityTranslator;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import google.registry.model.ImmutableObject;
 import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
@@ -69,11 +68,8 @@ public class CommitLogMutationTest {
   public void test_create_createsExpectedMutation() {
     Entity rawEntity = convertToEntityInTxn(someObject);
     // Needs to be in a transaction so that registry-saving-to-entity will work.
-    CommitLogMutation mutation = ofy().transact(new Work<CommitLogMutation>() {
-      @Override
-      public CommitLogMutation run() {
-        return CommitLogMutation.create(manifestKey, someObject);
-      }});
+    CommitLogMutation mutation =
+        ofy().transact(() -> CommitLogMutation.create(manifestKey, someObject));
     assertThat(Key.create(mutation))
         .isEqualTo(CommitLogMutation.createKey(manifestKey, Key.create(someObject)));
     assertThat(mutation.getEntity()).isEqualTo(rawEntity);
@@ -93,10 +89,6 @@ public class CommitLogMutationTest {
   }
 
   private static Entity convertToEntityInTxn(final ImmutableObject object) {
-    return ofy().transact(new Work<Entity>() {
-      @Override
-      public Entity run() {
-        return ofy().save().toEntity(object);
-      }});
+    return ofy().transact(() -> ofy().save().toEntity(object));
   }
 }

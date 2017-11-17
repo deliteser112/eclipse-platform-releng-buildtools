@@ -38,7 +38,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.NullInput;
@@ -315,23 +314,22 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
           isDryRun ? "(dry run) " : "",
           cursorTime,
           executionTime);
-      ofy().transact(new VoidWork() {
-        @Override
-        public void vrun() {
-          Cursor cursor = ofy().load().key(Cursor.createGlobalKey(RECURRING_BILLING)).now();
-          DateTime currentCursorTime = (cursor == null ? START_OF_TIME : cursor.getCursorTime());
-          if (!currentCursorTime.equals(expectedPersistedCursorTime)) {
-            logger.severefmt(
-                "Current cursor position %s does not match expected cursor position %s.",
-                currentCursorTime,
-                expectedPersistedCursorTime);
-            return;
-          }
-          if (!isDryRun) {
-            ofy().save().entity(Cursor.createGlobal(RECURRING_BILLING, executionTime));
-          }
-        }
-      });
+      ofy()
+          .transact(
+              () -> {
+                Cursor cursor = ofy().load().key(Cursor.createGlobalKey(RECURRING_BILLING)).now();
+                DateTime currentCursorTime =
+                    (cursor == null ? START_OF_TIME : cursor.getCursorTime());
+                if (!currentCursorTime.equals(expectedPersistedCursorTime)) {
+                  logger.severefmt(
+                      "Current cursor position %s does not match expected cursor position %s.",
+                      currentCursorTime, expectedPersistedCursorTime);
+                  return;
+                }
+                if (!isDryRun) {
+                  ofy().save().entity(Cursor.createGlobal(RECURRING_BILLING, executionTime));
+                }
+              });
     }
   }
 }

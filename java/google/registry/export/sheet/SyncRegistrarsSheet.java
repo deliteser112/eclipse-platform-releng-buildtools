@@ -33,7 +33,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.common.Cursor;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarAddress;
@@ -153,11 +152,9 @@ class SyncRegistrarsSheet {
                   return builder.build();
                 })
             .collect(toImmutableList()));
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Cursor.createGlobal(SYNC_REGISTRAR_SHEET, executionTime));
-      }});
+    ofy()
+        .transact(
+            () -> ofy().save().entity(Cursor.createGlobal(SYNC_REGISTRAR_SHEET, executionTime)));
   }
 
   private static String convertContacts(

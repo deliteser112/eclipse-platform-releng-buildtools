@@ -36,7 +36,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.OneTime;
@@ -106,11 +105,7 @@ public class ExpandRecurringBillingEventsActionTest
   }
 
   void saveCursor(final DateTime cursorTime) throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Cursor.createGlobal(RECURRING_BILLING, cursorTime));
-      }});
+    ofy().transact(() -> ofy().save().entity(Cursor.createGlobal(RECURRING_BILLING, cursorTime)));
   }
 
   void runMapreduce() throws Exception {

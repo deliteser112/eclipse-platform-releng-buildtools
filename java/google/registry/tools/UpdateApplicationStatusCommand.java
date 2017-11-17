@@ -25,7 +25,6 @@ import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchInfoResponseExtension;
@@ -70,12 +69,7 @@ final class UpdateApplicationStatusCommand extends MutatingCommand {
     checkArgumentPresent(
         Registrar.loadByClientId(clientId), "Registrar with client ID %s not found", clientId);
     for (final String applicationId : ids) {
-      ofy().transact(new VoidWork() {
-        @Override
-        public void vrun() {
-          updateApplicationStatus(applicationId);
-        }
-      });
+      ofy().transact(() -> updateApplicationStatus(applicationId));
     }
   }
 

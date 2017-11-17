@@ -20,11 +20,9 @@ import static com.googlecode.objectify.ObjectifyService.register;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.testing.TestObject.TestVirtualObject;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
@@ -35,6 +33,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
+import google.registry.testing.TestObject.TestVirtualObject;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -68,20 +67,13 @@ public class OfyCommitLogTest {
 
   @Test
   public void testTransact_doesNothing_noCommitLogIsSaved() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {}
-    });
+    ofy().transact(() -> {});
     assertThat(ofy().load().type(CommitLogManifest.class)).isEmpty();
   }
 
   @Test
   public void testTransact_savesDataAndCommitLog() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Root.create(1, getCrossTldKey())).now();
-      }});
+    ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())).now());
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now().value)
         .isEqualTo("value");
     assertThat(ofy().load().type(CommitLogManifest.class)).hasSize(1);
@@ -90,11 +82,7 @@ public class OfyCommitLogTest {
 
   @Test
   public void testTransact_saveWithoutBackup_noCommitLogIsSaved() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().saveWithoutBackup().entity(Root.create(1, getCrossTldKey())).now();
-      }});
+    ofy().transact(() -> ofy().saveWithoutBackup().entity(Root.create(1, getCrossTldKey())).now());
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now().value)
         .isEqualTo("value");
     assertThat(ofy().load().type(CommitLogManifest.class)).isEmpty();
@@ -103,16 +91,8 @@ public class OfyCommitLogTest {
 
   @Test
   public void testTransact_deleteWithoutBackup_noCommitLogIsSaved() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().saveWithoutBackup().entity(Root.create(1, getCrossTldKey())).now();
-      }});
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().deleteWithoutBackup().key(Key.create(Root.class, 1));
-      }});
+    ofy().transact(() -> ofy().saveWithoutBackup().entity(Root.create(1, getCrossTldKey())).now());
+    ofy().transact(() -> ofy().deleteWithoutBackup().key(Key.create(Root.class, 1)));
     assertThat(ofy().load().key(Key.create(Root.class, 1)).now()).isNull();
     assertThat(ofy().load().type(CommitLogManifest.class)).isEmpty();
     assertThat(ofy().load().type(CommitLogMutation.class)).isEmpty();
@@ -120,76 +100,58 @@ public class OfyCommitLogTest {
 
   @Test
   public void testTransact_savesEntity_itsProtobufFormIsStoredInCommitLog() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Root.create(1, getCrossTldKey())).now();
-      }});
+    ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())).now());
     final byte[] entityProtoBytes =
         ofy().load().type(CommitLogMutation.class).first().now().entityProtoBytes;
     // This transaction is needed so that save().toEntity() can access ofy().getTransactionTime()
     // when it attempts to set the update timestamp.
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        assertThat(entityProtoBytes).isEqualTo(
-            convertToPb(ofy().save().toEntity(Root.create(1, getCrossTldKey()))).toByteArray());
-      }});
+    ofy()
+        .transact(
+            () ->
+                assertThat(entityProtoBytes)
+                    .isEqualTo(
+                        convertToPb(ofy().save().toEntity(Root.create(1, getCrossTldKey())))
+                            .toByteArray()));
   }
 
   @Test
   public void testTransact_savesEntity_mutationIsChildOfManifest() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Root.create(1, getCrossTldKey())).now();
-      }});
-    assertThat(ofy().load()
-        .type(CommitLogMutation.class)
-        .ancestor(ofy().load().type(CommitLogManifest.class).first().now()))
-            .hasSize(1);
+    ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())).now());
+    assertThat(
+            ofy()
+                .load()
+                .type(CommitLogMutation.class)
+                .ancestor(ofy().load().type(CommitLogManifest.class).first().now()))
+        .hasSize(1);
   }
 
   @Test
   public void testTransactNew_savesDataAndCommitLog() throws Exception {
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Root.create(1, getCrossTldKey())).now();
-      }});
-    assertThat(ofy().load()
-        .key(Key.create(getCrossTldKey(), Root.class, 1))
-        .now().value).isEqualTo("value");
+    ofy().transactNew(() -> ofy().save().entity(Root.create(1, getCrossTldKey())).now());
+    assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now().value)
+        .isEqualTo("value");
     assertThat(ofy().load().type(CommitLogManifest.class)).hasSize(1);
     assertThat(ofy().load().type(CommitLogMutation.class)).hasSize(1);
   }
 
   @Test
   public void testTransact_multipleSaves_logsMultipleMutations() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Root.create(1, getCrossTldKey())).now();
-        ofy().save().entity(Root.create(2, getCrossTldKey())).now();
-      }});
+    ofy()
+        .transact(
+            () -> {
+              ofy().save().entity(Root.create(1, getCrossTldKey())).now();
+              ofy().save().entity(Root.create(2, getCrossTldKey())).now();
+            });
     assertThat(ofy().load().type(CommitLogManifest.class)).hasSize(1);
     assertThat(ofy().load().type(CommitLogMutation.class)).hasSize(2);
   }
 
   @Test
   public void testTransact_deletion_deletesAndLogsWithoutMutation() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().saveWithoutBackup().entity(Root.create(1, getCrossTldKey())).now();
-      }});
+    ofy().transact(() -> ofy().saveWithoutBackup().entity(Root.create(1, getCrossTldKey())).now());
     clock.advanceOneMilli();
     final Key<Root> otherTldKey = Key.create(getCrossTldKey(), Root.class, 1);
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().delete().key(otherTldKey);
-      }});
+    ofy().transact(() -> ofy().delete().key(otherTldKey));
     assertThat(ofy().load().key(otherTldKey).now()).isNull();
     assertThat(ofy().load().type(CommitLogManifest.class)).hasSize(1);
     assertThat(ofy().load().type(CommitLogMutation.class)).isEmpty();
@@ -202,11 +164,7 @@ public class OfyCommitLogTest {
     final CommitLogManifest backupsArentAllowedOnMe =
         CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.<Key<?>>of());
     thrown.expect(IllegalArgumentException.class, "Can't save/delete a @NotBackedUp");
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().delete().entity(backupsArentAllowedOnMe);
-      }});
+    ofy().transactNew(() -> ofy().delete().entity(backupsArentAllowedOnMe));
   }
 
   @Test
@@ -214,33 +172,21 @@ public class OfyCommitLogTest {
     final CommitLogManifest backupsArentAllowedOnMe =
         CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.<Key<?>>of());
     thrown.expect(IllegalArgumentException.class, "Can't save/delete a @NotBackedUp");
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(backupsArentAllowedOnMe);
-      }});
+    ofy().transactNew(() -> ofy().save().entity(backupsArentAllowedOnMe));
   }
 
   @Test
   public void testTransactNew_deleteVirtualEntityKey_throws() throws Exception {
     final Key<TestVirtualObject> virtualEntityKey = TestVirtualObject.createKey("virtual");
     thrown.expect(IllegalArgumentException.class, "Can't save/delete a @VirtualEntity");
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().delete().key(virtualEntityKey);
-      }});
+    ofy().transactNew(() -> ofy().delete().key(virtualEntityKey));
   }
 
   @Test
   public void testTransactNew_saveVirtualEntity_throws() throws Exception {
     final TestVirtualObject virtualEntity = TestVirtualObject.create("virtual");
     thrown.expect(IllegalArgumentException.class, "Can't save/delete a @VirtualEntity");
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(virtualEntity);
-      }});
+    ofy().transactNew(() -> ofy().save().entity(virtualEntity));
   }
 
   @Test
@@ -260,42 +206,38 @@ public class OfyCommitLogTest {
   @Test
   public void testTransact_twoSavesOnSameKey_throws() throws Exception {
     thrown.expect(IllegalArgumentException.class, "Multiple entries with same key");
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Root.create(1, getCrossTldKey()));
-        ofy().save().entity(Root.create(1, getCrossTldKey()));
-      }});
+    ofy()
+        .transact(
+            () -> {
+              ofy().save().entity(Root.create(1, getCrossTldKey()));
+              ofy().save().entity(Root.create(1, getCrossTldKey()));
+            });
   }
 
   @Test
   public void testTransact_saveAndDeleteSameKey_throws() throws Exception {
     thrown.expect(IllegalArgumentException.class, "Multiple entries with same key");
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Root.create(1, getCrossTldKey()));
-        ofy().delete().entity(Root.create(1, getCrossTldKey()));
-      }});
+    ofy()
+        .transact(
+            () -> {
+              ofy().save().entity(Root.create(1, getCrossTldKey()));
+              ofy().delete().entity(Root.create(1, getCrossTldKey()));
+            });
   }
 
   @Test
   public void testSavingRootAndChild_updatesTimestampOnBackupGroupRoot() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Root.create(1, getCrossTldKey()));
-      }});
+    ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())));
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
         .getUpdateAutoTimestamp().getTimestamp()).isEqualTo(clock.nowUtc());
     clock.advanceOneMilli();
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Root.create(1, getCrossTldKey()));
-        ofy().save().entity(new Child());
-      }});
+    ofy()
+        .transact(
+            () -> {
+              ofy().save().entity(Root.create(1, getCrossTldKey()));
+              ofy().save().entity(new Child());
+            });
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
         .getUpdateAutoTimestamp().getTimestamp()).isEqualTo(clock.nowUtc());
@@ -303,20 +245,12 @@ public class OfyCommitLogTest {
 
   @Test
   public void testSavingOnlyChild_updatesTimestampOnBackupGroupRoot() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Root.create(1, getCrossTldKey()));
-      }});
+    ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())));
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
         .getUpdateAutoTimestamp().getTimestamp()).isEqualTo(clock.nowUtc());
     clock.advanceOneMilli();
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(new Child());
-      }});
+    ofy().transact(() -> ofy().save().entity(new Child()));
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
         .getUpdateAutoTimestamp().getTimestamp()).isEqualTo(clock.nowUtc());
@@ -324,21 +258,13 @@ public class OfyCommitLogTest {
 
   @Test
   public void testDeletingChild_updatesTimestampOnBackupGroupRoot() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Root.create(1, getCrossTldKey()));
-      }});
+    ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())));
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
         .getUpdateAutoTimestamp().getTimestamp()).isEqualTo(clock.nowUtc());
     clock.advanceOneMilli();
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        // The fact that the child was never persisted is irrelevant.
-        ofy().delete().entity(new Child());
-      }});
+    // The fact that the child was never persisted is irrelevant.
+    ofy().transact(() -> ofy().delete().entity(new Child()));
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
         .getUpdateAutoTimestamp().getTimestamp()).isEqualTo(clock.nowUtc());
@@ -346,23 +272,19 @@ public class OfyCommitLogTest {
 
   @Test
   public void testReadingRoot_doesntUpdateTimestamp() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Root.create(1, getCrossTldKey()));
-      }});
+    ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())));
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
         .getUpdateAutoTimestamp().getTimestamp()).isEqualTo(clock.nowUtc());
     clock.advanceOneMilli();
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        // Don't remove this line, as without saving *something* the commit log co/de will never
-        // be invoked and the test will trivially pass
-        ofy().save().entity(Root.create(2, getCrossTldKey()));
-        ofy().load().entity(Root.create(1, getCrossTldKey()));
-      }});
+    ofy()
+        .transact(
+            () -> {
+              // Don't remove this line, as without saving *something* the commit log code will
+              // never be invoked and the test will trivially pass.
+              ofy().save().entity(Root.create(2, getCrossTldKey()));
+              ofy().load().entity(Root.create(1, getCrossTldKey()));
+            });
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
         .getUpdateAutoTimestamp().getTimestamp()).isEqualTo(clock.nowUtc().minusMillis(1));
@@ -370,23 +292,19 @@ public class OfyCommitLogTest {
 
   @Test
   public void testReadingChild_doesntUpdateTimestampOnBackupGroupRoot() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Root.create(1, getCrossTldKey()));
-      }});
+    ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())));
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
         .getUpdateAutoTimestamp().getTimestamp()).isEqualTo(clock.nowUtc());
     clock.advanceOneMilli();
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        // Don't remove this line, as without saving *something* the commit log co/de will never
-        // be invoked and the test will trivially pass
-        ofy().save().entity(Root.create(2, getCrossTldKey()));
-        ofy().load().entity(new Child());  // All Child objects are under Root(1).
-      }});
+    ofy()
+        .transact(
+            () -> {
+              // Don't remove this line, as without saving *something* the commit log code will
+              // never be invoked and the test will trivially pass
+              ofy().save().entity(Root.create(2, getCrossTldKey()));
+              ofy().load().entity(new Child()); // All Child objects are under Root(1).
+            });
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
         .getUpdateAutoTimestamp().getTimestamp()).isEqualTo(clock.nowUtc().minusMillis(1));
@@ -395,13 +313,13 @@ public class OfyCommitLogTest {
   @Test
   public void testSavingAcrossBackupGroupRoots_updatesCorrectTimestamps() throws Exception {
     // Create three roots.
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Root.create(1, getCrossTldKey()));
-        ofy().save().entity(Root.create(2, getCrossTldKey()));
-        ofy().save().entity(Root.create(3, getCrossTldKey()));
-      }});
+    ofy()
+        .transact(
+            () -> {
+              ofy().save().entity(Root.create(1, getCrossTldKey()));
+              ofy().save().entity(Root.create(2, getCrossTldKey()));
+              ofy().save().entity(Root.create(3, getCrossTldKey()));
+            });
     ofy().clearSessionCache();
     for (int i = 1; i <= 3; i++) {
       assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, i)).now()
@@ -409,12 +327,12 @@ public class OfyCommitLogTest {
     }
     clock.advanceOneMilli();
     // Mutate one root, and a child of a second, ignoring the third.
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(new Child());  // All Child objects are under Root(1).
-        ofy().save().entity(Root.create(2, getCrossTldKey()));
-      }});
+    ofy()
+        .transact(
+            () -> {
+              ofy().save().entity(new Child()); // All Child objects are under Root(1).
+              ofy().save().entity(Root.create(2, getCrossTldKey()));
+            });
     ofy().clearSessionCache();
     // Child was touched.
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()

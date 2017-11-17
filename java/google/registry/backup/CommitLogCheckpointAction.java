@@ -22,7 +22,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.ofy.CommitLogCheckpoint;
 import google.registry.model.ofy.CommitLogCheckpointRoot;
 import google.registry.request.Action;
@@ -64,23 +63,25 @@ public final class CommitLogCheckpointAction implements Runnable {
   public void run() {
     final CommitLogCheckpoint checkpoint = strategy.computeCheckpoint();
     logger.info("Generated candidate checkpoint for time " + checkpoint.getCheckpointTime());
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        DateTime lastWrittenTime = CommitLogCheckpointRoot.loadRoot().getLastWrittenTime();
-        if (isBeforeOrAt(checkpoint.getCheckpointTime(), lastWrittenTime)) {
-          logger.info("Newer checkpoint already written at time: " + lastWrittenTime);
-          return;
-        }
-        ofy().saveWithoutBackup().entities(
-            checkpoint,
-            CommitLogCheckpointRoot.create(checkpoint.getCheckpointTime()));
-        // Enqueue a diff task between previous and current checkpoints.
-        taskEnqueuer.enqueue(
-            getQueue(QUEUE_NAME),
-            withUrl(ExportCommitLogDiffAction.PATH)
-                .param(LOWER_CHECKPOINT_TIME_PARAM, lastWrittenTime.toString())
-                .param(UPPER_CHECKPOINT_TIME_PARAM, checkpoint.getCheckpointTime().toString()));
-      }});
+    ofy()
+        .transact(
+            () -> {
+              DateTime lastWrittenTime = CommitLogCheckpointRoot.loadRoot().getLastWrittenTime();
+              if (isBeforeOrAt(checkpoint.getCheckpointTime(), lastWrittenTime)) {
+                logger.info("Newer checkpoint already written at time: " + lastWrittenTime);
+                return;
+              }
+              ofy()
+                  .saveWithoutBackup()
+                  .entities(
+                      checkpoint, CommitLogCheckpointRoot.create(checkpoint.getCheckpointTime()));
+              // Enqueue a diff task between previous and current checkpoints.
+              taskEnqueuer.enqueue(
+                  getQueue(QUEUE_NAME),
+                  withUrl(ExportCommitLogDiffAction.PATH)
+                      .param(LOWER_CHECKPOINT_TIME_PARAM, lastWrittenTime.toString())
+                      .param(
+                          UPPER_CHECKPOINT_TIME_PARAM, checkpoint.getCheckpointTime().toString()));
+            });
   }
 }

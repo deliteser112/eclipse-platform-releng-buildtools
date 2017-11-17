@@ -119,37 +119,36 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
   Map<String, Object> update(final Map<String, ?> args, final Registrar registrar) {
     final String clientId = sessionUtils.getRegistrarClientId(request);
-    return ofy().transact(new Work<Map<String, Object>>() {
-      @Override
-      public Map<String, Object> run() {
-        ImmutableSet<RegistrarContact> oldContacts = registrar.getContacts();
-        Map<String, Object> existingRegistrarMap =
-            expandRegistrarWithContacts(oldContacts, registrar);
-        Registrar.Builder builder = registrar.asBuilder();
-        ImmutableSet<RegistrarContact> updatedContacts =
-            changeRegistrarFields(registrar, builder, args);
-        if (!updatedContacts.isEmpty()) {
-          builder.setContactsRequireSyncing(true);
-        }
-        Registrar updatedRegistrar = builder.build();
-        ofy().save().entity(updatedRegistrar);
-        if (!updatedContacts.isEmpty()) {
-          checkContactRequirements(oldContacts, updatedContacts);
-          RegistrarContact.updateContacts(updatedRegistrar, updatedContacts);
-        }
-        // Update the registrar map with updated contacts to bypass Objectify caching issues that
-        // come into play with calling getContacts().
-        Map<String, Object> updatedRegistrarMap =
-            expandRegistrarWithContacts(updatedContacts, updatedRegistrar);
-        sendExternalUpdatesIfNecessary(
-            updatedRegistrar.getRegistrarName(),
-            existingRegistrarMap,
-            updatedRegistrarMap);
-        return JsonResponseHelper.create(
-            SUCCESS,
-            "Saved " + clientId,
-            updatedRegistrar.toJsonMap());
-      }});
+    return ofy()
+        .transact(
+            (Work<Map<String, Object>>)
+                () -> {
+                  ImmutableSet<RegistrarContact> oldContacts = registrar.getContacts();
+                  Map<String, Object> existingRegistrarMap =
+                      expandRegistrarWithContacts(oldContacts, registrar);
+                  Registrar.Builder builder = registrar.asBuilder();
+                  ImmutableSet<RegistrarContact> updatedContacts =
+                      changeRegistrarFields(registrar, builder, args);
+                  if (!updatedContacts.isEmpty()) {
+                    builder.setContactsRequireSyncing(true);
+                  }
+                  Registrar updatedRegistrar = builder.build();
+                  ofy().save().entity(updatedRegistrar);
+                  if (!updatedContacts.isEmpty()) {
+                    checkContactRequirements(oldContacts, updatedContacts);
+                    RegistrarContact.updateContacts(updatedRegistrar, updatedContacts);
+                  }
+                  // Update the registrar map with updated contacts to bypass Objectify caching
+                  // issues that come into play with calling getContacts().
+                  Map<String, Object> updatedRegistrarMap =
+                      expandRegistrarWithContacts(updatedContacts, updatedRegistrar);
+                  sendExternalUpdatesIfNecessary(
+                      updatedRegistrar.getRegistrarName(),
+                      existingRegistrarMap,
+                      updatedRegistrarMap);
+                  return JsonResponseHelper.create(
+                      SUCCESS, "Saved " + clientId, updatedRegistrar.toJsonMap());
+                });
   }
 
   private Map<String, Object> expandRegistrarWithContacts(Iterable<RegistrarContact> contacts,

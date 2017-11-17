@@ -24,7 +24,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
-import com.googlecode.objectify.VoidWork;
 import google.registry.flows.EppException;
 import google.registry.flows.domain.DomainFlowTmchUtils;
 import google.registry.model.domain.DomainApplication;
@@ -67,15 +66,15 @@ final class UpdateSmdCommand implements RemoteApiCommand {
     final EncodedSignedMark encodedSignedMark =
         readEncodedSignedMark(new String(Files.readAllBytes(smdFile), US_ASCII));
 
-    ofy().transact(new VoidWork() {
-        @Override
-        public void vrun() {
-          try {
-            updateSmd(id, encodedSignedMark, reason);
-          } catch (EppException e) {
-            throw new RuntimeException(e);
-          }
-        }});
+    ofy()
+        .transact(
+            () -> {
+              try {
+                updateSmd(id, encodedSignedMark, reason);
+              } catch (EppException e) {
+                throw new RuntimeException(e);
+              }
+            });
   }
 
   private void updateSmd(

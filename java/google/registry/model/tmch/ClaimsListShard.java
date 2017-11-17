@@ -26,7 +26,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.Entity;
@@ -178,32 +177,30 @@ public class ClaimsListShard extends ImmutableObject {
         (final ImmutableMap<String, String> labelsToKeysShard) ->
             ofy()
                 .transactNew(
-                    new Work<ClaimsListShard>() {
-                      @Override
-                      public ClaimsListShard run() {
-                        ClaimsListShard shard = create(creationTime, labelsToKeysShard);
-                        shard.isShard = true;
-                        shard.parent = parentKey;
-                        ofy().saveWithoutBackup().entity(shard);
-                        return shard;
-                      }
+                    () -> {
+                      ClaimsListShard shard = create(creationTime, labelsToKeysShard);
+                      shard.isShard = true;
+                      shard.parent = parentKey;
+                      ofy().saveWithoutBackup().entity(shard);
+                      return shard;
                     }));
 
     // Persist the new revision, thus causing the newly created shards to go live.
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        verify(
-            (getCurrentRevision() == null && oldRevision == null)
-                || getCurrentRevision().equals(oldRevision),
-            "ClaimsList on Registries was updated by someone else while attempting to update.");
-        ofy().saveWithoutBackup().entity(ClaimsListSingleton.create(parentKey));
-        // Delete the old ClaimsListShard entities.
-        if (oldRevision != null) {
-          ofy().deleteWithoutBackup()
-              .keys(ofy().load().type(ClaimsListShard.class).ancestor(oldRevision).keys());
-        }
-      }});
+    ofy()
+        .transactNew(
+            () -> {
+              verify(
+                  (getCurrentRevision() == null && oldRevision == null)
+                      || getCurrentRevision().equals(oldRevision),
+                  "Registries' ClaimsList was updated by someone else while attempting to update.");
+              ofy().saveWithoutBackup().entity(ClaimsListSingleton.create(parentKey));
+              // Delete the old ClaimsListShard entities.
+              if (oldRevision != null) {
+                ofy()
+                    .deleteWithoutBackup()
+                    .keys(ofy().load().type(ClaimsListShard.class).ancestor(oldRevision).keys());
+              }
+            });
   }
 
   public static ClaimsListShard create(

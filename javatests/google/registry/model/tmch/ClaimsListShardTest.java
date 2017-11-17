@@ -21,7 +21,6 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.tmch.ClaimsListShard.ClaimsListRevision;
 import google.registry.model.tmch.ClaimsListShard.UnshardedSaveException;
 import google.registry.testing.AppEngineRule;
@@ -60,15 +59,15 @@ public class ClaimsListShardTest {
   @Test
   public void test_unshardedSaveFails() throws Exception {
     thrown.expect(UnshardedSaveException.class);
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ClaimsListShard claimsList =
-            ClaimsListShard.create(ofy().getTransactionTime(), ImmutableMap.of("a", "b"));
-        claimsList.id = 1;  // Without an id this won't save anyways.
-        claimsList.parent = ClaimsListRevision.createKey();
-        ofy().saveWithoutBackup().entity(claimsList).now();
-      }});
+    ofy()
+        .transact(
+            () -> {
+              ClaimsListShard claimsList =
+                  ClaimsListShard.create(ofy().getTransactionTime(), ImmutableMap.of("a", "b"));
+              claimsList.id = 1; // Without an id this won't save anyways.
+              claimsList.parent = ClaimsListRevision.createKey();
+              ofy().saveWithoutBackup().entity(claimsList).now();
+            });
   }
 
   @Test

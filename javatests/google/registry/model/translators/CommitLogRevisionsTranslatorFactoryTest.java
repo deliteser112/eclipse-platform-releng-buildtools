@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
-import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
 import google.registry.model.common.CrossTldSingleton;
@@ -72,11 +71,7 @@ public class CommitLogRevisionsTranslatorFactoryTest {
   }
 
   private void save(final TestObject object) {
-    ofy().transact(new VoidWork() {
-      @Override
-       public void vrun() {
-         ofy().save().entity(object);
-       }});
+    ofy().transact(() -> ofy().save().entity(object));
   }
 
   private TestObject reload() {

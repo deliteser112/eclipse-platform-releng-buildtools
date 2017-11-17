@@ -44,7 +44,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
-import com.googlecode.objectify.VoidWork;
 import google.registry.keyring.api.Keyring;
 import google.registry.keyring.api.PgpHelper;
 import google.registry.model.common.Cursor;
@@ -864,11 +863,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   private void setCursor(
       final Registry registry, final CursorType cursorType, final DateTime value) {
     clock.advanceOneMilli();
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Cursor.create(cursorType, value, registry)).now();
-      }});
+    ofy().transact(() -> ofy().save().entity(Cursor.create(cursorType, value, registry)).now());
   }
 
   public static <T> T unmarshal(Class<T> clazz, byte[] xml) throws XmlException {

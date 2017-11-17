@@ -138,17 +138,19 @@ public class LordnTaskTest {
 
   @Test
   public void test_oteRegistrarWithNullIanaId() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(loadRegistrar("TheRegistrar").asBuilder()
-            .setType(Type.OTE)
-            .setIanaIdentifier(null)
-            .build());
-      }});
-    DomainResource domain = newDomainBuilder(DateTime.parse("2010-05-01T10:11:12Z"))
-        .setRepoId("3-EXAMPLE")
-        .build();
+    ofy()
+        .transact(
+            () ->
+                ofy()
+                    .save()
+                    .entity(
+                        loadRegistrar("TheRegistrar")
+                            .asBuilder()
+                            .setType(Type.OTE)
+                            .setIanaIdentifier(null)
+                            .build()));
+    DomainResource domain =
+        newDomainBuilder(DateTime.parse("2010-05-01T10:11:12Z")).setRepoId("3-EXAMPLE").build();
     persistDomainAndEnqueueLordn(domain);
     String expectedPayload =
         "3-EXAMPLE,fleece.example,smdzzzz,null,2010-05-01T10:11:12.000Z,2010-05-01T10:11:12.000Z";

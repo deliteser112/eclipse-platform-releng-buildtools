@@ -20,7 +20,6 @@ import static google.registry.util.PipelineUtils.createJobPath;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.model.EppResource;
@@ -70,13 +69,17 @@ public class ResaveAllEppResourcesAction implements Runnable {
 
     @Override
     public final void map(final Key<EppResource> resourceKey) {
-      ofy().transact(new VoidWork() {
-        @Override
-        public void vrun() {
-          EppResource projectedResource =
-              ofy().load().key(resourceKey).now().cloneProjectedAtTime(ofy().getTransactionTime());
-          ofy().save().entity(projectedResource).now();
-        }});
+      ofy()
+          .transact(
+              () -> {
+                EppResource projectedResource =
+                    ofy()
+                        .load()
+                        .key(resourceKey)
+                        .now()
+                        .cloneProjectedAtTime(ofy().getTransactionTime());
+                ofy().save().entity(projectedResource).now();
+              });
       getContext().incrementCounter(String.format("%s entities re-saved", resourceKey.getKind()));
     }
   }

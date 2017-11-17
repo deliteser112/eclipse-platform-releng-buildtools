@@ -21,7 +21,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.net.InternetDomainName;
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.launch.LaunchNotice.InvalidChecksumException;
@@ -67,15 +66,15 @@ final class UpdateClaimsNoticeCommand implements RemoteApiCommand {
     final LaunchNotice launchNotice = LaunchNotice.create(
         tcnId, validatorId, DateTime.parse(expirationTime), DateTime.parse(acceptedTime));
 
-    ofy().transact(new VoidWork() {
-        @Override
-        public void vrun() {
-          try {
-            updateClaimsNotice(id, launchNotice);
-          } catch (InvalidChecksumException e) {
-            throw new RuntimeException(e);
-          }
-        }});
+    ofy()
+        .transact(
+            () -> {
+              try {
+                updateClaimsNotice(id, launchNotice);
+              } catch (InvalidChecksumException e) {
+                throw new RuntimeException(e);
+              }
+            });
   }
 
   private void updateClaimsNotice(String applicationId, LaunchNotice launchNotice)

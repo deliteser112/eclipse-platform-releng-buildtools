@@ -15,6 +15,7 @@
 package google.registry.backup;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.common.Cursor.CursorType.RDE_REPORT;
 import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -23,9 +24,7 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.common.Cursor;
-import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogCheckpoint;
 import google.registry.model.ofy.Ofy;
@@ -291,25 +290,22 @@ public class CommitLogCheckpointStrategyTest {
   private void writeCommitLogToBucket(final int bucketId) {
     fakeBucketIdSupplier.value = bucketId;
     ofy.transact(
-        new VoidWork() {
-          @Override
-          public void vrun() {
-            String tld = "tld" + bucketId;
-            ofy().save().entity(
-                Cursor.create(CursorType.RDE_REPORT, ofy.getTransactionTime(), Registry.get(tld)));
-          }
+        () -> {
+          Cursor cursor =
+              Cursor.create(RDE_REPORT, ofy.getTransactionTime(), Registry.get("tld" + bucketId));
+          ofy().save().entity(cursor);
         });
     fakeBucketIdSupplier.value = null;
   }
 
   private void saveBucketWithLastWrittenTime(final int bucketId, final DateTime lastWrittenTime) {
-    ofy.transact(new VoidWork() {
-      @Override
-      public void vrun() {
-         ofy.saveWithoutBackup().entity(
-             CommitLogBucket.loadBucket(getBucketKey(bucketId)).asBuilder()
-                 .setLastWrittenTime(lastWrittenTime)
-                 .build());
-      }});
+    ofy.transact(
+        () ->
+            ofy.saveWithoutBackup()
+                .entity(
+                    CommitLogBucket.loadBucket(getBucketKey(bucketId))
+                        .asBuilder()
+                        .setLastWrittenTime(lastWrittenTime)
+                        .build()));
   }
 }

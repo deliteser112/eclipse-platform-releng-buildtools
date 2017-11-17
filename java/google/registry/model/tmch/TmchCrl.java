@@ -17,7 +17,6 @@ package google.registry.model.tmch;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.annotation.Entity;
 import google.registry.model.annotations.NotBackedUp;
 import google.registry.model.annotations.NotBackedUp.Reason;
@@ -49,15 +48,15 @@ public final class TmchCrl extends CrossTldSingleton {
    * and actually newer than the one currently in Datastore.
    */
   public static void set(final String crl, final String url) {
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        TmchCrl tmchCrl = new TmchCrl();
-        tmchCrl.updated = ofy().getTransactionTime();
-        tmchCrl.crl = checkNotNull(crl, "crl");
-        tmchCrl.url = checkNotNull(url, "url");
-        ofy().saveWithoutBackup().entity(tmchCrl);
-      }});
+    ofy()
+        .transactNew(
+            () -> {
+              TmchCrl tmchCrl = new TmchCrl();
+              tmchCrl.updated = ofy().getTransactionTime();
+              tmchCrl.crl = checkNotNull(crl, "crl");
+              tmchCrl.url = checkNotNull(url, "url");
+              ofy().saveWithoutBackup().entity(tmchCrl);
+            });
   }
 
   /** ASCII-armored X.509 certificate revocation list. */

@@ -36,7 +36,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.collect.ImmutableMap;
-import com.googlecode.objectify.VoidWork;
 import google.registry.keyring.api.KeySerializer;
 import google.registry.keyring.kms.KmsKeyring.PrivateKeyLabel;
 import google.registry.keyring.kms.KmsKeyring.PublicKeyLabel;
@@ -186,23 +185,18 @@ public final class KmsUpdater {
       final ImmutableMap<String, EncryptResponse> encryptedValues) {
     ofy()
         .transact(
-            new VoidWork() {
-              @Override
-              public void vrun() {
-                for (Map.Entry<String, EncryptResponse> entry : encryptedValues.entrySet()) {
-                  String secretName = entry.getKey();
-                  EncryptResponse revisionData = entry.getValue();
+            () -> {
+              for (Map.Entry<String, EncryptResponse> entry : encryptedValues.entrySet()) {
+                String secretName = entry.getKey();
+                EncryptResponse revisionData = entry.getValue();
 
-                  KmsSecretRevision secretRevision =
-                      new KmsSecretRevision.Builder()
-                          .setEncryptedValue(revisionData.ciphertext())
-                          .setKmsCryptoKeyVersionName(revisionData.cryptoKeyVersionName())
-                          .setParent(secretName)
-                          .build();
-                  ofy()
-                      .save()
-                      .entities(secretRevision, KmsSecret.create(secretName, secretRevision));
-                }
+                KmsSecretRevision secretRevision =
+                    new KmsSecretRevision.Builder()
+                        .setEncryptedValue(revisionData.ciphertext())
+                        .setKmsCryptoKeyVersionName(revisionData.cryptoKeyVersionName())
+                        .setParent(secretName)
+                        .build();
+                ofy().save().entities(secretRevision, KmsSecret.create(secretName, secretRevision));
               }
             });
   }

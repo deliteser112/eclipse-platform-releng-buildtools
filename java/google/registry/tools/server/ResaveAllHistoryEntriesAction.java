@@ -20,7 +20,6 @@ import static google.registry.util.PipelineUtils.createJobPath;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.VoidWork;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
 import google.registry.model.EppResource;
@@ -70,11 +69,7 @@ public class ResaveAllHistoryEntriesAction implements Runnable {
 
     @Override
     public final void map(final HistoryEntry historyEntry) {
-      ofy().transact(new VoidWork() {
-        @Override
-        public void vrun() {
-          ofy().save().entity(ofy().load().entity(historyEntry).now()).now();
-        }});
+      ofy().transact(() -> ofy().save().entity(ofy().load().entity(historyEntry).now()).now());
       getContext().incrementCounter(
           String.format(
               "HistoryEntries parented under %s re-saved", historyEntry.getParent().getKind()));

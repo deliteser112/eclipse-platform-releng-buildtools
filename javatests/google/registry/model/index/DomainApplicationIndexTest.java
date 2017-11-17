@@ -28,7 +28,6 @@ import static org.joda.time.DateTimeZone.UTC;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.EntityTestCase;
 import google.registry.model.domain.DomainApplication;
 import google.registry.testing.ExceptionRule;
@@ -132,12 +131,12 @@ public class DomainApplicationIndexTest extends EntityTestCase {
       persistResource(createUpdatedInstance(application));
       applicationsBuilder.add(application);
     }
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        assertThat(DomainApplicationIndex.load("example.com")).isNotNull();
-        assertThat(loadActiveApplicationsByDomainName("example.com", clock.nowUtc()))
-            .containsExactlyElementsIn(applicationsBuilder.build());
-      }});
+    ofy()
+        .transact(
+            () -> {
+              assertThat(DomainApplicationIndex.load("example.com")).isNotNull();
+              assertThat(loadActiveApplicationsByDomainName("example.com", clock.nowUtc()))
+                  .containsExactlyElementsIn(applicationsBuilder.build());
+            });
   }
 }

@@ -18,7 +18,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.xml.XmlTransformer.prettyPrint;
 
 import com.google.common.base.Strings;
-import com.googlecode.objectify.Work;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.DryRun;
 import google.registry.flows.FlowModule.InputXml;
@@ -88,20 +87,20 @@ public class FlowRunner {
       return eppOutput;
     }
     try {
-      return ofy().transact(new Work<EppOutput>() {
-        @Override
-        public EppOutput run() {
-          eppMetricBuilder.incrementAttempts();
-          try {
-            EppOutput output = EppOutput.create(flowProvider.get().run());
-            if (isDryRun) {
-              throw new DryRunException(output);
-            }
-            return output;
-          } catch (EppException e) {
-            throw new EppRuntimeException(e);
-          }
-        }});
+      return ofy()
+          .transact(
+              () -> {
+                eppMetricBuilder.incrementAttempts();
+                try {
+                  EppOutput output = EppOutput.create(flowProvider.get().run());
+                  if (isDryRun) {
+                    throw new DryRunException(output);
+                  }
+                  return output;
+                } catch (EppException e) {
+                  throw new EppRuntimeException(e);
+                }
+              });
     } catch (DryRunException e) {
       return e.output;
     } catch (EppRuntimeException e) {

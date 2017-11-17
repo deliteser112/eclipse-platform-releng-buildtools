@@ -47,7 +47,6 @@ import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.common.io.ByteSource;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
-import com.googlecode.objectify.VoidWork;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -252,12 +251,12 @@ public class RdeUploadActionTest {
         Ghostryde.encode(REPORT_XML.read(), encryptKey, "dieform.xml", clock.nowUtc()));
     writeGcsFile(gcsService, REPORT_R1_FILE,
         Ghostryde.encode(REPORT_XML.read(), encryptKey, "dieform.xml", clock.nowUtc()));
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        RdeRevision.saveRevision("lol", DateTime.parse("2010-10-17TZ"), FULL, 0);
-        RdeRevision.saveRevision("tld", DateTime.parse("2010-10-17TZ"), FULL, 0);
-      }});
+    ofy()
+        .transact(
+            () -> {
+              RdeRevision.saveRevision("lol", DateTime.parse("2010-10-17TZ"), FULL, 0);
+              RdeRevision.saveRevision("tld", DateTime.parse("2010-10-17TZ"), FULL, 0);
+            });
   }
 
   @Test
@@ -342,11 +341,7 @@ public class RdeUploadActionTest {
 
   @Test
   public void testRunWithLock_resend() throws Exception {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        RdeRevision.saveRevision("tld", DateTime.parse("2010-10-17TZ"), FULL, 1);
-      }});
+    ofy().transact(() -> RdeRevision.saveRevision("tld", DateTime.parse("2010-10-17TZ"), FULL, 1));
     int port = sftpd.serve("user", "password", folder.getRoot());
     URI uploadUrl = URI.create(String.format("sftp://user:password@localhost:%d/", port));
     DateTime stagingCursor = DateTime.parse("2010-10-18TZ");

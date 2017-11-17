@@ -26,7 +26,6 @@ import static org.joda.time.DateTimeConstants.TUESDAY;
 import static org.joda.time.Duration.standardDays;
 
 import com.google.common.collect.ImmutableSetMultimap;
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.ofy.Ofy;
@@ -165,11 +164,7 @@ public class PendingDepositCheckerTest {
 
   private static void setCursor(
       final Registry registry, final CursorType cursorType, final DateTime value) {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(Cursor.create(cursorType, value, registry));
-      }});
+    ofy().transact(() -> ofy().save().entity(Cursor.create(cursorType, value, registry)));
   }
 
   private static void createTldWithEscrowEnabled(final String tld) {

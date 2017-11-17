@@ -23,7 +23,6 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.EntityTestCase;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.registry.Registry;
@@ -42,14 +41,7 @@ public class CursorTest extends EntityTestCase {
     createTld("tld");
     clock.advanceOneMilli();
     final DateTime time = DateTime.parse("2012-07-12T03:30:00.000Z");
-    ofy()
-        .transact(
-            new VoidWork() {
-              @Override
-              public void vrun() {
-                ofy().save().entity(Cursor.create(RDE_UPLOAD, time, Registry.get("tld")));
-              }
-            });
+    ofy().transact(() -> ofy().save().entity(Cursor.create(RDE_UPLOAD, time, Registry.get("tld"))));
     assertThat(ofy().load().key(Cursor.createKey(BRDA, Registry.get("tld"))).now()).isNull();
     assertThat(
             ofy()
@@ -63,14 +55,7 @@ public class CursorTest extends EntityTestCase {
   @Test
   public void testSuccess_persistGlobalCursor() {
     final DateTime time = DateTime.parse("2012-07-12T03:30:00.000Z");
-    ofy()
-        .transact(
-            new VoidWork() {
-              @Override
-              public void vrun() {
-                ofy().save().entity(Cursor.createGlobal(RECURRING_BILLING, time));
-              }
-            });
+    ofy().transact(() -> ofy().save().entity(Cursor.createGlobal(RECURRING_BILLING, time)));
     assertThat(ofy().load().key(Cursor.createGlobalKey(RECURRING_BILLING)).now().getCursorTime())
         .isEqualTo(time);
   }
@@ -78,14 +63,7 @@ public class CursorTest extends EntityTestCase {
   @Test
   public void testIndexing() throws Exception {
     final DateTime time = DateTime.parse("2012-07-12T03:30:00.000Z");
-    ofy()
-        .transact(
-            new VoidWork() {
-              @Override
-              public void vrun() {
-                ofy().save().entity(Cursor.createGlobal(RECURRING_BILLING, time));
-              }
-            });
+    ofy().transact(() -> ofy().save().entity(Cursor.createGlobal(RECURRING_BILLING, time)));
     Cursor cursor = ofy().load().key(Cursor.createGlobalKey(RECURRING_BILLING)).now();
     verifyIndexing(cursor);
   }
@@ -98,14 +76,7 @@ public class CursorTest extends EntityTestCase {
     final DomainResource domain = persistActiveDomain("notaregistry.tld");
     thrown.expect(
         IllegalArgumentException.class, "Class required for cursor does not match scope class");
-    ofy()
-        .transact(
-            new VoidWork() {
-              @Override
-              public void vrun() {
-                ofy().save().entity(Cursor.create(RDE_UPLOAD, time, domain));
-              }
-            });
+    ofy().transact(() -> ofy().save().entity(Cursor.create(RDE_UPLOAD, time, domain)));
   }
 
   @Test

@@ -20,7 +20,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.beust.jcommander.Parameters;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.registry.Registry;
@@ -48,11 +47,7 @@ final class ResaveEnvironmentEntitiesCommand implements RemoteApiCommand {
     System.out.printf("Re-saving %s entities.\n", clazz.getSimpleName());
     for (final Iterable<Key<T>> batch :
         partition(ofy().load().type(clazz).ancestor(getCrossTldKey()).keys().list(), BATCH_SIZE)) {
-      ofy().transact(new VoidWork() {
-        @Override
-        public void vrun() {
-          ofy().save().entities(ofy().load().keys(batch).values());
-        }});
+      ofy().transact(() -> ofy().save().entities(ofy().load().keys(batch).values()));
       System.out.printf("Re-saved entities batch: %s.\n", batch);
     }
   }
