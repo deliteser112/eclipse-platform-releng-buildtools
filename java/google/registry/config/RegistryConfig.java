@@ -1120,26 +1120,31 @@ public final class RegistryConfig {
           .put("/tos", RdapNoticeDescriptor.builder()
               .setTitle("RDAP Terms of Service")
               .setDescription(ImmutableList.of(
-                  "By querying our Domain Database, you are agreeing to comply with these terms so"
-                      + " please read them carefully.",
+                  "By querying our Domain Database as part of the RDAP pilot program (RDAP Domain"
+                      + "Database), you are agreeing to comply with these terms, so please read"
+                      + " them carefully.",
                   "Any information provided is 'as is' without any guarantee of accuracy.",
-                  "Please do not misuse the Domain Database. It is intended solely for"
-                      + " query-based access.",
-                  "Don't use the Domain Database to allow, enable, or otherwise support the"
+                  "Please do not misuse the RDAP Domain Database. It is intended solely for"
+                      + " query-based access on an experimental basis and should not be used for or"
+                      + " relied upon for any other purpose.",
+                  "Don't use the RDAP Domain Database to allow, enable, or otherwise support the"
                       + " transmission of mass unsolicited, commercial advertising or"
                       + " solicitations.",
-                  "Don't access our Domain Database through the use of high volume, automated"
+                  "Don't access our RDAP Domain Database through the use of high volume, automated"
                       + " electronic processes that send queries or data to the systems of any"
                       + " ICANN-accredited registrar.",
-                  "You may only use the information contained in the Domain Database for lawful"
-                      + " purposes.",
+                  "You may only use the information contained in the RDAP Domain Database for"
+                      + " lawful purposes.",
                   "Do not compile, repackage, disseminate, or otherwise use the information"
-                      + " contained in the Domain Database in its entirety, or in any substantial"
-                      + " portion, without our prior written permission.",
-                  "We may retain certain details about queries to our Domain Database for the"
+                      + " contained in the RDAP Domain Database in its entirety, or in any"
+                      + " substantial portion, without our prior written permission.",
+                  "We may retain certain details about queries to our RDAP Domain Database for the"
                       + " purposes of detecting and preventing misuse.",
-                  "We reserve the right to restrict or deny your access to the database if we"
-                      + " suspect that you have failed to comply with these terms.",
+                  "We reserve the right to restrict or deny your access to the RDAP Domain Database"
+                      + " if we suspect that you have failed to comply with these terms.",
+                  "We reserve the right to modify or discontinue our participation in the RDAP"
+                      + " pilot program and suspend or terminate access to the RDAP Domain Database"
+                      + " at any time and for any reason in our sole discretion.",
                   "We reserve the right to modify this agreement at any time."))
               .setLinkValueSuffix("help/tos")
               .build())
