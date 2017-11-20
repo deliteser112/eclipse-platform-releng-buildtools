@@ -105,15 +105,9 @@ java_binary(
 
 java_binary(
     name = "compare_db_backups",
-    srcs = [
-        "CompareDbBackups.java",
-    ],
     create_executable = 1,
     main_class = "google.registry.tools.CompareDbBackups",
-    deps = [
+    runtime_deps = [
         ":tools",
-        "@com_google_appengine_api_1_0_sdk",
-        "@com_google_guava",
-        "@com_google_protobuf_java",
     ],
 )
