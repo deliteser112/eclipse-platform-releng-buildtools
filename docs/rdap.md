@@ -329,6 +329,18 @@ Deleted items are shown only if the request is authorized for the registrar that
 owns the items, or if the request is authorized as an administrator. This
 parameter can be combined with the registrar parameter.
 
+### `formatOutput` parameter <a id="formatoutput_parameter"></a>
+
+By default, the JSON responses contain no extra whitespace. A more readable
+formatted version can be requested by adding an extra parameter:
+
+```
+    /rdap/domains?name=*.tld&formatOutput=true
+```
+
+The result is still valid JSON, but with extra whitespace added to align the
+data on the page.
+
 ### Additional features
 
 We anticipate adding additional features during the pilot program, such as the
