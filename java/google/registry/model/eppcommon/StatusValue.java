@@ -43,11 +43,9 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * @see <a href="https://tools.ietf.org/html/rfc5731#section-2.3">RFC 5731 (Domain) Section 2.3</a>
  * @see <a href="https://tools.ietf.org/html/rfc5732#section-2.3">RFC 5732 (Host) Section 2.3</a>
  * @see <a href="https://tools.ietf.org/html/rfc5733#section-2.2">RFC 5733 (Contact) Section 2.2</a>
-
  */
 @XmlJavaTypeAdapter(StatusValueAdapter.class)
 public enum StatusValue implements EppEnum {
-
   CLIENT_DELETE_PROHIBITED(AllowedOn.ALL),
   CLIENT_HOLD(AllowedOn.ALL),
   CLIENT_RENEW_PROHIBITED(AllowedOn.ALL),
@@ -114,10 +112,17 @@ public enum StatusValue implements EppEnum {
    */
   PENDING_UPDATE(AllowedOn.NONE),
 
+
+  /** A non-client-settable status that prevents deletes of EPP resources. */
   SERVER_DELETE_PROHIBITED(AllowedOn.ALL),
+
   SERVER_HOLD(AllowedOn.ALL),
   SERVER_RENEW_PROHIBITED(AllowedOn.ALL),
+
+  /** A non-client-settable status that prevents transfers of EPP resources. */
   SERVER_TRANSFER_PROHIBITED(AllowedOn.ALL),
+
+  /** A non-client-settable status that prevents updates of EPP resources, except by superusers. */
   SERVER_UPDATE_PROHIBITED(AllowedOn.ALL);
 
   private final String xmlName = UPPER_UNDERSCORE.to(LOWER_CAMEL, name());

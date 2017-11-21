@@ -14,12 +14,12 @@
 
 package google.registry.tools.server;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Resources;
-import java.io.IOException;
+import google.registry.testing.TestDataHelper;
 import java.net.URL;
+import java.util.Map;
 
 /** Utility class providing easy access to contents of the {@code testdata/} directory. */
 public final class ToolsTestData {
@@ -30,12 +30,17 @@ public final class ToolsTestData {
   }
 
   /**
-   * Loads data from file in {@code tools/server/testdata/} as a String (assuming file is UTF-8).
-   *
-   * @throws IOException if the file couldn't be loaded from the jar.
+   * Loads data from file in {@code tools/server/testdata/} as a UTF-8 String.
    */
-  public static String loadUtf8(String filename) throws IOException {
-    return Resources.asCharSource(getUrl(filename), UTF_8).read();
+  public static String loadUtf8(String filename) {
+    return loadUtf8(filename, ImmutableMap.of());
+  }
+
+  /**
+   * Loads data from file in {@code tools/server/testdata/} as a UTF-8 String, with substitutions.
+   */
+  public static String loadUtf8(String filename, Map<String, String> substitutions) {
+    return TestDataHelper.loadFileWithSubstitutions(ToolsTestData.class, filename, substitutions);
   }
 
   private static URL getUrl(String filename) {

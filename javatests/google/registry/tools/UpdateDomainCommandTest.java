@@ -14,10 +14,13 @@
 
 package google.registry.tools;
 
+import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.testing.DatastoreHelper.newContactResource;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableSet;
@@ -151,13 +154,39 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
             .asBuilder()
             .setStatusValues(
                 ImmutableSet.of(
-                    StatusValue.CLIENT_RENEW_PROHIBITED, StatusValue.SERVER_UPDATE_PROHIBITED))
+                    StatusValue.CLIENT_RENEW_PROHIBITED, StatusValue.SERVER_TRANSFER_PROHIBITED))
             .setNameservers(nameservers)
             .build());
 
     runCommandForced(
         "--client=NewRegistrar", "--statuses=clientRenewProhibited,serverHold", "example.tld");
     eppVerifier().verifySent("domain_update_set_statuses.xml");
+  }
+
+  @Test
+  public void testFailure_cantUpdateRegistryLockedDomainEvenAsSuperuser() throws Exception {
+    HostResource host = persistActiveHost("ns1.zdns.google");
+    ImmutableSet<Key<HostResource>> nameservers = ImmutableSet.of(Key.create(host));
+    persistResource(
+        newDomainResource("example.tld")
+            .asBuilder()
+            .setStatusValues(ImmutableSet.of(SERVER_UPDATE_PROHIBITED))
+            .setNameservers(nameservers)
+            .build());
+
+    Exception e =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--statuses=clientRenewProhibited,serverHold",
+                    "--superuser",
+                    "example.tld"));
+    assertThat(e)
+        .hasMessageThat()
+        .containsMatch("The domain 'example.tld' has status SERVER_UPDATE_PROHIBITED");
+    eppVerifier().verifyNothingSent();
   }
 
   @Test

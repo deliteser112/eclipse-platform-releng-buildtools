@@ -20,9 +20,7 @@ import static google.registry.util.ResourceUtils.readResourceUtf8;
 import java.util.Map;
 import java.util.Map.Entry;
 
-/**
- * Contains helper methods for dealing with test data.
- */
+/** Contains helper methods for dealing with test data. */
 public final class TestDataHelper {
 
   /**
@@ -31,7 +29,11 @@ public final class TestDataHelper {
    */
   public static String loadFileWithSubstitutions(
       Class<?> context, String filename, Map<String, String> substitutions) {
-    String fileContents = readResourceUtf8(context, "testdata/" + filename);
+    return applySubstitutions(readResourceUtf8(context, "testdata/" + filename), substitutions);
+  }
+
+  /** Applies the given substitutions to the given string and returns the result. */
+  public static String applySubstitutions(String fileContents, Map<String, String> substitutions) {
     for (Entry<String, String> entry : nullToEmpty(substitutions).entrySet()) {
       fileContents = fileContents.replaceAll("%" + entry.getKey() + "%", entry.getValue());
     }

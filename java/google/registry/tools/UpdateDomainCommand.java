@@ -17,6 +17,7 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -127,6 +128,11 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
         DateTime now = DateTime.now(UTC);
         DomainResource domainResource = loadByForeignKey(DomainResource.class, domain, now);
         checkArgument(domainResource != null, "Domain '%s' does not exist", domain);
+        checkArgument(
+            !domainResource.getStatusValues().contains(SERVER_UPDATE_PROHIBITED),
+            "The domain '%s' has status SERVER_UPDATE_PROHIBITED. Verify that you are allowed "
+                + "to make updates, and if so, use the domain_unlock command to enable updates.",
+            domain);
         if (!nameservers.isEmpty()) {
           ImmutableSortedSet<String> existingNameservers =
               domainResource.loadNameserverFullyQualifiedHostNames();

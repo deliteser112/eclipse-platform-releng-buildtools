@@ -135,7 +135,11 @@ import org.joda.time.DateTime;
 public final class DomainUpdateFlow implements TransactionalFlow {
 
   /**
-   * Note that CLIENT_UPDATE_PROHIBITED is intentionally not in this list. This is because it
+   * A list of {@link StatusValue}s that prohibit updates.
+   *
+   * <p>Superusers can override these statuses and perform updates anyway.
+   *
+   * <p>Note that CLIENT_UPDATE_PROHIBITED is intentionally not in this list. This is because it
    * requires special checking, since you must be able to clear the status off the object with an
    * update.
    */
@@ -208,12 +212,12 @@ public final class DomainUpdateFlow implements TransactionalFlow {
   /** Fail if the object doesn't exist or was deleted. */
   private void verifyUpdateAllowed(Update command, DomainResource existingDomain, DateTime now)
       throws EppException {
-    verifyNoDisallowedStatuses(existingDomain, UPDATE_DISALLOWED_STATUSES);
     verifyOptionalAuthInfo(authInfo, existingDomain);
     AddRemove add = command.getInnerAdd();
     AddRemove remove = command.getInnerRemove();
     String tld = existingDomain.getTld();
     if (!isSuperuser) {
+      verifyNoDisallowedStatuses(existingDomain, UPDATE_DISALLOWED_STATUSES);
       verifyResourceOwnership(clientId, existingDomain);
       verifyClientUpdateNotProhibited(command, existingDomain);
       verifyAllStatusesAreClientSettable(union(add.getStatusValues(), remove.getStatusValues()));

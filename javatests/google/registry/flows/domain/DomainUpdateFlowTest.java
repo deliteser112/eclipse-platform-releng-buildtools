@@ -18,6 +18,7 @@ import static com.google.common.collect.Sets.union;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
@@ -34,6 +35,7 @@ import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -892,9 +894,46 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistReferencedEntities();
     persistDomain();
     runFlowAssertResponse(
-        CommitMode.LIVE,
-        UserPrivileges.SUPERUSER,
-        readFile("domain_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_update_response.xml"));
+  }
+
+  @Test
+  public void testFailure_serverUpdateProhibited_prohibitsNonSuperuserUpdates() throws Exception {
+    persistReferencedEntities();
+    persistResource(
+        newDomainResource(getUniqueIdFromCommand())
+            .asBuilder()
+            .addStatusValue(SERVER_UPDATE_PROHIBITED)
+            .build());
+    Exception e = expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
+    assertThat(e).hasMessageThat().containsMatch("serverUpdateProhibited");
+  }
+
+  @Test
+  public void testSuccess_serverUpdateProhibited_allowsSuperuserUpdates() throws Exception {
+    persistReferencedEntities();
+    persistResource(persistDomain().asBuilder().addStatusValue(SERVER_UPDATE_PROHIBITED).build());
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_update_response.xml"));
+  }
+
+  @Test
+  public void testFailure_serverUpdateProhibited_notSettableWithoutSuperuser() throws Exception {
+    setEppInput("domain_update_add_registry_lock.xml");
+    persistReferencedEntities();
+    persistDomain();
+    Exception e = expectThrows(StatusNotClientSettableException.class, this::runFlow);
+    assertThat(e).hasMessageThat().containsMatch("serverUpdateProhibited");
+  }
+
+  @Test
+  public void testSuccess_serverUpdateProhibited_isSettableWithSuperuser() throws Exception {
+    setEppInput("domain_update_add_registry_lock.xml");
+    persistReferencedEntities();
+    persistDomain();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_update_response.xml"));
   }
 
   @Test
@@ -915,7 +954,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistReferencedEntities();
     persistResource(
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
-            .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
+            .setStatusValues(ImmutableSet.of(SERVER_UPDATE_PROHIBITED))
             .build());
     thrown.expect(ResourceStatusProhibitsOperationException.class, "serverUpdateProhibited");
     runFlow();
@@ -1398,7 +1437,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     doSuccessfulTest();
     assertAboutDomains()
         .that(reloadResourceByForeignKey())
-        .hasStatusValue(StatusValue.SERVER_UPDATE_PROHIBITED)
+        .hasStatusValue(SERVER_UPDATE_PROHIBITED)
         .and()
         .hasStatusValue(StatusValue.SERVER_TRANSFER_PROHIBITED);
   }

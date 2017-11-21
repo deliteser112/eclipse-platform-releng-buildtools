@@ -9,7 +9,7 @@
           <domain:status s="serverHold"/>
         </domain:add>
         <domain:rem>
-          <domain:status s="serverUpdateProhibited"/>
+          <domain:status s="serverTransferProhibited"/>
         </domain:rem>
       </domain:update>
     </update>

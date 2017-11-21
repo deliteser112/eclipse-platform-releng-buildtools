@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Iterables.toArray;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -22,6 +23,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.beust.jcommander.JCommander;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.io.Files;
 import com.google.common.reflect.TypeToken;
@@ -95,9 +98,19 @@ public abstract class CommandTestCase<C extends Command> {
     runCommandInEnvironment(RegistryToolEnvironment.UNITTEST, args);
   }
 
+  protected void runCommand(Iterable<String> args) throws Exception {
+    runCommandInEnvironment(
+        RegistryToolEnvironment.UNITTEST, Iterables.toArray(args, String.class));
+  }
+
   /** Adds "--force" as the first parameter, then runs the command. */
   protected void runCommandForced(String... args) throws Exception {
     runCommand(ObjectArrays.concat("--force", args));
+  }
+
+  /** Adds "--force" as the first parameter, then runs the command. */
+  protected void runCommandForced(Iterable<String> args) throws Exception {
+    runCommand(concat(ImmutableList.of("--force"), args));
   }
 
   /** Writes the data to a named temporary file and then returns a path to the file. */

@@ -94,9 +94,7 @@ interface RegistryToolComponent {
   void inject(SendEscrowReportToIcannCommand command);
   void inject(SetupOteCommand command);
   void inject(UpdateCursorsCommand command);
-
   void inject(UpdateDomainCommand command);
-
   void inject(UpdateKmsKeyringCommand command);
   void inject(UpdateTldCommand command);
   void inject(ValidateEscrowDepositCommand command);
