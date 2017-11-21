@@ -15,9 +15,9 @@
 package google.registry.keyring.api;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.LogsSubject.assertAboutLogs;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -242,11 +242,7 @@ public class ComparatorKeyringTest {
     when(secondKeyring.getRdeSigningKey()).thenReturn(keyPair);
     Keyring comparatorKeyring = ComparatorKeyring.create(actualKeyring, secondKeyring);
 
-    try {
-      comparatorKeyring.getRdeSigningKey();
-      fail("Should have thrown KeyringException");
-    } catch (KeyringException expected) {
-    }
+    assertThrows(KeyringException.class, () -> comparatorKeyring.getRdeSigningKey());
 
     assertAboutLogs()
         .that(testLogHandler)
@@ -282,11 +278,7 @@ public class ComparatorKeyringTest {
     when(secondKeyring.getRdeSigningKey()).thenThrow(new KeyringException("message"));
     Keyring comparatorKeyring = ComparatorKeyring.create(actualKeyring, secondKeyring);
 
-    try {
-      comparatorKeyring.getRdeSigningKey();
-      fail("Should have thrown KeyringException");
-    } catch (KeyringException expected) {
-    }
+    assertThrows(KeyringException.class, () -> comparatorKeyring.getRdeSigningKey());
 
     assertAboutLogs().that(testLogHandler).hasNoLogsAtLevel(Level.SEVERE);
   }

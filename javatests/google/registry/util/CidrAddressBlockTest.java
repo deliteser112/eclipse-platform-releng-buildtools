@@ -14,6 +14,8 @@
 
 package google.registry.util;
 
+import static google.registry.testing.JUnitBackports.assertThrows;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.InetAddresses;
 import com.google.common.testing.NullPointerTester;
@@ -289,12 +291,7 @@ public class CidrAddressBlockTest extends TestCase {
     Iterator<InetAddress> i = b2.iterator();
     i.next();
     i.next();
-    try {
-      // Let's run off the end and expect an IllegalArgumentException.
-      i.next();
-      fail();
-    } catch (NoSuchElementException expected) {
-    }
+    assertThrows(NoSuchElementException.class, () -> i.next());
   }
 
   public void testSerializability() {
@@ -310,18 +307,10 @@ public class CidrAddressBlockTest extends TestCase {
   }
 
   private static void assertConstructionFails(String ip) {
-    try {
-      new CidrAddressBlock(ip);
-      fail();
-    } catch (IllegalArgumentException expected) {
-    }
+    assertThrows(IllegalArgumentException.class, () -> new CidrAddressBlock(ip));
   }
 
   private static void assertConstructionFails(String ip, int netmask) {
-    try {
-      new CidrAddressBlock(ip, netmask);
-      fail();
-    } catch (IllegalArgumentException expected) {
-    }
+    assertThrows(IllegalArgumentException.class, () -> new CidrAddressBlock(ip, netmask));
   }
 }

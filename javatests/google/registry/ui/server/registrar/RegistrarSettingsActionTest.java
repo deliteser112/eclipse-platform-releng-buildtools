@@ -16,11 +16,11 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.never;
@@ -73,12 +73,8 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     when(sessionUtils.getRegistrarForAuthResult(
             any(HttpServletRequest.class), any(AuthResult.class)))
         .thenThrow(new ForbiddenException("Not authorized to access Registrar Console"));
-    try {
-      action.handleJsonRequest(ImmutableMap.of());
-      fail("expected ForbiddenException");
-    } catch (ForbiddenException ex) {
-      assertNoTasksEnqueued("sheet");
-    }
+    assertThrows(ForbiddenException.class, () -> action.handleJsonRequest(ImmutableMap.of()));
+    assertNoTasksEnqueued("sheet");
   }
 
   /**

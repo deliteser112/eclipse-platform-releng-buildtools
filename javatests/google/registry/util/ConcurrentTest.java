@@ -15,7 +15,7 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -51,18 +51,17 @@ public class ConcurrentTest {
 
   @Test
   public void testTransform_throwsException_isSinglyWrappedByUee() throws Exception {
-    try {
-      Concurrent.transform(
-          ImmutableList.of(1, 2, 3),
-          input -> {
-            throw new RuntimeException("hello");
-          });
-      fail("Didn't throw!");
-    } catch (UncheckedExecutionException e) {
-      // We can't use ExpectedException because root cause must be one level of indirection away.
-      assertThat(e).hasCauseThat().isInstanceOf(RuntimeException.class);
-      assertThat(e).hasCauseThat().hasMessageThat().isEqualTo("hello");
-    }
+    UncheckedExecutionException e =
+        expectThrows(
+            UncheckedExecutionException.class,
+            () ->
+                Concurrent.transform(
+                    ImmutableList.of(1, 2, 3),
+                    input -> {
+                      throw new RuntimeException("hello");
+                    }));
+    assertThat(e).hasCauseThat().isInstanceOf(RuntimeException.class);
+    assertThat(e).hasCauseThat().hasMessageThat().isEqualTo("hello");
   }
 
   @Test

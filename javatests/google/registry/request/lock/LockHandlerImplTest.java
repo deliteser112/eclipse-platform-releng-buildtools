@@ -15,7 +15,7 @@
 package google.registry.request.lock;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -100,12 +100,11 @@ public final class LockHandlerImplTest {
   public void testLockSucceeds_uncheckedException() throws Exception {
     Lock lock = mock(Lock.class);
     Exception expectedException = new RuntimeException("test");
-    try {
-      executeWithLocks(new ThrowingCallable(expectedException), lock);
-      fail("Expected RuntimeException");
-    } catch (RuntimeException exception) {
-      assertThat(exception).isSameAs(expectedException);
-    }
+    RuntimeException exception =
+        expectThrows(
+            RuntimeException.class,
+            () -> executeWithLocks(new ThrowingCallable(expectedException), lock));
+    assertThat(exception).isSameAs(expectedException);
     verify(lock, times(1)).release();
   }
 
@@ -113,12 +112,11 @@ public final class LockHandlerImplTest {
   public void testLockSucceeds_checkedException() throws Exception {
     Lock lock = mock(Lock.class);
     Exception expectedException = new Exception("test");
-    try {
-      executeWithLocks(new ThrowingCallable(expectedException), lock);
-      fail("Expected RuntimeException");
-    } catch (RuntimeException exception) {
-      assertThat(exception).hasCauseThat().isSameAs(expectedException);
-    }
+    RuntimeException exception =
+        expectThrows(
+            RuntimeException.class,
+            () -> executeWithLocks(new ThrowingCallable(expectedException), lock));
+    assertThat(exception).hasCauseThat().isSameAs(expectedException);
     verify(lock, times(1)).release();
   }
 

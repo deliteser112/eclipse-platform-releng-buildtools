@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.util.concurrent.MoreExecutors.newDirectExecutorService;
 import static google.registry.backup.BackupUtils.GcsMetadataKeys.LOWER_BOUND_CHECKPOINT;
 import static google.registry.backup.ExportCommitLogDiffAction.DIFF_FILE_PREFIX;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.lang.reflect.Proxy.newProxyInstance;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.junit.Assert.fail;
@@ -172,11 +173,7 @@ public class GcsDiffFileListerTest {
       addGcsFile(i, i + 1);
     }
 
-    try {
-      listDiffFiles(now.minusMinutes(9), null);
-      fail("Should have thrown IllegalStateException.");
-    } catch (IllegalStateException expected) {
-    }
+    assertThrows(IllegalStateException.class, () -> listDiffFiles(now.minusMinutes(9), null));
     assertLogContains(String.format(
         "Found sequence from %s to %s", now.minusMinutes(9), now));
     assertLogContains(String.format(
@@ -204,11 +201,7 @@ public class GcsDiffFileListerTest {
       addGcsFile(i, i + 1);
     }
 
-    try {
-      listDiffFiles(now.minusMinutes(9), null);
-      fail("Should have thrown IllegalStateException.");
-    } catch (IllegalStateException expected) {
-    }
+    assertThrows(IllegalStateException.class, () -> listDiffFiles(now.minusMinutes(9), null));
     assertLogContains(String.format(
         "Gap discovered in sequence terminating at %s, missing file commit_diff_until_%s",
         now, now.minusMinutes(5)));

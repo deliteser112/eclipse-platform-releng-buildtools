@@ -15,23 +15,19 @@
 package google.registry.ui.server;
 
 import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 import google.registry.testing.CertificateSamples;
 import google.registry.ui.forms.FormFieldException;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link RegistrarFormFields}. */
 @RunWith(JUnit4.class)
 public class RegistrarFormFieldsTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testValidCertificate_doesntThrowError() {
     assertThat(RegistrarFormFields.CLIENT_CERTIFICATE_FIELD.convert(CertificateSamples.SAMPLE_CERT))
@@ -40,10 +36,15 @@ public class RegistrarFormFieldsTest {
 
   @Test
   public void testBadCertificate_throwsFfe() {
-    thrown.expect(equalTo(
-        new FormFieldException("Invalid X.509 PEM certificate")
-            .propagate("clientCertificate")));
-    RegistrarFormFields.CLIENT_CERTIFICATE_FIELD.convert("palfun");
+    FormFieldException thrown =
+        expectThrows(
+            FormFieldException.class,
+            () -> RegistrarFormFields.CLIENT_CERTIFICATE_FIELD.convert("palfun"));
+    assertThat(
+        thrown,
+        equalTo(
+            new FormFieldException("Invalid X.509 PEM certificate")
+                .propagate("clientCertificate")));
   }
 
   @Test
@@ -56,9 +57,14 @@ public class RegistrarFormFieldsTest {
 
   @Test
   public void testBadCertificateHash_throwsFfe() {
-    thrown.expect(equalTo(
-        new FormFieldException("Field must contain a base64 value.")
-            .propagate("clientCertificateHash")));
-    RegistrarFormFields.CLIENT_CERTIFICATE_HASH_FIELD.convert("~~~");
+    FormFieldException thrown =
+        expectThrows(
+            FormFieldException.class,
+            () -> RegistrarFormFields.CLIENT_CERTIFICATE_HASH_FIELD.convert("~~~"));
+    assertThat(
+        thrown,
+        equalTo(
+            new FormFieldException("Field must contain a base64 value.")
+                .propagate("clientCertificateHash")));
   }
 }

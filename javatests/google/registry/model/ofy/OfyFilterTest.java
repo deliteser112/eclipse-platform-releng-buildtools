@@ -17,7 +17,7 @@ package google.registry.model.ofy;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.initOfy;
 import static google.registry.testing.DatastoreHelper.newContactResource;
-import static org.junit.Assert.fail;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
@@ -77,16 +77,12 @@ public class OfyFilterTest {
   @Test
   public void testFilterRegistersTypes() throws Exception {
     UnregisteredEntity entity = new UnregisteredEntity(5L);
-    try {
-      Key.create(entity);
-      fail("Should not be able to create key for unregistered entity");
-    } catch (IllegalStateException e) {
-      assertThat(e)
-          .hasMessageThat()
-          .isEqualTo(
-              "class google.registry.model.ofy.OfyFilterTest$UnregisteredEntity "
-                  + "has not been registered");
-    }
+    IllegalStateException e = expectThrows(IllegalStateException.class, () -> Key.create(entity));
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo(
+            "class google.registry.model.ofy.OfyFilterTest$UnregisteredEntity "
+                + "has not been registered");
   }
 
   /** The filter should register all types for us. */

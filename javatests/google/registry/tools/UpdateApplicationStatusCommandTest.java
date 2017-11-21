@@ -27,8 +27,8 @@ import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
-import static org.junit.Assert.fail;
 
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.eppcommon.StatusValue;
@@ -254,17 +254,18 @@ public class UpdateApplicationStatusCommandTest
         .setApplicationStatus(ALLOCATED)
         .build());
 
-    try {
-      runCommandForced("--ids=2-Q9JYB4C", "--msg=\"Application rejected\"", "--status=REJECTED");
-      fail("Expected IllegalStateException \"Domain application has final status ALLOCATED\"");
-    } catch (IllegalStateException e) {
-      assertThat(e.getMessage()).contains("Domain application has final status ALLOCATED");
-      assertAboutApplications().that(ofy().load().entity(domainApplication).now())
-          .hasApplicationStatus(ALLOCATED);
-      assertThat(getPollMessageCount()).isEqualTo(0);
-      assertAboutHistoryEntries().that(loadLastHistoryEntry())
-          .hasType(HistoryEntry.Type.DOMAIN_APPLICATION_CREATE);
-    }
+    IllegalStateException e =
+        expectThrows(
+            IllegalStateException.class,
+            () ->
+                runCommandForced(
+                    "--ids=2-Q9JYB4C", "--msg=\"Application rejected\"", "--status=REJECTED"));
+    assertThat(e).hasMessageThat().contains("Domain application has final status ALLOCATED");
+    assertAboutApplications().that(ofy().load().entity(domainApplication).now())
+        .hasApplicationStatus(ALLOCATED);
+    assertThat(getPollMessageCount()).isEqualTo(0);
+    assertAboutHistoryEntries().that(loadLastHistoryEntry())
+        .hasType(HistoryEntry.Type.DOMAIN_APPLICATION_CREATE);
   }
 
   @Test

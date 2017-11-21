@@ -16,7 +16,7 @@ package google.registry.dns.writer.dnsupdate;
 
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -129,12 +129,9 @@ public class DnsMessageTransportTest {
     Duration testTimeout = Duration.standardSeconds(1);
     DnsMessageTransport resolver = new DnsMessageTransport(mockFactory, UPDATE_HOST, testTimeout);
     Message expectedQuery = new Message();
-    try {
-      resolver.send(expectedQuery);
-      fail("exception expected");
-    } catch (SocketTimeoutException e) {
-      verify(mockSocket).setSoTimeout((int) testTimeout.getMillis());
-    }
+    SocketTimeoutException e =
+        expectThrows(SocketTimeoutException.class, () -> resolver.send(expectedQuery));
+    verify(mockSocket).setSoTimeout((int) testTimeout.getMillis());
   }
 
   @Test

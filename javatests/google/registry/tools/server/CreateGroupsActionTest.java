@@ -15,8 +15,8 @@
 package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -98,11 +98,9 @@ public class CreateGroupsActionTest {
         "registrar-technical-contacts@domain-registry.example",
         "newregistrar-technical-contacts@domain-registry.example",
         Role.MEMBER);
-    try {
-      runAction("NewRegistrar");
-      fail("Should have thrown InternalServerErrorException.");
-    } catch (InternalServerErrorException e) {
-      String responseString = e.toString();
+    InternalServerErrorException e =
+        expectThrows(InternalServerErrorException.class, () -> runAction("NewRegistrar"));
+    String responseString = e.toString();
       assertThat(responseString).contains("abuse => Success");
       assertThat(responseString).contains("billing => Success");
       assertThat(responseString).contains("legal => Success");
@@ -113,7 +111,6 @@ public class CreateGroupsActionTest {
       assertThat(responseString).contains(
           "technical => java.lang.RuntimeException: Invalid access.");
       verifyGroupCreationCallsForNewRegistrar();
-    }
   }
 
   private void verifyGroupCreationCallsForNewRegistrar() throws Exception {

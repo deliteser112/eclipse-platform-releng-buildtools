@@ -14,22 +14,20 @@
 
 package google.registry.ui.forms;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.google.common.testing.NullPointerTester;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link FormFields}. */
 @RunWith(JUnit4.class)
 public class FormFieldsTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testXsToken_collapsesAndTrimsWhitespace() {
@@ -48,10 +46,15 @@ public class FormFieldsTest {
 
   @Test
   public void testXsNormalizedString_containsNonSpaceWhitespace_fails() {
-    thrown.expect(equalTo(
-        new FormFieldException("Must not contain tabs or multiple lines.")
-            .propagate("xsNormalizedString")));
-    FormFields.XS_NORMALIZED_STRING.convert("  hello \r\n\t there\n");
+    FormFieldException thrown =
+        expectThrows(
+            FormFieldException.class,
+            () -> FormFields.XS_NORMALIZED_STRING.convert("  hello \r\n\t there\n"));
+    assertThat(
+        thrown,
+        equalTo(
+            new FormFieldException("Must not contain tabs or multiple lines.")
+                .propagate("xsNormalizedString")));
   }
 
   @Test
@@ -67,9 +70,12 @@ public class FormFieldsTest {
 
   @Test
   public void testXsEppE164PhoneNumber_localizedNumber_fails() {
-    thrown.expect(FormFieldException.class);
-    thrown.expectMessage("Must be a valid +E.164 phone number, e.g. +1.2125650000");
-    FormFields.PHONE_NUMBER.convert("(212) 565-0000");
+    FormFieldException thrown =
+        expectThrows(
+            FormFieldException.class, () -> FormFields.PHONE_NUMBER.convert("(212) 565-0000"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Must be a valid +E.164 phone number, e.g. +1.2125650000");
   }
 
   @Test
@@ -89,9 +95,9 @@ public class FormFieldsTest {
 
   @Test
   public void testXsEppRoid_missingHyphen_fails() {
-    thrown.expect(FormFieldException.class);
-    thrown.expectMessage("Please enter a valid EPP ROID, e.g. SH8013-REP");
-    FormFields.ROID.convert("SH8013REP");
+    FormFieldException thrown =
+        expectThrows(FormFieldException.class, () -> FormFields.ROID.convert("SH8013REP"));
+    assertThat(thrown).hasMessageThat().contains("Please enter a valid EPP ROID, e.g. SH8013-REP");
   }
 
   @Test
