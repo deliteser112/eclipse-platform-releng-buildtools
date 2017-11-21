@@ -66,7 +66,9 @@ def domain_registry_repositories(
     omit_com_google_dagger_compiler=False,
     omit_com_google_dagger_producers=False,
     omit_com_google_errorprone_error_prone_annotations=False,
+    omit_com_google_errorprone_javac_shaded=False,
     omit_com_google_gdata_core=False,
+    omit_com_google_googlejavaformat_google_java_format=False,
     omit_com_google_guava=False,
     omit_com_google_guava_testlib=False,
     omit_com_google_http_client=False,
@@ -86,6 +88,7 @@ def domain_registry_repositories(
     omit_com_googlecode_json_simple=False,
     omit_com_ibm_icu_icu4j=False,
     omit_com_jcraft_jzlib=False,
+    omit_com_squareup_javapoet=False,
     omit_com_squareup_javawriter=False,
     omit_com_sun_xml_bind_jaxb_core=False,
     omit_com_sun_xml_bind_jaxb_impl=False,
@@ -94,8 +97,17 @@ def domain_registry_repositories(
     omit_commons_codec=False,
     omit_commons_logging=False,
     omit_dnsjava=False,
+    omit_io_netty_buffer=False,
+    omit_io_netty_codec=False,
+    omit_io_netty_codec_http=False,
+    omit_io_netty_common=False,
+    omit_io_netty_handler=False,
+    omit_io_netty_resolver=False,
+    omit_io_netty_tcnative=False,
+    omit_io_netty_transport=False,
     omit_it_unimi_dsi_fastutil=False,
     omit_javax_activation=False,
+    omit_javax_annotation_jsr250_api=False,
     omit_javax_inject=False,
     omit_javax_mail=False,
     omit_javax_servlet_api=False,
@@ -227,8 +239,12 @@ def domain_registry_repositories(
     com_google_dagger_producers()
   if not omit_com_google_errorprone_error_prone_annotations:
     com_google_errorprone_error_prone_annotations()
+  if not omit_com_google_errorprone_javac_shaded:
+    com_google_errorprone_javac_shaded()
   if not omit_com_google_gdata_core:
     com_google_gdata_core()
+  if not omit_com_google_googlejavaformat_google_java_format:
+    com_google_googlejavaformat_google_java_format()
   if not omit_com_google_guava:
     com_google_guava()
   if not omit_com_google_guava_testlib:
@@ -267,6 +283,8 @@ def domain_registry_repositories(
     com_ibm_icu_icu4j()
   if not omit_com_jcraft_jzlib:
     com_jcraft_jzlib()
+  if not omit_com_squareup_javapoet:
+    com_squareup_javapoet()
   if not omit_com_squareup_javawriter:
     com_squareup_javawriter()
   if not omit_com_sun_xml_bind_jaxb_core:
@@ -283,10 +301,28 @@ def domain_registry_repositories(
     commons_logging()
   if not omit_dnsjava:
     dnsjava()
+  if not omit_io_netty_buffer:
+    io_netty_buffer()
+  if not omit_io_netty_codec:
+    io_netty_codec()
+  if not omit_io_netty_codec_http:
+    io_netty_codec_http()
+  if not omit_io_netty_common:
+    io_netty_common()
+  if not omit_io_netty_handler:
+    io_netty_handler()
+  if not omit_io_netty_resolver:
+    io_netty_resolver()
+  if not omit_io_netty_tcnative:
+    io_netty_tcnative()
+  if not omit_io_netty_transport:
+    io_netty_transport()
   if not omit_it_unimi_dsi_fastutil:
     it_unimi_dsi_fastutil()
   if not omit_javax_activation:
     javax_activation()
+  if not omit_javax_annotation_jsr250_api:
+    javax_annotation_jsr250_api()
   if not omit_javax_inject:
     javax_inject()
   if not omit_javax_mail:
@@ -888,21 +924,21 @@ def com_google_auto_value():
 def com_google_code_findbugs_jsr305():
   java_import_external(
       name = "com_google_code_findbugs_jsr305",
-      jar_sha256 = "905721a0eea90a81534abb7ee6ef4ea2e5e645fa1def0a5cd88402df1b46c9ed",
-      jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar",
-          "http://repo1.maven.org/maven2/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar",
-      ],
       licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "c885ce34249682bc0236b4a7d56efcc12048e6135a5baf7a9cde8ad8cda13fcd",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.1/jsr305-3.0.1.jar",
+          "http://maven.ibiblio.org/maven2/com/google/code/findbugs/jsr305/3.0.1/jsr305-3.0.1.jar",
+      ],
   )
 
 def com_google_dagger():
   java_import_external(
       name = "com_google_dagger",
-      jar_sha256 = "5070e1dff5c551a4908ba7b93125c0243de2a688aed3d2f475357d86d9d7c0ad",
+      jar_sha256 = "b2142693bc7413f0b74330f0a92ca44ea95a12a22b659972ed6aa9832e8352e4",
       jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/dagger/dagger/2.8/dagger-2.8.jar",
-          "http://repo1.maven.org/maven2/com/google/dagger/dagger/2.8/dagger-2.8.jar",
+          "http://repo1.maven.org/maven2/com/google/dagger/dagger/2.13/dagger-2.13.jar",
+          "http://maven.ibiblio.org/maven2/com/google/dagger/dagger/2.13/dagger-2.13.jar",
       ],
       licenses = ["notice"],  # Apache 2.0
       deps = ["@javax_inject"],
@@ -922,17 +958,21 @@ def com_google_dagger():
 def com_google_dagger_compiler():
   java_import_external(
       name = "com_google_dagger_compiler",
-      jar_sha256 = "7b2686f94907868c5364e9965601ffe2f020ba4af1849ad9b57dad5fe3fa6242",
+      jar_sha256 = "8b711253c9cbb58bd2c019cb38afb32ee79f283e1bb3030c8c85b645c7a6d25f",
       jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/dagger/dagger-compiler/2.8/dagger-compiler-2.8.jar",
-          "http://repo1.maven.org/maven2/com/google/dagger/dagger-compiler/2.8/dagger-compiler-2.8.jar",
+          "http://maven.ibiblio.org/maven2/com/google/dagger/dagger-compiler/2.13/dagger-compiler-2.13.jar",
+          "http://repo1.maven.org/maven2/com/google/dagger/dagger-compiler/2.13/dagger-compiler-2.13.jar",
       ],
       licenses = ["notice"],  # Apache 2.0
       deps = [
-          "@com_google_code_findbugs_jsr305",
           "@com_google_dagger//:runtime",
           "@com_google_dagger_producers//:runtime",
+          "@com_google_code_findbugs_jsr305",
+          "@com_google_googlejavaformat_google_java_format",
           "@com_google_guava",
+          "@com_squareup_javapoet",
+          "@javax_annotation_jsr250_api",
+          "@javax_inject",
       ],
       extra_build_file_content = "\n".join([
           "java_plugin(",
@@ -952,15 +992,17 @@ def com_google_dagger_compiler():
 def com_google_dagger_producers():
   java_import_external(
       name = "com_google_dagger_producers",
-      jar_sha256 = "1e4043e85f67de381d19e22c7932aaf7ff1611091be7e1aaae93f2c37f331cf2",
+      jar_sha256 = "cf35b21c634939917eee9ffcd72a9f5f6e261ad57a4c0f0d15cf6f1430262bb0",
       jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/dagger/dagger-producers/2.8/dagger-producers-2.8.jar",
-          "http://repo1.maven.org/maven2/com/google/dagger/dagger-producers/2.8/dagger-producers-2.8.jar",
+          "http://repo1.maven.org/maven2/com/google/dagger/dagger-producers/2.13/dagger-producers-2.13.jar",
+          "http://maven.ibiblio.org/maven2/com/google/dagger/dagger-producers/2.13/dagger-producers-2.13.jar",
       ],
       licenses = ["notice"],  # Apache 2.0
       deps = [
           "@com_google_dagger//:runtime",
+          "@com_google_code_findbugs_jsr305",
           "@com_google_guava",
+          "@javax_inject",
       ],
       generated_rule_name = "runtime",
       extra_build_file_content = "\n".join([
@@ -984,6 +1026,56 @@ def com_google_errorprone_error_prone_annotations():
           "http://repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.0.15/error_prone_annotations-2.0.15.jar",
       ],
       licenses = ["notice"],  # Apache 2.0
+  )
+
+def com_google_errorprone_javac_shaded():
+  java_import_external(
+      name = "com_google_errorprone_javac_shaded",
+      # GNU General Public License, version 2, with the Classpath Exception
+      # http://openjdk.java.net/legal/gplv2+ce.html
+      licenses = ["TODO"],
+      jar_sha256 = "65bfccf60986c47fbc17c9ebab0be626afc41741e0a6ec7109e0768817a36f30",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/com/google/errorprone/javac-shaded/9-dev-r4023-3/javac-shaded-9-dev-r4023-3.jar",
+          "http://maven.ibiblio.org/maven2/com/google/errorprone/javac-shaded/9-dev-r4023-3/javac-shaded-9-dev-r4023-3.jar",
+      ],
+  )
+
+def com_google_googlejavaformat_google_java_format():
+  java_import_external(
+      name = "com_google_googlejavaformat_google_java_format",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "39d18ec9ab610097074bf49e971285488eaf5d0bc2369df0a0d5a3f9f9de2faa",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/googlejavaformat/google-java-format/1.4/google-java-format-1.4.jar",
+          "http://repo1.maven.org/maven2/com/google/googlejavaformat/google-java-format/1.4/google-java-format-1.4.jar",
+      ],
+      deps = [
+          "@com_google_guava",
+          "@com_google_errorprone_javac_shaded",
+      ],
+  )
+
+def com_squareup_javapoet():
+  java_import_external(
+      name = "com_squareup_javapoet",
+      licenses = ["notice"],  # Apache 2.0
+      jar_sha256 = "8e108c92027bb428196f10fa11cffbe589f7648a6af2016d652279385fdfd789",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/squareup/javapoet/1.8.0/javapoet-1.8.0.jar",
+          "http://repo1.maven.org/maven2/com/squareup/javapoet/1.8.0/javapoet-1.8.0.jar",
+      ],
+  )
+
+def javax_annotation_jsr250_api():
+  java_import_external(
+      name = "javax_annotation_jsr250_api",
+      licenses = ["reciprocal"],  # COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
+      jar_sha256 = "a1a922d0d9b6d183ed3800dfac01d1e1eb159f0e8c6f94736931c1def54a941f",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/javax/annotation/jsr250-api/1.0/jsr250-api-1.0.jar",
+          "http://maven.ibiblio.org/maven2/javax/annotation/jsr250-api/1.0/jsr250-api-1.0.jar",
+      ],
   )
 
 def com_google_gdata_core():
@@ -2146,6 +2238,102 @@ def xpp3():
           "http://repo1.maven.org/maven2/xpp3/xpp3/1.1.4c/xpp3-1.1.4c.jar",
       ],
 )
+
+def io_netty_buffer():
+  java_import_external(
+      name = "io_netty_buffer",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "b24a28e2129fc11e1f6124ebf93725d1f9c0904ea679d261da7b2e21d4c8615e",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/io/netty/netty-buffer/4.1.17.Final/netty-buffer-4.1.17.Final.jar",
+          "http://repo1.maven.org/maven2/io/netty/netty-buffer/4.1.17.Final/netty-buffer-4.1.17.Final.jar",
+      ],
+      deps = ["@io_netty_common"],
+  )
+
+def io_netty_codec():
+  java_import_external(
+      name = "io_netty_codec",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "790ce1b7694fc41663131579d776a370e332e3b3fe2fe6543662fd5a40a948e1",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/io/netty/netty-codec/4.1.17.Final/netty-codec-4.1.17.Final.jar",
+          "http://maven.ibiblio.org/maven2/io/netty/netty-codec/4.1.17.Final/netty-codec-4.1.17.Final.jar",
+      ],
+      deps = ["@io_netty_transport"],
+  )
+
+def io_netty_codec_http():
+  java_import_external(
+      name = "io_netty_codec_http",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "fc05d02755c5d204ccc848be8399ef5d48d5a80da9b93f075287c57eb9381e5b",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.17.Final/netty-codec-http-4.1.17.Final.jar",
+          "http://maven.ibiblio.org/maven2/io/netty/netty-codec-http/4.1.17.Final/netty-codec-http-4.1.17.Final.jar",
+      ],
+      deps = ["@io_netty_codec"],
+  )
+
+def io_netty_common():
+  java_import_external(
+      name = "io_netty_common",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "dddabdec01959180da44129d130301b84c23b473411288f143d5e29e0b098d26",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/io/netty/netty-common/4.1.17.Final/netty-common-4.1.17.Final.jar",
+          "http://maven.ibiblio.org/maven2/io/netty/netty-common/4.1.17.Final/netty-common-4.1.17.Final.jar",
+      ],
+  )
+
+def io_netty_handler():
+  java_import_external(
+      name = "io_netty_handler",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "85bada604fe14bc358da7b140583264a88d7a45ca12daba1216c4225aadb0c7b",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/io/netty/netty-handler/4.1.17.Final/netty-handler-4.1.17.Final.jar",
+          "http://maven.ibiblio.org/maven2/io/netty/netty-handler/4.1.17.Final/netty-handler-4.1.17.Final.jar",
+      ],
+  )
+
+def io_netty_resolver():
+  java_import_external(
+      name = "io_netty_resolver",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "082ac49149cb72c675c7ed1615ba35923d3167e65bfb37c4a1422ec499137cb1",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/io/netty/netty-resolver/4.1.17.Final/netty-resolver-4.1.17.Final.jar",
+          "http://repo1.maven.org/maven2/io/netty/netty-resolver/4.1.17.Final/netty-resolver-4.1.17.Final.jar",
+      ],
+      deps = ["@io_netty_common"],
+  )
+
+def io_netty_tcnative():
+  java_import_external(
+      name = "io_netty_tcnative",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "cd49317267a8f2fd617075d22e25ceb3aef98e6b64bd6f66cca95f8825cdc1f3",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/io/netty/netty-tcnative/2.0.7.Final/netty-tcnative-2.0.7.Final.jar",
+          "http://maven.ibiblio.org/maven2/io/netty/netty-tcnative/2.0.7.Final/netty-tcnative-2.0.7.Final.jar",
+      ],
+  )
+
+def io_netty_transport():
+  java_import_external(
+      name = "io_netty_transport",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "60763426c79dd930c70d0da95e474f662bd17a58d3d57b332696d089cf208089",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/io/netty/netty-transport/4.1.17.Final/netty-transport-4.1.17.Final.jar",
+          "http://repo1.maven.org/maven2/io/netty/netty-transport/4.1.17.Final/netty-transport-4.1.17.Final.jar",
+      ],
+      deps = [
+          "@io_netty_buffer",
+          "@io_netty_resolver",
+      ],
+  )
 
 def _check_bazel_version(project, bazel_version):
   if "bazel_version" not in dir(native):

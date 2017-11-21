@@ -1,0 +1,128 @@
+# This is the default configuration file for the proxy. Do not make changes to
+# it unless you are writing new features that requires you to. To customize an
+# individual deployment or environment, create a proxy-config.yaml file in the
+# same directory overriding only the values you wish to change. You may need
+# to override some of these values to configure and enable some services used in
+# production environments.
+
+# GCP project ID
+projectId: your-gcp-project-id
+
+# OAuth scope that the GoogleCredential will be constructed with. This list
+# should include all service scopes that the proxy depends on.
+gcpScopes:
+  # The default OAuth scope granted to GCE instances. Local development instance
+  # needs this scope to mimic running on GCE. Currently it is used to access
+  # Cloud KMS and Stackdriver Monitoring APIs.
+  - https://www.googleapis.com/auth/cloud-platform
+
+  # The OAuth scope required to be included in the access token for the GAE app
+  # to authenticate.
+  - https://www.googleapis.com/auth/userinfo.email
+
+# Access token is valid for 60 minutes.
+#
+# See also: Data store
+# (https://developers.google.com/api-client-library/java/google-api-java-client/oauth2#data_store).
+accessTokenValidPeriodSeconds: 3600
+
+# Access token is refreshed 1 minutes before expiry.
+#
+# This is the default refresh time used by
+# com.google.api.client.auth.oauth2.Credential#intercept.
+accessTokenRefreshBeforeExpirySeconds: 60
+
+# Name of the encrypted PEM file.
+sslPemFilename: your-ssl.pem
+
+# Strings used to construct the KMS crypto key URL.
+# See: https://cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys
+kms:
+  # Location where your key ring is stored (global, us-east1, etc).
+  location: your-kms-location
+
+  # Name of the KeyRing that contains the CryptoKey file.
+  keyRing: your-kms-keyRing
+
+  # Name of the CryptoKey used to encrypt the PEM file.
+  cryptoKey: your-kms-cryptoKey
+
+epp:
+  port: 700
+  relayHost: registry-project-id.appspot.com
+  relayPath: /_dr/epp
+
+  # Maximum input message length in bytes.
+  #
+  # The first 4 bytes in a message is the total length of message, in bytes.
+  #
+  # We accept a message up to 1 GB, which should be plentiful, if not over the
+  # top. In fact we should probably limit this to a more reasonable number, as a
+  # 1 GB message will likely cause the proxy to go out of memory.
+  #
+  # See also: RFC 5734 4 Data Unit Format
+  # (https://tools.ietf.org/html/rfc5734#section-4).
+  maxMessageLengthBytes: 1073741824
+
+  # Length of the header field in bytes.
+  #
+  # Note that value of the header field is the total length (in bytes) of the
+  # message, including the header itself, the length of the epp xml instance is
+  # therefore 4 bytes shorter than this value.
+  headerLengthBytes: 4
+
+  # Time after which an idle connection will be closed.
+  #
+  # The RFC gives registry discretionary power to set a timeout period. 1 hr
+  # should be reasonable enough for any registrar to login and submit their
+  # request.
+  readTimeoutSeconds: 3600
+
+  # Hostname of the EPP server.
+  # TODO(b/64510444) Remove this after nomulus no longer check sni header.
+  serverHostname: epp.yourdomain.tld
+
+whois:
+  port: 43
+  relayHost: registry-project-id.appspot.com
+  relayPath: /_dr/whois
+
+  # Maximum input message length in bytes.
+  #
+  # Domain name cannot be longer than 256 characters. 512-character message
+  # length should be safe for most cases, including registrar queries.
+  #
+  # See also: RFC 1035 2.3.4 Size limits
+  # (http://www.freesoft.org/CIE/RFC/1035/9.htm).
+  maxMessageLengthBytes: 512
+
+  # Whois protocol is transient, the client should not establish a long lasting
+  # idle connection.
+  readTimeoutSeconds: 60
+
+healthCheck:
+  port: 11111
+
+  # Health checker request message, defined in GCP load balancer backend.
+  checkRequest: HEALTH_CHECK_REQUEST
+
+  # Health checker response message, defined in GCP load balancer backend.
+  checkResponse: HEALTH_CHECK_RESPONSE
+
+httpsRelay:
+  port: 443
+
+  # Maximum size of an HTTP message in bytes.
+  maxMessageLengthBytes: 524288
+
+metrics:
+  # Max queries per second for the Google Cloud Monitoring V3 (aka Stackdriver)
+  # API. The limit can be adjusted by contacting Cloud Support.
+  stackdriverMaxQps: 30
+
+  # Max number of points that can be sent to Stackdriver in a single
+  # TimeSeries.Create API call.
+  stackdriverMaxPointsPerRequest: 200
+
+  # How often metrics are written.
+  writeIntervalSeconds: 60
