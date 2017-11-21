@@ -50,7 +50,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.joda.time.Duration;
@@ -272,47 +271,45 @@ public class CloudDnsWriter extends BaseDnsWriter {
    */
   @Override
   protected void commitUnchecked() {
-    retrier.callWithRetry(
-        getMutateZoneCallback(ImmutableMap.copyOf(desiredRecords)), ZoneStateException.class);
+    ImmutableMap<String, ImmutableSet<ResourceRecordSet>> desiredRecordsCopy =
+        ImmutableMap.copyOf(desiredRecords);
+    retrier.callWithRetry(() -> mutateZone(desiredRecordsCopy), ZoneStateException.class);
     logger.info("Wrote to Cloud DNS");
   }
 
   /**
-   * Get a callback to mutate the zone with the provided {@code desiredRecords}.
+   * Mutate the zone with the provided {@code desiredRecords}.
    */
   @VisibleForTesting
-  Callable<Void> getMutateZoneCallback(
-      final ImmutableMap<String, ImmutableSet<ResourceRecordSet>> desiredRecords) {
-    return () -> {
-      // Fetch all existing records for names that this writer is trying to modify
-      Builder<ResourceRecordSet> existingRecords = new Builder<>();
-      for (String domainName : desiredRecords.keySet()) {
-        List<ResourceRecordSet> existingRecordsForDomain = getResourceRecordsForDomain(domainName);
-        existingRecords.addAll(existingRecordsForDomain);
+  void mutateZone(ImmutableMap<String, ImmutableSet<ResourceRecordSet>> desiredRecords)
+      throws IOException {
+    // Fetch all existing records for names that this writer is trying to modify
+    Builder<ResourceRecordSet> existingRecords = new Builder<>();
+    for (String domainName : desiredRecords.keySet()) {
+      List<ResourceRecordSet> existingRecordsForDomain = getResourceRecordsForDomain(domainName);
+      existingRecords.addAll(existingRecordsForDomain);
 
-        // Fetch glue records for in-bailiwick nameservers
-        for (ResourceRecordSet record : existingRecordsForDomain) {
-          if (!record.getType().equals("NS")) {
-            continue;
-          }
-          for (String hostName : record.getRrdatas()) {
-            if (hostName.endsWith(domainName) && !hostName.equals(domainName)) {
-              existingRecords.addAll(getResourceRecordsForDomain(hostName));
-            }
+      // Fetch glue records for in-bailiwick nameservers
+      for (ResourceRecordSet record : existingRecordsForDomain) {
+        if (!record.getType().equals("NS")) {
+          continue;
+        }
+        for (String hostName : record.getRrdatas()) {
+          if (hostName.endsWith(domainName) && !hostName.equals(domainName)) {
+            existingRecords.addAll(getResourceRecordsForDomain(hostName));
           }
         }
       }
+    }
 
-      // Flatten the desired records into one set.
-      Builder<ResourceRecordSet> flattenedDesiredRecords = new Builder<>();
-      for (ImmutableSet<ResourceRecordSet> records : desiredRecords.values()) {
-        flattenedDesiredRecords.addAll(records);
-      }
+    // Flatten the desired records into one set.
+    Builder<ResourceRecordSet> flattenedDesiredRecords = new Builder<>();
+    for (ImmutableSet<ResourceRecordSet> records : desiredRecords.values()) {
+      flattenedDesiredRecords.addAll(records);
+    }
 
-      // Delete all existing records and add back the desired records
-      updateResourceRecords(flattenedDesiredRecords.build(), existingRecords.build());
-      return null;
-    };
+    // Delete all existing records and add back the desired records
+    updateResourceRecords(flattenedDesiredRecords.build(), existingRecords.build());
   }
 
   /**

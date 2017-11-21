@@ -22,6 +22,7 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -51,7 +52,6 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
-import java.util.concurrent.Callable;
 import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
@@ -82,7 +82,6 @@ public class CloudDnsWriterTest {
   @Mock private Dns.ResourceRecordSets.List listResourceRecordSetsRequest;
   @Mock private Dns.Changes changes;
   @Mock private Dns.Changes.Create createChangeRequest;
-  @Mock private Callable<Void> mutateZoneCallable;
   @Captor ArgumentCaptor<String> recordNameCaptor;
   @Captor ArgumentCaptor<String> zoneNameCaptor;
   @Captor ArgumentCaptor<Change> changeCaptor;
@@ -406,13 +405,11 @@ public class CloudDnsWriterTest {
   @SuppressWarnings("unchecked")
   public void retryMutateZoneOnError() throws Exception {
     CloudDnsWriter spyWriter = spy(writer);
-    when(mutateZoneCallable.call()).thenThrow(ZoneStateException.class).thenReturn(null);
-    when(spyWriter.getMutateZoneCallback(
-        Matchers.any()))
-        .thenReturn(mutateZoneCallable);
+    // First call - throw. Second call - do nothing.
+    doThrow(ZoneStateException.class).doNothing().when(spyWriter).mutateZone(Matchers.any());
     spyWriter.commit();
 
-    verify(mutateZoneCallable, times(2)).call();
+    verify(spyWriter, times(2)).mutateZone(Matchers.any());
   }
 
   @Test
