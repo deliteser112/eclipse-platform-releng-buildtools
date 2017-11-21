@@ -72,4 +72,10 @@ public final class RdapModule {
   static Optional<Boolean> provideIncludeDeleted(HttpServletRequest req) {
     return RequestParameters.extractOptionalBooleanParameter(req, "includeDeleted");
   }
+
+  @Provides
+  @Parameter("formatOutput")
+  static Optional<Boolean> provideFormatOutput(HttpServletRequest req) {
+    return RequestParameters.extractOptionalBooleanParameter(req, "formatOutput");
+  }
 }

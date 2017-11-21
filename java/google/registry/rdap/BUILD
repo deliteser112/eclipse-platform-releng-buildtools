@@ -21,6 +21,7 @@ java_library(
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_guava",
+        "@com_google_http_client_jackson2",
         "@com_google_re2j",
         "@com_googlecode_json_simple",
         "@javax_servlet_api",

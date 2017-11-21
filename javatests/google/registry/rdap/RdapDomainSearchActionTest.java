@@ -375,6 +375,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
     action.response = response;
     action.registrarParam = Optional.empty();
     action.includeDeletedParam = Optional.empty();
+    action.formatOutputParam = Optional.empty();
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapWhoisServer = null;
     action.sessionUtils = sessionUtils;

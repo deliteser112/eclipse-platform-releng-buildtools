@@ -124,6 +124,7 @@ public class RdapNameserverActionTest {
     action.requestPath = RdapNameserverAction.PATH.concat(input);
     action.registrarParam = desiredRegistrar;
     action.includeDeletedParam = includeDeleted;
+    action.formatOutputParam = Optional.empty();
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapWhoisServer = null;
     action.authResult = authResult;

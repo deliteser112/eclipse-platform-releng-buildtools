@@ -164,6 +164,7 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
     action.nameParam = Optional.empty();
     action.registrarParam = Optional.empty();
     action.includeDeletedParam = Optional.empty();
+    action.formatOutputParam = Optional.empty();
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
     action.sessionUtils = sessionUtils;
     action.rdapMetrics = rdapMetrics;

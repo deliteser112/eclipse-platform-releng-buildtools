@@ -160,6 +160,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
     action.handleParam = Optional.empty();
     action.registrarParam = Optional.empty();
     action.includeDeletedParam = Optional.empty();
+    action.formatOutputParam = Optional.empty();
     action.sessionUtils = sessionUtils;
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
     action.rdapMetrics = rdapMetrics;

@@ -25,6 +25,7 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import com.google.re2j.Pattern;
@@ -48,6 +49,7 @@ import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.ui.server.registrar.SessionUtils;
 import google.registry.util.FormattingLogger;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -89,6 +91,7 @@ public abstract class RdapActionBase implements Runnable {
   @Inject RdapJsonFormatter rdapJsonFormatter;
   @Inject @Parameter("registrar") Optional<String> registrarParam;
   @Inject @Parameter("includeDeleted") Optional<Boolean> includeDeletedParam;
+  @Inject @Parameter("formatOutput") Optional<Boolean> formatOutputParam;
   @Inject @Config("rdapWhoisServer") @Nullable String rdapWhoisServer;
   @Inject @Config("rdapResultSetMaxSize") int rdapResultSetMaxSize;
   @Inject RdapMetrics rdapMetrics;
@@ -143,9 +146,7 @@ public abstract class RdapActionBase implements Runnable {
               pathProper.substring(getActionPath().length()), requestMethod == Action.Method.HEAD);
       response.setStatus(SC_OK);
       response.setContentType(RESPONSE_MEDIA_TYPE);
-      if (requestMethod != Action.Method.HEAD) {
-        response.setPayload(JSONValue.toJSONString(rdapJson));
-      }
+      setPayload(rdapJson);
       metricInformationBuilder.setStatusCode(SC_OK);
     } catch (HttpException e) {
       setError(e.getResponseCode(), e.getResponseCodeString(), e.getMessage());
@@ -163,15 +164,25 @@ public abstract class RdapActionBase implements Runnable {
     response.setStatus(status);
     response.setContentType(RESPONSE_MEDIA_TYPE);
     try {
-      if (requestMethod != Action.Method.HEAD) {
-        response.setPayload(
-            JSONValue.toJSONString(rdapJsonFormatter.makeError(status, title, description)));
-      }
+      setPayload(rdapJsonFormatter.makeError(status, title, description));
     } catch (Exception ex) {
-      if (requestMethod != Action.Method.HEAD) {
-        response.setPayload("");
+      response.setPayload("");
+    }
+  }
+
+  void setPayload(ImmutableMap<String, Object> rdapJson) {
+    if (requestMethod == Action.Method.HEAD) {
+      return;
+    }
+    if (formatOutputParam.orElse(false)) {
+      try {
+        response.setPayload(new JacksonFactory().toPrettyString(rdapJson));
+        return;
+      } catch (IOException e) {
+        // On exception, fall back to unformatted output
       }
     }
+    response.setPayload(JSONValue.toJSONString(rdapJson));
   }
 
   RdapAuthorization getAuthorization() {

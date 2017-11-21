@@ -71,6 +71,7 @@ public class RdapHelpActionTest {
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
     action.includeDeletedParam = Optional.empty();
     action.registrarParam = Optional.empty();
+    action.formatOutputParam = Optional.empty();
     action.response = response;
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapWhoisServer = null;

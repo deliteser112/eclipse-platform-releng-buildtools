@@ -123,6 +123,7 @@ public class RdapActionBaseTest {
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
     action.includeDeletedParam = Optional.empty();
     action.registrarParam = Optional.empty();
+    action.formatOutputParam = Optional.empty();
     action.response = response;
     action.rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
     action.rdapMetrics = rdapMetrics;
@@ -230,5 +231,26 @@ public class RdapActionBaseTest {
                 .setStatusCode(400)
                 .setIncompletenessWarningType(IncompletenessWarningType.COMPLETE)
                 .build());
+  }
+
+  @Test
+  public void testUnformatted() throws Exception {
+    action.requestPath = RdapTestAction.PATH + "no.thing";
+    action.fullServletPath = "http://myserver.example.com" + RdapTestAction.PATH;
+    action.requestMethod = GET;
+    action.run();
+    assertThat(response.getPayload() + '\n').isEqualTo(
+            loadFileWithSubstitutions(this.getClass(), "rdap_unformatted_output.json", null));
+  }
+
+  @Test
+  public void testFormatted() throws Exception {
+    action.requestPath = RdapTestAction.PATH + "no.thing?formatOutput=true";
+    action.fullServletPath = "http://myserver.example.com" + RdapTestAction.PATH;
+    action.requestMethod = GET;
+    action.formatOutputParam = Optional.of(true);
+    action.run();
+    assertThat(response.getPayload() + '\n').isEqualTo(
+        loadFileWithSubstitutions(this.getClass(), "rdap_formatted_output.json", null));
   }
 }
