@@ -233,14 +233,19 @@ public class RdapActionBaseTest {
                 .build());
   }
 
+  private String loadFileWithoutTrailingNewline(String fileName) {
+    String contents = loadFileWithSubstitutions(this.getClass(), fileName, null);
+    return contents.endsWith("\n") ? contents.substring(0, contents.length() - 1) : contents;
+  }
+
   @Test
   public void testUnformatted() throws Exception {
     action.requestPath = RdapTestAction.PATH + "no.thing";
     action.fullServletPath = "http://myserver.example.com" + RdapTestAction.PATH;
     action.requestMethod = GET;
     action.run();
-    assertThat(response.getPayload() + '\n').isEqualTo(
-            loadFileWithSubstitutions(this.getClass(), "rdap_unformatted_output.json", null));
+    assertThat(response.getPayload())
+        .isEqualTo(loadFileWithoutTrailingNewline("rdap_unformatted_output.json"));
   }
 
   @Test
@@ -250,7 +255,7 @@ public class RdapActionBaseTest {
     action.requestMethod = GET;
     action.formatOutputParam = Optional.of(true);
     action.run();
-    assertThat(response.getPayload() + '\n').isEqualTo(
-        loadFileWithSubstitutions(this.getClass(), "rdap_formatted_output.json", null));
+    assertThat(response.getPayload())
+        .isEqualTo(loadFileWithoutTrailingNewline("rdap_formatted_output.json"));
   }
 }

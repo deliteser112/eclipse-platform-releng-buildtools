@@ -179,7 +179,8 @@ public abstract class RdapActionBase implements Runnable {
         response.setPayload(new JacksonFactory().toPrettyString(rdapJson));
         return;
       } catch (IOException e) {
-        // On exception, fall back to unformatted output
+        logger.warning(
+            e, "Unable to pretty-print RDAP JSON response; falling back to unformatted output.");
       }
     }
     response.setPayload(JSONValue.toJSONString(rdapJson));
