@@ -15,35 +15,31 @@
 package google.registry.monitoring.metrics;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.monitoring.metrics.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Tests for {@link CustomFitter}. */
 @RunWith(JUnit4.class)
 public class CustomFitterTest {
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testCreateCustomFitter_emptyBounds_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("boundaries must not be empty");
-
-    CustomFitter.create(ImmutableSet.<Double>of());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class, () -> CustomFitter.create(ImmutableSet.<Double>of()));
+    assertThat(thrown).hasMessageThat().contains("boundaries must not be empty");
   }
 
   @Test
   public void testCreateCustomFitter_outOfOrderBounds_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("boundaries must be sorted");
-
-    CustomFitter.create(ImmutableSet.of(2.0, 0.0));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class, () -> CustomFitter.create(ImmutableSet.of(2.0, 0.0)));
+    assertThat(thrown).hasMessageThat().contains("boundaries must be sorted");
   }
 
   @Test

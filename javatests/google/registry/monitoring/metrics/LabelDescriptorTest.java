@@ -14,9 +14,10 @@
 
 package google.registry.monitoring.metrics;
 
-import org.junit.Rule;
+import static com.google.common.truth.Truth.assertThat;
+import static google.registry.monitoring.metrics.JUnitBackports.expectThrows;
+
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -24,27 +25,26 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class LabelDescriptorTest {
 
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testCreate_invalidLabel_throwsException() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Label name must match the regex");
-    LabelDescriptor.create("@", "description");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class, () -> LabelDescriptor.create("@", "description"));
+    assertThat(thrown).hasMessageThat().contains("Label name must match the regex");
   }
 
   @Test
   public void testCreate_blankNameField_throwsException() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Name must not be empty");
-    LabelDescriptor.create("", "description");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class, () -> LabelDescriptor.create("", "description"));
+    assertThat(thrown).hasMessageThat().contains("Name must not be empty");
   }
 
   @Test
   public void testCreate_blankDescriptionField_throwsException() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Description must not be empty");
-    LabelDescriptor.create("name", "");
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> LabelDescriptor.create("name", ""));
+    assertThat(thrown).hasMessageThat().contains("Description must not be empty");
   }
 }

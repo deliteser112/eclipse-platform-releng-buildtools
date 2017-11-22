@@ -14,11 +14,12 @@
 
 package google.registry.monitoring.metrics;
 
+import static com.google.common.truth.Truth.assertThat;
+import static google.registry.monitoring.metrics.JUnitBackports.expectThrows;
+
 import com.google.common.collect.ImmutableSet;
 import google.registry.monitoring.metrics.MetricSchema.Kind;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -26,37 +27,59 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class MetricSchemaTest {
 
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testCreate_blankNameField_throwsException() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Name must not be blank");
-    MetricSchema.create(
-        "", "description", "valueDisplayName", Kind.GAUGE, ImmutableSet.<LabelDescriptor>of());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                MetricSchema.create(
+                    "",
+                    "description",
+                    "valueDisplayName",
+                    Kind.GAUGE,
+                    ImmutableSet.<LabelDescriptor>of()));
+    assertThat(thrown).hasMessageThat().contains("Name must not be blank");
   }
 
   @Test
   public void testCreate_blankDescriptionField_throwsException() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Description must not be blank");
-    MetricSchema.create(
-        "/name", "", "valueDisplayName", Kind.GAUGE, ImmutableSet.<LabelDescriptor>of());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                MetricSchema.create(
+                    "/name",
+                    "",
+                    "valueDisplayName",
+                    Kind.GAUGE,
+                    ImmutableSet.<LabelDescriptor>of()));
+    assertThat(thrown).hasMessageThat().contains("Description must not be blank");
   }
 
   @Test
   public void testCreate_blankValueDisplayNameField_throwsException() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Value Display Name must not be empty");
-    MetricSchema.create("/name", "description", "", Kind.GAUGE, ImmutableSet.<LabelDescriptor>of());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                MetricSchema.create(
+                    "/name", "description", "", Kind.GAUGE, ImmutableSet.<LabelDescriptor>of()));
+    assertThat(thrown).hasMessageThat().contains("Value Display Name must not be empty");
   }
 
   @Test
   public void testCreate_nakedNames_throwsException() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Name must be URL-like and start with a '/'");
-    MetricSchema.create(
-        "foo", "description", "valueDisplayName", Kind.GAUGE, ImmutableSet.<LabelDescriptor>of());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                MetricSchema.create(
+                    "foo",
+                    "description",
+                    "valueDisplayName",
+                    Kind.GAUGE,
+                    ImmutableSet.<LabelDescriptor>of()));
+    assertThat(thrown).hasMessageThat().contains("Name must be URL-like and start with a '/'");
   }
 }

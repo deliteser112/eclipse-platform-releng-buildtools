@@ -15,8 +15,8 @@
 package google.registry.monitoring.metrics.contrib;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.monitoring.metrics.JUnitBackports.expectThrows;
 import static google.registry.monitoring.metrics.contrib.LongMetricSubject.assertThat;
-import static org.junit.Assert.fail;
 
 import com.google.common.collect.ImmutableSet;
 import google.registry.monitoring.metrics.IncrementableMetric;
@@ -52,16 +52,14 @@ public class LongMetricSubjectTest {
 
   @Test
   public void testWrongNumberOfLabels_fails() {
-    try {
-      assertThat(metric).hasValueForLabels(1, "Domestic");
-      fail("Expected assertion error");
-    } catch (AssertionError e) {
-      assertThat(e)
-          .hasMessageThat()
-          .isEqualTo(
-              "Not true that </test/incrementable/sheep> has a value for labels <Domestic>."
-              + " It has labeled values <[Bighorn:Blue => 2, Domestic:Green => 1]>");
-    }
+    AssertionError e =
+        expectThrows(
+            AssertionError.class, () -> assertThat(metric).hasValueForLabels(1, "Domestic"));
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo(
+            "Not true that </test/incrementable/sheep> has a value for labels <Domestic>."
+                + " It has labeled values <[Bighorn:Blue => 2, Domestic:Green => 1]>");
   }
 
   @Test
@@ -96,43 +94,44 @@ public class LongMetricSubjectTest {
 
   @Test
   public void testDoesNotHaveValueForLabels_failure() {
-    try {
-      assertThat(metric).doesNotHaveAnyValueForLabels("Domestic", "Green");
-      fail("Expected assertion error");
-    } catch (AssertionError e) {
-      assertThat(e)
-          .hasMessageThat()
-          .isEqualTo(
-              "Not true that </test/incrementable/sheep> has no value for labels <Domestic:Green>."
-              + " It has a value of <1>");
-    }
+    AssertionError e =
+        expectThrows(
+            AssertionError.class,
+            () -> assertThat(metric).doesNotHaveAnyValueForLabels("Domestic", "Green"));
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo(
+            "Not true that </test/incrementable/sheep> has no value for labels <Domestic:Green>."
+                + " It has a value of <1>");
   }
 
   @Test
   public void testWrongValue_failure() {
-    try {
-      assertThat(metric).hasValueForLabels(2, "Domestic", "Green");
-      fail("Expected assertion error");
-    } catch (AssertionError e) {
-      assertThat(e)
-          .hasMessageThat()
-          .isEqualTo(
-              "Not true that </test/incrementable/sheep> has a value of 2"
-              + " for labels <Domestic:Green>. It has a value of <1>");
-    }
+    AssertionError e =
+        expectThrows(
+            AssertionError.class,
+            () -> assertThat(metric).hasValueForLabels(2, "Domestic", "Green"));
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo(
+            "Not true that </test/incrementable/sheep> has a value of 2"
+                + " for labels <Domestic:Green>. It has a value of <1>");
   }
 
   @Test
   public void testUnexpectedValue_failure() {
-    try {
-      assertThat(metric).hasValueForLabels(1, "Domestic", "Green").and().hasNoOtherValues();
-      fail("Expected assertion error");
-    } catch (AssertionError e) {
-      assertThat(e)
-          .hasMessageThat()
-          .isEqualTo(
-              "Not true that </test/incrementable/sheep> has <no other nondefault values>."
-              + " It has labeled values <[Bighorn:Blue => 2, Domestic:Green => 1]>");
-    }
+    AssertionError e =
+        expectThrows(
+            AssertionError.class,
+            () ->
+                assertThat(metric)
+                    .hasValueForLabels(1, "Domestic", "Green")
+                    .and()
+                    .hasNoOtherValues());
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo(
+            "Not true that </test/incrementable/sheep> has <no other nondefault values>."
+                + " It has labeled values <[Bighorn:Blue => 2, Domestic:Green => 1]>");
   }
 }

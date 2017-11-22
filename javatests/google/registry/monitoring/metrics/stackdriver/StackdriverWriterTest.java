@@ -15,8 +15,8 @@
 package google.registry.monitoring.metrics.stackdriver;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.monitoring.metrics.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.never;
@@ -184,10 +184,7 @@ public class StackdriverWriterTest {
         new StackdriverWriter(client, PROJECT, MONITORED_RESOURCE, MAX_QPS, MAX_POINTS_PER_REQUEST);
 
     for (MetricPoint<?> point : metric.getTimestampedValues()) {
-      try {
-        writer.write(point);
-        fail("expected IllegalArgumentException");
-      } catch (IOException expected) {}
+      assertThrows(IOException.class, () -> writer.write(point));
     }
   }
 
@@ -272,12 +269,8 @@ public class StackdriverWriterTest {
     StackdriverWriter writer =
         new StackdriverWriter(client, PROJECT, MONITORED_RESOURCE, MAX_QPS, MAX_POINTS_PER_REQUEST);
 
-    try {
-      writer.registerMetric(metric);
-      fail("Expected GoogleJsonResponseException");
-    } catch (GoogleJsonResponseException expected) {
-      assertThat(exception.getStatusCode()).isEqualTo(404);
-    }
+    assertThrows(GoogleJsonResponseException.class, () -> writer.registerMetric(metric));
+    assertThat(exception.getStatusCode()).isEqualTo(404);
   }
 
   @Test

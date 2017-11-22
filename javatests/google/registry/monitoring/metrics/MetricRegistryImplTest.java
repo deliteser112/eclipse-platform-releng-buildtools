@@ -15,6 +15,7 @@
 package google.registry.monitoring.metrics;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.monitoring.metrics.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
 
 import com.google.common.collect.ImmutableList;
@@ -22,9 +23,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.monitoring.metrics.MetricSchema.Kind;
 import org.junit.After;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -36,9 +35,6 @@ import org.junit.runners.JUnit4;
  */
 @RunWith(JUnit4.class)
 public class MetricRegistryImplTest {
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   private final LabelDescriptor label =
       LabelDescriptor.create("test_labelname", "test_labeldescription");
 
@@ -162,8 +158,10 @@ public class MetricRegistryImplTest {
                 Boolean.class);
     MetricRegistryImpl.getDefault().registerMetric("/test/metric", testMetric);
 
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Duplicate metric of same name");
-    MetricRegistryImpl.getDefault().registerMetric("/test/metric", testMetric);
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () -> MetricRegistryImpl.getDefault().registerMetric("/test/metric", testMetric));
+    assertThat(thrown).hasMessageThat().contains("Duplicate metric of same name");
   }
 }

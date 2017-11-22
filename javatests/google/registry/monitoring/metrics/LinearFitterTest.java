@@ -15,65 +15,55 @@
 package google.registry.monitoring.metrics;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.monitoring.metrics.JUnitBackports.expectThrows;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link LinearFitter}. */
 @RunWith(JUnit4.class)
 public class LinearFitterTest {
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testCreateLinearFitter_zeroNumIntervals_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("numFiniteIntervals must be greater than 0");
-
-    LinearFitter.create(0, 3.0, 0.0);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> LinearFitter.create(0, 3.0, 0.0));
+    assertThat(thrown).hasMessageThat().contains("numFiniteIntervals must be greater than 0");
   }
 
   @Test
   public void testCreateLinearFitter_negativeNumIntervals_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("numFiniteIntervals must be greater than 0");
-
-    LinearFitter.create(0, 3.0, 0.0);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> LinearFitter.create(0, 3.0, 0.0));
+    assertThat(thrown).hasMessageThat().contains("numFiniteIntervals must be greater than 0");
   }
 
   @Test
   public void testCreateLinearFitter_zeroWidth_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("width must be greater than 0");
-
-    LinearFitter.create(3, 0.0, 0.0);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> LinearFitter.create(3, 0.0, 0.0));
+    assertThat(thrown).hasMessageThat().contains("width must be greater than 0");
   }
 
   @Test
   public void testCreateLinearFitter_negativeWidth_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("width must be greater than 0");
-
-    LinearFitter.create(3, 0.0, 0.0);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> LinearFitter.create(3, 0.0, 0.0));
+    assertThat(thrown).hasMessageThat().contains("width must be greater than 0");
   }
 
   @Test
   public void testCreateLinearFitter_NaNWidth_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("width must be greater than 0");
-
-    LinearFitter.create(3, Double.NaN, 0.0);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> LinearFitter.create(3, Double.NaN, 0.0));
+    assertThat(thrown).hasMessageThat().contains("width must be greater than 0");
   }
 
   @Test
   public void testCreateLinearFitter_NaNOffset_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("value must be finite, not NaN, and not -0.0");
-
-    LinearFitter.create(3, 1.0, Double.NaN);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> LinearFitter.create(3, 1.0, Double.NaN));
+    assertThat(thrown).hasMessageThat().contains("value must be finite, not NaN, and not -0.0");
   }
 
   @Test

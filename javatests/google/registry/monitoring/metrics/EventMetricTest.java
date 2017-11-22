@@ -15,6 +15,7 @@
 package google.registry.monitoring.metrics;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.monitoring.metrics.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableRangeMap;
@@ -22,9 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import org.joda.time.Instant;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -34,9 +33,6 @@ public class EventMetricTest {
 
   private final DistributionFitter distributionFitter = CustomFitter.create(ImmutableSet.of(5.0));
   private EventMetric metric;
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   @Before
   public void setUp() {
     metric =
@@ -67,11 +63,12 @@ public class EventMetricTest {
 
   @Test
   public void testIncrementBy_wrongLabelValueCount_throwsException() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(
-        "The count of labelValues must be equal to the underlying Metric's count of labels.");
-
-    metric.record(1.0, "blah", "blah");
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> metric.record(1.0, "blah", "blah"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "The count of labelValues must be equal to the underlying Metric's count of labels.");
   }
 
   @Test

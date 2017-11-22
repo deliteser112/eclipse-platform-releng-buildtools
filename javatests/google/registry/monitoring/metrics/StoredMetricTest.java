@@ -15,22 +15,18 @@
 package google.registry.monitoring.metrics;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.monitoring.metrics.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.joda.time.Instant;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link StoredMetric}. */
 @RunWith(JUnit4.class)
 public class StoredMetricTest {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testGetCardinality_reflectsCurrentCardinality() {
@@ -68,11 +64,12 @@ public class StoredMetricTest {
                 LabelDescriptor.create("label1", "bar"), LabelDescriptor.create("label2", "bar")),
             Boolean.class);
 
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(
-        "The count of labelValues must be equal to the underlying Metric's count of labels.");
-
-    dimensionalMetric.set(true, "foo");
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> dimensionalMetric.set(true, "foo"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "The count of labelValues must be equal to the underlying Metric's count of labels.");
   }
 
   @Test

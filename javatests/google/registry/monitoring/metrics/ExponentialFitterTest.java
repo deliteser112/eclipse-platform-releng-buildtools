@@ -15,57 +15,49 @@
 package google.registry.monitoring.metrics;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.monitoring.metrics.JUnitBackports.expectThrows;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link ExponentialFitter}. */
 @RunWith(JUnit4.class)
 public class ExponentialFitterTest {
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testCreateExponentialFitter_zeroNumIntervals_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("numFiniteIntervals must be greater than 0");
-
-    ExponentialFitter.create(0, 3.0, 1.0);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> ExponentialFitter.create(0, 3.0, 1.0));
+    assertThat(thrown).hasMessageThat().contains("numFiniteIntervals must be greater than 0");
   }
 
   @Test
   public void testCreateExponentialFitter_negativeNumIntervals_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("numFiniteIntervals must be greater than 0");
-
-    ExponentialFitter.create(-1, 3.0, 1.0);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> ExponentialFitter.create(-1, 3.0, 1.0));
+    assertThat(thrown).hasMessageThat().contains("numFiniteIntervals must be greater than 0");
   }
 
   @Test
   public void testCreateExponentialFitter_invalidBase_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("base must be greater than 1");
-
-    ExponentialFitter.create(3, 0.5, 1.0);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> ExponentialFitter.create(3, 0.5, 1.0));
+    assertThat(thrown).hasMessageThat().contains("base must be greater than 1");
   }
 
   @Test
   public void testCreateExponentialFitter_zeroScale_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("scale must not be 0");
-
-    ExponentialFitter.create(3, 2.0, 0.0);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> ExponentialFitter.create(3, 2.0, 0.0));
+    assertThat(thrown).hasMessageThat().contains("scale must not be 0");
   }
 
   @Test
   public void testCreateExponentialFitter_NanScale_throwsException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("value must be finite, not NaN, and not -0.0");
-
-    ExponentialFitter.create(3, 2.0, Double.NaN);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class, () -> ExponentialFitter.create(3, 2.0, Double.NaN));
+    assertThat(thrown).hasMessageThat().contains("value must be finite, not NaN, and not -0.0");
   }
 
   @Test

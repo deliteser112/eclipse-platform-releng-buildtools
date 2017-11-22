@@ -15,14 +15,13 @@
 package google.registry.monitoring.metrics;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.monitoring.metrics.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableRangeMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -31,9 +30,6 @@ import org.junit.runners.JUnit4;
 public class MutableDistributionTest {
 
   private MutableDistribution distribution;
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   @Before
   public void setUp() throws Exception {
     distribution = new MutableDistribution(CustomFitter.create(ImmutableSet.of(3.0, 5.0)));
@@ -125,30 +121,34 @@ public class MutableDistributionTest {
 
   @Test
   public void testAdd_negativeZero_throwsException() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("value must be finite, not NaN, and not -0.0");
-    distribution.add(Double.longBitsToDouble(0x80000000));
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> distribution.add(Double.longBitsToDouble(0x80000000)));
+    assertThat(thrown).hasMessageThat().contains("value must be finite, not NaN, and not -0.0");
   }
 
   @Test
   public void testAdd_NaN_throwsException() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("value must be finite, not NaN, and not -0.0");
-    distribution.add(Double.NaN);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> distribution.add(Double.NaN));
+    assertThat(thrown).hasMessageThat().contains("value must be finite, not NaN, and not -0.0");
   }
 
   @Test
   public void testAdd_positiveInfinity_throwsException() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("value must be finite, not NaN, and not -0.0");
-    distribution.add(Double.POSITIVE_INFINITY);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class, () -> distribution.add(Double.POSITIVE_INFINITY));
+    assertThat(thrown).hasMessageThat().contains("value must be finite, not NaN, and not -0.0");
   }
 
   @Test
   public void testAdd_negativeInfinity_throwsException() {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("value must be finite, not NaN, and not -0.0");
-    distribution.add(Double.NEGATIVE_INFINITY);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class, () -> distribution.add(Double.NEGATIVE_INFINITY));
+    assertThat(thrown).hasMessageThat().contains("value must be finite, not NaN, and not -0.0");
   }
 
   @Test
