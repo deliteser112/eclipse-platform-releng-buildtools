@@ -1585,7 +1585,7 @@ def junit():
       ],
       licenses = ["reciprocal"],  # Common Public License Version 1.0
       testonly_ = True,
-      deps = ["@org_hamcrest_core"],
+      exports = ["@org_hamcrest_core"],
   )
 
 def org_apache_avro():
@@ -1854,6 +1854,7 @@ def org_mockito_all():
       ],
       licenses = ["notice"],  # The MIT License
       testonly_ = True,
+      exports = ["@org_hamcrest_all", "@org_hamcrest_library"],
   )
 
 def org_mortbay_jetty():
