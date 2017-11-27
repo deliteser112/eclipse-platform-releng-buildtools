@@ -47,6 +47,7 @@ public class LockTest {
   private static final Duration ONE_DAY = Duration.standardDays(1);
   private static final Duration TWO_MILLIS = Duration.millis(2);
   private static final RequestStatusChecker requestStatusChecker = mock(RequestStatusChecker.class);
+  private static final FakeClock clock = new FakeClock();
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -62,14 +63,24 @@ public class LockTest {
   private Optional<Lock> acquire(String tld, Duration leaseLength, LockState expectedLockState) {
     Lock.lockMetrics = mock(LockMetrics.class);
     Optional<Lock> lock = Lock.acquire(RESOURCE_NAME, tld, leaseLength, requestStatusChecker);
-    verify(Lock.lockMetrics).record(RESOURCE_NAME, tld, expectedLockState);
+    verify(Lock.lockMetrics).recordAcquire(RESOURCE_NAME, tld, expectedLockState);
     verifyNoMoreInteractions(Lock.lockMetrics);
     Lock.lockMetrics = null;
     return lock;
   }
 
+  private void release(Lock lock, String expectedTld, long expectedMillis) {
+    Lock.lockMetrics = mock(LockMetrics.class);
+    lock.release();
+    verify(Lock.lockMetrics)
+        .recordRelease(RESOURCE_NAME, expectedTld, Duration.millis(expectedMillis));
+    verifyNoMoreInteractions(Lock.lockMetrics);
+    Lock.lockMetrics = null;
+  }
+
 
   @Before public void setUp() {
+    inject.setStaticField(Ofy.class, "clock", clock);
     Lock.lockMetrics = null;
     when(requestStatusChecker.getLogId()).thenReturn("current-request-id");
     when(requestStatusChecker.isRunning("current-request-id")).thenReturn(true);
@@ -82,14 +93,13 @@ public class LockTest {
     // We can't get it again at the same time.
     assertThat(acquire("", ONE_DAY, IN_USE)).isEmpty();
     // But if we release it, it's available.
-    lock.get().release();
+    clock.advanceBy(Duration.millis(123));
+    release(lock.get(), "", 123);
     assertThat(acquire("", ONE_DAY, FREE)).isPresent();
   }
 
   @Test
   public void testReleasedAfterTimeout() throws Exception {
-    FakeClock clock = new FakeClock();
-    inject.setStaticField(Ofy.class, "clock", clock);
     assertThat(acquire("", TWO_MILLIS, FREE)).isPresent();
     // We can't get it again at the same time.
     assertThat(acquire("", TWO_MILLIS, IN_USE)).isEmpty();
@@ -121,7 +131,8 @@ public class LockTest {
     // We can't get lockB again at the same time.
     assertThat(acquire("b", ONE_DAY, IN_USE)).isEmpty();
     // Releasing lockA has no effect on lockB (even though we are still using the "b" tld).
-    lockA.get().release();
+    clock.advanceOneMilli();
+    release(lockA.get(), "a", 1);
     assertThat(acquire("b", ONE_DAY, IN_USE)).isEmpty();
   }
 

@@ -74,6 +74,16 @@ public class Lock extends ImmutableObject {
   /** When the lock can be considered implicitly released. */
   DateTime expirationTime;
 
+  /** When was the lock acquired. Used for logging. */
+  DateTime acquiredTime;
+
+  /** The resource name used to create lockId. */
+  String resourceName;
+
+  /** The tld used to create lockId. */
+  @Nullable
+  String tld;
+
   /**
    * Create a new {@link Lock} for the given resource name in the specified tld (which can be
    * null for cross-tld locks).
@@ -82,14 +92,18 @@ public class Lock extends ImmutableObject {
       String resourceName,
       @Nullable String tld,
       String requestLogId,
-      DateTime expirationTime) {
+      DateTime acquiredTime,
+      Duration leaseLength) {
     checkArgument(!Strings.isNullOrEmpty(resourceName), "resourceName cannot be null or empty");
     Lock instance = new Lock();
     // Add the tld to the Lock's id so that it is unique for locks acquiring the same resource
     // across different TLDs.
     instance.lockId = makeLockId(resourceName, tld);
     instance.requestLogId = requestLogId;
-    instance.expirationTime = expirationTime;
+    instance.expirationTime = acquiredTime.plus(leaseLength);
+    instance.acquiredTime = acquiredTime;
+    instance.resourceName = resourceName;
+    instance.tld = tld;
     return instance;
   }
 
@@ -195,7 +209,8 @@ public class Lock extends ImmutableObject {
           resourceName,
           tld,
           requestStatusChecker.getLogId(),
-          now.plus(leaseLength));
+          now,
+          leaseLength);
       // Locks are not parented under an EntityGroupRoot (so as to avoid write contention) and
       // don't need to be backed up.
       ofy().saveWithoutBackup().entity(newLock);
@@ -203,7 +218,7 @@ public class Lock extends ImmutableObject {
     });
 
     logAcquireResult(acquireResult);
-    lockMetrics.record(resourceName, tld, acquireResult.lockState());
+    lockMetrics.recordAcquire(resourceName, tld, acquireResult.lockState());
     return Optional.ofNullable(acquireResult.newLock());
   }
 
@@ -221,6 +236,8 @@ public class Lock extends ImmutableObject {
           // Use noBackupOfy() so that we don't create a commit log entry for deleting the lock.
           logger.infofmt("Deleting lock: %s", lockId);
           ofy().deleteWithoutBackup().entity(Lock.this);
+          lockMetrics.recordRelease(
+              resourceName, tld, new Duration(acquiredTime, ofy().getTransactionTime()));
         } else {
           logger.severefmt(
               "The lock we acquired was transferred to someone else before we"
