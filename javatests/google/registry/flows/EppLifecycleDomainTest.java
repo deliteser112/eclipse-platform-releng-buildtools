@@ -365,61 +365,6 @@ public class EppLifecycleDomainTest extends EppTestCase {
   }
 
   @Test
-  public void testDomainCreate_annualAutoRenewPollMessagesAreSent() throws Exception {
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    // Create the domain.
-    createFakesite();
-
-    // The first autorenew poll message isn't seen until after the initial two years of registration
-    // are up.
-    assertCommandAndResponse(
-        "poll.xml", "poll_response_empty.xml", DateTime.parse("2001-01-01T00:01:00Z"));
-    assertCommandAndResponse(
-        "poll.xml",
-        ImmutableMap.of(),
-        "poll_response_autorenew.xml",
-        ImmutableMap.of(
-            "ID", "1-C-EXAMPLE-13-16",
-            "QDATE", "2002-06-01T00:04:00Z",
-            "DOMAIN", "fakesite.example",
-            "EXDATE", "2003-06-01T00:04:00Z"),
-        DateTime.parse("2002-07-01T00:01:00Z"));
-    assertCommandAndResponse(
-        "poll_ack.xml",
-        ImmutableMap.of("ID", "1-C-EXAMPLE-13-16"),
-        "poll_ack_response_empty.xml",
-        null,
-        DateTime.parse("2002-07-01T00:02:00Z"));
-
-    // The second autorenew poll message isn't seen until after another year, and it should have a
-    // different ID.
-    assertCommandAndResponse(
-        "poll.xml", "poll_response_empty.xml", DateTime.parse("2002-07-01T00:05:00Z"));
-    assertCommandAndResponse(
-        "poll.xml",
-        ImmutableMap.of(),
-        "poll_response_autorenew.xml",
-        ImmutableMap.of(
-            "ID", "1-C-EXAMPLE-13-17", // Note -- different than the previous ID.
-            "QDATE", "2003-06-01T00:04:00Z",
-            "DOMAIN", "fakesite.example",
-            "EXDATE", "2004-06-01T00:04:00Z"),
-        DateTime.parse("2003-07-01T00:05:00Z"));
-
-    // Ack the second poll message and verify that none remain.
-    assertCommandAndResponse(
-        "poll_ack.xml",
-        ImmutableMap.of("ID", "1-C-EXAMPLE-13-17"),
-        "poll_ack_response_empty.xml",
-        null,
-        DateTime.parse("2003-07-01T00:05:05Z"));
-    assertCommandAndResponse(
-        "poll.xml", "poll_response_empty.xml", DateTime.parse("2003-07-01T00:05:10Z"));
-
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
-  }
-
-  @Test
   public void testDomainTransferPollMessage_serverApproved() throws Exception {
     // As the losing registrar, create the domain.
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
