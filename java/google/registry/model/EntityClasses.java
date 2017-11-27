@@ -14,9 +14,7 @@
 
 package google.registry.model;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
-import com.googlecode.objectify.Key;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.RegistrarBillingEntry;
 import google.registry.model.billing.RegistrarCredit;
@@ -112,16 +110,6 @@ public final class EntityClasses {
           ServerSecret.class,
           SignedMarkRevocationList.class,
           TmchCrl.class);
-
-  /**
-   * Function that converts an Objectify-registered class to its Datastore kind name.
-   *
-   * <p>Note that this mapping is not one-to-one, since polymorphic subclasses of an entity all have
-   * the same Datastore kind. (In theory, two distinct top-level entities could also map to the same
-   * kind since it's just {@code class.getSimpleName()}, but we test against that.)
-   */
-  public static final Function<Class<? extends ImmutableObject>, String> CLASS_TO_KIND_FUNCTION =
-      (Class<? extends ImmutableObject> clazz) -> Key.getKind(clazz);
 
   private EntityClasses() {}
 }

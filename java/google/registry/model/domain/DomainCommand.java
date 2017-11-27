@@ -31,7 +31,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
@@ -447,12 +446,8 @@ public class DomainCommand {
   private static <T extends EppResource> ImmutableMap<String, Key<T>> loadByForeignKey(
       final Set<String> foreignKeys, final Class<T> clazz, final DateTime now)
       throws InvalidReferencesException {
-    Map<String, ForeignKeyIndex<T>> fkis = ofy().doTransactionless(
-        new Work<Map<String, ForeignKeyIndex<T>>>() {
-          @Override
-          public Map<String, ForeignKeyIndex<T>> run() {
-            return ForeignKeyIndex.load(clazz, foreignKeys, now);
-          }});
+    Map<String, ForeignKeyIndex<T>> fkis =
+        ofy().doTransactionless(() -> ForeignKeyIndex.load(clazz, foreignKeys, now));
     if (!fkis.keySet().equals(foreignKeys)) {
       throw new InvalidReferencesException(
           clazz, ImmutableSet.copyOf(difference(foreignKeys, fkis.keySet())));

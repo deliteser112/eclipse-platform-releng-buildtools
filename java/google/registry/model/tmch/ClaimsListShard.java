@@ -26,7 +26,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -112,15 +111,12 @@ public class ClaimsListShard extends ImmutableObject {
                   (final Key<ClaimsListShard> key) ->
                       ofy()
                           .transactNewReadOnly(
-                              new Work<ClaimsListShard>() {
-                                @Override
-                                public ClaimsListShard run() {
-                                  ClaimsListShard claimsListShard = ofy().load().key(key).now();
-                                  checkState(
-                                      claimsListShard != null,
-                                      "Key not found when loading claims list shards.");
-                                  return claimsListShard;
-                                }
+                              () -> {
+                                ClaimsListShard claimsListShard = ofy().load().key(key).now();
+                                checkState(
+                                    claimsListShard != null,
+                                    "Key not found when loading claims list shards.");
+                                return claimsListShard;
                               }));
 
           // Combine the shards together and return the concatenated ClaimsList.

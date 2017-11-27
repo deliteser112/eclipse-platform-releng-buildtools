@@ -21,7 +21,6 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Multimaps.filterKeys;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EntityClasses.CLASS_TO_KIND_FUNCTION;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
@@ -78,7 +77,7 @@ public class KillAllEppResourcesActionTest extends MapreduceTestCase<KillAllEppR
               PollMessage.class,
               BillingEvent.OneTime.class,
               BillingEvent.Recurring.class)
-          .map(CLASS_TO_KIND_FUNCTION)
+          .map(Key::getKind)
           .collect(toImmutableSet());
 
   private void runMapreduce() throws Exception {

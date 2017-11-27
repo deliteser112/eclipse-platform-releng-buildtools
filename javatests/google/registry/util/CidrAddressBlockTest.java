@@ -291,7 +291,7 @@ public class CidrAddressBlockTest extends TestCase {
     Iterator<InetAddress> i = b2.iterator();
     i.next();
     i.next();
-    assertThrows(NoSuchElementException.class, () -> i.next());
+    assertThrows(NoSuchElementException.class, i::next);
   }
 
   public void testSerializability() {

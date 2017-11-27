@@ -30,7 +30,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -95,31 +94,28 @@ public class SignedMarkRevocationList extends ImmutableObject {
           () ->
               ofy()
                   .transactNewReadOnly(
-                      new Work<SignedMarkRevocationList>() {
-                        @Override
-                        public SignedMarkRevocationList run() {
-                          Iterable<SignedMarkRevocationList> shards =
-                              ofy()
-                                  .load()
-                                  .type(SignedMarkRevocationList.class)
-                                  .ancestor(getCrossTldKey());
-                          DateTime creationTime =
-                              isEmpty(shards)
-                                  ? START_OF_TIME
-                                  : checkNotNull(
-                                      Iterables.get(shards, 0).creationTime, "creationTime");
-                          ImmutableMap.Builder<String, DateTime> revokes =
-                              new ImmutableMap.Builder<>();
-                          for (SignedMarkRevocationList shard : shards) {
-                            revokes.putAll(shard.revokes);
-                            checkState(
-                                creationTime.equals(shard.creationTime),
-                                "Inconsistent creation times: %s vs. %s",
-                                creationTime,
-                                shard.creationTime);
-                          }
-                          return create(creationTime, revokes.build());
+                      () -> {
+                        Iterable<SignedMarkRevocationList> shards =
+                            ofy()
+                                .load()
+                                .type(SignedMarkRevocationList.class)
+                                .ancestor(getCrossTldKey());
+                        DateTime creationTime =
+                            isEmpty(shards)
+                                ? START_OF_TIME
+                                : checkNotNull(
+                                    Iterables.get(shards, 0).creationTime, "creationTime");
+                        ImmutableMap.Builder<String, DateTime> revokes =
+                            new ImmutableMap.Builder<>();
+                        for (SignedMarkRevocationList shard : shards) {
+                          revokes.putAll(shard.revokes);
+                          checkState(
+                              creationTime.equals(shard.creationTime),
+                              "Inconsistent creation times: %s vs. %s",
+                              creationTime,
+                              shard.creationTime);
                         }
+                        return create(creationTime, revokes.build());
                       }));
 
   /** Return a single logical instance that combines all Datastore shards. */

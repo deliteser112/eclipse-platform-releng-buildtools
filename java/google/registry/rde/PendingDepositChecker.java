@@ -19,7 +19,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.common.collect.ImmutableSetMultimap;
-import com.googlecode.objectify.Work;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
@@ -107,16 +106,16 @@ public final class PendingDepositChecker {
       final Registry registry,
       final CursorType cursorType,
       final DateTime initialValue) {
-    return ofy().transact(new Work<DateTime>() {
-      @Override
-      public DateTime run() {
-        Cursor cursor = ofy().load().key(Cursor.createKey(cursorType, registry)).now();
-        if (cursor != null) {
-          return cursor.getCursorTime();
-        }
-        ofy().save().entity(Cursor.create(cursorType, initialValue, registry));
-        return initialValue;
-      }});
+    return ofy()
+        .transact(
+            () -> {
+              Cursor cursor = ofy().load().key(Cursor.createKey(cursorType, registry)).now();
+              if (cursor != null) {
+                return cursor.getCursorTime();
+              }
+              ofy().save().entity(Cursor.create(cursorType, initialValue, registry));
+              return initialValue;
+            });
   }
 
   private static DateTime advanceToDayOfWeek(DateTime date, int dayOfWeek) {

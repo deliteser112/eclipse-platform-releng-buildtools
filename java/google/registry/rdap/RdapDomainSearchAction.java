@@ -460,7 +460,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
       }
       Streams.stream(query)
           .filter(domain -> isAuthorized(domain, now))
-          .forEach(domain -> domainSetBuilder.add(domain));
+          .forEach(domainSetBuilder::add);
     }
     List<DomainResource> domains = domainSetBuilder.build().asList();
     metricInformationBuilder.setNumHostsRetrieved(numHostKeysSearched);

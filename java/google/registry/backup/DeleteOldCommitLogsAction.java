@@ -30,7 +30,6 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.CommitLogManifestInput;
@@ -282,39 +281,36 @@ public final class DeleteOldCommitLogsAction implements Runnable {
         return;
       }
 
-      DeletionResult deletionResult = ofy().transactNew(new Work<DeletionResult>() {
-        @Override
-        public DeletionResult run() {
-          CommitLogManifest manifest = ofy().load().key(manifestKey).now();
-          // It is possible that the same manifestKey was run twice, if a shard had to be restarted
-          // or some weird failure. If this happens, we want to exit immediately.
-          // Note that this can never happen in dryRun.
-          if (manifest == null) {
-            return DeletionResult.create(DeletionResult.Status.ALREADY_DELETED, 0);
-          }
-          // Doing a sanity check on the date. This is the only place we use the CommitLogManifest,
-          // so maybe removing this test will improve performance. However, unless it's proven that
-          // the performance boost is significant (and we've tested this enough to be sure it never
-          // happens)- the safty of "let's not delete stuff we need from prod" is more important.
-          if (manifest.getCommitTime().isAfter(deletionThreshold)) {
-            return DeletionResult.create(DeletionResult.Status.AFTER_THRESHOLD, 0);
-          }
-          Iterable<Key<CommitLogMutation>> commitLogMutationKeys = ofy().load()
-              .type(CommitLogMutation.class)
-              .ancestor(manifestKey)
-              .keys()
-              .iterable();
-          ImmutableList<Key<?>> keysToDelete = ImmutableList.<Key<?>>builder()
-              .addAll(commitLogMutationKeys)
-              .add(manifestKey)
-              .build();
-          // Normally in a dry run we would log the entities that would be deleted, but those can
-          // number in the millions so we skip the logging.
-          if (!isDryRun) {
-            ofy().deleteWithoutBackup().keys(keysToDelete);
-          }
-          return DeletionResult.create(DeletionResult.Status.SUCCESS, keysToDelete.size());
+      DeletionResult deletionResult = ofy().transactNew(() -> {
+        CommitLogManifest manifest = ofy().load().key(manifestKey).now();
+        // It is possible that the same manifestKey was run twice, if a shard had to be restarted
+        // or some weird failure. If this happens, we want to exit immediately.
+        // Note that this can never happen in dryRun.
+        if (manifest == null) {
+          return DeletionResult.create(DeletionResult.Status.ALREADY_DELETED, 0);
         }
+        // Doing a sanity check on the date. This is the only place we use the CommitLogManifest,
+        // so maybe removing this test will improve performance. However, unless it's proven that
+        // the performance boost is significant (and we've tested this enough to be sure it never
+        // happens)- the safty of "let's not delete stuff we need from prod" is more important.
+        if (manifest.getCommitTime().isAfter(deletionThreshold)) {
+          return DeletionResult.create(DeletionResult.Status.AFTER_THRESHOLD, 0);
+        }
+        Iterable<Key<CommitLogMutation>> commitLogMutationKeys = ofy().load()
+            .type(CommitLogMutation.class)
+            .ancestor(manifestKey)
+            .keys()
+            .iterable();
+        ImmutableList<Key<?>> keysToDelete = ImmutableList.<Key<?>>builder()
+            .addAll(commitLogMutationKeys)
+            .add(manifestKey)
+            .build();
+        // Normally in a dry run we would log the entities that would be deleted, but those can
+        // number in the millions so we skip the logging.
+        if (!isDryRun) {
+          ofy().deleteWithoutBackup().keys(keysToDelete);
+        }
+        return DeletionResult.create(DeletionResult.Status.SUCCESS, keysToDelete.size());
       });
 
       switch (deletionResult.status()) {

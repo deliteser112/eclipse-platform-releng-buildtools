@@ -23,7 +23,6 @@ import static java.util.Arrays.asList;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.ByteSource;
-import com.googlecode.objectify.Work;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
 import google.registry.model.eppcommon.StatusValue;
@@ -191,12 +190,7 @@ public class XjcToContactResourceConverterTest {
   }
 
   private static ContactResource convertContactInTransaction(final XjcRdeContact xjcContact) {
-    return ofy().transact(new Work<ContactResource>() {
-      @Override
-      public ContactResource run() {
-        return XjcToContactResourceConverter.convertContact(xjcContact);
-      }
-    });
+    return ofy().transact(() -> XjcToContactResourceConverter.convertContact(xjcContact));
   }
 
   private XjcRdeContact loadContactFromRdeXml() throws Exception {

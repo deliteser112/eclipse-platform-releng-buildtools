@@ -20,7 +20,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.googlecode.objectify.Work;
 import google.registry.model.billing.RegistrarCredit;
 import google.registry.model.billing.RegistrarCreditBalance.BalanceMap;
 import google.registry.model.registrar.Registrar;
@@ -52,22 +51,19 @@ final class ListCreditsCommand implements RemoteApiCommand {
   private ImmutableList<String> createCreditStrings(final Registrar registrar) {
     return ofy()
         .transactNewReadOnly(
-            new Work<ImmutableList<String>>() {
-              @Override
-              public ImmutableList<String> run() {
-                ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
-                for (RegistrarCredit credit : RegistrarCredit.loadAllForRegistrar(registrar)) {
-                  BalanceMap balanceMap = BalanceMap.createForCredit(credit);
-                  Optional<Money> activeBalance =
-                      balanceMap.getActiveBalanceAtTime(ofy().getTransactionTime());
-                  // Unless showAll is true, only show credits with a positive active balance (which
-                  // excludes just zero-balance credits since credit balances cannot be negative).
-                  if (showAll || (activeBalance.isPresent() && activeBalance.get().isPositive())) {
-                    builder.add(credit.getSummary() + "\n" + balanceMap);
-                  }
+            () -> {
+              ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
+              for (RegistrarCredit credit : RegistrarCredit.loadAllForRegistrar(registrar)) {
+                BalanceMap balanceMap = BalanceMap.createForCredit(credit);
+                Optional<Money> activeBalance =
+                    balanceMap.getActiveBalanceAtTime(ofy().getTransactionTime());
+                // Unless showAll is true, only show credits with a positive active balance (which
+                // excludes just zero-balance credits since credit balances cannot be negative).
+                if (showAll || (activeBalance.isPresent() && activeBalance.get().isPositive())) {
+                  builder.add(credit.getSummary() + "\n" + balanceMap);
                 }
-                return builder.build();
               }
+              return builder.build();
             });
   }
 }

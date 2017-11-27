@@ -32,7 +32,6 @@ import google.registry.whois.WhoisException.UncheckedWhoisException;
 import google.registry.whois.WhoisMetrics.WhoisMetric;
 import google.registry.whois.WhoisResponse.WhoisResponseResults;
 import java.io.Reader;
-import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -87,17 +86,14 @@ public class WhoisServer implements Runnable {
       metricBuilder.setCommand(command);
       WhoisResponseResults results =
           retrier.callWithRetry(
-              new Callable<WhoisResponseResults>() {
-                @Override
-                public WhoisResponseResults call() {
-                  WhoisResponseResults results;
-                  try {
-                    results = command.executeQuery(now).getResponse(PREFER_UNICODE, disclaimer);
-                  } catch (WhoisException e) {
-                    throw new UncheckedWhoisException(e);
-                  }
-                  return results;
+              () -> {
+                WhoisResponseResults results1;
+                try {
+                  results1 = command.executeQuery(now).getResponse(PREFER_UNICODE, disclaimer);
+                } catch (WhoisException e) {
+                  throw new UncheckedWhoisException(e);
                 }
+                return results1;
               },
               DatastoreTimeoutException.class,
               DatastoreFailureException.class);

@@ -18,13 +18,13 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.toArray;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicates;
 import com.google.common.collect.Streams;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
 import google.registry.util.SendEmailService;
 import java.util.List;
+import java.util.Objects;
 import javax.inject.Inject;
 import javax.mail.Message;
 import javax.mail.internet.AddressException;
@@ -77,7 +77,7 @@ public class SendEmailUtils {
                       return null;
                     }
                   })
-              .filter(Predicates.notNull())
+              .filter(Objects::nonNull)
               .collect(toImmutableList());
       if (emails.isEmpty()) {
         return false;

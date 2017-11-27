@@ -36,7 +36,6 @@ import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.appengine.tools.mapreduce.inputs.DatastoreKeyInput;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
@@ -141,9 +140,10 @@ public class VerifyEntityIntegrityAction implements Runnable {
     ImmutableSet.Builder<Input<? extends Object>> builder =
         new ImmutableSet.Builder<Input<? extends Object>>()
             .add(EppResourceInputs.createIndexInput());
-    for (Class<?> clazz : RESOURCE_CLASSES) {
-      builder.add(new DatastoreKeyInput(getKind(clazz), NUM_SHARDS));
-    }
+    RESOURCE_CLASSES
+        .stream()
+        .map(clazz -> new DatastoreKeyInput(getKind(clazz), NUM_SHARDS))
+        .forEach(builder::add);
     return builder.build();
   }
 
@@ -265,17 +265,7 @@ public class VerifyEntityIntegrityAction implements Runnable {
                   .getTransferData()
                   .getServerApproveEntities()
                   .stream()
-                  .map(
-                      new Function<
-                          Key<? extends TransferServerApproveEntity>,
-                          Key<TransferServerApproveEntity>>() {
-                        @SuppressWarnings("unchecked")
-                        @Override
-                        public Key<TransferServerApproveEntity> apply(
-                            Key<? extends TransferServerApproveEntity> key) {
-                          return (Key<TransferServerApproveEntity>) key;
-                        }
-                      })
+                  .map(VerifyEntityIntegrityMapper::castTransferServerApproveEntityKey)
                   .collect(toImmutableSet()));
           verifyExistence(key, domain.getApplication());
           verifyExistence(key, domain.getAutorenewBillingEvent());
@@ -304,6 +294,12 @@ public class VerifyEntityIntegrityAction implements Runnable {
         throw new IllegalStateException(
             String.format("EppResource with unknown type in integrity mapper: %s", resource));
       }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Key<TransferServerApproveEntity> castTransferServerApproveEntityKey(
+        Key<? extends TransferServerApproveEntity> key) {
+      return (Key<TransferServerApproveEntity>) key;
     }
 
     private void mapForeignKeyIndex(ForeignKeyIndex<?> fki) {

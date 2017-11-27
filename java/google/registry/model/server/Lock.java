@@ -22,7 +22,6 @@ import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.googlecode.objectify.VoidWork;
-import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import google.registry.model.ImmutableObject;
@@ -171,39 +170,37 @@ public class Lock extends ImmutableObject {
     // It's important to use transactNew rather than transact, because a Lock can be used to control
     // access to resources like GCS that can't be transactionally rolled back. Therefore, the lock
     // must be definitively acquired before it is used, even when called inside another transaction.
-    AcquireResult acquireResult = ofy().transactNew(new Work<AcquireResult>() {
-      @Override
-      public AcquireResult run() {
-        DateTime now = ofy().getTransactionTime();
+    AcquireResult acquireResult = ofy().transactNew(() -> {
+      DateTime now = ofy().getTransactionTime();
 
-        // Checking if an unexpired lock still exists - if so, the lock can't be acquired.
-        Lock lock = ofy().load().type(Lock.class).id(lockId).now();
-        if (lock != null) {
-          logger.infofmt(
-              "Loaded existing lock: %s for request: %s", lock.lockId, lock.requestLogId);
-        }
-        LockState lockState;
-        if (lock == null) {
-          lockState = LockState.FREE;
-        } else if (isAtOrAfter(now, lock.expirationTime)) {
-          lockState = LockState.TIMED_OUT;
-        } else if (!requestStatusChecker.isRunning(lock.requestLogId)) {
-          lockState = LockState.OWNER_DIED;
-        } else {
-          lockState = LockState.IN_USE;
-          return AcquireResult.create(now, lock, null, lockState);
-        }
+      // Checking if an unexpired lock still exists - if so, the lock can't be acquired.
+      Lock lock = ofy().load().type(Lock.class).id(lockId).now();
+      if (lock != null) {
+        logger.infofmt(
+            "Loaded existing lock: %s for request: %s", lock.lockId, lock.requestLogId);
+      }
+      LockState lockState;
+      if (lock == null) {
+        lockState = LockState.FREE;
+      } else if (isAtOrAfter(now, lock.expirationTime)) {
+        lockState = LockState.TIMED_OUT;
+      } else if (!requestStatusChecker.isRunning(lock.requestLogId)) {
+        lockState = LockState.OWNER_DIED;
+      } else {
+        lockState = LockState.IN_USE;
+        return AcquireResult.create(now, lock, null, lockState);
+      }
 
-        Lock newLock = create(
-            resourceName,
-            tld,
-            requestStatusChecker.getLogId(),
-            now.plus(leaseLength));
-        // Locks are not parented under an EntityGroupRoot (so as to avoid write contention) and
-        // don't need to be backed up.
-        ofy().saveWithoutBackup().entity(newLock);
-        return AcquireResult.create(now, lock, newLock, lockState);
-      }});
+      Lock newLock = create(
+          resourceName,
+          tld,
+          requestStatusChecker.getLogId(),
+          now.plus(leaseLength));
+      // Locks are not parented under an EntityGroupRoot (so as to avoid write contention) and
+      // don't need to be backed up.
+      ofy().saveWithoutBackup().entity(newLock);
+      return AcquireResult.create(now, lock, newLock, lockState);
+    });
 
     logAcquireResult(acquireResult);
     lockMetrics.record(resourceName, tld, acquireResult.lockState());

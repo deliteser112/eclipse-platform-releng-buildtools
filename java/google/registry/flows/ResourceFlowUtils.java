@@ -30,7 +30,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.InvalidAuthorizationInformationErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
@@ -179,31 +178,28 @@ public final class ResourceFlowUtils {
     EppException failfastException =
         ofy()
             .doTransactionless(
-                new Work<EppException>() {
-                  @Override
-                  public EppException run() {
-                    final ForeignKeyIndex<R> fki =
-                        ForeignKeyIndex.load(resourceClass, targetId, now);
-                    if (fki == null) {
-                      return new ResourceDoesNotExistException(resourceClass, targetId);
-                    }
-                    /* Query for the first few linked domains, and if found, actually load them. The
-                     * query is eventually consistent and so might be very stale, but the direct
-                     * load will not be stale, just non-transactional. If we find at least one
-                     * actual reference then we can reliably fail. If we don't find any, we can't
-                     * trust the query and need to do the full mapreduce.
-                     */
-                    Iterable<Key<DomainBase>> keys =
-                        queryForLinkedDomains(fki.getResourceKey(), now)
-                            .limit(FAILFAST_CHECK_COUNT)
-                            .keys();
-                    Predicate<DomainBase> predicate =
-                        domain ->
-                            getPotentialReferences.apply(domain).contains(fki.getResourceKey());
-                    return ofy().load().keys(keys).values().stream().anyMatch(predicate)
-                        ? new ResourceToDeleteIsReferencedException()
-                        : null;
+                () -> {
+                  final ForeignKeyIndex<R> fki =
+                      ForeignKeyIndex.load(resourceClass, targetId, now);
+                  if (fki == null) {
+                    return new ResourceDoesNotExistException(resourceClass, targetId);
                   }
+                  /* Query for the first few linked domains, and if found, actually load them. The
+                   * query is eventually consistent and so might be very stale, but the direct
+                   * load will not be stale, just non-transactional. If we find at least one
+                   * actual reference then we can reliably fail. If we don't find any, we can't
+                   * trust the query and need to do the full mapreduce.
+                   */
+                  Iterable<Key<DomainBase>> keys =
+                      queryForLinkedDomains(fki.getResourceKey(), now)
+                          .limit(FAILFAST_CHECK_COUNT)
+                          .keys();
+                  Predicate<DomainBase> predicate =
+                      domain ->
+                          getPotentialReferences.apply(domain).contains(fki.getResourceKey());
+                  return ofy().load().keys(keys).values().stream().anyMatch(predicate)
+                      ? new ResourceToDeleteIsReferencedException()
+                      : null;
                 });
     if (failfastException != null) {
       throw failfastException;

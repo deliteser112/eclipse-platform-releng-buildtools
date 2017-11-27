@@ -61,9 +61,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Matchers;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
 /** Test case for {@link CloudDnsWriter}. */
 @RunWith(MockitoJUnitRunner.class)
@@ -119,44 +117,36 @@ public class CloudDnsWriterTest {
     // Return records from our stub zone when a request to list the records is executed
     when(listResourceRecordSetsRequest.execute())
         .thenAnswer(
-            new Answer<ResourceRecordSetsListResponse>() {
-              @Override
-              public ResourceRecordSetsListResponse answer(InvocationOnMock invocationOnMock)
-                  throws Throwable {
-                return new ResourceRecordSetsListResponse()
+            invocationOnMock ->
+                new ResourceRecordSetsListResponse()
                     .setRrsets(
                         stubZone
                             .stream()
                             .filter(
                                 rs ->
                                     rs != null && rs.getName().equals(recordNameCaptor.getValue()))
-                            .collect(toImmutableList()));
-              }
-            });
+                            .collect(toImmutableList())));
 
     when(changes.create(anyString(), zoneNameCaptor.capture(), changeCaptor.capture()))
         .thenReturn(createChangeRequest);
     // Change our stub zone when a request to change the records is executed
     when(createChangeRequest.execute())
         .thenAnswer(
-            new Answer<Change>() {
-              @Override
-              public Change answer(InvocationOnMock invocationOnMock) throws IOException {
-                Change requestedChange = changeCaptor.getValue();
-                ImmutableSet<ResourceRecordSet> toDelete =
-                    ImmutableSet.copyOf(requestedChange.getDeletions());
-                ImmutableSet<ResourceRecordSet> toAdd =
-                    ImmutableSet.copyOf(requestedChange.getAdditions());
-                // Fail if the records to delete has records that aren't in the stub zone.
-                // This matches documented Google Cloud DNS behavior.
-                if (!Sets.difference(toDelete, stubZone).isEmpty()) {
-                  throw new IOException();
-                }
-                stubZone =
-                    Sets.union(Sets.difference(stubZone, toDelete).immutableCopy(), toAdd)
-                        .immutableCopy();
-                return requestedChange;
+            invocationOnMock -> {
+              Change requestedChange = changeCaptor.getValue();
+              ImmutableSet<ResourceRecordSet> toDelete =
+                  ImmutableSet.copyOf(requestedChange.getDeletions());
+              ImmutableSet<ResourceRecordSet> toAdd =
+                  ImmutableSet.copyOf(requestedChange.getAdditions());
+              // Fail if the records to delete has records that aren't in the stub zone.
+              // This matches documented Google Cloud DNS behavior.
+              if (!Sets.difference(toDelete, stubZone).isEmpty()) {
+                throw new IOException();
               }
+              stubZone =
+                  Sets.union(Sets.difference(stubZone, toDelete).immutableCopy(), toAdd)
+                      .immutableCopy();
+              return requestedChange;
             });
   }
 

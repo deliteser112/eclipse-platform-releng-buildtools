@@ -55,7 +55,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.io.BaseEncoding;
-import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -454,15 +453,7 @@ public class BigqueryConnection implements AutoCloseable {
             .setQuery(new JobConfigurationQuery()
                 .setQuery(querySql)
                 .setDefaultDataset(getDataset())));
-    return transform(
-        runJobToCompletion(job),
-        new Function<Job, ImmutableTable<Integer, TableFieldSchema, Object>>() {
-          @Override
-          public ImmutableTable<Integer, TableFieldSchema, Object> apply(Job job) {
-            return getQueryResults(job);
-          }
-        },
-        directExecutor());
+    return transform(runJobToCompletion(job), this::getQueryResults, directExecutor());
   }
 
   /**
@@ -593,12 +584,7 @@ public class BigqueryConnection implements AutoCloseable {
     DestinationTable tempTable = buildTemporaryTable().build();
     return transformAsync(
         query(querySql, tempTable),
-        new AsyncFunction<DestinationTable, String>() {
-          @Override
-          public ListenableFuture<String> apply(DestinationTable tempTable) {
-            return extractTable(tempTable, destinationUri, destinationFormat, printHeader);
-          }
-        },
+        tempTable1 -> extractTable(tempTable1, destinationUri, destinationFormat, printHeader),
         directExecutor());
   }
 

@@ -24,7 +24,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteSource;
 import com.google.common.net.InetAddresses;
-import com.googlecode.objectify.Work;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.model.reporting.HistoryEntry;
@@ -135,12 +134,7 @@ public class XjcToHostResourceConverterTest extends ShardableTestCase {
   }
 
   private static HostResource convertHostInTransaction(final XjcRdeHost xjcHost) {
-    return ofy().transact(new Work<HostResource>() {
-      @Override
-      public HostResource run() {
-        return XjcToHostResourceConverter.convert(xjcHost);
-      }
-    });
+    return ofy().transact(() -> XjcToHostResourceConverter.convert(xjcHost));
   }
 
   private XjcRdeHost loadHostFromRdeXml() throws Exception {

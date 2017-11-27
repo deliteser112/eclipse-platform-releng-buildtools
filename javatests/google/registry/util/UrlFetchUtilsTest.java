@@ -41,8 +41,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 /** Unit tests for {@link UrlFetchUtils}. */
 @RunWith(JUnit4.class)
@@ -62,12 +60,13 @@ public class UrlFetchUtilsTest {
   public void setupRandomZeroes() throws Exception {
     Random random = mock(Random.class);
     inject.setStaticField(UrlFetchUtils.class, "random", random);
-    doAnswer(new Answer<Void>() {
-      @Override
-      public Void answer(InvocationOnMock info) throws Throwable {
-        Arrays.fill((byte[]) info.getArguments()[0], (byte) 0);
-        return null;
-      }}).when(random).nextBytes(any(byte[].class));
+    doAnswer(
+            info -> {
+              Arrays.fill((byte[]) info.getArguments()[0], (byte) 0);
+              return null;
+            })
+        .when(random)
+        .nextBytes(any(byte[].class));
   }
 
   @Test

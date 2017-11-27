@@ -17,11 +17,11 @@ package google.registry.model;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EntityClasses.ALL_CLASSES;
-import static google.registry.model.EntityClasses.CLASS_TO_KIND_FUNCTION;
 import static google.registry.util.TypeUtils.hasAnnotation;
 import static java.util.stream.Collectors.toSet;
 
 import com.google.common.collect.Ordering;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import java.util.Set;
@@ -50,7 +50,7 @@ public class EntityClassesTest {
             ALL_CLASSES
                 .stream()
                 .filter(hasAnnotation(Entity.class))
-                .map(CLASS_TO_KIND_FUNCTION)
+                .map(Key::getKind)
                 .collect(toImmutableSet()))
         .named("base entity kinds")
         .containsNoDuplicates();
@@ -62,13 +62,13 @@ public class EntityClassesTest {
         ALL_CLASSES
             .stream()
             .filter(hasAnnotation(Entity.class))
-            .map(CLASS_TO_KIND_FUNCTION)
+            .map(Key::getKind)
             .collect(toSet());
     Set<String> entitySubclassKinds =
         ALL_CLASSES
             .stream()
             .filter(hasAnnotation(EntitySubclass.class))
-            .map(CLASS_TO_KIND_FUNCTION)
+            .map(Key::getKind)
             .collect(toSet());
     assertThat(baseEntityKinds).named("base entity kinds").containsAllIn(entitySubclassKinds);
   }

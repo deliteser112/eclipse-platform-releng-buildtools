@@ -23,7 +23,6 @@ import static google.registry.util.DateTimeUtils.earliestOf;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.model.ofy.CommitLogCheckpoint;
 import google.registry.model.ofy.CommitLogManifest;
@@ -116,15 +115,14 @@ class CommitLogCheckpointStrategy {
   @VisibleForTesting
   ImmutableMap<Integer, DateTime> readBucketTimestamps() {
     // Use a fresh session cache so that we get the latest data from Datastore.
-    return ofy.doWithFreshSessionCache(new Work<ImmutableMap<Integer, DateTime>>() {
-      @Override
-      public ImmutableMap<Integer, DateTime> run() {
-        ImmutableMap.Builder<Integer, DateTime> results = new ImmutableMap.Builder<>();
-        for (CommitLogBucket bucket : CommitLogBucket.loadAllBuckets()) {
-          results.put(bucket.getBucketNum(), bucket.getLastWrittenTime());
-        }
-        return results.build();
-      }});
+    return ofy.doWithFreshSessionCache(
+        () -> {
+          ImmutableMap.Builder<Integer, DateTime> results = new ImmutableMap.Builder<>();
+          for (CommitLogBucket bucket : CommitLogBucket.loadAllBuckets()) {
+            results.put(bucket.getBucketNum(), bucket.getLastWrittenTime());
+          }
+          return results.build();
+        });
   }
 
   /**

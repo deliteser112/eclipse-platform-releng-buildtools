@@ -28,11 +28,11 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.net.InternetDomainName;
-import com.googlecode.objectify.Work;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainApplication;
 import google.registry.tools.Command.RemoteApiCommand;
@@ -71,20 +71,17 @@ final class AuctionStatusCommand implements RemoteApiCommand {
                       fullyQualifiedDomainName);
                   return ofy()
                       .transactNewReadOnly(
-                          new Work<Iterable<String>>() {
-                            @Override
-                            public Iterable<String> run() {
-                              ImmutableList.Builder<DomainApplication> applications =
-                                  new ImmutableList.Builder<>();
-                              for (String domain : domains) {
-                                applications.addAll(
-                                    loadActiveApplicationsByDomainName(
-                                        domain, ofy().getTransactionTime()));
-                              }
-                              return Lists.transform(
-                                  ImmutableList.sortedCopyOf(ORDERING, applications.build()),
-                                  APPLICATION_FORMATTER);
+                          () -> {
+                            Builder<DomainApplication> applications =
+                                new Builder<>();
+                            for (String domain : domains) {
+                              applications.addAll(
+                                  loadActiveApplicationsByDomainName(
+                                      domain, ofy().getTransactionTime()));
                             }
+                            return Lists.transform(
+                                ImmutableList.sortedCopyOf(ORDERING, applications.build()),
+                                APPLICATION_FORMATTER);
                           });
                 }),
         UTF_8);

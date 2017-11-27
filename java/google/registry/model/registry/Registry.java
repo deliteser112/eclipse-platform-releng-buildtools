@@ -43,7 +43,6 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.Range;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -245,15 +244,10 @@ public class Registry extends ImmutableObject implements Buildable {
                   return Optional.ofNullable(
                       ofy()
                           .doTransactionless(
-                              new Work<Registry>() {
-                                @Override
-                                public Registry run() {
-                                  return ofy()
-                                      .load()
-                                      .key(Key.create(getCrossTldKey(), Registry.class, tld))
-                                      .now();
-                                }
-                              }));
+                              () -> ofy()
+                                  .load()
+                                  .key(Key.create(getCrossTldKey(), Registry.class, tld))
+                                  .now()));
                 }
               });
 

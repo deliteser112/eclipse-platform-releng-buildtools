@@ -38,7 +38,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.NullInput;
 import google.registry.model.EppResource;
@@ -151,89 +150,86 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
         getContext().incrementCounter("Recurring billing events ignored");
         return;
       }
-      int billingEventsSaved = 0;
+      int numBillingEventsSaved = 0;
       try {
-        billingEventsSaved = ofy().transactNew(new Work<Integer>() {
-          @Override
-          public Integer run() {
-            ImmutableSet.Builder<OneTime> syntheticOneTimesBuilder =
-                new ImmutableSet.Builder<>();
-            final Registry tld = Registry.get(getTldFromDomainName(recurring.getTargetId()));
+        numBillingEventsSaved = ofy().transactNew(() -> {
+          ImmutableSet.Builder<OneTime> syntheticOneTimesBuilder =
+              new ImmutableSet.Builder<>();
+          final Registry tld = Registry.get(getTldFromDomainName(recurring.getTargetId()));
 
-            // Determine the complete set of times at which this recurring event should occur
-            // (up to and including the runtime of the mapreduce).
-            Iterable<DateTime> eventTimes =
-                recurring.getRecurrenceTimeOfYear().getInstancesInRange(Range.closed(
-                    recurring.getEventTime(),
-                    earliestOf(recurring.getRecurrenceEndTime(), executeTime)));
+          // Determine the complete set of times at which this recurring event should occur
+          // (up to and including the runtime of the mapreduce).
+          Iterable<DateTime> eventTimes =
+              recurring.getRecurrenceTimeOfYear().getInstancesInRange(Range.closed(
+                  recurring.getEventTime(),
+                  earliestOf(recurring.getRecurrenceEndTime(), executeTime)));
 
-            // Convert these event times to billing times
-            final ImmutableSet<DateTime> billingTimes =
-                getBillingTimesInScope(eventTimes, cursorTime, executeTime, tld);
+          // Convert these event times to billing times
+          final ImmutableSet<DateTime> billingTimes =
+              getBillingTimesInScope(eventTimes, cursorTime, executeTime, tld);
 
-            Key<? extends EppResource> domainKey = recurring.getParentKey().getParent();
-            Iterable<OneTime> oneTimesForDomain =
-                ofy().load().type(OneTime.class).ancestor(domainKey);
+          Key<? extends EppResource> domainKey = recurring.getParentKey().getParent();
+          Iterable<OneTime> oneTimesForDomain =
+              ofy().load().type(OneTime.class).ancestor(domainKey);
 
-            // Determine the billing times that already have OneTime events persisted.
-            ImmutableSet<DateTime> existingBillingTimes =
-                getExistingBillingTimes(oneTimesForDomain, recurring);
+          // Determine the billing times that already have OneTime events persisted.
+          ImmutableSet<DateTime> existingBillingTimes =
+              getExistingBillingTimes(oneTimesForDomain, recurring);
 
-            ImmutableSet.Builder<HistoryEntry> historyEntriesBuilder =
-                new ImmutableSet.Builder<>();
-            // Create synthetic OneTime events for all billing times that do not yet have an event
-            // persisted.
-            for (DateTime billingTime : difference(billingTimes, existingBillingTimes)) {
-              // Construct a new HistoryEntry that parents over the OneTime
-              HistoryEntry historyEntry = new HistoryEntry.Builder()
-                  .setBySuperuser(false)
-                  .setClientId(recurring.getClientId())
-                  .setModificationTime(ofy().getTransactionTime())
-                  .setParent(domainKey)
-                  .setPeriod(Period.create(1, YEARS))
-                  .setReason("Domain autorenewal by ExpandRecurringBillingEventsAction")
-                  .setRequestedByRegistrar(false)
-                  .setType(DOMAIN_AUTORENEW)
-                  .setDomainTransactionRecords(
-                      ImmutableSet.of(
-                          DomainTransactionRecord.create(
-                              tld.getTldStr(),
-                              // We report this when the autorenew grace period ends
-                              billingTime,
-                              TransactionReportField.netRenewsFieldFromYears(1),
-                              1)))
-                  .build();
-              historyEntriesBuilder.add(historyEntry);
+          ImmutableSet.Builder<HistoryEntry> historyEntriesBuilder =
+              new ImmutableSet.Builder<>();
+          // Create synthetic OneTime events for all billing times that do not yet have an event
+          // persisted.
+          for (DateTime billingTime : difference(billingTimes, existingBillingTimes)) {
+            // Construct a new HistoryEntry that parents over the OneTime
+            HistoryEntry historyEntry = new HistoryEntry.Builder()
+                .setBySuperuser(false)
+                .setClientId(recurring.getClientId())
+                .setModificationTime(ofy().getTransactionTime())
+                .setParent(domainKey)
+                .setPeriod(Period.create(1, YEARS))
+                .setReason("Domain autorenewal by ExpandRecurringBillingEventsAction")
+                .setRequestedByRegistrar(false)
+                .setType(DOMAIN_AUTORENEW)
+                .setDomainTransactionRecords(
+                    ImmutableSet.of(
+                        DomainTransactionRecord.create(
+                            tld.getTldStr(),
+                            // We report this when the autorenew grace period ends
+                            billingTime,
+                            TransactionReportField.netRenewsFieldFromYears(1),
+                            1)))
+                .build();
+            historyEntriesBuilder.add(historyEntry);
 
-              DateTime eventTime = billingTime.minus(tld.getAutoRenewGracePeriodLength());
-              // Determine the cost for a one-year renewal.
-              Money renewCost = getDomainRenewCost(recurring.getTargetId(), eventTime, 1);
-              syntheticOneTimesBuilder.add(new BillingEvent.OneTime.Builder()
-                  .setBillingTime(billingTime)
-                  .setClientId(recurring.getClientId())
-                  .setCost(renewCost)
-                  .setEventTime(eventTime)
-                  .setFlags(union(recurring.getFlags(), Flag.SYNTHETIC))
-                  .setParent(historyEntry)
-                  .setPeriodYears(1)
-                  .setReason(recurring.getReason())
-                  .setSyntheticCreationTime(executeTime)
-                  .setCancellationMatchingBillingEvent(Key.create(recurring))
-                  .setTargetId(recurring.getTargetId())
-                  .build());
-            }
-            Set<HistoryEntry> historyEntries = historyEntriesBuilder.build();
-            Set<OneTime> syntheticOneTimes = syntheticOneTimesBuilder.build();
-            if (!isDryRun) {
-              ImmutableSet<ImmutableObject> entitiesToSave =
-                  new ImmutableSet.Builder<ImmutableObject>()
-                      .addAll(historyEntries)
-                      .addAll(syntheticOneTimes)
-                      .build();
-              ofy().save().entities(entitiesToSave).now();
-            }
-            return syntheticOneTimes.size();
+            DateTime eventTime = billingTime.minus(tld.getAutoRenewGracePeriodLength());
+            // Determine the cost for a one-year renewal.
+            Money renewCost = getDomainRenewCost(recurring.getTargetId(), eventTime, 1);
+            syntheticOneTimesBuilder.add(new OneTime.Builder()
+                .setBillingTime(billingTime)
+                .setClientId(recurring.getClientId())
+                .setCost(renewCost)
+                .setEventTime(eventTime)
+                .setFlags(union(recurring.getFlags(), Flag.SYNTHETIC))
+                .setParent(historyEntry)
+                .setPeriodYears(1)
+                .setReason(recurring.getReason())
+                .setSyntheticCreationTime(executeTime)
+                .setCancellationMatchingBillingEvent(Key.create(recurring))
+                .setTargetId(recurring.getTargetId())
+                .build());
           }
+          Set<HistoryEntry> historyEntries = historyEntriesBuilder.build();
+          Set<OneTime> syntheticOneTimes = syntheticOneTimesBuilder.build();
+          if (!isDryRun) {
+            ImmutableSet<ImmutableObject> entitiesToSave =
+                new ImmutableSet.Builder<ImmutableObject>()
+                    .addAll(historyEntries)
+                    .addAll(syntheticOneTimes)
+                    .build();
+            ofy().save().entities(entitiesToSave).now();
+          }
+          return syntheticOneTimes.size();
         });
       } catch (Throwable t) {
         logger.severefmt(
@@ -243,10 +239,10 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
         throw t;
       }
       if (!isDryRun) {
-        getContext().incrementCounter("Saved OneTime billing events", billingEventsSaved);
+        getContext().incrementCounter("Saved OneTime billing events", numBillingEventsSaved);
       } else {
         getContext().incrementCounter(
-            "Generated OneTime billing events (dry run)", billingEventsSaved);
+            "Generated OneTime billing events (dry run)", numBillingEventsSaved);
       }
     }
 

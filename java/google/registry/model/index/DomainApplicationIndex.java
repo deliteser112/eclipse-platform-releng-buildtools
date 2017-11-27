@@ -21,7 +21,6 @@ import static google.registry.util.CollectionUtils.isNullOrEmpty;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import google.registry.model.BackupGroupRoot;
@@ -100,17 +99,15 @@ public class DomainApplicationIndex extends BackupGroupRoot {
       return ImmutableSet.of();
     }
     // Perform eventually consistent query, to avoid overenlisting cross entity groups
-    return ofy().doTransactionless(new Work<ImmutableSet<DomainApplication>>() {
-        @Override
-        public ImmutableSet<DomainApplication> run() {
-          ImmutableSet.Builder<DomainApplication> apps = new ImmutableSet.Builder<>();
-          for (DomainApplication app : ofy().load().keys(index.getKeys()).values()) {
-            if (app.getDeletionTime().isAfter(now)) {
-              apps.add(app);
-            }
-          }
-          return apps.build();
-        }});
+    return ofy().doTransactionless(() -> {
+      ImmutableSet.Builder<DomainApplication> apps = new ImmutableSet.Builder<>();
+      for (DomainApplication app : ofy().load().keys(index.getKeys()).values()) {
+        if (app.getDeletionTime().isAfter(now)) {
+          apps.add(app);
+        }
+      }
+      return apps.build();
+    });
   }
 
   /**

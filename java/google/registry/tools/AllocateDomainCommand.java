@@ -34,7 +34,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.template.soy.data.SoyMapData;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
-import com.googlecode.objectify.Work;
 import google.registry.flows.EppException;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainApplication;
@@ -71,27 +70,24 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
         .append(
             ofy()
                 .transactNewReadOnly(
-                    new Work<String>() {
-                      @Override
-                      public String run() {
-                        String failureMessage =
-                            ofy()
-                                .load()
-                                .keys(applicationKeys)
-                                .values()
-                                .stream()
-                                .map(
-                                    application ->
-                                        application.getApplicationStatus()
-                                                == ApplicationStatus.ALLOCATED
-                                            ? null
-                                            : application.getFullyQualifiedDomainName())
-                                .filter(Objects::nonNull)
-                                .collect(joining("\n"));
-                        return failureMessage.isEmpty()
-                            ? "ALL SUCCEEDED"
-                            : addHeader("FAILURES", failureMessage);
-                      }
+                    () -> {
+                      String failureMessage =
+                          ofy()
+                              .load()
+                              .keys(applicationKeys)
+                              .values()
+                              .stream()
+                              .map(
+                                  application ->
+                                      application.getApplicationStatus()
+                                              == ApplicationStatus.ALLOCATED
+                                          ? null
+                                          : application.getFullyQualifiedDomainName())
+                              .filter(Objects::nonNull)
+                              .collect(joining("\n"));
+                      return failureMessage.isEmpty()
+                          ? "ALL SUCCEEDED"
+                          : addHeader("FAILURES", failureMessage);
                     }))
         .toString();
   }

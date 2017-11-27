@@ -23,7 +23,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthorizationErrorException;
 import google.registry.flows.EppException.ObjectDoesNotExistException;
@@ -131,11 +130,7 @@ public class PollAckFlow implements TransactionalFlow {
     // acked, then we return a special status code indicating that. Note that the query will
     // include the message being acked.
 
-    int messageCount = ofy().doTransactionless(new Work<Integer>() {
-      @Override
-      public Integer run() {
-        return getPollMessagesQuery(clientId, now).count();
-      }});
+    int messageCount = ofy().doTransactionless(() -> getPollMessagesQuery(clientId, now).count());
     if (!includeAckedMessageInCount) {
       messageCount--;
     }

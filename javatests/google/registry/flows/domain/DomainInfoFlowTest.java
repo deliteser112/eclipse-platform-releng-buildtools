@@ -24,8 +24,8 @@ import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
-import static google.registry.util.DatastoreServiceUtils.KEY_TO_KIND_FUNCTION;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -644,13 +644,12 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
                 .filter(
                     keys ->
                         keys.stream()
-                            .map(KEY_TO_KIND_FUNCTION)
+                            .map(com.google.appengine.api.datastore.Key::getKind)
                             .anyMatch(
-                                kind ->
+                                Predicates.in(
                                     ImmutableSet.of(
-                                            Key.getKind(ContactResource.class),
-                                            Key.getKind(HostResource.class))
-                                        .contains(kind)))
+                                        Key.getKind(ContactResource.class),
+                                        Key.getKind(HostResource.class)))))
                 .count();
     assertThat(numReadsWithContactsOrHosts).isEqualTo(1);
   }

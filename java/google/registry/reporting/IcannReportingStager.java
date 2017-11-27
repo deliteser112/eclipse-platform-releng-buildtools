@@ -196,7 +196,7 @@ public class IcannReportingStager {
   private String constructTotalRow(List<Integer> totals) {
     StringBuilder rowString = new StringBuilder("Totals,,");
     rowString.append(
-        totals.stream().map((Integer i) -> i.toString()).collect(Collectors.joining(",")));
+        totals.stream().map(Object::toString).collect(Collectors.joining(",")));
     return rowString.toString();
   }
 

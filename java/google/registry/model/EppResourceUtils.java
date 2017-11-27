@@ -15,7 +15,7 @@
 package google.registry.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
@@ -160,11 +160,15 @@ public final class EppResourceUtils {
    */
   public static <T extends EppResource> Iterable<T> queryNotDeleted(
       Class<T> clazz, DateTime now, String filterDefinition, Object filterValue) {
-    return transform(
-        ofy().load().type(clazz)
-            .filter(filterDefinition, filterValue)
-            .filter("deletionTime >", now.toDate()),
-        EppResourceUtils.transformAtTime(now));
+    return ofy()
+        .load()
+        .type(clazz)
+        .filter(filterDefinition, filterValue)
+        .filter("deletionTime >", now.toDate())
+        .list()
+        .stream()
+        .map(EppResourceUtils.transformAtTime(now))
+        .collect(toImmutableSet());
   }
 
   /**
@@ -262,15 +266,13 @@ public final class EppResourceUtils {
         (isAtOrAfter(timestamp, resource.getUpdateAutoTimestamp().getTimestamp()))
             ? new ResultNow<>(resource)
             : loadMostRecentRevisionAtTime(resource, timestamp);
-    return new Result<T>() {
-      @Override
-      public T now() {
-        T loadedResource = loadResult.now();
-        return loadedResource == null ? null
-            : (isActive(loadedResource, timestamp)
-                ? cloneProjectedAtTime(loadedResource, timestamp)
-                : null);
-      }};
+    return () -> {
+      T loadedResource = loadResult.now();
+      return (loadedResource == null) ? null
+          : (isActive(loadedResource, timestamp)
+              ? cloneProjectedAtTime(loadedResource, timestamp)
+              : null);
+    };
   }
 
   /**
@@ -290,19 +292,16 @@ public final class EppResourceUtils {
     }
     final Result<CommitLogMutation> mutationResult =
         ofy().load().key(CommitLogMutation.createKey(revision, resourceKey));
-    return new Result<T>() {
-      @Override
-      public T now() {
-        CommitLogMutation mutation = mutationResult.now();
-        if (mutation != null) {
-          return ofy().load().fromEntity(mutation.getEntity());
-        }
-        logger.severefmt(
-            "Couldn't load mutation for revision at %s for %s, falling back to resource."
-                + " Revision: %s",
-            timestamp, resourceKey, revision);
-        return resource;
+    return () -> {
+      CommitLogMutation mutation = mutationResult.now();
+      if (mutation != null) {
+        return ofy().load().fromEntity(mutation.getEntity());
       }
+      logger.severefmt(
+          "Couldn't load mutation for revision at %s for %s, falling back to resource."
+              + " Revision: %s",
+          timestamp, resourceKey, revision);
+      return resource;
     };
   }
 

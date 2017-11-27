@@ -15,11 +15,11 @@
 package google.registry.export;
 
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
-import static google.registry.model.EntityClasses.CLASS_TO_KIND_FUNCTION;
 import static google.registry.util.TypeUtils.hasAnnotation;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
+import com.googlecode.objectify.Key;
 import google.registry.model.EntityClasses;
 import google.registry.model.annotations.NotBackedUp;
 import google.registry.model.annotations.ReportedOn;
@@ -36,7 +36,7 @@ public final class ExportConstants {
         .stream()
         .filter(hasAnnotation(VirtualEntity.class).negate())
         .filter(hasAnnotation(NotBackedUp.class).negate())
-        .map(CLASS_TO_KIND_FUNCTION)
+        .map(Key::getKind)
         .collect(toImmutableSortedSet(Ordering.natural()));
   }
 
@@ -46,7 +46,7 @@ public final class ExportConstants {
         .stream()
         .filter(hasAnnotation(ReportedOn.class))
         .filter(hasAnnotation(VirtualEntity.class).negate())
-        .map(CLASS_TO_KIND_FUNCTION)
+        .map(Key::getKind)
         .collect(toImmutableSortedSet(Ordering.natural()));
   }
 }

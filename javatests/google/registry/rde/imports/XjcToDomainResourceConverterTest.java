@@ -33,7 +33,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteSource;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -413,18 +412,15 @@ public class XjcToDomainResourceConverterTest {
   private static DomainResource convertDomainInTransaction(final XjcRdeDomain xjcDomain) {
     return ofy()
         .transact(
-            new Work<DomainResource>() {
-              @Override
-              public DomainResource run() {
-                HistoryEntry historyEntry = createHistoryEntryForDomainImport(xjcDomain);
-                BillingEvent.Recurring autorenewBillingEvent =
-                    createAutoRenewBillingEventForDomainImport(xjcDomain, historyEntry);
-                PollMessage.Autorenew autorenewPollMessage =
-                    createAutoRenewPollMessageForDomainImport(xjcDomain, historyEntry);
-                ofy().save().entities(historyEntry, autorenewBillingEvent, autorenewPollMessage);
-                return XjcToDomainResourceConverter.convertDomain(
-                    xjcDomain, autorenewBillingEvent, autorenewPollMessage);
-              }
+            () -> {
+              HistoryEntry historyEntry = createHistoryEntryForDomainImport(xjcDomain);
+              BillingEvent.Recurring autorenewBillingEvent =
+                  createAutoRenewBillingEventForDomainImport(xjcDomain, historyEntry);
+              PollMessage.Autorenew autorenewPollMessage =
+                  createAutoRenewPollMessageForDomainImport(xjcDomain, historyEntry);
+              ofy().save().entities(historyEntry, autorenewBillingEvent, autorenewPollMessage);
+              return XjcToDomainResourceConverter.convertDomain(
+                  xjcDomain, autorenewBillingEvent, autorenewPollMessage);
             });
   }
 

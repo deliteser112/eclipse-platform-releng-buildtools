@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.primitives.Longs;
-import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Unindex;
 import google.registry.model.annotations.NotBackedUp;
@@ -55,18 +54,16 @@ public class ServerSecret extends CrossTldSingleton {
                 return secret;
               }
               // Slow path - transactionally create a new ServerSecret (once per app setup).
-              return ofy().transact(new Work<ServerSecret>() {
-                @Override
-                public ServerSecret run() {
-                  // Check again for an existing secret within the transaction to avoid races.
-                  ServerSecret secret = ofy().load().entity(new ServerSecret()).now();
-                  if (secret == null) {
-                    UUID uuid = UUID.randomUUID();
-                    secret = create(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
-                    ofy().saveWithoutBackup().entity(secret).now();
-                  }
-                  return secret;
-                }});
+              return ofy().transact(() -> {
+                // Check again for an existing secret within the transaction to avoid races.
+                ServerSecret secret1 = ofy().load().entity(new ServerSecret()).now();
+                if (secret1 == null) {
+                  UUID uuid = UUID.randomUUID();
+                  secret1 = create(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
+                  ofy().saveWithoutBackup().entity(secret1).now();
+                }
+                return secret1;
+              });
             }
           });
 

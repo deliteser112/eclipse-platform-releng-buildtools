@@ -32,7 +32,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import com.google.common.net.InternetDomainName;
-import com.googlecode.objectify.Work;
 import google.registry.model.registry.Registry.TldType;
 import java.util.Optional;
 
@@ -55,17 +54,14 @@ public final class Registries {
         () ->
             ofy()
                 .doTransactionless(
-                    new Work<ImmutableMap<String, TldType>>() {
-                      @Override
-                      public ImmutableMap<String, TldType> run() {
-                        ImmutableMap.Builder<String, TldType> builder =
-                            new ImmutableMap.Builder<>();
-                        for (Registry registry :
-                            ofy().load().type(Registry.class).ancestor(getCrossTldKey())) {
-                          builder.put(registry.getTldStr(), registry.getTldType());
-                        }
-                        return builder.build();
+                    () -> {
+                      ImmutableMap.Builder<String, TldType> builder =
+                          new ImmutableMap.Builder<>();
+                      for (Registry registry :
+                          ofy().load().type(Registry.class).ancestor(getCrossTldKey())) {
+                        builder.put(registry.getTldStr(), registry.getTldType());
                       }
+                      return builder.build();
                     }));
   }
 

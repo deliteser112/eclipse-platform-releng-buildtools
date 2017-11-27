@@ -193,9 +193,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    * Compare two instances of {@link RegistrarContact} by their email addresses lexicographically.
    */
   private static final Comparator<RegistrarContact> CONTACT_EMAIL_COMPARATOR =
-      comparing(
-          (RegistrarContact arg) -> arg.getEmailAddress(),
-          (String leftProperty, String rightProperty) -> leftProperty.compareTo(rightProperty));
+      comparing(RegistrarContact::getEmailAddress, String::compareTo);
 
   /**
    * A caching {@link Supplier} of a clientId to {@link Registrar} map.
@@ -208,9 +206,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
           () ->
               ofy()
                   .doTransactionless(
-                      () -> {
-                        return Maps.uniqueIndex(loadAll(), Registrar::getClientId);
-                      }));
+                      () -> Maps.uniqueIndex(loadAll(), Registrar::getClientId)));
 
   @Parent
   Key<EntityGroupRoot> parent = getCrossTldKey();

@@ -23,11 +23,9 @@ import static java.nio.charset.StandardCharsets.US_ASCII;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
@@ -104,16 +102,12 @@ final class GenerateDnsReportCommand implements RemoteApiCommand {
               .getDsData()
               .stream()
               .map(
-                  new Function<DelegationSignerData, Map<String, ?>>() {
-                    @Override
-                    public Map<String, ?> apply(DelegationSignerData dsData) {
-                      return ImmutableMap.of(
-                          "keyTag", dsData.getKeyTag(),
-                          "algorithm", dsData.getAlgorithm(),
-                          "digestType", dsData.getDigestType(),
-                          "digest", base16().encode(dsData.getDigest()));
-                    }
-                  })
+                  dsData1 ->
+                      ImmutableMap.of(
+                          "keyTag", dsData1.getKeyTag(),
+                          "algorithm", dsData1.getAlgorithm(),
+                          "digestType", dsData1.getDigestType(),
+                          "digest", base16().encode(dsData1.getDigest())))
               .collect(toImmutableList());
       ImmutableMap.Builder<String, Object> mapBuilder = new ImmutableMap.Builder<>();
       mapBuilder.put("domain", domain.getFullyQualifiedDomainName());

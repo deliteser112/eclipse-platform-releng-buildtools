@@ -23,8 +23,8 @@ import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
-import static google.registry.util.DatastoreServiceUtils.KEY_TO_KIND_FUNCTION;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -331,22 +331,20 @@ public class DomainApplicationInfoFlowTest
     int numPreviousReads = RequestCapturingAsyncDatastoreService.getReads().size();
     doSuccessfulTest("domain_info_sunrise_response.xml", HostsState.HOSTS_EXIST);
     // Get all of the keys loaded in the flow, with each distinct load() call as a list of keys.
-    int numReadsWithContactsOrHosts =
-        (int)
-            RequestCapturingAsyncDatastoreService.getReads()
-                .stream()
-                .skip(numPreviousReads)
-                .filter(
-                    keys ->
-                        keys.stream()
-                            .map(KEY_TO_KIND_FUNCTION)
-                            .anyMatch(
-                                kind ->
-                                    ImmutableSet.of(
-                                            Key.getKind(ContactResource.class),
-                                            Key.getKind(HostResource.class))
-                                        .contains(kind)))
-                .count();
+    long numReadsWithContactsOrHosts =
+        RequestCapturingAsyncDatastoreService.getReads()
+            .stream()
+            .skip(numPreviousReads)
+            .filter(
+                keys ->
+                    keys.stream()
+                        .map(com.google.appengine.api.datastore.Key::getKind)
+                        .anyMatch(
+                            Predicates.in(
+                                ImmutableSet.of(
+                                    Key.getKind(ContactResource.class),
+                                    Key.getKind(HostResource.class)))))
+            .count();
     assertThat(numReadsWithContactsOrHosts).isEqualTo(1);
   }
 

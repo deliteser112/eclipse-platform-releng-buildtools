@@ -242,7 +242,7 @@ public class ComparatorKeyringTest {
     when(secondKeyring.getRdeSigningKey()).thenReturn(keyPair);
     Keyring comparatorKeyring = ComparatorKeyring.create(actualKeyring, secondKeyring);
 
-    assertThrows(KeyringException.class, () -> comparatorKeyring.getRdeSigningKey());
+    assertThrows(KeyringException.class, comparatorKeyring::getRdeSigningKey);
 
     assertAboutLogs()
         .that(testLogHandler)
@@ -278,7 +278,7 @@ public class ComparatorKeyringTest {
     when(secondKeyring.getRdeSigningKey()).thenThrow(new KeyringException("message"));
     Keyring comparatorKeyring = ComparatorKeyring.create(actualKeyring, secondKeyring);
 
-    assertThrows(KeyringException.class, () -> comparatorKeyring.getRdeSigningKey());
+    assertThrows(KeyringException.class, comparatorKeyring::getRdeSigningKey);
 
     assertAboutLogs().that(testLogHandler).hasNoLogsAtLevel(Level.SEVERE);
   }

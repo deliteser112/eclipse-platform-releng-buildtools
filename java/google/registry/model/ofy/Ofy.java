@@ -274,26 +274,24 @@ public class Ofy {
    * its own retryable read-only transaction.
    */
   private <R> Boolean checkIfAlreadySucceeded(final CommitLoggedWork<R> work) {
-      return work.hasRun() && transactNewReadOnly(new Work<Boolean>() {
-        @Override
-        public Boolean run() {
-          CommitLogManifest manifest = work.getManifest();
-          if (manifest == null) {
-            // Work ran but no commit log was created. This might mean that the transaction did not
-            // write anything to Datastore. We can safely retry because it only reads. (Although the
-            // transaction might have written a task to a queue, we consider that safe to retry too
-            // since we generally assume that tasks might be doubly executed.) Alternatively it
-            // might mean that the transaction wrote to Datastore but turned off commit logs by
-            // exclusively using save/deleteWithoutBackups() rather than save/delete(). Although we
-            // have no hard proof that retrying is safe, we use these methods judiciously and it is
-            // reasonable to assume that if the transaction really did succeed that the retry will
-            // either be idempotent or will fail with a non-transient error.
-            return false;
-          }
-          return Objects.equals(
-              union(work.getMutations(), manifest),
-              ImmutableSet.copyOf(load().ancestor(manifest)));
-        }});
+      return work.hasRun() && transactNewReadOnly(() -> {
+        CommitLogManifest manifest = work.getManifest();
+        if (manifest == null) {
+          // Work ran but no commit log was created. This might mean that the transaction did not
+          // write anything to Datastore. We can safely retry because it only reads. (Although the
+          // transaction might have written a task to a queue, we consider that safe to retry too
+          // since we generally assume that tasks might be doubly executed.) Alternatively it
+          // might mean that the transaction wrote to Datastore but turned off commit logs by
+          // exclusively using save/deleteWithoutBackups() rather than save/delete(). Although we
+          // have no hard proof that retrying is safe, we use these methods judiciously and it is
+          // reasonable to assume that if the transaction really did succeed that the retry will
+          // either be idempotent or will fail with a non-transient error.
+          return false;
+        }
+        return Objects.equals(
+            union(work.getMutations(), manifest),
+            ImmutableSet.copyOf(load().ancestor(manifest)));
+      });
   }
 
   /** A read-only transaction is useful to get strongly consistent reads at a shared timestamp. */

@@ -71,15 +71,12 @@ public final class SoyTemplateUtils {
     return memoize(
         () -> {
           final ImmutableMap<String, String> renames = getCssRenames(cssMap, cssMapDebug);
-          return new SoyCssRenamingMap() {
-            @Override
-            public String get(String cssClassName) {
-              List<String> result = new ArrayList<>();
-              for (String part : CSS_CLASS_SPLITTER.split(cssClassName)) {
-                result.add(renames.getOrDefault(part, part));
-              }
-              return CSS_CLASS_JOINER.join(result);
+          return (cssClassName) -> {
+            List<String> result = new ArrayList<>();
+            for (String part : CSS_CLASS_SPLITTER.split(cssClassName)) {
+              result.add(renames.getOrDefault(part, part));
             }
+            return CSS_CLASS_JOINER.join(result);
           };
         });
   }

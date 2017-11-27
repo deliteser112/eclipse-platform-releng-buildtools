@@ -26,7 +26,6 @@ import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Work;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.flows.host.HostFlowUtils;
 import google.registry.mapreduce.MapreduceRunner;
@@ -110,37 +109,34 @@ public class RdeHostLinkAction implements Runnable {
       try {
         final InternetDomainName hostName = InternetDomainName.from(xjcHost.getName());
 
-        HostLinkResult hostLinkResult = ofy().transact(new Work<HostLinkResult>() {
-          @Override
-          public HostLinkResult run() {
-            Optional<DomainResource> superordinateDomain =
-                lookupSuperordinateDomain(hostName, ofy().getTransactionTime());
-            // if suporordinateDomain is absent, this is an out of zone host and can't be linked.
-            // absent is only returned for out of zone hosts, and an exception is thrown for in
-            // zone hosts with no superordinate domain.
-            if (!superordinateDomain.isPresent()) {
-              return HostLinkResult.HOST_OUT_OF_ZONE;
-            }
-            if (superordinateDomain.get().getStatusValues().contains(StatusValue.PENDING_DELETE)) {
-              return HostLinkResult.SUPERORDINATE_DOMAIN_IN_PENDING_DELETE;
-            }
-            Key<DomainResource> superordinateDomainKey = Key.create(superordinateDomain.get());
-            // link host to superordinate domain and set time of last superordinate change to
-            // the time of the import
-            HostResource host =
-                ofy().load().now(Key.create(HostResource.class, xjcHost.getRoid()));
-            if (host == null) {
-              return HostLinkResult.HOST_NOT_FOUND;
-            }
-            // link domain to subordinate host
-            ofy().save().<EppResource>entities(
-                host.asBuilder().setSuperordinateDomain(superordinateDomainKey)
-                    .setLastSuperordinateChange(ofy().getTransactionTime())
-                    .build(),
-                superordinateDomain.get().asBuilder()
-                    .addSubordinateHost(host.getFullyQualifiedHostName()).build());
-            return HostLinkResult.HOST_LINKED;
+        HostLinkResult hostLinkResult = ofy().transact(() -> {
+          Optional<DomainResource> superordinateDomain =
+              lookupSuperordinateDomain(hostName, ofy().getTransactionTime());
+          // if suporordinateDomain is absent, this is an out of zone host and can't be linked.
+          // absent is only returned for out of zone hosts, and an exception is thrown for in
+          // zone hosts with no superordinate domain.
+          if (!superordinateDomain.isPresent()) {
+            return HostLinkResult.HOST_OUT_OF_ZONE;
           }
+          if (superordinateDomain.get().getStatusValues().contains(StatusValue.PENDING_DELETE)) {
+            return HostLinkResult.SUPERORDINATE_DOMAIN_IN_PENDING_DELETE;
+          }
+          Key<DomainResource> superordinateDomainKey = Key.create(superordinateDomain.get());
+          // link host to superordinate domain and set time of last superordinate change to
+          // the time of the import
+          HostResource host =
+              ofy().load().now(Key.create(HostResource.class, xjcHost.getRoid()));
+          if (host == null) {
+            return HostLinkResult.HOST_NOT_FOUND;
+          }
+          // link domain to subordinate host
+          ofy().save().<EppResource>entities(
+              host.asBuilder().setSuperordinateDomain(superordinateDomainKey)
+                  .setLastSuperordinateChange(ofy().getTransactionTime())
+                  .build(),
+              superordinateDomain.get().asBuilder()
+                  .addSubordinateHost(host.getFullyQualifiedHostName()).build());
+          return HostLinkResult.HOST_LINKED;
         });
         // increment counter and log appropriately based on result of transaction
         switch (hostLinkResult) {

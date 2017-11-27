@@ -15,9 +15,7 @@
 package google.registry.tools;
 
 import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import dagger.Binds;
 import dagger.Module;
@@ -50,14 +48,9 @@ class DefaultRequestFactoryModule {
     if (connectionFlags.getServer().getHost().equals("localhost")) {
       return new NetHttpTransport()
           .createRequestFactory(
-              new HttpRequestInitializer() {
-                @Override
-                public void initialize(HttpRequest request) {
-                  request
-                      .getHeaders()
-                      .setCookie("dev_appserver_login=test@example.com:true:1858047912411");
-                }
-              });
+              request -> request
+                  .getHeaders()
+                  .setCookie("dev_appserver_login=test@example.com:true:1858047912411"));
     } else {
       return new NetHttpTransport().createRequestFactory(credentialProvider.get());
     }

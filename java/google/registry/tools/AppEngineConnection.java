@@ -27,7 +27,6 @@ import com.google.api.client.http.HttpHeaders;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
-import com.google.api.client.http.HttpUnsuccessfulResponseHandler;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -98,20 +97,15 @@ class AppEngineConnection implements Connection {
     request.setFollowRedirects(false);
     request.setThrowExceptionOnExecuteError(false);
     request.setUnsuccessfulResponseHandler(
-        new HttpUnsuccessfulResponseHandler() {
-          @Override
-          public boolean handleResponse(
-              HttpRequest request, HttpResponse response, boolean supportsRetry)
-              throws IOException {
-            String errorTitle = extractHtmlTitle(getErrorHtmlAsString(response));
-            throw new IOException(
-                String.format(
-                    "Error from %s: %d %s%s",
-                    request.getUrl().toString(),
-                    response.getStatusCode(),
-                    response.getStatusMessage(),
-                    (errorTitle == null ? "" : ": " + errorTitle)));
-          }
+        (request1, response, supportsRetry) -> {
+          String errorTitle = extractHtmlTitle(getErrorHtmlAsString(response));
+          throw new IOException(
+              String.format(
+                  "Error from %s: %d %s%s",
+                  request1.getUrl().toString(),
+                  response.getStatusCode(),
+                  response.getStatusMessage(),
+                  (errorTitle == null ? "" : ": " + errorTitle)));
         });
     HttpResponse response = null;
     try {
