@@ -14,7 +14,7 @@
 
 package google.registry.whois;
 
-import static google.registry.util.ResourceUtils.readResourceUtf8;
+import google.registry.testing.TestDataHelper;
 
 /** Test helper methods for the whois package. */
 final class WhoisHelper {
@@ -24,7 +24,6 @@ final class WhoisHelper {
    * that WHOIS requires.
    */
   static String loadWhoisTestFile(String filename) {
-    return readResourceUtf8(WhoisHelper.class, "testdata/" + filename)
-        .replaceAll("\r?\n", "\r\n");
+    return TestDataHelper.loadFile(WhoisHelper.class, filename).replaceAll("\r?\n", "\r\n");
   }
 }

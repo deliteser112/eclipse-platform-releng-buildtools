@@ -15,11 +15,11 @@
 package google.registry.xjc;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static google.registry.xjc.XjcXmlTransformer.unmarshal;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import google.registry.testing.ExceptionRule;
+import google.registry.testing.TestDataHelper;
 import google.registry.xjc.epp.XjcEpp;
 import google.registry.xjc.rde.XjcRdeDeposit;
 import java.io.ByteArrayInputStream;
@@ -44,7 +44,7 @@ public class XmlTestdataTest {
 
     private Example(String filename) {
       this.xmlStream = new ByteArrayInputStream(
-          readResourceUtf8(XmlTestdataTest.class, "testdata/" + filename).getBytes(UTF_8));
+          TestDataHelper.loadFile(XmlTestdataTest.class, filename).getBytes(UTF_8));
     }
   }
 

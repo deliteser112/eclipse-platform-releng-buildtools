@@ -22,7 +22,6 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.expectThrows;
-import static google.registry.testing.TestDataHelper.applySubstitutions;
 import static google.registry.tools.server.ToolsTestData.loadUtf8;
 
 import com.google.common.collect.ImmutableList;
@@ -80,14 +79,13 @@ public class UnlockDomainCommandTest extends EppToolCommandTestCase<UnlockDomain
     List<String> params = new ArrayList<>();
     List<String> expectedXmls = new ArrayList<>();
     params.add("--client=NewRegistrar");
-    String updateDomainXml = loadUtf8("domain_unlock.xml");
     // Create 26 domains -- one more than the number of entity groups allowed in a transaction (in
     // case that was going to be the failure point).
     for (int n = 0; n < 26; n++) {
       String domain = String.format("domain%d.tld", n);
       persistLockedDomain(domain);
       params.add(domain);
-      expectedXmls.add(applySubstitutions(updateDomainXml, ImmutableMap.of("DOMAIN", domain)));
+      expectedXmls.add(loadUtf8("domain_unlock.xml", ImmutableMap.of("DOMAIN", domain)));
     }
     runCommandForced(params);
     eppVerifier().verifySentContents(expectedXmls);

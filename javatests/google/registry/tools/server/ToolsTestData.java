@@ -14,11 +14,8 @@
 
 package google.registry.tools.server;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
-import com.google.common.io.Resources;
 import google.registry.testing.TestDataHelper;
-import java.net.URL;
 import java.util.Map;
 
 /** Utility class providing easy access to contents of the {@code testdata/} directory. */
@@ -26,14 +23,14 @@ public final class ToolsTestData {
 
   /** Returns {@link ByteSource} for file in {@code tools/server/testdata/} directory. */
   public static ByteSource get(String filename) {
-    return Resources.asByteSource(getUrl(filename));
+    return TestDataHelper.loadBytes(ToolsTestData.class, filename);
   }
 
   /**
    * Loads data from file in {@code tools/server/testdata/} as a UTF-8 String.
    */
   public static String loadUtf8(String filename) {
-    return loadUtf8(filename, ImmutableMap.of());
+    return TestDataHelper.loadFile(ToolsTestData.class, filename);
   }
 
   /**
@@ -41,9 +38,5 @@ public final class ToolsTestData {
    */
   public static String loadUtf8(String filename, Map<String, String> substitutions) {
     return TestDataHelper.loadFileWithSubstitutions(ToolsTestData.class, filename, substitutions);
-  }
-
-  private static URL getUrl(String filename) {
-    return Resources.getResource(ToolsTestData.class, "testdata/" + filename);
   }
 }

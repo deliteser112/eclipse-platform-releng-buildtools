@@ -14,31 +14,21 @@
 
 package google.registry.rde;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.google.common.io.ByteSource;
-import com.google.common.io.Resources;
-import java.io.IOException;
-import java.net.URL;
+import google.registry.testing.TestDataHelper;
 
 /** Utility class providing easy access to contents of the {@code testdata/} directory. */
 public final class RdeTestData {
 
   /** Returns {@link ByteSource} for file in {@code rde/testdata/} directory. */
   public static ByteSource get(String filename) {
-    return Resources.asByteSource(getUrl(filename));
+    return TestDataHelper.loadBytes(RdeTestData.class, filename);
   }
 
   /**
    * Loads data from file in {@code rde/testdata/} as a String (assuming file is UTF-8).
-   *
-   * @throws IOException if the file couldn't be loaded from the jar.
    */
-  public static String loadUtf8(String filename) throws IOException {
-    return Resources.asCharSource(getUrl(filename), UTF_8).read();
-  }
-
-  private static URL getUrl(String filename) {
-    return Resources.getResource(RdeTestData.class, "testdata/" + filename);
+  public static String loadUtf8(String filename) {
+    return TestDataHelper.loadFile(RdeTestData.class, filename);
   }
 }

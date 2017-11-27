@@ -22,7 +22,7 @@ import static google.registry.flows.EppXmlTransformer.marshal;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.BILLING_EVENT_ID_STRIPPER;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
@@ -136,7 +136,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   }
 
   protected String readFile(String filename) {
-    return readResourceUtf8(getClass(), "testdata/" + filename);
+    return loadFile(getClass(), filename);
   }
 
   protected String readFile(String filename, Map<String, String> substitutions) {

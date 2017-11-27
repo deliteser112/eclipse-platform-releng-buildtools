@@ -14,7 +14,7 @@
 
 package google.registry.xml;
 
-import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 
 import google.registry.testing.ExceptionRule;
@@ -31,9 +31,7 @@ public class XmlTestUtilsTest {
   public final ExceptionRule thrown = new ExceptionRule();
 
   void runTest(String file1, String file2) throws Exception {
-    String s1 = readResourceUtf8(getClass(), "testdata/" + file1);
-    String s2 = readResourceUtf8(getClass(), "testdata/" + file2);
-    assertXmlEquals(s1, s2);
+    assertXmlEquals(loadFile(getClass(), file1), loadFile(getClass(), file2));
   }
 
   @Test

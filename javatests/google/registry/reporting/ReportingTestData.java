@@ -14,27 +14,19 @@
 
 package google.registry.reporting;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.google.common.io.ByteSource;
-import com.google.common.io.Resources;
-import java.io.IOException;
-import java.net.URL;
+import google.registry.testing.TestDataHelper;
 
 /** Utility class providing easy access to contents of the {@code testdata/} directory. */
 public final class ReportingTestData {
 
   /** Returns {@link ByteSource} for file in {@code reporting/testdata/} directory. */
   public static ByteSource get(String filename) {
-    return Resources.asByteSource(getUrl(filename));
+    return TestDataHelper.loadBytes(ReportingTestData.class, filename);
   }
 
   /** Returns a {@link String} from a file in the {@code reporting/testdata/} directory. */
-  public static String getString(String filename) throws IOException {
-    return Resources.asCharSource(getUrl(filename), UTF_8).read();
-  }
-
-    private static URL getUrl(String filename) {
-    return Resources.getResource(ReportingTestData.class, "testdata/" + filename);
+  public static String getString(String filename) {
+    return TestDataHelper.loadFile(ReportingTestData.class, filename);
   }
 }

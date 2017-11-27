@@ -16,10 +16,9 @@ package google.registry.tmch;
 
 import static com.google.common.base.CharMatcher.whitespace;
 import static com.google.common.io.BaseEncoding.base64;
-import static google.registry.util.ResourceUtils.readResourceBytes;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import com.google.common.io.ByteSource;
+import google.registry.testing.TestDataHelper;
 
 /** Utility class providing easy access to contents of the {@code testdata/} directory. */
 public final class TmchTestData {
@@ -29,12 +28,12 @@ public final class TmchTestData {
 
   /** Returns {@link ByteSource} for file in {@code tmch/testdata/} directory. */
   public static ByteSource loadBytes(String filename) {
-    return readResourceBytes(TmchTestData.class, "testdata/" + filename);
+    return TestDataHelper.loadBytes(TmchTestData.class, filename);
   }
 
   /** Loads data from file in {@code tmch/testdata/} as a String. */
   public static String loadString(String filename) {
-    return readResourceUtf8(TmchTestData.class, "testdata/" + filename);
+    return TestDataHelper.loadFile(TmchTestData.class, filename);
   }
 
   /** Extracts SMD XML from an ASCII-armored file. */
