@@ -32,7 +32,7 @@ java_library(
     deps = [
         "//java/google/registry/model",
         "//javatests/google/registry/testing",
-        "//third_party/java/objectify:objectify-v4_1",
+        "//third_party/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_guava",
         "@joda_time",
@@ -51,7 +51,7 @@ java_library(
         "//java/google/registry/model",
         "//java/google/registry/module/backend",
         "//java/google/registry/module/frontend",
-        "//third_party/java/objectify:objectify-v4_1",
+        "//third_party/objectify:objectify-v4_1",
         "@com_google_code_findbugs_jsr305",
         "@com_google_guava",
         "@javax_servlet_api",

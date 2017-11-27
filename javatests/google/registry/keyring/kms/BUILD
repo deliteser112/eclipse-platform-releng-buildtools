@@ -20,7 +20,7 @@ java_library(
         "//java/google/registry/model",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
-        "//third_party/java/objectify:objectify-v4_1",
+        "//third_party/objectify:objectify-v4_1",
         "@com_google_api_client",
         "@com_google_apis_google_api_services_cloudkms",
         "@com_google_code_findbugs_jsr305",

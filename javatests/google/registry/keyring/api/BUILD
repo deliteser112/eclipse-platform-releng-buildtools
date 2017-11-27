@@ -19,7 +19,6 @@ java_library(
         "@junit",
         "@org_bouncycastle_bcpg_jdk15on",
         "@org_bouncycastle_bcpkix_jdk15on",
-        "@org_hamcrest_library",
         "@org_mockito_all",
     ],
 )

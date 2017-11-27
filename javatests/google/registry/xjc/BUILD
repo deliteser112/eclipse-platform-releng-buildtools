@@ -20,7 +20,6 @@ java_library(
         "@com_google_truth",
         "@com_google_truth_extensions_truth_java8_extension",
         "@junit",
-        "@org_hamcrest_library",
     ],
 )
 

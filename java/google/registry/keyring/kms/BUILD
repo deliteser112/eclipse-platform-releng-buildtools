@@ -12,7 +12,7 @@ java_library(
         "//java/google/registry/keyring/api",
         "//java/google/registry/model",
         "//java/google/registry/util",
-        "//third_party/java/objectify:objectify-v4_1",
+        "//third_party/objectify:objectify-v4_1",
         "@com_google_api_client",
         "@com_google_apis_google_api_services_cloudkms",
         "@com_google_auto_value",

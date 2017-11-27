@@ -4,5 +4,5 @@ licenses(["notice"])  # BSD
 
 java_library(
     name = "jsch",
-    exports = ["//third_party/java/jsch/v0_1_53"],
+    exports = ["//third_party/jsch/v0_1_53"],
 )

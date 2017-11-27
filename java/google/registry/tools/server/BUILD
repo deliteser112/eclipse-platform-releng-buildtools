@@ -20,7 +20,7 @@ java_library(
         "//java/google/registry/request",
         "//java/google/registry/request/auth",
         "//java/google/registry/util",
-        "//third_party/java/objectify:objectify-v4_1",
+        "//third_party/objectify:objectify-v4_1",
         "@com_beust_jcommander",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_appengine_tools_appengine_gcs_client",

@@ -1,6 +1,6 @@
 package_group(
     name = "specific_version",
-    packages = ["//third_party/java/jsch"],
+    packages = ["//third_party/jsch"],
 )
 
 package(default_visibility = ["//visibility:public"])

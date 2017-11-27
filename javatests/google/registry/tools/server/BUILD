@@ -22,7 +22,7 @@ java_library(
         "//javatests/google/registry/model",
         "//javatests/google/registry/testing",
         "//javatests/google/registry/testing/mapreduce",
-        "//third_party/java/objectify:objectify-v4_1",
+        "//third_party/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk//:testonly",
         "@com_google_appengine_tools_appengine_gcs_client",
         "@com_google_appengine_tools_appengine_mapreduce",

@@ -21,7 +21,7 @@ java_library(
         "//java/google/registry/request:modules",
         "//java/google/registry/request/auth",
         "//java/google/registry/util",
-        "//third_party/java/objectify:objectify-v4_1",
+        "//third_party/objectify:objectify-v4_1",
         "@com_google_apis_google_api_services_bigquery",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_appengine_tools_appengine_gcs_client",

@@ -1,6 +1,6 @@
 package_group(
     name = "specific_version",
-    packages = ["//third_party/java/objectify"],
+    packages = ["//third_party/objectify"],
 )
 
 package(default_visibility = ["//visibility:public"])

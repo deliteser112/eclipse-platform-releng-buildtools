@@ -12,7 +12,7 @@ java_library(
         "//java/google/registry/model",
         "//java/google/registry/request",
         "//java/google/registry/util",
-        "//third_party/java/objectify:objectify-v4_1",
+        "//third_party/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_appengine_tools_appengine_mapreduce",
         "@com_google_appengine_tools_appengine_pipeline",
