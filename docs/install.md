@@ -7,8 +7,8 @@ This document covers the steps necessary to download, build, and deploy Nomulus.
 You will need the following programs installed on your local machine:
 
 *   A recent version of the [Java 8 JDK][java-jdk8].
-*   [Bazel build system](http://bazel.io/) (version [0.7.0][bazel-version] works
-    as of 2017-10-23).
+*   [Bazel build system](http://bazel.io/) (version [0.8.0][bazel-version] works
+    as of 2017-11-27).
 *   [Google App Engine SDK for Java][app-engine-sdk], and configure aliases to
     to the `gcloud` and `appcfg.sh` utilities (you'll use them a lot).
 *   [Git](https://git-scm.com/) version control system.
@@ -52,7 +52,7 @@ The first step is to build the project, and verify that this completes
 successfully. This will also download and install dependencies.
 
 ```shell
-$ bazel --batch build --javacopt="-target 7 -source 7" \
+$ bazel --batch build --javacopt="-target 8 -source 8" \
   //java{,tests}/google/registry/...
 INFO: Found 584 targets...
 [ .. snip .. ]
@@ -83,7 +83,7 @@ You can run the tests to verify that all expected functionality succeeds in your
 build:
 
 ```shell
-$ nice bazel --batch test  --javacopt="-target 7 -source 7" \
+$ nice bazel --batch test  --javacopt="-target 8 -source 8" \
   //javatests/google/registry/... \
   --local_resources=1000,3,1.0
 Executed 360 out of 360 tests: 360 tests pass.
@@ -181,4 +181,4 @@ See the [first steps tutorial](./first-steps-tutorial.md) for more information.
 
 [app-engine-sdk]: https://cloud.google.com/appengine/docs/java/download
 [java-jdk8]: http://www.oracle.com/technetwork/java/javase/downloads
-[bazel-version]: https://github.com/bazelbuild/bazel/releases/download/0.7.0/bazel-0.7.0-installer-linux-x86_64.sh
+[bazel-version]: https://github.com/bazelbuild/bazel/releases/download/0.8.0/bazel-0.8.0-installer-linux-x86_64.sh
