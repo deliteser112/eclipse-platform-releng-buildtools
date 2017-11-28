@@ -39,23 +39,25 @@ public final class BackendServlet extends HttpServlet {
   public void init() {
     Security.addProvider(new BouncyCastleProvider());
 
+    // If metric reporter failed to instantiate for any reason (bad keyring, bad json credential,
+    // etc), we log the error but keep the main thread running. Also the shutdown hook will only be
+    // registered if metric reporter starts up correctly.
     try {
       metricReporter.get().startAsync().awaitRunning(10, TimeUnit.SECONDS);
       logger.info("Started up MetricReporter");
-    } catch (TimeoutException timeoutException) {
-      logger.severefmt("Failed to initialize MetricReporter: %s", timeoutException);
+      LifecycleManager.getInstance()
+          .setShutdownHook(
+              () -> {
+                try {
+                  metricReporter.get().stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
+                  logger.info("Shut down MetricReporter");
+                } catch (TimeoutException timeoutException) {
+                  logger.severefmt("Failed to stop MetricReporter: %s", timeoutException);
+                }
+              });
+    } catch (Exception e) {
+      logger.severefmt(e, "Failed to initialize MetricReporter.");
     }
-
-    LifecycleManager.getInstance()
-        .setShutdownHook(
-            () -> {
-              try {
-                metricReporter.get().stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
-                logger.info("Shut down MetricReporter");
-              } catch (TimeoutException timeoutException) {
-                logger.severefmt("Failed to stop MetricReporter: %s", timeoutException);
-              }
-            });
   }
 
   @Override
