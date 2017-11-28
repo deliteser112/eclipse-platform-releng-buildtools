@@ -133,7 +133,7 @@ abstract class EppToolCommand extends ConfirmingCommand implements ServerSideCom
     String prompt = addHeader("Command(s)", Joiner.on("\n").join(commands)
         + (force ? "" : addHeader("Dry Run", Joiner.on("\n").join(processCommands(true)))));
     force = force || isDryRun();
-    return prompt.toString();
+    return prompt;
   }
 
   private List<String> processCommands(boolean dryRun) throws IOException {

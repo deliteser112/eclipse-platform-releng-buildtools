@@ -204,7 +204,7 @@ public class RdeHostLinkAction implements Runnable {
     }
   }
 
-  private static enum HostLinkResult {
+  private enum HostLinkResult {
     HOST_NOT_FOUND,
     HOST_OUT_OF_ZONE,
     SUPERORDINATE_DOMAIN_IN_PENDING_DELETE,

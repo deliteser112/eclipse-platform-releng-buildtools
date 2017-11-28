@@ -41,7 +41,7 @@ import org.bouncycastle.openpgp.PGPPublicKey;
  */
 public class KmsKeyring implements Keyring {
 
-  static enum PrivateKeyLabel {
+  enum PrivateKeyLabel {
     BRDA_SIGNING_PRIVATE,
     RDE_SIGNING_PRIVATE,
     RDE_STAGING_PRIVATE;
@@ -51,7 +51,7 @@ public class KmsKeyring implements Keyring {
     }
   }
 
-  static enum PublicKeyLabel {
+  enum PublicKeyLabel {
     BRDA_RECEIVER_PUBLIC,
     BRDA_SIGNING_PUBLIC,
     RDE_RECEIVER_PUBLIC,
@@ -63,7 +63,7 @@ public class KmsKeyring implements Keyring {
     }
   }
 
-  static enum StringKeyLabel {
+  enum StringKeyLabel {
     BRAINTREE_PRIVATE_KEY_STRING,
     ICANN_REPORTING_PASSWORD_STRING,
     JSON_CREDENTIAL_STRING,

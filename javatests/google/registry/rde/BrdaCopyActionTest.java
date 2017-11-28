@@ -35,7 +35,6 @@ import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.GcsTestingUtils;
 import google.registry.testing.GpgSystemCommandRule;
-import google.registry.testing.Providers;
 import google.registry.testing.ShardableTestCase;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -104,9 +103,9 @@ public class BrdaCopyActionTest extends ShardableTestCase {
   public void before() throws Exception {
     action.gcsUtils = gcsUtils;
     action.ghostryde = new Ghostryde(23);
-    action.pgpCompressionFactory = new RydePgpCompressionOutputStreamFactory(Providers.of(1024));
-    action.pgpEncryptionFactory = new RydePgpEncryptionOutputStreamFactory(Providers.of(1024));
-    action.pgpFileFactory = new RydePgpFileOutputStreamFactory(Providers.of(1024));
+    action.pgpCompressionFactory = new RydePgpCompressionOutputStreamFactory(() -> 1024);
+    action.pgpEncryptionFactory = new RydePgpEncryptionOutputStreamFactory(() -> 1024);
+    action.pgpFileFactory = new RydePgpFileOutputStreamFactory(() -> 1024);
     action.pgpSigningFactory = new RydePgpSigningOutputStreamFactory();
     action.tarFactory = new RydeTarOutputStreamFactory();
     action.tld = "lol";

@@ -36,7 +36,6 @@ import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeHttpSession;
-import google.registry.testing.Providers;
 import google.registry.testing.ShardableTestCase;
 import java.util.List;
 import java.util.Optional;
@@ -74,7 +73,7 @@ public class FlowRunnerTest extends ShardableTestCase {
     flowRunner.clientId = "TheRegistrar";
     flowRunner.credentials = new PasswordOnlyTransportCredentials();
     flowRunner.eppRequestSource = EppRequestSource.UNIT_TEST;
-    flowRunner.flowProvider = Providers.<Flow>of(new TestCommandFlow());
+    flowRunner.flowProvider = TestCommandFlow::new;
     flowRunner.flowClass = TestCommandFlow.class;
     flowRunner.inputXmlBytes = "<xml/>".getBytes(UTF_8);
     flowRunner.isDryRun = false;

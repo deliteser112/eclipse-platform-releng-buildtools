@@ -57,7 +57,7 @@ public class JaxbFragment<T> implements Serializable {
   }
 
   /** Deserializes a JAXB element from xml bytes. */
-  private static <T> T unfreezeInstance(byte[] instanceData, Class<? extends Object> instanceType)
+  private static <T> T unfreezeInstance(byte[] instanceData, Class<?> instanceType)
       throws IOException {
     try {
       ByteArrayInputStream bin = new ByteArrayInputStream(instanceData);

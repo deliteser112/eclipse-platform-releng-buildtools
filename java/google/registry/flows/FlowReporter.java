@@ -14,6 +14,7 @@
 
 package google.registry.flows;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.io.BaseEncoding.base64;
 import static google.registry.xml.XmlTransformer.prettyPrint;
 import static java.util.Collections.EMPTY_LIST;
@@ -22,6 +23,7 @@ import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.InputXml;
 import google.registry.flows.annotations.ReportingSpec;
@@ -105,7 +107,7 @@ public class FlowReporter {
    * just about anything could be supplied, and there's no reason to validate twice when this just
    * needs to be roughly correct.
    */
-  private static final Optional<String> extractTld(String domainName) {
+  private static Optional<String> extractTld(String domainName) {
     int index = domainName.indexOf('.');
     return index == -1
         ? Optional.empty()
@@ -116,22 +118,19 @@ public class FlowReporter {
    * Returns the set of unique results of {@link #extractTld} applied to each given domain name,
    * excluding any absent results (i.e. cases where no TLD was detected).
    */
-  public static final ImmutableSet<String> extractTlds(Iterable<String> domainNames) {
-    ImmutableSet.Builder<String> set = new ImmutableSet.Builder<>();
-    for (String domainName : domainNames) {
-      Optional<String> extractedTld = extractTld(domainName);
-      if (extractedTld.isPresent()) {
-        set.add(extractedTld.get());
-      }
-    }
-    return set.build();
+  public static ImmutableSet<String> extractTlds(Iterable<String> domainNames) {
+    return Streams.stream(domainNames)
+        .map(FlowReporter::extractTld)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .collect(toImmutableSet());
   }
 
   /**
    * Returns the ICANN activity report field for the given flow class, or the empty string if no
    * activity report field specification is found.
    */
-  private static final String extractActivityReportField(Class<? extends Flow> flowClass) {
+  private static String extractActivityReportField(Class<? extends Flow> flowClass) {
     ReportingSpec reportingSpec = flowClass.getAnnotation(ReportingSpec.class);
     if (reportingSpec != null) {
       return reportingSpec.value().getFieldName();

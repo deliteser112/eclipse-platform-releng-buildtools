@@ -64,32 +64,27 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
 
   @Override
   protected String postExecute() throws Exception {
-    StringBuilder builder = new StringBuilder();
-    // Check to see that we allocated everything.
-    return builder
-        .append(
-            ofy()
-                .transactNewReadOnly(
-                    () -> {
-                      String failureMessage =
-                          ofy()
-                              .load()
-                              .keys(applicationKeys)
-                              .values()
-                              .stream()
-                              .map(
-                                  application ->
-                                      application.getApplicationStatus()
-                                              == ApplicationStatus.ALLOCATED
-                                          ? null
-                                          : application.getFullyQualifiedDomainName())
-                              .filter(Objects::nonNull)
-                              .collect(joining("\n"));
-                      return failureMessage.isEmpty()
-                          ? "ALL SUCCEEDED"
-                          : addHeader("FAILURES", failureMessage);
-                    }))
-        .toString();
+    return ofy()
+        .transactNewReadOnly(
+            () -> {
+              String failureMessage =
+                  ofy()
+                      .load()
+                      .keys(applicationKeys)
+                      .values()
+                      .stream()
+                      .map(
+                          application ->
+                              application.getApplicationStatus()
+                                  == ApplicationStatus.ALLOCATED
+                                  ? null
+                                  : application.getFullyQualifiedDomainName())
+                      .filter(Objects::nonNull)
+                      .collect(joining("\n"));
+              return failureMessage.isEmpty()
+                  ? "ALL SUCCEEDED"
+                  : addHeader("FAILURES", failureMessage);
+            });
   }
 
   /** Extract the registration period from the XML used to create the domain application. */

@@ -67,7 +67,7 @@ public class DomainCommand {
    */
   public interface CreateOrUpdate<T extends CreateOrUpdate<T>> extends SingleResourceCommand {
     /** Creates a copy of this command with hard links to hosts and contacts. */
-    public T cloneAndLinkReferences(DateTime now) throws InvalidReferencesException;
+    T cloneAndLinkReferences(DateTime now) throws InvalidReferencesException;
   }
 
   /** The fields on "chgType" from {@link "http://tools.ietf.org/html/rfc5731"}. */

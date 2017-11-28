@@ -39,7 +39,7 @@ public enum TransferStatus {
 
   private final String message;
 
-  private TransferStatus(String message) {
+  TransferStatus(String message) {
     this.message = message;
   }
 

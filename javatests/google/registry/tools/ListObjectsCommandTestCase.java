@@ -82,12 +82,8 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     if (fields != null) {
       params.put(FIELDS_PARAM, fields);
     }
-    if (printHeaderRow.isPresent()) {
-      params.put(PRINT_HEADER_ROW_PARAM, printHeaderRow.get());
-    }
-    if (fullFieldNames.isPresent()) {
-      params.put(FULL_FIELD_NAMES_PARAM, fullFieldNames.get());
-    }
+    printHeaderRow.ifPresent(aBoolean -> params.put(PRINT_HEADER_ROW_PARAM, aBoolean));
+    fullFieldNames.ifPresent(aBoolean -> params.put(FULL_FIELD_NAMES_PARAM, aBoolean));
     if (!getTlds().isEmpty()) {
       params.put("tlds", Joiner.on(',').join(getTlds()));
     }

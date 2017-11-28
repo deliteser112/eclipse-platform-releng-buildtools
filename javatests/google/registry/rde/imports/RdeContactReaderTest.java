@@ -194,8 +194,7 @@ public class RdeContactReaderTest {
     oout.writeObject(reader);
     ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray());
     ObjectInputStream oin = new ObjectInputStream(bin);
-    RdeContactReader result = (RdeContactReader) oin.readObject();
-    return result;
+    return (RdeContactReader) oin.readObject();
   }
 
   /** Verifies that contact id and ROID match expected values */

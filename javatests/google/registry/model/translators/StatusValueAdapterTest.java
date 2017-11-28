@@ -65,7 +65,7 @@ public class StatusValueAdapterTest {
                 .build()),
             ValidationMode.LENIENT),
         UTF_8);
-    assertThat(marshalled.toString()).contains("<host:status s=\"clientUpdateProhibited\"/>");
+    assertThat(marshalled).contains("<host:status s=\"clientUpdateProhibited\"/>");
   }
 
   private StatusValue unmarshal(String statusValueXml) throws Exception {

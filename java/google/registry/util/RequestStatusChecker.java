@@ -24,11 +24,11 @@ public interface RequestStatusChecker extends Serializable {
    *
    * <p>Multiple calls must return the same value during the same Request.
    */
-  public String getLogId();
+  String getLogId();
 
   /**
    * Returns true if the given request is currently running.
    */
-  public boolean isRunning(String requestLogId);
+  boolean isRunning(String requestLogId);
 }
 

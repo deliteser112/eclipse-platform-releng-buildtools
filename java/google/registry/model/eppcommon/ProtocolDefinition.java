@@ -95,8 +95,11 @@ public class ProtocolDefinition {
     }
   }
 
-  /** Converts a service extension enum to its URI. */
-  /** This stores a map from URI back to the service extension enum. */
+  /**
+   * Converts a service extension enum to its URI.
+   *
+   *  <p>This stores a map from URI back to the service extension enum.
+   */
   private static final ImmutableMap<String, ServiceExtension> serviceExtensionByUri =
       uniqueIndex(EnumSet.allOf(ServiceExtension.class), ServiceExtension::getUri);
 

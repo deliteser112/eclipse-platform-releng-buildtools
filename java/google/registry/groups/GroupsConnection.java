@@ -25,7 +25,7 @@ import java.util.Set;
 public interface GroupsConnection {
 
   /** The role of a member in a group. */
-  public enum Role {
+  enum Role {
     MEMBER,
     MANAGER,
     OWNER
@@ -36,19 +36,19 @@ public interface GroupsConnection {
    * member already exists in the group, then it returns normally. If the group doesn't exist, then
    * it is created.
    */
-  public void addMemberToGroup(String groupKey, String email, Role role) throws IOException;
+  void addMemberToGroup(String groupKey, String email, Role role) throws IOException;
 
   /**
    * Removes a member from the specified group, or throws {@link GoogleJsonResponseException} if the
    * member doesn't exist.
    */
-  public void removeMemberFromGroup(String groupKey, String email) throws IOException;
+  void removeMemberFromGroup(String groupKey, String email) throws IOException;
 
   /**
    * Returns all of the members of the specified group. Note that it gets members only; not owners
    * or managers. Returns an empty set if the group in question does not exist.
    */
-  public Set<String> getMembersOfGroup(String groupKey) throws IOException;
+  Set<String> getMembersOfGroup(String groupKey) throws IOException;
 
   /**
    * Creates a group with the given email address (groupKey) that is open for external members to
@@ -57,5 +57,5 @@ public interface GroupsConnection {
    * including permissions on who is able to join). The configured admin owner for the Google App is
    * automatically added as an owner.
    */
-  public Group createGroup(String groupKey) throws IOException;
+  Group createGroup(String groupKey) throws IOException;
 }

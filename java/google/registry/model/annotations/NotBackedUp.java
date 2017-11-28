@@ -30,7 +30,7 @@ public @interface NotBackedUp {
   Reason reason();
 
   /** Reasons why a given entity does not need to be be backed up. */
-  public enum Reason {
+  enum Reason {
     /** This entity is transient by design and has only a short-term useful lifetime. */
     TRANSIENT,
 

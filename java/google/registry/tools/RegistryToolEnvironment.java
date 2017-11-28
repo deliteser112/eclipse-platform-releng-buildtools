@@ -40,14 +40,14 @@ enum RegistryToolEnvironment {
   private final RegistryEnvironment actualEnvironment;
   private final ImmutableMap<String, String> extraProperties;
 
-  private RegistryToolEnvironment(
+  RegistryToolEnvironment(
       RegistryEnvironment actualEnvironment,
       ImmutableMap<String, String> extraProperties) {
     this.actualEnvironment = actualEnvironment;
     this.extraProperties = extraProperties;
   }
 
-  private RegistryToolEnvironment(RegistryEnvironment actualEnvironment) {
+  RegistryToolEnvironment(RegistryEnvironment actualEnvironment) {
     this(actualEnvironment, ImmutableMap.of());
   }
 

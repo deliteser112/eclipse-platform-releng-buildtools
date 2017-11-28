@@ -54,7 +54,7 @@ public abstract class MutatingCommand extends ConfirmingCommand implements Remot
   private static class EntityChange {
 
     /** The possible types of mutation that can be performed on an entity. */
-    public static enum ChangeType {
+    public enum ChangeType {
       CREATE, DELETE, UPDATE;
 
       /** Return the ChangeType corresponding to the given combination of version existences. */

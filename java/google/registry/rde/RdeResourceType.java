@@ -36,7 +36,7 @@ public enum RdeResourceType {
   private final String uri;
   private final Set<RdeMode> modes;
 
-  private RdeResourceType(String uri, EnumSet<RdeMode> modes) {
+  RdeResourceType(String uri, EnumSet<RdeMode> modes) {
     this.uri = uri;
     this.modes = Collections.unmodifiableSet(modes);
   }

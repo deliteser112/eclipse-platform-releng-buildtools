@@ -53,7 +53,7 @@ interface EppTestComponent {
 
   /** Module for injecting fakes and mocks. */
   @Module
-  static class FakesAndMocksModule {
+  class FakesAndMocksModule {
 
     private BigQueryMetricsEnqueuer metricsEnqueuer;
     private DnsQueue dnsQueue;
@@ -143,7 +143,7 @@ interface EppTestComponent {
     }
   }
 
-  public static class FakeServerTridProvider implements ServerTridProvider {
+  class FakeServerTridProvider implements ServerTridProvider {
 
     @Override
     public String createServerTrid() {

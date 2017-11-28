@@ -139,12 +139,12 @@ public enum StatusValue implements EppEnum {
     private final ImmutableSet<Class<? extends EppResource>> classes;
 
     @SafeVarargs
-    private AllowedOn(Class<? extends EppResource>... classes) {
+    AllowedOn(Class<? extends EppResource>... classes) {
       this.classes = ImmutableSet.copyOf(classes);
     }
   }
 
-  private StatusValue(AllowedOn allowedOn) {
+  StatusValue(AllowedOn allowedOn) {
     this.allowedOn = allowedOn;
   }
 

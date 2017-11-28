@@ -136,10 +136,9 @@ public class VerifyEntityIntegrityAction implements Runnable {
             getInputs())));
   }
 
-  private static ImmutableSet<Input<? extends Object>> getInputs() {
-    ImmutableSet.Builder<Input<? extends Object>> builder =
-        new ImmutableSet.Builder<Input<? extends Object>>()
-            .add(EppResourceInputs.createIndexInput());
+  private static ImmutableSet<Input<?>> getInputs() {
+    ImmutableSet.Builder<Input<?>> builder =
+        new ImmutableSet.Builder<Input<?>>().add(EppResourceInputs.createIndexInput());
     RESOURCE_CLASSES
         .stream()
         .map(clazz -> new DatastoreKeyInput(getKind(clazz), NUM_SHARDS))
@@ -153,7 +152,7 @@ public class VerifyEntityIntegrityAction implements Runnable {
    * contact), which is used to check {@link ForeignKeyIndex} constraints, and one that is common
    * for all EppResources, to check {@link EppResourceIndex} constraints.
    */
-  private static enum EntityKind {
+  private enum EntityKind {
     DOMAIN,
     APPLICATION,
     CONTACT,

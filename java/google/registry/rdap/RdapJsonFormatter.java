@@ -161,7 +161,7 @@ public class RdapJsonFormatter {
     /** Value as it appears in RDAP messages. */
     private final String rfc7483String;
 
-    private RdapStatus(String rfc7483String) {
+    RdapStatus(String rfc7483String) {
       this.rfc7483String = rfc7483String;
     }
 
@@ -217,7 +217,7 @@ public class RdapJsonFormatter {
     /** Value as it appears in RDAP messages. */
     final String rfc7483String;
 
-    private RdapEntityRole(String rfc7483String) {
+    RdapEntityRole(String rfc7483String) {
       this.rfc7483String = rfc7483String;
     }
   }
@@ -238,7 +238,7 @@ public class RdapJsonFormatter {
     /** Value as it appears in RDAP messages. */
     private final String rfc7483String;
 
-    private RdapEventAction(String rfc7483String) {
+    RdapEventAction(String rfc7483String) {
       this.rfc7483String = rfc7483String;
     }
 
@@ -675,10 +675,8 @@ public class RdapJsonFormatter {
                 ? union(contactResource.getStatusValues(), StatusValue.LINKED)
                 : contactResource.getStatusValues(),
             contactResource.getDeletionTime().isBefore(now)));
-    if (contactType.isPresent()) {
-      jsonBuilder.put("roles",
-          ImmutableList.of(convertContactTypeToRdapRole(contactType.get())));
-    }
+    contactType.ifPresent(
+        type -> jsonBuilder.put("roles", ImmutableList.of(convertContactTypeToRdapRole(type))));
     jsonBuilder.put("links",
         ImmutableList.of(makeLink("entity", contactResource.getRepoId(), linkBase)));
     // If we are logged in as the owner of this contact, create the vCard.

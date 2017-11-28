@@ -52,7 +52,7 @@ public abstract class ImmutableObject implements Cloneable {
   @Documented
   @Retention(RUNTIME)
   @Target(FIELD)
-  public static @interface DoNotHydrate {}
+  public @interface DoNotHydrate {}
 
   @Ignore
   @XmlTransient

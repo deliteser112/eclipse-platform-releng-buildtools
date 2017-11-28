@@ -26,7 +26,6 @@ import google.registry.keyring.api.Keyring;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.GpgSystemCommandRule;
-import google.registry.testing.Providers;
 import google.registry.testing.ShardableTestCase;
 import google.registry.util.FormattingLogger;
 import java.io.File;
@@ -97,11 +96,11 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
     RydeTarOutputStreamFactory tarFactory =
         new RydeTarOutputStreamFactory();
     RydePgpFileOutputStreamFactory pgpFileFactory =
-        new RydePgpFileOutputStreamFactory(Providers.of(bufSize.get()));
+        new RydePgpFileOutputStreamFactory(bufSize::get);
     RydePgpEncryptionOutputStreamFactory pgpEncryptionFactory =
-        new RydePgpEncryptionOutputStreamFactory(Providers.of(bufSize.get()));
+        new RydePgpEncryptionOutputStreamFactory(bufSize::get);
     RydePgpCompressionOutputStreamFactory pgpCompressionFactory =
-        new RydePgpCompressionOutputStreamFactory(Providers.of(bufSize.get()));
+        new RydePgpCompressionOutputStreamFactory(bufSize::get);
     RydePgpSigningOutputStreamFactory pgpSigningFactory =
         new RydePgpSigningOutputStreamFactory();
 

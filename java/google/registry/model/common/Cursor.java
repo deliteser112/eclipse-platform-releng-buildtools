@@ -83,7 +83,7 @@ public class Cursor extends ImmutableObject {
     /** See the definition of scope on {@link #getScopeClass}. */
     private final Class<? extends ImmutableObject> scope;
 
-    private CursorType(Class<? extends ImmutableObject> scope) {
+    CursorType(Class<? extends ImmutableObject> scope) {
       this.scope = scope;
     }
 

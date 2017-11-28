@@ -512,9 +512,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
       IncompletenessWarningType incompletenessWarningType,
       Optional<Long> numDomainsRetrieved,
       DateTime now) {
-    if (numDomainsRetrieved.isPresent()) {
-      metricInformationBuilder.setNumDomainsRetrieved(numDomainsRetrieved.get());
-    }
+    numDomainsRetrieved.ifPresent(metricInformationBuilder::setNumDomainsRetrieved);
     OutputDataType outputDataType =
         (domains.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
     RdapAuthorization authorization = getAuthorization();

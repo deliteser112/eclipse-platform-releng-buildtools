@@ -32,14 +32,14 @@ public interface PremiumPricingEngine {
    * <p>Note that the fullyQualifiedDomainName must only contain a single part left of the TLD, i.e.
    * subdomains are not allowed, but multi-part TLDs are.
    */
-  public DomainPrices getDomainPrices(String fullyQualifiedDomainName, DateTime priceTime);
+  DomainPrices getDomainPrices(String fullyQualifiedDomainName, DateTime priceTime);
 
   /**
    * A class containing information on premium prices for a specific domain name.
    *
    * <p>Any implementation of PremiumPricingEngine is responsible for determining all of these.
    */
-  public static class DomainPrices {
+  class DomainPrices {
 
     private boolean isPremium;
     // TODO(b/26901539): Refactor return values to support an arbitrary list of costs for each of

@@ -40,7 +40,7 @@ public class EntityGroupRoot extends BackupGroupRoot {
   private String id;
 
   /** The root key for cross-tld resources such as registrars. */
-  public static final Key<EntityGroupRoot> getCrossTldKey() {
+  public static Key<EntityGroupRoot> getCrossTldKey() {
     return Key.create(EntityGroupRoot.class, "cross-tld");
   }
 }

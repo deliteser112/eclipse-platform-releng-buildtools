@@ -72,7 +72,7 @@ public final class SyncGroupMembersAction implements Runnable {
     final int statusCode;
     final String message;
 
-    private Result(int statusCode, String message) {
+    Result(int statusCode, String message) {
       this.statusCode = statusCode;
       this.message = message;
     }

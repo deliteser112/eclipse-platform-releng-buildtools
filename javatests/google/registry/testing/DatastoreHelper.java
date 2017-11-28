@@ -56,7 +56,6 @@ import com.google.common.collect.Streams;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
-import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Saver;
 import google.registry.dns.writer.VoidDnsWriter;
 import google.registry.model.Buildable;
@@ -1030,11 +1029,7 @@ public class DatastoreHelper {
 
   /** Force the create and update timestamps to get written into the resource. **/
   public static <R> R cloneAndSetAutoTimestamps(final R resource) {
-    return ofy().transact(new Work<R>() {
-      @Override
-      public R run() {
-        return ofy().load().fromEntity(ofy().save().toEntity(resource));
-      }});
+    return ofy().transact(() -> ofy().load().fromEntity(ofy().save().toEntity(resource)));
   }
 
   /** Returns the entire map of {@link PremiumListEntry}s for the given {@link PremiumList}. */

@@ -70,8 +70,7 @@ public final class RdeUtil {
     if (!watermarkMatcher.find()) {
       throw new XmlException("Could not find RDE watermark in XML");
     }
-    DateTime watermark = DATETIME_FORMATTER.parseDateTime(watermarkMatcher.group(1));
-    return watermark;
+    return DATETIME_FORMATTER.parseDateTime(watermarkMatcher.group(1));
   }
 
   /**

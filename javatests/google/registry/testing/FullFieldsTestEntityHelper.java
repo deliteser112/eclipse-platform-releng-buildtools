@@ -56,7 +56,7 @@ public final class FullFieldsTestEntityHelper {
 
   public static Registrar makeRegistrar(
       String clientId, String registrarName, Registrar.State state, Long ianaIdentifier) {
-    Registrar registrar = new Registrar.Builder()
+    return new Registrar.Builder()
       .setClientId(clientId)
       .setRegistrarName(registrarName)
       .setType(Registrar.Type.REAL)
@@ -82,7 +82,6 @@ public final class FullFieldsTestEntityHelper {
       .setWhoisServer("whois.example.com")
       .setReferralUrl("http://www.example.com")
       .build();
-    return registrar;
   }
 
   public static ImmutableList<RegistrarContact> makeRegistrarContacts(Registrar registrar) {

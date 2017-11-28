@@ -194,10 +194,7 @@ public class IcannReportingStager {
 
   /** Returns a list of integers (totals) as a comma separated string. */
   private String constructTotalRow(List<Integer> totals) {
-    StringBuilder rowString = new StringBuilder("Totals,,");
-    rowString.append(
-        totals.stream().map(Object::toString).collect(Collectors.joining(",")));
-    return rowString.toString();
+    return "Totals,," + totals.stream().map(Object::toString).collect(Collectors.joining(","));
   }
 
   /**
@@ -206,8 +203,8 @@ public class IcannReportingStager {
    *
    * <p>This discards the first object, which is assumed to be the TLD field.
    * */
-  private String constructRow(Iterable<? extends Object> iterable) {
-    Iterator<? extends Object> rowIter = iterable.iterator();
+  private String constructRow(Iterable<?> iterable) {
+    Iterator<?> rowIter = iterable.iterator();
     StringBuilder rowString = new StringBuilder();
     // Skip the TLD column
     rowIter.next();

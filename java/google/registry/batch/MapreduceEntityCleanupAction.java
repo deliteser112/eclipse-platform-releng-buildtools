@@ -220,11 +220,10 @@ public class MapreduceEntityCleanupAction implements Runnable {
         errorCount++;
       }
       logger.infofmt("%s: %s", actualJobId, error.orElse("deletion requested"));
-      if (payloadChunkBuilder.isPresent()) {
-        payloadChunkBuilder
-            .get()
-            .append(String.format("%s: %s\n", actualJobId, error.orElse("deletion requested")));
-      }
+      payloadChunkBuilder.ifPresent(
+          stringBuilder ->
+              stringBuilder.append(
+                  String.format("%s: %s\n", actualJobId, error.orElse("deletion requested"))));
     }
     logger.infofmt(
         "successfully requested async deletion of %s job(s); errors received on %s",

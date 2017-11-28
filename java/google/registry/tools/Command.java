@@ -26,5 +26,5 @@ public interface Command {
    * <p>Just implementing this is sufficient to use the remote api; {@link RegistryTool} will
    * install it as needed.
    */
-  public interface RemoteApiCommand extends Command {}
+  interface RemoteApiCommand extends Command {}
 }

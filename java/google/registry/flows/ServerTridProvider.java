@@ -24,5 +24,5 @@ import google.registry.model.eppcommon.Trid;
 public interface ServerTridProvider {
 
   /** Creates a new server Trid. */
-  public String createServerTrid();
+  String createServerTrid();
 }

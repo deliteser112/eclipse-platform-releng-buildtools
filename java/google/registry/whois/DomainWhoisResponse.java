@@ -95,10 +95,10 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
             // is an abuse contact, we can get an email address from it.
             .emitFieldIfDefined(
                 "Registrar Abuse Contact Email",
-                abuseContact.isPresent() ? abuseContact.get().getEmailAddress() : null)
+                abuseContact.map(RegistrarContact::getEmailAddress).orElse(null))
             .emitFieldIfDefined(
                 "Registrar Abuse Contact Phone",
-                abuseContact.isPresent() ? abuseContact.get().getPhoneNumber() : null)
+                abuseContact.map(RegistrarContact::getPhoneNumber).orElse(null))
             .emitStatusValues(domain.getStatusValues(), domain.getGracePeriods())
             .emitContact("Registrant", domain.getRegistrant(), preferUnicode)
             .emitContact("Admin", getContactReference(Type.ADMIN), preferUnicode)
@@ -123,7 +123,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
   private Key<ContactResource> getContactReference(final Type type) {
     Optional<DesignatedContact> contactOfType =
         domain.getContacts().stream().filter(d -> d.getType() == type).findFirst();
-    return contactOfType.isPresent() ? contactOfType.get().getContactKey() : null;
+    return contactOfType.map(DesignatedContact::getContactKey).orElse(null);
   }
 
   /** Output emitter with logic for domains. */

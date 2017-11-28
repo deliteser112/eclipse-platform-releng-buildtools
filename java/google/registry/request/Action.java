@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 public @interface Action {
 
   /** HTTP methods recognized by the request processor. */
-  public enum Method { GET, HEAD, POST }
+  enum Method { GET, HEAD, POST }
 
   /** HTTP path to serve the action from. The path components must be percent-escaped. */
   String path();

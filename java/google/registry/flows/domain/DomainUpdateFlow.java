@@ -193,9 +193,7 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     entitiesToSave.add(newDomain, historyEntry);
     Optional<BillingEvent.OneTime> statusUpdateBillingEvent =
         createBillingEventForStatusUpdates(existingDomain, newDomain, historyEntry, now);
-    if (statusUpdateBillingEvent.isPresent()) {
-      entitiesToSave.add(statusUpdateBillingEvent.get());
-    }
+    statusUpdateBillingEvent.ifPresent(entitiesToSave::add);
     EntityChanges entityChanges =
         customLogic.beforeSave(
             BeforeSaveParameters.newBuilder()

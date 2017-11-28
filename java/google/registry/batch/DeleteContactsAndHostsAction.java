@@ -536,7 +536,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
       private final String counterFormat;
       private final OperationResult operationResult;
 
-      private Type(String counterFormat, OperationResult operationResult) {
+      Type(String counterFormat, OperationResult operationResult) {
         this.counterFormat = counterFormat;
         this.operationResult = operationResult;
       }

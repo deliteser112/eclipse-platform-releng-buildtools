@@ -23,10 +23,6 @@ public final class Lazies {
    * Returns a {@link Lazy} that supplies a constant value.
    */
   public static <T> Lazy<T> of(final T instance) {
-    return new Lazy<T>() {
-      @Override
-      public T get() {
-        return instance;
-      }};
+    return () -> instance;
   }
 }

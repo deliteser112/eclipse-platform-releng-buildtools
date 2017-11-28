@@ -29,7 +29,7 @@ public interface TransportCredentials {
   void validate(Registrar registrar, String password) throws AuthenticationErrorException;
 
   /** Registrar password is incorrect. */
-  static class BadRegistrarPasswordException extends AuthenticationErrorException {
+  class BadRegistrarPasswordException extends AuthenticationErrorException {
     public BadRegistrarPasswordException() {
       super("Registrar password is incorrect");
     }

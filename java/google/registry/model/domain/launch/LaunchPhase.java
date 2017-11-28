@@ -68,7 +68,7 @@ public class LaunchPhase extends ImmutableObject {
   /**
    * Returns a map of the static final fields to their values, case-converted.
    */
-  private static final ImmutableMap<String, LaunchPhase> initEnumMapping() {
+  private static ImmutableMap<String, LaunchPhase> initEnumMapping() {
     ImmutableMap.Builder<String, LaunchPhase> builder = new ImmutableMap.Builder<>();
     for (Entry<String, LaunchPhase> entry : getTypesafeEnumMapping(LaunchPhase.class).entrySet()) {
       builder.put(UPPER_UNDERSCORE.to(LOWER_CAMEL, entry.getKey()), entry.getValue());

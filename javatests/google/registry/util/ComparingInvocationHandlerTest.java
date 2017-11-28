@@ -33,7 +33,7 @@ public class ComparingInvocationHandlerTest {
 
   static class Dummy {}
 
-  static interface MyInterface {
+  interface MyInterface {
     String func(int a, String b);
 
     Dummy func();

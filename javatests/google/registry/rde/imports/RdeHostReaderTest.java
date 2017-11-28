@@ -190,8 +190,7 @@ public class RdeHostReaderTest {
     oout.writeObject(reader);
     ByteArrayInputStream bin = new ByteArrayInputStream(bout.toByteArray());
     ObjectInputStream oin = new ObjectInputStream(bin);
-    RdeHostReader result = (RdeHostReader) oin.readObject();
-    return result;
+    return (RdeHostReader) oin.readObject();
   }
 
   /** Verifies that domain name and ROID match expected values */

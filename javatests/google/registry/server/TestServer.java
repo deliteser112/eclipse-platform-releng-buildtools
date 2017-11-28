@@ -121,7 +121,7 @@ public final class TestServer {
    * main event loop, for post-request processing.
    */
   public void ping() {
-    requestQueue.add(new FutureTask<Void>(doNothing(), null));
+    requestQueue.add(new FutureTask<>(doNothing(), null));
   }
 
   /** Stops the HTTP server. */

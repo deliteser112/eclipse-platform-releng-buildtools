@@ -37,7 +37,7 @@ public interface WhoisResponse {
 
   /** A wrapper class for the plaintext response of a WHOIS command and its number of results. */
   @AutoValue
-  abstract static class WhoisResponseResults {
+  abstract class WhoisResponseResults {
     public abstract String plainTextOutput();
     public abstract int numResults();
 

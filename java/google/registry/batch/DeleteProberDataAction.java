@@ -138,7 +138,7 @@ public class DeleteProberDataAction implements Runnable {
         if (proberRoidSuffixes.contains(roidSuffix)) {
           deleteDomain(key);
         } else {
-          getContext().incrementCounter(String.format("skipped, non-prober data"));
+          getContext().incrementCounter("skipped, non-prober data");
         }
       } catch (Throwable t) {
         logger.severefmt(t, "Error while deleting prober data for key %s", key);

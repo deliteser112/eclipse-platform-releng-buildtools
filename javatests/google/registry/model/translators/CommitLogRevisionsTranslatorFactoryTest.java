@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
-import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
 import google.registry.model.common.CrossTldSingleton;
 import google.registry.model.ofy.CommitLogManifest;
@@ -155,11 +154,7 @@ public class CommitLogRevisionsTranslatorFactoryTest {
     save(new TestObject());
     clock.advanceBy(standardDays(1));
     com.google.appengine.api.datastore.Entity entity =
-        ofy().transactNewReadOnly(new Work<com.google.appengine.api.datastore.Entity>() {
-          @Override
-          public com.google.appengine.api.datastore.Entity run() {
-            return ofy().save().toEntity(reload());
-          }});
+        ofy().transactNewReadOnly(() -> ofy().save().toEntity(reload()));
     assertThat(entity.getProperties().keySet()).containsExactly("revisions.key", "revisions.value");
     assertThat(entity.getProperties()).containsEntry(
         "revisions.key", ImmutableList.of(START_TIME.toDate(), START_TIME.plusDays(1).toDate()));
@@ -176,11 +171,7 @@ public class CommitLogRevisionsTranslatorFactoryTest {
   @Test
   public void testLoad_missingRevisionRawProperties_createsEmptyObject() throws Exception {
     com.google.appengine.api.datastore.Entity entity =
-        ofy().transactNewReadOnly(new Work<com.google.appengine.api.datastore.Entity>() {
-          @Override
-          public com.google.appengine.api.datastore.Entity run() {
-            return ofy().save().toEntity(new TestObject());
-          }});
+        ofy().transactNewReadOnly(() -> ofy().save().toEntity(new TestObject()));
     entity.removeProperty("revisions.key");
     entity.removeProperty("revisions.value");
     TestObject object = ofy().load().fromEntity(entity);

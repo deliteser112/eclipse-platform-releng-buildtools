@@ -24,10 +24,6 @@ public final class Providers {
    *
    */
   public static <T> Provider<T> of(final T instance) {
-    return new Provider<T>() {
-      @Override
-      public T get() {
-        return instance;
-      }};
+    return () -> instance;
   }
 }

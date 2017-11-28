@@ -189,47 +189,41 @@ public class RdeImportUtils {
 
   public static BillingEvent.Recurring createAutoRenewBillingEventForDomainImport(
       XjcRdeDomain domain, HistoryEntry historyEntry) {
-    final BillingEvent.Recurring billingEvent =
-        new BillingEvent.Recurring.Builder()
-            .setReason(Reason.RENEW)
-            .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
-            .setTargetId(domain.getRoid())
-            .setClientId(domain.getClID())
-            .setEventTime(domain.getExDate())
-            .setRecurrenceEndTime(END_OF_TIME)
-            .setParent(historyEntry)
-            .build();
-    return billingEvent;
+    return new BillingEvent.Recurring.Builder()
+        .setReason(Reason.RENEW)
+        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
+        .setTargetId(domain.getRoid())
+        .setClientId(domain.getClID())
+        .setEventTime(domain.getExDate())
+        .setRecurrenceEndTime(END_OF_TIME)
+        .setParent(historyEntry)
+        .build();
   }
 
   public static PollMessage.Autorenew createAutoRenewPollMessageForDomainImport(
       XjcRdeDomain domain, HistoryEntry historyEntry) {
-    final PollMessage.Autorenew pollMessage =
-        new PollMessage.Autorenew.Builder()
-            .setTargetId(domain.getRoid())
-            .setClientId(domain.getClID())
-            .setEventTime(domain.getExDate())
-            .setMsg("Domain was auto-renewed.")
-            .setParent(historyEntry)
-            .build();
-    return pollMessage;
+    return new PollMessage.Autorenew.Builder()
+        .setTargetId(domain.getRoid())
+        .setClientId(domain.getClID())
+        .setEventTime(domain.getExDate())
+        .setMsg("Domain was auto-renewed.")
+        .setParent(historyEntry)
+        .build();
   }
 
   public static HistoryEntry createHistoryEntryForDomainImport(XjcRdeDomain domain) {
     XjcRdeDomainElement element = new XjcRdeDomainElement(domain);
-    final HistoryEntry historyEntry =
-        new HistoryEntry.Builder()
-            .setType(HistoryEntry.Type.RDE_IMPORT)
-            .setClientId(domain.getClID())
-            .setTrid(generateTridForImport())
-            .setModificationTime(ofy().getTransactionTime())
-            .setXmlBytes(getObjectXml(element))
-            .setBySuperuser(true)
-            .setReason("RDE Import")
-            .setRequestedByRegistrar(false)
-            .setParent(Key.create(null, DomainResource.class, domain.getRoid()))
-            .build();
-    return historyEntry;
+    return new HistoryEntry.Builder()
+        .setType(HistoryEntry.Type.RDE_IMPORT)
+        .setClientId(domain.getClID())
+        .setTrid(generateTridForImport())
+        .setModificationTime(ofy().getTransactionTime())
+        .setXmlBytes(getObjectXml(element))
+        .setBySuperuser(true)
+        .setReason("RDE Import")
+        .setRequestedByRegistrar(false)
+        .setParent(Key.create(null, DomainResource.class, domain.getRoid()))
+        .build();
   }
 
   public static byte[] getObjectXml(Object jaxbElement) {

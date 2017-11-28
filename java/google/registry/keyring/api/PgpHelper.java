@@ -45,7 +45,7 @@ public final class PgpHelper {
    * Narrowed key search requirements.
    * @see PgpHelper#lookupPublicKey
    */
-  public static enum KeyRequirement { ENCRYPT, SIGN, ENCRYPT_SIGN }
+  public enum KeyRequirement { ENCRYPT, SIGN, ENCRYPT_SIGN }
 
   /** Converts {@code publicKey} to bytes. */
   public static byte[] convertPublicKeyToBytes(PGPPublicKey publicKey) {

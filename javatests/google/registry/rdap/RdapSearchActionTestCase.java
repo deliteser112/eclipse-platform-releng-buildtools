@@ -75,15 +75,9 @@ public class RdapSearchActionTestCase {
             .setRequestMethod(requestMethod)
             .setStatusCode(metricStatusCode)
             .setIncompletenessWarningType(incompletenessWarningType);
-    if (numDomainsRetrieved.isPresent()) {
-      builder.setNumDomainsRetrieved(numDomainsRetrieved.get());
-    }
-    if (numHostsRetrieved.isPresent()) {
-      builder.setNumHostsRetrieved(numHostsRetrieved.get());
-    }
-    if (numContactsRetrieved.isPresent()) {
-      builder.setNumContactsRetrieved(numContactsRetrieved.get());
-    }
+    numDomainsRetrieved.ifPresent(builder::setNumDomainsRetrieved);
+    numHostsRetrieved.ifPresent(builder::setNumHostsRetrieved);
+    numContactsRetrieved.ifPresent(builder::setNumContactsRetrieved);
     verify(rdapMetrics).updateMetrics(builder.build());
   }
 }

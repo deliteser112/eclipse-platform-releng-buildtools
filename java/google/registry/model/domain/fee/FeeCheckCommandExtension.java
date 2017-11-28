@@ -38,9 +38,9 @@ public interface FeeCheckCommandExtension<
    *
    * <p>Returns null if this version of the fee extension doesn't specify currency at the top level.
    */
-  public CurrencyUnit getCurrency();
+  CurrencyUnit getCurrency();
 
-  public ImmutableSet<C> getItems();
+  ImmutableSet<C> getItems();
 
-  public R createResponse(ImmutableList<? extends FeeCheckResponseExtensionItem> items);
+  R createResponse(ImmutableList<? extends FeeCheckResponseExtensionItem> items);
 }

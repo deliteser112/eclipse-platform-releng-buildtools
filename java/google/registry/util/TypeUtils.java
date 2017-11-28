@@ -101,7 +101,7 @@ public class TypeUtils {
   }
 
   /** Returns a predicate that tests whether classes are annotated with the given annotation. */
-  public static final Predicate<Class<?>> hasAnnotation(
+  public static Predicate<Class<?>> hasAnnotation(
       final Class<? extends Annotation> annotation) {
     return clazz -> clazz.isAnnotationPresent(annotation);
   }

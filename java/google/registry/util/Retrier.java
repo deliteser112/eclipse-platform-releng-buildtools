@@ -39,7 +39,7 @@ public class Retrier implements Serializable {
   private final int attempts;
 
   /** Holds functions to call whenever the code being retried fails. */
-  public static interface FailureReporter {
+  public interface FailureReporter {
 
     /**
      * Called after a retriable failure happened.
@@ -48,7 +48,7 @@ public class Retrier implements Serializable {
      *
      * <p>Not called at all if the retrier succeeded on its first attempt.
      */
-    public void beforeRetry(Throwable thrown, int failures, int maxAttempts);
+    void beforeRetry(Throwable thrown, int failures, int maxAttempts);
 
     /**
      * Called after a a non-retriable error.
@@ -58,7 +58,7 @@ public class Retrier implements Serializable {
      *
      * <p>Not called at all if the retrier succeeds.
      */
-    public void afterFinalFailure(Throwable thrown, int failures);
+    void afterFinalFailure(Throwable thrown, int failures);
   }
 
   @Inject

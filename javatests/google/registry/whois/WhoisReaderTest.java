@@ -47,7 +47,7 @@ public class WhoisReaderTest {
     WhoisReader.logger.addHandler(testLogHandler);
   }
 
-  @SuppressWarnings("TypeParameterUnusedInFormals") // XXX: Generic abuse ftw.
+  @SuppressWarnings({"TypeParameterUnusedInFormals", "unchecked"})
   <T> T readCommand(String commandStr) throws Exception {
     return (T)
         new WhoisReader(new WhoisCommandFactory())

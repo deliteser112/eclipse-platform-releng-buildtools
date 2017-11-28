@@ -47,7 +47,7 @@ public final class BackupModule {
   /** Dagger qualifier for backups. */
   @Qualifier
   @Documented
-  public static @interface Backups {}
+  public @interface Backups {}
 
   /** Number of threads in the threaded executor. */
   private static final int NUM_THREADS = 10;

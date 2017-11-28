@@ -81,9 +81,7 @@ class LevelDbUtil {
     pos = addRecordHeader(bytes, pos, type, data.length);
 
     // Write the contents of "data".
-    for (int i = 0; i < data.length; ++i) {
-      bytes[pos + i] = data[i];
-    }
+    System.arraycopy(data, 0, bytes, pos, data.length);
 
     return pos + data.length;
   }

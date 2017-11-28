@@ -67,7 +67,7 @@ abstract class CreateOrUpdatePremiumListCommand extends ConfirmingCommand
 
   abstract String getCommandPath();
 
-  ImmutableMap<String, ? extends Object> getParameterMap() {
+  ImmutableMap<String, ?> getParameterMap() {
     return ImmutableMap.of();
   }
 

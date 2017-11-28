@@ -46,6 +46,7 @@ import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -429,9 +430,7 @@ public class DnsUpdateWriterTest {
   private void assertThatUpdateAdds(
       Update update, String resourceName, int recordType, String... resourceData) {
     ArrayList<String> expectedData = new ArrayList<>();
-    for (String resourceDatum : resourceData) {
-      expectedData.add(resourceDatum);
-    }
+    Collections.addAll(expectedData, resourceData);
 
     ArrayList<String> actualData = new ArrayList<>();
     for (Record record : findUpdateRecords(update, resourceName, recordType)) {

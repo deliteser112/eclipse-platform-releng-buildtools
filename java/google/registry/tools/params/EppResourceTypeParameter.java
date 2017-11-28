@@ -27,7 +27,7 @@ public enum EppResourceTypeParameter {
 
   private final Class<? extends EppResource> type;
 
-  private EppResourceTypeParameter(Class<? extends EppResource> type) {
+  EppResourceTypeParameter(Class<? extends EppResource> type) {
     this.type = type;
   }
 

@@ -84,7 +84,7 @@ public class RegistrarContact extends ImmutableObject implements Jsonifiable {
       return required;
     }
 
-    private Type(String display, boolean required) {
+    Type(String display, boolean required) {
       this.displayName = display;
       this.required = required;
     }

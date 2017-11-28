@@ -110,7 +110,7 @@ public class AsyncFlowMetrics {
 
     private final String metricLabelValue;
 
-    private OperationType(String metricLabelValue) {
+    OperationType(String metricLabelValue) {
       this.metricLabelValue = metricLabelValue;
     }
 
@@ -135,7 +135,7 @@ public class AsyncFlowMetrics {
 
     private final String metricLabelValue;
 
-    private OperationResult(String metricLabelValue) {
+    OperationResult(String metricLabelValue) {
       this.metricLabelValue = metricLabelValue;
     }
 

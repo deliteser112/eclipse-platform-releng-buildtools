@@ -66,7 +66,7 @@ public final class EppResourceUtils {
 
   /** Helper to call {@link EppResource#cloneProjectedAtTime} without warnings. */
   @SuppressWarnings("unchecked")
-  private static final <T extends EppResource> T cloneProjectedAtTime(T resource, DateTime now) {
+  private static <T extends EppResource> T cloneProjectedAtTime(T resource, DateTime now) {
     return (T) resource.cloneProjectedAtTime(now);
   }
 

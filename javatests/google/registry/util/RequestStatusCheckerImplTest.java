@@ -50,7 +50,7 @@ public final class RequestStatusCheckerImplTest {
    * Because LogQuery doesn't have a .equals function, we have to create an actual matcher to make
    * sure we have the right argument in our mocks.
    */
-  private static final LogQuery expectedLogQuery(final String requestLogId) {
+  private static LogQuery expectedLogQuery(final String requestLogId) {
     return argThat(
         new ArgumentMatcher<LogQuery>() {
           @Override

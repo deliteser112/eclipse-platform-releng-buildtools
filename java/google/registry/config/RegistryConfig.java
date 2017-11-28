@@ -56,7 +56,7 @@ public final class RegistryConfig {
   @Qualifier
   @Retention(RUNTIME)
   @Documented
-  public static @interface Config {
+  public @interface Config {
     String value() default "";
   }
 

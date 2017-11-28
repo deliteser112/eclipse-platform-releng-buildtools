@@ -42,6 +42,8 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.ApplicationStatus;
+import google.registry.model.eppcommon.Address;
+import google.registry.model.eppcommon.PhoneNumber;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarAddress;
 import google.registry.model.registrar.RegistrarContact;
@@ -190,9 +192,8 @@ final class GenerateAuctionDataCommand implements RemoteApiCommand {
             Optional.ofNullable(registrant.getInternationalizedPostalInfo())
                 .orElse(registrant.getLocalizedPostalInfo()));
     Optional<ContactAddress> address =
-        Optional.ofNullable(postalInfo.isPresent() ? postalInfo.get().getAddress() : null);
-    List<String> street =
-        address.isPresent() ? address.get().getStreet() : ImmutableList.of();
+        Optional.ofNullable(postalInfo.map(PostalInfo::getAddress).orElse(null));
+    List<String> street = address.map(Address::getStreet).orElseGet(ImmutableList::of);
     Optional<ContactPhoneNumber> phoneNumber = Optional.ofNullable(registrant.getVoiceNumber());
 
     // Each line containing an auction participant has the following format:
@@ -211,16 +212,16 @@ final class GenerateAuctionDataCommand implements RemoteApiCommand {
                     ? formatter.print(domainApplication.getLastEppUpdateTime())
                     : "",
                 domainApplication.getCurrentSponsorClientId(),
-                nullToEmpty(postalInfo.isPresent() ? postalInfo.get().getName() : ""),
-                nullToEmpty(postalInfo.isPresent() ? postalInfo.get().getOrg() : ""),
+                nullToEmpty(postalInfo.map(PostalInfo::getName).orElse("")),
+                nullToEmpty(postalInfo.map(PostalInfo::getOrg).orElse("")),
                 Iterables.getFirst(street, ""),
                 street.stream().skip(1).filter(Objects::nonNull).collect(joining(" ")),
-                nullToEmpty(address.isPresent() ? address.get().getCity() : ""),
-                nullToEmpty(address.isPresent() ? address.get().getState() : ""),
-                nullToEmpty(address.isPresent() ? address.get().getZip() : ""),
-                nullToEmpty(address.isPresent() ? address.get().getCountryCode() : ""),
+                nullToEmpty(address.map(Address::getCity).orElse("")),
+                nullToEmpty(address.map(Address::getState).orElse("")),
+                nullToEmpty(address.map(Address::getZip).orElse("")),
+                nullToEmpty(address.map(Address::getCountryCode).orElse("")),
                 nullToEmpty(registrant.getEmailAddress()),
-                nullToEmpty(phoneNumber.isPresent() ? phoneNumber.get().toPhoneString() : ""),
+                nullToEmpty(phoneNumber.map(PhoneNumber::toPhoneString).orElse("")),
                 "",
                 domainApplication.getEncodedSignedMarks().isEmpty() ? "Landrush" : "Sunrise"));
   }
@@ -234,8 +235,7 @@ final class GenerateAuctionDataCommand implements RemoteApiCommand {
         Optional.ofNullable(
             Optional.ofNullable(registrar.getLocalizedAddress())
                 .orElse(registrar.getInternationalizedAddress()));
-    List<String> street =
-        address.isPresent() ? address.get().getStreet() : ImmutableList.of();
+    List<String> street = address.map(Address::getStreet).orElseGet(ImmutableList::of);
 
     // Each line containing the registrar of an auction participant has the following format:
     //
@@ -244,14 +244,16 @@ final class GenerateAuctionDataCommand implements RemoteApiCommand {
     // Registrar Country|Registrar Email|Registrar Telephone
     return Joiner.on('|').join(ImmutableList.of(
         registrar.getClientId(),
-        contact.isPresent() ? contact.get().getName() : "N/A",
+        contact.map(RegistrarContact::getName).orElse("N/A"),
         nullToEmpty(registrar.getRegistrarName()),
         Iterables.getFirst(street, ""),
         Iterables.get(street, 1, ""),
-        address.isPresent() ? nullToEmpty(address.get().getCity()) : "",
-        address.isPresent() ? nullToEmpty(address.get().getState()) : "",
-        address.isPresent() ? nullToEmpty(address.get().getZip()) : "",
-        address.isPresent() ? nullToEmpty(address.get().getCountryCode()) : "",
+        address.map(registrarAddress -> nullToEmpty(registrarAddress.getCity())).orElse(""),
+        address.map(registrarAddress1 ->
+            nullToEmpty(registrarAddress1.getState())).orElse(""),
+        address.map(registrarAddress2 -> nullToEmpty(registrarAddress2.getZip())).orElse(""),
+        address.map(registrarAddress3 ->
+            nullToEmpty(registrarAddress3.getCountryCode())).orElse(""),
         nullToEmpty(registrar.getEmailAddress()),
         nullToEmpty(registrar.getPhoneNumber())));
   }

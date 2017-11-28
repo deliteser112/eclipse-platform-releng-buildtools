@@ -509,9 +509,7 @@ public class DomainFlowUtils {
     // If the resultant autorenew poll message would have no poll messages to deliver, then just
     // delete it. Otherwise save it with the new end time.
     if (isAtOrAfter(updatedAutorenewPollMessage.getEventTime(), newEndTime)) {
-      if (autorenewPollMessage.isPresent()) {
-        ofy().delete().entity(autorenewPollMessage.get());
-      }
+      autorenewPollMessage.ifPresent(autorenew -> ofy().delete().entity(autorenew));
     } else {
       ofy().save().entity(updatedAutorenewPollMessage);
     }

@@ -76,8 +76,6 @@ public final class FakeKeyringModule {
         PgpHelper.lookupKeyPair(publics, privates, SIGNING_KEY_EMAIL, SIGN);
     final PGPPublicKey rdeReceiverKey =
         PgpHelper.lookupPublicKey(publics, RECEIVER_KEY_EMAIL, ENCRYPT);
-    final PGPKeyPair brdaSigningKey = rdeSigningKey;
-    final PGPPublicKey brdaReceiverKey = rdeReceiverKey;
     final String sshPublic =
         readResourceUtf8(FakeKeyringModule.class, "testdata/registry-unittest.id_rsa.pub");
     final String sshPrivate =
@@ -141,12 +139,12 @@ public final class FakeKeyringModule {
 
       @Override
       public PGPKeyPair getBrdaSigningKey() {
-        return brdaSigningKey;
+        return rdeSigningKey;
       }
 
       @Override
       public PGPPublicKey getBrdaReceiverKey() {
-        return brdaReceiverKey;
+        return rdeReceiverKey;
       }
 
       @Override

@@ -198,8 +198,7 @@ public class RdeParser implements Closeable {
     checkArgumentNotNull(uri, "uri cannot be null");
     try {
       if (isAtElement(uri, name)) {
-        Object element = unmarshaller.unmarshal(reader);
-        return element;
+        return unmarshaller.unmarshal(reader);
       } else {
         throw new IllegalStateException(String.format("Not at element %s:%s", uri, name));
       }

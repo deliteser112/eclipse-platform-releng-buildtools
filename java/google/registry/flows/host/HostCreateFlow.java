@@ -113,15 +113,15 @@ public final class HostCreateFlow implements TransactionalFlow {
           ? new SubordinateHostMustHaveIpException()
           : new UnexpectedExternalHostIpException();
     }
-    HostResource newHost = new Builder()
-        .setCreationClientId(clientId)
-        .setPersistedCurrentSponsorClientId(clientId)
-        .setFullyQualifiedHostName(targetId)
-        .setInetAddresses(command.getInetAddresses())
-        .setRepoId(createRepoId(ObjectifyService.allocateId(), roidSuffix))
-        .setSuperordinateDomain(
-            superordinateDomain.isPresent() ? Key.create(superordinateDomain.get()) : null)
-        .build();
+    HostResource newHost =
+        new Builder()
+            .setCreationClientId(clientId)
+            .setPersistedCurrentSponsorClientId(clientId)
+            .setFullyQualifiedHostName(targetId)
+            .setInetAddresses(command.getInetAddresses())
+            .setRepoId(createRepoId(ObjectifyService.allocateId(), roidSuffix))
+            .setSuperordinateDomain(superordinateDomain.map(Key::create).orElse(null))
+            .build();
     historyBuilder
         .setType(HistoryEntry.Type.HOST_CREATE)
         .setModificationTime(now)

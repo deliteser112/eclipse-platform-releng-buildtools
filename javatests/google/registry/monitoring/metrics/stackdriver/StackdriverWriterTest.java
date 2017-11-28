@@ -58,7 +58,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 
@@ -172,14 +171,7 @@ public class StackdriverWriterTest {
 
   @Test
   public void testWrite_invalidMetricType_throwsException() throws Exception {
-    when(metric.getValueClass())
-        .thenAnswer(
-            new Answer<Class<?>>() {
-              @Override
-              public Class<?> answer(InvocationOnMock invocation) throws Throwable {
-                return Object.class;
-              }
-            });
+    when(metric.getValueClass()).thenAnswer((Answer<Class<?>>) invocation -> Object.class);
     StackdriverWriter writer =
         new StackdriverWriter(client, PROJECT, MONITORED_RESOURCE, MAX_QPS, MAX_POINTS_PER_REQUEST);
 

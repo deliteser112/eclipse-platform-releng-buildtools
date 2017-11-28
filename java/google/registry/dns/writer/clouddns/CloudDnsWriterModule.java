@@ -44,15 +44,12 @@ public final class CloudDnsWriterModule {
       @Config("projectId") String projectId,
       @Config("cloudDnsRootUrl") Optional<String> rootUrl,
       @Config("cloudDnsServicePath") Optional<String> servicePath) {
-    Dns.Builder builder = new Dns.Builder(transport, jsonFactory, credential.apply(DnsScopes.all()))
-        .setApplicationName(projectId);
+    Dns.Builder builder =
+        new Dns.Builder(transport, jsonFactory, credential.apply(DnsScopes.all()))
+            .setApplicationName(projectId);
 
-    if (rootUrl.isPresent()) {
-      builder.setRootUrl(rootUrl.get());
-    }
-    if (servicePath.isPresent()) {
-      builder.setServicePath(servicePath.get());
-    }
+    rootUrl.ifPresent(builder::setRootUrl);
+    servicePath.ifPresent(builder::setServicePath);
 
     return builder.build();
   }

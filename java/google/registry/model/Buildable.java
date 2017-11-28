@@ -33,7 +33,7 @@ public interface Buildable {
    *
    * <p>This can be used without implementing {@link Buildable}.
    */
-  public abstract static class Builder<S> {
+  abstract class Builder<S> {
 
     private S instance;
 
@@ -77,7 +77,7 @@ public interface Buildable {
   }
 
   /** Boilerplate for abstract immutable builders that need to be able to cast "this". */
-  public abstract class GenericBuilder<S, B extends GenericBuilder<?, ?>> extends Builder<S> {
+  abstract class GenericBuilder<S, B extends GenericBuilder<?, ?>> extends Builder<S> {
     protected GenericBuilder() {}
 
     protected GenericBuilder(S instance) {
@@ -100,7 +100,7 @@ public interface Buildable {
    *
    * @param <T> the derived type
    */
-  public interface Overlayable<T> extends Buildable {
+  interface Overlayable<T> extends Buildable {
     /** Return an overlay of this object using non-null fields from the source. */
     T overlay(T source);
   }

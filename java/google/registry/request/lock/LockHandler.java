@@ -37,7 +37,7 @@ public interface LockHandler extends Serializable {
    *
    * @return true if all locks were acquired and the callable was run; false otherwise.
    */
-  public boolean executeWithLocks(
+  boolean executeWithLocks(
       final Callable<Void> callable,
       @Nullable String tld,
       Duration leaseLength,

@@ -42,7 +42,7 @@ public interface ResourceCommand {
    * a base class that gives them all of the resource's fields. The domain "Info" command also can't
    * do that since it's "name" field is overloaded with a "hosts" attribute.
    */
-  public interface SingleResourceCommand extends ResourceCommand {
+  interface SingleResourceCommand extends ResourceCommand {
     String getTargetId();
 
     AuthInfo getAuthInfo();
@@ -50,7 +50,7 @@ public interface ResourceCommand {
 
   /** Abstract implementation of {@link ResourceCommand}. */
   @XmlTransient
-  public abstract static class AbstractSingleResourceCommand extends ImmutableObject
+  abstract class AbstractSingleResourceCommand extends ImmutableObject
       implements SingleResourceCommand {
     @XmlElements({
         @XmlElement(name = "id"),
@@ -70,7 +70,7 @@ public interface ResourceCommand {
 
   /** A check command for an {@link EppResource}. */
   @XmlTransient
-  public static class ResourceCheck extends ImmutableObject implements ResourceCommand {
+  class ResourceCheck extends ImmutableObject implements ResourceCommand {
     @XmlElements({
         @XmlElement(name = "id"),
         @XmlElement(name = "name") })
@@ -82,7 +82,7 @@ public interface ResourceCommand {
   }
 
   /** A create command, or the inner change (as opposed to add or remove) part of an update. */
-  public interface ResourceCreateOrChange<B extends Builder<?>> {}
+  interface ResourceCreateOrChange<B extends Builder<?>> {}
 
   /**
    * An update command for an {@link EppResource}.
@@ -91,7 +91,7 @@ public interface ResourceCommand {
    * @param <C> the change type
    */
   @XmlTransient
-  public abstract static class ResourceUpdate
+  abstract class ResourceUpdate
       <A extends ResourceUpdate.AddRemove,
        B extends EppResource.Builder<?, ?>,
        C extends ResourceCreateOrChange<B>> extends AbstractSingleResourceCommand  {

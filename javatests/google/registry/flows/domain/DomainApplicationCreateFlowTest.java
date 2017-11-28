@@ -124,7 +124,6 @@ import google.registry.model.smd.SignedMarkRevocationList;
 import google.registry.tmch.TmchCertificateAuthority;
 import google.registry.tmch.TmchXmlSignature;
 import java.security.GeneralSecurityException;
-import java.util.Collections;
 import java.util.List;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -205,7 +204,7 @@ public class DomainApplicationCreateFlowTest
     // Check that the domain application was created and persisted with a history entry.
     // We want the one with the newest creation time, but lacking an index we need this code.
     List<DomainApplication> applications = ofy().load().type(DomainApplication.class).list();
-    Collections.sort(applications, comparing(DomainApplication::getCreationTime));
+    applications.sort(comparing(DomainApplication::getCreationTime));
     assertAboutApplications().that(getLast(applications))
         .hasFullyQualifiedDomainName(getUniqueIdFromCommand()).and()
         .hasNumEncodedSignedMarks(sunriseApplication ? 1 : 0).and()

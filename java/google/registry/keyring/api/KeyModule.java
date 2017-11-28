@@ -32,7 +32,7 @@ public final class KeyModule {
   /** Dagger qualifier for keys from {@link Keyring}. */
   @Qualifier
   @Documented
-  public static @interface Key {
+  public @interface Key {
     String value();
   }
 

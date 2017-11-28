@@ -110,7 +110,7 @@ public class MapreduceEntityCleanupActionTest
                 .setInput(input)
                 .setMapper(new TestMapper())
                 .setReducer(new TestReducer())
-                .setOutput(new InMemoryOutput<String>())
+                .setOutput(new InMemoryOutput<>())
                 .setNumReducers(2)
                 .build(),
             new MapReduceSettings.Builder().setWorkerQueueName(QUEUE_NAME).build());

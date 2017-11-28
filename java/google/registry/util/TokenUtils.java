@@ -33,7 +33,7 @@ public final class TokenUtils {
     private final String prefix;
     private final int length;
 
-    private TokenType(String prefix, int length) {
+    TokenType(String prefix, int length) {
       this.prefix = prefix;
       this.length = length;
     }

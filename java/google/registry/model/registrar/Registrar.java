@@ -133,7 +133,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
      */
     private final Predicate<Long> ianaIdValidator;
 
-    private Type(Predicate<Long> ianaIdValidator) {
+    Type(Predicate<Long> ianaIdValidator) {
       this.ianaIdValidator = ianaIdValidator;
     }
 

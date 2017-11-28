@@ -69,7 +69,6 @@ import google.registry.testing.FakeSleeper;
 import google.registry.testing.GpgSystemCommandRule;
 import google.registry.testing.IoSpyRule;
 import google.registry.testing.Lazies;
-import google.registry.testing.Providers;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.testing.sftp.SftpServerRule;
 import google.registry.util.Retrier;
@@ -156,21 +155,21 @@ public class RdeUploadActionTest {
         }};
 
   private final RydePgpFileOutputStreamFactory literalFactory =
-      new RydePgpFileOutputStreamFactory(Providers.of(BUFFER_SIZE)) {
+      new RydePgpFileOutputStreamFactory(() -> BUFFER_SIZE) {
         @Override
         public RydePgpFileOutputStream create(OutputStream os, DateTime modified, String filename) {
           return ioSpy.register(super.create(os, modified, filename));
         }};
 
   private final RydePgpEncryptionOutputStreamFactory encryptFactory =
-      new RydePgpEncryptionOutputStreamFactory(Providers.of(BUFFER_SIZE)) {
+      new RydePgpEncryptionOutputStreamFactory(() -> BUFFER_SIZE) {
         @Override
         public RydePgpEncryptionOutputStream create(OutputStream os, PGPPublicKey publicKey) {
           return ioSpy.register(super.create(os, publicKey));
         }};
 
   private final RydePgpCompressionOutputStreamFactory compressFactory =
-      new RydePgpCompressionOutputStreamFactory(Providers.of(BUFFER_SIZE)) {
+      new RydePgpCompressionOutputStreamFactory(() -> BUFFER_SIZE) {
         @Override
         public RydePgpCompressionOutputStream create(OutputStream os) {
           return ioSpy.register(super.create(os));
@@ -190,10 +189,11 @@ public class RdeUploadActionTest {
       action.gcsUtils = new GcsUtils(gcsService, BUFFER_SIZE);
       action.ghostryde = new Ghostryde(BUFFER_SIZE);
       action.lazyJsch =
-          Lazies.of(
+          () ->
               JSchModule.provideJSch(
                   "user@ignored",
-                  keyring.getRdeSshClientPrivateKey(), keyring.getRdeSshClientPublicKey()));
+                  keyring.getRdeSshClientPrivateKey(),
+                  keyring.getRdeSshClientPublicKey());
       action.jschSshSessionFactory = new JSchSshSessionFactory(standardSeconds(3));
       action.response = response;
       action.pgpCompressionFactory = compressFactory;

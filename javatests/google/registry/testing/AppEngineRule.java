@@ -298,12 +298,7 @@ public final class AppEngineRule extends ExternalResource {
     }
 
     if (clock != null) {
-      helper.setClock(new com.google.appengine.tools.development.Clock() {
-        @Override
-        public long getCurrentTime() {
-          return clock.nowUtc().getMillis();
-        }
-      });
+      helper.setClock(() -> clock.nowUtc().getMillis());
     }
 
     if (withLocalModules) {

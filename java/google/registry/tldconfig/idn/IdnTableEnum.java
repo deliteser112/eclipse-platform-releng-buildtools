@@ -29,7 +29,7 @@ public enum IdnTableEnum {
 
   private final IdnTable table;
 
-  private IdnTableEnum() {
+  IdnTableEnum() {
     this.table = load(Ascii.toLowerCase(name()));
   }
 

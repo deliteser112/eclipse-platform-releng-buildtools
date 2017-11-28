@@ -25,7 +25,7 @@ public interface VoidCallable {
   void call() throws Exception;
 
   /** Returns the VoidCallable as a {@link Callable} that returns null. */
-  public default Callable<Void> asCallable() {
+  default Callable<Void> asCallable() {
     return () -> {
       call();
       return null;

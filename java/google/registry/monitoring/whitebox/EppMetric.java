@@ -110,9 +110,7 @@ public abstract class EppMetric implements BigQueryMetric {
    */
   private static <T> void addOptional(
       String key, Optional<T> value, ImmutableMap.Builder<String, String> map) {
-    if (value.isPresent()) {
-      map.put(key, value.get().toString());
-    }
+    value.ifPresent(t -> map.put(key, t.toString()));
   }
 
   /** Create an {@link EppMetric.Builder}. */

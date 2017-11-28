@@ -23,7 +23,6 @@ import google.registry.rde.Ghostryde.DecodeResult;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.InjectRule;
-import google.registry.testing.Providers;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,8 +67,8 @@ public class GhostrydeCommandTest extends CommandTestCase<GhostrydeCommand> {
   public void before() throws Exception {
     keyring = new FakeKeyringModule().get();
     command.ghostryde = new Ghostryde(1024);
-    command.rdeStagingDecryptionKey = Providers.of(keyring.getRdeStagingDecryptionKey());
-    command.rdeStagingEncryptionKey = Providers.of(keyring.getRdeStagingEncryptionKey());
+    command.rdeStagingDecryptionKey = keyring::getRdeStagingDecryptionKey;
+    command.rdeStagingEncryptionKey = keyring::getRdeStagingEncryptionKey;
   }
 
   @Test

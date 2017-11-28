@@ -40,7 +40,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
-import google.registry.testing.Lazies;
 import google.registry.testing.TaskQueueHelper;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.CapturingLogHandler;
@@ -94,7 +93,7 @@ public class BigqueryPollJobActionTest {
     action.enqueuer = ENQUEUER;
     action.projectId = PROJECT_ID;
     action.jobId = JOB_ID;
-    action.chainedQueueName = Lazies.of(CHAINED_QUEUE_NAME);
+    action.chainedQueueName = () -> CHAINED_QUEUE_NAME;
     Logger.getLogger(BigqueryPollJobAction.class.getName()).addHandler(logHandler);
   }
 

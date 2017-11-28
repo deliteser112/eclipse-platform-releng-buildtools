@@ -152,9 +152,8 @@ public final class HostUpdateFlow implements TransactionalFlow {
     AddRemove remove = command.getInnerRemove();
     checkSameValuesNotAddedAndRemoved(add.getStatusValues(), remove.getStatusValues());
     checkSameValuesNotAddedAndRemoved(add.getInetAddresses(), remove.getInetAddresses());
-    Key<DomainResource> newSuperordinateDomainKey = newSuperordinateDomain.isPresent()
-        ? Key.create(newSuperordinateDomain.get())
-        : null;
+    Key<DomainResource> newSuperordinateDomainKey =
+        newSuperordinateDomain.map(Key::create).orElse(null);
     // If the superordinateDomain field is changing, set the lastSuperordinateChange to now.
     DateTime lastSuperordinateChange =
         Objects.equals(newSuperordinateDomainKey, existingHost.getSuperordinateDomain())

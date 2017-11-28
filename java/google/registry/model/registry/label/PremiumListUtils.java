@@ -174,8 +174,7 @@ public final class PremiumListUtils {
           "PremiumList was concurrently edited");
       PremiumList newList = premiumList.asBuilder()
           .setLastUpdateTime(now)
-          .setCreationTime(
-              oldPremiumList.isPresent() ? oldPremiumList.get().creationTime : now)
+          .setCreationTime(oldPremiumList.isPresent() ? oldPremiumList.get().creationTime : now)
           .setRevision(newRevisionKey)
           .build();
       ofy().save().entities(newList, newRevision);
@@ -184,9 +183,7 @@ public final class PremiumListUtils {
     // Update the cache.
     cachePremiumLists.put(premiumList.getName(), updated);
     // Delete the entities under the old PremiumList.
-    if (oldPremiumList.isPresent()) {
-      deleteRevisionAndEntriesOfPremiumList(oldPremiumList.get());
-    }
+    oldPremiumList.ifPresent(PremiumListUtils::deleteRevisionAndEntriesOfPremiumList);
     return updated;
   }
 

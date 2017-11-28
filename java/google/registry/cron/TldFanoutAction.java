@@ -127,16 +127,19 @@ public final class TldFanoutAction implements Runnable {
             excludes);
     Multimap<String, String> flowThruParams = filterKeys(params, not(in(CONTROL_PARAMS)));
     Queue taskQueue = getQueue(queue);
-    String outputPayload = String.format(
-        "OK: Launched the following %d tasks in queue %s\n", tlds.size(), queue);
+    StringBuilder outputPayload =
+        new StringBuilder(
+            String.format("OK: Launched the following %d tasks in queue %s\n", tlds.size(), queue));
     for (String tld : tlds) {
       TaskOptions taskOptions = createTaskOptions(tld, flowThruParams);
       TaskHandle taskHandle = taskEnqueuer.enqueue(taskQueue, taskOptions);
-      outputPayload += String.format(
-          "- Task: %s, tld: %s, endpoint: %s\n", taskHandle.getName(), tld, taskOptions.getUrl());
+      outputPayload.append(
+          String.format(
+              "- Task: %s, tld: %s, endpoint: %s\n",
+              taskHandle.getName(), tld, taskOptions.getUrl()));
     }
     response.setContentType(PLAIN_TEXT_UTF_8);
-    response.setPayload(outputPayload);
+    response.setPayload(outputPayload.toString());
   }
 
   private TaskOptions createTaskOptions(String tld, Multimap<String, String> params) {

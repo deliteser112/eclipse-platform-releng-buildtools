@@ -117,8 +117,7 @@ public class RdeReporter {
     logger.infofmt("Received response:\n%s", new String(responseBytes, UTF_8));
     XjcIirdeaResponseElement response = XjcXmlTransformer.unmarshal(
         XjcIirdeaResponseElement.class, new ByteArrayInputStream(responseBytes));
-    XjcIirdeaResult result = response.getResult();
-    return result;
+    return response.getResult();
   }
 
   private URL makeReportUrl(String tld, String id) {

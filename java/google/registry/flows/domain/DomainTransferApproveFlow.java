@@ -207,9 +207,7 @@ public final class DomainTransferApproveFlow implements TransactionalFlow {
         autorenewEvent,
         gainingClientPollMessage,
         gainingClientAutorenewPollMessage);
-    if (billingEvent.isPresent()) {
-      entitiesToSave.add(billingEvent.get());
-    }
+    billingEvent.ifPresent(entitiesToSave::add);
     ofy().save().entities(entitiesToSave.build());
     // Delete the billing event and poll messages that were written in case the transfer would have
     // been implicitly server approved.

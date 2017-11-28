@@ -17,6 +17,7 @@ package google.registry.monitoring.metrics.contrib;
 import static com.google.common.truth.Truth.assertAbout;
 
 import com.google.common.truth.FailureMetadata;
+import com.google.common.truth.Subject;
 import google.registry.monitoring.metrics.Metric;
 import google.registry.monitoring.metrics.MetricPoint;
 import javax.annotation.Nullable;
@@ -43,8 +44,11 @@ import javax.annotation.Nullable;
  */
 public final class LongMetricSubject extends AbstractMetricSubject<Long, LongMetricSubject> {
 
-  /** {@link Subject.Factory} for assertions about {@link Metric<Long>} objects. */
-  /** Static assertThat({@link Metric<Long>}) shortcut method. */
+  /**
+   * Static assertThat({@link Metric<Long>}) shortcut method.
+   *
+   * @see Subject.Factory for assertions about {@link Metric<Long>} objects.
+   */
   public static LongMetricSubject assertThat(@Nullable Metric<Long> metric) {
     return assertAbout(LongMetricSubject::new).that(metric);
   }

@@ -197,9 +197,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
             existingDomain,
             trid,
             gainingClientId,
-            (feesAndCredits.isPresent())
-                ? Optional.of(feesAndCredits.get().getTotalCost())
-                : Optional.empty(),
+            feesAndCredits.map(FeesAndCredits::getTotalCost),
             now);
     // Create the transfer data that represents the pending transfer.
     TransferData pendingTransferData =

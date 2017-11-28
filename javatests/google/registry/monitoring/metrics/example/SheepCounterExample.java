@@ -46,7 +46,7 @@ import java.util.logging.Logger;
 /** A sample application which uses the Metrics API to count sheep while sleeping. */
 public final class SheepCounterExample {
 
-  /**
+  /*
    * The code below for using a custom {@link LogManager} is only necessary to enable logging at JVM
    * shutdown to show the shutdown logs of {@link MetricReporter} in this small standalone
    * application.

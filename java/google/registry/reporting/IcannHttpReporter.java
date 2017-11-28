@@ -121,8 +121,7 @@ public class IcannHttpReporter {
     XjcIirdeaResponseElement response =
         XjcXmlTransformer.unmarshal(
             XjcIirdeaResponseElement.class, new ByteArrayInputStream(content));
-    XjcIirdeaResult result = response.getResult();
-    return result;
+    return response.getResult();
   }
 
   /** Verifies a given report filename matches the pattern tld-reportType-yyyyMM.csv. */

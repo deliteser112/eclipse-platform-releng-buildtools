@@ -61,7 +61,7 @@ class EscrowTaskRunner {
      *
      * @param watermark the logical time for a point-in-time view of Datastore
      */
-    abstract void runWithLock(DateTime watermark) throws Exception;
+    void runWithLock(DateTime watermark) throws Exception;
   }
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

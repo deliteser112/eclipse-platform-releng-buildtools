@@ -393,12 +393,13 @@ public class OfyTest {
     // Normal loading should come from the session cache and shouldn't reflect the mutation.
     assertThat(ofy().load().entity(someObject).now()).isEqualTo(someObject);
     // Loading inside doWithFreshSessionCache() should reflect the mutation.
-    boolean ran = ofy().doWithFreshSessionCache(new Work<Boolean>() {
-      @Override
-      public Boolean run() {
-        assertThat(ofy().load().entity(someObject).now()).isEqualTo(modifiedObject);
-        return true;
-      }});
+    boolean ran =
+        ofy()
+            .doWithFreshSessionCache(
+                () -> {
+                  assertThat(ofy().load().entity(someObject).now()).isEqualTo(modifiedObject);
+                  return true;
+                });
     assertThat(ran).isTrue();
     // Test the normal loading again to verify that we've restored the original session unchanged.
     assertThat(ofy().load().entity(someObject).now()).isEqualTo(someObject);
