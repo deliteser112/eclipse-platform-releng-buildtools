@@ -22,25 +22,21 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.expectThrows;
-import static google.registry.tools.server.ToolsTestData.loadUtf8;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.Before;
 import org.junit.Test;
 
 /** Unit tests for {@link UnlockDomainCommand}. */
 public class UnlockDomainCommandTest extends EppToolCommandTestCase<UnlockDomainCommand> {
 
-  /** Gets an overridden eppVerifier that has superuser set to true on it. */
-  @Override
-  EppToolVerifier eppVerifier() {
-    return new EppToolVerifier()
-        .withConnection(connection)
-        .withClientId("NewRegistrar")
-        .asSuperuser();
+  @Before
+  public void before() {
+    eppVerifier.expectSuperuser();
   }
 
   private static void persistLockedDomain(String domainName) {
@@ -57,10 +53,7 @@ public class UnlockDomainCommandTest extends EppToolCommandTestCase<UnlockDomain
   public void testSuccess_sendsCorrectEppXml() throws Exception {
     persistLockedDomain("example.tld");
     runCommandForced("--client=NewRegistrar", "example.tld");
-    eppVerifier()
-        .verifySentContents(
-            ImmutableList.of(
-                loadUtf8("domain_unlock.xml", ImmutableMap.of("DOMAIN", "example.tld"))));
+    eppVerifier.verifySent("domain_unlock.xml", ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   @Test
@@ -71,24 +64,24 @@ public class UnlockDomainCommandTest extends EppToolCommandTestCase<UnlockDomain
             .addStatusValues(ImmutableSet.of(SERVER_DELETE_PROHIBITED, SERVER_UPDATE_PROHIBITED))
             .build());
     runCommandForced("--client=NewRegistrar", "example.tld");
-    eppVerifier().verifySent("domain_unlock_partial_statuses.xml");
+    eppVerifier.verifySent("domain_unlock_partial_statuses.xml");
   }
 
   @Test
   public void testSuccess_manyDomains() throws Exception {
-    List<String> params = new ArrayList<>();
-    List<String> expectedXmls = new ArrayList<>();
-    params.add("--client=NewRegistrar");
     // Create 26 domains -- one more than the number of entity groups allowed in a transaction (in
     // case that was going to be the failure point).
+    List<String> domains = new ArrayList<>();
     for (int n = 0; n < 26; n++) {
       String domain = String.format("domain%d.tld", n);
       persistLockedDomain(domain);
-      params.add(domain);
-      expectedXmls.add(loadUtf8("domain_unlock.xml", ImmutableMap.of("DOMAIN", domain)));
+      domains.add(domain);
     }
-    runCommandForced(params);
-    eppVerifier().verifySentContents(expectedXmls);
+    runCommandForced(
+        ImmutableList.<String>builder().add("--client=NewRegistrar").addAll(domains).build());
+    for (String domain : domains) {
+      eppVerifier.verifySent("domain_unlock.xml", ImmutableMap.of("DOMAIN", domain));
+    }
   }
 
   @Test
@@ -104,7 +97,6 @@ public class UnlockDomainCommandTest extends EppToolCommandTestCase<UnlockDomain
   public void testSuccess_alreadyUnlockedDomain_performsNoAction() throws Exception {
     persistActiveDomain("example.tld");
     runCommandForced("--client=NewRegistrar", "example.tld");
-    eppVerifier().verifyNothingSent();
   }
 
   @Test

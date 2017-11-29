@@ -23,15 +23,15 @@ public class DomainCheckFeeCommandTest extends EppToolCommandTestCase<DomainChec
   @Test
   public void testSuccess() throws Exception {
     runCommandForced("--client=NewRegistrar", "example.tld");
-    eppVerifier().verifySent("domain_check_fee.xml");
+    eppVerifier.verifySent("domain_check_fee.xml");
   }
 
   @Test
   public void testSuccess_multipleTlds() throws Exception {
     runCommandForced("--client=NewRegistrar", "example.tld", "example.tld2");
-    eppVerifier().verifySent(
-        "domain_check_fee.xml",
-        "domain_check_fee_second_tld.xml");
+    eppVerifier
+        .verifySent("domain_check_fee.xml")
+        .verifySent("domain_check_fee_second_tld.xml");
   }
 
   @Test
@@ -41,7 +41,7 @@ public class DomainCheckFeeCommandTest extends EppToolCommandTestCase<DomainChec
         "example.tld",
         "example2.tld",
         "example3.tld");
-    eppVerifier().verifySent("domain_check_fee_multiple.xml");
+    eppVerifier.verifySent("domain_check_fee_multiple.xml");
   }
 
   @Test
@@ -52,9 +52,9 @@ public class DomainCheckFeeCommandTest extends EppToolCommandTestCase<DomainChec
         "example2.tld",
         "example3.tld",
         "example.tld2");
-    eppVerifier().verifySent(
-        "domain_check_fee_multiple.xml",
-        "domain_check_fee_second_tld.xml");
+    eppVerifier
+        .verifySent("domain_check_fee_multiple.xml")
+        .verifySent("domain_check_fee_second_tld.xml");
   }
 
   @Test

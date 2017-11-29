@@ -23,14 +23,14 @@ public class DeleteHostCommandTest extends EppToolCommandTestCase<DeleteHostComm
   @Test
   public void testSuccess() throws Exception {
     runCommand("--client=NewRegistrar", "--host=ns1.example.tld", "--force", "--reason=Test");
-    eppVerifier().verifySent("host_delete.xml");
+    eppVerifier.verifySent("host_delete.xml");
   }
 
   @Test
   public void testSuccess_multipleWordReason() throws Exception {
     runCommand(
         "--client=NewRegistrar", "--host=ns1.example.tld", "--force", "--reason=\"Test test\"");
-    eppVerifier().verifySent("host_delete_multiple_word_reason.xml");
+    eppVerifier.verifySent("host_delete_multiple_word_reason.xml");
   }
 
   @Test
@@ -41,7 +41,7 @@ public class DeleteHostCommandTest extends EppToolCommandTestCase<DeleteHostComm
         "--force",
         "--reason=Test",
         "--registrar_request=false");
-    eppVerifier().verifySent("host_delete.xml");
+    eppVerifier.verifySent("host_delete.xml");
   }
 
   @Test
@@ -52,7 +52,7 @@ public class DeleteHostCommandTest extends EppToolCommandTestCase<DeleteHostComm
         "--force",
         "--reason=Test",
         "--registrar_request=true");
-    eppVerifier().verifySent("host_delete_by_registrar.xml");
+    eppVerifier.verifySent("host_delete_by_registrar.xml");
   }
 
   @Test

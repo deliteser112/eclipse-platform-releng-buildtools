@@ -70,9 +70,9 @@ public class UniformRapidSuspensionCommandTest
         "--domain_name=evil.tld",
         "--hosts=urs1.example.com,urs2.example.com",
         "--dsdata={\"keyTag\":1,\"alg\":1,\"digestType\":1,\"digest\":\"abc\"}");
-    eppVerifier()
-        .withClientId("CharlestonRoad")
-        .asSuperuser()
+    eppVerifier
+        .expectClientId("CharlestonRoad")
+        .expectSuperuser()
         .verifySent("uniform_rapid_suspension.xml");
     assertInStdout("uniform_rapid_suspension --undo");
     assertInStdout("--domain_name evil.tld");
@@ -87,9 +87,9 @@ public class UniformRapidSuspensionCommandTest
   public void testCommand_respectsExistingHost() throws Exception {
     persistDomainWithHosts(urs2, ns1);
     runCommandForced("--domain_name=evil.tld", "--hosts=urs1.example.com,urs2.example.com");
-    eppVerifier()
-        .withClientId("CharlestonRoad")
-        .asSuperuser()
+    eppVerifier
+        .expectClientId("CharlestonRoad")
+        .expectSuperuser()
         .verifySent("uniform_rapid_suspension_existing_host.xml");
     assertInStdout("uniform_rapid_suspension --undo ");
     assertInStdout("--domain_name evil.tld");
@@ -101,6 +101,7 @@ public class UniformRapidSuspensionCommandTest
   public void testCommand_generatesUndoForUndelegatedDomain() throws Exception {
     persistActiveDomain("evil.tld");
     runCommandForced("--domain_name=evil.tld", "--hosts=urs1.example.com,urs2.example.com");
+    eppVerifier.verifySentAny();
     assertInStdout("uniform_rapid_suspension --undo");
     assertInStdout("--domain_name evil.tld");
     assertNotInStdout("--locks_to_preserve");
@@ -113,6 +114,7 @@ public class UniformRapidSuspensionCommandTest
           .addStatusValue(StatusValue.SERVER_DELETE_PROHIBITED)
           .build());
     runCommandForced("--domain_name=evil.tld");
+    eppVerifier.verifySentAny();
     assertInStdout("uniform_rapid_suspension --undo");
     assertInStdout("--domain_name evil.tld");
     assertInStdout("--locks_to_preserve serverDeleteProhibited");
@@ -123,9 +125,9 @@ public class UniformRapidSuspensionCommandTest
     persistDomainWithHosts(urs1, urs2);
     runCommandForced(
         "--domain_name=evil.tld", "--undo", "--hosts=ns1.example.com,ns2.example.com");
-    eppVerifier()
-        .withClientId("CharlestonRoad")
-        .asSuperuser()
+    eppVerifier
+        .expectClientId("CharlestonRoad")
+        .expectSuperuser()
         .verifySent("uniform_rapid_suspension_undo.xml");
     assertNotInStdout("--undo");  // Undo shouldn't print a new undo command.
   }
@@ -138,9 +140,9 @@ public class UniformRapidSuspensionCommandTest
         "--undo",
         "--locks_to_preserve=serverDeleteProhibited",
         "--hosts=ns1.example.com,ns2.example.com");
-    eppVerifier()
-        .withClientId("CharlestonRoad")
-        .asSuperuser()
+    eppVerifier
+        .expectClientId("CharlestonRoad")
+        .expectSuperuser()
         .verifySent("uniform_rapid_suspension_undo_preserve.xml");
     assertNotInStdout("--undo");  // Undo shouldn't print a new undo command.
   }

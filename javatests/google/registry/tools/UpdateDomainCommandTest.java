@@ -49,7 +49,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
         "--registrant=crr-admin",
         "--password=2fooBAR",
         "example.tld");
-    eppVerifier().verifySent("domain_update_complete.xml");
+    eppVerifier.verifySent("domain_update_complete.xml");
   }
 
   @Test
@@ -68,7 +68,9 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
         "--password=2fooBAR",
         "example.tld",
         "example.abc");
-    eppVerifier().verifySent("domain_update_complete.xml", "domain_update_complete_abc.xml");
+    eppVerifier
+        .verifySent("domain_update_complete.xml")
+        .verifySent("domain_update_complete_abc.xml");
   }
 
   @Test
@@ -80,7 +82,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
         "--add_techs=crr-tech2",
         "--add_statuses=serverDeleteProhibited",
         "example.tld");
-    eppVerifier().verifySent("domain_update_add.xml");
+    eppVerifier.verifySent("domain_update_add.xml");
   }
 
   @Test
@@ -92,14 +94,14 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
         "--remove_techs=crr-tech1",
         "--remove_statuses=serverHold",
         "example.tld");
-    eppVerifier().verifySent("domain_update_remove.xml");
+    eppVerifier.verifySent("domain_update_remove.xml");
   }
 
   @Test
   public void testSuccess_change() throws Exception {
     runCommandForced(
         "--client=NewRegistrar", "--registrant=crr-admin", "--password=2fooBAR", "example.tld");
-    eppVerifier().verifySent("domain_update_change.xml");
+    eppVerifier.verifySent("domain_update_change.xml");
   }
 
   @Test
@@ -112,7 +114,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
         newDomainResource("example.tld").asBuilder().setNameservers(nameservers).build());
     runCommandForced(
         "--client=NewRegistrar", "--nameservers=ns2.zdns.google,ns3.zdns.google", "example.tld");
-    eppVerifier().verifySent("domain_update_set_nameservers.xml");
+    eppVerifier.verifySent("domain_update_set_nameservers.xml");
   }
 
   @Test
@@ -142,7 +144,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
         "--admins=crr-admin2,crr-admin3",
         "--techs=crr-tech2,crr-tech3",
         "example.tld");
-    eppVerifier().verifySent("domain_update_set_contacts.xml");
+    eppVerifier.verifySent("domain_update_set_contacts.xml");
   }
 
   @Test
@@ -160,7 +162,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
 
     runCommandForced(
         "--client=NewRegistrar", "--statuses=clientRenewProhibited,serverHold", "example.tld");
-    eppVerifier().verifySent("domain_update_set_statuses.xml");
+    eppVerifier.verifySent("domain_update_set_statuses.xml");
   }
 
   @Test
@@ -186,7 +188,6 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
     assertThat(e)
         .hasMessageThat()
         .containsMatch("The domain 'example.tld' has status SERVER_UPDATE_PROHIBITED");
-    eppVerifier().verifyNothingSent();
   }
 
   @Test

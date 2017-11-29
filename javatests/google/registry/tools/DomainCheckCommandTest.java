@@ -23,15 +23,15 @@ public class DomainCheckCommandTest extends EppToolCommandTestCase<DomainCheckCo
   @Test
   public void testSuccess() throws Exception {
     runCommandForced("--client=NewRegistrar", "example.tld");
-    eppVerifier().verifySent("domain_check.xml");
+    eppVerifier.verifySent("domain_check.xml");
   }
 
   @Test
   public void testSuccess_multipleTlds() throws Exception {
     runCommandForced("--client=NewRegistrar", "example.tld", "example.tld2");
-    eppVerifier().verifySent(
-        "domain_check.xml",
-        "domain_check_second_tld.xml");
+    eppVerifier
+        .verifySent("domain_check.xml")
+        .verifySent("domain_check_second_tld.xml");
   }
 
   @Test
@@ -41,7 +41,7 @@ public class DomainCheckCommandTest extends EppToolCommandTestCase<DomainCheckCo
         "example.tld",
         "example2.tld",
         "example3.tld");
-    eppVerifier().verifySent("domain_check_multiple.xml");
+    eppVerifier.verifySent("domain_check_multiple.xml");
   }
 
   @Test
@@ -52,9 +52,9 @@ public class DomainCheckCommandTest extends EppToolCommandTestCase<DomainCheckCo
         "example2.tld",
         "example3.tld",
         "example.tld2");
-    eppVerifier().verifySent(
-        "domain_check_multiple.xml",
-        "domain_check_second_tld.xml");
+    eppVerifier
+        .verifySent("domain_check_multiple.xml")
+        .verifySent("domain_check_second_tld.xml");
   }
 
   @Test

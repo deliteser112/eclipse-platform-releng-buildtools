@@ -29,7 +29,7 @@ public class CreateHostCommandTest extends EppToolCommandTestCase<CreateHostComm
         "--client=NewRegistrar",
         "--host=example.tld",
         "--addresses=162.100.102.99,2001:0db8:85a3:0000:0000:8a2e:0370:7334,4.5.6.7");
-    eppVerifier().verifySent("host_create_complete.xml");
+    eppVerifier.verifySent("host_create_complete.xml");
   }
 
   @Test
@@ -38,7 +38,7 @@ public class CreateHostCommandTest extends EppToolCommandTestCase<CreateHostComm
     runCommandForced(
         "--client=NewRegistrar",
         "--host=notours.external");
-    eppVerifier().verifySent("host_create_minimal.xml");
+    eppVerifier.verifySent("host_create_minimal.xml");
   }
 
   @Test

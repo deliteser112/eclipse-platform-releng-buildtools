@@ -16,29 +16,30 @@ package google.registry.tools;
 
 import static google.registry.testing.DatastoreHelper.createTlds;
 
-import google.registry.tools.ServerSideCommand.Connection;
+import org.junit.After;
 import org.junit.Before;
-import org.mockito.Mock;
 
 /**
  * Abstract class for commands that construct + send EPP commands.
+ *
+ * Has an EppToolVerifier member that needs to have all epp messages accounted for before the test
+ * has ended.
  *
  * @param <C> the command type
  */
 public abstract class EppToolCommandTestCase<C extends EppToolCommand> extends CommandTestCase<C> {
 
-  @Mock
-  Connection connection;
+  EppToolVerifier eppVerifier;
 
   @Before
   public void init() throws Exception {
     // Create two TLDs for commands that allow multiple TLDs at once.
     createTlds("tld", "tld2");
-    command.setConnection(connection);
+    eppVerifier = EppToolVerifier.create(command).expectClientId("NewRegistrar");
   }
 
-  /** Helper to get a new {@link EppToolVerifier} instance. */
-  EppToolVerifier eppVerifier() {
-    return new EppToolVerifier().withConnection(connection).withClientId("NewRegistrar");
+  @After
+  public void cleanup() throws Exception {
+    eppVerifier.verifyNoMoreSent();
   }
 }

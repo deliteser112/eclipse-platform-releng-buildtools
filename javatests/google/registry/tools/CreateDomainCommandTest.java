@@ -38,7 +38,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
         "--techs=crr-tech",
         "--password=2fooBAR",
         "example.tld");
-    eppVerifier().verifySent("domain_create_complete.xml");
+    eppVerifier.verifySent("domain_create_complete.xml");
   }
 
   @Test
@@ -50,7 +50,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
         "--admins=crr-admin",
         "--techs=crr-tech",
         "example.tld");
-    eppVerifier().verifySent("domain_create_minimal.xml");
+    eppVerifier.verifySent("domain_create_minimal.xml");
   }
 
   @Test
@@ -62,7 +62,9 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
         "--techs=crr-tech",
         "example.tld",
         "example.abc");
-    eppVerifier().verifySent("domain_create_minimal.xml", "domain_create_minimal_abc.xml");
+    eppVerifier
+        .verifySent("domain_create_minimal.xml")
+        .verifySent("domain_create_minimal_abc.xml");
   }
 
   @Test

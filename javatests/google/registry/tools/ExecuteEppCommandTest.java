@@ -42,19 +42,19 @@ public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppComm
   @Test
   public void testSuccess() throws Exception {
     runCommand("--client=NewRegistrar", "--force", eppFile);
-    eppVerifier().verifySent("contact_create.xml");
+    eppVerifier.verifySent("contact_create.xml");
   }
 
   @Test
   public void testSuccess_dryRun() throws Exception {
     runCommand("--client=NewRegistrar", "--dry_run", eppFile);
-    eppVerifier().asDryRun().verifySent("contact_create.xml");
+    eppVerifier.expectDryRun().verifySent("contact_create.xml");
   }
 
   @Test
   public void testSuccess_withSuperuser() throws Exception {
     runCommand("--client=NewRegistrar", "--superuser", "--force", eppFile);
-    eppVerifier().asSuperuser().verifySent("contact_create.xml");
+    eppVerifier.expectSuperuser().verifySent("contact_create.xml");
   }
 
   @Test
@@ -62,7 +62,7 @@ public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppComm
     inject.setStaticField(
         ExecuteEppCommand.class, "stdin", new ByteArrayInputStream(xmlInput.getBytes(UTF_8)));
     runCommand("--client=NewRegistrar", "--force");
-    eppVerifier().verifySent("contact_create.xml");
+    eppVerifier.verifySent("contact_create.xml");
   }
 
   @Test
@@ -70,7 +70,9 @@ public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppComm
     String xmlInput2 = ToolsTestData.loadUtf8("domain_check.xml");
     String eppFile2 = writeToNamedTmpFile("eppFile2", xmlInput2);
     runCommand("--client=NewRegistrar", "--force", eppFile, eppFile2);
-    eppVerifier().verifySent("contact_create.xml", "domain_check.xml");
+    eppVerifier
+        .verifySent("contact_create.xml")
+        .verifySent("domain_check.xml");
   }
 
   @Test

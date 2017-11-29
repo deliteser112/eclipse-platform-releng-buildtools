@@ -52,7 +52,7 @@ public class EppToolCommandTest extends EppToolCommandTestCase<EppToolCommand> {
     runCommandForced(
         "--client=NewRegistrar",
         ToolsTestData.loadUtf8("contact_create.xml"));
-    eppVerifier().verifySent("contact_create.xml");
+    eppVerifier.verifySent("contact_create.xml");
   }
 
   @Test
@@ -63,7 +63,10 @@ public class EppToolCommandTest extends EppToolCommandTestCase<EppToolCommand> {
         ToolsTestData.loadUtf8("contact_create.xml"),
         ToolsTestData.loadUtf8("domain_check.xml"),
         ToolsTestData.loadUtf8("domain_check_fee.xml"));
-    eppVerifier().verifySent("contact_create.xml", "domain_check.xml", "domain_check_fee.xml");
+    eppVerifier
+        .verifySent("contact_create.xml")
+        .verifySent("domain_check.xml")
+        .verifySent("domain_check_fee.xml");
   }
 
   @Test

@@ -41,26 +41,29 @@ import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.tools.ServerSideCommand.Connection;
 import google.registry.tools.server.ToolsTestData;
 import java.io.IOException;
 import org.joda.time.DateTime;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 
 /** Unit tests for {@link AllocateDomainCommand}. */
 public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCommand> {
 
-  @Mock
-  Connection connection;
+  private EppToolVerifier eppVerifier;
 
   @Before
   public void init() throws IOException {
-    command.setConnection(connection);
+    eppVerifier = EppToolVerifier.create(command).expectClientId("TheRegistrar").expectSuperuser();
     createTld("tld", QUIET_PERIOD);
     createApplication("example-one.tld", "domain_create_sunrush.xml", "1-TLD");
     createApplication("example-two.tld", "domain_create_sunrush2.xml", "2-TLD");
+  }
+
+  @After
+  public void cleanup() throws Exception {
+    eppVerifier.verifyNoMoreSent();
   }
 
   private void createApplication(String name, String xmlFile, String repoId) throws IOException {
@@ -105,30 +108,25 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
             .build());
   }
 
-  private EppToolVerifier eppVerifier() {
-    return new EppToolVerifier()
-        .withConnection(connection)
-        .withClientId("TheRegistrar")
-        .asSuperuser();
-  }
-
   @Test
   public void testSuccess() throws Exception {
     runCommand("--ids=1-TLD", "--force", "--superuser");
     // NB: These commands are sent as the sponsoring registrar, in this case "TheRegistrar".
-    eppVerifier().verifySent("allocate_domain.xml");
+    eppVerifier.verifySent("allocate_domain.xml");
   }
 
   @Test
   public void testSuccess_multiple() throws Exception {
     runCommand("--ids=1-TLD,2-TLD", "--force", "--superuser");
-    eppVerifier().verifySent("allocate_domain.xml", "allocate_domain2.xml");
+    eppVerifier
+        .verifySent("allocate_domain.xml")
+        .verifySent("allocate_domain2.xml");
   }
 
   @Test
   public void testSuccess_dryRun() throws Exception {
     runCommand("--ids=1-TLD", "--dry_run", "--superuser");
-    eppVerifier().asDryRun().verifySent("allocate_domain.xml");
+    eppVerifier.expectDryRun().verifySent("allocate_domain.xml");
   }
 
   @Test

@@ -45,7 +45,7 @@ public class CreateContactCommandTest extends EppToolCommandTestCase<CreateConta
         "--fax=+1.7035555556",
         "--email=jdoe@example.com",
         "--password=2fooBAR");
-    eppVerifier().verifySent("contact_create_complete.xml");
+    eppVerifier.verifySent("contact_create_complete.xml");
   }
 
   @Test
@@ -53,7 +53,7 @@ public class CreateContactCommandTest extends EppToolCommandTestCase<CreateConta
     // Will never be the case, but tests that each field can be omitted.
     // Also tests the auto-gen password.
     runCommandForced("--client=NewRegistrar");
-    eppVerifier().verifySent("contact_create_minimal.xml");
+    eppVerifier.verifySent("contact_create_minimal.xml");
   }
 
   @Test

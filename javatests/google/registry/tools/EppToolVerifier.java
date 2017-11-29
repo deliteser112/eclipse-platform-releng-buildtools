@@ -14,90 +14,192 @@
 
 package google.registry.tools;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import google.registry.tools.ServerSideCommand.Connection;
 import google.registry.tools.server.ToolsTestData;
 import java.net.URLDecoder;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import org.mockito.ArgumentCaptor;
 
-/** Class for verifying EPP commands sent to the server via the tool endpoint. */
+/**
+ * Class for verifying EPP commands sent to the server via the tool endpoint.
+ *
+ * <p>Provides its own (mock) {@link Connection} that will be monitored for EPP transmission. This
+ * Connection needs to be registered with the tool endpoint - something like this:
+ *
+ * <pre>   {@code
+ * SomeToolCommand command = ...;
+ * EppToolVerifier eppToolVerifier = EppToolVerifier.create(command);
+ * // run command...
+ * eppToolVerifier.expectClientId("SomeClientId").verifySent("some_epp_file.xml");
+ * }</pre>
+ */
 public class EppToolVerifier {
 
-  private final Connection connection;
-  private final String clientId;
-  private final boolean superuser;
-  private final boolean dryRun;
+  private final Connection connection = mock(Connection.class);
 
-  public EppToolVerifier() {
-    this(null, null, false, false);
+  private String clientId;
+  private boolean superuser;
+  private boolean dryRun;
+  private ImmutableList<byte[]> capturedParams;
+  private int paramIndex;
+
+  private EppToolVerifier() {}
+
+  /** Creates an EppToolVerifier that monitors EPPs sent by the given command. */
+  public static EppToolVerifier create(EppToolCommand command) {
+    EppToolVerifier eppToolVerifier = new EppToolVerifier();
+    command.setConnection(eppToolVerifier.getConnection());
+    return eppToolVerifier;
   }
 
-  private EppToolVerifier(
-      Connection connection, String clientId, boolean superuser, boolean dryRun) {
-    this.connection = connection;
+  /**
+   * Sets the expected clientId for any following verifySent command.
+   *
+   * <p>Must be called at least once before any {@link verifySent} calls.
+   */
+  public EppToolVerifier expectClientId(String clientId) {
     this.clientId = clientId;
-    this.superuser = superuser;
-    this.dryRun = dryRun;
+    return this;
   }
 
-  EppToolVerifier withConnection(Connection connection) {
-    return new EppToolVerifier(connection, clientId, superuser, dryRun);
+  /**
+   * Declares that any following verifySent command expects the "superuser" flag to be set.
+   *
+   * <p>If not called, {@link verifySent} will expect the "superuser" flag to be false.
+   */
+  public EppToolVerifier expectSuperuser() {
+    this.superuser = true;
+    return this;
   }
 
-  EppToolVerifier withClientId(String clientId) {
-    return new EppToolVerifier(connection, clientId, superuser, dryRun);
+  /**
+   * Declares that any following verifySent command expects the "dryRun" flag to be set.
+   *
+   * <p>If not called, {@link verifySent} will expect the "dryRun" flag to be false.
+   */
+  public EppToolVerifier expectDryRun() {
+    this.dryRun = true;
+    return this;
   }
 
-  EppToolVerifier asSuperuser() {
-    return new EppToolVerifier(connection, clientId, true, dryRun);
+  /**
+   * Tests that the expected EPP was sent.
+   *
+   * <p>The expected EPP must have the correct "clientId", "dryRun" and "superuser" flags as set by
+   * the various "expect*" calls.
+   *
+   * <p>The expected EPP's content is checked against the given file.
+   *
+   * <p>If multiple EPPs are expected, the verifySent* call order must match the actual EPP order.
+   *
+   * @param expectedXmlFile the name of the file holding the expected content of the EPP. The file
+   *     resides in the tools/server/testdata directory.
+   */
+  public EppToolVerifier verifySent(String expectedXmlFile) throws Exception {
+    return verifySentContents(ToolsTestData.loadUtf8(expectedXmlFile));
   }
 
-  EppToolVerifier asDryRun() {
-    return new EppToolVerifier(connection, clientId, superuser, true);
+  /**
+   * Tests that the expected EPP was sent, with the given substitutions.
+   *
+   * <p>The expected EPP must have the correct "clientId", "dryRun" and "superuser" flags as set by
+   * the various "expect*" calls.
+   *
+   * <p>The expected EPP's content is checked against the given file after the given substitutions
+   * have been applied.
+   *
+   * <p>If multiple EPPs are expected, the verifySent* call order must match the EPP order.
+   *
+   * @param expectedXmlFile the name of the file holding the expected content of the EPP. The file
+   *     resides in the tools/server/testdata directory.
+   * @param substitutions a list of substitutions to apply on the expectedXmlFile
+   */
+  public EppToolVerifier verifySent(String expectedXmlFile, Map<String, String> substitutions)
+      throws Exception {
+    return verifySentContents(ToolsTestData.loadUtf8(expectedXmlFile, substitutions));
   }
 
-  void verifySent(String... expectedXmlFiles) throws Exception {
-    verifySentContents(
-        Arrays.stream(expectedXmlFiles).map(ToolsTestData::loadUtf8).collect(toImmutableList()));
+  /**
+   * Tests an EPP was sent, without checking the contents.
+   *
+   * <p>The expected EPP are not check for its content or any of the "contentId" / "superuser" /
+   * "dryRun" flags - only that it exists.
+   *
+   * <p>If multiple EPPs are expected, the verifySent* call order must match the EPP order.
+   */
+  public EppToolVerifier verifySentAny() throws Exception {
+    setArgumentsIfNeeded();
+    paramIndex++;
+    assertThat(capturedParams.size()).isAtLeast(paramIndex);
+    return this;
   }
 
-  void verifySentContents(List<String> expectedXmlContents) throws Exception {
+  /**
+   * Test that no more EPPs were sent, after any that were expected in previous "verifySent" calls.
+   */
+  public void verifyNoMoreSent() throws Exception {
+    setArgumentsIfNeeded();
+    assertThat(
+            capturedParams
+                .stream()
+                .skip(paramIndex)
+                .map(bytes -> new String(bytes, UTF_8))
+                .toArray())
+        .isEmpty();
+  }
+
+  private void setArgumentsIfNeeded() throws Exception {
+    if (capturedParams != null) {
+      return;
+    }
     ArgumentCaptor<byte[]> params = ArgumentCaptor.forClass(byte[].class);
-    verify(connection, times(expectedXmlContents.size())).send(
+    verify(connection, atLeast(0)).send(
         eq("/_dr/epptool"),
         eq(ImmutableMap.<String, Object>of()),
         eq(MediaType.FORM_DATA),
         params.capture());
-    List<byte[]> capturedParams = params.getAllValues();
-    assertThat(capturedParams).hasSize(expectedXmlContents.size());
-    for (int i = 0; i < expectedXmlContents.size(); i++) {
-      byte[] capturedParam = capturedParams.get(i);
-      Map<String, String> map =
-          Splitter.on('&').withKeyValueSeparator('=').split(new String(capturedParam, UTF_8));
-      assertThat(map).hasSize(4);
-      assertXmlEquals(
-          expectedXmlContents.get(i), URLDecoder.decode(map.get("xml"), UTF_8.toString()));
-      assertThat(map).containsEntry("dryRun", Boolean.toString(dryRun));
-      assertThat(map).containsEntry("clientId", clientId);
-      assertThat(map).containsEntry("superuser", Boolean.toString(superuser));
-    }
+    capturedParams = ImmutableList.copyOf(params.getAllValues());
+    paramIndex = 0;
   }
 
-  void verifyNothingSent() {
-    verifyZeroInteractions(connection);
+  private String bytesToXml(byte[] bytes) throws Exception {
+    checkState(clientId != null, "expectClientId must be called before any verifySent command");
+    Map<String, String> map =
+        Splitter.on('&')
+        .withKeyValueSeparator('=')
+        .split(new String(bytes, UTF_8));
+    assertThat(map).hasSize(4);
+    assertThat(map).containsEntry("dryRun", Boolean.toString(dryRun));
+    assertThat(map).containsEntry("clientId", clientId);
+    assertThat(map).containsEntry("superuser", Boolean.toString(superuser));
+    return URLDecoder.decode(map.get("xml"), UTF_8.toString());
+  }
+
+  private EppToolVerifier verifySentContents(String expectedXmlContent) throws Exception {
+    setArgumentsIfNeeded();
+    assertThat(capturedParams.size()).isGreaterThan(paramIndex);
+    assertXmlEquals(
+        expectedXmlContent,
+        bytesToXml(capturedParams.get(paramIndex)));
+    paramIndex++;
+    return this;
+  }
+
+  /** Returns the (mock) Connection that is being monitored by this verifier. */
+  private Connection getConnection() {
+    return connection;
   }
 }

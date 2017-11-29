@@ -23,14 +23,14 @@ public class DeleteDomainCommandTest extends EppToolCommandTestCase<DeleteDomain
   @Test
   public void testSuccess() throws Exception {
     runCommand("--client=NewRegistrar", "--domain_name=example.tld", "--force", "--reason=Test");
-    eppVerifier().verifySent("domain_delete.xml");
+    eppVerifier.verifySent("domain_delete.xml");
   }
 
   @Test
   public void testSuccess_multipleWordReason() throws Exception {
     runCommand(
         "--client=NewRegistrar", "--domain_name=example.tld", "--force", "--reason=\"Test test\"");
-    eppVerifier().verifySent("domain_delete_multiple_word_reason.xml");
+    eppVerifier.verifySent("domain_delete_multiple_word_reason.xml");
   }
 
   @Test
@@ -41,7 +41,7 @@ public class DeleteDomainCommandTest extends EppToolCommandTestCase<DeleteDomain
         "--force",
         "--reason=Test",
         "--registrar_request=false");
-    eppVerifier().verifySent("domain_delete.xml");
+    eppVerifier.verifySent("domain_delete.xml");
   }
 
   @Test
@@ -52,7 +52,7 @@ public class DeleteDomainCommandTest extends EppToolCommandTestCase<DeleteDomain
         "--force",
         "--reason=Test",
         "--registrar_request=true");
-    eppVerifier().verifySent("domain_delete_by_registrar.xml");
+    eppVerifier.verifySent("domain_delete_by_registrar.xml");
   }
 
   @Test

@@ -23,15 +23,15 @@ public class DomainCheckClaimsCommandTest extends EppToolCommandTestCase<DomainC
   @Test
   public void testSuccess() throws Exception {
     runCommandForced("--client=NewRegistrar", "example.tld");
-    eppVerifier().verifySent("domain_check_claims.xml");
+    eppVerifier.verifySent("domain_check_claims.xml");
   }
 
   @Test
   public void testSuccess_multipleTlds() throws Exception {
     runCommandForced("--client=NewRegistrar", "example.tld", "example.tld2");
-    eppVerifier().verifySent(
-        "domain_check_claims.xml",
-        "domain_check_claims_second_tld.xml");
+    eppVerifier
+        .verifySent("domain_check_claims.xml")
+        .verifySent("domain_check_claims_second_tld.xml");
   }
 
   @Test
@@ -41,7 +41,7 @@ public class DomainCheckClaimsCommandTest extends EppToolCommandTestCase<DomainC
         "example.tld",
         "example2.tld",
         "example3.tld");
-    eppVerifier().verifySent("domain_check_claims_multiple.xml");
+    eppVerifier.verifySent("domain_check_claims_multiple.xml");
   }
 
   @Test
@@ -52,9 +52,9 @@ public class DomainCheckClaimsCommandTest extends EppToolCommandTestCase<DomainC
         "example2.tld",
         "example3.tld",
         "example.tld2");
-    eppVerifier().verifySent(
-        "domain_check_claims_multiple.xml",
-        "domain_check_claims_second_tld.xml");
+    eppVerifier
+        .verifySent("domain_check_claims_multiple.xml")
+        .verifySent("domain_check_claims_second_tld.xml");
   }
 
   @Test
