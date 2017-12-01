@@ -15,6 +15,7 @@
 package google.registry.rde.imports;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.rde.imports.RdeImportsTestData.loadBytes;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 
@@ -49,11 +50,10 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class RdeDomainReaderTest {
 
-  private static final ByteSource DEPOSIT_1_DOMAIN = RdeImportsTestData.get("deposit_1_domain.xml");
-  private static final ByteSource DEPOSIT_3_DOMAIN = RdeImportsTestData.get("deposit_3_domain.xml");
-  private static final ByteSource DEPOSIT_4_DOMAIN = RdeImportsTestData.get("deposit_4_domain.xml");
-  private static final ByteSource DEPOSIT_10_DOMAIN =
-      RdeImportsTestData.get("deposit_10_domain.xml");
+  private static final ByteSource DEPOSIT_1_DOMAIN = loadBytes("deposit_1_domain.xml");
+  private static final ByteSource DEPOSIT_3_DOMAIN = loadBytes("deposit_3_domain.xml");
+  private static final ByteSource DEPOSIT_4_DOMAIN = loadBytes("deposit_4_domain.xml");
+  private static final ByteSource DEPOSIT_10_DOMAIN = loadBytes("deposit_10_domain.xml");
   private static final String IMPORT_BUCKET_NAME = "rde-import";
   private static final String IMPORT_FILE_NAME = "escrow-file.xml";
 

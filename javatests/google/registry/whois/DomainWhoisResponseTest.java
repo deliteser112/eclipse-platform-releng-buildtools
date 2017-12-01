@@ -19,7 +19,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
-import static google.registry.whois.WhoisHelper.loadWhoisTestFile;
+import static google.registry.whois.WhoisTestData.loadFile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -256,7 +256,7 @@ public class DomainWhoisResponseTest {
             domainWhoisResponse.getResponse(
                 false,
                 "Doodle Disclaimer\nI exist so that carriage return\nin disclaimer can be tested."))
-        .isEqualTo(WhoisResponseResults.create(loadWhoisTestFile("whois_domain.txt"), 1));
+        .isEqualTo(WhoisResponseResults.create(loadFile("whois_domain.txt"), 1));
   }
 
   @Test

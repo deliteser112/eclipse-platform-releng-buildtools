@@ -178,7 +178,7 @@ public class DomainCheckFlowTest
   @Test
   public void testSuccess_xmlMatches() throws Exception {
     persistActiveDomain("example2.tld");
-    runFlowAssertResponse(readFile("domain_check_one_tld_response.xml"));
+    runFlowAssertResponse(loadFile("domain_check_one_tld_response.xml"));
   }
 
   @Test
@@ -298,7 +298,7 @@ public class DomainCheckFlowTest
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_check_one_tld_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_check_one_tld_response.xml"));
   }
 
   private void doFailingBadLabelTest(String label, Class<? extends Exception> expectedException)
@@ -433,7 +433,7 @@ public class DomainCheckFlowTest
   public void testFeeExtension_v06() throws Exception {
     persistActiveDomain("example1.tld");
     setEppInput("domain_check_fee_v06.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_response_v06.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_response_v06.xml"));
   }
 
   @Test
@@ -446,21 +446,21 @@ public class DomainCheckFlowTest
             .build());
     persistActiveDomain("example1.tld");
     setEppInput("domain_check_fee_v06.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_response_v06.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_response_v06.xml"));
   }
 
   @Test
   public void testFeeExtension_v11() throws Exception {
     persistActiveDomain("example1.tld");
     setEppInput("domain_check_fee_v11.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_response_v11.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_response_v11.xml"));
   }
 
   @Test
   public void testFeeExtension_v12() throws Exception {
     persistActiveDomain("example1.tld");
     setEppInput("domain_check_fee_v12.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_response_v12.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_response_v12.xml"));
   }
 
   /**
@@ -469,7 +469,7 @@ public class DomainCheckFlowTest
   @Test
   public void testFeeExtension_multipleCommands_v06() throws Exception {
     setEppInput("domain_check_fee_multiple_commands_v06.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_multiple_commands_response_v06.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_multiple_commands_response_v06.xml"));
   }
 
   // Version 11 cannot have multiple commands.
@@ -477,7 +477,7 @@ public class DomainCheckFlowTest
   @Test
   public void testFeeExtension_multipleCommands_v12() throws Exception {
     setEppInput("domain_check_fee_multiple_commands_v12.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_multiple_commands_response_v12.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_multiple_commands_response_v12.xml"));
   }
 
   /** Test the same as {@link #testFeeExtension_multipleCommands_v06} with premium labels. */
@@ -485,49 +485,49 @@ public class DomainCheckFlowTest
   public void testFeeExtension_premiumLabels_v06() throws Exception {
     createTld("example");
     setEppInput("domain_check_fee_premium_v06.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_premium_response_v06.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_premium_response_v06.xml"));
   }
 
   @Test
   public void testFeeExtension_premiumLabels_v11_create() throws Exception {
     createTld("example");
     setEppInput("domain_check_fee_premium_v11_create.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_premium_response_v11_create.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_premium_response_v11_create.xml"));
   }
 
   @Test
   public void testFeeExtension_premiumLabels_v11_renew() throws Exception {
     createTld("example");
     setEppInput("domain_check_fee_premium_v11_renew.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_premium_response_v11_renew.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_premium_response_v11_renew.xml"));
   }
 
   @Test
   public void testFeeExtension_premiumLabels_v11_transfer() throws Exception {
     createTld("example");
     setEppInput("domain_check_fee_premium_v11_transfer.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_premium_response_v11_transfer.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_premium_response_v11_transfer.xml"));
   }
 
   @Test
   public void testFeeExtension_premiumLabels_v11_restore() throws Exception {
     createTld("example");
     setEppInput("domain_check_fee_premium_v11_restore.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_premium_response_v11_restore.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_premium_response_v11_restore.xml"));
   }
 
   @Test
   public void testFeeExtension_premiumLabels_v11_update() throws Exception {
     createTld("example");
     setEppInput("domain_check_fee_premium_v11_update.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_premium_response_v11_update.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_premium_response_v11_update.xml"));
   }
 
   @Test
   public void testFeeExtension_premiumLabels_v12() throws Exception {
     createTld("example");
     setEppInput("domain_check_fee_premium_v12.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_premium_response_v12.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_premium_response_v12.xml"));
   }
 
   @Test
@@ -539,7 +539,7 @@ public class DomainCheckFlowTest
         .setCreateBillingCost(Money.of(CurrencyUnit.USD, 11.1))
         .build());
     setEppInput("domain_check_fee_fractional.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_fractional_response.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_fractional_response.xml"));
   }
 
   /** Test that create fees are properly omitted/classed on names on reserved lists. */
@@ -550,7 +550,7 @@ public class DomainCheckFlowTest
         .setPremiumList(persistPremiumList("tld", "premiumcollision,USD 70"))
         .build());
     setEppInput("domain_check_fee_reserved_v06.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_reserved_response_v06.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_reserved_response_v06.xml"));
   }
 
   /** The tests must be split up for version 11, which allows only one command at a time. */
@@ -561,7 +561,7 @@ public class DomainCheckFlowTest
         .setPremiumList(persistPremiumList("tld", "premiumcollision,USD 70"))
         .build());
     setEppInput("domain_check_fee_reserved_v11_create.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_reserved_response_v11_create.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_reserved_response_v11_create.xml"));
   }
 
   @Test
@@ -571,7 +571,7 @@ public class DomainCheckFlowTest
         .setPremiumList(persistPremiumList("tld", "premiumcollision,USD 70"))
         .build());
     setEppInput("domain_check_fee_reserved_v11_renew.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_reserved_response_v11_renew.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_reserved_response_v11_renew.xml"));
   }
 
   @Test
@@ -581,7 +581,7 @@ public class DomainCheckFlowTest
         .setPremiumList(persistPremiumList("tld", "premiumcollision,USD 70"))
         .build());
     setEppInput("domain_check_fee_reserved_v11_transfer.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_reserved_response_v11_transfer.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_reserved_response_v11_transfer.xml"));
   }
 
   @Test
@@ -591,7 +591,7 @@ public class DomainCheckFlowTest
         .setPremiumList(persistPremiumList("tld", "premiumcollision,USD 70"))
         .build());
     setEppInput("domain_check_fee_reserved_v11_restore.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_reserved_response_v11_restore.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_reserved_response_v11_restore.xml"));
   }
 
   @Test
@@ -601,7 +601,7 @@ public class DomainCheckFlowTest
         .setPremiumList(persistPremiumList("tld", "premiumcollision,USD 70"))
         .build());
     setEppInput("domain_check_fee_reserved_v12.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_reserved_response_v12.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_reserved_response_v12.xml"));
   }
 
   @Test
@@ -612,7 +612,7 @@ public class DomainCheckFlowTest
         .setPremiumList(persistPremiumList("tld", "premiumcollision,USD 70"))
         .build());
     setEppInput("domain_check_fee_reserved_v06.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_reserved_sunrise_response_v06.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_reserved_sunrise_response_v06.xml"));
   }
 
   @Test
@@ -624,7 +624,7 @@ public class DomainCheckFlowTest
         .setPremiumList(persistPremiumList("tld", "premiumcollision,USD 70"))
         .build());
     setEppInput("domain_check_fee_reserved_v11_create.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_reserved_sunrise_response_v11_create.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_reserved_sunrise_response_v11_create.xml"));
   }
 
   @Test
@@ -636,7 +636,7 @@ public class DomainCheckFlowTest
         .setPremiumList(persistPremiumList("tld", "premiumcollision,USD 70"))
         .build());
     setEppInput("domain_check_fee_reserved_v11_renew.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_reserved_sunrise_response_v11_renew.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_reserved_sunrise_response_v11_renew.xml"));
   }
 
   @Test
@@ -648,7 +648,7 @@ public class DomainCheckFlowTest
         .setPremiumList(persistPremiumList("tld", "premiumcollision,USD 70"))
         .build());
     setEppInput("domain_check_fee_reserved_v11_transfer.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_reserved_sunrise_response_v11_transfer.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_reserved_sunrise_response_v11_transfer.xml"));
   }
 
   @Test
@@ -660,7 +660,7 @@ public class DomainCheckFlowTest
         .setPremiumList(persistPremiumList("tld", "premiumcollision,USD 70"))
         .build());
     setEppInput("domain_check_fee_reserved_v11_restore.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_reserved_sunrise_response_v11_restore.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_reserved_sunrise_response_v11_restore.xml"));
   }
 
   @Test
@@ -671,7 +671,7 @@ public class DomainCheckFlowTest
         .setPremiumList(persistPremiumList("tld", "premiumcollision,USD 70"))
         .build());
     setEppInput("domain_check_fee_reserved_v12.xml");
-    runFlowAssertResponse(readFile("domain_check_fee_reserved_sunrise_response_v12.xml"));
+    runFlowAssertResponse(loadFile("domain_check_fee_reserved_sunrise_response_v12.xml"));
   }
 
   @Test
@@ -861,7 +861,7 @@ public class DomainCheckFlowTest
             clock.nowUtc().plusDays(2), Money.of(USD, 0)))
         .build());
     setEppInput(inputFile);
-    runFlowAssertResponse(readFile(outputFile));
+    runFlowAssertResponse(loadFile(outputFile));
   }
 
   @Test

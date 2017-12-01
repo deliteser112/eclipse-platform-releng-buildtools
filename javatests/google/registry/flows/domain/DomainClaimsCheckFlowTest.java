@@ -52,7 +52,7 @@ public class DomainClaimsCheckFlowTest
     assertTransactionalFlow(false);
     assertNoHistory();  // Checks don't create a history event.
     assertNoBillingEvents();  // Checks are always free.
-    runFlowAssertResponse(readFile(expectedXmlFilename));
+    runFlowAssertResponse(loadFile(expectedXmlFilename));
   }
 
   @Test
@@ -130,7 +130,7 @@ public class DomainClaimsCheckFlowTest
     assertNoHistory(); // Checks don't create a history event.
     assertNoBillingEvents(); // Checks are always free.
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_check_claims_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_check_claims_response.xml"));
   }
 
   @Test

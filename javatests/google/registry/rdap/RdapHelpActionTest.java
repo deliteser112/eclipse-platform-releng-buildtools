@@ -15,7 +15,7 @@
 package google.registry.rdap;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -85,8 +85,8 @@ public class RdapHelpActionTest {
   }
 
   private Object generateExpectedJson(String name, String expectedOutputFile) {
-    return JSONValue.parse(loadFileWithSubstitutions(
-        this.getClass(), expectedOutputFile, ImmutableMap.of("NAME", name)));
+    return JSONValue.parse(
+        loadFile(this.getClass(), expectedOutputFile, ImmutableMap.of("NAME", name)));
   }
 
   @Test

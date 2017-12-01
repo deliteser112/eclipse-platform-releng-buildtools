@@ -68,11 +68,12 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImportAction> {
 
-  private static final ByteSource DEPOSIT_1_DOMAIN = RdeImportsTestData.get("deposit_1_domain.xml");
+  private static final ByteSource DEPOSIT_1_DOMAIN =
+      RdeImportsTestData.loadBytes("deposit_1_domain.xml");
   private static final ByteSource DEPOSIT_1_DOMAIN_PENDING_TRANSFER =
-      RdeImportsTestData.get("deposit_1_domain_pending_transfer.xml");
+      RdeImportsTestData.loadBytes("deposit_1_domain_pending_transfer.xml");
   private static final ByteSource DEPOSIT_1_DOMAIN_PENDING_TRANSFER_REG_CAP =
-      RdeImportsTestData.get("deposit_1_domain_pending_transfer_registration_cap.xml");
+      RdeImportsTestData.loadBytes("deposit_1_domain_pending_transfer_registration_cap.xml");
   private static final String IMPORT_BUCKET_NAME = "import-bucket";
   private static final String IMPORT_FILE_NAME = "escrow-file.xml";
 

@@ -28,7 +28,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResou
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -217,7 +217,7 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
     builder.put("STATUS", "active");
     builder.put("TYPE", "nameserver");
     return JSONValue.parse(
-        loadFileWithSubstitutions(this.getClass(), expectedOutputFile, builder.build()));
+        loadFile(this.getClass(), expectedOutputFile, builder.build()));
   }
 
   private Object generateExpectedJsonForNameserver(

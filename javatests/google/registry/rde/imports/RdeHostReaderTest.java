@@ -15,6 +15,7 @@
 package google.registry.rde.imports;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.rde.imports.RdeImportsTestData.loadBytes;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
@@ -46,10 +47,10 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class RdeHostReaderTest {
 
-  private static final ByteSource DEPOSIT_1_HOST = RdeImportsTestData.get("deposit_1_host.xml");
-  private static final ByteSource DEPOSIT_3_HOST = RdeImportsTestData.get("deposit_3_host.xml");
-  private static final ByteSource DEPOSIT_4_HOST = RdeImportsTestData.get("deposit_4_host.xml");
-  private static final ByteSource DEPOSIT_10_HOST = RdeImportsTestData.get("deposit_10_host.xml");
+  private static final ByteSource DEPOSIT_1_HOST = loadBytes("deposit_1_host.xml");
+  private static final ByteSource DEPOSIT_3_HOST = loadBytes("deposit_3_host.xml");
+  private static final ByteSource DEPOSIT_4_HOST = loadBytes("deposit_4_host.xml");
+  private static final ByteSource DEPOSIT_10_HOST = loadBytes("deposit_10_host.xml");
   private static final String IMPORT_BUCKET_NAME = "rde-import";
   private static final String IMPORT_FILE_NAME = "escrow-file.xml";
 

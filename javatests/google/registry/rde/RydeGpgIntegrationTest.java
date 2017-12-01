@@ -57,8 +57,8 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
 
   @Rule
   public final GpgSystemCommandRule gpg = new GpgSystemCommandRule(
-      RdeTestData.get("pgp-public-keyring.asc"),
-      RdeTestData.get("pgp-private-keyring-escrow.asc"));
+      RdeTestData.loadBytes("pgp-public-keyring.asc"),
+      RdeTestData.loadBytes("pgp-private-keyring-escrow.asc"));
 
   private final FakeKeyringModule keyringFactory = new FakeKeyringModule();
 

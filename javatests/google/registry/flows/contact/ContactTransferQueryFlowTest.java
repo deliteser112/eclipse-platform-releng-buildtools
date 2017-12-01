@@ -50,7 +50,7 @@ public class ContactTransferQueryFlowTest
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
     // Setup done; run the test.
     assertTransactionalFlow(false);
-    runFlowAssertResponse(readFile(expectedXmlFilename));
+    runFlowAssertResponse(loadFile(expectedXmlFilename));
     assertAboutContacts().that(reloadResourceByForeignKey(clock.nowUtc().minusDays(1)))
         .hasOneHistoryEntryEachOfTypes(HistoryEntry.Type.CONTACT_TRANSFER_REQUEST);
     assertNoBillingEvents();

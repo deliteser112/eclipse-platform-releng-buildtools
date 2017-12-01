@@ -115,7 +115,7 @@ public class DomainRestoreRequestFlowTest extends
   public void testDryRun() throws Exception {
     setEppInput("domain_update_restore_request.xml");
     persistPendingDeleteDomain();
-    dryRunFlowAssertResponse(readFile("domain_update_response.xml"));
+    dryRunFlowAssertResponse(loadFile("domain_update_response.xml"));
   }
 
   @Test
@@ -126,7 +126,7 @@ public class DomainRestoreRequestFlowTest extends
     // Double check that we see a poll message in the future for when the delete happens.
     assertThat(getPollMessages("TheRegistrar", clock.nowUtc().plusMonths(1)))
         .hasSize(1);
-    runFlowAssertResponse(readFile("domain_update_response.xml"));
+    runFlowAssertResponse(loadFile("domain_update_response.xml"));
     DomainResource domain = reloadResourceByForeignKey();
     HistoryEntry historyEntryDomainRestore =
         getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_RESTORE);
@@ -191,41 +191,41 @@ public class DomainRestoreRequestFlowTest extends
   public void testSuccess_fee_v06() throws Exception {
     setEppInput("domain_update_restore_request_fee.xml", FEE_06_MAP);
     persistPendingDeleteDomain();
-    runFlowAssertResponse(readFile("domain_update_restore_request_response_fee.xml", FEE_06_MAP));
+    runFlowAssertResponse(loadFile("domain_update_restore_request_response_fee.xml", FEE_06_MAP));
   }
 
   @Test
   public void testSuccess_fee_v11() throws Exception {
     setEppInput("domain_update_restore_request_fee.xml", FEE_11_MAP);
     persistPendingDeleteDomain();
-    runFlowAssertResponse(readFile("domain_update_restore_request_response_fee.xml", FEE_11_MAP));
+    runFlowAssertResponse(loadFile("domain_update_restore_request_response_fee.xml", FEE_11_MAP));
   }
 
   @Test
   public void testSuccess_fee_v12() throws Exception {
     setEppInput("domain_update_restore_request_fee.xml", FEE_12_MAP);
     persistPendingDeleteDomain();
-    runFlowAssertResponse(readFile("domain_update_restore_request_response_fee.xml", FEE_12_MAP));
+    runFlowAssertResponse(loadFile("domain_update_restore_request_response_fee.xml", FEE_12_MAP));
   }
   @Test
   public void testSuccess_fee_withDefaultAttributes_v06() throws Exception {
     setEppInput("domain_update_restore_request_fee_defaults.xml", FEE_06_MAP);
     persistPendingDeleteDomain();
-    runFlowAssertResponse(readFile("domain_update_restore_request_response_fee.xml", FEE_06_MAP));
+    runFlowAssertResponse(loadFile("domain_update_restore_request_response_fee.xml", FEE_06_MAP));
   }
 
   @Test
   public void testSuccess_fee_withDefaultAttributes_v11() throws Exception {
     setEppInput("domain_update_restore_request_fee_defaults.xml", FEE_11_MAP);
     persistPendingDeleteDomain();
-    runFlowAssertResponse(readFile("domain_update_restore_request_response_fee.xml", FEE_11_MAP));
+    runFlowAssertResponse(loadFile("domain_update_restore_request_response_fee.xml", FEE_11_MAP));
   }
 
   @Test
   public void testSuccess_fee_withDefaultAttributes_v12() throws Exception {
     setEppInput("domain_update_restore_request_fee_defaults.xml", FEE_12_MAP);
     persistPendingDeleteDomain();
-    runFlowAssertResponse(readFile("domain_update_restore_request_response_fee.xml", FEE_12_MAP));
+    runFlowAssertResponse(loadFile("domain_update_restore_request_response_fee.xml", FEE_12_MAP));
   }
 
   @Test
@@ -320,7 +320,7 @@ public class DomainRestoreRequestFlowTest extends
     runFlowAssertResponse(
         CommitMode.LIVE,
         UserPrivileges.SUPERUSER,
-        readFile("domain_update_response.xml"));
+        loadFile("domain_update_response.xml"));
   }
 
   @Test
@@ -335,7 +335,7 @@ public class DomainRestoreRequestFlowTest extends
     runFlowAssertResponse(
         CommitMode.LIVE,
         UserPrivileges.SUPERUSER,
-        readFile("domain_update_response.xml"));
+        loadFile("domain_update_response.xml"));
   }
 
   @Test
@@ -503,7 +503,7 @@ public class DomainRestoreRequestFlowTest extends
     sessionMetadata.setClientId("NewRegistrar");
     persistPendingDeleteDomain();
     thrown.expect(ResourceNotOwnedException.class);
-    runFlowAssertResponse(readFile("domain_update_response.xml"));
+    runFlowAssertResponse(loadFile("domain_update_response.xml"));
   }
 
   @Test
@@ -521,7 +521,7 @@ public class DomainRestoreRequestFlowTest extends
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistPendingDeleteDomain();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_update_response.xml"));
   }
 
   @Test

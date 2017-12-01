@@ -40,17 +40,17 @@ import org.junit.runners.JUnit4;
 public class RdeContactInputTest {
 
   private static final ByteSource DEPOSIT_0_CONTACT =
-      RdeImportsTestData.get("deposit_0_contact_header.xml");
+      RdeImportsTestData.loadBytes("deposit_0_contact_header.xml");
   private static final ByteSource DEPOSIT_1_CONTACT =
-      RdeImportsTestData.get("deposit_1_contact.xml");
+      RdeImportsTestData.loadBytes("deposit_1_contact.xml");
   private static final ByteSource DEPOSIT_199_CONTACT =
-      RdeImportsTestData.get("deposit_199_contact_header.xml");
+      RdeImportsTestData.loadBytes("deposit_199_contact_header.xml");
   private static final ByteSource DEPOSIT_200_CONTACT =
-      RdeImportsTestData.get("deposit_200_contact_header.xml");
+      RdeImportsTestData.loadBytes("deposit_200_contact_header.xml");
   private static final ByteSource DEPOSIT_1000_CONTACT =
-      RdeImportsTestData.get("deposit_1000_contact_header.xml");
+      RdeImportsTestData.loadBytes("deposit_1000_contact_header.xml");
   private static final ByteSource DEPOSIT_10000_CONTACT =
-      RdeImportsTestData.get("deposit_10000_contact_header.xml");
+      RdeImportsTestData.loadBytes("deposit_10000_contact_header.xml");
   private static final String IMPORT_BUCKET_NAME = "import-bucket";
   private static final String IMPORT_FILE_NAME = "escrow-file.xml";
 

@@ -49,9 +49,9 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class XjcToHostResourceConverterTest extends ShardableTestCase {
 
-  private static final ByteSource HOST_XML = RdeImportsTestData.get("host_fragment.xml");
+  private static final ByteSource HOST_XML = RdeImportsTestData.loadBytes("host_fragment.xml");
   private static final ByteSource HOST_XML_UCASE =
-      RdeImportsTestData.get("host_fragment_ucase.xml");
+      RdeImportsTestData.loadBytes("host_fragment_ucase.xml");
 
   // List of packages to initialize JAXBContext
   private static final String JAXB_CONTEXT_PACKAGES = Joiner.on(":")

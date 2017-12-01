@@ -249,13 +249,13 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setUpSuccessfulTest();
     setUpGracePeriods(GracePeriod.create(
         GracePeriodStatus.ADD, TIME_BEFORE_FLOW.plusDays(1), "foo", null));
-    dryRunFlowAssertResponse(readFile("domain_delete_response.xml"));
+    dryRunFlowAssertResponse(loadFile("domain_delete_response.xml"));
   }
 
   @Test
   public void testDryRun_noGracePeriods() throws Exception {
     setUpSuccessfulTest();
-    dryRunFlowAssertResponse(readFile("domain_delete_response_pending.xml"));
+    dryRunFlowAssertResponse(loadFile("domain_delete_response_pending.xml"));
   }
 
   private void doImmediateDeleteTest(GracePeriodStatus gracePeriodStatus, String responseFilename)
@@ -275,7 +275,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     // We should see exactly one poll message, which is for the autorenew 1 month in the future.
     assertPollMessages(createAutorenewPollMessage("TheRegistrar").build());
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile(responseFilename, substitutions));
+    runFlowAssertResponse(loadFile(responseFilename, substitutions));
     // Check that the domain is fully deleted.
     assertThat(reloadResourceByForeignKey()).isNull();
     // The add grace period is for a billable action, so it should trigger a cancellation.
@@ -334,7 +334,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     assertPollMessages(createAutorenewPollMessage("TheRegistrar").build());
     DateTime originalExpirationTime = domain.getRegistrationExpirationTime();
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile(responseFilename, substitutions));
+    runFlowAssertResponse(loadFile(responseFilename, substitutions));
     DomainResource resource = reloadResourceByForeignKey();
     // Check that the domain is in the pending delete state.
     assertAboutDomains().that(resource)
@@ -403,7 +403,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .setEventTime(A_MONTH_FROM_NOW.minusYears(3))
             .build());
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_delete_response_pending.xml"));
+    runFlowAssertResponse(loadFile("domain_delete_response_pending.xml"));
     // There should now be two poll messages; one for the delete of the domain (in the future), and
     // another for the unacked autorenew messages.
     DateTime deletionTime = reloadResourceByForeignKey().getDeletionTime();
@@ -440,7 +440,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     removeServiceExtensionUri(ServiceExtension.FEE_0_12.getUri());
     setUpAutorenewGracePeriod();
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_delete_response_autorenew_fee.xml", FEE_06_MAP));
+    runFlowAssertResponse(loadFile("domain_delete_response_autorenew_fee.xml", FEE_06_MAP));
   }
 
   @Test
@@ -448,14 +448,14 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     removeServiceExtensionUri(ServiceExtension.FEE_0_12.getUri());
     setUpAutorenewGracePeriod();
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_delete_response_autorenew_fee.xml", FEE_11_MAP));
+    runFlowAssertResponse(loadFile("domain_delete_response_autorenew_fee.xml", FEE_11_MAP));
   }
 
   @Test
   public void testSuccess_autoRenewGracePeriod_v12() throws Exception {
     setUpAutorenewGracePeriod();
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_delete_response_autorenew_fee.xml", FEE_12_MAP));
+    runFlowAssertResponse(loadFile("domain_delete_response_autorenew_fee.xml", FEE_12_MAP));
   }
 
   @Test
@@ -470,7 +470,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .build());
     setUpAutorenewGracePeriod();
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_delete_response_autorenew_fee.xml", FEE_06_MAP));
+    runFlowAssertResponse(loadFile("domain_delete_response_autorenew_fee.xml", FEE_06_MAP));
   }
 
   @Test
@@ -484,7 +484,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .build());
     setUpAutorenewGracePeriod();
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_delete_response_autorenew_fee.xml", FEE_11_MAP));
+    runFlowAssertResponse(loadFile("domain_delete_response_autorenew_fee.xml", FEE_11_MAP));
   }
 
   @Test
@@ -497,7 +497,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .build());
     setUpAutorenewGracePeriod();
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_delete_response_autorenew_fee.xml", FEE_12_MAP));
+    runFlowAssertResponse(loadFile("domain_delete_response_autorenew_fee.xml", FEE_12_MAP));
   }
 
   @Test
@@ -505,7 +505,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setClientIdForFlow("TheRegistrar");
     setUpSuccessfulTest();
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_delete_response_pending.xml"));
+    runFlowAssertResponse(loadFile("domain_delete_response_pending.xml"));
     DomainResource domain = reloadResourceByForeignKey();
     assertThat(domain.getTransferData()).isEqualTo(TransferData.EMPTY);
   }
@@ -518,7 +518,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     TransferData oldTransferData =
         persistWithPendingTransfer(reloadResourceByForeignKey()).getTransferData();
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_delete_response_pending.xml"));
+    runFlowAssertResponse(loadFile("domain_delete_response_pending.xml"));
     DomainResource domain = reloadResourceByForeignKey();
     // Check that the domain is in the pending delete state.
     // The PENDING_TRANSFER status should be gone.
@@ -611,7 +611,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .setDeletionTime(START_OF_TIME)
             .build());
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_delete_response.xml"));
+    runFlowAssertResponse(loadFile("domain_delete_response.xml"));
     assertDnsTasksEnqueued("example.tld");
     assertAutorenewClosedAndCancellationCreatedFor(
         graceBillingEvent,
@@ -627,7 +627,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .setDeletionTime(clock.nowUtc().minusDays(1))
             .build());
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_delete_response_pending.xml"));
+    runFlowAssertResponse(loadFile("domain_delete_response_pending.xml"));
     assertDnsTasksEnqueued("example.tld");
     assertOnlyBillingEventIsClosedAutorenew("TheRegistrar");
   }
@@ -646,7 +646,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setUpSuccessfulTest();
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response_pending.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response_pending.xml"));
   }
 
   @Test
@@ -694,7 +694,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setUpSuccessfulTest();
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response_pending.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response_pending.xml"));
   }
 
   @Test
@@ -713,7 +713,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response_pending.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response_pending.xml"));
   }
 
   @Test
@@ -951,7 +951,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setUpSuccessfulTest();
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response_pending.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response_pending.xml"));
     DomainResource resource = reloadResourceByForeignKey();
     assertAboutDomains()
         .that(resource)
@@ -977,7 +977,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setUpSuccessfulTest();
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response_pending.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response_pending.xml"));
     DomainResource resource = reloadResourceByForeignKey();
     assertAboutDomains()
         .that(resource)
@@ -997,7 +997,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setUpSuccessfulTest();
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response_pending.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response_pending.xml"));
     DomainResource resource = reloadResourceByForeignKey();
     assertAboutDomains()
         .that(resource)
@@ -1022,7 +1022,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setUpSuccessfulTest();
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_delete_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
     assertThat(reloadResourceByForeignKey()).isNull();
   }
 }

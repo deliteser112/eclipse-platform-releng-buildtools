@@ -16,7 +16,7 @@ package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static google.registry.xml.XmlTestUtils.assertXmlEqualsWithMessage;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -88,9 +88,8 @@ public class EppTestCase extends ShardableTestCase {
       Map<String, String> outputSubstitutions,
       DateTime now) throws Exception {
     clock.setTo(now);
-    String input = loadFileWithSubstitutions(getClass(), inputFilename, inputSubstitutions);
-    String expectedOutput =
-        loadFileWithSubstitutions(getClass(), outputFilename, outputSubstitutions);
+    String input = loadFile(getClass(), inputFilename, inputSubstitutions);
+    String expectedOutput = loadFile(getClass(), outputFilename, outputSubstitutions);
     if (sessionMetadata == null) {
       sessionMetadata = new HttpSessionMetadata(new FakeHttpSession()) {
         @Override

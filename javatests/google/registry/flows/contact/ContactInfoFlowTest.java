@@ -97,7 +97,7 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
     // Check that the persisted contact info was returned.
     assertTransactionalFlow(false);
     runFlowAssertResponse(
-        readFile("contact_info_response.xml"),
+        loadFile("contact_info_response.xml"),
         // We use a different roid scheme than the samples so ignore it.
         "epp.response.resData.infData.roid");
     assertNoHistory();
@@ -111,7 +111,7 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
     // Check that the persisted contact info was returned.
     assertTransactionalFlow(false);
     runFlowAssertResponse(
-        readFile("contact_info_response_linked.xml"),
+        loadFile("contact_info_response_linked.xml"),
         // We use a different roid scheme than the samples so ignore it.
         "epp.response.resData.infData.roid");
     assertNoHistory();
@@ -125,7 +125,7 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
     // Check that the persisted contact info was returned.
     assertTransactionalFlow(false);
     runFlowAssertResponse(
-        readFile("contact_info_response.xml"),
+        loadFile("contact_info_response.xml"),
         // We use a different roid scheme than the samples so ignore it.
         "epp.response.resData.infData.roid");
     assertNoHistory();
@@ -140,7 +140,7 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
     // Check that the persisted contact info was returned.
     assertTransactionalFlow(false);
     runFlowAssertResponse(
-        readFile("contact_info_response_no_authinfo.xml"),
+        loadFile("contact_info_response_no_authinfo.xml"),
         // We use a different roid scheme than the samples so ignore it.
         "epp.response.resData.infData.roid");
     assertNoHistory();
@@ -154,7 +154,7 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
     // Check that the persisted contact info was returned.
     assertTransactionalFlow(false);
     runFlowAssertResponse(
-        readFile("contact_info_response.xml"),
+        loadFile("contact_info_response.xml"),
         // We use a different roid scheme than the samples so ignore it.
         "epp.response.resData.infData.roid");
     assertNoHistory();

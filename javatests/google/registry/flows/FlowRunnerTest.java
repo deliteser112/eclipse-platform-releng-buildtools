@@ -16,7 +16,7 @@ package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static google.registry.testing.TestLogHandlerUtils.findFirstLogMessageByPrefix;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
@@ -26,7 +26,6 @@ import static org.mockito.Mockito.verify;
 import com.google.appengine.api.users.User;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.TestLogHandler;
 import google.registry.model.eppcommon.Trid;
@@ -180,8 +179,7 @@ public class FlowRunnerTest extends ShardableTestCase {
 
   @Test
   public void testRun_legacyLoggingStatement_complexEppInput() throws Exception {
-    String domainCreateXml = loadFileWithSubstitutions(
-        getClass(), "domain_create_prettyprinted.xml", ImmutableMap.<String, String>of());
+    String domainCreateXml = loadFile(getClass(), "domain_create_prettyprinted.xml");
     flowRunner.inputXmlBytes = domainCreateXml.getBytes(UTF_8);
     flowRunner.run(eppMetricBuilder);
     String logMessage = findFirstLogMessageByPrefix(handler, "EPP Command\n\t");

@@ -32,13 +32,13 @@ public final class TmchTestData {
   }
 
   /** Loads data from file in {@code tmch/testdata/} as a String. */
-  public static String loadString(String filename) {
+  public static String loadFile(String filename) {
     return TestDataHelper.loadFile(TmchTestData.class, filename);
   }
 
   /** Extracts SMD XML from an ASCII-armored file. */
   public static byte[] loadSmd(String file) {
-    String data = loadString(file);
+    String data = loadFile(file);
     return base64().decode(whitespace().removeFrom(data.substring(
         data.indexOf(BEGIN_ENCODED_SMD) + BEGIN_ENCODED_SMD.length(),
         data.indexOf(END_ENCODED_SMD))));

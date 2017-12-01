@@ -51,7 +51,7 @@ public class EppToolCommandTest extends EppToolCommandTestCase<EppToolCommand> {
     // The choice of xml file is arbitrary.
     runCommandForced(
         "--client=NewRegistrar",
-        ToolsTestData.loadUtf8("contact_create.xml"));
+        ToolsTestData.loadFile("contact_create.xml"));
     eppVerifier.verifySent("contact_create.xml");
   }
 
@@ -60,9 +60,9 @@ public class EppToolCommandTest extends EppToolCommandTestCase<EppToolCommand> {
     // The choice of xml files is arbitrary.
     runCommandForced(
         "--client=NewRegistrar",
-        ToolsTestData.loadUtf8("contact_create.xml"),
-        ToolsTestData.loadUtf8("domain_check.xml"),
-        ToolsTestData.loadUtf8("domain_check_fee.xml"));
+        ToolsTestData.loadFile("contact_create.xml"),
+        ToolsTestData.loadFile("domain_check.xml"),
+        ToolsTestData.loadFile("domain_check_fee.xml"));
     eppVerifier
         .verifySent("contact_create.xml")
         .verifySent("domain_check.xml")

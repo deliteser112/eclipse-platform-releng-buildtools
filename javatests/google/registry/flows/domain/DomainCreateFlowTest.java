@@ -48,7 +48,6 @@ import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 import static google.registry.tmch.LordnTask.QUEUE_CLAIMS;
 import static google.registry.tmch.LordnTask.QUEUE_SUNRISE;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
@@ -331,7 +330,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
       Map<String, String> substitutions) throws Exception {
     assertTransactionalFlow(true);
     runFlowAssertResponse(
-        CommitMode.LIVE, userPrivileges, readFile(responseXmlFile, substitutions));
+        CommitMode.LIVE, userPrivileges, loadFile(responseXmlFile, substitutions));
     assertSuccessfulCreate(domainTld, false);
     assertNoLordn();
   }
@@ -358,7 +357,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testDryRun() throws Exception {
     persistContactsAndHosts();
-    dryRunFlowAssertResponse(readFile("domain_create_response.xml"));
+    dryRunFlowAssertResponse(loadFile("domain_create_response.xml"));
   }
 
   @Test
@@ -373,8 +372,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_with_tld.xml", ImmutableMap.of("TLD", "foo.tld"));
     persistContactsAndHosts("foo.tld");
     assertTransactionalFlow(true);
-    String expectedResponseXml = loadFileWithSubstitutions(
-        DomainCreateFlowTest.class,
+    String expectedResponseXml = loadFile(
         "domain_create_response_wildcard.xml",
         ImmutableMap.of("DOMAIN", "example.foo.tld"));
     runFlowAssertResponse(CommitMode.LIVE, UserPrivileges.NORMAL, expectedResponseXml);
@@ -405,7 +403,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     eppRequestSource = EppRequestSource.TOOL;
     setEppInput("domain_create_anchor_tenant.xml");
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response.xml"));
     assertSuccessfulCreate("tld", true);
     assertNoLordn();
   }
@@ -424,7 +422,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .build());
     setEppInput("domain_create_lrp.xml");
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response.xml"));
     assertSuccessfulCreate("tld", false);
     assertNoLordn();
     assertThat(ofy().load().entity(token).now().getRedemptionHistoryEntry()).isNotNull();
@@ -446,7 +444,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .build());
     setEppInput("domain_create_lrp.xml");
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response.xml"));
     assertSuccessfulCreate("tld", false);
     assertNoLordn();
     assertThat(ofy().load().entity(token).now().getRedemptionHistoryEntry()).isNull();
@@ -722,7 +720,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("xn--q9jyb4c");
     setEppInput("domain_create_idn_minna.xml");
     persistContactsAndHosts("net");
-    runFlowAssertResponse(readFile("domain_create_response_idn_minna.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response_idn_minna.xml"));
     assertSuccessfulCreate("xn--q9jyb4c", false);
     assertDnsTasksEnqueued("xn--abc-873b2e7eb1k8a4lpjvv.xn--q9jyb4c");
   }
@@ -731,7 +729,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_noNameserversOrDsData() throws Exception {
     setEppInput("domain_create_no_hosts_or_dsdata.xml");
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response.xml"));
     assertNoDnsTasksEnqueued();
   }
 
@@ -739,7 +737,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_periodNotSpecified() throws Exception {
     setEppInput("domain_create_missing_period.xml");
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response.xml"),
+    runFlowAssertResponse(loadFile("domain_create_response.xml"),
         "epp.response.resData.creData.exDate");  // Ignore expiration date; we verify it below
     assertAboutDomains().that(reloadResourceByForeignKey())
         .hasRegistrationExpirationTime(clock.nowUtc().plusYears(1));
@@ -759,7 +757,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
     setEppInput("domain_create_claim_notice.xml");
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response_claims.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
     assertSuccessfulCreate("tld", false);
     assertDnsTasksEnqueued("example-one.tld");
     assertClaimsLordn();
@@ -773,7 +771,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(Registry.get("tld").asBuilder()
         .setClaimsPeriodEnd(clock.nowUtc())
         .build());
-    runFlowAssertResponse(readFile("domain_create_response.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response.xml"));
     assertSuccessfulCreate("tld", false);
     assertDnsTasksEnqueued("example.tld");
   }
@@ -971,7 +969,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     runFlowAssertResponse(
         CommitMode.LIVE,
         UserPrivileges.SUPERUSER,
-        readFile("domain_create_anchor_response.xml"));
+        loadFile("domain_create_anchor_response.xml"));
     assertSuccessfulCreate("tld", true);
     // Token should not be marked as used, since interpreting the authcode as anchor tenant should
     // take precedence.
@@ -982,7 +980,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_anchorTenantViaAuthCode() throws Exception {
     setEppInput("domain_create_anchor_authcode.xml");
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_anchor_response.xml"));
+    runFlowAssertResponse(loadFile("domain_create_anchor_response.xml"));
     assertSuccessfulCreate("tld", true);
     assertNoLordn();
   }
@@ -994,7 +992,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .build());
     setEppInput("domain_create_anchor_authcode.xml");
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_anchor_response.xml"));
+    runFlowAssertResponse(loadFile("domain_create_anchor_response.xml"));
     assertSuccessfulCreate("tld", true);
     assertNoLordn();
   }
@@ -1007,7 +1005,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     eppRequestSource = EppRequestSource.TOOL;
     setEppInput("domain_create_anchor_tenant.xml");
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response.xml"));
     assertSuccessfulCreate("tld", true);
     assertNoLordn();
   }
@@ -1023,7 +1021,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_claim_notice.xml");
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response_claims.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
     assertSuccessfulCreate("tld", true);
     assertDnsTasksEnqueued("example-one.tld");
     assertClaimsLordn();
@@ -1036,7 +1034,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     runFlowAssertResponse(
         CommitMode.LIVE,
         UserPrivileges.SUPERUSER,
-        readFile("domain_create_reserved_response.xml"));
+        loadFile("domain_create_reserved_response.xml"));
     assertSuccessfulCreate("tld", false);
   }
 
@@ -1198,7 +1196,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     runFlowAssertResponse(
         CommitMode.LIVE,
         UserPrivileges.SUPERUSER,
-        readFile("domain_create_response_premium.xml"));
+        loadFile("domain_create_response_premium.xml"));
     assertSuccessfulCreate("example", false);
   }
 
@@ -1211,7 +1209,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     runFlowAssertResponse(
         CommitMode.LIVE,
         UserPrivileges.NORMAL,
-        readFile("domain_create_response_wildcard.xml", substitutions));
+        loadFile("domain_create_response_wildcard.xml", substitutions));
     DomainResource domain = reloadResourceByForeignKey();
     HistoryEntry historyEntry = getHistoryEntries(domain).get(0);
     assertPollMessagesForResource(
@@ -1557,7 +1555,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_registration_qlp_sunrise.xml");
     eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response.xml"));
     assertSuccessfulCreate("tld", true);
     assertNoLordn();
   }
@@ -1569,7 +1567,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_registration_qlp_sunrise_encoded_signed_mark.xml");
     eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response_encoded_signed_mark_name.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response_encoded_signed_mark_name.xml"));
     assertSuccessfulCreate("tld", true);
     assertSunriseLordn();
   }
@@ -1581,7 +1579,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_registration_qlp_sunrise_claims_notice.xml");
     eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response_claims.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
     assertSuccessfulCreate("tld", true);
     assertClaimsLordn();
   }
@@ -1622,7 +1620,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_registration_qlp_sunrush.xml");
     eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response.xml"));
     assertSuccessfulCreate("tld", true);
     assertNoLordn();
   }
@@ -1634,7 +1632,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_registration_qlp_sunrush_encoded_signed_mark.xml");
     eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response_encoded_signed_mark_name.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response_encoded_signed_mark_name.xml"));
     assertSuccessfulCreate("tld", true);
     assertSunriseLordn();
   }
@@ -1646,7 +1644,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_registration_qlp_sunrush_claims_notice.xml");
     eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response_claims.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
     assertSuccessfulCreate("tld", true);
     assertClaimsLordn();
   }
@@ -1674,7 +1672,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_registration_qlp_landrush.xml");
     eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response.xml"));
     assertSuccessfulCreate("tld", true);
     assertNoLordn();
   }
@@ -1698,7 +1696,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_registration_qlp_landrush_claims_notice.xml");
     eppRequestSource = EppRequestSource.TOOL;  // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlowAssertResponse(readFile("domain_create_response_claims.xml"));
+    runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
     assertSuccessfulCreate("tld", true);
     assertClaimsLordn();
   }

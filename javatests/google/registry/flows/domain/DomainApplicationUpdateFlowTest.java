@@ -129,7 +129,7 @@ public class DomainApplicationUpdateFlowTest
   private void doSuccessfulTest() throws Exception {
     assertTransactionalFlow(true);
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_update_response.xml"));
+    runFlowAssertResponse(loadFile("domain_update_response.xml"));
     // Check that the application was updated. These values came from the xml.
     DomainApplication application = reloadDomainApplication();
     assertAboutApplications().that(application)
@@ -145,7 +145,7 @@ public class DomainApplicationUpdateFlowTest
   public void testDryRun() throws Exception {
     persistReferencedEntities();
     persistApplication();
-    dryRunFlowAssertResponse(readFile("domain_update_response.xml"));
+    dryRunFlowAssertResponse(loadFile("domain_update_response.xml"));
   }
 
   @Test
@@ -179,7 +179,7 @@ public class DomainApplicationUpdateFlowTest
     persistResource(
         newApplicationBuilder().setRegistrant(Key.create(sh8013)).build());
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_update_response.xml"));
+    runFlowAssertResponse(loadFile("domain_update_response.xml"));
   }
 
   @Test
@@ -196,7 +196,7 @@ public class DomainApplicationUpdateFlowTest
             DesignatedContact.create(Type.TECH, sh8013Key)))
         .build());
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_update_response.xml"));
+    runFlowAssertResponse(loadFile("domain_update_response.xml"));
   }
 
   @Test
@@ -219,7 +219,7 @@ public class DomainApplicationUpdateFlowTest
     persistResource(newApplicationBuilder().setDsData(originalDsData).build());
     assertTransactionalFlow(true);
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("domain_update_response.xml"));
+    runFlowAssertResponse(loadFile("domain_update_response.xml"));
     assertAboutApplications().that(reloadDomainApplication())
         .hasExactlyDsData(expectedDsData).and()
         .hasOnlyOneHistoryEntryWhich()
@@ -531,7 +531,7 @@ public class DomainApplicationUpdateFlowTest
     runFlowAssertResponse(
         CommitMode.LIVE,
         UserPrivileges.SUPERUSER,
-        readFile("domain_update_response.xml"));
+        loadFile("domain_update_response.xml"));
   }
 
   @Test
@@ -569,7 +569,7 @@ public class DomainApplicationUpdateFlowTest
     persistApplication();
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_update_response.xml"));
   }
 
   @Test
@@ -590,7 +590,7 @@ public class DomainApplicationUpdateFlowTest
     persistApplication();
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_update_response.xml"));
   }
 
   @Test

@@ -48,128 +48,128 @@ public class VerifyOteActionTest {
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_APPLICATION_CREATE)
-            .setXmlBytes(ToolsTestData.get("domain_create_complete.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_create_complete.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_APPLICATION_CREATE)
-            .setXmlBytes(ToolsTestData.get("domain_create_sunrise.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_create_sunrise.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_APPLICATION_DELETE)
-            .setXmlBytes(ToolsTestData.get("domain_delete.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_delete.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-2")
             .setType(Type.DOMAIN_APPLICATION_DELETE)
-            .setXmlBytes(ToolsTestData.get("domain_delete.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_delete.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_APPLICATION_UPDATE)
-            .setXmlBytes(ToolsTestData.get("domain_update_complete.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_update_complete.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-2")
             .setType(Type.DOMAIN_APPLICATION_UPDATE)
-            .setXmlBytes(ToolsTestData.get("domain_update_complete.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_update_complete.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_CREATE)
-            .setXmlBytes(ToolsTestData.get("domain_create_idn.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_create_idn.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_CREATE)
-            .setXmlBytes(ToolsTestData.get("domain_create_claim_notice.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_create_claim_notice.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_CREATE)
-            .setXmlBytes(ToolsTestData.get("domain_create_anchor_tenant_fee_standard.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_create_anchor_tenant_fee_standard.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_CREATE)
-            .setXmlBytes(ToolsTestData.get("allocate_domain.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("allocate_domain.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_DELETE)
-            .setXmlBytes(ToolsTestData.get("domain_delete.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_delete.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-2")
             .setType(Type.DOMAIN_DELETE)
-            .setXmlBytes(ToolsTestData.get("domain_delete.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_delete.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_RESTORE)
-            .setXmlBytes(ToolsTestData.get("domain_restore.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_restore.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_TRANSFER_APPROVE)
-            .setXmlBytes(ToolsTestData.get("domain_transfer_approve.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_transfer_approve.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_TRANSFER_CANCEL)
-            .setXmlBytes(ToolsTestData.get("domain_transfer_cancel.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_transfer_cancel.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_TRANSFER_REJECT)
-            .setXmlBytes(ToolsTestData.get("domain_transfer_reject.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_transfer_reject.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_TRANSFER_REQUEST)
-            .setXmlBytes(ToolsTestData.get("domain_transfer_request.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_transfer_request.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_UPDATE)
-            .setXmlBytes(ToolsTestData.get("domain_update_with_secdns.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_update_with_secdns.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.HOST_CREATE)
-            .setXmlBytes(ToolsTestData.get("host_create_complete.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("host_create_complete.xml").read())
             .build());
     hostDeleteHistoryEntry =
         persistResource(
             new HistoryEntry.Builder()
                 .setClientId("blobio-1")
                 .setType(Type.HOST_DELETE)
-                .setXmlBytes(ToolsTestData.get("host_delete.xml").read())
+                .setXmlBytes(ToolsTestData.loadBytes("host_delete.xml").read())
                 .build());
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.HOST_UPDATE)
-            .setXmlBytes(ToolsTestData.get("host_update.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("host_update.xml").read())
             .build());
   }
 

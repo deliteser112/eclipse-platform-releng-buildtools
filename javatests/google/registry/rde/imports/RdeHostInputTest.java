@@ -15,6 +15,7 @@
 package google.registry.rde.imports;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.rde.imports.RdeImportsTestData.loadBytes;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
@@ -40,17 +41,12 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class RdeHostInputTest {
 
-  private static final ByteSource DEPOSIT_0_HOST =
-      RdeImportsTestData.get("deposit_0_host_header.xml");
-  private static final ByteSource DEPOSIT_1_HOST = RdeImportsTestData.get("deposit_1_host.xml");
-  private static final ByteSource DEPOSIT_199_HOST =
-      RdeImportsTestData.get("deposit_199_host_header.xml");
-  private static final ByteSource DEPOSIT_200_HOST =
-      RdeImportsTestData.get("deposit_200_host_header.xml");
-  private static final ByteSource DEPOSIT_1000_HOST =
-      RdeImportsTestData.get("deposit_1000_host_header.xml");
-  private static final ByteSource DEPOSIT_10000_HOST =
-      RdeImportsTestData.get("deposit_10000_host_header.xml");
+  private static final ByteSource DEPOSIT_0_HOST = loadBytes("deposit_0_host_header.xml");
+  private static final ByteSource DEPOSIT_1_HOST = loadBytes("deposit_1_host.xml");
+  private static final ByteSource DEPOSIT_199_HOST = loadBytes("deposit_199_host_header.xml");
+  private static final ByteSource DEPOSIT_200_HOST = loadBytes("deposit_200_host_header.xml");
+  private static final ByteSource DEPOSIT_1000_HOST = loadBytes("deposit_1000_host_header.xml");
+  private static final ByteSource DEPOSIT_10000_HOST = loadBytes("deposit_10000_host_header.xml");
   private static final String IMPORT_BUCKET_NAME = "import-bucket";
   private static final String IMPORT_FILE_NAME = "escrow-file.xml";
 
@@ -220,7 +216,7 @@ public class RdeHostInputTest {
   /**
    * Verify bucket, filename, offset and max results for a specific reader
    *
-   * @param numberOfShards Number of desired shards ({@link Optional#absent} uses default of 50)
+   * @param numberOfShards Number of desired shards ({@link Optional#empty} uses default of 50)
    * @param whichReader Index of the reader in the list that is produced by the {@link RdeHostInput}
    * @param expectedOffset Expected offset of the reader
    * @param expectedMaxResults Expected maxResults of the reader
@@ -248,7 +244,7 @@ public class RdeHostInputTest {
   /**
    * Verify the number of readers produced by the {@link RdeHostInput}
    *
-   * @param numberOfShards Number of desired shards ({@link Optional#absent} uses default of 50)
+   * @param numberOfShards Number of desired shards ({@link Optional#empty} uses default of 50)
    * @param expectedNumberOfReaders Expected size of the list returned
    */
   private void assertNumberOfReaders(Optional<Integer> numberOfShards, int expectedNumberOfReaders)
@@ -260,7 +256,7 @@ public class RdeHostInputTest {
 
   /**
    * Creates a new testable instance of {@link RdeHostInput}
-   * @param mapShards Number of desired shards ({@link Optional#absent} uses default of 50)
+   * @param mapShards Number of desired shards ({@link Optional#empty} uses default of 50)
    */
   private RdeHostInput getInput(Optional<Integer> mapShards) {
     return new RdeHostInput(mapShards, IMPORT_BUCKET_NAME, IMPORT_FILE_NAME);

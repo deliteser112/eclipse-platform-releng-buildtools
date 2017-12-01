@@ -62,7 +62,7 @@ public class HostCheckFlowTest extends ResourceCheckFlowTestCase<HostCheckFlow, 
   @Test
   public void testXmlMatches() throws Exception {
     persistActiveHost("ns2.example.tld");
-    runFlowAssertResponse(readFile("host_check_response.xml"));
+    runFlowAssertResponse(loadFile("host_check_response.xml"));
   }
 
   @Test

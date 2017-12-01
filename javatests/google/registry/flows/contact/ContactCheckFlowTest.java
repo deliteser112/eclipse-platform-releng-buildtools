@@ -63,7 +63,7 @@ public class ContactCheckFlowTest
   @Test
   public void testXmlMatches() throws Exception {
     persistActiveContact("sah8013");
-    runFlowAssertResponse(readFile("contact_check_response.xml"));
+    runFlowAssertResponse(loadFile("contact_check_response.xml"));
   }
 
   @Test

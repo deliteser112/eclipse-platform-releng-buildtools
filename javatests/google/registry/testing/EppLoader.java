@@ -15,7 +15,7 @@
 package google.registry.testing;
 
 import static google.registry.flows.EppXmlTransformer.unmarshal;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableMap;
@@ -33,7 +33,7 @@ public class EppLoader {
   }
 
   public EppLoader(Object context, String eppXmlFilename, Map<String, String> substitutions) {
-    this.eppXml = loadFileWithSubstitutions(context.getClass(), eppXmlFilename, substitutions);
+    this.eppXml = loadFile(context.getClass(), eppXmlFilename, substitutions);
   }
 
   public EppInput getEpp() throws EppException {

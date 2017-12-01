@@ -56,7 +56,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class BrdaCopyActionTest extends ShardableTestCase {
 
-  private static final ByteSource DEPOSIT_XML = RdeTestData.get("deposit_full.xml");  // 2010-10-17
+  private static final ByteSource DEPOSIT_XML = RdeTestData.loadBytes("deposit_full.xml");
 
   private static final GcsFilename STAGE_FILE =
       new GcsFilename("keg", "lol_2010-10-17_thin_S1_R0.xml.ghostryde");
@@ -77,8 +77,8 @@ public class BrdaCopyActionTest extends ShardableTestCase {
 
   @Rule
   public final GpgSystemCommandRule gpg = new GpgSystemCommandRule(
-      RdeTestData.get("pgp-public-keyring.asc"),
-      RdeTestData.get("pgp-private-keyring-escrow.asc"));
+      RdeTestData.loadBytes("pgp-public-keyring.asc"),
+      RdeTestData.loadBytes("pgp-private-keyring-escrow.asc"));
 
   private static PGPPublicKey encryptKey;
   private static PGPPrivateKey decryptKey;

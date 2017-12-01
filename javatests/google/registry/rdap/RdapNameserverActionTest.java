@@ -19,7 +19,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -160,7 +160,7 @@ public class RdapNameserverActionTest {
     if (!punycodeSet) {
       builder.put("PUNYCODENAME", name);
     }
-    return JSONValue.parse(loadFileWithSubstitutions(
+    return JSONValue.parse(loadFile(
         this.getClass(),
         expectedOutputFile,
         builder.build()));

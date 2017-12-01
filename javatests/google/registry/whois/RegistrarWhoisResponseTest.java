@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
-import static google.registry.whois.WhoisHelper.loadWhoisTestFile;
+import static google.registry.whois.WhoisTestData.loadFile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -119,7 +119,7 @@ public class RegistrarWhoisResponseTest {
             registrarWhoisResponse.getResponse(
                 false,
                 "Doodle Disclaimer\nI exist so that carriage return\nin disclaimer can be tested."))
-        .isEqualTo(WhoisResponseResults.create(loadWhoisTestFile("whois_registrar.txt"), 1));
+        .isEqualTo(WhoisResponseResults.create(loadFile("whois_registrar.txt"), 1));
   }
 
   @Test

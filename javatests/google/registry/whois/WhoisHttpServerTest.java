@@ -25,7 +25,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResou
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
-import static google.registry.whois.WhoisHelper.loadWhoisTestFile;
+import static google.registry.whois.WhoisTestData.loadFile;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -102,7 +102,7 @@ public class WhoisHttpServerTest {
     newWhoisHttpServer("").run();
     assertThat(response.getStatus()).isEqualTo(400);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_no_command.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_no_command.txt"));
   }
 
   @Test
@@ -111,7 +111,7 @@ public class WhoisHttpServerTest {
     assertThat(response.getStatus()).isEqualTo(400);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload())
-        .isEqualTo(loadWhoisTestFile("whois_server_malformed_path.txt"));
+        .isEqualTo(loadFile("whois_server_malformed_path.txt"));
   }
 
   @Test
@@ -120,7 +120,7 @@ public class WhoisHttpServerTest {
     assertThat(response.getStatus()).isEqualTo(404);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload())
-        .isEqualTo(loadWhoisTestFile("whois_server_domain_not_found.txt"));
+        .isEqualTo(loadFile("whois_server_domain_not_found.txt"));
   }
 
   // todo (b/27378695): reenable or delete this test
@@ -143,7 +143,7 @@ public class WhoisHttpServerTest {
     assertThat(response.getStatus()).isEqualTo(404);
     assertThat(response.getContentType()).isEqualTo(PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload())
-        .isEqualTo(loadWhoisTestFile("whois_server_domain_not_found.txt"));
+        .isEqualTo(loadFile("whois_server_domain_not_found.txt"));
   }
 
   @Test
@@ -161,7 +161,7 @@ public class WhoisHttpServerTest {
     persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisHttpServer("/domain/cat.みんな").run();
     assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_idn_utf8.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_idn_utf8.txt"));
   }
 
   @Test
@@ -175,7 +175,7 @@ public class WhoisHttpServerTest {
         trl,
         persistResource(makeHostResource("ns1.cat.みんな", "1.2.3.4")),
         persistResource(makeHostResource("ns2.cat.みんな", "bad:f00d:cafe::15:beef")),
-        persistResource( makeRegistrar("example", "Example Registrar", Registrar.State.ACTIVE))));
+        persistResource(makeRegistrar("example", "Example Registrar", Registrar.State.ACTIVE))));
     newWhoisHttpServer("/domain/cat.みんな").run();
     assertThat(response.getPayload()).contains("Eric  Schmidt");
   }
@@ -230,14 +230,14 @@ public class WhoisHttpServerTest {
         registrar));
     persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisHttpServer("/domain/cat.xn--q9jyb4c").run();
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_idn_utf8.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_idn_utf8.txt"));
   }
 
   @Test
   public void testRun_nameserverQuery_works() throws Exception {
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     newWhoisHttpServer("/nameserver/ns1.cat.lol").run();
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_nameserver.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_nameserver.txt"));
   }
 
   // todo (b/27378695): reenable or delete this test
@@ -246,7 +246,7 @@ public class WhoisHttpServerTest {
   public void testRun_nameserverQueryInTestTld_notFound() throws Exception {
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     newWhoisHttpServer("/nameserver/ns1.cat.lol").run();
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_nameserver.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_nameserver.txt"));
   }
 
   @Test
@@ -319,7 +319,7 @@ public class WhoisHttpServerTest {
     // Notice the partial search without "inc".
     newWhoisHttpServer("/registrar/Example%20Registrar").run();
     assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_registrar.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_registrar.txt"));
   }
 
   @Test
@@ -330,7 +330,7 @@ public class WhoisHttpServerTest {
     newWhoisHttpServer("/registrar/Example%20Registrar,%20Inc.").run();
     assertThat(response.getStatus()).isEqualTo(404);
     assertThat(response.getPayload())
-        .isEqualTo(loadWhoisTestFile("whois_server_registrar_not_found.txt"));
+        .isEqualTo(loadFile("whois_server_registrar_not_found.txt"));
   }
 
   @Test
@@ -342,7 +342,7 @@ public class WhoisHttpServerTest {
     newWhoisHttpServer("/registrar/Example%20Registrar,%20Inc.").run();
     assertThat(response.getStatus()).isEqualTo(404);
     assertThat(response.getPayload())
-        .isEqualTo(loadWhoisTestFile("whois_server_registrar_not_found.txt"));
+        .isEqualTo(loadFile("whois_server_registrar_not_found.txt"));
   }
 
   @Test

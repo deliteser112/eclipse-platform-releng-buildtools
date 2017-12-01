@@ -17,6 +17,7 @@ package google.registry.rde.imports;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.rde.imports.RdeImportTestUtils.checkTrid;
+import static google.registry.rde.imports.RdeImportsTestData.loadBytes;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getHistoryEntries;
 import static java.util.Arrays.asList;
@@ -63,7 +64,7 @@ public class XjcToContactResourceConverterTest {
       "google.registry.xjc.rderegistrar",
       "google.registry.xjc.smd"));
 
-  private static final ByteSource CONTACT_XML = RdeImportsTestData.get("contact_fragment.xml");
+  private static final ByteSource CONTACT_XML = loadBytes("contact_fragment.xml");
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()

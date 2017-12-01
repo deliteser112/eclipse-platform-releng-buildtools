@@ -117,7 +117,7 @@ public class DomainTransferCancelFlowTest
     DateTime originalExpirationTime = domain.getRegistrationExpirationTime();
     ImmutableSet<GracePeriod> originalGracePeriods = domain.getGracePeriods();
     TransferData originalTransferData = domain.getTransferData();
-    runFlowAssertResponse(readFile(expectedXmlFilename));
+    runFlowAssertResponse(loadFile(expectedXmlFilename));
 
     // Transfer should have been cancelled. Verify correct fields were set.
     domain = reloadResourceByForeignKey();
@@ -184,7 +184,7 @@ public class DomainTransferCancelFlowTest
   public void testDryRun() throws Exception {
     setEppInput("domain_transfer_cancel.xml");
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
-    dryRunFlowAssertResponse(readFile("domain_transfer_cancel_response.xml"));
+    dryRunFlowAssertResponse(loadFile("domain_transfer_cancel_response.xml"));
   }
 
   @Test
@@ -314,7 +314,7 @@ public class DomainTransferCancelFlowTest
         loadRegistrar("NewRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_transfer_cancel_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_transfer_cancel_response.xml"));
   }
 
   // NB: No need to test pending delete status since pending transfers will get cancelled upon

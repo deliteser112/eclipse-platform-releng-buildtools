@@ -23,7 +23,6 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
@@ -123,8 +122,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
 
   private void doSuccessfulTest(String expectedXmlFilename, boolean inactive) throws Exception {
     assertTransactionalFlow(false);
-    String expected = loadFileWithSubstitutions(
-        getClass(), expectedXmlFilename, ImmutableMap.of("ROID", "2FF-TLD"));
+    String expected = loadFile(expectedXmlFilename, ImmutableMap.of("ROID", "2FF-TLD"));
     if (inactive) {
       expected = expected.replaceAll("\"ok\"", "\"inactive\"");
     }

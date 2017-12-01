@@ -22,21 +22,21 @@ import java.util.Map;
 public final class ToolsTestData {
 
   /** Returns {@link ByteSource} for file in {@code tools/server/testdata/} directory. */
-  public static ByteSource get(String filename) {
+  public static ByteSource loadBytes(String filename) {
     return TestDataHelper.loadBytes(ToolsTestData.class, filename);
   }
 
   /**
    * Loads data from file in {@code tools/server/testdata/} as a UTF-8 String.
    */
-  public static String loadUtf8(String filename) {
+  public static String loadFile(String filename) {
     return TestDataHelper.loadFile(ToolsTestData.class, filename);
   }
 
   /**
    * Loads data from file in {@code tools/server/testdata/} as a UTF-8 String, with substitutions.
    */
-  public static String loadUtf8(String filename, Map<String, String> substitutions) {
-    return TestDataHelper.loadFileWithSubstitutions(ToolsTestData.class, filename, substitutions);
+  public static String loadFile(String filename, Map<String, String> substitutions) {
+    return TestDataHelper.loadFile(ToolsTestData.class, filename, substitutions);
   }
 }

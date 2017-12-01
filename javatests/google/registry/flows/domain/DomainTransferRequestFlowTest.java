@@ -210,7 +210,7 @@ public class DomainTransferRequestFlowTest
     DateTime implicitTransferTime = clock.nowUtc().plus(registry.getAutomaticTransferLength());
     // Setup done; run the test.
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile(expectedXmlFilename, substitutions));
+    runFlowAssertResponse(loadFile(expectedXmlFilename, substitutions));
     // Transfer should have been requested.
     domain = reloadResourceByForeignKey();
     // Verify that HistoryEntry was created.
@@ -512,7 +512,7 @@ public class DomainTransferRequestFlowTest
     // Setup done; run the test.
     assertTransactionalFlow(true);
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile(expectedXmlFilename, substitutions));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile(expectedXmlFilename, substitutions));
 
     if (expectedAutomaticTransferLength.equals(Duration.ZERO)) {
       // The transfer is going to happen immediately. To observe the domain in the pending transfer
@@ -583,7 +583,7 @@ public class DomainTransferRequestFlowTest
     setupDomain("example", "tld");
     setEppInput("domain_transfer_request.xml");
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
-    dryRunFlowAssertResponse(readFile("domain_transfer_request_response.xml"));
+    dryRunFlowAssertResponse(loadFile("domain_transfer_request_response.xml"));
   }
 
   @Test

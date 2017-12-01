@@ -16,7 +16,7 @@ package google.registry.tmch;
 
 import static google.registry.config.RegistryConfig.ConfigModule.TmchCaMode.PILOT;
 import static google.registry.config.RegistryConfig.ConfigModule.TmchCaMode.PRODUCTION;
-import static google.registry.tmch.TmchTestData.loadString;
+import static google.registry.tmch.TmchTestData.loadFile;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static google.registry.util.X509Utils.loadCertificate;
 
@@ -40,8 +40,8 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class TmchCertificateAuthorityTest {
 
-  public static final String GOOD_TEST_CERTIFICATE = loadString("icann-tmch-test-good.crt");
-  public static final String REVOKED_TEST_CERTIFICATE = loadString("icann-tmch-test-revoked.crt");
+  public static final String GOOD_TEST_CERTIFICATE = loadFile("icann-tmch-test-good.crt");
+  public static final String REVOKED_TEST_CERTIFICATE = loadFile("icann-tmch-test-revoked.crt");
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()

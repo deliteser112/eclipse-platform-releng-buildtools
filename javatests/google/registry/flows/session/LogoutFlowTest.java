@@ -37,7 +37,7 @@ public class LogoutFlowTest extends FlowTestCase<LogoutFlow> {
   public void testSuccess() throws Exception {
     assertTransactionalFlow(false);
     // All flow tests are implicitly logged in, so logout should work.
-    runFlowAssertResponse(readFile("logout_response.xml"));
+    runFlowAssertResponse(loadFile("logout_response.xml"));
   }
 
   @Test

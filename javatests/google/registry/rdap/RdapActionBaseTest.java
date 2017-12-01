@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.HEAD;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -166,7 +166,7 @@ public class RdapActionBaseTest {
   @Test
   public void testValidName_works() throws Exception {
     assertThat(generateActualJson("no.thing")).isEqualTo(JSONValue.parse(
-        loadFileWithSubstitutions(this.getClass(), "rdapjson_toplevel.json", null)));
+        loadFile(this.getClass(), "rdapjson_toplevel.json")));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -234,7 +234,7 @@ public class RdapActionBaseTest {
   }
 
   private String loadFileWithoutTrailingNewline(String fileName) {
-    String contents = loadFileWithSubstitutions(this.getClass(), fileName, null);
+    String contents = loadFile(this.getClass(), fileName);
     return contents.endsWith("\n") ? contents.substring(0, contents.length() - 1) : contents;
   }
 

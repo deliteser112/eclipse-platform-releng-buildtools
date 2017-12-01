@@ -30,7 +30,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResou
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntry;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -405,7 +405,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
       String domain1Handle,
       String domain2Name,
       String domain2Handle) {
-    return JSONValue.parse(loadFileWithSubstitutions(
+    return JSONValue.parse(loadFile(
         this.getClass(),
         "rdap_domains_two.json",
         ImmutableMap.of(
@@ -427,7 +427,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
       String domain4Handle,
       String expectedOutputFile) {
     return JSONValue.parse(
-        loadFileWithSubstitutions(
+        loadFile(
             this.getClass(),
             expectedOutputFile,
             new ImmutableMap.Builder<String, String>()
@@ -481,8 +481,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
       }
     }
     return JSONValue.parse(
-        loadFileWithSubstitutions(
-            this.getClass(), expectedOutputFile, substitutionsBuilder.build()));
+        loadFile(this.getClass(), expectedOutputFile, substitutionsBuilder.build()));
   }
 
   private Object generateExpectedJsonForDomain(
@@ -568,7 +567,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
       String domainHandle3,
       String domainName4,
       String domainHandle4) {
-    return JSONValue.parse(loadFileWithSubstitutions(
+    return JSONValue.parse(loadFile(
         this.getClass(),
         fileName,
         new ImmutableMap.Builder<String, String>()

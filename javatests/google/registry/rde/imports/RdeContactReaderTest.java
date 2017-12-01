@@ -47,13 +47,13 @@ import org.junit.runners.JUnit4;
 public class RdeContactReaderTest {
 
   private static final ByteSource DEPOSIT_1_CONTACT =
-      RdeImportsTestData.get("deposit_1_contact.xml");
+      RdeImportsTestData.loadBytes("deposit_1_contact.xml");
   private static final ByteSource DEPOSIT_3_CONTACT =
-      RdeImportsTestData.get("deposit_3_contact.xml");
+      RdeImportsTestData.loadBytes("deposit_3_contact.xml");
   private static final ByteSource DEPOSIT_4_CONTACT =
-      RdeImportsTestData.get("deposit_4_contact.xml");
+      RdeImportsTestData.loadBytes("deposit_4_contact.xml");
   private static final ByteSource DEPOSIT_10_CONTACT =
-      RdeImportsTestData.get("deposit_10_contact.xml");
+      RdeImportsTestData.loadBytes("deposit_10_contact.xml");
   private static final String IMPORT_BUCKET_NAME = "rde-import";
   private static final String IMPORT_FILE_NAME = "escrow-file.xml";
 

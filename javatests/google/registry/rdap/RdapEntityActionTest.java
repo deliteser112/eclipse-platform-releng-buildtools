@@ -24,7 +24,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResou
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -221,7 +221,7 @@ public class RdapEntityActionTest {
       @Nullable String address,
       String expectedOutputFile) {
     return JSONValue.parse(
-        loadFileWithSubstitutions(
+        loadFile(
             this.getClass(),
             expectedOutputFile,
             new ImmutableMap.Builder<String, String>()

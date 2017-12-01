@@ -48,7 +48,7 @@ public class ContactDeleteFlowTest
   @Test
   public void testDryRun() throws Exception {
     persistActiveContact(getUniqueIdFromCommand());
-    dryRunFlowAssertResponse(readFile("contact_delete_response.xml"));
+    dryRunFlowAssertResponse(loadFile("contact_delete_response.xml"));
   }
 
   @Test
@@ -56,7 +56,7 @@ public class ContactDeleteFlowTest
     persistActiveContact(getUniqueIdFromCommand());
     clock.advanceOneMilli();
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile("contact_delete_response.xml"));
+    runFlowAssertResponse(loadFile("contact_delete_response.xml"));
     ContactResource deletedContact = reloadResourceByForeignKey();
     assertAboutContacts().that(deletedContact).hasStatusValue(StatusValue.PENDING_DELETE);
     assertAsyncDeletionTaskEnqueued(
@@ -126,7 +126,7 @@ public class ContactDeleteFlowTest
     persistActiveContact(getUniqueIdFromCommand());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("contact_delete_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("contact_delete_response.xml"));
     ContactResource deletedContact = reloadResourceByForeignKey();
     assertAboutContacts().that(deletedContact).hasStatusValue(StatusValue.PENDING_DELETE);
     assertAsyncDeletionTaskEnqueued(

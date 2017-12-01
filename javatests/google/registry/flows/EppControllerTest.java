@@ -20,7 +20,7 @@ import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.flows.EppXmlTransformer.marshal;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.LogsSubject.assertAboutLogs;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static google.registry.testing.TestLogHandlerUtils.findFirstLogRecordWithMessagePrefix;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.logging.Level.INFO;
@@ -31,7 +31,6 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.testing.TestLogHandler;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppTestComponent.FakeServerTridProvider;
@@ -93,9 +92,7 @@ public class EppControllerTest extends ShardableTestCase {
    */
   private final Logger loggerToIntercept = Logger.getLogger(EppController.class.getCanonicalName());
 
-  private final String domainCreateXml =
-      loadFileWithSubstitutions(
-          getClass(), "domain_create_prettyprinted.xml", ImmutableMap.<String, String>of());
+  private final String domainCreateXml = loadFile(getClass(), "domain_create_prettyprinted.xml");
 
   private EppController eppController;
 

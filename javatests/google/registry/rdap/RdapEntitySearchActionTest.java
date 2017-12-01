@@ -28,7 +28,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistD
 import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -180,10 +180,8 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
   }
 
   private Object generateExpectedJson(String expectedOutputFile) {
-    return JSONValue.parse(loadFileWithSubstitutions(
-        this.getClass(),
-        expectedOutputFile,
-        ImmutableMap.of("TYPE", "entity")));
+    return JSONValue.parse(
+        loadFile(this.getClass(), expectedOutputFile, ImmutableMap.of("TYPE", "entity")));
   }
 
   private Object generateExpectedJson(
@@ -212,8 +210,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
     }
     builder.put("TYPE", "entity");
     builder.put("STATUS", status);
-    String substitutedFile =
-        loadFileWithSubstitutions(this.getClass(), expectedOutputFile, builder.build());
+    String substitutedFile = loadFile(this.getClass(), expectedOutputFile, builder.build());
     Object jsonObject = JSONValue.parse(substitutedFile);
     checkNotNull(jsonObject, "substituted file is not valid JSON: %s", substitutedFile);
     return jsonObject;

@@ -53,8 +53,8 @@ public class GhostrydeGpgIntegrationTest extends ShardableTestCase {
   @Rule
   public final GpgSystemCommandRule gpg =
       new GpgSystemCommandRule(
-          RdeTestData.get("pgp-public-keyring.asc"),
-          RdeTestData.get("pgp-private-keyring-registry.asc"));
+          RdeTestData.loadBytes("pgp-public-keyring.asc"),
+          RdeTestData.loadBytes("pgp-private-keyring-registry.asc"));
 
   @DataPoints
   public static GpgCommand[] commands = new GpgCommand[] {

@@ -67,7 +67,7 @@ public class ContactTransferApproveFlowTest
     contact = reloadResourceByForeignKey();
     TransferData originalTransferData = contact.getTransferData();
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile(expectedXmlFilename));
+    runFlowAssertResponse(loadFile(expectedXmlFilename));
 
     // Transfer should have succeeded. Verify correct fields were set.
     contact = reloadResourceByForeignKey();
@@ -121,7 +121,7 @@ public class ContactTransferApproveFlowTest
   @Test
   public void testDryRun() throws Exception {
     setEppInput("contact_transfer_approve.xml");
-    dryRunFlowAssertResponse(readFile("contact_transfer_approve_response.xml"));
+    dryRunFlowAssertResponse(loadFile("contact_transfer_approve_response.xml"));
   }
 
   @Test

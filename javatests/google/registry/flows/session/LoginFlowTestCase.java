@@ -56,7 +56,7 @@ public abstract class LoginFlowTestCase extends FlowTestCase<LoginFlow> {
   void doSuccessfulTest(String xmlFilename) throws Exception {
     setEppInput(xmlFilename);
     assertTransactionalFlow(false);
-    runFlowAssertResponse(readFile("login_response.xml"));
+    runFlowAssertResponse(loadFile("login_response.xml"));
   }
 
   // Also called in subclasses.

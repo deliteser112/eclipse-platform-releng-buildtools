@@ -67,13 +67,13 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class RdeImportUtilsTest extends ShardableTestCase {
 
-  private static final ByteSource DEPOSIT_XML = RdeImportsTestData.get("deposit_full.xml");
+  private static final ByteSource DEPOSIT_XML = RdeImportsTestData.loadBytes("deposit_full.xml");
   private static final ByteSource DEPOSIT_BADTLD_XML =
-      RdeImportsTestData.get("deposit_full_badtld.xml");
+      RdeImportsTestData.loadBytes("deposit_full_badtld.xml");
   private static final ByteSource DEPOSIT_GETLD_XML =
-      RdeImportsTestData.get("deposit_full_getld.xml");
+      RdeImportsTestData.loadBytes("deposit_full_getld.xml");
   private static final ByteSource DEPOSIT_BADREGISTRAR_XML =
-      RdeImportsTestData.get("deposit_full_badregistrar.xml");
+      RdeImportsTestData.loadBytes("deposit_full_badregistrar.xml");
 
   private InputStream xmlInput;
 

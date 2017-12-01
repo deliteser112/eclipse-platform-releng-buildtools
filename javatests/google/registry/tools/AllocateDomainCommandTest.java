@@ -104,7 +104,7 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
             .setClientId("NewRegistrar")
             .setModificationTime(application.getCreationTime())
             .setTrid(Trid.create("ABC-123", "server-trid"))
-            .setXmlBytes(ToolsTestData.get(xmlFile).read())
+            .setXmlBytes(ToolsTestData.loadBytes(xmlFile).read())
             .build());
   }
 
@@ -149,7 +149,7 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
 
   @Test
   public void testXmlInstantiatesFlow() throws Exception {
-    byte[] xmlBytes = ToolsTestData.get("allocate_domain.xml").read();
+    byte[] xmlBytes = ToolsTestData.loadBytes("allocate_domain.xml").read();
     assertThat(getFlowClass(unmarshal(EppInput.class, xmlBytes)))
         .isEqualTo(DomainAllocateFlow.class);
   }

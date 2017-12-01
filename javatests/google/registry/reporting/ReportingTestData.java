@@ -21,12 +21,12 @@ import google.registry.testing.TestDataHelper;
 public final class ReportingTestData {
 
   /** Returns {@link ByteSource} for file in {@code reporting/testdata/} directory. */
-  public static ByteSource get(String filename) {
+  public static ByteSource loadBytes(String filename) {
     return TestDataHelper.loadBytes(ReportingTestData.class, filename);
   }
 
   /** Returns a {@link String} from a file in the {@code reporting/testdata/} directory. */
-  public static String getString(String filename) {
+  public static String loadFile(String filename) {
     return TestDataHelper.loadFile(ReportingTestData.class, filename);
   }
 }

@@ -54,7 +54,7 @@ import org.junit.runners.JUnit4;
 public class RdeContactImportActionTest extends MapreduceTestCase<RdeContactImportAction> {
 
   private static final ByteSource DEPOSIT_1_CONTACT =
-      RdeImportsTestData.get("deposit_1_contact.xml");
+      RdeImportsTestData.loadBytes("deposit_1_contact.xml");
   private static final String IMPORT_BUCKET_NAME = "import-bucket";
   private static final String IMPORT_FILE_NAME = "escrow-file.xml";
 

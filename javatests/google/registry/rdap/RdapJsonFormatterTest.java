@@ -23,7 +23,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistH
 import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntry;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import com.google.common.collect.ImmutableList;
@@ -260,7 +260,7 @@ public class RdapJsonFormatterTest {
   }
 
   private Object loadJson(String expectedFileName) {
-    return JSONValue.parse(loadFileWithSubstitutions(this.getClass(), expectedFileName, null));
+    return JSONValue.parse(loadFile(this.getClass(), expectedFileName));
   }
 
   @Test

@@ -74,9 +74,9 @@ import org.mockito.ArgumentCaptor;
 @RunWith(JUnit4.class)
 public class RdeReportActionTest {
 
-  private static final ByteSource REPORT_XML = RdeTestData.get("report.xml");
-  private static final ByteSource IIRDEA_BAD_XML = RdeTestData.get("iirdea_bad.xml");
-  private static final ByteSource IIRDEA_GOOD_XML = RdeTestData.get("iirdea_good.xml");
+  private static final ByteSource REPORT_XML = RdeTestData.loadBytes("report.xml");
+  private static final ByteSource IIRDEA_BAD_XML = RdeTestData.loadBytes("iirdea_bad.xml");
+  private static final ByteSource IIRDEA_GOOD_XML = RdeTestData.loadBytes("iirdea_good.xml");
 
   @Rule
   public final ExceptionRule thrown = new ExceptionRule();

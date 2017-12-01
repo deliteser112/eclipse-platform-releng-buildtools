@@ -426,7 +426,7 @@ public class XjcToDomainResourceConverterTest {
 
   private XjcRdeDomain loadDomainFromRdeXml(String filename) {
     try {
-      ByteSource source = RdeImportsTestData.get(filename);
+      ByteSource source = RdeImportsTestData.loadBytes(filename);
       try (InputStream ins = source.openStream()) {
         return ((XjcRdeDomainElement) unmarshaller.unmarshal(ins)).getValue();
       }

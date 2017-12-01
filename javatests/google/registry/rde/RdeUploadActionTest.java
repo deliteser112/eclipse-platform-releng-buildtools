@@ -97,8 +97,8 @@ import org.mockito.stubbing.OngoingStubbing;
 public class RdeUploadActionTest {
 
   private static final int BUFFER_SIZE = 64 * 1024;
-  private static final ByteSource REPORT_XML = RdeTestData.get("report.xml");
-  private static final ByteSource DEPOSIT_XML = RdeTestData.get("deposit_full.xml");  // 2010-10-17
+  private static final ByteSource REPORT_XML = RdeTestData.loadBytes("report.xml");
+  private static final ByteSource DEPOSIT_XML = RdeTestData.loadBytes("deposit_full.xml");
 
   private static final GcsFilename GHOSTRYDE_FILE =
       new GcsFilename("bucket", "tld_2010-10-17_full_S1_R0.xml.ghostryde");
@@ -128,8 +128,8 @@ public class RdeUploadActionTest {
 
   @Rule
   public final GpgSystemCommandRule gpg = new GpgSystemCommandRule(
-      RdeTestData.get("pgp-public-keyring.asc"),
-      RdeTestData.get("pgp-private-keyring-escrow.asc"));
+      RdeTestData.loadBytes("pgp-public-keyring.asc"),
+      RdeTestData.loadBytes("pgp-private-keyring-escrow.asc"));
 
   @Rule
   public final IoSpyRule ioSpy = new IoSpyRule()

@@ -16,14 +16,13 @@ package google.registry.flows;
 
 import static com.google.common.io.BaseEncoding.base64;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static google.registry.testing.TestLogHandlerUtils.findFirstLogMessageByPrefix;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.testing.TestLogHandler;
 import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.eppcommon.Trid;
@@ -88,8 +87,7 @@ public class FlowReporterTest extends ShardableTestCase {
 
   @Test
   public void testRecordToLogs_eppInput_complex() throws Exception {
-    String domainCreateXml = loadFileWithSubstitutions(
-        getClass(), "domain_create_prettyprinted.xml", ImmutableMap.<String, String>of());
+    String domainCreateXml = loadFile(getClass(), "domain_create_prettyprinted.xml");
     flowReporter.inputXmlBytes = domainCreateXml.getBytes(UTF_8);
     flowReporter.recordToLogs();
     assertThat(parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-EPPINPUT: ")))

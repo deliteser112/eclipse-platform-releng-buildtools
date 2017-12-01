@@ -147,7 +147,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     assertTransactionalFlow(true);
     DateTime currentExpiration = reloadResourceByForeignKey().getRegistrationExpirationTime();
     DateTime newExpiration = currentExpiration.plusYears(renewalYears);
-    runFlowAssertResponse(readFile(responseFilename, substitutions));
+    runFlowAssertResponse(loadFile(responseFilename, substitutions));
     DomainResource domain = reloadResourceByForeignKey();
     HistoryEntry historyEntryDomainRenew =
         getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_RENEW);
@@ -215,7 +215,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   @Test
   public void testDryRun() throws Exception {
     persistDomain();
-    dryRunFlowAssertResponse(readFile("domain_renew_response.xml"));
+    dryRunFlowAssertResponse(loadFile("domain_renew_response.xml"));
   }
 
   @Test
@@ -385,7 +385,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
         ofy().load().key(reloadResourceByForeignKey().getAutorenewPollMessage()).now().asBuilder()
             .setEventTime(expirationTime.minusYears(1))
             .build());
-    runFlowAssertResponse(readFile("domain_renew_response.xml"));
+    runFlowAssertResponse(loadFile("domain_renew_response.xml"));
     HistoryEntry historyEntryDomainRenew =
         getOnlyHistoryEntryOfType(reloadResourceByForeignKey(), HistoryEntry.Type.DOMAIN_RENEW);
     assertPollMessages(
@@ -618,7 +618,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     sessionMetadata.setClientId("NewRegistrar");
     persistDomain();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_renew_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_renew_response.xml"));
   }
 
   @Test
@@ -636,7 +636,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistDomain();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_renew_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_renew_response.xml"));
   }
 
   @Test

@@ -45,8 +45,8 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class IcannHttpReporterTest {
 
-  private static final ByteSource IIRDEA_GOOD_XML = ReportingTestData.get("iirdea_good.xml");
-  private static final ByteSource IIRDEA_BAD_XML = ReportingTestData.get("iirdea_bad.xml");
+  private static final ByteSource IIRDEA_GOOD_XML = ReportingTestData.loadBytes("iirdea_good.xml");
+  private static final ByteSource IIRDEA_BAD_XML = ReportingTestData.loadBytes("iirdea_bad.xml");
   private static final byte[] FAKE_PAYLOAD = "test,csv\n1,2".getBytes(UTF_8);
 
   private MockLowLevelHttpRequest mockRequest;

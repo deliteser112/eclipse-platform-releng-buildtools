@@ -15,6 +15,7 @@
 package google.registry.rde.imports;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.rde.imports.RdeImportsTestData.loadBytes;
 
 import com.google.common.io.ByteSource;
 import google.registry.rde.imports.RdeParser.RdeHeader;
@@ -40,7 +41,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class RdeParserTest {
 
-  private static final ByteSource DEPOSIT_XML = RdeImportsTestData.get("deposit_full_parser.xml");
+  private static final ByteSource DEPOSIT_XML = loadBytes("deposit_full_parser.xml");
 
   private InputStream xml;
 

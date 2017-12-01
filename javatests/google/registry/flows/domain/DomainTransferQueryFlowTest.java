@@ -53,7 +53,7 @@ public class DomainTransferQueryFlowTest
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
     // Setup done; run the test.
     assertTransactionalFlow(false);
-    runFlowAssertResponse(readFile(expectedXmlFilename));
+    runFlowAssertResponse(loadFile(expectedXmlFilename));
     assertAboutDomains().that(domain).hasOneHistoryEntryEachOfTypes(
         HistoryEntry.Type.DOMAIN_CREATE,
         HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST);

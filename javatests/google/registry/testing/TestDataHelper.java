@@ -55,7 +55,7 @@ public final class TestDataHelper {
    * Loads a text file from the "testdata" directory relative to the location of the specified
    * context class, and substitutes in values for placeholders of the form <code>%tagname%</code>.
    */
-  public static String loadFileWithSubstitutions(
+  public static String loadFile(
       Class<?> context, String filename, Map<String, String> substitutions) {
     String fileContents = loadFile(context, filename);
     for (Entry<String, String> entry : nullToEmpty(substitutions).entrySet()) {

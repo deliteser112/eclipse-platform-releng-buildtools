@@ -24,7 +24,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResou
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntry;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -341,8 +341,7 @@ public class RdapDomainActionTest {
       substitutionsBuilder.put("NAMESERVER2PUNYCODENAME", "ns2.cat.lol");
     }
     return JSONValue.parse(
-        loadFileWithSubstitutions(
-            this.getClass(), expectedOutputFile, substitutionsBuilder.build()));
+        loadFile(this.getClass(), expectedOutputFile, substitutionsBuilder.build()));
   }
 
   private Object generateExpectedJsonWithTopLevelEntries(

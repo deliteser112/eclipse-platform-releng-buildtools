@@ -59,7 +59,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   @Test
   public void testDryRun() throws Exception {
     persistActiveHost("ns1.example.tld");
-    dryRunFlowAssertResponse(readFile("host_delete_response.xml"));
+    dryRunFlowAssertResponse(loadFile("host_delete_response.xml"));
   }
 
   @Test
@@ -67,7 +67,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     persistActiveHost("ns1.example.tld");
     clock.advanceOneMilli();
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile("host_delete_response.xml"));
+    runFlowAssertResponse(loadFile("host_delete_response.xml"));
     HostResource deletedHost = reloadResourceByForeignKey();
     assertAboutHosts().that(deletedHost).hasStatusValue(StatusValue.PENDING_DELETE);
     assertAsyncDeletionTaskEnqueued(
@@ -134,7 +134,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     persistActiveHost("ns1.example.tld");
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("host_delete_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("host_delete_response.xml"));
     HostResource deletedHost = reloadResourceByForeignKey();
     assertAboutHosts().that(deletedHost).hasStatusValue(StatusValue.PENDING_DELETE);
     assertAsyncDeletionTaskEnqueued(
@@ -160,7 +160,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
             .setSuperordinateDomain(Key.create(domain))
             .build());
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("host_delete_response.xml"));
+    runFlowAssertResponse(loadFile("host_delete_response.xml"));
   }
 
   @Test
@@ -205,7 +205,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
             .setSuperordinateDomain(Key.create(domain))
             .build());
     clock.advanceOneMilli();
-    runFlowAssertResponse(readFile("host_delete_response.xml"));
+    runFlowAssertResponse(loadFile("host_delete_response.xml"));
   }
 
   @Test

@@ -35,7 +35,7 @@ public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppComm
 
   @Before
   public void initCommand() throws Exception {
-    xmlInput = ToolsTestData.loadUtf8("contact_create.xml");
+    xmlInput = ToolsTestData.loadFile("contact_create.xml");
     eppFile = writeToNamedTmpFile("eppFile", xmlInput);
   }
 
@@ -67,7 +67,7 @@ public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppComm
 
   @Test
   public void testSuccess_multipleFiles() throws Exception {
-    String xmlInput2 = ToolsTestData.loadUtf8("domain_check.xml");
+    String xmlInput2 = ToolsTestData.loadFile("domain_check.xml");
     String eppFile2 = writeToNamedTmpFile("eppFile2", xmlInput2);
     runCommand("--client=NewRegistrar", "--force", eppFile, eppFile2);
     eppVerifier

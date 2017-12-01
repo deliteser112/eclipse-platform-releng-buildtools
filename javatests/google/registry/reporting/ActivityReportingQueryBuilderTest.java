@@ -61,7 +61,7 @@ public class ActivityReportingQueryBuilderTest {
       String actualTableName = String.format("%s_201709", queryName);
       String testFilename = String.format("%s_test.sql", queryName);
       assertThat(actualQueries.get(actualTableName))
-          .isEqualTo(ReportingTestData.getString(testFilename));
+          .isEqualTo(ReportingTestData.loadFile(testFilename));
     }
   }
 

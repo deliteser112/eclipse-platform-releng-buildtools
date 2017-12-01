@@ -90,7 +90,7 @@ public class DomainTransferRejectFlowTest
     DateTime originalExpirationTime = domain.getRegistrationExpirationTime();
     ImmutableSet<GracePeriod> originalGracePeriods = domain.getGracePeriods();
     TransferData originalTransferData = domain.getTransferData();
-    runFlowAssertResponse(readFile(expectedXmlFilename));
+    runFlowAssertResponse(loadFile(expectedXmlFilename));
     // Transfer should have been rejected. Verify correct fields were set.
     domain = reloadResourceByForeignKey();
     assertTransferFailed(domain, TransferStatus.CLIENT_REJECTED, originalTransferData);
@@ -155,7 +155,7 @@ public class DomainTransferRejectFlowTest
   public void testDryRun() throws Exception {
     setEppInput("domain_transfer_reject.xml");
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
-    dryRunFlowAssertResponse(readFile("domain_transfer_reject_response.xml"));
+    dryRunFlowAssertResponse(loadFile("domain_transfer_reject_response.xml"));
   }
 
   @Test
@@ -183,7 +183,7 @@ public class DomainTransferRejectFlowTest
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, readFile("domain_transfer_reject_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_transfer_reject_response.xml"));
   }
 
   @Test

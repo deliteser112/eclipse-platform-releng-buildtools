@@ -61,7 +61,7 @@ public class ContactTransferCancelFlowTest
     contact = reloadResourceByForeignKey();
     TransferData originalTransferData = contact.getTransferData();
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile(expectedXmlFilename));
+    runFlowAssertResponse(loadFile(expectedXmlFilename));
 
     // Transfer should have been cancelled. Verify correct fields were set.
     contact = reloadResourceByForeignKey();
@@ -105,7 +105,7 @@ public class ContactTransferCancelFlowTest
   @Test
   public void testDryRun() throws Exception {
     setEppInput("contact_transfer_cancel.xml");
-    dryRunFlowAssertResponse(readFile("contact_transfer_cancel_response.xml"));
+    dryRunFlowAssertResponse(loadFile("contact_transfer_cancel_response.xml"));
   }
 
   @Test

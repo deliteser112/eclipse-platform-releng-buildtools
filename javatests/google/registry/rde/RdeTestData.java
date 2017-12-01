@@ -21,14 +21,14 @@ import google.registry.testing.TestDataHelper;
 public final class RdeTestData {
 
   /** Returns {@link ByteSource} for file in {@code rde/testdata/} directory. */
-  public static ByteSource get(String filename) {
+  public static ByteSource loadBytes(String filename) {
     return TestDataHelper.loadBytes(RdeTestData.class, filename);
   }
 
   /**
    * Loads data from file in {@code rde/testdata/} as a String (assuming file is UTF-8).
    */
-  public static String loadUtf8(String filename) {
+  public static String loadFile(String filename) {
     return TestDataHelper.loadFile(RdeTestData.class, filename);
   }
 }

@@ -75,7 +75,7 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
             .setParent(createHistoryEntryForEppResource(domain))
             .build());
     assertTransactionalFlow(false);
-    runFlowAssertResponse(readFile("poll_response_domain_transfer.xml"));
+    runFlowAssertResponse(loadFile("poll_response_domain_transfer.xml"));
   }
 
   @Test
@@ -99,7 +99,7 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
             .setParent(createHistoryEntryForEppResource(contact))
             .build());
     assertTransactionalFlow(false);
-    runFlowAssertResponse(readFile("poll_response_contact_transfer.xml"));
+    runFlowAssertResponse(loadFile("poll_response_contact_transfer.xml"));
   }
 
   @Test
@@ -114,7 +114,7 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
             .setParent(createHistoryEntryForEppResource(domain))
             .build());
     assertTransactionalFlow(false);
-    runFlowAssertResponse(readFile("poll_response_domain_pending_notification.xml"));
+    runFlowAssertResponse(loadFile("poll_response_domain_pending_notification.xml"));
   }
 
   @Test
@@ -128,12 +128,12 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
             .setParent(createHistoryEntryForEppResource(domain))
             .build());
     assertTransactionalFlow(false);
-    runFlowAssertResponse(readFile("poll_response_autorenew.xml"));
+    runFlowAssertResponse(loadFile("poll_response_autorenew.xml"));
   }
 
   @Test
   public void testSuccess_empty() throws Exception {
-    runFlowAssertResponse(readFile("poll_response_empty.xml"));
+    runFlowAssertResponse(loadFile("poll_response_empty.xml"));
   }
 
   @Test
@@ -145,7 +145,7 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
             .setMsg("Poll message")
             .setParent(createHistoryEntryForEppResource(domain))
             .build());
-    runFlowAssertResponse(readFile("poll_response_empty.xml"));
+    runFlowAssertResponse(loadFile("poll_response_empty.xml"));
   }
 
   @Test
@@ -157,7 +157,7 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
             .setMsg("Poll message")
             .setParent(createHistoryEntryForEppResource(domain))
             .build());
-    runFlowAssertResponse(readFile("poll_response_empty.xml"));
+    runFlowAssertResponse(loadFile("poll_response_empty.xml"));
   }
 
   @Test
@@ -171,7 +171,7 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
             .setParent(createHistoryEntryForEppResource(domain))
             .build());
     assertTransactionalFlow(false);
-    runFlowAssertResponse(readFile("poll_response_empty.xml"));
+    runFlowAssertResponse(loadFile("poll_response_empty.xml"));
   }
 
   @Test
@@ -192,7 +192,7 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
             .setEventTime(clock.nowUtc().minusDays(1))
             .build());
     assertTransactionalFlow(false);
-    runFlowAssertResponse(readFile("poll_response_contact_delete.xml"));
+    runFlowAssertResponse(loadFile("poll_response_contact_delete.xml"));
   }
 
   @Test
@@ -213,7 +213,7 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
             .setEventTime(clock.nowUtc().minusDays(1))
             .build());
     assertTransactionalFlow(false);
-    runFlowAssertResponse(readFile("poll_response_host_delete.xml"));
+    runFlowAssertResponse(loadFile("poll_response_host_delete.xml"));
   }
 
   @Test

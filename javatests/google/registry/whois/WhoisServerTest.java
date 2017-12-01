@@ -26,7 +26,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResou
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
-import static google.registry.whois.WhoisHelper.loadWhoisTestFile;
+import static google.registry.whois.WhoisTestData.loadFile;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -94,7 +94,7 @@ public class WhoisServerTest {
   public void testRun_badRequest_stillSends200() throws Exception {
     newWhoisServer("\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_no_command.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_no_command.txt"));
   }
 
   @Test
@@ -112,7 +112,7 @@ public class WhoisServerTest {
     persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisServer("domain cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_domain.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_domain.txt"));
   }
 
   @Test
@@ -130,7 +130,7 @@ public class WhoisServerTest {
     persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisServer("domain cat.みんな\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_idn_punycode.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_idn_punycode.txt"));
   }
 
   @Test
@@ -148,7 +148,7 @@ public class WhoisServerTest {
     persistSimpleResources(makeRegistrarContacts(registrar));
     newWhoisServer("domain cat.xn--q9jyb4c\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_idn_punycode.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_idn_punycode.txt"));
   }
 
   @Test
@@ -156,7 +156,7 @@ public class WhoisServerTest {
     newWhoisServer("domain cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload())
-        .isEqualTo(loadWhoisTestFile("whois_server_domain_not_found.txt"));
+        .isEqualTo(loadFile("whois_server_domain_not_found.txt"));
   }
 
   // todo (b/27378695): reenable or delete this test
@@ -178,7 +178,7 @@ public class WhoisServerTest {
     newWhoisServer("domain cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload())
-        .isEqualTo(loadWhoisTestFile("whois_server_domain_not_found.txt"));
+        .isEqualTo(loadFile("whois_server_domain_not_found.txt"));
   }
 
   @Test
@@ -200,7 +200,7 @@ public class WhoisServerTest {
     newWhoisServer("domain cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload())
-        .isEqualTo(loadWhoisTestFile("whois_server_domain_not_found.txt"));
+        .isEqualTo(loadFile("whois_server_domain_not_found.txt"));
   }
 
   /**
@@ -249,7 +249,7 @@ public class WhoisServerTest {
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     newWhoisServer("nameserver ns1.cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_nameserver.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_nameserver.txt"));
   }
 
   @Test
@@ -287,7 +287,7 @@ public class WhoisServerTest {
     newWhoisServer("nameserver ns1.cat.lulz\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload())
-        .isEqualTo(loadWhoisTestFile("whois_server_nameserver_not_found.txt"));
+        .isEqualTo(loadFile("whois_server_nameserver_not_found.txt"));
   }
 
   @Test
@@ -298,7 +298,7 @@ public class WhoisServerTest {
     newWhoisServer("nameserver ns1.cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload())
-        .isEqualTo(loadWhoisTestFile("whois_server_nameserver_not_found.txt"));
+        .isEqualTo(loadFile("whois_server_nameserver_not_found.txt"));
   }
 
   @Test
@@ -334,7 +334,7 @@ public class WhoisServerTest {
   public void testRun_ipNameserverEntityDoesNotExist_returns200NotFound() throws Exception {
     newWhoisServer("nameserver feed:a:bee::acab\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_ip_not_found.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_ip_not_found.txt"));
   }
 
   @Test
@@ -343,7 +343,7 @@ public class WhoisServerTest {
     persistResource(makeHostResource("ns1.google.com", "1.2.3.4"));
     newWhoisServer("nameserver 1.2.3.4").run();
     assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_ip_not_found.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_ip_not_found.txt"));
   }
 
   @Test
@@ -353,7 +353,7 @@ public class WhoisServerTest {
     newWhoisServer("nameserver ns1.google.com").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload())
-        .isEqualTo(loadWhoisTestFile("whois_server_nameserver_not_found.txt"));
+        .isEqualTo(loadFile("whois_server_nameserver_not_found.txt"));
   }
 
   // todo (b/27378695): reenable or delete this test
@@ -365,7 +365,7 @@ public class WhoisServerTest {
     newWhoisServer("nameserver ns1.cat.lol").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload())
-        .isEqualTo(loadWhoisTestFile("whois_server_nameserver_not_found.txt"));
+        .isEqualTo(loadFile("whois_server_nameserver_not_found.txt"));
   }
 
   @Test
@@ -376,7 +376,7 @@ public class WhoisServerTest {
     // Notice the partial search without "inc".
     newWhoisServer("registrar example registrar").run();
     assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_registrar.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_registrar.txt"));
   }
 
   @Test
@@ -392,7 +392,7 @@ public class WhoisServerTest {
     // Notice the partial search without "inc".
     newWhoisServer("registrar example registrar").run();
     assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_registrar.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_registrar.txt"));
   }
 
   @Test
@@ -403,7 +403,7 @@ public class WhoisServerTest {
     newWhoisServer("registrar Example Registrar, Inc.").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload())
-        .isEqualTo(loadWhoisTestFile("whois_server_registrar_not_found.txt"));
+        .isEqualTo(loadFile("whois_server_registrar_not_found.txt"));
   }
 
   @Test
@@ -418,7 +418,7 @@ public class WhoisServerTest {
     newWhoisServer("registrar Example Registrar, Inc.").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload())
-        .isEqualTo(loadWhoisTestFile("whois_server_registrar_not_found.txt"));
+        .isEqualTo(loadFile("whois_server_registrar_not_found.txt"));
   }
 
   @Test
@@ -514,6 +514,6 @@ public class WhoisServerTest {
 
     server.whoisReader = mockReader;
     server.run();
-    assertThat(response.getPayload()).isEqualTo(loadWhoisTestFile("whois_server_nameserver.txt"));
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_server_nameserver.txt"));
   }
 }

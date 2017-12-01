@@ -68,7 +68,7 @@ public class EppToolVerifier {
   /**
    * Sets the expected clientId for any following verifySent command.
    *
-   * <p>Must be called at least once before any {@link verifySent} calls.
+   * <p>Must be called at least once before any {@link #verifySent} calls.
    */
   public EppToolVerifier expectClientId(String clientId) {
     this.clientId = clientId;
@@ -78,7 +78,7 @@ public class EppToolVerifier {
   /**
    * Declares that any following verifySent command expects the "superuser" flag to be set.
    *
-   * <p>If not called, {@link verifySent} will expect the "superuser" flag to be false.
+   * <p>If not called, {@link #verifySent} will expect the "superuser" flag to be false.
    */
   public EppToolVerifier expectSuperuser() {
     this.superuser = true;
@@ -88,7 +88,7 @@ public class EppToolVerifier {
   /**
    * Declares that any following verifySent command expects the "dryRun" flag to be set.
    *
-   * <p>If not called, {@link verifySent} will expect the "dryRun" flag to be false.
+   * <p>If not called, {@link #verifySent} will expect the "dryRun" flag to be false.
    */
   public EppToolVerifier expectDryRun() {
     this.dryRun = true;
@@ -109,7 +109,7 @@ public class EppToolVerifier {
    *     resides in the tools/server/testdata directory.
    */
   public EppToolVerifier verifySent(String expectedXmlFile) throws Exception {
-    return verifySentContents(ToolsTestData.loadUtf8(expectedXmlFile));
+    return verifySentContents(ToolsTestData.loadFile(expectedXmlFile));
   }
 
   /**
@@ -129,7 +129,7 @@ public class EppToolVerifier {
    */
   public EppToolVerifier verifySent(String expectedXmlFile, Map<String, String> substitutions)
       throws Exception {
-    return verifySentContents(ToolsTestData.loadUtf8(expectedXmlFile, substitutions));
+    return verifySentContents(ToolsTestData.loadFile(expectedXmlFile, substitutions));
   }
 
   /**

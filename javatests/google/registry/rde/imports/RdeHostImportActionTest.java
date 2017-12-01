@@ -16,6 +16,7 @@ package google.registry.rde.imports;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.rde.imports.RdeImportsTestData.loadBytes;
 import static google.registry.testing.DatastoreHelper.getHistoryEntries;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -53,7 +54,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class RdeHostImportActionTest extends MapreduceTestCase<RdeHostImportAction> {
 
-  private static final ByteSource DEPOSIT_1_HOST = RdeImportsTestData.get("deposit_1_host.xml");
+  private static final ByteSource DEPOSIT_1_HOST = loadBytes("deposit_1_host.xml");
   private static final String IMPORT_BUCKET_NAME = "import-bucket";
   private static final String IMPORT_FILE_NAME = "escrow-file.xml";
 

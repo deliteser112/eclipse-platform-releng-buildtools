@@ -38,7 +38,7 @@ public class ContactCreateFlowTest
 
   private void doSuccessfulTest() throws Exception {
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile("contact_create_response.xml"));
+    runFlowAssertResponse(loadFile("contact_create_response.xml"));
     // Check that the contact was created and persisted with a history entry.
     assertAboutContacts().that(reloadResourceByForeignKey())
         .hasOnlyOneHistoryEntryWhich().hasNoXml();
@@ -48,7 +48,7 @@ public class ContactCreateFlowTest
 
   @Test
   public void testDryRun() throws Exception {
-    dryRunFlowAssertResponse(readFile("contact_create_response.xml"));
+    dryRunFlowAssertResponse(loadFile("contact_create_response.xml"));
   }
 
   @Test

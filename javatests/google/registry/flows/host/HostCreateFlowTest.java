@@ -79,7 +79,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   private void doSuccessfulTest() throws Exception {
     clock.advanceOneMilli();
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile("host_create_response.xml"));
+    runFlowAssertResponse(loadFile("host_create_response.xml"));
     // Check that the host was created and persisted with a history entry.
     assertAboutHosts().that(reloadResourceByForeignKey())
         .hasLastSuperordinateChange(null).and()
@@ -98,7 +98,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
 
   @Test
   public void testDryRun() throws Exception {
-    dryRunFlowAssertResponse(readFile("host_create_response.xml"));
+    dryRunFlowAssertResponse(loadFile("host_create_response.xml"));
   }
 
   @Test

@@ -195,8 +195,8 @@ public class DomainApplicationCreateFlowTest
     assertTransactionalFlow(true);
     runFlowAssertResponse(
         (feeExtensionVersion == null)
-          ? readFile(responseXmlFile)
-          : readFile(
+          ? loadFile(responseXmlFile)
+          : loadFile(
               responseXmlFile,
               ImmutableMap.of("FEE_VERSION", feeExtensionVersion, "FEE_NS", feeExtensionNamespace)),
         "epp.response.extension.creData.applicationID",
@@ -222,7 +222,7 @@ public class DomainApplicationCreateFlowTest
     runFlowAssertResponse(
         CommitMode.LIVE,
         UserPrivileges.SUPERUSER,
-        readFile(filename),
+        loadFile(filename),
         "epp.response.extension.creData.applicationID",
         "epp.response.resData.creData.crDate",
         "epp.response.extension.creData.phase");
@@ -234,7 +234,7 @@ public class DomainApplicationCreateFlowTest
     setEppInput("domain_create_sunrush_encoded_signed_mark.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    dryRunFlowAssertResponse(readFile("domain_create_sunrush_encoded_signed_mark_response.xml"),
+    dryRunFlowAssertResponse(loadFile("domain_create_sunrush_encoded_signed_mark_response.xml"),
         "epp.response.extension.creData.applicationID", "epp.response.resData.creData.crDate");
   }
 
@@ -326,7 +326,7 @@ public class DomainApplicationCreateFlowTest
     setEppInput("domain_create_sunrush.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    dryRunFlowAssertResponse(readFile("domain_create_sunrush_response.xml"),
+    dryRunFlowAssertResponse(loadFile("domain_create_sunrush_response.xml"),
         "epp.response.extension.creData.applicationID", "epp.response.resData.creData.crDate");
   }
 
@@ -338,7 +338,7 @@ public class DomainApplicationCreateFlowTest
     persistClaimsList(ImmutableMap.of("example-one", CLAIMS_KEY));
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    dryRunFlowAssertResponse(readFile("domain_create_sunrush_response_claims.xml"),
+    dryRunFlowAssertResponse(loadFile("domain_create_sunrush_response_claims.xml"),
         "epp.response.extension.creData.applicationID", "epp.response.resData.creData.crDate");
   }
 
@@ -819,7 +819,7 @@ public class DomainApplicationCreateFlowTest
     persistContactsAndHosts();
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        readFile("domain_create_landrush_premium_response.xml"),
+        loadFile("domain_create_landrush_premium_response.xml"),
         "epp.response.extension.creData.applicationID",
         "epp.response.resData.creData.crDate",
         "epp.response.extension.creData.phase");

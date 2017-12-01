@@ -82,7 +82,7 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
   @Test
   public void testDryRun() throws Exception {
     persistOneTimePollMessage(MESSAGE_ID);
-    dryRunFlowAssertResponse(readFile("poll_ack_response_empty.xml"));
+    dryRunFlowAssertResponse(loadFile("poll_ack_response_empty.xml"));
   }
 
   @Test
@@ -97,21 +97,21 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
             .setParent(createHistoryEntryForEppResource(contact))
             .build());
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile("poll_ack_response_empty.xml"));
+    runFlowAssertResponse(loadFile("poll_ack_response_empty.xml"));
   }
 
   @Test
   public void testSuccess_messageOnContactResource() throws Exception {
     persistOneTimePollMessage(MESSAGE_ID);
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile("poll_ack_response_empty.xml"));
+    runFlowAssertResponse(loadFile("poll_ack_response_empty.xml"));
   }
 
   @Test
   public void testSuccess_recentActiveAutorenew() throws Exception {
     persistAutorenewPollMessage(clock.nowUtc().minusMonths(6), END_OF_TIME);
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile("poll_ack_response_empty.xml"));
+    runFlowAssertResponse(loadFile("poll_ack_response_empty.xml"));
   }
 
   @Test
@@ -123,14 +123,14 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
       persistOneTimePollMessage(MESSAGE_ID + i);
     }
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile("poll_ack_response.xml"));
+    runFlowAssertResponse(loadFile("poll_ack_response.xml"));
   }
 
   @Test
   public void testSuccess_oldInactiveAutorenew() throws Exception {
     persistAutorenewPollMessage(clock.nowUtc().minusMonths(6), clock.nowUtc());
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile("poll_ack_response_empty.xml"));
+    runFlowAssertResponse(loadFile("poll_ack_response_empty.xml"));
   }
 
   @Test
@@ -140,7 +140,7 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
       persistOneTimePollMessage(MESSAGE_ID + i);
     }
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile("poll_ack_response.xml"));
+    runFlowAssertResponse(loadFile("poll_ack_response.xml"));
   }
 
   @Test

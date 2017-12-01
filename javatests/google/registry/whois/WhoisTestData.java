@@ -17,13 +17,13 @@ package google.registry.whois;
 import google.registry.testing.TestDataHelper;
 
 /** Test helper methods for the whois package. */
-final class WhoisHelper {
+final class WhoisTestData {
 
   /**
    * Loads test data from file in {@code testdata/} directory, "fixing" newlines to have the ending
    * that WHOIS requires.
    */
-  static String loadWhoisTestFile(String filename) {
-    return TestDataHelper.loadFile(WhoisHelper.class, filename).replaceAll("\r?\n", "\r\n");
+  static String loadFile(String filename) {
+    return TestDataHelper.loadFile(WhoisTestData.class, filename).replaceAll("\r?\n", "\r\n");
   }
 }

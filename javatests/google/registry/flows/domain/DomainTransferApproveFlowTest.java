@@ -168,7 +168,7 @@ public class DomainTransferApproveFlowTest
     // Setup done; run the test.
     TransferData originalTransferData = domain.getTransferData();
     assertTransactionalFlow(true);
-    runFlowAssertResponse(readFile(expectedXmlFilename));
+    runFlowAssertResponse(loadFile(expectedXmlFilename));
     // Transfer should have succeeded. Verify correct fields were set.
     domain = reloadResourceByForeignKey();
     assertAboutDomains()
@@ -332,7 +332,7 @@ public class DomainTransferApproveFlowTest
   @Test
   public void testDryRun() throws Exception {
     setEppLoader("domain_transfer_approve.xml");
-    dryRunFlowAssertResponse(readFile("domain_transfer_approve_response.xml"));
+    dryRunFlowAssertResponse(loadFile("domain_transfer_approve_response.xml"));
   }
 
   @Test
@@ -508,7 +508,7 @@ public class DomainTransferApproveFlowTest
     runFlowAssertResponse(
         CommitMode.LIVE,
         UserPrivileges.SUPERUSER,
-        readFile("domain_transfer_approve_response.xml"));
+        loadFile("domain_transfer_approve_response.xml"));
   }
 
   // NB: No need to test pending delete status since pending transfers will get cancelled upon

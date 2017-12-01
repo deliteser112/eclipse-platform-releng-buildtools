@@ -135,7 +135,7 @@ public class DomainAllocateFlowTest
     runFlowAssertResponse(
         CommitMode.LIVE,
         UserPrivileges.SUPERUSER,
-        readFile("domain_allocate_response.xml"));
+        loadFile("domain_allocate_response.xml"));
     // Check that the domain was created and persisted with a history entry.
     DomainResource domain = reloadResourceByForeignKey();
     assertAboutDomains().that(domain)

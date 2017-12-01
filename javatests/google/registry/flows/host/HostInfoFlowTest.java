@@ -75,7 +75,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
     assertTransactionalFlow(false);
     // Check that the persisted host info was returned.
     runFlowAssertResponse(
-        readFile("host_info_response.xml"),
+        loadFile("host_info_response.xml"),
         // We use a different roid scheme than the samples so ignore it.
         "epp.response.resData.infData.roid");
     assertNoHistory();
@@ -92,7 +92,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
     assertTransactionalFlow(false);
     // Check that the persisted host info was returned.
     runFlowAssertResponse(
-        readFile("host_info_response_linked.xml"),
+        loadFile("host_info_response_linked.xml"),
         // We use a different roid scheme than the samples so ignore it.
         "epp.response.resData.infData.roid");
     assertNoHistory();
@@ -115,7 +115,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
             .build());
     assertTransactionalFlow(false);
     runFlowAssertResponse(
-        readFile("host_info_response_superordinate_clientid.xml"),
+        loadFile("host_info_response_superordinate_clientid.xml"),
         // We use a different roid scheme than the samples so ignore it.
         "epp.response.resData.infData.roid");
     assertNoHistory();

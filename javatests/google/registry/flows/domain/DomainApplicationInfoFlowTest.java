@@ -22,7 +22,6 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.TestDataHelper.loadFileWithSubstitutions;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -113,8 +112,7 @@ public class DomainApplicationInfoFlowTest
   private void doSuccessfulTest(String expectedXmlFilename, HostsState hostsState)
       throws Exception {
     assertTransactionalFlow(false);
-    String expected = loadFileWithSubstitutions(
-        getClass(), expectedXmlFilename, ImmutableMap.of("ROID", "123-TLD"));
+    String expected = loadFile(expectedXmlFilename, ImmutableMap.of("ROID", "123-TLD"));
     if (hostsState.equals(HostsState.NO_HOSTS_EXIST)) {
       expected = expected.replaceAll("\"ok\"", "\"inactive\"");
     }

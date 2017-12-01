@@ -29,7 +29,7 @@ public class ValidateEscrowDepositCommandTest
 
   @Test
   public void testRun_plainXml() throws Exception {
-    String file = writeToTmpFile(RdeTestData.get("deposit_full.xml").read());
+    String file = writeToTmpFile(RdeTestData.loadBytes("deposit_full.xml").read());
     runCommand("--input=" + file);
     assertThat(getStdoutAsString()).isEqualTo(""
         + "ID: 20101017001\n"
@@ -64,7 +64,7 @@ public class ValidateEscrowDepositCommandTest
 
   @Test
   public void testRun_plainXml_badReference() throws Exception {
-    String file = writeToTmpFile(RdeTestData.get("deposit_full_badref.xml").read());
+    String file = writeToTmpFile(RdeTestData.loadBytes("deposit_full_badref.xml").read());
     runCommand("--input=" + file);
     assertThat(getStdoutAsString()).isEqualTo(""
         + "ID: 20101017001\n"
@@ -100,7 +100,7 @@ public class ValidateEscrowDepositCommandTest
 
   @Test
   public void testRun_badXml() throws Exception {
-    String file = writeToTmpFile(RdeTestData.loadUtf8("deposit_full.xml").substring(0, 2000));
+    String file = writeToTmpFile(RdeTestData.loadFile("deposit_full.xml").substring(0, 2000));
     thrown.expect(XmlException.class, "Syntax error at line 46, column 38: "
         + "XML document structures must start and end within the same entity.");
     runCommand("--input=" + file);
