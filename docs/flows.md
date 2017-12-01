@@ -517,6 +517,8 @@ An EPP flow that creates a new domain resource.
     *   Service extension(s) must be declared at login.
     *   The current registry phase does not allow for general registrations.
 *   2003
+    *   Fees must be explicitly acknowledged when creating domains during the
+        Early Access Program.
     *   Fees must be explicitly acknowledged when performing any operations on a
         premium name.
     *   Admin contact is required.

@@ -133,6 +133,7 @@ import org.joda.time.Duration;
  * @error {@link DomainFlowUtils.ExceedsMaxRegistrationYearsException}
  * @error {@link DomainFlowUtils.ExpiredClaimException}
  * @error {@link DomainFlowUtils.FeesMismatchException}
+ * @error {@link DomainFlowUtils.FeesRequiredDuringEarlyAccessProgramException}
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
  * @error {@link DomainFlowUtils.InvalidIdnDomainLabelException}
  * @error {@link DomainFlowUtils.InvalidLrpTokenException}

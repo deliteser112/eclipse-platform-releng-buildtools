@@ -631,6 +631,9 @@ public class DomainFlowUtils {
     // This only happens when the total fees are non-zero and include custom fees requiring the
     // extension.
     if (feeCommand == null) {
+      if (!feesAndCredits.getEapCost().isZero()) {
+        throw new FeesRequiredDuringEarlyAccessProgramException(feesAndCredits.getEapCost());
+      }
       if (feesAndCredits.getTotalCost().isZero() || !feesAndCredits.isFeeExtensionRequired()) {
         return;
       }
@@ -1167,14 +1170,23 @@ public class DomainFlowUtils {
 
   /** Fees must be explicitly acknowledged when performing an operation which is not free. */
   static class FeesRequiredForNonFreeOperationException extends RequiredParameterMissingException {
-    FeesRequiredForNonFreeOperationException() {
-      super("Fees must be explicitly acknowledged when performing an operation which is not free.");
-    }
 
     public FeesRequiredForNonFreeOperationException(Money expectedFee) {
       super(
           "Fees must be explicitly acknowledged when performing an operation which is not free."
               + " The total fee is: "
+              + expectedFee);
+    }
+  }
+
+  /** Fees must be explicitly acknowledged when creating domains during the Early Access Program. */
+  static class FeesRequiredDuringEarlyAccessProgramException
+      extends RequiredParameterMissingException {
+
+    public FeesRequiredDuringEarlyAccessProgramException(Money expectedFee) {
+      super(
+          "Fees must be explicitly acknowledged when creating domains "
+              + "during the Early Access Program. The EAP fee is: "
               + expectedFee);
     }
   }

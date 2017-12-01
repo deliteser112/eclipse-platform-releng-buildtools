@@ -43,6 +43,7 @@ import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
@@ -82,6 +83,7 @@ import google.registry.flows.domain.DomainFlowUtils.EmptyDomainNamePartException
 import google.registry.flows.domain.DomainFlowUtils.ExceedsMaxRegistrationYearsException;
 import google.registry.flows.domain.DomainFlowUtils.ExpiredClaimException;
 import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
+import google.registry.flows.domain.DomainFlowUtils.FeesRequiredDuringEarlyAccessProgramException;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForPremiumNameException;
 import google.registry.flows.domain.DomainFlowUtils.InvalidIdnDomainLabelException;
 import google.registry.flows.domain.DomainFlowUtils.InvalidLrpTokenException;
@@ -1965,6 +1967,27 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .build());
     doSuccessfulTest(
         "tld", "domain_create_response_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
+  }
+
+  @Test
+  public void testFailure_domainInEap_failsWithoutFeeExtension() throws Exception {
+    persistContactsAndHosts();
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setEapFeeSchedule(
+                ImmutableSortedMap.of(
+                    START_OF_TIME, Money.of(USD, 0),
+                    clock.nowUtc().minusDays(1), Money.of(USD, 100),
+                    clock.nowUtc().plusDays(1), Money.of(USD, 0)))
+            .build());
+    Exception e = expectThrows(FeesRequiredDuringEarlyAccessProgramException.class, this::runFlow);
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo(
+            "Fees must be explicitly acknowledged when creating domains "
+                + "during the Early Access Program. The EAP fee is: USD 100.00");
+
   }
 
   @Test
