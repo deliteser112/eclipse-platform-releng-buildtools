@@ -13,7 +13,7 @@ java_library(
     deps = [
         "//java/google/registry/monitoring/metrics",
         "//java/google/registry/monitoring/metrics/stackdriver",
-        "//javatests/google/registry/monitoring/metrics",
+        "//third_party/junit",
         "@com_google_api_client",
         "@com_google_apis_google_api_services_monitoring",
         "@com_google_guava",

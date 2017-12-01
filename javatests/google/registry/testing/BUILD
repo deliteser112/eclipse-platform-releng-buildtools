@@ -19,6 +19,7 @@ java_library(
         "//java/google/registry:env/common/default/WEB-INF/datastore-indexes.xml",
         "//java/google/registry:env/common/default/WEB-INF/queue.xml",
     ] + glob(["*.csv"]) + glob(["testdata/*"]),
+    exports = ["//third_party/junit"],
     deps = [
         "//java/google/registry/config",
         "//java/google/registry/dns:constants",

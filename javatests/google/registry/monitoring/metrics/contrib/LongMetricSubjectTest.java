@@ -15,8 +15,8 @@
 package google.registry.monitoring.metrics.contrib;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.monitoring.metrics.JUnitBackports.expectThrows;
 import static google.registry.monitoring.metrics.contrib.LongMetricSubject.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableSet;
 import google.registry.monitoring.metrics.IncrementableMetric;

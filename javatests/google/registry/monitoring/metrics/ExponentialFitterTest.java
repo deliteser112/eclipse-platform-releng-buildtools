@@ -15,7 +15,7 @@
 package google.registry.monitoring.metrics;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.monitoring.metrics.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

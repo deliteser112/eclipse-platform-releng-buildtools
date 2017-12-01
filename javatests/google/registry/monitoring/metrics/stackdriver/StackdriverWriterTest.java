@@ -15,7 +15,7 @@
 package google.registry.monitoring.metrics.stackdriver;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.monitoring.metrics.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;

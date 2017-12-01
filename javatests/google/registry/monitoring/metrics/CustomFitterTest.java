@@ -15,7 +15,7 @@
 package google.registry.monitoring.metrics;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.monitoring.metrics.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
