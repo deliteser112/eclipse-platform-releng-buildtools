@@ -96,11 +96,29 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
     return null;
   }
 
+  /** Adds all the domains and hosts in the batch back to the queue to be processed later. */
+  private void requeueBatch() {
+    for (String domain : nullToEmpty(domains)) {
+      dnsQueue.addDomainRefreshTask(domain);
+    }
+    for (String host : nullToEmpty(hosts)) {
+      dnsQueue.addHostRefreshTask(host);
+    }
+  }
+
   /** Steps through the domain and host refreshes contained in the parameters and processes them. */
   private void processBatch() {
     DateTime timeAtStart = clock.nowUtc();
 
     DnsWriter writer = dnsWriterProxy.getByClassNameForTld(dnsWriter, tld);
+
+    if (writer == null) {
+      logger.warningfmt(
+          "Couldn't get writer %s for TLD %s, pushing domains back to the queue for retry",
+          dnsWriter, tld);
+      requeueBatch();
+      return;
+    }
 
     int domainsPublished = 0;
     int domainsRejected = 0;

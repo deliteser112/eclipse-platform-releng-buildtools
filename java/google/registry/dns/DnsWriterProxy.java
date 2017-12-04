@@ -36,12 +36,17 @@ public final class DnsWriterProxy {
     this.dnsWriters = ImmutableMap.copyOf(dnsWriters);
   }
 
-  /** Returns the instance of {@link DnsWriter} by class name. */
+  /**
+   * Returns the instance of {@link DnsWriter} by class name.
+   *
+   * If the DnsWriter doesn't belong to this TLD, will return null.
+   */
   public DnsWriter getByClassNameForTld(String className, String tld) {
     if (!Registry.get(tld).getDnsWriters().contains(className)) {
       logger.warningfmt(
-          "Loaded potentially stale DNS writer %s which is no longer active on TLD %s.",
+          "Loaded potentially stale DNS writer %s which is not active on TLD %s.",
           className, tld);
+      return null;
     }
     DnsWriter dnsWriter = dnsWriters.get(className);
     checkState(dnsWriter != null, "Could not load DnsWriter %s for TLD %s", className, tld);
