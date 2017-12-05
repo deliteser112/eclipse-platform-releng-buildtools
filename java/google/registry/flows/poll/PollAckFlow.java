@@ -19,6 +19,7 @@ import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.poll.PollFlowUtils.getPollMessagesQuery;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_NO_MESSAGES;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.poll.PollMessageExternalKeyConverter.parsePollMessageExternalId;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.googlecode.objectify.Key;
@@ -71,7 +72,7 @@ public class PollAckFlow implements TransactionalFlow {
     Key<PollMessage> pollMessageKey;
     // Try parsing the messageId, and throw an exception if it's invalid.
     try {
-      pollMessageKey = PollMessage.EXTERNAL_KEY_CONVERTER.reverse().convert(messageId);
+      pollMessageKey = parsePollMessageExternalId(messageId);
     } catch (PollMessageExternalKeyParseException e) {
       throw new InvalidMessageIdException(messageId);
     }
@@ -84,6 +85,9 @@ public class PollAckFlow implements TransactionalFlow {
     if (pollMessage == null || !isBeforeOrAt(pollMessage.getEventTime(), now)) {
       throw new MessageDoesNotExistException(messageId);
     }
+    // TODO(b/68953444): Once the year field on the external poll message ID becomes mandatory, add
+    // a check that the value of the year field is correct, by checking that
+    // makePollMessageExternalId(pollMessage) equals messageId.
 
     // Make sure this client is authorized to ack this message. It could be that the message is
     // supposed to go to a different registrar.

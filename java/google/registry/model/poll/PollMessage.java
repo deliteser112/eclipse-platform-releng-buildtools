@@ -21,7 +21,6 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Converter;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
@@ -74,10 +73,6 @@ import org.joda.time.DateTime;
 @ExternalMessagingName("message")
 public abstract class PollMessage extends ImmutableObject
     implements Buildable, TransferServerApproveEntity {
-
-
-  public static final Converter<Key<PollMessage>, String> EXTERNAL_KEY_CONVERTER =
-      new PollMessageExternalKeyConverter();
 
   /** Entity id. */
   @Id

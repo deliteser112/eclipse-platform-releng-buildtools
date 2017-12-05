@@ -114,7 +114,7 @@ public class EppLifecycleContactTest extends EppTestCase {
         .hasStatus(SUCCESS_WITH_ACK_MESSAGE);
     assertCommandAndResponse(
         "poll_ack.xml",
-        ImmutableMap.of("ID", "2-1-ROID-3-6"),
+        ImmutableMap.of("ID", "2-1-ROID-3-6-2000"),
         "poll_ack_response_empty.xml",
         null,
         DateTime.parse("2000-06-08T22:02:00Z"));
