@@ -18,10 +18,17 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.io.ByteSource;
+import com.google.common.io.CharStreams;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Objects;
 import org.junit.rules.ExternalResource;
 
 /**
@@ -53,56 +60,67 @@ public final class GpgSystemCommandRule extends ExternalResource {
 
   /** Returns the temporary directory from which commands are run. */
   public File getCwd() {
-    checkState(cwd != DEV_NULL);
+    checkState(!Objects.equals(cwd, DEV_NULL));
     return cwd;
   }
 
   /** Returns the temporary directory in which GnuPG configs are stored. */
   public File getConf() {
-    checkState(conf != DEV_NULL);
+    checkState(!Objects.equals(conf, DEV_NULL));
     return conf;
   }
 
   /**
    * Runs specified system command and arguments within the GPG testing environment.
    *
-   * @throws IOException
    * @see Runtime#exec(String[])
    */
   public final Process exec(String... args) throws IOException {
-    checkState(cwd != DEV_NULL);
+    checkState(!Objects.equals(cwd, DEV_NULL));
     checkArgument(args.length > 0, "args");
     return runtime.exec(args, env, cwd);
   }
 
   @Override
   protected void before() throws IOException, InterruptedException {
-    checkState(cwd == DEV_NULL);
+    checkState(Objects.equals(cwd, DEV_NULL));
     cwd = File.createTempFile(TEMP_FILE_PREFIX, "", null);
     cwd.delete();
     cwd.mkdir();
     conf = new File(cwd, ".gnupg");
     conf.mkdir();
-    conf.setReadable(true, true);
-    env = new String[] {
-      "PATH=" + System.getenv("PATH"),
-      "GNUPGHOME=" + conf.getAbsolutePath(),
-    };
+    Files.setPosixFilePermissions(conf.toPath(), PosixFilePermissions.fromString("rwx------"));
+    env =
+        new String[] {
+          "PATH=" + System.getenv("PATH"), "GNUPGHOME=" + conf.getAbsolutePath(),
+        };
 
     Process pid = exec("gpg", "--import");
     publicKeyring.copyTo(pid.getOutputStream());
     pid.getOutputStream().close();
-    assertWithMessage("Failed to import public keyring").that(pid.waitFor()).isEqualTo(0);
+    int returnValue = pid.waitFor();
+    assertWithMessage(
+            String.format("Failed to import public keyring: \n%s", slurp(pid.getErrorStream())))
+        .that(returnValue)
+        .isEqualTo(0);
 
     pid = exec("gpg", "--allow-secret-key-import", "--import");
     privateKeyring.copyTo(pid.getOutputStream());
     pid.getOutputStream().close();
-    assertWithMessage("Failed to import private keyring").that(pid.waitFor()).isEqualTo(0);
+    returnValue = pid.waitFor();
+    assertWithMessage(
+            String.format("Failed to import private keyring: \n%s", slurp(pid.getErrorStream())))
+        .that(returnValue)
+        .isEqualTo(0);
   }
 
   @Override
   protected void after() {
     cwd = DEV_NULL;
     conf = DEV_NULL;
+  }
+
+  private String slurp(InputStream is) throws IOException {
+    return CharStreams.toString(new InputStreamReader(is, UTF_8));
   }
 }

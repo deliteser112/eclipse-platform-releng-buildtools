@@ -147,7 +147,14 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
     // gpg: WARNING: message was not integrity protected
     logger.info("Running GPG to list info about OpenPGP message...");
     {
-      Process pid = gpg.exec(cmd.get(), "--list-packets", rydeFile.toString());
+      Process pid =
+          gpg.exec(
+              cmd.get(),
+              "--list-packets",
+              "--ignore-mdc-error",
+              "--keyid-format",
+              "long",
+              rydeFile.toString());
       String stdout = slurp(pid.getInputStream());
       String stderr = slurp(pid.getErrorStream());
       assertWithMessage(stderr).that(pid.waitFor()).isEqualTo(0);
@@ -175,7 +182,9 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
       assertWithMessage("Unexpected asymmetric encryption algorithm")
           .that(stderr)
           .contains("encrypted with 2048-bit RSA key");
-      assertWithMessage("Unexpected receiver public key").that(stderr).contains("ID 54E1EB0F");
+      assertWithMessage("Unexpected receiver public key")
+          .that(stderr)
+          .contains("ID 7F9084EE54E1EB0F");
     }
 
     // Iron Mountain now verifies that rydeFile is authentic and was signed appropriately.
@@ -203,7 +212,8 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
     // gpg: WARNING: message was not integrity protected
     logger.info("Running GPG to extract tar...");
     {
-      Process pid = gpg.exec(cmd.get(), "--use-embedded-filename", rydeFile.toString());
+      Process pid =
+          gpg.exec(cmd.get(), "--use-embedded-filename", "--ignore-mdc-error", rydeFile.toString());
       String stderr = slurp(pid.getErrorStream());
       assertWithMessage(stderr).that(pid.waitFor()).isEqualTo(0);
     }
@@ -226,7 +236,7 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
     return CharStreams.toString(new InputStreamReader(new FileInputStream(file), UTF_8));
   }
 
-  private String slurp(InputStream is) throws FileNotFoundException, IOException {
+  private String slurp(InputStream is) throws IOException {
     return CharStreams.toString(new InputStreamReader(is, UTF_8));
   }
 

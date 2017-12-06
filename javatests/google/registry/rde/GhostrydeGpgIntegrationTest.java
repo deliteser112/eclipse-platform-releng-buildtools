@@ -29,7 +29,6 @@ import google.registry.testing.GpgSystemCommandRule;
 import google.registry.testing.ShardableTestCase;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -100,7 +99,7 @@ public class GhostrydeGpgIntegrationTest extends ShardableTestCase {
       os.write(data);
     }
 
-    Process pid = gpg.exec(cmd.get(), "--list-packets", file.getPath());
+    Process pid = gpg.exec(cmd.get(), "--list-packets", "--keyid-format", "long", file.getPath());
     String stdout = CharStreams.toString(new InputStreamReader(pid.getInputStream(), UTF_8));
     String stderr = CharStreams.toString(new InputStreamReader(pid.getErrorStream(), UTF_8));
     assertWithMessage(stderr).that(pid.waitFor()).isEqualTo(0);
@@ -108,7 +107,7 @@ public class GhostrydeGpgIntegrationTest extends ShardableTestCase {
     assertThat(stdout).contains(":encrypted data packet:");
     assertThat(stdout).contains("version 3, algo 1, keyid A59C132F3589A1D5");
     assertThat(stdout).contains("name=\"" + filename.get() + "\"");
-    assertThat(stderr).contains("encrypted with 2048-bit RSA key, ID 3589A1D5");
+    assertThat(stderr).contains("encrypted with 2048-bit RSA key, ID A59C132F3589A1D5");
 
     pid = gpg.exec(cmd.get(), "--use-embedded-filename", file.getPath());
     stderr = CharStreams.toString(new InputStreamReader(pid.getErrorStream(), UTF_8));
@@ -118,7 +117,7 @@ public class GhostrydeGpgIntegrationTest extends ShardableTestCase {
     assertThat(slurp(dataFile)).isEqualTo(content.get());
   }
 
-  private String slurp(File file) throws FileNotFoundException, IOException {
+  private String slurp(File file) throws IOException {
     return CharStreams.toString(new InputStreamReader(new FileInputStream(file), UTF_8));
   }
 

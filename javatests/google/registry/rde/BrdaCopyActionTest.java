@@ -37,7 +37,6 @@ import google.registry.testing.GcsTestingUtils;
 import google.registry.testing.GpgSystemCommandRule;
 import google.registry.testing.ShardableTestCase;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -138,8 +137,14 @@ public class BrdaCopyActionTest extends ShardableTestCase {
 
     File rydeTmp = new File(gpg.getCwd(), "ryde");
     Files.write(readGcsFile(gcsService, RYDE_FILE), rydeTmp);
-
-    Process pid = gpg.exec("gpg", "--list-packets", rydeTmp.toString());
+    Process pid =
+        gpg.exec(
+            "gpg",
+            "--list-packets",
+            "--ignore-mdc-error",
+            "--keyid-format",
+            "long",
+            rydeTmp.toString());
     String stdout = slurp(pid.getInputStream());
     String stderr = slurp(pid.getErrorStream());
     assertWithMessage(stderr).that(pid.waitFor()).isEqualTo(0);
@@ -167,7 +172,9 @@ public class BrdaCopyActionTest extends ShardableTestCase {
     assertWithMessage("Unexpected asymmetric encryption algorithm")
         .that(stderr)
         .contains("encrypted with 2048-bit RSA key");
-    assertWithMessage("Unexpected receiver public key").that(stderr).contains("ID 54E1EB0F");
+    assertWithMessage("Unexpected receiver public key")
+        .that(stderr)
+        .contains("ID 7F9084EE54E1EB0F");
   }
 
   @Test
@@ -187,7 +194,7 @@ public class BrdaCopyActionTest extends ShardableTestCase {
     assertThat(stderr).contains("rde-unittest@registry.test");
   }
 
-  private String slurp(InputStream is) throws FileNotFoundException, IOException {
+  private String slurp(InputStream is) throws IOException {
     return CharStreams.toString(new InputStreamReader(is, UTF_8));
   }
 }
