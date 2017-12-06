@@ -31,18 +31,14 @@ import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import javax.inject.Inject;
 
-
 /**
- * Generates invoices for the month and stores them on GCS.
+ * Invokes the {@code InvoicingPipeline} beam template via the REST api.
  *
- * <p>Currently this is just a simplified runner that verifies we can deploy dataflow jobs from App
- * Engine.
+ * <p>This action runs the {@link google.registry.beam.InvoicingPipeline} beam template, staged at
+ * gs://<projectId>-beam/templates/invoicing. The pipeline then generates invoices for the month and
+ * stores them on GCS.
  */
-@Action(
-    path = GenerateInvoicesAction.PATH,
-    method = POST,
-    auth = Auth.AUTH_INTERNAL_ONLY
-)
+@Action(path = GenerateInvoicesAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
 public class GenerateInvoicesAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
@@ -61,7 +57,7 @@ public class GenerateInvoicesAction implements Runnable {
     try {
       LaunchTemplateParameters params =
           new LaunchTemplateParameters()
-              .setJobName("test-bigquerytemplate1")
+              .setJobName("test-invoicing")
               .setEnvironment(
                   new RuntimeEnvironment()
                       .setZone("us-east1-c")
@@ -71,7 +67,7 @@ public class GenerateInvoicesAction implements Runnable {
               .projects()
               .templates()
               .launch(projectId, params)
-              .setGcsPath(beamBucketUrl + "/templates/bigquery1")
+              .setGcsPath(beamBucketUrl + "/templates/invoicing")
               .execute();
       logger.infofmt("Got response: %s", launchResponse.getJob().toPrettyString());
     } catch (IOException e) {

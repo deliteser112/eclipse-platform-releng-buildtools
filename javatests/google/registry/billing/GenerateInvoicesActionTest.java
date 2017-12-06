@@ -67,13 +67,13 @@ public class GenerateInvoicesActionTest {
     action.run();
     LaunchTemplateParameters expectedParams =
         new LaunchTemplateParameters()
-            .setJobName("test-bigquerytemplate1")
+            .setJobName("test-invoicing")
             .setEnvironment(
                 new RuntimeEnvironment()
                     .setZone("us-east1-c")
                     .setTempLocation("gs://test-project-beam/temp"));
     verify(templates).launch("test-project", expectedParams);
-    verify(launch).setGcsPath("gs://test-project-beam/templates/bigquery1");
+    verify(launch).setGcsPath("gs://test-project-beam/templates/invoicing");
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload()).isEqualTo("Launched dataflow template.");
   }

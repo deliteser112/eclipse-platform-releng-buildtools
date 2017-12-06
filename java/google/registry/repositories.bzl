@@ -500,6 +500,36 @@ def com_google_api_client_appengine():
       ]
   )
 
+def com_google_api_client_jackson2():
+  java_import_external(
+      name = "com_google_api_client_jackson2",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "b86e3bdd3b6504741b90de51f06b2236cedfedd0069f942b22adb0b60553de4a",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client-jackson2/1.20.0/google-api-client-jackson2-1.20.0.jar",
+          "http://repo1.maven.org/maven2/com/google/api-client/google-api-client-jackson2/1.20.0/google-api-client-jackson2-1.20.0.jar",
+      ],
+      deps = [
+          "@com_google_api_client",
+          "@com_google_http_client_jackson2",
+      ],
+)
+
+def com_google_api_client_java6():
+  java_import_external(
+      name = "com_google_api_client_java6",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "df4f423f33f467d248e51deb555404771f7bc41430b2d4d1e49966c79c0b207b",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client-java6/1.20.0/google-api-client-java6-1.20.0.jar",
+          "http://repo1.maven.org/maven2/com/google/api-client/google-api-client-java6/1.20.0/google-api-client-java6-1.20.0.jar",
+      ],
+      deps = [
+          "@com_google_api_client",
+          "@com_google_oauth_client_java6",
+      ],
+)
+
 def com_google_api_client_servlet():
   java_import_external(
       name = "com_google_api_client_servlet",
@@ -540,6 +570,18 @@ def com_google_apis_google_api_services_bigquery():
       deps = ["@com_google_api_client"],
   )
 
+def com_google_apis_google_api_services_clouddebugger():
+  java_import_external(
+      name = "com_google_apis_google_api_services_clouddebugger",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "5b8dddc70bb63aa373dcf1dc35ec79444c5feb77417b3f83ebe30ec1e9305e47",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-clouddebugger/v2-rev8-1.22.0/google-api-services-clouddebugger-v2-rev8-1.22.0.jar",
+          "http://repo1.maven.org/maven2/com/google/apis/google-api-services-clouddebugger/v2-rev8-1.22.0/google-api-services-clouddebugger-v2-rev8-1.22.0.jar",
+      ],
+      deps = ["@com_google_api_client"],
+)
+
 def com_google_apis_google_api_services_cloudkms():
   java_import_external(
       name = "com_google_apis_google_api_services_cloudkms",
@@ -551,6 +593,30 @@ def com_google_apis_google_api_services_cloudkms():
       ],
       deps = ["@com_google_api_client"],
   )
+
+def com_google_apis_google_api_services_cloudresourcemanager():
+  java_import_external(
+      name = "com_google_apis_google_api_services_cloudresourcemanager",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "88ebb190d354afaa26f6dc1739e8c713ca2591131d72fe7bb14e670b3f23cacb",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-cloudresourcemanager/v1-rev6-1.22.0/google-api-services-cloudresourcemanager-v1-rev6-1.22.0.jar",
+          "http://repo1.maven.org/maven2/com/google/apis/google-api-services-cloudresourcemanager/v1-rev6-1.22.0/google-api-services-cloudresourcemanager-v1-rev6-1.22.0.jar",
+      ],
+      deps = ["@com_google_api_client"],
+)
+
+def com_google_apis_google_api_services_dataflow():
+  java_import_external(
+      name = "com_google_apis_google_api_services_dataflow",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "c990c200a48fec60cf11dc146c49ca2f6e865748b0f900ab32fcb4b3341d8f38",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-dataflow/v1b3-rev196-1.22.0/google-api-services-dataflow-v1b3-rev196-1.22.0.jar",
+          "http://repo1.maven.org/maven2/com/google/apis/google-api-services-dataflow/v1b3-rev196-1.22.0/google-api-services-dataflow-v1b3-rev196-1.22.0.jar",
+      ],
+      deps = ["@com_google_api_client"],
+)
 
 def com_google_apis_google_api_services_dns():
   java_import_external(
@@ -781,6 +847,34 @@ def com_google_appengine_tools_sdk():
       licenses = ["permissive"],  # Google App Engine Terms of Service: https://cloud.google.com/terms/
   )
 
+def com_google_auth_library_credentials():
+  java_import_external(
+      name = "com_google_auth_library_credentials",
+      licenses = ["notice"],  # BSD New license
+      jar_sha256 = "df13b1a2d547816e1eaf0cb73c34b85e09a725540f186eb1519de73b15489e9d",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/auth/google-auth-library-credentials/0.7.1/google-auth-library-credentials-0.7.1.jar",
+          "http://repo1.maven.org/maven2/com/google/auth/google-auth-library-credentials/0.7.1/google-auth-library-credentials-0.7.1.jar",
+      ],
+)
+
+def com_google_auth_library_oauth2_http():
+  java_import_external(
+      name = "com_google_auth_library_oauth2_http",
+      licenses = ["notice"],  # BSD New license
+      jar_sha256 = "abc33ebd2411e928f85383b7bd6f33f8ab59dd95d67d363b5af090ffd6adbd98",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/auth/google-auth-library-oauth2-http/0.7.1/google-auth-library-oauth2-http-0.7.1.jar",
+          "http://repo1.maven.org/maven2/com/google/auth/google-auth-library-oauth2-http/0.7.1/google-auth-library-oauth2-http-0.7.1.jar",
+      ],
+      deps = [
+          "@com_google_auth_library_credentials",
+          "@com_google_http_client",
+          "@com_google_http_client_jackson2",
+          "@com_google_guava",
+      ],
+)
+
 def com_google_auto_common():
   java_import_external(
       name = "com_google_auto_common",
@@ -921,6 +1015,51 @@ def com_google_auto_value():
       ]),
   )
 
+def com_google_cloud_bigdataoss_gcsio():
+  java_import_external(
+      name = "com_google_cloud_bigdataoss_gcsio",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "8ef468b82542ae8d0428b0c60eb6009bf05f2b80e34715ee6bb27c5def66b5be",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/cloud/bigdataoss/gcsio/1.4.5/gcsio-1.4.5.jar",
+          "http://repo1.maven.org/maven2/com/google/cloud/bigdataoss/gcsio/1.4.5/gcsio-1.4.5.jar",
+      ],
+      deps = [
+          "@com_google_api_client_java6",
+          "@com_google_api_client_jackson2",
+          "@com_google_apis_google_api_services_storage",
+          "@com_google_code_findbugs_jsr305",
+          "@com_google_guava",
+          "@com_google_oauth_client",
+          "@com_google_oauth_client_java6",
+          #"@junit",
+          "@org_slf4j_api",
+          "@com_google_cloud_bigdataoss_util",
+      ],
+)
+
+def com_google_cloud_bigdataoss_util():
+  java_import_external(
+      name = "com_google_cloud_bigdataoss_util",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "56c93d9cf72a2725c45c6d26530c7065900a7c962ec8f7c0edc5f4164652753d",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/com/google/cloud/bigdataoss/util/1.4.5/util-1.4.5.jar",
+          "http://maven.ibiblio.org/maven2/com/google/cloud/bigdataoss/util/1.4.5/util-1.4.5.jar",
+      ],
+      deps = [
+          "@com_google_api_client_java6",
+          "@com_google_api_client_jackson2",
+          "@com_google_apis_google_api_services_storage",
+          "@com_google_code_findbugs_jsr305",
+          "@com_google_guava",
+          "@com_google_oauth_client",
+          "@com_google_oauth_client_java6",
+          #"@junit",
+          "@org_slf4j_api",
+      ],
+)
+
 def com_google_code_findbugs_jsr305():
   java_import_external(
       name = "com_google_code_findbugs_jsr305",
@@ -1041,43 +1180,6 @@ def com_google_errorprone_javac_shaded():
       ],
   )
 
-def com_google_googlejavaformat_google_java_format():
-  java_import_external(
-      name = "com_google_googlejavaformat_google_java_format",
-      licenses = ["notice"],  # The Apache Software License, Version 2.0
-      jar_sha256 = "39d18ec9ab610097074bf49e971285488eaf5d0bc2369df0a0d5a3f9f9de2faa",
-      jar_urls = [
-          "http://maven.ibiblio.org/maven2/com/google/googlejavaformat/google-java-format/1.4/google-java-format-1.4.jar",
-          "http://repo1.maven.org/maven2/com/google/googlejavaformat/google-java-format/1.4/google-java-format-1.4.jar",
-      ],
-      deps = [
-          "@com_google_guava",
-          "@com_google_errorprone_javac_shaded",
-      ],
-  )
-
-def com_squareup_javapoet():
-  java_import_external(
-      name = "com_squareup_javapoet",
-      licenses = ["notice"],  # Apache 2.0
-      jar_sha256 = "8e108c92027bb428196f10fa11cffbe589f7648a6af2016d652279385fdfd789",
-      jar_urls = [
-          "http://maven.ibiblio.org/maven2/com/squareup/javapoet/1.8.0/javapoet-1.8.0.jar",
-          "http://repo1.maven.org/maven2/com/squareup/javapoet/1.8.0/javapoet-1.8.0.jar",
-      ],
-  )
-
-def javax_annotation_jsr250_api():
-  java_import_external(
-      name = "javax_annotation_jsr250_api",
-      licenses = ["reciprocal"],  # COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
-      jar_sha256 = "a1a922d0d9b6d183ed3800dfac01d1e1eb159f0e8c6f94736931c1def54a941f",
-      jar_urls = [
-          "http://repo1.maven.org/maven2/javax/annotation/jsr250-api/1.0/jsr250-api-1.0.jar",
-          "http://maven.ibiblio.org/maven2/javax/annotation/jsr250-api/1.0/jsr250-api-1.0.jar",
-      ],
-  )
-
 def com_google_gdata_core():
   java_import_external(
       name = "com_google_gdata_core",
@@ -1092,6 +1194,21 @@ def com_google_gdata_core():
           "@com_google_oauth_client_jetty",
           "@com_google_code_findbugs_jsr305",
           "@javax_mail",
+      ],
+  )
+
+def com_google_googlejavaformat_google_java_format():
+  java_import_external(
+      name = "com_google_googlejavaformat_google_java_format",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "39d18ec9ab610097074bf49e971285488eaf5d0bc2369df0a0d5a3f9f9de2faa",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/googlejavaformat/google-java-format/1.4/google-java-format-1.4.jar",
+          "http://repo1.maven.org/maven2/com/google/googlejavaformat/google-java-format/1.4/google-java-format-1.4.jar",
+      ],
+      deps = [
+          "@com_google_guava",
+          "@com_google_errorprone_javac_shaded",
       ],
   )
 
@@ -1394,6 +1511,17 @@ def com_jcraft_jzlib():
       licenses = ["notice"],  # BSD
   )
 
+def com_squareup_javapoet():
+  java_import_external(
+      name = "com_squareup_javapoet",
+      licenses = ["notice"],  # Apache 2.0
+      jar_sha256 = "8e108c92027bb428196f10fa11cffbe589f7648a6af2016d652279385fdfd789",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/squareup/javapoet/1.8.0/javapoet-1.8.0.jar",
+          "http://repo1.maven.org/maven2/com/squareup/javapoet/1.8.0/javapoet-1.8.0.jar",
+      ],
+  )
+
 def com_squareup_javawriter():
   java_import_external(
       name = "com_squareup_javawriter",
@@ -1495,6 +1623,102 @@ def dnsjava():
       licenses = ["notice"],  # BSD 2-Clause license
   )
 
+def io_netty_buffer():
+  java_import_external(
+      name = "io_netty_buffer",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "b24a28e2129fc11e1f6124ebf93725d1f9c0904ea679d261da7b2e21d4c8615e",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/io/netty/netty-buffer/4.1.17.Final/netty-buffer-4.1.17.Final.jar",
+          "http://repo1.maven.org/maven2/io/netty/netty-buffer/4.1.17.Final/netty-buffer-4.1.17.Final.jar",
+      ],
+      deps = ["@io_netty_common"],
+  )
+
+def io_netty_codec():
+  java_import_external(
+      name = "io_netty_codec",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "790ce1b7694fc41663131579d776a370e332e3b3fe2fe6543662fd5a40a948e1",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/io/netty/netty-codec/4.1.17.Final/netty-codec-4.1.17.Final.jar",
+          "http://maven.ibiblio.org/maven2/io/netty/netty-codec/4.1.17.Final/netty-codec-4.1.17.Final.jar",
+      ],
+      deps = ["@io_netty_transport"],
+  )
+
+def io_netty_codec_http():
+  java_import_external(
+      name = "io_netty_codec_http",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "fc05d02755c5d204ccc848be8399ef5d48d5a80da9b93f075287c57eb9381e5b",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.17.Final/netty-codec-http-4.1.17.Final.jar",
+          "http://maven.ibiblio.org/maven2/io/netty/netty-codec-http/4.1.17.Final/netty-codec-http-4.1.17.Final.jar",
+      ],
+      deps = ["@io_netty_codec"],
+  )
+
+def io_netty_common():
+  java_import_external(
+      name = "io_netty_common",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "dddabdec01959180da44129d130301b84c23b473411288f143d5e29e0b098d26",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/io/netty/netty-common/4.1.17.Final/netty-common-4.1.17.Final.jar",
+          "http://maven.ibiblio.org/maven2/io/netty/netty-common/4.1.17.Final/netty-common-4.1.17.Final.jar",
+      ],
+  )
+
+def io_netty_handler():
+  java_import_external(
+      name = "io_netty_handler",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "85bada604fe14bc358da7b140583264a88d7a45ca12daba1216c4225aadb0c7b",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/io/netty/netty-handler/4.1.17.Final/netty-handler-4.1.17.Final.jar",
+          "http://maven.ibiblio.org/maven2/io/netty/netty-handler/4.1.17.Final/netty-handler-4.1.17.Final.jar",
+      ],
+  )
+
+def io_netty_resolver():
+  java_import_external(
+      name = "io_netty_resolver",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "082ac49149cb72c675c7ed1615ba35923d3167e65bfb37c4a1422ec499137cb1",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/io/netty/netty-resolver/4.1.17.Final/netty-resolver-4.1.17.Final.jar",
+          "http://repo1.maven.org/maven2/io/netty/netty-resolver/4.1.17.Final/netty-resolver-4.1.17.Final.jar",
+      ],
+      deps = ["@io_netty_common"],
+  )
+
+def io_netty_tcnative():
+  java_import_external(
+      name = "io_netty_tcnative",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "cd49317267a8f2fd617075d22e25ceb3aef98e6b64bd6f66cca95f8825cdc1f3",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/io/netty/netty-tcnative/2.0.7.Final/netty-tcnative-2.0.7.Final.jar",
+          "http://maven.ibiblio.org/maven2/io/netty/netty-tcnative/2.0.7.Final/netty-tcnative-2.0.7.Final.jar",
+      ],
+  )
+
+def io_netty_transport():
+  java_import_external(
+      name = "io_netty_transport",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "60763426c79dd930c70d0da95e474f662bd17a58d3d57b332696d089cf208089",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/io/netty/netty-transport/4.1.17.Final/netty-transport-4.1.17.Final.jar",
+          "http://repo1.maven.org/maven2/io/netty/netty-transport/4.1.17.Final/netty-transport-4.1.17.Final.jar",
+      ],
+      deps = [
+          "@io_netty_buffer",
+          "@io_netty_resolver",
+      ],
+  )
+
 def it_unimi_dsi_fastutil():
   java_import_external(
       name = "it_unimi_dsi_fastutil",
@@ -1515,6 +1739,17 @@ def javax_activation():
           "http://repo1.maven.org/maven2/javax/activation/activation/1.1/activation-1.1.jar",
       ],
       licenses = ["reciprocal"],  # Common Development and Distribution License (CDDL) v1.0
+  )
+
+def javax_annotation_jsr250_api():
+  java_import_external(
+      name = "javax_annotation_jsr250_api",
+      licenses = ["reciprocal"],  # COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
+      jar_sha256 = "a1a922d0d9b6d183ed3800dfac01d1e1eb159f0e8c6f94736931c1def54a941f",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/javax/annotation/jsr250-api/1.0/jsr250-api-1.0.jar",
+          "http://maven.ibiblio.org/maven2/javax/annotation/jsr250-api/1.0/jsr250-api-1.0.jar",
+      ],
   )
 
 def javax_inject():
@@ -1608,14 +1843,61 @@ def org_apache_avro():
       ],
   )
 
+def org_apache_beam_runners_google_cloud_dataflow_java():
+  java_import_external(
+      name = "org_apache_beam_runners_google_cloud_dataflow_java",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "244e9adee402aa6b56fd29bc358db16c5f027d0d9c9677960f0c64d8f27ed1f1",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/org/apache/beam/beam-runners-google-cloud-dataflow-java/2.1.0/beam-runners-google-cloud-dataflow-java-2.1.0.jar",
+          "http://maven.ibiblio.org/maven2/org/apache/beam/beam-runners-google-cloud-dataflow-java/2.1.0/beam-runners-google-cloud-dataflow-java-2.1.0.jar",
+      ],
+      deps = [
+          "@org_apache_beam_sdks_java_core",
+          "@org_apache_beam_sdks_java_extensions_google_cloud_platform_core",
+          "@org_apache_beam_sdks_common_runner_api",
+          "@org_apache_beam_sdks_java_io_google_cloud_platform",
+          "@com_google_api_client",
+          "@com_google_http_client",
+          "@com_google_http_client_jackson2",
+          "@com_google_apis_google_api_services_dataflow",
+          "@com_google_apis_google_api_services_clouddebugger",
+          "@com_google_apis_google_api_services_storage",
+          "@com_google_auth_library_credentials",
+          "@com_google_auth_library_oauth2_http",
+          "@com_google_cloud_bigdataoss_util",
+          "@org_apache_avro",
+          "@joda_time",
+          "@com_google_code_findbugs_jsr305",
+          "@com_fasterxml_jackson_core",
+          "@com_fasterxml_jackson_core_jackson_annotations",
+          "@com_fasterxml_jackson_core_jackson_databind",
+          "@org_slf4j_api",
+          "@com_google_auto_value",
+          "@org_hamcrest_all",
+          #"@junit",
+      ],
+)
+
+def org_apache_beam_sdks_common_runner_api():
+  java_import_external(
+      name = "org_apache_beam_sdks_common_runner_api",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "8af98f525b86bd8efc6c25f0008573c877b040b04d9e4b3284d12c86e12c7593",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/beam/beam-sdks-common-runner-api/2.1.0/beam-sdks-common-runner-api-2.1.0.jar",
+          "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-common-runner-api/2.1.0/beam-sdks-common-runner-api-2.1.0.jar",
+      ],
+)
+
 def org_apache_beam_sdks_java_core():
   java_import_external(
       name = "org_apache_beam_sdks_java_core",
       licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "26beb110b6ef8e8bec729c44960c17581c18542216e9e0e6546d3592be7cd2e0",
+      jar_sha256 = "814e94d9de8d41853281e488889b5dec6fba01ce434447dda091b8ca109a36f8",
       jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-core/2.1.0/beam-sdks-java-core-2.1.0.jar",
-          "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-core/2.1.0/beam-sdks-java-core-2.1.0.jar",
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-core/2.2.0/beam-sdks-java-core-2.2.0.jar",
+          "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-core/2.2.0/beam-sdks-java-core-2.2.0.jar",
       ],
       deps = [
           "@com_google_code_findbugs_jsr305",
@@ -1630,6 +1912,59 @@ def org_apache_beam_sdks_java_core():
           "@org_hamcrest_all",
       ],
   )
+
+def org_apache_beam_sdks_java_extensions_google_cloud_platform_core():
+  java_import_external(
+      name = "org_apache_beam_sdks_java_extensions_google_cloud_platform_core",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "89cc7f65ef9f446f60145f17da32d454196a2771282823aa732d2bdd5b3b39c9",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-extensions-google-cloud-platform-core/2.1.0/beam-sdks-java-extensions-google-cloud-platform-core-2.1.0.jar",
+          "http://maven.ibiblio.org/maven2/org/apache/beam/beam-sdks-java-extensions-google-cloud-platform-core/2.1.0/beam-sdks-java-extensions-google-cloud-platform-core-2.1.0.jar",
+      ],
+      deps = [
+          "@org_apache_beam_sdks_java_core",
+          "@com_google_http_client_jackson2",
+          "@com_google_auth_library_oauth2_http",
+          "@com_google_api_client",
+          "@com_google_cloud_bigdataoss_gcsio",
+          "@com_google_cloud_bigdataoss_util",
+          "@com_google_apis_google_api_services_cloudresourcemanager",
+          "@com_google_apis_google_api_services_storage",
+          "@com_google_auth_library_credentials",
+          "@com_google_code_findbugs_jsr305",
+          "@com_google_http_client",
+          "@org_slf4j_api",
+          "@joda_time",
+          "@com_fasterxml_jackson_core_jackson_annotations",
+          "@com_fasterxml_jackson_core_jackson_databind",
+          "@com_google_auto_value",
+          "@org_hamcrest_all",
+          #"@junit",
+      ],
+)
+
+def org_apache_beam_sdks_java_io_google_cloud_platform():
+  java_import_external(
+      name = "org_apache_beam_sdks_java_io_google_cloud_platform",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "a1a502fd7b960859d4ec50de1f4b55927b32a5e9583a7b40371110c3d6a4f297",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-io-google-cloud-platform/2.1.0/beam-sdks-java-io-google-cloud-platform-2.1.0.jar",
+          "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-io-google-cloud-platform/2.1.0/beam-sdks-java-io-google-cloud-platform-2.1.0.jar",
+      ],
+      deps = [
+          "@org_apache_beam_sdks_java_extensions_google_cloud_platform_core",
+          "@com_fasterxml_jackson_core_jackson_databind",
+          "@com_google_api_client",
+          "@com_google_http_client_jackson2",
+          "@com_google_auth_library_oauth2_http",
+          "@com_google_guava",
+          "@com_google_code_findbugs_jsr305",
+          "@org_apache_avro",
+          #"@junit",
+      ],
+)
 
 def org_apache_commons_compress():
   java_import_external(
@@ -1844,6 +2179,17 @@ def org_json():
       licenses = ["notice"],  # The JSON License
   )
 
+def org_khronos_opengl_api():
+  java_import_external(
+      name = "org_khronos_opengl_api",
+      licenses = ["notice"],  # Apache 2.0
+      jar_sha256 = "cc08393220f706ef9299b453cd88f741382cee49dbeea2c667b4be1435768145",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/org/khronos/opengl-api/gl1.1-android-2.1_r1/opengl-api-gl1.1-android-2.1_r1.jar",
+          "http://maven.ibiblio.org/maven2/org/khronos/opengl-api/gl1.1-android-2.1_r1/opengl-api-gl1.1-android-2.1_r1.jar",
+      ],
+)
+
 def org_mockito_all():
   java_import_external(
       name = "org_mockito_all",
@@ -1962,256 +2308,6 @@ def org_yaml_snakeyaml():
       ],
   )
 
-def com_google_api_client_jackson2():
-  java_import_external(
-      name = "com_google_api_client_jackson2",
-      licenses = ["notice"],  # The Apache Software License, Version 2.0
-      jar_sha256 = "b86e3bdd3b6504741b90de51f06b2236cedfedd0069f942b22adb0b60553de4a",
-      jar_urls = [
-          "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client-jackson2/1.20.0/google-api-client-jackson2-1.20.0.jar",
-          "http://repo1.maven.org/maven2/com/google/api-client/google-api-client-jackson2/1.20.0/google-api-client-jackson2-1.20.0.jar",
-      ],
-      deps = [
-          "@com_google_api_client",
-          "@com_google_http_client_jackson2",
-      ],
-)
-
-def com_google_api_client_java6():
-  java_import_external(
-      name = "com_google_api_client_java6",
-      licenses = ["notice"],  # The Apache Software License, Version 2.0
-      jar_sha256 = "df4f423f33f467d248e51deb555404771f7bc41430b2d4d1e49966c79c0b207b",
-      jar_urls = [
-          "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client-java6/1.20.0/google-api-client-java6-1.20.0.jar",
-          "http://repo1.maven.org/maven2/com/google/api-client/google-api-client-java6/1.20.0/google-api-client-java6-1.20.0.jar",
-      ],
-      deps = [
-          "@com_google_api_client",
-          "@com_google_oauth_client_java6",
-      ],
-)
-
-def com_google_apis_google_api_services_clouddebugger():
-  java_import_external(
-      name = "com_google_apis_google_api_services_clouddebugger",
-      licenses = ["notice"],  # The Apache Software License, Version 2.0
-      jar_sha256 = "5b8dddc70bb63aa373dcf1dc35ec79444c5feb77417b3f83ebe30ec1e9305e47",
-      jar_urls = [
-          "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-clouddebugger/v2-rev8-1.22.0/google-api-services-clouddebugger-v2-rev8-1.22.0.jar",
-          "http://repo1.maven.org/maven2/com/google/apis/google-api-services-clouddebugger/v2-rev8-1.22.0/google-api-services-clouddebugger-v2-rev8-1.22.0.jar",
-      ],
-      deps = ["@com_google_api_client"],
-)
-
-def com_google_apis_google_api_services_cloudresourcemanager():
-  java_import_external(
-      name = "com_google_apis_google_api_services_cloudresourcemanager",
-      licenses = ["notice"],  # The Apache Software License, Version 2.0
-      jar_sha256 = "88ebb190d354afaa26f6dc1739e8c713ca2591131d72fe7bb14e670b3f23cacb",
-      jar_urls = [
-          "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-cloudresourcemanager/v1-rev6-1.22.0/google-api-services-cloudresourcemanager-v1-rev6-1.22.0.jar",
-          "http://repo1.maven.org/maven2/com/google/apis/google-api-services-cloudresourcemanager/v1-rev6-1.22.0/google-api-services-cloudresourcemanager-v1-rev6-1.22.0.jar",
-      ],
-      deps = ["@com_google_api_client"],
-)
-
-def com_google_apis_google_api_services_dataflow():
-  java_import_external(
-      name = "com_google_apis_google_api_services_dataflow",
-      licenses = ["notice"],  # The Apache Software License, Version 2.0
-      jar_sha256 = "c990c200a48fec60cf11dc146c49ca2f6e865748b0f900ab32fcb4b3341d8f38",
-      jar_urls = [
-          "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-dataflow/v1b3-rev196-1.22.0/google-api-services-dataflow-v1b3-rev196-1.22.0.jar",
-          "http://repo1.maven.org/maven2/com/google/apis/google-api-services-dataflow/v1b3-rev196-1.22.0/google-api-services-dataflow-v1b3-rev196-1.22.0.jar",
-      ],
-      deps = ["@com_google_api_client"],
-)
-
-def com_google_auth_library_credentials():
-  java_import_external(
-      name = "com_google_auth_library_credentials",
-      licenses = ["notice"],  # BSD New license
-      jar_sha256 = "df13b1a2d547816e1eaf0cb73c34b85e09a725540f186eb1519de73b15489e9d",
-      jar_urls = [
-          "http://maven.ibiblio.org/maven2/com/google/auth/google-auth-library-credentials/0.7.1/google-auth-library-credentials-0.7.1.jar",
-          "http://repo1.maven.org/maven2/com/google/auth/google-auth-library-credentials/0.7.1/google-auth-library-credentials-0.7.1.jar",
-      ],
-)
-
-def com_google_auth_library_oauth2_http():
-  java_import_external(
-      name = "com_google_auth_library_oauth2_http",
-      licenses = ["notice"],  # BSD New license
-      jar_sha256 = "abc33ebd2411e928f85383b7bd6f33f8ab59dd95d67d363b5af090ffd6adbd98",
-      jar_urls = [
-          "http://maven.ibiblio.org/maven2/com/google/auth/google-auth-library-oauth2-http/0.7.1/google-auth-library-oauth2-http-0.7.1.jar",
-          "http://repo1.maven.org/maven2/com/google/auth/google-auth-library-oauth2-http/0.7.1/google-auth-library-oauth2-http-0.7.1.jar",
-      ],
-      deps = [
-          "@com_google_auth_library_credentials",
-          "@com_google_http_client",
-          "@com_google_http_client_jackson2",
-          "@com_google_guava",
-      ],
-)
-
-def com_google_cloud_bigdataoss_gcsio():
-  java_import_external(
-      name = "com_google_cloud_bigdataoss_gcsio",
-      licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "8ef468b82542ae8d0428b0c60eb6009bf05f2b80e34715ee6bb27c5def66b5be",
-      jar_urls = [
-          "http://maven.ibiblio.org/maven2/com/google/cloud/bigdataoss/gcsio/1.4.5/gcsio-1.4.5.jar",
-          "http://repo1.maven.org/maven2/com/google/cloud/bigdataoss/gcsio/1.4.5/gcsio-1.4.5.jar",
-      ],
-      deps = [
-          "@com_google_api_client_java6",
-          "@com_google_api_client_jackson2",
-          "@com_google_apis_google_api_services_storage",
-          "@com_google_code_findbugs_jsr305",
-          "@com_google_guava",
-          "@com_google_oauth_client",
-          "@com_google_oauth_client_java6",
-          #"@junit",
-          "@org_slf4j_api",
-          "@com_google_cloud_bigdataoss_util",
-      ],
-)
-
-def com_google_cloud_bigdataoss_util():
-  java_import_external(
-      name = "com_google_cloud_bigdataoss_util",
-      licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "56c93d9cf72a2725c45c6d26530c7065900a7c962ec8f7c0edc5f4164652753d",
-      jar_urls = [
-          "http://repo1.maven.org/maven2/com/google/cloud/bigdataoss/util/1.4.5/util-1.4.5.jar",
-          "http://maven.ibiblio.org/maven2/com/google/cloud/bigdataoss/util/1.4.5/util-1.4.5.jar",
-      ],
-      deps = [
-          "@com_google_api_client_java6",
-          "@com_google_api_client_jackson2",
-          "@com_google_apis_google_api_services_storage",
-          "@com_google_code_findbugs_jsr305",
-          "@com_google_guava",
-          "@com_google_oauth_client",
-          "@com_google_oauth_client_java6",
-          #"@junit",
-          "@org_slf4j_api",
-      ],
-)
-
-def org_apache_beam_runners_google_cloud_dataflow_java():
-  java_import_external(
-      name = "org_apache_beam_runners_google_cloud_dataflow_java",
-      licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "244e9adee402aa6b56fd29bc358db16c5f027d0d9c9677960f0c64d8f27ed1f1",
-      jar_urls = [
-          "http://repo1.maven.org/maven2/org/apache/beam/beam-runners-google-cloud-dataflow-java/2.1.0/beam-runners-google-cloud-dataflow-java-2.1.0.jar",
-          "http://maven.ibiblio.org/maven2/org/apache/beam/beam-runners-google-cloud-dataflow-java/2.1.0/beam-runners-google-cloud-dataflow-java-2.1.0.jar",
-      ],
-      deps = [
-          "@org_apache_beam_sdks_java_core",
-          "@org_apache_beam_sdks_java_extensions_google_cloud_platform_core",
-          "@org_apache_beam_sdks_common_runner_api",
-          "@org_apache_beam_sdks_java_io_google_cloud_platform",
-          "@com_google_api_client",
-          "@com_google_http_client",
-          "@com_google_http_client_jackson2",
-          "@com_google_apis_google_api_services_dataflow",
-          "@com_google_apis_google_api_services_clouddebugger",
-          "@com_google_apis_google_api_services_storage",
-          "@com_google_auth_library_credentials",
-          "@com_google_auth_library_oauth2_http",
-          "@com_google_cloud_bigdataoss_util",
-          "@org_apache_avro",
-          "@joda_time",
-          "@com_google_code_findbugs_jsr305",
-          "@com_fasterxml_jackson_core",
-          "@com_fasterxml_jackson_core_jackson_annotations",
-          "@com_fasterxml_jackson_core_jackson_databind",
-          "@org_slf4j_api",
-          "@com_google_auto_value",
-          "@org_hamcrest_all",
-          #"@junit",
-      ],
-)
-
-def org_apache_beam_sdks_common_runner_api():
-  java_import_external(
-      name = "org_apache_beam_sdks_common_runner_api",
-      licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "8af98f525b86bd8efc6c25f0008573c877b040b04d9e4b3284d12c86e12c7593",
-      jar_urls = [
-          "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-common-runner-api/2.1.0/beam-sdks-common-runner-api-2.1.0.jar",
-          "http://maven.ibiblio.org/maven2/org/apache/beam/beam-sdks-common-runner-api/2.1.0/beam-sdks-common-runner-api-2.1.0.jar",
-      ],
-)
-
-def org_apache_beam_sdks_java_extensions_google_cloud_platform_core():
-  java_import_external(
-      name = "org_apache_beam_sdks_java_extensions_google_cloud_platform_core",
-      licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "89cc7f65ef9f446f60145f17da32d454196a2771282823aa732d2bdd5b3b39c9",
-      jar_urls = [
-          "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-extensions-google-cloud-platform-core/2.1.0/beam-sdks-java-extensions-google-cloud-platform-core-2.1.0.jar",
-          "http://maven.ibiblio.org/maven2/org/apache/beam/beam-sdks-java-extensions-google-cloud-platform-core/2.1.0/beam-sdks-java-extensions-google-cloud-platform-core-2.1.0.jar",
-      ],
-      deps = [
-          "@org_apache_beam_sdks_java_core",
-          "@com_google_http_client_jackson2",
-          "@com_google_auth_library_oauth2_http",
-          "@com_google_api_client",
-          "@com_google_cloud_bigdataoss_gcsio",
-          "@com_google_cloud_bigdataoss_util",
-          "@com_google_apis_google_api_services_cloudresourcemanager",
-          "@com_google_apis_google_api_services_storage",
-          "@com_google_auth_library_credentials",
-          "@com_google_code_findbugs_jsr305",
-          "@com_google_http_client",
-          "@org_slf4j_api",
-          "@joda_time",
-          "@com_fasterxml_jackson_core_jackson_annotations",
-          "@com_fasterxml_jackson_core_jackson_databind",
-          "@com_google_auto_value",
-          "@org_hamcrest_all",
-          #"@junit",
-      ],
-)
-
-def org_apache_beam_sdks_java_io_google_cloud_platform():
-  java_import_external(
-      name = "org_apache_beam_sdks_java_io_google_cloud_platform",
-      licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "a1a502fd7b960859d4ec50de1f4b55927b32a5e9583a7b40371110c3d6a4f297",
-      jar_urls = [
-          "http://maven.ibiblio.org/maven2/org/apache/beam/beam-sdks-java-io-google-cloud-platform/2.1.0/beam-sdks-java-io-google-cloud-platform-2.1.0.jar",
-          "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-io-google-cloud-platform/2.1.0/beam-sdks-java-io-google-cloud-platform-2.1.0.jar",
-      ],
-      deps = [
-          "@org_apache_beam_sdks_java_extensions_google_cloud_platform_core",
-          "@com_fasterxml_jackson_core_jackson_databind",
-          "@com_google_api_client",
-          "@com_google_http_client_jackson2",
-          "@com_google_auth_library_oauth2_http",
-          "@com_google_guava",
-          "@com_google_code_findbugs_jsr305",
-          "@org_apache_avro",
-          #"@junit",
-      ],
-)
-
-def org_khronos_opengl_api():
-  java_import_external(
-      name = "org_khronos_opengl_api",
-      licenses = ["notice"],  # Apache 2.0
-      jar_sha256 = "cc08393220f706ef9299b453cd88f741382cee49dbeea2c667b4be1435768145",
-      jar_urls = [
-          "http://repo1.maven.org/maven2/org/khronos/opengl-api/gl1.1-android-2.1_r1/opengl-api-gl1.1-android-2.1_r1.jar",
-          "http://maven.ibiblio.org/maven2/org/khronos/opengl-api/gl1.1-android-2.1_r1/opengl-api-gl1.1-android-2.1_r1.jar",
-      ],
-)
-
 def xerces_xmlParserAPIs():
   java_import_external(
       name = "xerces_xmlParserAPIs",
@@ -2239,102 +2335,6 @@ def xpp3():
           "http://repo1.maven.org/maven2/xpp3/xpp3/1.1.4c/xpp3-1.1.4c.jar",
       ],
 )
-
-def io_netty_buffer():
-  java_import_external(
-      name = "io_netty_buffer",
-      licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "b24a28e2129fc11e1f6124ebf93725d1f9c0904ea679d261da7b2e21d4c8615e",
-      jar_urls = [
-          "http://maven.ibiblio.org/maven2/io/netty/netty-buffer/4.1.17.Final/netty-buffer-4.1.17.Final.jar",
-          "http://repo1.maven.org/maven2/io/netty/netty-buffer/4.1.17.Final/netty-buffer-4.1.17.Final.jar",
-      ],
-      deps = ["@io_netty_common"],
-  )
-
-def io_netty_codec():
-  java_import_external(
-      name = "io_netty_codec",
-      licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "790ce1b7694fc41663131579d776a370e332e3b3fe2fe6543662fd5a40a948e1",
-      jar_urls = [
-          "http://repo1.maven.org/maven2/io/netty/netty-codec/4.1.17.Final/netty-codec-4.1.17.Final.jar",
-          "http://maven.ibiblio.org/maven2/io/netty/netty-codec/4.1.17.Final/netty-codec-4.1.17.Final.jar",
-      ],
-      deps = ["@io_netty_transport"],
-  )
-
-def io_netty_codec_http():
-  java_import_external(
-      name = "io_netty_codec_http",
-      licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "fc05d02755c5d204ccc848be8399ef5d48d5a80da9b93f075287c57eb9381e5b",
-      jar_urls = [
-          "http://repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.17.Final/netty-codec-http-4.1.17.Final.jar",
-          "http://maven.ibiblio.org/maven2/io/netty/netty-codec-http/4.1.17.Final/netty-codec-http-4.1.17.Final.jar",
-      ],
-      deps = ["@io_netty_codec"],
-  )
-
-def io_netty_common():
-  java_import_external(
-      name = "io_netty_common",
-      licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "dddabdec01959180da44129d130301b84c23b473411288f143d5e29e0b098d26",
-      jar_urls = [
-          "http://repo1.maven.org/maven2/io/netty/netty-common/4.1.17.Final/netty-common-4.1.17.Final.jar",
-          "http://maven.ibiblio.org/maven2/io/netty/netty-common/4.1.17.Final/netty-common-4.1.17.Final.jar",
-      ],
-  )
-
-def io_netty_handler():
-  java_import_external(
-      name = "io_netty_handler",
-      licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "85bada604fe14bc358da7b140583264a88d7a45ca12daba1216c4225aadb0c7b",
-      jar_urls = [
-          "http://repo1.maven.org/maven2/io/netty/netty-handler/4.1.17.Final/netty-handler-4.1.17.Final.jar",
-          "http://maven.ibiblio.org/maven2/io/netty/netty-handler/4.1.17.Final/netty-handler-4.1.17.Final.jar",
-      ],
-  )
-
-def io_netty_resolver():
-  java_import_external(
-      name = "io_netty_resolver",
-      licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "082ac49149cb72c675c7ed1615ba35923d3167e65bfb37c4a1422ec499137cb1",
-      jar_urls = [
-          "http://maven.ibiblio.org/maven2/io/netty/netty-resolver/4.1.17.Final/netty-resolver-4.1.17.Final.jar",
-          "http://repo1.maven.org/maven2/io/netty/netty-resolver/4.1.17.Final/netty-resolver-4.1.17.Final.jar",
-      ],
-      deps = ["@io_netty_common"],
-  )
-
-def io_netty_tcnative():
-  java_import_external(
-      name = "io_netty_tcnative",
-      licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "cd49317267a8f2fd617075d22e25ceb3aef98e6b64bd6f66cca95f8825cdc1f3",
-      jar_urls = [
-          "http://repo1.maven.org/maven2/io/netty/netty-tcnative/2.0.7.Final/netty-tcnative-2.0.7.Final.jar",
-          "http://maven.ibiblio.org/maven2/io/netty/netty-tcnative/2.0.7.Final/netty-tcnative-2.0.7.Final.jar",
-      ],
-  )
-
-def io_netty_transport():
-  java_import_external(
-      name = "io_netty_transport",
-      licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "60763426c79dd930c70d0da95e474f662bd17a58d3d57b332696d089cf208089",
-      jar_urls = [
-          "http://maven.ibiblio.org/maven2/io/netty/netty-transport/4.1.17.Final/netty-transport-4.1.17.Final.jar",
-          "http://repo1.maven.org/maven2/io/netty/netty-transport/4.1.17.Final/netty-transport-4.1.17.Final.jar",
-      ],
-      deps = [
-          "@io_netty_buffer",
-          "@io_netty_resolver",
-      ],
-  )
 
 def _check_bazel_version(project, bazel_version):
   if "bazel_version" not in dir(native):
