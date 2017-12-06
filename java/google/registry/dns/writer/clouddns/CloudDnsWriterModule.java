@@ -76,4 +76,14 @@ public final class CloudDnsWriterModule {
     int cloudDnsMaxQps = 20;
     return RateLimiter.create(cloudDnsMaxQps);
   }
+
+  @Provides
+  @Named("cloudDnsNumThreads")
+  static int provideNumThreads() {
+    // TODO(b/70217860): find the "best" number of threads, taking into account running time, App
+    // Engine constraints, and any Cloud DNS comsiderations etc.
+    //
+    // NOTE: any number below 2 will not use threading at all.
+    return 10;
+  }
 }

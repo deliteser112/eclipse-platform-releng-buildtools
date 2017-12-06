@@ -23,6 +23,7 @@ import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -77,10 +78,8 @@ public class CloudDnsWriterTest {
 
   @Mock private Dns dnsConnection;
   @Mock private Dns.ResourceRecordSets resourceRecordSets;
-  @Mock private Dns.ResourceRecordSets.List listResourceRecordSetsRequest;
   @Mock private Dns.Changes changes;
   @Mock private Dns.Changes.Create createChangeRequest;
-  @Captor ArgumentCaptor<String> recordNameCaptor;
   @Captor ArgumentCaptor<String> zoneNameCaptor;
   @Captor ArgumentCaptor<Change> changeCaptor;
   private CloudDnsWriter writer;
@@ -90,28 +89,15 @@ public class CloudDnsWriterTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
-  @Before
-  public void setUp() throws Exception {
-    createTld("tld");
-    writer =
-        new CloudDnsWriter(
-            dnsConnection,
-            "projectId",
-            "triple.secret.tld", // used by testInvalidZoneNames()
-            DEFAULT_A_TTL,
-            DEFAULT_NS_TTL,
-            DEFAULT_DS_TTL,
-            RateLimiter.create(20),
-            new SystemClock(),
-            new Retrier(new SystemSleeper(), 5));
-
-    // Create an empty zone.
-    stubZone = ImmutableSet.of();
-
-    when(dnsConnection.changes()).thenReturn(changes);
-    when(dnsConnection.resourceRecordSets()).thenReturn(resourceRecordSets);
-    when(resourceRecordSets.list(anyString(), anyString()))
-        .thenReturn(listResourceRecordSetsRequest);
+  /*
+   * Because of multi-threading in the CloudDnsWriter, we need to return a different instance of
+   * List for every request, with its own ArgumentCaptor. Otherwise, we can't separate the arguments
+   * of the various Lists
+   */
+  private Dns.ResourceRecordSets.List newListResourceRecordSetsRequestMock() throws Exception {
+    Dns.ResourceRecordSets.List listResourceRecordSetsRequest =
+        mock(Dns.ResourceRecordSets.List.class);
+    ArgumentCaptor<String> recordNameCaptor = ArgumentCaptor.forClass(String.class);
     when(listResourceRecordSetsRequest.setName(recordNameCaptor.capture()))
         .thenReturn(listResourceRecordSetsRequest);
     // Return records from our stub zone when a request to list the records is executed
@@ -126,7 +112,34 @@ public class CloudDnsWriterTest {
                                 rs ->
                                     rs != null && rs.getName().equals(recordNameCaptor.getValue()))
                             .collect(toImmutableList())));
+    return listResourceRecordSetsRequest;
+  }
 
+
+  @Before
+  public void setUp() throws Exception {
+    createTld("tld");
+    writer =
+        new CloudDnsWriter(
+            dnsConnection,
+            "projectId",
+            "triple.secret.tld", // used by testInvalidZoneNames()
+            DEFAULT_A_TTL,
+            DEFAULT_NS_TTL,
+            DEFAULT_DS_TTL,
+            RateLimiter.create(20),
+            10, // max num threads
+            new SystemClock(),
+            new Retrier(new SystemSleeper(), 5));
+
+    // Create an empty zone.
+    stubZone = ImmutableSet.of();
+
+    when(dnsConnection.changes()).thenReturn(changes);
+    when(dnsConnection.resourceRecordSets()).thenReturn(resourceRecordSets);
+    when(resourceRecordSets.list(anyString(), anyString()))
+        .thenAnswer(
+            invocationOnMock -> newListResourceRecordSetsRequestMock());
     when(changes.create(anyString(), zoneNameCaptor.capture(), changeCaptor.capture()))
         .thenReturn(createChangeRequest);
     // Change our stub zone when a request to change the records is executed

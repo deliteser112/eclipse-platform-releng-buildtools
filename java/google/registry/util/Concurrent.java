@@ -45,11 +45,14 @@ public final class Concurrent {
    * @see #transform(Collection, int, Function)
    */
   public static <A, B> ImmutableList<B> transform(Collection<A> items, final Function<A, B> funk) {
-    return transform(items, max(1, min(items.size(), MAX_THREADS)), funk);
+    return transform(items, MAX_THREADS, funk);
   }
 
   /**
    * Processes {@code items} in parallel using {@code funk}, with the specified number of threads.
+   *
+   * <p>If the maxThreadCount or the number of items is less than 2, will use a non-concurrent
+   * transform.
    *
    * <p><b>Note:</b> Spawned threads will inherit the same namespace.
    *
@@ -59,17 +62,18 @@ public final class Concurrent {
    */
   public static <A, B> ImmutableList<B> transform(
       Collection<A> items,
-      int threadCount,
+      int maxThreadCount,
       final Function<A, B> funk) {
     checkNotNull(funk);
     checkNotNull(items);
-    ThreadFactory threadFactory = currentRequestThreadFactory();
+    int threadCount = max(1, min(items.size(), maxThreadCount));
+    ThreadFactory threadFactory = threadCount > 1 ? currentRequestThreadFactory() : null;
     if (threadFactory == null) {
-      // Fall back to non-concurrent transform if we can't get an App Engine thread factory (most
-      // likely caused by hitting this code from a command-line tool). Default Java system threads
-      // are not compatible with code that needs to interact with App Engine (such as Objectify),
-      // which we often have in funk when calling Concurrent.transform().
-      // For more info see: http://stackoverflow.com/questions/15976406
+      // Fall back to non-concurrent transform if we only want 1 thread, or if we can't get an App
+      // Engine thread factory (most likely caused by hitting this code from a command-line tool).
+      // Default Java system threads are not compatible with code that needs to interact with App
+      // Engine (such as Objectify), which we often have in funk when calling
+      // Concurrent.transform(). For more info see: http://stackoverflow.com/questions/15976406
       return items.stream().map(funk).collect(toImmutableList());
     }
     ExecutorService executor = newFixedThreadPool(threadCount, threadFactory);
