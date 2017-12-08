@@ -327,13 +327,18 @@ public class Registry extends ImmutableObject implements Buildable {
    */
   boolean domainCreateRestricted;
 
-  /** The length of the add grace period for this TLD. */
+  /**
+   * The length of the add grace period for this TLD.
+   *
+   * <p>Domain deletes are free and effective immediately so long as they take place within this
+   * amount of time following creation.
+   */
   Duration addGracePeriodLength = DEFAULT_ADD_GRACE_PERIOD;
 
-  /** The length of the add grace period for this TLD. */
+  /** The length of the anchor tenant add grace period for this TLD. */
   Duration anchorTenantAddGracePeriodLength = DEFAULT_ANCHOR_TENANT_ADD_GRACE_PERIOD;
 
-  /** The length of the sunrush add grace period for this TLD. */
+  /** The length of the add grace period during sunrush for this TLD. */
   Duration sunrushAddGracePeriodLength = DEFAULT_SUNRUSH_ADD_GRACE_PERIOD;
 
   /** The length of the auto renew grace period for this TLD. */

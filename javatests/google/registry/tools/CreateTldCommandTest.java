@@ -20,10 +20,12 @@ import static google.registry.model.registry.label.ReservedListTest.GET_NAME_FUN
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.JPY;
 import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.DateTimeZone.UTC;
+import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardMinutes;
 
 import com.beust.jcommander.ParameterException;
@@ -139,6 +141,17 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getAddGracePeriodLength()).isEqualTo(standardMinutes(5));
+  }
+
+  @Test
+  public void testSuccess_sunrushAddGracePeriodFlag() throws Exception {
+    runCommandForced(
+        "--sunrush_add_grace_period=P13D",
+        "--roid_suffix=Q9JYB4C",
+        "--dns_writers=VoidDnsWriter",
+        "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getSunrushAddGracePeriodLength())
+        .isEqualTo(standardDays(13));
   }
 
   @Test
@@ -294,6 +307,19 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "--roid_suffix=Q9JYB4C",
         "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
+  }
+
+  @Test
+  public void testFailure_invalidSunrushAddGracePeriod() throws Exception {
+    Exception e = expectThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommandForced(
+                "--sunrush_add_grace_period=5d",
+                "--roid_suffix=Q9JYB4C",
+                "--dns_writers=VoidDnsWriter",
+                "xn--q9jyb4c"));
+    assertThat(e).hasMessageThat().isEqualTo("Invalid format: \"5d\"");
   }
 
   @Test

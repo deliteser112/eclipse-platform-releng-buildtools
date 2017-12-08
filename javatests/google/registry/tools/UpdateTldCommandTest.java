@@ -26,6 +26,7 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.JPY;
 import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.DateTimeZone.UTC;
+import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardMinutes;
 
 import com.beust.jcommander.ParameterException;
@@ -147,19 +148,22 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   public void testSuccess_addGracePeriodFlag() throws Exception {
     assertThat(Registry.get("xn--q9jyb4c").getAddGracePeriodLength())
         .isNotEqualTo(standardMinutes(5));
-
     runCommandForced("--add_grace_period=PT300S", "xn--q9jyb4c");
-
     assertThat(Registry.get("xn--q9jyb4c").getAddGracePeriodLength()).isEqualTo(standardMinutes(5));
+  }
+
+  @Test
+  public void testSuccess_sunrushAddGracePeriodFlag() throws Exception {
+    runCommandForced("--sunrush_add_grace_period=P13D", "xn--q9jyb4c");
+    assertThat(Registry.get("xn--q9jyb4c").getSunrushAddGracePeriodLength())
+        .isEqualTo(standardDays(13));
   }
 
   @Test
   public void testSuccess_redemptionGracePeriodFlag() throws Exception {
     assertThat(Registry.get("xn--q9jyb4c").getRedemptionGracePeriodLength())
         .isNotEqualTo(standardMinutes(5));
-
     runCommandForced("--redemption_grace_period=PT300S", "xn--q9jyb4c");
-
     assertThat(Registry.get("xn--q9jyb4c").getRedemptionGracePeriodLength())
         .isEqualTo(standardMinutes(5));
   }
@@ -168,16 +172,13 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   public void testSuccess_pendingDeleteLengthFlag() throws Exception {
     assertThat(Registry.get("xn--q9jyb4c").getPendingDeleteLength())
         .isNotEqualTo(standardMinutes(5));
-
     runCommandForced("--pending_delete_length=PT300S", "xn--q9jyb4c");
-
     assertThat(Registry.get("xn--q9jyb4c").getPendingDeleteLength()).isEqualTo(standardMinutes(5));
   }
 
   @Test
   public void testSuccess_dnsWriter() throws Exception {
     assertThat(Registry.get("xn--q9jyb4c").getDnsWriters()).containsExactly("VoidDnsWriter");
-
     runCommandForced("--dns_writers=FooDnsWriter", "xn--q9jyb4c");
     assertThat(Registry.get("xn--q9jyb4c").getDnsWriters()).containsExactly("FooDnsWriter");
   }

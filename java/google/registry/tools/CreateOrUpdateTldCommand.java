@@ -73,25 +73,31 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
   @Nullable
   @Parameter(
       names = "--add_grace_period",
-      description = "Length of the add grace period")
+      description = "Length of the add grace period (in ISO 8601 duration format)")
   Duration addGracePeriod;
 
   @Nullable
   @Parameter(
+      names = "--sunrush_add_grace_period",
+      description = "Length of the add grace period during sunrush (in ISO 8601 duration format)")
+  Duration sunrushAddGracePeriod;
+
+  @Nullable
+  @Parameter(
       names = "--redemption_grace_period",
-      description = "Length of the redemption grace period")
+      description = "Length of the redemption grace period (in ISO 8601 duration format)")
   Duration redemptionGracePeriod;
 
   @Nullable
   @Parameter(
       names = "--pending_delete_length",
-      description = "Length of the pending delete period")
+      description = "Length of the pending delete period (in ISO 8601 duration format)")
   Duration pendingDeleteLength;
 
   @Nullable
   @Parameter(
       names = "--automatic_transfer_length",
-      description = "Length of the automatic transfer period")
+      description = "Length of the automatic transfer period (in ISO 8601 duration format)")
   private Duration automaticTransferLength;
 
   @Nullable
@@ -321,61 +327,23 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
         builder.setEapFeeSchedule(eapFeeSchedule);
       }
 
-      if (addGracePeriod != null) {
-        builder.setAddGracePeriodLength(addGracePeriod);
-      }
-
-      if (redemptionGracePeriod != null) {
-        builder.setRedemptionGracePeriodLength(redemptionGracePeriod);
-      }
-
-      if (pendingDeleteLength != null) {
-        builder.setPendingDeleteLength(pendingDeleteLength);
-      }
-
-      if (automaticTransferLength != null) {
-        builder.setAutomaticTransferLength(automaticTransferLength);
-      }
-
-      if (driveFolderId != null) {
-        builder.setDriveFolderId(driveFolderId.orElse(null));
-      }
-
-      if (createBillingCost != null) {
-        builder.setCreateBillingCost(createBillingCost);
-      }
-
-      if (restoreBillingCost != null) {
-        builder.setRestoreBillingCost(restoreBillingCost);
-      }
-
-      if (roidSuffix != null) {
-        builder.setRoidSuffix(roidSuffix);
-      }
-
-      if (serverStatusChangeCost != null) {
-        builder.setServerStatusChangeBillingCost(serverStatusChangeCost);
-      }
-
-      if (tldType != null) {
-        builder.setTldType(tldType);
-      }
-
-      if (premiumPriceAckRequired != null) {
-        builder.setPremiumPriceAckRequired(premiumPriceAckRequired);
-      }
-
-      if (lordnUsername != null) {
-        builder.setLordnUsername(lordnUsername.orElse(null));
-      }
-
-      if (claimsPeriodEnd != null) {
-        builder.setClaimsPeriodEnd(claimsPeriodEnd);
-      }
-
-      if (domainCreateRestricted != null) {
-        builder.setDomainCreateRestricted(domainCreateRestricted);
-      }
+      Optional.ofNullable(addGracePeriod).ifPresent(builder::setAddGracePeriodLength);
+      Optional.ofNullable(sunrushAddGracePeriod).ifPresent(builder::setSunrushAddGracePeriodLength);
+      Optional.ofNullable(redemptionGracePeriod).ifPresent(builder::setRedemptionGracePeriodLength);
+      Optional.ofNullable(pendingDeleteLength).ifPresent(builder::setPendingDeleteLength);
+      Optional.ofNullable(automaticTransferLength).ifPresent(builder::setAutomaticTransferLength);
+      Optional.ofNullable(driveFolderId).ifPresent(id -> builder.setDriveFolderId(id.orElse(null)));
+      Optional.ofNullable(createBillingCost).ifPresent(builder::setCreateBillingCost);
+      Optional.ofNullable(restoreBillingCost).ifPresent(builder::setRestoreBillingCost);
+      Optional.ofNullable(roidSuffix).ifPresent(builder::setRoidSuffix);
+      Optional.ofNullable(serverStatusChangeCost)
+          .ifPresent(builder::setServerStatusChangeBillingCost);
+      Optional.ofNullable(tldType).ifPresent(builder::setTldType);
+      Optional.ofNullable(premiumPriceAckRequired).ifPresent(builder::setPremiumPriceAckRequired);
+      Optional.ofNullable(lordnUsername).ifPresent(u -> builder.setLordnUsername(u.orElse(null)));
+      Optional.ofNullable(claimsPeriodEnd).ifPresent(builder::setClaimsPeriodEnd);
+      Optional.ofNullable(domainCreateRestricted).ifPresent(builder::setDomainCreateRestricted);
+      Optional.ofNullable(lrpPeriod).ifPresent(p -> builder.setLrpPeriod(p.orElse(null)));
 
       if (premiumListName != null) {
         if (premiumListName.isPresent()) {
@@ -397,10 +365,6 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
             "Invalid DNS writer name(s) specified: %s",
             invalidDnsWriters);
         builder.setDnsWriters(dnsWritersSet);
-      }
-
-      if (lrpPeriod != null) {
-        builder.setLrpPeriod(lrpPeriod.orElse(null));
       }
 
       ImmutableSet<String> newReservedListNames = getReservedLists(oldRegistry);
