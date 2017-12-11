@@ -268,18 +268,16 @@ public class DomainTransferRejectFlowTest
   public void testFailure_deletedDomain() throws Exception {
     domain = persistResource(
         domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     doFailingTest("domain_transfer_reject.xml");
   }
 
   @Test
   public void testFailure_nonexistentDomain() throws Exception {
     deleteResource(domain);
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     doFailingTest("domain_transfer_reject.xml");
   }
 

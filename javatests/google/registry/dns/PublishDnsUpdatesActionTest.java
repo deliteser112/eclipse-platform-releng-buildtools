@@ -187,7 +187,8 @@ public class PublishDnsUpdatesActionTest {
 
   @Test
   public void testLockIsntAvailable() throws Exception {
-    thrown.expect(ServiceUnavailableException.class, "Lock failure");
+    thrown.expect(ServiceUnavailableException.class);
+    thrown.expectMessage("Lock failure");
     action = createAction("xn--q9jyb4c");
     action.domains = ImmutableSet.of("example.com", "example2.com");
     action.hosts = ImmutableSet.of("ns1.example.com", "ns2.example.com", "ns1.example2.com");

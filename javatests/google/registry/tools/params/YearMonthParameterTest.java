@@ -70,7 +70,8 @@ public class YearMonthParameterTest {
 
   @Test
   public void testValidate_sillyString_throwsParameterException() throws Exception {
-    thrown.expect(ParameterException.class, "--time=foo not a valid");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--time=foo not a valid");
     instance.validate("--time", "foo");
   }
 

@@ -123,9 +123,8 @@ public class DomainApplicationDeleteFlowTest
 
   @Test
   public void testFailure_neverExisted() throws Exception {
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
@@ -135,9 +134,8 @@ public class DomainApplicationDeleteFlowTest
         .setRepoId("1-TLD")
         .setDeletionTime(clock.nowUtc().minusSeconds(1))
         .build());
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 

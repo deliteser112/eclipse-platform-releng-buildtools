@@ -194,7 +194,8 @@ public class GhostrydeTest {
     korruption(ciphertext, ciphertext.length / 2);
 
     ByteArrayInputStream bsIn = new ByteArrayInputStream(ciphertext);
-    thrown.expect(IllegalStateException.class, "tampering");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("tampering");
     try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {
       ByteStreams.copy(decryptor, ByteStreams.nullOutputStream());
     }
@@ -247,8 +248,8 @@ public class GhostrydeTest {
     }
 
     ByteArrayInputStream bsIn = new ByteArrayInputStream(bsOut.toByteArray());
-    thrown.expect(
-        PGPException.class,
+    thrown.expect(PGPException.class);
+    thrown.expectMessage(
         "Message was encrypted for keyid a59c132f3589a1d5 but ours is c9598c84ec70b9fd");
     try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {
       ByteStreams.copy(decryptor, ByteStreams.nullOutputStream());

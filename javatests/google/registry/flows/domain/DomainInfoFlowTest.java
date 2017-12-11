@@ -373,9 +373,8 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
 
   @Test
   public void testFailure_neverExisted() throws Exception {
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
@@ -384,9 +383,8 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     persistResource(newDomainResource("example.tld").asBuilder()
         .setDeletionTime(clock.nowUtc().minusDays(1))
         .build());
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 

@@ -111,26 +111,30 @@ public class DeleteCreditCommandTest extends CommandTestCase<DeleteCreditCommand
 
   @Test
   public void testFailure_nonexistentParentRegistrar() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Registrar FakeRegistrar not found");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrar FakeRegistrar not found");
     runCommandForced("--registrar=FakeRegistrar", "--credit_id=" + creditAId);
   }
 
   @Test
   public void testFailure_nonexistentCreditId() throws Exception {
     long badId = creditAId + creditBId + 1;
-    thrown.expect(NullPointerException.class, "ID " + badId);
+    thrown.expect(NullPointerException.class);
+    thrown.expectMessage("ID " + badId);
     runCommandForced("--registrar=TheRegistrar", "--credit_id=" + badId);
   }
 
   @Test
   public void testFailure_noRegistrar() throws Exception {
-    thrown.expect(ParameterException.class, "--registrar");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--registrar");
     runCommandForced("--credit_id=" + creditAId);
   }
 
   @Test
   public void testFailure_noCreditId() throws Exception {
-    thrown.expect(ParameterException.class, "--credit_id");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--credit_id");
     runCommandForced("--registrar=TheRegistrar");
   }
 }

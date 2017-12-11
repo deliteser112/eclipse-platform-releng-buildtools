@@ -175,7 +175,8 @@ public class NordnVerifyActionTest {
   @Test
   public void failureVerifyNotReady() throws Exception {
     when(httpResponse.getResponseCode()).thenReturn(SC_NO_CONTENT);
-    thrown.expect(ConflictException.class, "Not ready");
+    thrown.expect(ConflictException.class);
+    thrown.expectMessage("Not ready");
     action.run();
   }
 }

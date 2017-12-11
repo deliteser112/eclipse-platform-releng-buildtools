@@ -223,18 +223,16 @@ public class ContactTransferRequestFlowTest
   public void testFailure_deletedContact() throws Exception {
     contact = persistResource(
         contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     doFailingTest("contact_transfer_request.xml");
   }
 
   @Test
   public void testFailure_nonexistentContact() throws Exception {
     deleteResource(contact);
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     doFailingTest("contact_transfer_request.xml");
   }
 
@@ -242,7 +240,8 @@ public class ContactTransferRequestFlowTest
   public void testFailure_clientTransferProhibited() throws Exception {
     contact = persistResource(
         contact.asBuilder().addStatusValue(StatusValue.CLIENT_TRANSFER_PROHIBITED).build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class, "clientTransferProhibited");
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expectMessage("clientTransferProhibited");
     doFailingTest("contact_transfer_request.xml");
   }
 
@@ -250,7 +249,8 @@ public class ContactTransferRequestFlowTest
   public void testFailure_serverTransferProhibited() throws Exception {
     contact = persistResource(
         contact.asBuilder().addStatusValue(StatusValue.SERVER_TRANSFER_PROHIBITED).build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class, "serverTransferProhibited");
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expectMessage("serverTransferProhibited");
     doFailingTest("contact_transfer_request.xml");
   }
 
@@ -258,7 +258,8 @@ public class ContactTransferRequestFlowTest
   public void testFailure_pendingDelete() throws Exception {
     contact = persistResource(
         contact.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingDelete");
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expectMessage("pendingDelete");
     doFailingTest("contact_transfer_request.xml");
   }
 

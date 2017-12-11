@@ -202,7 +202,8 @@ public class NordnUploadActionTest {
   public void testFailure_nullRegistryUser() throws Exception {
     persistClaimsModeDomain();
     persistResource(Registry.get("tld").asBuilder().setLordnUsername(null).build());
-    thrown.expect(VerifyException.class, "lordnUsername is not set for tld.");
+    thrown.expect(VerifyException.class);
+    thrown.expectMessage("lordnUsername is not set for tld.");
     action.run();
   }
 

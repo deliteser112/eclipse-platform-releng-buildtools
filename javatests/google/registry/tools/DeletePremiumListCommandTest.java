@@ -48,8 +48,8 @@ public class DeletePremiumListCommandTest extends CommandTestCase<DeletePremiumL
 
   @Test
   public void testFailure_whenPremiumListDoesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class,
-        "Cannot delete the premium list foo because it doesn't exist.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Cannot delete the premium list foo because it doesn't exist.");
     runCommandForced("--name=foo");
   }
 

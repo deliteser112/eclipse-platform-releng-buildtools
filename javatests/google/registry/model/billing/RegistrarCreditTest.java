@@ -81,20 +81,23 @@ public class RegistrarCreditTest extends EntityTestCase {
 
   @Test
   public void testFailure_missingTld() throws Exception {
-    thrown.expect(NullPointerException.class, "tld");
+    thrown.expect(NullPointerException.class);
+    thrown.expectMessage("tld");
     promoCredit.asBuilder().setTld(null).build();
   }
 
   @Test
   public void testFailure_NonexistentTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "example");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("example");
     promoCredit.asBuilder().setTld("example").build();
   }
 
   @Test
   public void testFailure_CurrencyDoesNotMatchTldCurrency() throws Exception {
     assertThat(Registry.get("tld").getCurrency()).isEqualTo(USD);
-    thrown.expect(IllegalArgumentException.class, "currency");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("currency");
     promoCredit.asBuilder().setTld("tld").setCurrency(JPY).build();
   }
 }

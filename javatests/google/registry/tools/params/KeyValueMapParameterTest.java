@@ -98,7 +98,8 @@ public class KeyValueMapParameterTest {
 
   @Test
   public void testFailure_convertCurrencyUnitToString_badType() throws Exception {
-    thrown.expect(IllegalCurrencyException.class, "XYZ");
+    thrown.expect(IllegalCurrencyException.class);
+    thrown.expectMessage("XYZ");
     currencyUnitToStringMap.convert("USD=123abc,XYZ=xyz789");
   }
 

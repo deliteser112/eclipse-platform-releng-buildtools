@@ -92,9 +92,8 @@ public class OfyTest {
         .getUpdateAutoTimestamp().getTimestamp();
     // Set the clock in Ofy to the same time as the backup group root's save time.
     Ofy ofy = new Ofy(new FakeClock(groupTimestamp));
-    thrown.expect(
-        TimestampInversionException.class,
-        String.format(
+    thrown.expect(TimestampInversionException.class);
+    thrown.expectMessage(String.format(
             "Timestamp inversion between transaction time (%s) and entities rooted under:\n"
                 + "{Key<?>(ContactResource(\"2-ROID\"))=%s}",
             groupTimestamp,
@@ -122,7 +121,8 @@ public class OfyTest {
 
   @Test
   public void testSavingKeyTwice() {
-    thrown.expect(IllegalArgumentException.class, "Multiple entries with same key");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Multiple entries with same key");
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
@@ -133,7 +133,8 @@ public class OfyTest {
 
   @Test
   public void testDeletingKeyTwice() {
-    thrown.expect(IllegalArgumentException.class, "Multiple entries with same key");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Multiple entries with same key");
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
@@ -144,7 +145,8 @@ public class OfyTest {
 
   @Test
   public void testSaveDeleteKey() {
-    thrown.expect(IllegalArgumentException.class, "Multiple entries with same key");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Multiple entries with same key");
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
@@ -155,7 +157,8 @@ public class OfyTest {
 
   @Test
   public void testDeleteSaveKey() {
-    thrown.expect(IllegalArgumentException.class, "Multiple entries with same key");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Multiple entries with same key");
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
@@ -372,13 +375,15 @@ public class OfyTest {
 
   @Test
   public void test_getBaseEntityClassFromEntityOrKey_unregisteredEntity() {
-    thrown.expect(IllegalStateException.class, "SystemClock");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("SystemClock");
     getBaseEntityClassFromEntityOrKey(new SystemClock());
   }
 
   @Test
   public void test_getBaseEntityClassFromEntityOrKey_unregisteredEntityKey() {
-    thrown.expect(IllegalArgumentException.class, "UnknownKind");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("UnknownKind");
     getBaseEntityClassFromEntityOrKey(Key.create(
         com.google.appengine.api.datastore.KeyFactory.createKey("UnknownKind", 1)));
   }

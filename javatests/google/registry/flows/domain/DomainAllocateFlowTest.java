@@ -253,7 +253,8 @@ public class DomainAllocateFlowTest
             .setAllowedRegistrantContactIds(ImmutableSet.of("jd1234"))
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.net"))
             .build());
-    thrown.expect(NameserversNotAllowedForTldException.class, "ns1.example.net");
+    thrown.expect(NameserversNotAllowedForTldException.class);
+    thrown.expectMessage("ns1.example.net");
     runFlowAsSuperuser();
   }
 
@@ -267,7 +268,8 @@ public class DomainAllocateFlowTest
             .setAllowedFullyQualifiedHostNames(
                 ImmutableSet.of("ns1.example.net", "ns2.example.net"))
             .build());
-    thrown.expect(RegistrantNotAllowedException.class, "jd1234");
+    thrown.expect(RegistrantNotAllowedException.class);
+    thrown.expectMessage("jd1234");
     runFlowAsSuperuser();
   }
 
@@ -311,7 +313,8 @@ public class DomainAllocateFlowTest
                     "reserved",
                     "example-one,NAMESERVER_RESTRICTED," + "ns2.example.net:ns3.example.net"))
             .build());
-    thrown.expect(NameserversNotAllowedForDomainException.class, "ns1.example.net");
+    thrown.expect(NameserversNotAllowedForDomainException.class);
+    thrown.expectMessage("ns1.example.net");
     runFlowAsSuperuser();
   }
 
@@ -363,7 +366,8 @@ public class DomainAllocateFlowTest
             .setAllowedFullyQualifiedHostNames(
                 ImmutableSet.of("ns1.example.net", "ns2.example.net", "ns3.example.net"))
             .build());
-    thrown.expect(NameserversNotAllowedForDomainException.class, "ns1.example.net");
+    thrown.expect(NameserversNotAllowedForDomainException.class);
+    thrown.expectMessage("ns1.example.net");
     runFlowAsSuperuser();
   }
 
@@ -381,7 +385,8 @@ public class DomainAllocateFlowTest
             .setAllowedFullyQualifiedHostNames(
                 ImmutableSet.of("ns4.example.net", "ns2.example.net", "ns3.example.net"))
             .build());
-    thrown.expect(NameserversNotAllowedForTldException.class, "ns1.example.net");
+    thrown.expect(NameserversNotAllowedForTldException.class);
+    thrown.expectMessage("ns1.example.net");
     runFlowAsSuperuser();
   }
 

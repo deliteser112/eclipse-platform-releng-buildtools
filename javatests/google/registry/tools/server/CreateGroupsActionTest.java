@@ -67,14 +67,15 @@ public class CreateGroupsActionTest {
 
   @Test
   public void test_invalidRequest_missingClientId() throws Exception {
-    thrown.expect(BadRequestException.class,
-        "Error creating Google Groups, missing parameter: clientId");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("Error creating Google Groups, missing parameter: clientId");
     runAction(null);
   }
 
   @Test
   public void test_invalidRequest_invalidClientId() throws Exception {
-    thrown.expect(BadRequestException.class,
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage(
         "Error creating Google Groups; could not find registrar with id completelyMadeUpClientId");
     runAction("completelyMadeUpClientId");
   }

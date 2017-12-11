@@ -175,7 +175,8 @@ public class RdeReportActionTest {
     when(httpResponse.getResponseCode()).thenReturn(SC_BAD_REQUEST);
     when(httpResponse.getContent()).thenReturn(IIRDEA_BAD_XML.read());
     when(urlFetchService.fetch(request.capture())).thenReturn(httpResponse);
-    thrown.expect(InternalServerErrorException.class, "The structure of the report is invalid.");
+    thrown.expect(InternalServerErrorException.class);
+    thrown.expectMessage("The structure of the report is invalid.");
     createAction().runWithLock(loadRdeReportCursor());
   }
 

@@ -651,18 +651,16 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   @Test
   public void testFailure_neverExisted() throws Exception {
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
@@ -721,7 +719,8 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
         .addStatusValue(StatusValue.CLIENT_DELETE_PROHIBITED)
         .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class, "clientDeleteProhibited");
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expectMessage("clientDeleteProhibited");
     runFlow();
   }
 
@@ -730,7 +729,8 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
         .addStatusValue(StatusValue.SERVER_DELETE_PROHIBITED)
         .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class, "serverDeleteProhibited");
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expectMessage("serverDeleteProhibited");
     runFlow();
   }
 
@@ -739,7 +739,8 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
         .addStatusValue(StatusValue.PENDING_DELETE)
         .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingDelete");
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expectMessage("pendingDelete");
     runFlow();
   }
 

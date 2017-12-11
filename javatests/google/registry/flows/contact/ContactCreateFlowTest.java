@@ -66,8 +66,8 @@ public class ContactCreateFlowTest
   @Test
   public void testFailure_alreadyExists() throws Exception {
     persistActiveContact(getUniqueIdFromCommand());
-    thrown.expect(
-        ResourceAlreadyExistsException.class,
+    thrown.expect(ResourceAlreadyExistsException.class);
+    thrown.expectMessage(
         String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
     runFlow();
   }

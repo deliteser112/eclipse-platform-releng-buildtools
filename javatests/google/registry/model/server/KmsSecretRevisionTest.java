@@ -49,7 +49,8 @@ public class KmsSecretRevisionTest {
 
   @Test
   public void test_setEncryptedValue_tooLong_throwsException() {
-    thrown.expect(IllegalArgumentException.class, "Secret is greater than 67108864 bytes");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Secret is greater than 67108864 bytes");
     secretRevision =
         persistResource(
             new KmsSecretRevision.Builder()

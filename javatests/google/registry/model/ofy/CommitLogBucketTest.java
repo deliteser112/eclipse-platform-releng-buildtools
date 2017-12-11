@@ -69,13 +69,15 @@ public class CommitLogBucketTest {
 
   @Test
   public void test_getBucketKey_bucketNumberTooLow_throws() {
-    thrown.expect(IllegalArgumentException.class, "0 not in [");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("0 not in [");
     getBucketKey(0);
   }
 
   @Test
   public void test_getBucketKey_bucketNumberTooHigh_throws() {
-    thrown.expect(IllegalArgumentException.class, "11 not in [");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("11 not in [");
     getBucketKey(11);
   }
 

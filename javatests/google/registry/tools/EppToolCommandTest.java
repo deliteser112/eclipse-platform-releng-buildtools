@@ -71,7 +71,8 @@ public class EppToolCommandTest extends EppToolCommandTestCase<EppToolCommand> {
 
   @Test
   public void testFailure_nonexistentClientId() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "fakeclient");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("fakeclient");
     runCommandForced("--client=fakeclient", "fake-xml");
   }
 }

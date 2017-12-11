@@ -276,7 +276,8 @@ public class UpdateApplicationStatusCommandTest
 
   @Test
   public void testFailure_historyClientIdDoesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "fakeclient");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("fakeclient");
     runCommandForced(
         "--history_client_id=fakeclient", "--ids=2-Q9JYB4C", "--msg=Ignored", "--status=REJECTED");
   }

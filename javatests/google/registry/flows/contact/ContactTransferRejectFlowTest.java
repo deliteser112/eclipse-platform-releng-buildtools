@@ -205,18 +205,16 @@ public class ContactTransferRejectFlowTest
   public void testFailure_deletedContact() throws Exception {
     contact = persistResource(
         contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     doFailingTest("contact_transfer_reject.xml");
   }
 
   @Test
   public void testFailure_nonexistentContact() throws Exception {
     deleteResource(contact);
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     doFailingTest("contact_transfer_reject.xml");
   }
 

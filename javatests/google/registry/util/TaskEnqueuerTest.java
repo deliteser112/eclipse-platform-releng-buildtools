@@ -95,7 +95,8 @@ public final class TaskEnqueuerTest {
         .thenThrow(new TransientFailureException("two"))
         .thenThrow(new TransientFailureException("three"))
         .thenThrow(new TransientFailureException("four"));
-    thrown.expect(TransientFailureException.class, "three");
+    thrown.expect(TransientFailureException.class);
+    thrown.expectMessage("three");
     taskEnqueuer.enqueue(queue, task);
   }
 

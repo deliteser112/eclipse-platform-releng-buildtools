@@ -69,18 +69,16 @@ public class ContactDeleteFlowTest
 
   @Test
   public void testFailure_neverExisted() throws Exception {
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
@@ -90,7 +88,8 @@ public class ContactDeleteFlowTest
         newContactResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(statusValue))
             .build());
-    thrown.expect(exception, statusValue.getXmlName());
+    thrown.expect(exception);
+    thrown.expectMessage(statusValue.getXmlName());
     runFlow();
   }
 

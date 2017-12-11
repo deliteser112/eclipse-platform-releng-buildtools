@@ -208,7 +208,8 @@ public class BigqueryPollJobActionTest {
     when(bigqueryJobsGet.execute()).thenReturn(
         new Job().setStatus(new JobStatus().setState("DONE")));
     action.payload = "payload".getBytes(UTF_8);
-    thrown.expect(BadRequestException.class, "Cannot deserialize task from payload");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("Cannot deserialize task from payload");
     action.run();
   }
 }

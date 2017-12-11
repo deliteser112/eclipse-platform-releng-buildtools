@@ -253,18 +253,16 @@ public class ContactUpdateFlowTest
 
   @Test
   public void testFailure_neverExisted() throws Exception {
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
@@ -349,7 +347,8 @@ public class ContactUpdateFlowTest
         newContactResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
             .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class, "serverUpdateProhibited");
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expectMessage("serverUpdateProhibited");
     runFlow();
   }
 
@@ -359,7 +358,8 @@ public class ContactUpdateFlowTest
         newContactResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
             .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingDelete");
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expectMessage("pendingDelete");
     runFlow();
   }
 

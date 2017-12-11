@@ -108,7 +108,8 @@ public class PublishDetailReportActionTest {
 
   @Test
   public void testFailure_noRegistrarParameter() throws Exception {
-    thrown.expect(BadRequestException.class, REGISTRAR_ID_PARAM);
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage(REGISTRAR_ID_PARAM);
     action.handleJsonRequest(ImmutableMap.of(
         GCS_BUCKET_PARAM, "mah-buckit",
         GCS_FOLDER_PREFIX_PARAM, "some/folder/",
@@ -117,7 +118,8 @@ public class PublishDetailReportActionTest {
 
   @Test
   public void testFailure_noGcsBucketParameter() throws Exception {
-    thrown.expect(BadRequestException.class, GCS_BUCKET_PARAM);
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage(GCS_BUCKET_PARAM);
     action.handleJsonRequest(ImmutableMap.of(
         REGISTRAR_ID_PARAM, "TheRegistrar",
         GCS_FOLDER_PREFIX_PARAM, "some/folder/",
@@ -126,7 +128,8 @@ public class PublishDetailReportActionTest {
 
   @Test
   public void testFailure_noGcsFolderPrefixParameter() throws Exception {
-    thrown.expect(BadRequestException.class, GCS_FOLDER_PREFIX_PARAM);
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage(GCS_FOLDER_PREFIX_PARAM);
     action.handleJsonRequest(ImmutableMap.of(
         REGISTRAR_ID_PARAM, "TheRegistrar",
         GCS_BUCKET_PARAM, "mah-buckit",
@@ -135,7 +138,8 @@ public class PublishDetailReportActionTest {
 
   @Test
   public void testFailure_noReportNameParameter() throws Exception {
-    thrown.expect(BadRequestException.class, DETAIL_REPORT_NAME_PARAM);
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage(DETAIL_REPORT_NAME_PARAM);
     action.handleJsonRequest(ImmutableMap.of(
         REGISTRAR_ID_PARAM, "TheRegistrar",
         GCS_BUCKET_PARAM, "mah-buckit",
@@ -144,7 +148,8 @@ public class PublishDetailReportActionTest {
 
   @Test
   public void testFailure_registrarNotFound() throws Exception {
-    thrown.expect(BadRequestException.class, "FakeRegistrar");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("FakeRegistrar");
     action.handleJsonRequest(ImmutableMap.of(
         REGISTRAR_ID_PARAM, "FakeRegistrar",
         GCS_BUCKET_PARAM, "mah-buckit",
@@ -156,7 +161,8 @@ public class PublishDetailReportActionTest {
   public void testFailure_registrarHasNoDriveFolder() throws Exception {
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setDriveFolderId(null).build());
-    thrown.expect(BadRequestException.class, "drive folder");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("drive folder");
     action.handleJsonRequest(ImmutableMap.of(
         REGISTRAR_ID_PARAM, "TheRegistrar",
         GCS_BUCKET_PARAM, "mah-buckit",
@@ -166,7 +172,8 @@ public class PublishDetailReportActionTest {
 
   @Test
   public void testFailure_gcsBucketNotFound() throws Exception {
-    thrown.expect(BadRequestException.class, "fake-buckit");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("fake-buckit");
     action.handleJsonRequest(ImmutableMap.of(
         REGISTRAR_ID_PARAM, "TheRegistrar",
         GCS_BUCKET_PARAM, "fake-buckit",
@@ -176,7 +183,8 @@ public class PublishDetailReportActionTest {
 
   @Test
   public void testFailure_gcsFileNotFound() throws Exception {
-    thrown.expect(BadRequestException.class, "some/folder/fake_file.csv");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("some/folder/fake_file.csv");
     action.handleJsonRequest(ImmutableMap.of(
         REGISTRAR_ID_PARAM, "TheRegistrar",
         GCS_BUCKET_PARAM, "mah-buckit",
@@ -189,7 +197,8 @@ public class PublishDetailReportActionTest {
     when(driveConnection.createFile(
         anyString(), any(MediaType.class), anyString(), any(byte[].class)))
             .thenThrow(new IOException("Drive is down"));
-    thrown.expect(InternalServerErrorException.class, "Drive is down");
+    thrown.expect(InternalServerErrorException.class);
+    thrown.expectMessage("Drive is down");
     action.handleJsonRequest(ImmutableMap.of(
         REGISTRAR_ID_PARAM, "TheRegistrar",
         GCS_BUCKET_PARAM, "mah-buckit",

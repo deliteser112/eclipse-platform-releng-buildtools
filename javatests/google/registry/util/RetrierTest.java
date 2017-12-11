@@ -86,13 +86,15 @@ public class RetrierTest {
 
   @Test
   public void testRetryableException() throws Exception {
-    thrown.expect(CountingException.class, "3");
+    thrown.expect(CountingException.class);
+    thrown.expectMessage("3");
     retrier.callWithRetry(new CountingThrower(3), CountingException.class);
   }
 
   @Test
   public void testUnretryableException() throws Exception {
-    thrown.expect(CountingException.class, "1");
+    thrown.expect(CountingException.class);
+    thrown.expectMessage("1");
     retrier.callWithRetry(new CountingThrower(5), IllegalArgumentException.class);
   }
 
@@ -104,7 +106,8 @@ public class RetrierTest {
 
   @Test
   public void testRetryFailed_withReporter() throws Exception {
-    thrown.expect(CountingException.class, "3");
+    thrown.expect(CountingException.class);
+    thrown.expectMessage("3");
     TestReporter reporter = new TestReporter();
     try {
       retrier.callWithRetry(new CountingThrower(3), reporter, CountingException.class);

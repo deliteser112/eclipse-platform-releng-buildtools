@@ -150,21 +150,24 @@ public class UniformRapidSuspensionCommandTest
   @Test
   public void testFailure_locksToPreserveWithoutUndo() throws Exception {
     persistActiveDomain("evil.tld");
-    thrown.expect(IllegalArgumentException.class, "--undo");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("--undo");
     runCommandForced("--domain_name=evil.tld", "--locks_to_preserve=serverDeleteProhibited");
   }
 
   @Test
   public void testFailure_domainNameRequired() throws Exception {
     persistActiveDomain("evil.tld");
-    thrown.expect(ParameterException.class, "--domain_name");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--domain_name");
     runCommandForced("--hosts=urs1.example.com,urs2.example.com");
   }
 
   @Test
   public void testFailure_extraFieldInDsData() throws Exception {
     persistActiveDomain("evil.tld");
-    thrown.expect(IllegalArgumentException.class, "Incorrect fields on --dsdata JSON");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Incorrect fields on --dsdata JSON");
     runCommandForced(
         "--domain_name=evil.tld",
         "--dsdata={\"keyTag\":1,\"alg\":1,\"digestType\":1,\"digest\":\"abc\",\"foo\":1}");
@@ -173,7 +176,8 @@ public class UniformRapidSuspensionCommandTest
   @Test
   public void testFailure_missingFieldInDsData() throws Exception {
     persistActiveDomain("evil.tld");
-    thrown.expect(IllegalArgumentException.class, "Incorrect fields on --dsdata JSON");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Incorrect fields on --dsdata JSON");
     runCommandForced(
         "--domain_name=evil.tld",
         "--dsdata={\"keyTag\":1,\"alg\":1,\"digestType\":1}");
@@ -182,7 +186,8 @@ public class UniformRapidSuspensionCommandTest
   @Test
   public void testFailure_malformedDsData() throws Exception {
     persistActiveDomain("evil.tld");
-    thrown.expect(IllegalArgumentException.class, "Invalid --dsdata JSON");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Invalid --dsdata JSON");
     runCommandForced(
         "--domain_name=evil.tld",
         "--dsdata=[1,2,3]");

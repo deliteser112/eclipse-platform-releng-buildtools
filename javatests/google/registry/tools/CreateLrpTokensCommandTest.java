@@ -226,47 +226,44 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
 
   @Test
   public void testFailure_missingAssigneeOrFile() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Exactly one of either assignee or filename must be specified.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Exactly one of either assignee or filename must be specified.");
     runCommand("--tlds=tld");
   }
 
   @Test
   public void testFailure_bothAssigneeAndFile() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Exactly one of either assignee or filename must be specified.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Exactly one of either assignee or filename must be specified.");
     runCommand("--assignee=domain.tld", "--tlds=tld", "--input=" + assigneeFilePath);
   }
 
   @Test
   public void testFailure_bothMetadataAndFile() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Metadata cannot be specified along with a filename.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Metadata cannot be specified along with a filename.");
     runCommand("--tlds=tld", "--input=" + assigneeFilePath, "--metadata=key=foo");
   }
 
   @Test
   public void testFailure_bothAssigneeAndMetadataColumns() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Metadata columns cannot be specified along with an assignee.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Metadata columns cannot be specified along with an assignee.");
     runCommand("--assignee=domain.tld", "--tlds=tld", "--metadata_columns=foo=1");
   }
 
   @Test
   public void testFailure_badTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "TLDs do not exist: foo");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("TLDs do not exist: foo");
     runCommand("--assignee=domain.tld", "--tlds=foo");
   }
 
   @Test
   public void testFailure_oneAssignee_byFile_insufficientMetadata() throws Exception {
     Files.asCharSink(assigneeFile, UTF_8).write("domain.tld,foo");
-    thrown.expect(IllegalArgumentException.class,
-        "Entry for domain.tld does not have a value for key2 (index 2)");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Entry for domain.tld does not have a value for key2 (index 2)");
     runCommand("--input=" + assigneeFilePath, "--tlds=tld", "--metadata_columns=key=1,key2=2");
   }
 

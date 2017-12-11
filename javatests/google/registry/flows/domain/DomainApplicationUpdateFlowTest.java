@@ -417,9 +417,8 @@ public class DomainApplicationUpdateFlowTest
   @Test
   public void testFailure_neverExisted() throws Exception {
     persistReferencedEntities();
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
@@ -427,9 +426,8 @@ public class DomainApplicationUpdateFlowTest
   public void testFailure_existedButWasDeleted() throws Exception {
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setDeletionTime(START_OF_TIME).build());
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
@@ -448,7 +446,8 @@ public class DomainApplicationUpdateFlowTest
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setStatusValues(
         ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED)).build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class, "serverUpdateProhibited");
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expectMessage("serverUpdateProhibited");
     runFlow();
   }
 
@@ -480,9 +479,8 @@ public class DomainApplicationUpdateFlowTest
     persistActiveContact("sh8013");
     persistActiveContact("mak21");
     persistNewApplication();
-    thrown.expect(
-        LinkedResourcesDoNotExistException.class,
-        "(ns2.example.tld)");
+    thrown.expect(LinkedResourcesDoNotExistException.class);
+    thrown.expectMessage("(ns2.example.tld)");
     runFlow();
   }
 
@@ -492,9 +490,8 @@ public class DomainApplicationUpdateFlowTest
     persistActiveHost("ns2.example.tld");
     persistActiveContact("mak21");
     persistNewApplication();
-    thrown.expect(
-        LinkedResourcesDoNotExistException.class,
-        "(sh8013)");
+    thrown.expect(LinkedResourcesDoNotExistException.class);
+    thrown.expectMessage("(sh8013)");
     runFlow();
   }
 
@@ -749,7 +746,8 @@ public class DomainApplicationUpdateFlowTest
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.tld:ns3.example.tld"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotAllowedForDomainException.class, "ns2.example.tld");
+    thrown.expect(NameserversNotAllowedForDomainException.class);
+    thrown.expectMessage("ns2.example.tld");
     runFlow();
   }
 
@@ -827,7 +825,8 @@ public class DomainApplicationUpdateFlowTest
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.tld:ns3.example.tld"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotAllowedForDomainException.class, "ns2.example.tld");
+    thrown.expect(NameserversNotAllowedForDomainException.class);
+    thrown.expectMessage("ns2.example.tld");
     runFlow();
   }
 
@@ -846,7 +845,8 @@ public class DomainApplicationUpdateFlowTest
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.tld:ns2.example.tld"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotAllowedForTldException.class, "ns2.example.tld");
+    thrown.expect(NameserversNotAllowedForTldException.class);
+    thrown.expectMessage("ns2.example.tld");
     runFlow();
   }
 

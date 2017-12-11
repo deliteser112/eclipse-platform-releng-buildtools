@@ -68,9 +68,8 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   @Test
   public void testFailure_domain_oneDoesNotExist() throws Exception {
     persistActiveDomain("example.tld");
-    thrown.expect(
-        NullPointerException.class,
-        "Could not load resource for key: Key<?>(DomainBase(\"4-TLD\"))");
+    thrown.expect(NullPointerException.class);
+    thrown.expectMessage("Could not load resource for key: Key<?>(DomainBase(\"4-TLD\"))");
     runCommand(
         "agR0ZXN0chULEgpEb21haW5CYXNlIgUyLVRMRAw", "agR0ZXN0chULEgpEb21haW5CYXNlIgU0LVRMRAw");
   }
@@ -112,9 +111,8 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   @Test
   public void testFailure_contact_oneDoesNotExist() throws Exception {
     persistActiveContact("sh8013");
-    thrown.expect(
-        NullPointerException.class,
-        "Could not load resource for key: Key<?>(ContactResource(\"3-ROID\"))");
+    thrown.expect(NullPointerException.class);
+    thrown.expectMessage("Could not load resource for key: Key<?>(ContactResource(\"3-ROID\"))");
     runCommand(
         "agR0ZXN0chsLEg9Db250YWN0UmVzb3VyY2UiBjItUk9JRAw",
         "agR0ZXN0chsLEg9Db250YWN0UmVzb3VyY2UiBjMtUk9JRAw");
@@ -157,9 +155,8 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   @Test
   public void testFailure_host_oneDoesNotExist() throws Exception {
     persistActiveHost("ns1.example.tld");
-    thrown.expect(
-        NullPointerException.class,
-        "Could not load resource for key: Key<?>(HostResource(\"3-ROID\"))");
+    thrown.expect(NullPointerException.class);
+    thrown.expectMessage("Could not load resource for key: Key<?>(HostResource(\"3-ROID\"))");
     runCommand(
         "agR0ZXN0chgLEgxIb3N0UmVzb3VyY2UiBjItUk9JRAw",
         "agR0ZXN0chgLEgxIb3N0UmVzb3VyY2UiBjMtUk9JRAw");
@@ -189,15 +186,15 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
 
   @Test
   public void testFailure_keyDoesNotExist() throws Exception {
-    thrown.expect(
-        NullPointerException.class,
-        "Could not load resource for key: Key<?>(DomainBase(\"2-TLD\"))");
+    thrown.expect(NullPointerException.class);
+    thrown.expectMessage("Could not load resource for key: Key<?>(DomainBase(\"2-TLD\"))");
     runCommand("agR0ZXN0chULEgpEb21haW5CYXNlIgUyLVRMRAw");
   }
 
   @Test
   public void testFailure_nonsenseKey() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Could not parse Reference");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Could not parse Reference");
     runCommand("agR0ZXN0chULEgpEb21haW5CYXN");
   }
 

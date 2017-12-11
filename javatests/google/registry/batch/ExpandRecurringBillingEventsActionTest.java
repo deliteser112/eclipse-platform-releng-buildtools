@@ -649,8 +649,8 @@ public class ExpandRecurringBillingEventsActionTest
   @Test
   public void testFailure_cursorAfterExecutionTime() throws Exception {
     action.cursorTimeParam = Optional.of(clock.nowUtc().plusYears(1));
-    thrown.expect(
-        IllegalArgumentException.class, "Cursor time must be earlier than execution time.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Cursor time must be earlier than execution time.");
     runMapreduce();
   }
 
@@ -658,8 +658,8 @@ public class ExpandRecurringBillingEventsActionTest
   public void testFailure_cursorAtExecutionTime() throws Exception {
     // The clock advances one milli on runMapreduce.
     action.cursorTimeParam = Optional.of(clock.nowUtc().plusMillis(1));
-    thrown.expect(
-        IllegalArgumentException.class, "Cursor time must be earlier than execution time.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Cursor time must be earlier than execution time.");
     runMapreduce();
   }
 

@@ -68,7 +68,8 @@ public class TeeOutputStreamTest {
   public void testWriteInteger_failsAfterClose() throws Exception {
     OutputStream tee = new TeeOutputStream(asList(outputA));
     tee.close();
-    thrown.expect(IllegalStateException.class, "outputstream closed");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("outputstream closed");
     tee.write(1);
   }
 
@@ -76,7 +77,8 @@ public class TeeOutputStreamTest {
   public void testWriteByteArray_failsAfterClose() throws Exception {
     OutputStream tee = new TeeOutputStream(asList(outputA));
     tee.close();
-    thrown.expect(IllegalStateException.class, "outputstream closed");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("outputstream closed");
     tee.write("hello".getBytes(UTF_8));
   }
 
@@ -84,7 +86,8 @@ public class TeeOutputStreamTest {
   public void testWriteByteSubarray_failsAfterClose() throws Exception {
     OutputStream tee = new TeeOutputStream(asList(outputA));
     tee.close();
-    thrown.expect(IllegalStateException.class, "outputstream closed");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("outputstream closed");
     tee.write("hello".getBytes(UTF_8), 1, 3);
   }
 }

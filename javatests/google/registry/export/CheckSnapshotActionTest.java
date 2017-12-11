@@ -124,7 +124,8 @@ public class CheckSnapshotActionTest {
   public void testPost_forPendingBackup_returnsNotModified() throws Exception {
     setPendingBackup();
 
-    thrown.expect(NotModifiedException.class, "Datastore backup some_backup still pending");
+    thrown.expect(NotModifiedException.class);
+    thrown.expectMessage("Datastore backup some_backup still pending");
     action.run();
   }
 
@@ -140,9 +141,8 @@ public class CheckSnapshotActionTest {
             .plus(Duration.standardMinutes(3))
             .plus(Duration.millis(1234)));
 
-    thrown.expect(
-        NoContentException.class,
-        "Datastore backup some_backup abandoned - "
+    thrown.expect(NoContentException.class);
+    thrown.expectMessage("Datastore backup some_backup abandoned - "
             + "not complete after 20 hours, 3 minutes and 1 second");
 
     action.run();
@@ -188,7 +188,8 @@ public class CheckSnapshotActionTest {
     when(backupService.findByName("some_backup"))
         .thenThrow(new IllegalArgumentException("No backup found"));
 
-    thrown.expect(BadRequestException.class, "Bad backup name some_backup: No backup found");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("Bad backup name some_backup: No backup found");
 
     action.run();
   }
@@ -219,7 +220,8 @@ public class CheckSnapshotActionTest {
     when(backupService.findByName("some_backup"))
         .thenThrow(new IllegalArgumentException("No backup found"));
 
-    thrown.expect(BadRequestException.class, "Bad backup name some_backup: No backup found");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("Bad backup name some_backup: No backup found");
 
     action.run();
   }

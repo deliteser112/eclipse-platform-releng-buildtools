@@ -96,13 +96,15 @@ public class GracePeriodTest {
 
   @Test
   public void testFailure_forBillingEvent_autoRenew() {
-    thrown.expect(IllegalArgumentException.class, "autorenew");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("autorenew");
     GracePeriod.forBillingEvent(GracePeriodStatus.AUTO_RENEW, onetime);
   }
 
   @Test
   public void testFailure_createForRecurring_notAutoRenew() {
-    thrown.expect(IllegalArgumentException.class, "autorenew");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("autorenew");
     GracePeriod.createForRecurring(
         GracePeriodStatus.RENEW,
         now.plusDays(1),

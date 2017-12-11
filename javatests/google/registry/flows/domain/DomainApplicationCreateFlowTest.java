@@ -1055,7 +1055,8 @@ public class DomainApplicationCreateFlowTest
     persistActiveHost("ns1.example.net");
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
-    thrown.expect(LinkedResourcesDoNotExistException.class, "(ns2.example.net)");
+    thrown.expect(LinkedResourcesDoNotExistException.class);
+    thrown.expectMessage("(ns2.example.net)");
     runFlow();
   }
 
@@ -1064,7 +1065,8 @@ public class DomainApplicationCreateFlowTest
     persistActiveHost("ns1.example.net");
     persistActiveHost("ns2.example.net");
     persistActiveContact("jd1234");
-    thrown.expect(LinkedResourcesDoNotExistException.class, "(sh8013)");
+    thrown.expect(LinkedResourcesDoNotExistException.class);
+    thrown.expectMessage("(sh8013)");
     runFlow();
   }
 
@@ -1562,7 +1564,8 @@ public class DomainApplicationCreateFlowTest
     persistResource(Registry.get("tld").asBuilder()
         .setAllowedRegistrantContactIds(ImmutableSet.of("someone"))
         .build());
-    thrown.expect(RegistrantNotAllowedException.class, "jd1234");
+    thrown.expect(RegistrantNotAllowedException.class);
+    thrown.expectMessage("jd1234");
     runFlow();
   }
 
@@ -1572,7 +1575,8 @@ public class DomainApplicationCreateFlowTest
     persistResource(Registry.get("tld").asBuilder()
         .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.net"))
         .build());
-    thrown.expect(NameserversNotAllowedForTldException.class, "ns1.example.net");
+    thrown.expect(NameserversNotAllowedForTldException.class);
+    thrown.expectMessage("ns1.example.net");
     runFlow();
   }
 
@@ -1633,7 +1637,8 @@ public class DomainApplicationCreateFlowTest
             .build());
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotAllowedForDomainException.class, "ns1.example.net");
+    thrown.expect(NameserversNotAllowedForDomainException.class);
+    thrown.expectMessage("ns1.example.net");
     runFlow();
   }
 
@@ -1691,7 +1696,8 @@ public class DomainApplicationCreateFlowTest
             .build());
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotAllowedForDomainException.class, "ns1.example.net");
+    thrown.expect(NameserversNotAllowedForDomainException.class);
+    thrown.expectMessage("ns1.example.net");
     runFlow();
   }
 
@@ -1710,7 +1716,8 @@ public class DomainApplicationCreateFlowTest
             .build());
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotAllowedForTldException.class, "ns1.example.net");
+    thrown.expect(NameserversNotAllowedForTldException.class);
+    thrown.expectMessage("ns1.example.net");
     runFlow();
   }
 

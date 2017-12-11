@@ -81,14 +81,16 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
 
   @Test
   public void testFailure_neverExisted() throws Exception {
-    thrown.expect(ResourceDoesNotExistException.class, "(ns1.example.tld)");
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage("(ns1.example.tld)");
     runFlow();
   }
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedHost("ns1.example.tld", clock.nowUtc().minusDays(1));
-    thrown.expect(ResourceDoesNotExistException.class, "(ns1.example.tld)");
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage("(ns1.example.tld)");
     runFlow();
   }
 
@@ -98,7 +100,8 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
         newHostResource("ns1.example.tld").asBuilder()
             .setStatusValues(ImmutableSet.of(statusValue))
             .build());
-    thrown.expect(exception, statusValue.getXmlName());
+    thrown.expect(exception);
+    thrown.expectMessage(statusValue.getXmlName());
     runFlow();
   }
 
@@ -268,7 +271,8 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   @Test
   public void testFailure_nonPunyCodedHostname() throws Exception {
     setEppInput("host_delete.xml", ImmutableMap.of("HOSTNAME", "ns1.çauçalito.tld"));
-    thrown.expect(HostNameNotPunyCodedException.class, "expected ns1.xn--aualito-txac.tld");
+    thrown.expect(HostNameNotPunyCodedException.class);
+    thrown.expectMessage("expected ns1.xn--aualito-txac.tld");
     runFlow();
   }
 

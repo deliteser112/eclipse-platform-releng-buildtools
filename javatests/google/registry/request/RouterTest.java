@@ -40,9 +40,8 @@ public final class RouterTest {
 
   @Test
   public void testRoute_noRoutes_throws() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "No routes found for class: google.registry.request.RouterTest.Empty");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("No routes found for class: google.registry.request.RouterTest.Empty");
     Router.create(Empty.class);
   }
 
@@ -145,8 +144,8 @@ public final class RouterTest {
 
   @Test
   public void testRoute_methodsInComponentAreIgnored_throws() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "No routes found for class: google.registry.request.RouterTest.WeirdMethodsComponent");
     Router.create(WeirdMethodsComponent.class);
   }
@@ -172,7 +171,8 @@ public final class RouterTest {
 
   @Test
   public void testCreate_twoTasksWithSameMethodAndPath_resultsInError() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Multiple entries with same key");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Multiple entries with same key");
     Router.create(DuplicateComponent.class);
   }
 }

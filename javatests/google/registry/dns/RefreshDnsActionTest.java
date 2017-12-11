@@ -78,8 +78,8 @@ public class RefreshDnsActionTest {
   public void testSuccess_externalHostNotEnqueued() throws Exception {
     persistActiveDomain("example.xn--q9jyb4c");
     persistActiveHost("ns1.example.xn--q9jyb4c");
-    thrown.expect(BadRequestException.class,
-        "ns1.example.xn--q9jyb4c isn't a subordinate hostname");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("ns1.example.xn--q9jyb4c isn't a subordinate hostname");
     try {
       run(TargetType.HOST, "ns1.example.xn--q9jyb4c");
     } finally {

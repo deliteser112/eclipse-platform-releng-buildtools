@@ -170,9 +170,8 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   public void testFailure_superordinateMissing() throws Exception {
     setEppHostCreateInput("ns1.example.tld", null);
     createTld("tld");
-    thrown.expect(
-        SuperordinateDomainDoesNotExistException.class,
-        "(example.tld)");
+    thrown.expect(SuperordinateDomainDoesNotExistException.class);
+    thrown.expectMessage("(example.tld)");
     runFlow();
   }
 
@@ -186,9 +185,8 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
         .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
         .build());
     clock.advanceOneMilli();
-    thrown.expect(
-        SuperordinateDomainInPendingDeleteException.class,
-        "Superordinate domain for this hostname is in pending delete");
+    thrown.expect(SuperordinateDomainInPendingDeleteException.class);
+    thrown.expectMessage("Superordinate domain for this hostname is in pending delete");
     runFlow();
   }
 
@@ -196,8 +194,8 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   public void testFailure_alreadyExists() throws Exception {
     setEppHostCreateInput("ns1.example.tld", null);
     persistActiveHost(getUniqueIdFromCommand());
-    thrown.expect(
-        ResourceAlreadyExistsException.class,
+    thrown.expect(ResourceAlreadyExistsException.class);
+    thrown.expectMessage(
         String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
     runFlow();
   }
@@ -212,7 +210,8 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   @Test
   public void testFailure_nonPunyCodedHostname() throws Exception {
     setEppHostCreateInput("ns1.çauçalito.みんな", null);
-    thrown.expect(HostNameNotPunyCodedException.class, "expected ns1.xn--aualito-txac.xn--q9jyb4c");
+    thrown.expect(HostNameNotPunyCodedException.class);
+    thrown.expectMessage("expected ns1.xn--aualito-txac.xn--q9jyb4c");
     runFlow();
   }
 

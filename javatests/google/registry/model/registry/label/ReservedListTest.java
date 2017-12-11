@@ -269,8 +269,8 @@ public class ReservedListTest {
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "foo")).isTrue();
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "bar")).isFalse();
     persistReservedList("reserved2", "lol,RESERVED_FOR_ANCHOR_TENANT,bar");
-    thrown.expect(
-        IllegalStateException.class, "There are conflicting auth codes for domain: lol.tld");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("There are conflicting auth codes for domain: lol.tld");
     matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "bar");
   }
 
@@ -468,7 +468,8 @@ public class ReservedListTest {
 
   @Test
   public void testSave_badSyntax() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Could not parse line in reserved list");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Could not parse line in reserved list");
     persistReservedList("tld", "lol,FULLY_BLOCKED,e,e # yup");
   }
 
@@ -480,9 +481,8 @@ public class ReservedListTest {
 
   @Test
   public void testSave_additionalRestrictionWithIncompatibleReservationType() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Only anchor tenant and nameserver restricted reservations "
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Only anchor tenant and nameserver restricted reservations "
             + "should have restrictions imposed");
     persistResource(
         Registry.get("tld")
@@ -494,7 +494,8 @@ public class ReservedListTest {
 
   @Test
   public void testSave_badNameservers_invalidSyntax() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Not a valid domain name: 'ns@.domain.tld'");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Not a valid domain name: 'ns@.domain.tld'");
     persistReservedList(
         "reserved1",
         "lol,NAMESERVER_RESTRICTED,ns1.domain.tld:ns2.domain.tld",
@@ -503,7 +504,8 @@ public class ReservedListTest {
 
   @Test
   public void testSave_badNameservers_tooFewPartsForHostname() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "domain.tld is not a valid nameserver hostname");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("domain.tld is not a valid nameserver hostname");
     persistReservedList(
         "reserved1",
         "lol,NAMESERVER_RESTRICTED,ns1.domain.tld:ns2.domain.tld",
@@ -512,8 +514,8 @@ public class ReservedListTest {
 
   @Test
   public void testSave_noPasswordWithAnchorTenantReservation() throws Exception {
-    thrown.expect(IllegalArgumentException.class,
-        "Anchor tenant reservations must have an auth code configured");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Anchor tenant reservations must have an auth code configured");
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -524,8 +526,8 @@ public class ReservedListTest {
 
   @Test
   public void testSave_noNameserversWithNameserverRestrictedReservation() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "Nameserver restricted reservations must have at least one nameserver configured");
     persistResource(
         Registry.get("tld")
@@ -538,8 +540,8 @@ public class ReservedListTest {
   @Test
   public void testParse_cannotIncludeDuplicateLabels() {
     ReservedList rl = new ReservedList.Builder().setName("blah").build();
-    thrown.expect(
-        IllegalStateException.class,
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage(
         "List 'blah' cannot contain duplicate labels. Dupes (with counts) were: [lol x 2]");
     rl.parse(
         ImmutableList.of(

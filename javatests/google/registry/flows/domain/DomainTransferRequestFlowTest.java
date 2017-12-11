@@ -1224,9 +1224,8 @@ public class DomainTransferRequestFlowTest
     setupDomain("example", "tld");
     domain = persistResource(
         domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     doFailingTest("domain_transfer_request.xml");
   }
 
@@ -1238,7 +1237,8 @@ public class DomainTransferRequestFlowTest
         ImmutableMap.of("YEARS", "1", "DOMAIN", "--invalid", "EXDATE", "2002-09-08T22:00:00.0Z"));
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
     assertTransactionalFlow(true);
-    thrown.expect(ResourceDoesNotExistException.class, "(--invalid)");
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage("(--invalid)");
     runFlow(CommitMode.LIVE, UserPrivileges.NORMAL);
   }
 
@@ -1246,9 +1246,8 @@ public class DomainTransferRequestFlowTest
   public void testFailure_nonexistentDomain() throws Exception {
     createTld("tld");
     contact = persistActiveContact("jd1234");
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", "example.tld"));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", "example.tld"));
     doFailingTest("domain_transfer_request.xml");
   }
 
@@ -1264,7 +1263,8 @@ public class DomainTransferRequestFlowTest
     setupDomain("example", "tld");
     domain = persistResource(
         domain.asBuilder().addStatusValue(StatusValue.CLIENT_TRANSFER_PROHIBITED).build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class, "clientTransferProhibited");
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expectMessage("clientTransferProhibited");
     doFailingTest("domain_transfer_request.xml");
   }
 
@@ -1273,7 +1273,8 @@ public class DomainTransferRequestFlowTest
     setupDomain("example", "tld");
     domain = persistResource(
         domain.asBuilder().addStatusValue(StatusValue.SERVER_TRANSFER_PROHIBITED).build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class, "serverTransferProhibited");
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expectMessage("serverTransferProhibited");
     doFailingTest("domain_transfer_request.xml");
   }
 
@@ -1282,7 +1283,8 @@ public class DomainTransferRequestFlowTest
     setupDomain("example", "tld");
     domain = persistResource(
         domain.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingDelete");
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expectMessage("pendingDelete");
     doFailingTest("domain_transfer_request.xml");
   }
 

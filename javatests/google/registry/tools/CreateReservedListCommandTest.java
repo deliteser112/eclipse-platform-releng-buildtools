@@ -90,7 +90,8 @@ public class CreateReservedListCommandTest extends
   public void testFailure_reservedListWithThatNameAlreadyExists() throws Exception {
     ReservedList rl = persistReservedList("xn--q9jyb4c_foo", "jones,FULLY_BLOCKED");
     persistResource(Registry.get("xn--q9jyb4c").asBuilder().setReservedLists(rl).build());
-    thrown.expect(IllegalArgumentException.class, "A reserved list already exists by this name");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("A reserved list already exists by this name");
     runCommandForced("--name=xn--q9jyb4c_foo", "--input=" + reservedTermsPath);
   }
 

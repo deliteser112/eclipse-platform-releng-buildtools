@@ -138,7 +138,8 @@ public class LockTest {
 
   @Test
   public void testFailure_emptyResourceName() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "resourceName cannot be null or empty");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("resourceName cannot be null or empty");
     Lock.acquire("", "", TWO_MILLIS, requestStatusChecker);
   }
 }

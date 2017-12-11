@@ -206,7 +206,8 @@ public class ContactResourceTest extends EntityTestCase {
 
   @Test
   public void testSetCreationTime_cantBeCalledTwice() {
-    thrown.expect(IllegalStateException.class, "creationTime can only be set once");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("creationTime can only be set once");
     contactResource.asBuilder().setCreationTime(END_OF_TIME);
   }
 

@@ -53,14 +53,16 @@ public class RequestParametersTest {
 
   @Test
   public void testExtractRequiredParameter_notPresent_throwsBadRequest() throws Exception {
-    thrown.expect(BadRequestException.class, "spin");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("spin");
     extractRequiredParameter(req, "spin");
   }
 
   @Test
   public void testExtractRequiredParameter_empty_throwsBadRequest() throws Exception {
     when(req.getParameter("spin")).thenReturn("");
-    thrown.expect(BadRequestException.class, "spin");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("spin");
     extractRequiredParameter(req, "spin");
   }
 
@@ -144,7 +146,8 @@ public class RequestParametersTest {
   @Test
   public void testExtractEnumValue_nonExistentValue_throwsBadRequest() throws Exception {
     when(req.getParameter("spin")).thenReturn("sing");
-    thrown.expect(BadRequestException.class, "spin");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("spin");
     extractEnumParameter(req, Club.class, "spin");
   }
 
@@ -163,7 +166,8 @@ public class RequestParametersTest {
   @Test
   public void testOptionalExtractEnumValue_nonExistentValue_throwsBadRequest() throws Exception {
     when(req.getParameter("spin")).thenReturn("sing");
-    thrown.expect(BadRequestException.class, "spin");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("spin");
     extractOptionalEnumParameter(req, Club.class, "spin");
   }
 
@@ -177,7 +181,8 @@ public class RequestParametersTest {
   @Test
   public void testExtractRequiredDatetimeParameter_badValue_throwsBadRequest() throws Exception {
     when(req.getParameter("timeParam")).thenReturn("Tuesday at three o'clock");
-    thrown.expect(BadRequestException.class, "timeParam");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("timeParam");
     extractRequiredDatetimeParameter(req, "timeParam");
   }
 
@@ -191,7 +196,8 @@ public class RequestParametersTest {
   @Test
   public void testExtractOptionalDatetimeParameter_badValue_throwsBadRequest() throws Exception {
     when(req.getParameter("timeParam")).thenReturn("Tuesday at three o'clock");
-    thrown.expect(BadRequestException.class, "timeParam");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("timeParam");
     extractOptionalDatetimeParameter(req, "timeParam");
   }
 
@@ -203,7 +209,8 @@ public class RequestParametersTest {
 
   @Test
   public void testExtractRequiredDatetimeParameter_noValue_throwsBadRequest() throws Exception {
-    thrown.expect(BadRequestException.class, "timeParam");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("timeParam");
     extractRequiredDatetimeParameter(req, "timeParam");
   }
 }

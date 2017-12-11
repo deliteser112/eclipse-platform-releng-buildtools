@@ -148,8 +148,8 @@ public class PricingEngineProxyTest {
             .asBuilder()
             .setPremiumPricingEngine("fake")
             .build());
-    thrown.expect(
-        IllegalStateException.class, "Could not load pricing engine fake for TLD example");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Could not load pricing engine fake for TLD example");
     getDomainCreateCost("bad.example", clock.nowUtc(), 1);
   }
 }

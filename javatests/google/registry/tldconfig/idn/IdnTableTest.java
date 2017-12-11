@@ -108,7 +108,8 @@ public class IdnTableTest {
   public void testMissingUrl_throwsNpe() {
     ImmutableList<String> of = ImmutableList.<String>of(
         "# Policy: https://love.example/policy.html");
-    thrown.expect(NullPointerException.class, "sloth missing '# URL:");
+    thrown.expect(NullPointerException.class);
+    thrown.expectMessage("sloth missing '# URL:");
     IdnTable.createFrom("sloth", of, Optional.<LanguageValidator>empty());
   }
 
@@ -116,7 +117,8 @@ public class IdnTableTest {
   public void testMissingPolicy_throwsNpe() {
     ImmutableList<String> of = ImmutableList.<String>of(
         "# URL: https://love.example/sloth.txt");
-    thrown.expect(NullPointerException.class, "sloth missing '# Policy:");
+    thrown.expect(NullPointerException.class);
+    thrown.expectMessage("sloth missing '# Policy:");
     IdnTable.createFrom("sloth", of, Optional.<LanguageValidator>empty());
   }
 }

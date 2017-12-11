@@ -47,13 +47,15 @@ public final class RequestModuleTest {
 
   @Test
   public void testProvideJsonPayload_malformedInput_throws500() throws Exception {
-    thrown.expect(BadRequestException.class, "Malformed JSON");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("Malformed JSON");
     provideJsonPayload(MediaType.JSON_UTF_8, "{\"k\":");
   }
 
   @Test
   public void testProvideJsonPayload_emptyInput_throws500() throws Exception {
-    thrown.expect(BadRequestException.class, "Malformed JSON");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("Malformed JSON");
     provideJsonPayload(MediaType.JSON_UTF_8, "");
   }
 

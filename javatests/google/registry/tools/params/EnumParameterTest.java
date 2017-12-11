@@ -41,8 +41,8 @@ public class EnumParameterTest {
 
   @Test
   public void testFailure_badValue() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "No enum constant google.registry.model.registry.Registry.TldState.GENERAL_SUNRUSH");
     instance.convert("GENERAL_SUNRUSH");
   }

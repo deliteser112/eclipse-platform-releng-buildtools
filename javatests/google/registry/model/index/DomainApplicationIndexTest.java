@@ -49,13 +49,15 @@ public class DomainApplicationIndexTest extends EntityTestCase {
 
   @Test
   public void testFailure_create_nullReferences() {
-    thrown.expect(IllegalArgumentException.class, "Keys must not be null or empty.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Keys must not be null or empty.");
     DomainApplicationIndex.createWithSpecifiedKeys("blah.com", null);
   }
 
   @Test
   public void testFailure_create_emptyReferences() {
-    thrown.expect(IllegalArgumentException.class, "Keys must not be null or empty.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Keys must not be null or empty.");
     createWithSpecifiedKeys("blah.com", ImmutableSet.<Key<DomainApplication>>of());
   }
 

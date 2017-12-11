@@ -127,8 +127,8 @@ public class IcannHttpReporterTest {
 
   @Test
   public void testFail_invalidFilename_nonSixDigitYearMonth() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "Expected file format: tld-reportType-yyyyMM.csv, got test-transactions-20176.csv instead");
     IcannHttpReporter reporter = createReporter();
     reporter.send(FAKE_PAYLOAD, "test-transactions-20176.csv");
@@ -136,8 +136,8 @@ public class IcannHttpReporterTest {
 
   @Test
   public void testFail_invalidFilename_notActivityOrTransactions() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "Expected file format: tld-reportType-yyyyMM.csv, got test-invalid-201706.csv instead");
     IcannHttpReporter reporter = createReporter();
     reporter.send(FAKE_PAYLOAD, "test-invalid-201706.csv");
@@ -145,8 +145,8 @@ public class IcannHttpReporterTest {
 
   @Test
   public void testFail_invalidFilename_invalidTldName() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "Expected file format: tld-reportType-yyyyMM.csv, got n!-n-activity-201706.csv instead");
     IcannHttpReporter reporter = createReporter();
     reporter.send(FAKE_PAYLOAD, "n!-n-activity-201706.csv");
@@ -154,9 +154,8 @@ public class IcannHttpReporterTest {
 
   @Test
   public void testFail_invalidFilename_tldDoesntExist() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "TLD hello does not exist");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("TLD hello does not exist");
     IcannHttpReporter reporter = createReporter();
     reporter.send(FAKE_PAYLOAD, "hello-activity-201706.csv");
   }

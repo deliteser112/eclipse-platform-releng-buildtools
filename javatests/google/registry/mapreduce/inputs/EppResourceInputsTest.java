@@ -83,13 +83,15 @@ public class EppResourceInputsTest {
 
   @Test
   public void testFailure_keyInputType_polymorphicSubclass() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "non-polymorphic");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("non-polymorphic");
     createKeyInput(DomainResource.class);
   }
 
   @Test
   public void testFailure_keyInputType_noInheritanceBetweenTypes_eppResource() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "inheritance");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("inheritance");
     createKeyInput(EppResource.class, DomainBase.class);
   }
 
@@ -102,13 +104,15 @@ public class EppResourceInputsTest {
 
   @Test
   public void testFailure_entityInputType_noInheritanceBetweenTypes_eppResource() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "inheritance");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("inheritance");
     createEntityInput(EppResource.class, DomainResource.class);
   }
 
   @Test
   public void testFailure_entityInputType_noInheritanceBetweenTypes_subclasses() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "inheritance");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("inheritance");
     createEntityInput(DomainBase.class, DomainResource.class);
   }
 

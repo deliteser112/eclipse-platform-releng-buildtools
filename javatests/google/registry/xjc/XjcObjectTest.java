@@ -69,7 +69,8 @@ public class XjcObjectTest {
   public void testMarshalValidation() throws Exception {
     XjcRdeDeposit deposit = unmarshalFullDeposit();
     deposit.setId("");
-    thrown.expect(Throwable.class, "pattern '\\w{1,13}' for type 'depositIdType'");
+    thrown.expect(Throwable.class);
+    thrown.expectMessage("pattern '\\w{1,13}' for type 'depositIdType'");
     deposit.marshal(new ByteArrayOutputStream(), UTF_8);
   }
 
@@ -92,7 +93,8 @@ public class XjcObjectTest {
 
   @Test
   public void testUnmarshalValidation() throws Exception {
-    thrown.expect(Throwable.class, "pattern '\\w{1,13}' for type 'depositIdType'");
+    thrown.expect(Throwable.class);
+    thrown.expectMessage("pattern '\\w{1,13}' for type 'depositIdType'");
     unmarshal(XjcRdeDeposit.class, new ByteArrayInputStream(
         RDE_DEPOSIT_FULL.replaceFirst("id=\"[^\"]+\"", "id=\"\"").getBytes(UTF_8)));
   }

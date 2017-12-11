@@ -92,7 +92,8 @@ public class UpdateReservedListCommandTest extends
   public void testFailure_reservedListDoesntExist() throws Exception {
     String errorMessage =
         "Could not update reserved list xn--q9jyb4c_poobah because it doesn't exist.";
-    thrown.expect(IllegalArgumentException.class, errorMessage);
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(errorMessage);
     runCommand("--force", "--name=xn--q9jyb4c_poobah", "--input=" + reservedTermsPath);
   }
 }

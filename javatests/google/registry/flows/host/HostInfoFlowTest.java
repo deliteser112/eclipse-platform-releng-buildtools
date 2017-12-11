@@ -143,9 +143,8 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
 
   @Test
   public void testFailure_neverExisted() throws Exception {
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
@@ -153,9 +152,8 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   public void testFailure_existedButWasDeleted() throws Exception {
     persistResource(
       persistHostResource().asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
@@ -169,7 +167,8 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   @Test
   public void testFailure_nonPunyCodedHostname() throws Exception {
     setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "ns1.çauçalito.tld"));
-    thrown.expect(HostNameNotPunyCodedException.class, "expected ns1.xn--aualito-txac.tld");
+    thrown.expect(HostNameNotPunyCodedException.class);
+    thrown.expectMessage("expected ns1.xn--aualito-txac.tld");
     runFlow();
   }
 

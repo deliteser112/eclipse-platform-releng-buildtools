@@ -56,8 +56,8 @@ public class IcannReportingModuleTest {
   @Test
   public void testInvalidYearMonthParameter_throwsException() {
     when(req.getParameter("yearMonth")).thenReturn("201705");
-    thrown.expect(
-        BadRequestException.class, "yearMonth must be in yyyy-MM format, got 201705 instead");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("yearMonth must be in yyyy-MM format, got 201705 instead");
     IcannReportingModule.provideYearMonthOptional(req);
   }
 
@@ -88,9 +88,8 @@ public class IcannReportingModuleTest {
 
   @Test
   public void testInvalidSubdir_throwsException() {
-    thrown.expect(
-        BadRequestException.class,
-        "subdir must not start or end with a \"/\", got /whoops instead.");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("subdir must not start or end with a \"/\", got /whoops instead.");
     IcannReportingModule.provideSubdir(Optional.of("/whoops"), new YearMonth(2017, 6));
   }
 

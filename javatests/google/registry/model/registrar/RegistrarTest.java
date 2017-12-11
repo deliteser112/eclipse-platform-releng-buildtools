@@ -143,19 +143,22 @@ public class RegistrarTest extends EntityTestCase {
 
   @Test
   public void testFailure_passwordNull() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Password must be 6-16 characters long.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Password must be 6-16 characters long.");
     new Registrar.Builder().setPassword(null);
   }
 
   @Test
   public void testFailure_passwordTooShort() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Password must be 6-16 characters long.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Password must be 6-16 characters long.");
     new Registrar.Builder().setPassword("abcde");
   }
 
   @Test
   public void testFailure_passwordTooLong() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Password must be 6-16 characters long.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Password must be 6-16 characters long.");
     new Registrar.Builder().setPassword("abcdefghijklmnopq");
   }
 
@@ -315,21 +318,22 @@ public class RegistrarTest extends EntityTestCase {
 
   @Test
   public void testFailure_missingRegistrarType() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Registrar type cannot be null");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrar type cannot be null");
     new Registrar.Builder().setRegistrarName("blah").build();
   }
 
   @Test
   public void testFailure_missingRegistrarName() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Registrar name cannot be null");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrar name cannot be null");
     new Registrar.Builder().setClientId("blahid").setType(Registrar.Type.TEST).build();
   }
 
   @Test
   public void testFailure_missingAddress() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Must specify at least one of localized or internationalized address");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Must specify at least one of localized or internationalized address");
     new Registrar.Builder()
         .setClientId("blahid")
         .setType(Registrar.Type.TEST)
@@ -416,25 +420,29 @@ public class RegistrarTest extends EntityTestCase {
 
   @Test
   public void testFailure_loadByClientId_clientIdIsNull() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "clientId must be specified");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("clientId must be specified");
     Registrar.loadByClientId(null);
   }
 
   @Test
   public void testFailure_loadByClientId_clientIdIsEmpty() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "clientId must be specified");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("clientId must be specified");
     Registrar.loadByClientId("");
   }
 
   @Test
   public void testFailure_loadByClientIdCached_clientIdIsNull() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "clientId must be specified");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("clientId must be specified");
     Registrar.loadByClientIdCached(null);
   }
 
   @Test
   public void testFailure_loadByClientIdCached_clientIdIsEmpty() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "clientId must be specified");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("clientId must be specified");
     Registrar.loadByClientIdCached("");
   }
 }

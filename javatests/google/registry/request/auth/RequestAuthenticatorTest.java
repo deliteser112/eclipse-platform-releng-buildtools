@@ -391,38 +391,42 @@ public class RequestAuthenticatorTest {
 
   @Test
   public void testCheckAuthConfig_NoMethods_failure() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Must specify at least one auth method");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Must specify at least one auth method");
 
     RequestAuthenticator.checkAuthConfig(AUTH_NO_METHODS);
   }
 
   @Test
   public void testCheckAuthConfig_WrongMethodOrdering_failure() throws Exception {
-    thrown.expect(IllegalArgumentException.class,
-        "Auth methods must be unique and strictly in order - INTERNAL, API, LEGACY");
+    thrown.expect(IllegalArgumentException.class);
+    thrown
+        .expectMessage("Auth methods must be unique and strictly in order - INTERNAL, API, LEGACY");
 
     RequestAuthenticator.checkAuthConfig(AUTH_WRONG_METHOD_ORDERING);
   }
 
   @Test
   public void testCheckAuthConfig_DuplicateMethods_failure() throws Exception {
-    thrown.expect(IllegalArgumentException.class,
-        "Auth methods must be unique and strictly in order - INTERNAL, API, LEGACY");
+    thrown.expect(IllegalArgumentException.class);
+    thrown
+        .expectMessage("Auth methods must be unique and strictly in order - INTERNAL, API, LEGACY");
 
     RequestAuthenticator.checkAuthConfig(AUTH_DUPLICATE_METHODS);
   }
 
   @Test
   public void testCheckAuthConfig_InternalWithUser_failure() throws Exception {
-    thrown.expect(IllegalArgumentException.class,
-        "Actions with INTERNAL auth method may not require USER auth level");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Actions with INTERNAL auth method may not require USER auth level");
 
     RequestAuthenticator.checkAuthConfig(AUTH_INTERNAL_WITH_USER);
   }
 
   @Test
   public void testCheckAuthConfig_WronglyIgnoringUser_failure() throws Exception {
-    thrown.expect(IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "Actions with auth methods beyond INTERNAL must not specify the IGNORED user policy");
 
     RequestAuthenticator.checkAuthConfig(AUTH_WRONGLY_IGNORING_USER);

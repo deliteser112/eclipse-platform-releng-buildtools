@@ -78,9 +78,8 @@ public class RdeParserTest {
   @Test
   public void testGetContactNotAtElement_throwsIllegalStateException() throws Exception {
     try (RdeParser parser = new RdeParser(xml)) {
-      thrown.expect(
-          IllegalStateException.class,
-          "Not at element urn:ietf:params:xml:ns:rdeContact-1.0:contact");
+      thrown.expect(IllegalStateException.class);
+      thrown.expectMessage("Not at element urn:ietf:params:xml:ns:rdeContact-1.0:contact");
       parser.getContact();
     }
   }
@@ -162,9 +161,8 @@ public class RdeParserTest {
   @Test
   public void testGetDomainNotAtElement_throwsIllegalStateException() throws Exception {
     try (RdeParser parser = new RdeParser(xml)) {
-      thrown.expect(
-          IllegalStateException.class,
-          "Not at element urn:ietf:params:xml:ns:rdeDomain-1.0:domain");
+      thrown.expect(IllegalStateException.class);
+      thrown.expectMessage("Not at element urn:ietf:params:xml:ns:rdeDomain-1.0:domain");
       parser.getDomain();
     }
   }
@@ -274,8 +272,8 @@ public class RdeParserTest {
   @Test
   public void testGetHostNotAtElement_throwsIllegalStateException() throws Exception {
     try (RdeParser parser = new RdeParser(xml)) {
-      thrown.expect(
-          IllegalStateException.class, "Not at element urn:ietf:params:xml:ns:rdeHost-1.0:host");
+      thrown.expect(IllegalStateException.class);
+      thrown.expectMessage("Not at element urn:ietf:params:xml:ns:rdeHost-1.0:host");
       parser.getHost();
     }
   }
@@ -386,9 +384,8 @@ public class RdeParserTest {
   @Test
   public void testGetRegistrarNotAtElement_throwsIllegalStateException() throws Exception {
     try (RdeParser parser = new RdeParser(xml)) {
-      thrown.expect(
-          IllegalStateException.class,
-          "Not at element urn:ietf:params:xml:ns:rdeRegistrar-1.0:registrar");
+      thrown.expect(IllegalStateException.class);
+      thrown.expectMessage("Not at element urn:ietf:params:xml:ns:rdeRegistrar-1.0:registrar");
       parser.getRegistrar();
     }
   }
@@ -425,8 +422,8 @@ public class RdeParserTest {
   @Test
   public void testGetNndnNotAtElement_throwsIllegalStateException() throws Exception {
     try (RdeParser parser = new RdeParser(xml)) {
-      thrown.expect(
-          IllegalStateException.class, "Not at element urn:ietf:params:xml:ns:rdeNNDN-1.0:NNDN");
+      thrown.expect(IllegalStateException.class);
+      thrown.expectMessage("Not at element urn:ietf:params:xml:ns:rdeNNDN-1.0:NNDN");
       parser.getNndn();
     }
   }
@@ -462,9 +459,8 @@ public class RdeParserTest {
   @Test
   public void testGetIdnNotAtElement_throwsIllegalStateException() throws Exception {
     try (RdeParser parser = new RdeParser(xml)) {
-      thrown.expect(
-          IllegalStateException.class,
-          "Not at element urn:ietf:params:xml:ns:rdeIDN-1.0:idnTableRef");
+      thrown.expect(IllegalStateException.class);
+      thrown.expectMessage("Not at element urn:ietf:params:xml:ns:rdeIDN-1.0:idnTableRef");
       parser.getIdn();
     }
   }
@@ -502,9 +498,8 @@ public class RdeParserTest {
   @Test
   public void testGetEppParamsNotAtElement_throwsIllegalStateException() throws Exception {
     try (RdeParser parser = new RdeParser(xml)) {
-      thrown.expect(
-          IllegalStateException.class,
-          "Not at element urn:ietf:params:xml:ns:rdeEppParams-1.0:eppParams");
+      thrown.expect(IllegalStateException.class);
+      thrown.expectMessage("Not at element urn:ietf:params:xml:ns:rdeEppParams-1.0:eppParams");
       parser.getEppParams();
     }
   }

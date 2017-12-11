@@ -163,15 +163,15 @@ public class HostResourceTest extends EntityTestCase {
 
   @Test
   public void testFailure_uppercaseHostName() {
-    thrown.expect(
-        IllegalArgumentException.class, "Host name must be in puny-coded, lower-case form");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Host name must be in puny-coded, lower-case form");
     host.asBuilder().setFullyQualifiedHostName("AAA.BBB.CCC");
   }
 
   @Test
   public void testFailure_utf8HostName() {
-    thrown.expect(
-        IllegalArgumentException.class, "Host name must be in puny-coded, lower-case form");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Host name must be in puny-coded, lower-case form");
     host.asBuilder().setFullyQualifiedHostName("みんな.みんな.みんな");
   }
 

@@ -14,6 +14,9 @@
 
 package google.registry.tmch;
 
+import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.tmch.TmchTestData.loadSmd;
 
 import google.registry.config.RegistryConfig.ConfigModule.TmchCaMode;
@@ -86,24 +89,23 @@ public class TmchXmlSignatureTest {
   public void testWrongCertificateAuthority() throws Exception {
     tmchXmlSignature = new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PRODUCTION));
     smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
-    thrown.expectRootCause(CertificateSignatureException.class, "Signature does not match");
-    tmchXmlSignature.verify(smdData);
+    CertificateSignatureException e =
+        expectThrows(CertificateSignatureException.class, () -> tmchXmlSignature.verify(smdData));
+    assertThat(e).hasMessageThat().contains("Signature does not match");
   }
 
   @Test
   public void testTimeTravelBeforeCertificateWasCreated() throws Exception {
     smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
     clock.setTo(DateTime.parse("2013-05-01T00:00:00Z"));
-    thrown.expectRootCause(CertificateNotYetValidException.class);
-    tmchXmlSignature.verify(smdData);
+    assertThrows(CertificateNotYetValidException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test
   public void testTimeTravelAfterCertificateHasExpired() throws Exception {
     smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
     clock.setTo(DateTime.parse("2023-06-01T00:00:00Z"));
-    thrown.expectRootCause(CertificateExpiredException.class);
-    tmchXmlSignature.verify(smdData);
+    assertThrows(CertificateExpiredException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test
@@ -324,35 +326,40 @@ public class TmchXmlSignatureTest {
   @Test
   public void testRevokedTmvTmvrevokedCourtAgentFrenchActive() throws Exception {
     smdData = loadSmd("revoked/tmv/TMVRevoked-Court-Agent-French-Active.smd");
-    thrown.expectRootCause(CertificateRevokedException.class, "KEY_COMPROMISE");
-    tmchXmlSignature.verify(smdData);
+    CertificateRevokedException e =
+        expectThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
+    assertThat(e).hasMessageThat().contains("KEY_COMPROMISE");
   }
 
   @Test
   public void testRevokedTmvTmvrevokedTrademarkAgentEnglishActive() throws Exception {
     smdData = loadSmd("revoked/tmv/TMVRevoked-Trademark-Agent-English-Active.smd");
-    thrown.expectRootCause(CertificateRevokedException.class, "KEY_COMPROMISE");
-    tmchXmlSignature.verify(smdData);
+    CertificateRevokedException e =
+        expectThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
+    assertThat(e).hasMessageThat().contains("KEY_COMPROMISE");
   }
 
   @Test
   public void testRevokedTmvTmvrevokedTrademarkAgentRussianActive() throws Exception {
     smdData = loadSmd("revoked/tmv/TMVRevoked-Trademark-Agent-Russian-Active.smd");
-    thrown.expectRootCause(CertificateRevokedException.class, "KEY_COMPROMISE");
-    tmchXmlSignature.verify(smdData);
+    CertificateRevokedException e =
+        expectThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
+    assertThat(e).hasMessageThat().contains("KEY_COMPROMISE");
   }
 
   @Test
   public void testRevokedTmvTmvrevokedTreatystatuteAgentChineseActive() throws Exception {
     smdData = loadSmd("revoked/tmv/TMVRevoked-TreatyStatute-Agent-Chinese-Active.smd");
-    thrown.expectRootCause(CertificateRevokedException.class, "KEY_COMPROMISE");
-    tmchXmlSignature.verify(smdData);
+    CertificateRevokedException e =
+        expectThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
+    assertThat(e).hasMessageThat().contains("KEY_COMPROMISE");
   }
 
   @Test
   public void testRevokedTmvTmvrevokedTreatystatuteAgentEnglishActive() throws Throwable {
     smdData = loadSmd("revoked/tmv/TMVRevoked-TreatyStatute-Agent-English-Active.smd");
-    thrown.expectRootCause(CertificateRevokedException.class, "KEY_COMPROMISE");
-    tmchXmlSignature.verify(smdData);
+    CertificateRevokedException e =
+        expectThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
+    assertThat(e).hasMessageThat().contains("KEY_COMPROMISE");
   }
 }

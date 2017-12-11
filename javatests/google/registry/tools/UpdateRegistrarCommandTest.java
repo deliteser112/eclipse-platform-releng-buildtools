@@ -70,7 +70,8 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
             .setIanaIdentifier(null)
             .setPhonePasscode(null)
             .build());
-    thrown.expect(IllegalArgumentException.class, "--passcode is required for REAL registrars.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("--passcode is required for REAL registrars.");
     runCommand("--registrar_type=REAL", "--iana_id=1000", "--force", "NewRegistrar");
   }
 
@@ -216,7 +217,8 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   public void testFailure_billingAccountMap_doesNotContainEntryForTldAllowed() throws Exception {
     createTlds("foo");
     assertThat(loadRegistrar("NewRegistrar").getBillingAccountMap()).isEmpty();
-    thrown.expect(IllegalArgumentException.class, "USD");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("USD");
     runCommand(
         "--billing_account_map=JPY=789xyz",
         "--allowed_tlds=foo",
@@ -274,7 +276,8 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
             .setAmount(Money.parse("USD 10.00"))
             .build());
     assertThat(registrar.getBillingMethod()).isEqualTo(BillingMethod.EXTERNAL);
-    thrown.expect(IllegalStateException.class,
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage(
         "Refusing to change billing method on Registrar 'NewRegistrar' from EXTERNAL to BRAINTREE"
             + " because current balance is non-zero: {USD=USD 10.00}");
     runCommand("--billing_method=braintree", "--force", "NewRegistrar");
@@ -593,7 +596,8 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
 
   @Test
   public void testFailure_doesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Registrar ClientZ not found");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrar ClientZ not found");
     runCommand("--force", "ClientZ");
   }
 

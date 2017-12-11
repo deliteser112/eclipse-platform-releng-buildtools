@@ -42,7 +42,8 @@ public final class TlsCredentialsTest {
 
   @Test
   public void testProvideClientCertificateHash_missing() {
-    thrown.expect(BadRequestException.class, "Missing header: X-SSL-Certificate");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("Missing header: X-SSL-Certificate");
     HttpServletRequest req = mock(HttpServletRequest.class);
     TlsCredentials.EppTlsModule.provideClientCertificateHash(req);
   }
@@ -57,7 +58,8 @@ public final class TlsCredentialsTest {
 
   @Test
   public void testProvideRequestedServername_missing() {
-    thrown.expect(BadRequestException.class, "Missing header: X-Requested-Servername-SNI");
+    thrown.expect(BadRequestException.class);
+    thrown.expectMessage("Missing header: X-Requested-Servername-SNI");
     HttpServletRequest req = mock(HttpServletRequest.class);
     TlsCredentials.EppTlsModule.provideRequestedServername(req);
   }

@@ -312,7 +312,8 @@ public class RdeUploadActionTest {
         Cursor.create(CursorType.RDE_STAGING, stagingCursor, Registry.get("tld")));
     RdeUploadAction action = createAction(uploadUrl);
     action.lazyJsch = Lazies.of(createThrowingJSchSpy(action.lazyJsch.get(), 3));
-    thrown.expect(RuntimeException.class, "The crow flies in square circles.");
+    thrown.expect(RuntimeException.class);
+    thrown.expectMessage("The crow flies in square circles.");
     action.runWithLock(uploadCursor);
   }
 
@@ -386,7 +387,8 @@ public class RdeUploadActionTest {
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, stagingCursor, Registry.get("tld")));
-    thrown.expect(ServiceUnavailableException.class, "Waiting for RdeStagingAction to complete");
+    thrown.expect(ServiceUnavailableException.class);
+    thrown.expectMessage("Waiting for RdeStagingAction to complete");
     createAction(null).runWithLock(uploadCursor);
   }
 

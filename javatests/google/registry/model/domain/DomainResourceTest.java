@@ -445,15 +445,15 @@ public class DomainResourceTest extends EntityTestCase {
 
   @Test
   public void testFailure_uppercaseDomainName() {
-    thrown.expect(
-        IllegalArgumentException.class, "Domain name must be in puny-coded, lower-case form");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Domain name must be in puny-coded, lower-case form");
     domain.asBuilder().setFullyQualifiedDomainName("AAA.BBB");
   }
 
   @Test
   public void testFailure_utf8DomainName() {
-    thrown.expect(
-        IllegalArgumentException.class, "Domain name must be in puny-coded, lower-case form");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Domain name must be in puny-coded, lower-case form");
     domain.asBuilder().setFullyQualifiedDomainName("みんな.みんな");
   }
 }

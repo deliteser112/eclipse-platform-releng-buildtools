@@ -40,14 +40,15 @@ public class TypeUtilsTest {
 
   @Test
   public void test_getClassFromString_notAssignableFrom() {
-    thrown.expect(IllegalArgumentException.class, "ArrayList does not implement/extend Integer");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("ArrayList does not implement/extend Integer");
     TypeUtils.getClassFromString("java.util.ArrayList", Integer.class);
   }
 
   @Test
   public void test_getClassFromString_unknownClass() {
-    thrown.expect(
-        IllegalArgumentException.class, "Failed to load class com.fake.company.nonexistent.Class");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Failed to load class com.fake.company.nonexistent.Class");
     TypeUtils.getClassFromString("com.fake.company.nonexistent.Class", Object.class);
   }
 }

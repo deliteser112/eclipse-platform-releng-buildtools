@@ -50,7 +50,8 @@ public class CreateHostCommandTest extends EppToolCommandTestCase<CreateHostComm
   @Test
   public void testFailure_invalidIpAddress() throws Exception {
     createTld("tld");
-    thrown.expect(IllegalArgumentException.class, "'a.b.c.d' is not an IP string literal.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("'a.b.c.d' is not an IP string literal.");
     runCommandForced(
         "--client=NewRegistrar",
         "--host=example.tld",

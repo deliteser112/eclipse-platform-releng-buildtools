@@ -340,9 +340,8 @@ public class DomainRestoreRequestFlowTest extends
 
   @Test
   public void testFailure_doesNotExist() throws Exception {
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 

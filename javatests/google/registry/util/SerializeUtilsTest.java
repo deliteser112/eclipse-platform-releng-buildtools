@@ -55,13 +55,15 @@ public class SerializeUtilsTest {
 
   @Test
   public void testSerialize_objectDoesntImplementSerialize_hasInformativeError() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Unable to serialize: LOL_VALUE");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Unable to serialize: LOL_VALUE");
     serialize(new Lol());
   }
 
   @Test
   public void testDeserialize_badValue_hasInformativeError() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Unable to deserialize: objectBytes=FF");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Unable to deserialize: objectBytes=FF");
     deserialize(String.class, new byte[] { (byte) 0xff });
   }
 }

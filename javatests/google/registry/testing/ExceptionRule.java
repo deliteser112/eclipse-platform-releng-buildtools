@@ -16,7 +16,6 @@ package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.google.common.base.Throwables.getRootCause;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 
 import google.registry.flows.EppException;
@@ -37,8 +36,6 @@ public class ExceptionRule implements TestRule {
   @Nullable
   String expectedMessage;
 
-  private boolean useRootCause;
-
   @Override
   public Statement apply(final Statement base, Description description) {
     return new Statement() {
@@ -53,10 +50,9 @@ public class ExceptionRule implements TestRule {
                 expectedMessage == null ? "" : (" with message: " + expectedMessage)));
           }
         } catch (Throwable e) {
-          Throwable cause = useRootCause ? getRootCause(e) : e;
           if (expectedExceptionClass == null
-              || !(expectedExceptionClass.isAssignableFrom(cause.getClass())
-                  && nullToEmpty(cause.getMessage()).contains(nullToEmpty(expectedMessage)))) {
+              || !(expectedExceptionClass.isAssignableFrom(e.getClass())
+                  && nullToEmpty(e.getMessage()).contains(nullToEmpty(expectedMessage)))) {
             throw e;  // We didn't expect this so pass it through.
           }
           if (e instanceof EppException) {
@@ -72,19 +68,7 @@ public class ExceptionRule implements TestRule {
     this.expectedExceptionClass = expectedExceptionClass;
   }
 
-  public void expect(Class<? extends Throwable> expectedExceptionClass, String expectedMessage) {
-    expect(expectedExceptionClass);
+  public void expectMessage(String expectedMessage) {
     this.expectedMessage = expectedMessage;
-  }
-
-  public void expectRootCause(Class<? extends Throwable> expectedExceptionClass) {
-    expect(expectedExceptionClass);
-    this.useRootCause = true;
-  }
-
-  public void expectRootCause(
-      Class<? extends Throwable> expectedExceptionClass, String expectedMessage) {
-    expect(expectedExceptionClass, expectedMessage);
-    this.useRootCause = true;
   }
 }

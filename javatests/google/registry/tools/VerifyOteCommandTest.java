@@ -66,14 +66,15 @@ public class VerifyOteCommandTest extends CommandTestCase<VerifyOteCommand> {
 
   @Test
   public void testFailure_registrarDoesntExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Registrar blobio does not exist.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrar blobio does not exist.");
     runCommand("blobio");
   }
 
   @Test
   public void testFailure_noRegistrarsNoCheckAll() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "Must provide at least one registrar name, or supply --check-all with no names.");
     runCommand("");
   }

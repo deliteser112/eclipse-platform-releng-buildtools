@@ -70,7 +70,8 @@ public class RdeRevisionTest {
 
   @Test
   public void testSaveRevision_objectDoesntExist_newRevisionIsOne_throwsVe() throws Exception {
-    thrown.expect(VerifyException.class, "object missing");
+    thrown.expect(VerifyException.class);
+    thrown.expectMessage("object missing");
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
@@ -81,7 +82,8 @@ public class RdeRevisionTest {
   @Test
   public void testSaveRevision_objectExistsAtZero_newRevisionIsZero_throwsVe() throws Exception {
     save("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 0);
-    thrown.expect(VerifyException.class, "object already created");
+    thrown.expect(VerifyException.class);
+    thrown.expectMessage("object already created");
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
@@ -108,7 +110,8 @@ public class RdeRevisionTest {
   @Test
   public void testSaveRevision_objectExistsAtZero_newRevisionIsTwo_throwsVe() throws Exception {
     save("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 0);
-    thrown.expect(VerifyException.class, "should be at 1 ");
+    thrown.expect(VerifyException.class);
+    thrown.expectMessage("should be at 1 ");
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
@@ -118,7 +121,8 @@ public class RdeRevisionTest {
 
   @Test
   public void testSaveRevision_negativeRevision_throwsIae() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Negative revision");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Negative revision");
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
@@ -128,7 +132,8 @@ public class RdeRevisionTest {
 
   @Test
   public void testSaveRevision_callerNotInTransaction_throwsIse() throws Exception {
-    thrown.expect(IllegalStateException.class, "transaction");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("transaction");
     saveRevision("frenzy", DateTime.parse("1984-12-18TZ"), FULL, 1);
   }
 

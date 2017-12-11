@@ -15,12 +15,15 @@
 package google.registry.tools;
 
 import static com.google.common.io.BaseEncoding.base64;
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.config.RegistryConfig.ConfigModule.TmchCaMode.PILOT;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -112,8 +115,9 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
   @Test
   public void testFailure_invalidSmd() throws Exception {
     String smdFile = writeToTmpFile(INVALID_SMD);
-    thrown.expectRootCause(ParameterValuePolicyErrorException.class);
-    runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
+    Exception e =
+        expectThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
+    assertThat(e).hasCauseThat().isInstanceOf(ParameterValuePolicyErrorException.class);
   }
 
   @Test
@@ -122,43 +126,48 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
     clock.advanceOneMilli();
     SignedMarkRevocationList.create(now, ImmutableMap.of(ACTIVE_SMD_ID, now)).save();
     String smdFile = writeToTmpFile(ACTIVE_SMD);
-    thrown.expectRootCause(ParameterValuePolicyErrorException.class);
-    runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
+    Exception e =
+        expectThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
+    assertThat(e).hasCauseThat().isInstanceOf(ParameterValuePolicyErrorException.class);
   }
 
   @Test
   public void testFailure_revokedTmv() throws Exception {
     String smdFile = writeToTmpFile(REVOKED_TMV_SMD);
-    thrown.expectRootCause(ParameterValuePolicyErrorException.class);
-    runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
+    Exception e =
+        expectThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
+    assertThat(e).hasCauseThat().isInstanceOf(ParameterValuePolicyErrorException.class);
   }
 
   @Test
   public void testFailure_unparseableXml() throws Exception {
     String smdFile = writeToTmpFile(base64().encode("This is not XML!".getBytes(UTF_8)));
-    thrown.expectRootCause(ParameterValueSyntaxErrorException.class);
-    runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
+    Exception e =
+        expectThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
+    assertThat(e).hasCauseThat().isInstanceOf(ParameterValueSyntaxErrorException.class);
   }
 
   @Test
   public void testFailure_badlyEncodedData() throws Exception {
     String smdFile = writeToTmpFile("Bad base64 data ~!@#$#@%%$#^$%^&^**&^)(*)(_".getBytes(UTF_8));
-    thrown.expectRootCause(ParameterValueSyntaxErrorException.class);
-    runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
+    Exception e =
+        expectThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
+    assertThat(e).hasCauseThat().isInstanceOf(ParameterValueSyntaxErrorException.class);
   }
 
   @Test
   public void testFailure_wrongLabel() throws Exception {
     String smdFile = writeToTmpFile(DIFFERENT_LABEL_SMD);
-    thrown.expectRootCause(RequiredParameterMissingException.class);
-    runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
+    Exception e =
+        expectThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
+    assertThat(e).hasCauseThat().isInstanceOf(RequiredParameterMissingException.class);
   }
 
   @Test
   public void testFailure_nonExistentApplication() throws Exception {
     String smdFile = writeToTmpFile(ACTIVE_SMD);
-    thrown.expectRootCause(IllegalArgumentException.class);
-    runCommand("--id=3-Q9JYB4C", "--smd=" + smdFile);
+    assertThrows(
+        IllegalArgumentException.class, () -> runCommand("--id=3-Q9JYB4C", "--smd=" + smdFile));
   }
 
   @Test
@@ -166,7 +175,7 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
     persistResource(domainApplication.asBuilder().setDeletionTime(clock.nowUtc()).build());
     clock.advanceOneMilli();
     String smdFile = writeToTmpFile(ACTIVE_SMD);
-    thrown.expectRootCause(IllegalArgumentException.class);
-    runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile);
+    assertThrows(
+        IllegalArgumentException.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
   }
 }

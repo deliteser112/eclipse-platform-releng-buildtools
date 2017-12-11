@@ -216,8 +216,8 @@ public class XjcToDomainResourceConverterTest {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_pendingRestorePeriod.xml");
-    thrown.expect(
-        IllegalArgumentException.class, "Unsupported grace period status: PENDING_RESTORE");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Unsupported grace period status: PENDING_RESTORE");
     convertDomainInTransaction(xjcDomain);
   }
 
@@ -270,7 +270,8 @@ public class XjcToDomainResourceConverterTest {
     persistActiveHost("ns1.example.net");
     persistActiveHost("ns2.example.net");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_host_attrs.xml");
-    thrown.expect(IllegalArgumentException.class, "Host attributes are not yet supported");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Host attributes are not yet supported");
     convertDomainInTransaction(xjcDomain);
   }
 
@@ -280,8 +281,8 @@ public class XjcToDomainResourceConverterTest {
     persistActiveContact("sh8013");
     persistActiveHost("ns1.example.net");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_host_objs.xml");
-    thrown.expect(
-        IllegalStateException.class, "HostResource not found with name 'ns2.example.net'");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("HostResource not found with name 'ns2.example.net'");
     convertDomainInTransaction(xjcDomain);
   }
 
@@ -289,7 +290,8 @@ public class XjcToDomainResourceConverterTest {
   public void testConvertDomainResourceRegistrantNotFound() throws Exception {
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment.xml");
-    thrown.expect(IllegalStateException.class, "Registrant not found: 'jd1234'");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Registrant not found: 'jd1234'");
     convertDomainInTransaction(xjcDomain);
   }
 
@@ -298,8 +300,8 @@ public class XjcToDomainResourceConverterTest {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_registrant_missing.xml");
-    thrown.expect(
-        IllegalArgumentException.class, "Registrant is missing for domain 'example1.example'");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrant is missing for domain 'example1.example'");
     convertDomainInTransaction(xjcDomain);
   }
 
@@ -307,7 +309,8 @@ public class XjcToDomainResourceConverterTest {
   public void testConvertDomainResourceAdminNotFound() throws Exception {
     persistActiveContact("jd1234");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment.xml");
-    thrown.expect(IllegalStateException.class, "Contact not found: 'sh8013'");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Contact not found: 'sh8013'");
     convertDomainInTransaction(xjcDomain);
   }
 

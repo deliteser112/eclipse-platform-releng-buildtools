@@ -62,8 +62,8 @@ public class DnsQueueTest {
 
   @Test
   public void test_addHostRefreshTask_failsOnUnknownTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class,
-        "octopus.notatld is not a subordinate host to a known tld");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("octopus.notatld is not a subordinate host to a known tld");
     try {
       dnsQueue.addHostRefreshTask("octopus.notatld");
     } finally {
@@ -85,7 +85,8 @@ public class DnsQueueTest {
 
   @Test
   public void test_addDomainRefreshTask_failsOnUnknownTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "TLD notatld does not exist");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("TLD notatld does not exist");
     try {
       dnsQueue.addDomainRefreshTask("fake.notatld");
     } finally {

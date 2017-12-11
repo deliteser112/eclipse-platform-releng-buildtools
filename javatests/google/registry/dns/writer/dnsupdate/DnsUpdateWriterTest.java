@@ -390,7 +390,8 @@ public class DnsUpdateWriterTest {
             .build();
     persistResource(domain);
     when(mockResolver.send(any(Message.class))).thenReturn(messageWithResponseCode(Rcode.SERVFAIL));
-    thrown.expect(VerifyException.class, "SERVFAIL");
+    thrown.expect(VerifyException.class);
+    thrown.expectMessage("SERVFAIL");
 
     writer.publishDomain("example.tld");
     writer.commit();
@@ -405,7 +406,8 @@ public class DnsUpdateWriterTest {
             .build();
     persistResource(host);
     when(mockResolver.send(any(Message.class))).thenReturn(messageWithResponseCode(Rcode.SERVFAIL));
-    thrown.expect(VerifyException.class, "SERVFAIL");
+    thrown.expect(VerifyException.class);
+    thrown.expectMessage("SERVFAIL");
 
     writer.publishHost("ns1.example.tld");
     writer.commit();

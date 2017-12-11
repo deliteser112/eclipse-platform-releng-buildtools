@@ -93,7 +93,8 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
 
   @Test
   public void testFailure_nonexistentParentRegistrar() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Registrar FakeRegistrar not found");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrar FakeRegistrar not found");
     runCommandForced(
         "--registrar=FakeRegistrar",
         "--type=PROMOTION",
@@ -104,7 +105,8 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
 
   @Test
   public void testFailure_nonexistentTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "faketld");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("faketld");
     runCommandForced(
         "--registrar=TheRegistrar",
         "--type=PROMOTION",
@@ -115,7 +117,8 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
 
   @Test
   public void testFailure_nonexistentType() throws Exception {
-    thrown.expect(ParameterException.class, "Invalid value for --type");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("Invalid value for --type");
     runCommandForced(
         "--registrar=TheRegistrar",
         "--type=BADTYPE",
@@ -126,7 +129,8 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
 
   @Test
   public void testFailure_negativeBalance() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "negative");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("negative");
     runCommandForced(
         "--registrar=TheRegistrar",
         "--type=PROMOTION",
@@ -137,7 +141,8 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
 
   @Test
   public void testFailure_noRegistrar() throws Exception {
-    thrown.expect(ParameterException.class, "--registrar");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--registrar");
     runCommandForced(
         "--type=PROMOTION",
         "--tld=tld",
@@ -147,7 +152,8 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
 
   @Test
   public void testFailure_noType() throws Exception {
-    thrown.expect(ParameterException.class, "--type");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--type");
     runCommandForced(
         "--registrar=TheRegistrar",
         "--tld=tld",
@@ -157,7 +163,8 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
 
   @Test
   public void testFailure_noTld() throws Exception {
-    thrown.expect(ParameterException.class, "--tld");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--tld");
     runCommandForced(
         "--registrar=TheRegistrar",
         "--type=PROMOTION",
@@ -167,7 +174,8 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
 
   @Test
   public void testFailure_noBalance() throws Exception {
-    thrown.expect(ParameterException.class, "--balance");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--balance");
     runCommandForced(
         "--registrar=TheRegistrar",
         "--type=PROMOTION",
@@ -177,7 +185,8 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
 
   @Test
   public void testFailure_noEffectiveTime() throws Exception {
-    thrown.expect(ParameterException.class, "--effective_time");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--effective_time");
     runCommandForced(
         "--registrar=TheRegistrar",
         "--type=PROMOTION",

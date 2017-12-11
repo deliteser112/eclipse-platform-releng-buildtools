@@ -215,8 +215,8 @@ public class DriveConnectionTest {
           new ChildReference().setId("id2")))
       .setNextPageToken(null);
     when(childrenList.execute()).thenReturn(childList);
-    thrown.expect(IllegalStateException.class,
-        "Could not update file 'title' in Drive folder id 'driveFolderId' "
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Could not update file 'title' in Drive folder id 'driveFolderId' "
             + "because multiple files with that name already exist.");
     driveConnection.createOrUpdateFile("title", MediaType.WEBM_VIDEO, "driveFolderId", DATA);
   }

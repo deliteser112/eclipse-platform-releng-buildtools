@@ -126,8 +126,8 @@ public class DirectoryGroupsConnectionTest {
   public void test_addMemberToGroup_handlesMemberKeyNotFoundException() throws Exception {
     when(membersInsert.execute()).thenThrow(
         makeResponseException(SC_NOT_FOUND, "Resource Not Found: memberKey"));
-    thrown.expect(RuntimeException.class,
-        "Adding member jim@example.com to group spam@example.com "
+    thrown.expect(RuntimeException.class);
+    thrown.expectMessage("Adding member jim@example.com to group spam@example.com "
             + "failed because the member wasn't found.");
     connection.addMemberToGroup("spam@example.com", "jim@example.com", Role.MEMBER);
   }

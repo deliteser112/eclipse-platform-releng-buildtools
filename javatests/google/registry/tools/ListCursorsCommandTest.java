@@ -49,7 +49,8 @@ public class ListCursorsCommandTest extends CommandTestCase<ListCursorsCommand> 
 
   @Test
   public void testListCursors_badCursor_throwsIae() throws Exception {
-    thrown.expect(ParameterException.class, "Invalid value for --type parameter.");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("Invalid value for --type parameter.");
     runCommand("--type=love");
   }
 

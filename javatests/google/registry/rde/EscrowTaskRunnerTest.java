@@ -99,7 +99,8 @@ public class EscrowTaskRunnerTest {
     clock.setTo(DateTime.parse("2006-06-06T00:30:00Z"));
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, DateTime.parse("2006-06-07TZ"), registry));
-    thrown.expect(NoContentException.class, "Already completed");
+    thrown.expect(NoContentException.class);
+    thrown.expectMessage("Already completed");
     runner.lockRunAndRollForward(
         task, registry, standardSeconds(30), CursorType.RDE_STAGING, standardDays(1));
   }
@@ -110,7 +111,8 @@ public class EscrowTaskRunnerTest {
     clock.setTo(DateTime.parse("2006-06-06T00:30:00Z"));
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, DateTime.parse("2006-06-06TZ"), registry));
-    thrown.expect(ServiceUnavailableException.class, "Lock in use: " + lockName + " for TLD: lol");
+    thrown.expect(ServiceUnavailableException.class);
+    thrown.expectMessage("Lock in use: " + lockName + " for TLD: lol");
     runner.lockHandler = new FakeLockHandler(false);
     runner.lockRunAndRollForward(
         task, registry, standardSeconds(30), CursorType.RDE_STAGING, standardDays(1));

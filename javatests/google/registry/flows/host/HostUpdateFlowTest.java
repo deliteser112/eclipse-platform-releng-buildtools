@@ -759,9 +759,8 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testFailure_superordinateMissing() throws Exception {
     createTld("tld");
     persistActiveHost(oldHostName());
-    thrown.expect(
-        SuperordinateDomainDoesNotExistException.class,
-        "(example.tld)");
+    thrown.expect(SuperordinateDomainDoesNotExistException.class);
+    thrown.expectMessage("(example.tld)");
     runFlow();
   }
 
@@ -781,35 +780,31 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .build());
     persistActiveSubordinateHost(oldHostName(), domain);
     clock.advanceOneMilli();
-    thrown.expect(
-        SuperordinateDomainInPendingDeleteException.class,
-        "Superordinate domain for this hostname is in pending delete");
+    thrown.expect(SuperordinateDomainInPendingDeleteException.class);
+    thrown.expectMessage("Superordinate domain for this hostname is in pending delete");
     runFlow();
   }
 
   @Test
   public void testFailure_neverExisted() throws Exception {
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
   @Test
   public void testFailure_neverExisted_updateWithoutNameChange() throws Exception {
     setEppInput("host_update_name_unchanged.xml");
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedHost(oldHostName(), clock.nowUtc().minusDays(1));
-    thrown.expect(
-        ResourceDoesNotExistException.class,
-        String.format("(%s)", getUniqueIdFromCommand()));
+    thrown.expect(ResourceDoesNotExistException.class);
+    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
     runFlow();
   }
 
@@ -819,7 +814,8 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     persistActiveSubordinateHost(oldHostName(), persistActiveDomain("example.tld"));
     clock.advanceOneMilli();
     setEppHostUpdateInput("ns1.example.tld", "ns1.example.tld", null, null);
-    thrown.expect(HostAlreadyExistsException.class, "ns1.example.tld");
+    thrown.expect(HostAlreadyExistsException.class);
+    thrown.expectMessage("ns1.example.tld");
     runFlow();
   }
 
@@ -828,7 +824,8 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     createTld("tld");
     persistActiveSubordinateHost(oldHostName(), persistActiveDomain("example.tld"));
     persistActiveHost("ns2.example.tld");
-    thrown.expect(HostAlreadyExistsException.class, "ns2.example.tld");
+    thrown.expect(HostAlreadyExistsException.class);
+    thrown.expectMessage("ns2.example.tld");
     runFlow();
   }
 
@@ -850,7 +847,8 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   @Test
   public void testFailure_referToNonPunyCodedHostname() throws Exception {
     setEppHostUpdateInput("ns1.çauçalito.tld", "ns1.sausalito.tld", null, null);
-    thrown.expect(HostNameNotPunyCodedException.class, "expected ns1.xn--aualito-txac.tld");
+    thrown.expect(HostNameNotPunyCodedException.class);
+    thrown.expectMessage("expected ns1.xn--aualito-txac.tld");
     runFlow();
   }
 
@@ -858,7 +856,8 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testFailure_renameToNonPunyCodedHostname() throws Exception {
     persistActiveHost("ns1.sausalito.tld");
     setEppHostUpdateInput("ns1.sausalito.tld", "ns1.çauçalito.tld", null, null);
-    thrown.expect(HostNameNotPunyCodedException.class, "expected ns1.xn--aualito-txac.tld");
+    thrown.expect(HostNameNotPunyCodedException.class);
+    thrown.expectMessage("expected ns1.xn--aualito-txac.tld");
     runFlow();
   }
 
@@ -977,7 +976,8 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
             .setSuperordinateDomain(Key.create(persistActiveDomain("example.tld")))
             .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class, "serverUpdateProhibited");
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expectMessage("serverUpdateProhibited");
     runFlow();
   }
 
@@ -989,7 +989,8 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
             .setSuperordinateDomain(Key.create(persistActiveDomain("example.tld")))
             .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class, "pendingDelete");
+    thrown.expect(ResourceStatusProhibitsOperationException.class);
+    thrown.expectMessage("pendingDelete");
     runFlow();
   }
 

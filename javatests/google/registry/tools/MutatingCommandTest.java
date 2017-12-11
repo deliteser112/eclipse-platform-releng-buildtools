@@ -313,8 +313,8 @@ public class MutatingCommandTest {
             .build());
       }
     };
-    thrown.expect(
-        IllegalArgumentException.class, "Cannot apply multiple changes for the same entity");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Cannot apply multiple changes for the same entity");
     command.init();
   }
 
@@ -326,9 +326,8 @@ public class MutatingCommandTest {
         stageEntityChange(host1, host2);
       }
     };
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Both entity versions in an update must have the same Key.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Both entity versions in an update must have the same Key.");
     command.init();
   }
 
@@ -340,9 +339,8 @@ public class MutatingCommandTest {
         stageEntityChange(registrar1, registrar2);
       }
     };
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Both entity versions in an update must have the same Key.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Both entity versions in an update must have the same Key.");
     command.init();
   }
 
@@ -354,9 +352,8 @@ public class MutatingCommandTest {
         stageEntityChange(host1, registrar1);
       }
     };
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Both entity versions in an update must have the same Key.");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Both entity versions in an update must have the same Key.");
     command.init();
   }
 
@@ -370,7 +367,8 @@ public class MutatingCommandTest {
     };
     command.init();
     persistResource(newHost1);
-    thrown.expect(IllegalStateException.class, "Entity changed since init() was called.");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Entity changed since init() was called.");
     command.execute();
   }
 
@@ -384,7 +382,8 @@ public class MutatingCommandTest {
     };
     command.init();
     persistResource(newHost1);
-    thrown.expect(IllegalStateException.class, "Entity changed since init() was called.");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Entity changed since init() was called.");
     command.execute();
   }
 
@@ -398,7 +397,8 @@ public class MutatingCommandTest {
     };
     command.init();
     persistResource(newHost1);
-    thrown.expect(IllegalStateException.class, "Entity changed since init() was called.");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Entity changed since init() was called.");
     command.execute();
   }
 
@@ -412,7 +412,8 @@ public class MutatingCommandTest {
     };
     command.init();
     deleteResource(host1);
-    thrown.expect(IllegalStateException.class, "Entity changed since init() was called.");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Entity changed since init() was called.");
     command.execute();
   }
 }

@@ -166,8 +166,8 @@ public class LordnTaskTest {
             .setRepoId("9000-EXAMPLE")
             .setCreationClientId("nonexistentRegistrar")
             .build();
-    thrown.expect(
-        IllegalStateException.class, "No registrar found for client id: nonexistentRegistrar");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("No registrar found for client id: nonexistentRegistrar");
     persistDomainAndEnqueueLordn(domain);
   }
 
@@ -198,7 +198,8 @@ public class LordnTaskTest {
   public void test_loadAllTasks_retryLogic_allFailures() throws Exception {
     Queue queue = mock(Queue.class);
     when(queue.leaseTasks(any(LeaseOptions.class))).thenThrow(TransientFailureException.class);
-    thrown.expect(RuntimeException.class, "Error leasing tasks");
+    thrown.expect(RuntimeException.class);
+    thrown.expectMessage("Error leasing tasks");
     LordnTask.loadAllTasks(queue, "tld");
   }
 

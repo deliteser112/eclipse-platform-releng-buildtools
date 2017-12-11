@@ -43,8 +43,8 @@ public class ListDomainsCommandTest extends ListObjectsCommandTestCase<ListDomai
   @Test
   public void test_tldsParamTooLong() throws Exception {
     String tldsParam = "--tld=foo,bar" + Strings.repeat(",baz", 300);
-    thrown.expect(
-        IllegalArgumentException.class, "Total length of TLDs is too long for URL parameter");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Total length of TLDs is too long for URL parameter");
     runCommand(tldsParam);
   }
 }

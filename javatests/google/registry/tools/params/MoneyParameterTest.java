@@ -79,7 +79,8 @@ public class MoneyParameterTest {
 
   @Test
   public void testValidate_sillyString_throws() throws Exception {
-    thrown.expect(ParameterException.class, "--money=foo not valid");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--money=foo not valid");
     instance.validate("--money", "foo");
   }
 

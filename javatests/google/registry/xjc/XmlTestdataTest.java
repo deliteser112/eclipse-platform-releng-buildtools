@@ -151,7 +151,8 @@ public class XmlTestdataTest {
 
   @Theory
   public void testInvalid(Evil v) throws Exception {
-    thrown.expect(Throwable.class, v.error);
+    thrown.expect(Throwable.class);
+    thrown.expectMessage(v.error);
     unmarshal(XjcObject.class, v.xmlStream);
   }
 }

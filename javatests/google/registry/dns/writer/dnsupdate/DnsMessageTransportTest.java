@@ -16,7 +16,7 @@ package google.registry.dns.writer.dnsupdate;
 
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -129,8 +129,7 @@ public class DnsMessageTransportTest {
     Duration testTimeout = Duration.standardSeconds(1);
     DnsMessageTransport resolver = new DnsMessageTransport(mockFactory, UPDATE_HOST, testTimeout);
     Message expectedQuery = new Message();
-    SocketTimeoutException e =
-        expectThrows(SocketTimeoutException.class, () -> resolver.send(expectedQuery));
+    assertThrows(SocketTimeoutException.class, () -> resolver.send(expectedQuery));
     verify(mockSocket).setSoTimeout((int) testTimeout.getMillis());
   }
 
@@ -146,7 +145,8 @@ public class DnsMessageTransportTest {
     }
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     when(mockSocket.getOutputStream()).thenReturn(outputStream);
-    thrown.expect(IllegalArgumentException.class, "message larger than maximum");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("message larger than maximum");
 
     resolver.send(oversize);
   }
@@ -157,9 +157,8 @@ public class DnsMessageTransportTest {
     when(mockSocket.getInputStream())
         .thenReturn(new ByteArrayInputStream(messageToBytesWithLength(expectedResponse)));
     when(mockSocket.getOutputStream()).thenReturn(new ByteArrayOutputStream());
-    thrown.expect(
-        VerifyException.class,
-        "response ID "
+    thrown.expect(VerifyException.class);
+    thrown.expectMessage("response ID "
             + expectedResponse.getHeader().getID()
             + " does not match query ID "
             + simpleQuery.getHeader().getID());
@@ -174,8 +173,8 @@ public class DnsMessageTransportTest {
     when(mockSocket.getInputStream())
         .thenReturn(new ByteArrayInputStream(messageToBytesWithLength(expectedResponse)));
     when(mockSocket.getOutputStream()).thenReturn(new ByteArrayOutputStream());
-    thrown.expect(
-        VerifyException.class, "response opcode 'STATUS' does not match query opcode 'QUERY'");
+    thrown.expect(VerifyException.class);
+    thrown.expectMessage("response opcode 'STATUS' does not match query opcode 'QUERY'");
 
     resolver.send(simpleQuery);
   }

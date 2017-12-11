@@ -182,8 +182,8 @@ public class BillingEventTest extends EntityTestCase {
 
   @Test
   public void testFailure_syntheticFlagWithoutCreationTime() {
-    thrown.expect(
-        IllegalStateException.class,
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage(
         "Synthetic creation time must be set if and only if the SYNTHETIC flag is set.");
     oneTime.asBuilder()
         .setFlags(ImmutableSet.of(BillingEvent.Flag.SYNTHETIC))
@@ -193,8 +193,8 @@ public class BillingEventTest extends EntityTestCase {
 
   @Test
   public void testFailure_syntheticCreationTimeWithoutFlag() {
-    thrown.expect(
-        IllegalStateException.class,
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage(
         "Synthetic creation time must be set if and only if the SYNTHETIC flag is set");
     oneTime.asBuilder()
         .setSyntheticCreationTime(now.plusDays(10))
@@ -203,8 +203,8 @@ public class BillingEventTest extends EntityTestCase {
 
   @Test
   public void testFailure_syntheticFlagWithoutCancellationMatchingKey() {
-    thrown.expect(
-        IllegalStateException.class,
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage(
         "Cancellation matching billing event must be set if and only if the SYNTHETIC flag is set");
     oneTime.asBuilder()
         .setFlags(ImmutableSet.of(BillingEvent.Flag.SYNTHETIC))
@@ -214,8 +214,8 @@ public class BillingEventTest extends EntityTestCase {
 
   @Test
   public void testFailure_cancellationMatchingKeyWithoutFlag() {
-    thrown.expect(
-        IllegalStateException.class,
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage(
         "Cancellation matching billing event must be set if and only if the SYNTHETIC flag is set");
     oneTime.asBuilder()
         .setCancellationMatchingBillingEvent(Key.create(recurring))
@@ -250,7 +250,8 @@ public class BillingEventTest extends EntityTestCase {
 
   @Test
   public void testFailure_cancellation_forGracePeriodWithoutBillingEvent() {
-    thrown.expect(IllegalArgumentException.class, "grace period without billing event");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("grace period without billing event");
     BillingEvent.Cancellation.forGracePeriod(
         GracePeriod.createWithoutBillingEvent(
             GracePeriodStatus.REDEMPTION,
@@ -262,13 +263,15 @@ public class BillingEventTest extends EntityTestCase {
 
   @Test
   public void testFailure_cancellationWithNoBillingEvent() {
-    thrown.expect(IllegalStateException.class, "exactly one billing event");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("exactly one billing event");
     cancellationOneTime.asBuilder().setOneTimeEventKey(null).setRecurringEventKey(null).build();
   }
 
   @Test
   public void testFailure_cancellationWithBothBillingEvents() {
-    thrown.expect(IllegalStateException.class, "exactly one billing event");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("exactly one billing event");
     cancellationOneTime.asBuilder()
         .setOneTimeEventKey(Key.create(oneTime))
         .setRecurringEventKey(Key.create(recurring))

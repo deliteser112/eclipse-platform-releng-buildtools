@@ -286,7 +286,8 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   public void testValidateEscrowFile_tldNotFound() throws Exception {
     xmlInput = DEPOSIT_BADTLD_XML.openBufferedStream();
     when(gcsUtils.openInputStream(any(GcsFilename.class))).thenReturn(xmlInput);
-    thrown.expect(IllegalArgumentException.class, "Tld 'badtld' not found in the registry");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Tld 'badtld' not found in the registry");
     rdeImportUtils.validateEscrowFileForImport("invalid-deposit-badtld.xml");
   }
 
@@ -295,9 +296,8 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   public void testValidateEscrowFile_tldWrongState() throws Exception {
     xmlInput = DEPOSIT_GETLD_XML.openBufferedStream();
     when(gcsUtils.openInputStream(any(GcsFilename.class))).thenReturn(xmlInput);
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Tld 'getld' is in state GENERAL_AVAILABILITY and cannot be imported");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Tld 'getld' is in state GENERAL_AVAILABILITY and cannot be imported");
     rdeImportUtils.validateEscrowFileForImport("invalid-deposit-getld.xml");
   }
 
@@ -306,8 +306,8 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   public void testValidateEscrowFile_badRegistrar() throws Exception {
     xmlInput = DEPOSIT_BADREGISTRAR_XML.openBufferedStream();
     when(gcsUtils.openInputStream(any(GcsFilename.class))).thenReturn(xmlInput);
-    thrown.expect(
-        IllegalArgumentException.class, "Registrar 'RegistrarY' not found in the registry");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrar 'RegistrarY' not found in the registry");
     rdeImportUtils.validateEscrowFileForImport("invalid-deposit-badregistrar.xml");
   }
 

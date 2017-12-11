@@ -120,7 +120,8 @@ public class DateTimeParameterTest {
 
   @Test
   public void testValidate_sillyString_throwsParameterException() throws Exception {
-    thrown.expect(ParameterException.class, "--time=foo not an ISO");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--time=foo not an ISO");
     instance.validate("--time", "foo");
   }
 

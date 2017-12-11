@@ -100,7 +100,8 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
 
   @Test
   public void testBadTimeOrdering_causesError() throws Exception {
-    thrown.expect(IllegalStateException.class, "Created timestamp not after previous");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Created timestamp not after previous");
     new RegistrarBillingEntry.Builder()
         .setPrevious(
             new RegistrarBillingEntry.Builder()
@@ -120,7 +121,8 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
 
   @Test
   public void testRegistrarMismatch_causesError() throws Exception {
-    thrown.expect(IllegalStateException.class, "Parent not same as previous");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Parent not same as previous");
     new RegistrarBillingEntry.Builder()
         .setPrevious(
             new RegistrarBillingEntry.Builder()
@@ -160,7 +162,8 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
 
   @Test
   public void testZeroAmount_causesError() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Amount can't be zero");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Amount can't be zero");
     new RegistrarBillingEntry.Builder()
         .setPrevious(null)
         .setParent(loadRegistrar("NewRegistrar"))

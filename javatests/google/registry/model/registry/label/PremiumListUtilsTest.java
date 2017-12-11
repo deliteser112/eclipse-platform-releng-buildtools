@@ -112,7 +112,8 @@ public class PremiumListUtilsTest {
   public void testGetPremiumPrice_throwsExceptionWhenNonExistentPremiumListConfigured()
       throws Exception {
     deletePremiumList(PremiumList.get("tld").get());
-    thrown.expect(IllegalStateException.class, "Could not load premium list 'tld'");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Could not load premium list 'tld'");
     getPremiumPrice("blah", Registry.get("tld"));
   }
 

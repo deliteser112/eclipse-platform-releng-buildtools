@@ -116,7 +116,8 @@ public class UpdateCursorsCommandTest extends CommandTestCase<UpdateCursorsComma
 
   @Test
   public void testFailure_badCursorType() throws Exception {
-    thrown.expect(ParameterException.class, "Invalid value for --type parameter");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("Invalid value for --type parameter");
     runCommandForced("--type=rbda", "--timestamp=1984-12-18T00:00:00Z", "foo");
   }
 }

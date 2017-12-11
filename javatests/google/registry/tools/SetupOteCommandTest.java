@@ -203,7 +203,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Test
   public void testFailure_missingIpWhitelist() throws Exception {
-    thrown.expect(ParameterException.class, "option is required: -w, --ip_whitelist");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("option is required: -w, --ip_whitelist");
     runCommandForced(
         "--registrar=blobio",
         "--dns_writers=VoidDnsWriter",
@@ -212,7 +213,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Test
   public void testFailure_missingRegistrar() throws Exception {
-    thrown.expect(ParameterException.class, "option is required: -r, --registrar");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("option is required: -r, --registrar");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--dns_writers=VoidDnsWriter",
@@ -221,7 +223,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Test
   public void testFailure_missingCertificateFile() throws Exception {
-    thrown.expect(ParameterException.class, "option is required: -c, --certfile");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("option is required: -c, --certfile");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--dns_writers=VoidDnsWriter",
@@ -230,7 +233,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Test
   public void testFailure_missingDnsWriter() throws Exception {
-    thrown.expect(ParameterException.class, "option is required: --dns_writers");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("option is required: --dns_writers");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--certfile=" + getCertFilename(),
@@ -239,7 +243,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Test
   public void testFailure_invalidCert() throws Exception {
-    thrown.expect(CertificateParsingException.class, "No X509Certificate found");
+    thrown.expect(CertificateParsingException.class);
+    thrown.expectMessage("No X509Certificate found");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
@@ -249,7 +254,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Test
   public void testFailure_invalidRegistrar() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Registrar name is invalid");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrar name is invalid");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=3blobio",
@@ -259,8 +265,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Test
   public void testFailure_invalidDnsWriter() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class, "Invalid DNS writer name(s) specified: [InvalidDnsWriter]");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Invalid DNS writer name(s) specified: [InvalidDnsWriter]");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
@@ -270,7 +276,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Test
   public void testFailure_registrarTooShort() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Registrar name is invalid");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrar name is invalid");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=bl",
@@ -280,7 +287,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Test
   public void testFailure_registrarTooLong() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Registrar name is invalid");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrar name is invalid");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobiotoooolong",
@@ -290,7 +298,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Test
   public void testFailure_registrarInvalidCharacter() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Registrar name is invalid");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrar name is invalid");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blo#bio",
@@ -300,7 +309,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Test
   public void testFailure_invalidPremiumList() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "The premium list 'foo' doesn't exist");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("The premium list 'foo' doesn't exist");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
@@ -312,7 +322,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   @Test
   public void testFailure_tldExists() throws Exception {
     createTld("blobio-sunrise");
-    thrown.expect(IllegalStateException.class, "TLD 'blobio-sunrise' already exists");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("TLD 'blobio-sunrise' already exists");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",
@@ -327,7 +338,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         .setRegistrarName("blobio-1")
         .build();
     persistResource(registrar);
-    thrown.expect(IllegalStateException.class, "Registrar blobio-1 already exists");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Registrar blobio-1 already exists");
     runCommandForced(
         "--ip_whitelist=1.1.1.1",
         "--registrar=blobio",

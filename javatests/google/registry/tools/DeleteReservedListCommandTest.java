@@ -47,7 +47,8 @@ public class DeleteReservedListCommandTest extends CommandTestCase<DeleteReserve
   public void testFailure_whenReservedListDoesNotExist() throws Exception {
     String expectedError =
         "Cannot delete the reserved list doesntExistReservedList because it doesn't exist.";
-    thrown.expect(IllegalArgumentException.class, expectedError);
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(expectedError);
     runCommandForced("--name=doesntExistReservedList");
   }
 

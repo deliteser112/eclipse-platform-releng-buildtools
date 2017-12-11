@@ -69,7 +69,8 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
 
   @Test
   public void testFailure_duplicateDomains() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Duplicate arguments found: \'example.tld\'");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Duplicate arguments found: \'example.tld\'");
     runCommandForced(
         "--client=NewRegistrar",
         "--registrant=crr-admin",
@@ -81,7 +82,8 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
 
   @Test
   public void testFailure_missingDomain() throws Exception {
-    thrown.expect(ParameterException.class, "Main parameters are required");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("Main parameters are required");
     runCommandForced(
         "--client=NewRegistrar",
         "--registrant=crr-admin",
@@ -91,35 +93,40 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
 
   @Test
   public void testFailure_missingClientId() throws Exception {
-    thrown.expect(ParameterException.class, "--client");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--client");
     runCommandForced(
         "--admins=crr-admin", "--techs=crr-tech", "--registrant=crr-admin", "example.tld");
   }
 
   @Test
   public void testFailure_missingRegistrant() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Registrant must be specified");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrant must be specified");
     runCommandForced(
         "--client=NewRegistrar", "--admins=crr-admin", "--techs=crr-tech", "example.tld");
   }
 
   @Test
   public void testFailure_missingAdmins() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "At least one admin must be specified");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("At least one admin must be specified");
     runCommandForced(
         "--client=NewRegistrar", "--registrant=crr-admin", "--techs=crr-tech", "example.tld");
   }
 
   @Test
   public void testFailure_missingTechs() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "At least one tech must be specified");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("At least one tech must be specified");
     runCommandForced(
         "--client=NewRegistrar", "--registrant=crr-admin", "--admins=crr-admin", "example.tld");
   }
 
   @Test
   public void testFailure_tooManyNameServers() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "There can be at most 13 nameservers");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("There can be at most 13 nameservers");
     runCommandForced(
         "--client=NewRegistrar",
         "--registrant=crr-admin",
@@ -134,7 +141,8 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
 
   @Test
   public void testFailure_badPeriod() throws Exception {
-    thrown.expect(ParameterException.class, "--period");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--period");
     runCommandForced(
         "--client=NewRegistrar",
         "--registrant=crr-admin",

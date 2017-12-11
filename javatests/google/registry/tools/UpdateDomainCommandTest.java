@@ -192,7 +192,8 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
 
   @Test
   public void testFailure_duplicateDomains() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Duplicate arguments found");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Duplicate arguments found");
     runCommandForced(
         "--client=NewRegistrar",
         "--registrant=crr-admin",
@@ -203,19 +204,22 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
 
   @Test
   public void testFailure_missingDomain() throws Exception {
-    thrown.expect(ParameterException.class, "Main parameters are required");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("Main parameters are required");
     runCommandForced("--client=NewRegistrar", "--registrant=crr-admin", "--password=2fooBAR");
   }
 
   @Test
   public void testFailure_missingClientId() throws Exception {
-    thrown.expect(ParameterException.class, "--client");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--client");
     runCommandForced("--registrant=crr-admin", "--password=2fooBAR", "example.tld");
   }
 
   @Test
   public void testFailure_addTooManyNameServers() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "You can add at most 13 nameservers");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("You can add at most 13 nameservers");
     runCommandForced(
         "--client=NewRegistrar",
         "--add_nameservers=ns1.zdns.google,ns2.zdns.google,ns3.zdns.google,ns4.zdns.google,"
@@ -230,9 +234,8 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
 
   @Test
   public void testFailure_providedNameserversAndAddNameservers() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "If you provide the nameservers flag, "
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("If you provide the nameservers flag, "
             + "you cannot use the add_nameservers and remove_nameservers flags.");
     runCommandForced(
         "--client=NewRegistrar",
@@ -243,9 +246,8 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
 
   @Test
   public void testFailure_providedNameserversAndRemoveNameservers() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "If you provide the nameservers flag, "
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("If you provide the nameservers flag, "
             + "you cannot use the add_nameservers and remove_nameservers flags.");
     runCommandForced(
         "--client=NewRegistrar",
@@ -256,8 +258,8 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
 
   @Test
   public void testFailure_providedAdminsAndAddAdmins() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "If you provide the admins flag, you cannot use the add_admins and remove_admins flags.");
     runCommandForced(
         "--client=NewRegistrar", "--add_admins=crr-admin2", "--admins=crr-admin2", "example.tld");
@@ -265,8 +267,8 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
 
   @Test
   public void testFailure_providedAdminsAndRemoveAdmins() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "If you provide the admins flag, you cannot use the add_admins and remove_admins flags.");
     runCommandForced(
         "--client=NewRegistrar",
@@ -277,8 +279,8 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
 
   @Test
   public void testFailure_providedTechsAndAddTechs() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "If you provide the techs flag, you cannot use the add_techs and remove_techs flags.");
     runCommandForced(
         "--client=NewRegistrar", "--add_techs=crr-tech2", "--techs=crr-tech2", "example.tld");
@@ -286,8 +288,8 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
 
   @Test
   public void testFailure_providedTechsAndRemoveTechs() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "If you provide the techs flag, you cannot use the add_techs and remove_techs flags.");
     runCommandForced(
         "--client=NewRegistrar", "--remove_techs=crr-tech2", "--techs=crr-tech2", "example.tld");
@@ -295,9 +297,8 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
 
   @Test
   public void testFailure_providedStatusesAndAddStatuses() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "If you provide the statuses flag, "
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("If you provide the statuses flag, "
             + "you cannot use the add_statuses and remove_statuses flags.");
     runCommandForced(
         "--client=NewRegistrar",
@@ -308,9 +309,8 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
 
   @Test
   public void testFailure_providedStatusesAndRemoveStatuses() throws Exception {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "If you provide the statuses flag, "
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("If you provide the statuses flag, "
             + "you cannot use the add_statuses and remove_statuses flags.");
     runCommandForced(
         "--client=NewRegistrar",

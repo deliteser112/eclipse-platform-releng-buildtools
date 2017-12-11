@@ -206,7 +206,8 @@ public class PosixTarHeaderTest {
     byte[] bytes = header.getBytes();
     bytes[150] = '0';
     bytes[151] = '0';
-    thrown.expect(IllegalArgumentException.class, "chksum invalid");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("chksum invalid");
     PosixTarHeader.from(bytes);
   }
 

@@ -163,7 +163,8 @@ public class OfyCommitLogTest {
   public void testTransactNew_deleteNotBackedUpKind_throws() throws Exception {
     final CommitLogManifest backupsArentAllowedOnMe =
         CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.<Key<?>>of());
-    thrown.expect(IllegalArgumentException.class, "Can't save/delete a @NotBackedUp");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Can't save/delete a @NotBackedUp");
     ofy().transactNew(() -> ofy().delete().entity(backupsArentAllowedOnMe));
   }
 
@@ -171,41 +172,47 @@ public class OfyCommitLogTest {
   public void testTransactNew_saveNotBackedUpKind_throws() throws Exception {
     final CommitLogManifest backupsArentAllowedOnMe =
         CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.<Key<?>>of());
-    thrown.expect(IllegalArgumentException.class, "Can't save/delete a @NotBackedUp");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Can't save/delete a @NotBackedUp");
     ofy().transactNew(() -> ofy().save().entity(backupsArentAllowedOnMe));
   }
 
   @Test
   public void testTransactNew_deleteVirtualEntityKey_throws() throws Exception {
     final Key<TestVirtualObject> virtualEntityKey = TestVirtualObject.createKey("virtual");
-    thrown.expect(IllegalArgumentException.class, "Can't save/delete a @VirtualEntity");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Can't save/delete a @VirtualEntity");
     ofy().transactNew(() -> ofy().delete().key(virtualEntityKey));
   }
 
   @Test
   public void testTransactNew_saveVirtualEntity_throws() throws Exception {
     final TestVirtualObject virtualEntity = TestVirtualObject.create("virtual");
-    thrown.expect(IllegalArgumentException.class, "Can't save/delete a @VirtualEntity");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Can't save/delete a @VirtualEntity");
     ofy().transactNew(() -> ofy().save().entity(virtualEntity));
   }
 
   @Test
   public void test_deleteWithoutBackup_withVirtualEntityKey_throws() throws Exception {
     final Key<TestVirtualObject> virtualEntityKey = TestVirtualObject.createKey("virtual");
-    thrown.expect(IllegalArgumentException.class, "Can't save/delete a @VirtualEntity");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Can't save/delete a @VirtualEntity");
     ofy().deleteWithoutBackup().key(virtualEntityKey);
   }
 
   @Test
   public void test_saveWithoutBackup_withVirtualEntity_throws() throws Exception {
     final TestVirtualObject virtualEntity = TestVirtualObject.create("virtual");
-    thrown.expect(IllegalArgumentException.class, "Can't save/delete a @VirtualEntity");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Can't save/delete a @VirtualEntity");
     ofy().saveWithoutBackup().entity(virtualEntity);
   }
 
   @Test
   public void testTransact_twoSavesOnSameKey_throws() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Multiple entries with same key");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Multiple entries with same key");
     ofy()
         .transact(
             () -> {
@@ -216,7 +223,8 @@ public class OfyCommitLogTest {
 
   @Test
   public void testTransact_saveAndDeleteSameKey_throws() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Multiple entries with same key");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Multiple entries with same key");
     ofy()
         .transact(
             () -> {

@@ -51,51 +51,59 @@ public class GenerateEscrowDepositCommandTest
 
   @Test
   public void testCommand_missingTld() throws Exception {
-    thrown.expect(ParameterException.class, "The following option is required: -t, --tld");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("The following option is required: -t, --tld");
     runCommand("--watermark=2017-01-01T00:00:00Z", "--mode=thin", "-r 42", "-o test");
   }
 
   @Test
   public void testCommand_emptyTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Null or empty TLD specified");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Null or empty TLD specified");
     runCommand("--tld=", "--watermark=2017-01-01T00:00:00Z", "--mode=thin", "-r 42", "-o test");
   }
 
   @Test
   public void testCommand_invalidTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "TLDs do not exist: invalid");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("TLDs do not exist: invalid");
     runCommand(
         "--tld=invalid", "--watermark=2017-01-01T00:00:00Z", "--mode=thin", "-r 42", "-o test");
   }
 
   @Test
   public void testCommand_missingWatermark() throws Exception {
-    thrown.expect(ParameterException.class, "The following option is required: -w, --watermark");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("The following option is required: -w, --watermark");
     runCommand("--tld=tld", "--mode=full", "-r 42", "-o test");
   }
 
   @Test
   public void testCommand_emptyWatermark() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Invalid format: \"\"");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Invalid format: \"\"");
     runCommand("--tld=tld", "--watermark=", "--mode=full", "-r 42", "-o test");
   }
 
   @Test
   public void testCommand_missingOutdir() throws Exception {
-    thrown.expect(ParameterException.class, "The following option is required: -o, --outdir");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("The following option is required: -o, --outdir");
     runCommand("--tld=tld", "--watermark=2017-01-01T00:00:00Z", "--mode=thin", "-r 42");
   }
 
   @Test
   public void testCommand_emptyOutdir() throws Exception {
-    thrown.expect(ParameterException.class, "Output subdirectory must not be empty");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("Output subdirectory must not be empty");
     runCommand(
         "--tld=tld", "--watermark=2017-01-01T00:00:00Z", "--mode=thin", "--outdir=", "-r 42");
   }
 
   @Test
   public void testCommand_invalidWatermark() throws Exception {
-    thrown.expect(ParameterException.class, "Each watermark date must be the start of a day");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("Each watermark date must be the start of a day");
     runCommand(
         "--tld=tld",
         "--watermark=2017-01-01T10:00:00Z,2017-01-02T00:00:00Z",
@@ -106,8 +114,8 @@ public class GenerateEscrowDepositCommandTest
 
   @Test
   public void testCommand_invalidMode() throws Exception {
-    thrown.expect(
-        ParameterException.class, "Invalid value for -m parameter. Allowed values:[FULL, THIN]");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("Invalid value for -m parameter. Allowed values:[FULL, THIN]");
     runCommand(
         "--tld=tld",
         "--watermark=2017-01-01T00:00:00Z",
@@ -118,8 +126,8 @@ public class GenerateEscrowDepositCommandTest
 
   @Test
   public void testCommand_invalidRevision() throws Exception {
-    thrown.expect(
-        ParameterException.class, "Revision must be greater than or equal to zero");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("Revision must be greater than or equal to zero");
     runCommand(
         "--tld=tld",
         "--watermark=2017-01-01T00:00:00Z",

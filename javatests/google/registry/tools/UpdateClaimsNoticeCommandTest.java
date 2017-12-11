@@ -14,11 +14,13 @@
 
 package google.registry.tools;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
@@ -139,13 +141,17 @@ public class UpdateClaimsNoticeCommandTest extends CommandTestCase<UpdateClaimsN
 
   @Test
   public void testFailure_claimsNoticeForWrongLabel() throws Exception {
-    domainApplication = persistResource(newDomainApplication("bad-label.xn--q9jyb4c"));
-    thrown.expectRootCause(InvalidChecksumException.class);
-    runCommand(
-        "--id=4-Q9JYB4C",
-        "--tcn_id=370d0b7c9223372036854775807",
-        "--expiration_time=2010-08-16T09:00:00.0Z",
-        "--accepted_time=2009-08-16T09:00:00.0Z");
+    persistResource(newDomainApplication("bad-label.xn--q9jyb4c"));
+    Exception e =
+        expectThrows(
+            Exception.class,
+            () ->
+                runCommand(
+                    "--id=4-Q9JYB4C",
+                    "--tcn_id=370d0b7c9223372036854775807",
+                    "--expiration_time=2010-08-16T09:00:00.0Z",
+                    "--accepted_time=2009-08-16T09:00:00.0Z"));
+    assertThat(e).hasCauseThat().isInstanceOf(InvalidChecksumException.class);
   }
 
   @Test

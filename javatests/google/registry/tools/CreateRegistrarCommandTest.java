@@ -441,7 +441,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   public void testFailure_billingAccountMap_doesNotContainEntryForTldAllowed() throws Exception {
     createTlds("foo");
 
-    thrown.expect(IllegalArgumentException.class, "USD");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("USD");
     runCommandForced(
         "--name=blobio",
         "--password=some_password",
@@ -694,7 +695,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
 
   @Test
   public void testFailure_badPhoneNumber() throws Exception {
-    thrown.expect(ParameterException.class, "phone");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("phone");
     runCommandForced(
         "--name=blobio",
         "--password=some_password",
@@ -713,7 +715,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
 
   @Test
   public void testFailure_badPhoneNumber2() throws Exception {
-    thrown.expect(ParameterException.class, "phone");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("phone");
     runCommandForced(
         "--name=blobio",
         "--password=some_password",
@@ -754,7 +757,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
 
   @Test
   public void testFailure_missingRegistrarType() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Registrar type cannot be null");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrar type cannot be null");
     runCommandForced(
         "--name=blobio",
         "--password=some_password",
@@ -920,7 +924,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
 
   @Test
   public void testFailure_certHashNotBase64() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "base64");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("base64");
     runCommandForced(
         "--name=blobio",
         "--password=some_password",
@@ -939,7 +944,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
 
   @Test
   public void testFailure_certHashNotA256BitValue() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "256");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("256");
     runCommandForced(
         "--name=blobio",
         "--password=some_password",
@@ -958,7 +964,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
 
   @Test
   public void testFailure_missingName() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "--name is a required field");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("--name is a required field");
     runCommandForced(
         "--password=blobio",
         "--registrar_type=REAL",
@@ -975,7 +982,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
 
   @Test
   public void testFailure_missingPassword() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "--password is a required field");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("--password is a required field");
     runCommandForced(
         "--name=blobio",
         "--registrar_type=REAL",
@@ -992,7 +1000,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
 
   @Test
   public void testFailure_emptyPassword() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "--password is a required field");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("--password is a required field");
     runCommandForced(
         "--name=blobio",
         "--password=\"\"",
@@ -1325,7 +1334,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
 
   @Test
   public void testFailure_missingIcannReferralEmail() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "--icann_referral_email");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("--icann_referral_email");
     runCommandForced(
         "--name=blobio",
         "--password=some_password",
@@ -1435,7 +1445,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   @Test
   public void testFailure_alreadyExists() throws Exception {
     persistNewRegistrar("existing", "Existing Registrar", Registrar.Type.REAL, 1L);
-    thrown.expect(IllegalStateException.class, "Registrar existing already exists");
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Registrar existing already exists");
     runCommandForced(
         "--name=blobio",
         "--password=some_password",
@@ -1453,8 +1464,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
 
   @Test
   public void testFailure_registrarNameSimilarToExisting() throws Exception {
-    thrown.expect(IllegalArgumentException.class,
-        "The registrar name tHeRe GiStRaR normalizes "
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("The registrar name tHeRe GiStRaR normalizes "
         + "identically to existing registrar name The Registrar");
     // Normalizes identically to "The Registrar" which is created by AppEngineRule.
     runCommandForced(
@@ -1474,8 +1485,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
 
   @Test
   public void testFailure_clientIdNormalizesToExisting() throws Exception {
-    thrown.expect(IllegalArgumentException.class,
-        "The registrar client identifier theregistrar "
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("The registrar client identifier theregistrar "
         + "normalizes identically to existing registrar TheRegistrar");
     runCommandForced(
         "--name=blahhh",
@@ -1494,7 +1505,8 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
 
   @Test
   public void testFailure_clientIdIsInvalidFormat() throws Exception {
-    thrown.expect(IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "Client identifier (.L33T) can only contain lowercase letters, numbers, and hyphens");
     runCommandForced(
         "--name=blahhh",

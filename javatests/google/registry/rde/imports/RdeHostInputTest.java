@@ -64,14 +64,16 @@ public class RdeHostInputTest {
   /** Number of shards cannot be negative */
   @Test
   public void testNegativeShards_throwsIllegalArgumentException() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Number of shards must be greater than zero");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Number of shards must be greater than zero");
     getInput(Optional.of(-1));
   }
 
   /** Number of shards cannot be zero */
   @Test
   public void testZeroShards_throwsIllegalArgumentException() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Number of shards must be greater than zero");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Number of shards must be greater than zero");
     getInput(Optional.of(0));
   }
 

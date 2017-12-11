@@ -80,8 +80,8 @@ public class PremiumListTest {
 
   @Test
   public void testParse_cannotIncludeDuplicateLabels() {
-    thrown.expect(
-        IllegalStateException.class,
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage(
         "List 'tld' cannot contain duplicate labels. Dupes (with counts) were: [lol x 2]");
     PremiumList.get("tld")
         .get()

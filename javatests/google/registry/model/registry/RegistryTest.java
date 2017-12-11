@@ -202,8 +202,8 @@ public class RegistryTest extends EntityTestCase {
     ReservedList rl3 = persistReservedList(
         "tld-reserved057",
         "lol,RESERVED_FOR_ANCHOR_TENANT,another_conflict");
-    thrown.expect(
-        IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "auth code conflicts for labels: [lol=[conflict1, conflict2, another_conflict]]");
     @SuppressWarnings("unused")
     Registry unused = Registry.get("tld").asBuilder().setReservedLists(rl1, rl2, rl3).build();
@@ -354,29 +354,31 @@ public class RegistryTest extends EntityTestCase {
 
   @Test
   public void testFailure_tldNeverSet() {
-    thrown.expect(IllegalArgumentException.class, "No registry TLD specified");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("No registry TLD specified");
     new Registry.Builder().build();
   }
 
   @Test
   public void testFailure_setTldStr_null() {
-    thrown.expect(IllegalArgumentException.class, "TLD must not be null");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("TLD must not be null");
     new Registry.Builder().setTldStr(null);
   }
 
   @Test
   public void testFailure_setTldStr_invalidTld() {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Cannot create registry for TLD that is not a valid, canonical domain name");
+    thrown.expect(IllegalArgumentException.class);
+    thrown
+        .expectMessage("Cannot create registry for TLD that is not a valid, canonical domain name");
     new Registry.Builder().setTldStr(".tld").build();
   }
 
   @Test
   public void testFailure_setTldStr_nonCanonicalTld() {
-    thrown.expect(
-        IllegalArgumentException.class,
-        "Cannot create registry for TLD that is not a valid, canonical domain name");
+    thrown.expect(IllegalArgumentException.class);
+    thrown
+        .expectMessage("Cannot create registry for TLD that is not a valid, canonical domain name");
     new Registry.Builder().setTldStr("TLD").build();
   }
 
@@ -400,39 +402,44 @@ public class RegistryTest extends EntityTestCase {
 
   @Test
   public void testFailure_pricingEngineIsRequired() {
-    thrown.expect(
-        IllegalArgumentException.class, "All registries must have a configured pricing engine");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("All registries must have a configured pricing engine");
     new Registry.Builder().setTldStr("invalid").build();
   }
 
   @Test
   public void testFailure_negativeRenewBillingCostTransitionValue() {
-    thrown.expect(IllegalArgumentException.class, "billing cost cannot be negative");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("billing cost cannot be negative");
     Registry.get("tld").asBuilder()
         .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(USD, -42)));
   }
 
   @Test
   public void testFailure_negativeCreateBillingCost() {
-    thrown.expect(IllegalArgumentException.class, "createBillingCost cannot be negative");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("createBillingCost cannot be negative");
     Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, -42));
   }
 
   @Test
   public void testFailure_negativeRestoreBillingCost() {
-    thrown.expect(IllegalArgumentException.class, "restoreBillingCost cannot be negative");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("restoreBillingCost cannot be negative");
     Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(USD, -42));
   }
 
   @Test
   public void testFailure_negativeServerStatusChangeBillingCost() {
-    thrown.expect(IllegalArgumentException.class, "billing cost cannot be negative");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("billing cost cannot be negative");
     Registry.get("tld").asBuilder().setServerStatusChangeBillingCost(Money.of(USD, -42));
   }
 
   @Test
   public void testFailure_renewBillingCostTransitionValue_wrongCurrency() {
-    thrown.expect(IllegalArgumentException.class, "cost must be in the registry's currency");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("cost must be in the registry's currency");
     Registry.get("tld").asBuilder()
         .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(EUR, 42)))
         .build();
@@ -440,19 +447,22 @@ public class RegistryTest extends EntityTestCase {
 
   @Test
   public void testFailure_createBillingCost_wrongCurrency() {
-    thrown.expect(IllegalArgumentException.class, "cost must be in the registry's currency");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("cost must be in the registry's currency");
     Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(EUR, 42)).build();
   }
 
   @Test
   public void testFailure_restoreBillingCost_wrongCurrency() {
-    thrown.expect(IllegalArgumentException.class, "cost must be in the registry's currency");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("cost must be in the registry's currency");
     Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(EUR, 42)).build();
   }
 
   @Test
   public void testFailure_serverStatusChangeBillingCost_wrongCurrency() {
-    thrown.expect(IllegalArgumentException.class, "cost must be in the registry's currency");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("cost must be in the registry's currency");
     Registry.get("tld").asBuilder().setServerStatusChangeBillingCost(Money.of(EUR, 42)).build();
   }
 
@@ -483,8 +493,8 @@ public class RegistryTest extends EntityTestCase {
 
   @Test
   public void testFailure_eapFee_wrongCurrency() {
-    thrown.expect(
-        IllegalArgumentException.class, "All EAP fees must be in the registry's currency");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("All EAP fees must be in the registry's currency");
     Registry.get("tld").asBuilder()
         .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
         .build();

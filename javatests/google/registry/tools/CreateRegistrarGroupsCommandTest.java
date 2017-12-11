@@ -54,7 +54,8 @@ public class CreateRegistrarGroupsCommandTest extends
 
   @Test
   public void test_throwsExceptionForNonExistentRegistrar() throws Exception {
-    thrown.expect(IllegalArgumentException.class,
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage(
         "Could not load registrar with id FakeRegistrarThatDefinitelyDoesNotExist");
     runCommandForced("FakeRegistrarThatDefinitelyDoesNotExist");
   }

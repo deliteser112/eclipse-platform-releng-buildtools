@@ -110,7 +110,8 @@ public class SmdrlCsvParserTest {
 
   @Test
   public void testFail_badVersion() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "version");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("version");
     SmdrlCsvParser.parse(ImmutableList.of(
         "666,2013-11-24T23:30:04.3Z",
         "smd-id,insertion-datetime",
@@ -119,7 +120,8 @@ public class SmdrlCsvParserTest {
 
   @Test
   public void testFail_badHeader() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "header");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("header");
     SmdrlCsvParser.parse(ImmutableList.of(
         "1,2013-11-24T23:30:04.3Z",
         "lol,cat",
@@ -128,7 +130,8 @@ public class SmdrlCsvParserTest {
 
   @Test
   public void testFail_tooManyColumns() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "elements");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("elements");
     SmdrlCsvParser.parse(ImmutableList.of(
         "1,2013-11-24T23:30:04.3Z",
         "smd-id,insertion-datetime",

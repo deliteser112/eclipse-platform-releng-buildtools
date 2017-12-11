@@ -80,7 +80,8 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
 
   @Test
   public void testFailure_nonexistentParentRegistrar() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Registrar FakeRegistrar not found");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Registrar FakeRegistrar not found");
     runCommandForced(
         "--registrar=FakeRegistrar",
         "--credit_id=" + creditId,
@@ -91,7 +92,8 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
   @Test
   public void testFailure_nonexistentCreditId() throws Exception {
     long badId = creditId + 1;
-    thrown.expect(NullPointerException.class, "ID " + badId);
+    thrown.expect(NullPointerException.class);
+    thrown.expectMessage("ID " + badId);
     runCommandForced(
         "--registrar=TheRegistrar",
         "--credit_id=" + badId,
@@ -101,7 +103,8 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
 
   @Test
   public void testFailure_negativeBalance() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "negative");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("negative");
     runCommandForced(
         "--registrar=TheRegistrar",
         "--credit_id=" + creditId,
@@ -111,7 +114,8 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
 
   @Test
   public void testFailure_noRegistrar() throws Exception {
-    thrown.expect(ParameterException.class, "--registrar");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--registrar");
     runCommandForced(
         "--credit_id=" + creditId,
         "--balance=\"USD 100\"",
@@ -120,7 +124,8 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
 
   @Test
   public void testFailure_noCreditId() throws Exception {
-    thrown.expect(ParameterException.class, "--credit_id");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--credit_id");
     runCommandForced(
         "--registrar=TheRegistrar",
         "--balance=\"USD 100\"",
@@ -129,7 +134,8 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
 
   @Test
   public void testFailure_noBalance() throws Exception {
-    thrown.expect(ParameterException.class, "--balance");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--balance");
     runCommandForced(
         "--registrar=TheRegistrar",
         "--credit_id=" + creditId,
@@ -138,7 +144,8 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
 
   @Test
   public void testFailure_noEffectiveTime() throws Exception {
-    thrown.expect(ParameterException.class, "--effective_time");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--effective_time");
     runCommandForced(
         "--registrar=TheRegistrar",
         "--credit_id=" + creditId,

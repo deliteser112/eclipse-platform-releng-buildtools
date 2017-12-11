@@ -92,13 +92,15 @@ public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
         any(byte[].class)))
             .thenReturn(
                 JSON_SAFETY_PREFIX + "{\"status\":\"error\",\"error\":\"foo already exists\"}");
-    thrown.expect(VerifyException.class, "Server error:");
+    thrown.expect(VerifyException.class);
+    thrown.expectMessage("Server error:");
     runCommandForced("-i=" + premiumTermsPath, "-n=foo");
   }
 
   @Test
   public void testRun_noInputFileSpecified_throwsException() throws Exception  {
-    thrown.expect(ParameterException.class, "The following option is required");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("The following option is required");
     runCommand();
   }
 
@@ -108,7 +110,8 @@ public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
         "tmp_file2",
         readResourceUtf8(
             CreatePremiumListCommandTest.class, "testdata/example_invalid_premium_terms.csv"));
-    thrown.expect(IllegalArgumentException.class, "Could not parse line in premium list");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Could not parse line in premium list");
     runCommandForced("-i=" + premiumTermsPath, "-n=foo");
   }
 }

@@ -97,7 +97,8 @@ public final class DnsInjectionTest {
   public void testRefreshDns_missingDomain_throwsNotFound() throws Exception {
     when(req.getParameter("type")).thenReturn("domain");
     when(req.getParameter("name")).thenReturn("example.lol");
-    thrown.expect(NotFoundException.class, "domain example.lol not found");
+    thrown.expect(NotFoundException.class);
+    thrown.expectMessage("domain example.lol not found");
     component.refreshDns().run();
   }
 
@@ -114,7 +115,8 @@ public final class DnsInjectionTest {
   public void testRefreshDns_missingHost_throwsNotFound() throws Exception {
     when(req.getParameter("type")).thenReturn("host");
     when(req.getParameter("name")).thenReturn("ns1.example.lol");
-    thrown.expect(NotFoundException.class, "host ns1.example.lol not found");
+    thrown.expect(NotFoundException.class);
+    thrown.expectMessage("host ns1.example.lol not found");
     component.refreshDns().run();
   }
 }

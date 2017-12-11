@@ -637,7 +637,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .build());
     setEppInput("domain_create_lrp.xml");
     persistContactsAndHosts();
-    thrown.expect(InvalidLrpTokenException.class, "Invalid limited registration period token");
+    thrown.expect(InvalidLrpTokenException.class);
+    thrown.expectMessage("Invalid limited registration period token");
     runFlow();
     assertThat(ofy().load().entity(token).now().getRedemptionHistoryEntry()).isNull();
   }
@@ -648,7 +649,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
         .build());
     persistContactsAndHosts();
-    thrown.expect(InvalidLrpTokenException.class, "Invalid limited registration period token");
+    thrown.expect(InvalidLrpTokenException.class);
+    thrown.expectMessage("Invalid limited registration period token");
     runFlow();
   }
 
@@ -1043,9 +1045,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistActiveHost("ns1.example.net");
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
-    thrown.expect(
-        LinkedResourcesDoNotExistException.class,
-        "(ns2.example.net)");
+    thrown.expect(LinkedResourcesDoNotExistException.class);
+    thrown.expectMessage("(ns2.example.net)");
     runFlow();
   }
 
@@ -1058,9 +1059,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .addStatusValue(StatusValue.PENDING_DELETE)
         .build());
     clock.advanceOneMilli();
-    thrown.expect(
-        LinkedResourceInPendingDeleteProhibitsOperationException.class,
-        "ns2.example.net");
+    thrown.expect(LinkedResourceInPendingDeleteProhibitsOperationException.class);
+    thrown.expectMessage("ns2.example.net");
     runFlow();
   }
 
@@ -1095,9 +1095,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistActiveHost("ns1.example.net");
     persistActiveHost("ns2.example.net");
     persistActiveContact("jd1234");
-    thrown.expect(
-        LinkedResourcesDoNotExistException.class,
-        "(sh8013)");
+    thrown.expect(LinkedResourcesDoNotExistException.class);
+    thrown.expectMessage("(sh8013)");
     runFlow();
   }
 
@@ -1110,9 +1109,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .addStatusValue(StatusValue.PENDING_DELETE)
         .build());
     clock.advanceOneMilli();
-    thrown.expect(
-        LinkedResourceInPendingDeleteProhibitsOperationException.class,
-        "jd1234");
+    thrown.expect(LinkedResourceInPendingDeleteProhibitsOperationException.class);
+    thrown.expectMessage("jd1234");
     runFlow();
   }
 
@@ -1708,7 +1706,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(Registry.get("tld").asBuilder()
         .setAllowedRegistrantContactIds(ImmutableSet.of("someone"))
         .build());
-    thrown.expect(RegistrantNotAllowedException.class, "jd1234");
+    thrown.expect(RegistrantNotAllowedException.class);
+    thrown.expectMessage("jd1234");
     runFlow();
   }
 
@@ -1718,7 +1717,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(Registry.get("tld").asBuilder()
         .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.net"))
         .build());
-    thrown.expect(NameserversNotAllowedForTldException.class, "ns1.example.net");
+    thrown.expect(NameserversNotAllowedForTldException.class);
+    thrown.expectMessage("ns1.example.net");
     runFlow();
   }
 
@@ -1785,7 +1785,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                 persistReservedList(
                     "reserved", "example,NAMESERVER_RESTRICTED,ns2.example.net:ns3.example.net"))
             .build());
-    thrown.expect(NameserversNotAllowedForDomainException.class, "ns1.example.net");
+    thrown.expect(NameserversNotAllowedForDomainException.class);
+    thrown.expectMessage("ns1.example.net");
     runFlow();
   }
 
@@ -1800,7 +1801,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                 persistReservedList(
                     "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.net:ns2.example.net"))
             .build());
-    thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class, "example.tld");
+    thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class);
+    thrown.expectMessage("example.tld");
     runFlow();
   }
 
@@ -1849,7 +1851,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                     "example,NAMESERVER_RESTRICTED,"
                         + "ns1.example.net:ns2.example.net:ns3.example.net"))
             .build());
-    thrown.expect(NameserversNotAllowedForTldException.class, "ns1.example.net");
+    thrown.expect(NameserversNotAllowedForTldException.class);
+    thrown.expectMessage("ns1.example.net");
     runFlow();
   }
 
@@ -1867,7 +1870,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                     "example,NAMESERVER_RESTRICTED,"
                         + "ns2.example.net:ns3.example.net:ns4.example.net"))
             .build());
-    thrown.expect(NameserversNotAllowedForDomainException.class, "ns1.example.net");
+    thrown.expect(NameserversNotAllowedForDomainException.class);
+    thrown.expectMessage("ns1.example.net");
     runFlow();
   }
 
@@ -1887,7 +1891,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                     "lol,NAMESERVER_RESTRICTED,"
                         + "ns1.example.net:ns2.example.net:ns3.example.net"))
             .build());
-    thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class, "example.tld");
+    thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class);
+    thrown.expectMessage("example.tld");
     runFlow();
   }
 

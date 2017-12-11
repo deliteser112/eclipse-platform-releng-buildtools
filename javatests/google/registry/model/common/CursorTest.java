@@ -74,50 +74,54 @@ public class CursorTest extends EntityTestCase {
     clock.advanceOneMilli();
     final DateTime time = DateTime.parse("2012-07-12T03:30:00.000Z");
     final DomainResource domain = persistActiveDomain("notaregistry.tld");
-    thrown.expect(
-        IllegalArgumentException.class, "Class required for cursor does not match scope class");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Class required for cursor does not match scope class");
     ofy().transact(() -> ofy().save().entity(Cursor.create(RDE_UPLOAD, time, domain)));
   }
 
   @Test
   public void testFailure_invalidScopeOnKeyCreate() throws Exception {
     createTld("tld");
-    thrown.expect(
-        IllegalArgumentException.class, "Class required for cursor does not match scope class");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Class required for cursor does not match scope class");
     Cursor.createKey(RDE_UPLOAD, persistActiveDomain("notaregistry.tld"));
   }
 
   @Test
   public void testFailure_createGlobalKeyForScopedCursorType() throws Exception {
-    thrown.expect(IllegalArgumentException.class, "Cursor type is not a global cursor");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Cursor type is not a global cursor");
     Cursor.createGlobalKey(RDE_UPLOAD);
   }
 
   @Test
   public void testFailure_invalidScopeOnGlobalKeyCreate() throws Exception {
     createTld("tld");
-    thrown.expect(
-        IllegalArgumentException.class, "Class required for cursor does not match scope class");
+    thrown.expect(IllegalArgumentException.class);
+    thrown.expectMessage("Class required for cursor does not match scope class");
     Cursor.createKey(RECURRING_BILLING, persistActiveDomain("notaregistry.tld"));
   }
 
   @Test
   public void testFailure_nullScope() throws Exception {
-    thrown.expect(NullPointerException.class, "Cursor scope cannot be null");
+    thrown.expect(NullPointerException.class);
+    thrown.expectMessage("Cursor scope cannot be null");
     Cursor.create(RECURRING_BILLING, START_OF_TIME, null);
   }
 
   @Test
   public void testFailure_nullCursorType() throws Exception {
     createTld("tld");
-    thrown.expect(NullPointerException.class, "Cursor type cannot be null");
+    thrown.expect(NullPointerException.class);
+    thrown.expectMessage("Cursor type cannot be null");
     Cursor.create(null, START_OF_TIME, Registry.get("tld"));
   }
 
   @Test
   public void testFailure_nullTime() throws Exception {
     createTld("tld");
-    thrown.expect(NullPointerException.class, "Cursor time cannot be null");
+    thrown.expect(NullPointerException.class);
+    thrown.expectMessage("Cursor time cannot be null");
     Cursor.create(RDE_UPLOAD, null, Registry.get("tld"));
   }
 }

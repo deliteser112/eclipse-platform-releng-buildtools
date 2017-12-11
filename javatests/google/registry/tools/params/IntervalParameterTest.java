@@ -74,7 +74,8 @@ public class IntervalParameterTest {
 
   @Test
   public void testValidate_sillyString_throws() throws Exception {
-    thrown.expect(ParameterException.class, "--time=foo not an");
+    thrown.expect(ParameterException.class);
+    thrown.expectMessage("--time=foo not an");
     instance.validate("--time", "foo");
   }
 }
