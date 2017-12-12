@@ -30,7 +30,6 @@ public final class RegistryTool {
   public static final ImmutableMap<String, Class<? extends Command>> COMMAND_MAP =
       new ImmutableMap.Builder<String, Class<? extends Command>>()
           .put("allocate_domain", AllocateDomainCommand.class)
-          .put("auction_status", AuctionStatusCommand.class)
           .put("canonicalize_labels", CanonicalizeLabelsCommand.class)
           .put("check_snapshot", CheckSnapshotCommand.class)
           .put("convert_idn", ConvertIdnCommand.class)
