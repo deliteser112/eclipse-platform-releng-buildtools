@@ -82,6 +82,41 @@ epp:
   # TODO(b/64510444) Remove this after nomulus no longer check sni header.
   serverHostname: epp.yourdomain.tld
 
+  # Quota configuration for EPP
+  quota:
+
+    # Token database refresh period. Set to 0 to disable refresh.
+    #
+    # After the set time period, inactive userIds will be deleted.
+    refreshSeconds: 0
+
+    # Default quota for any userId not matched in customQuota.
+    defaultQuota:
+
+      # List of identifiers, e. g. IP address, certificate hash.
+      #
+      # userId for defaultQuota should always be an empty list. Any value
+      # in the list will be discarded.
+      #
+      # There should be no duplicate userIds, either within this list, or
+      # across quota groups within customQuota. Any duplication will result
+      # in an error when constructing QuotaConfig.
+      userId: []
+
+      # Number of tokens allotted to the matched user. Set to -1 to allow
+      # infinite quota.
+      tokenAmount: 100
+
+      # Token refill period. Set to 0 to disable refill.
+      #
+      # After the set time period, the token for the user will be
+      # reset to tokenAmount.
+      refillSeconds: 0
+
+    # List of custom quotas for specific userId. Use the same schema as
+    # defaultQuota for list entries.
+    customQuota: []
+
 whois:
   port: 43
   relayHost: registry-project-id.appspot.com
@@ -99,6 +134,36 @@ whois:
   # Whois protocol is transient, the client should not establish a long lasting
   # idle connection.
   readTimeoutSeconds: 60
+
+  # Quota configuration for WHOIS
+  quota:
+
+    # Token database refresh period. Set to 0 to disable refresh.
+    #
+    # After the set time period, inactive token buckets will be deleted.
+    refreshSeconds: 3600
+
+    # Default quota for any userId not matched in customQuota.
+    defaultQuota:
+
+      # List of identifiers, e. g. IP address, certificate hash.
+      #
+      # userId for defaultQuota should always be an empty list.
+      userId: []
+
+      # Number of tokens allotted to the matched user. Set to -1 to allow
+      # infinite quota.
+      tokenAmount: 100
+
+      # Token refill period. Set to 0 to disable refill.
+      #
+      # After the set time period, the token for the given user will be
+      # reset to tokenAmount.
+      refillSeconds: 600
+
+    # List of custom quotas for specific userId. Use the same schema as
+    # defaultQuota for list entries.
+    customQuota: []
 
 healthCheck:
   port: 11111

@@ -61,6 +61,7 @@ public class ProxyConfig {
     public int headerLengthBytes;
     public int readTimeoutSeconds;
     public String serverHostname;
+    public Quota quota;
   }
 
   /** Configuration options that apply to WHOIS protocol. */
@@ -70,6 +71,7 @@ public class ProxyConfig {
     public String relayPath;
     public int maxMessageLengthBytes;
     public int readTimeoutSeconds;
+    public Quota quota;
   }
 
   /** Configuration options that apply to GCP load balancer health check protocol. */
@@ -90,6 +92,21 @@ public class ProxyConfig {
     public int stackdriverMaxQps;
     public int stackdriverMaxPointsPerRequest;
     public int writeIntervalSeconds;
+  }
+
+  /** Configuration options that apply to quota management. */
+  public static class Quota {
+
+    /** Quota configuration for a specific set of users. */
+    public static class QuotaGroup {
+      public List<String> userId;
+      public int tokenAmount;
+      public int refillSeconds;
+    }
+
+    public int refreshSeconds;
+    public QuotaGroup defaultQuota;
+    public List<QuotaGroup> customQuota;
   }
 
   static ProxyConfig getProxyConfig(Environment env) {

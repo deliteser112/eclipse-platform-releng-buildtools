@@ -10,7 +10,10 @@ load("//java/com/google/testing/builddefs:GenTestRules.bzl", "GenTestRules")
 java_library(
     name = "proxy",
     srcs = glob(["**/*.java"]),
-    resources = glob(["testdata/*.xml"]),
+    resources = glob([
+        "testdata/*.xml",
+        "quota/testdata/*.yaml",
+    ]),
     deps = [
         "//java/google/registry/monitoring/metrics",
         "//java/google/registry/monitoring/metrics/contrib",
@@ -32,6 +35,7 @@ java_library(
         "@junit",
         "@org_bouncycastle_bcpkix_jdk15on",
         "@org_mockito_all",
+        "@org_yaml_snakeyaml",
     ],
 )
 

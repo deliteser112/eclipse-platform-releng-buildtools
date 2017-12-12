@@ -1,0 +1,14 @@
+refreshSeconds: 3600
+
+defaultQuota:
+  userId: []
+  tokenAmount: 100
+  refillSeconds: 60
+
+customQuota:
+  - userId: ["abc", "def"]
+    tokenAmount: 10
+    refillSeconds: 60
+  - userId: ["xyz123", "987lol", "luckycat"]
+    tokenAmount: 500
+    refillSeconds: 10
