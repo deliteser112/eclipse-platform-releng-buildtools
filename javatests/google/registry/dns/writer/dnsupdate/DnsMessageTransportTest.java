@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.base.VerifyException;
-import google.registry.testing.ExceptionRule;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
@@ -37,6 +36,7 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.xbill.DNS.ARecord;
@@ -64,7 +64,7 @@ public class DnsMessageTransportTest {
   private DnsMessageTransport resolver;
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {

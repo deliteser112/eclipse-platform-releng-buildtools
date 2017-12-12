@@ -30,7 +30,6 @@ import google.registry.request.auth.RequestAuthenticator.AuthSettings;
 import google.registry.request.auth.RequestAuthenticator.UserPolicy;
 import google.registry.security.XsrfTokenManager;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeOAuthService;
 import google.registry.testing.FakeUserService;
@@ -39,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -50,7 +50,7 @@ public class RequestAuthenticatorTest {
   public final AppEngineRule appEngine = AppEngineRule.builder().build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private static final AuthSettings AUTH_NONE = AuthSettings.create(
       ImmutableList.of(AuthMethod.INTERNAL),

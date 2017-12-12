@@ -53,7 +53,6 @@ import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.RequestParameters;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.FakeLockHandler;
@@ -93,6 +92,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -109,7 +109,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   public final InjectRule inject = new InjectRule();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private final FakeClock clock = new FakeClock();
   private final FakeResponse response = new FakeResponse();

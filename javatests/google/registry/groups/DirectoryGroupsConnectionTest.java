@@ -47,12 +47,12 @@ import com.google.api.services.groupssettings.model.Groups;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.groups.GroupsConnection.Role;
-import google.registry.testing.ExceptionRule;
 import java.io.IOException;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -63,7 +63,7 @@ import org.junit.runners.JUnit4;
 public class DirectoryGroupsConnectionTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private final Directory directory = mock(Directory.class);
   private final Groupssettings groupsSettings = mock(Groupssettings.class);

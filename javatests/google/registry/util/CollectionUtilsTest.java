@@ -21,10 +21,10 @@ import static google.registry.util.CollectionUtils.partitionMap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import google.registry.testing.ExceptionRule;
 import java.util.Map;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -33,7 +33,7 @@ import org.junit.runners.JUnit4;
 public class CollectionUtilsTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testNullToEmptyMap_leavesNonNullAlone() {

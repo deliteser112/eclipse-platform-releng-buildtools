@@ -33,12 +33,12 @@ import google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.EppInput.CommandExtension;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.util.TypeUtils;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -52,7 +52,7 @@ public class ExtensionManagerTest {
       .build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testDuplicateExtensionsForbidden() throws Exception {

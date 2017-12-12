@@ -23,7 +23,6 @@ import static org.junit.Assume.assumeThat;
 import static org.junit.Assume.assumeTrue;
 
 import com.beust.jcommander.ParameterException;
-import google.registry.testing.ExceptionRule;
 import java.io.File;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
@@ -32,6 +31,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermissions;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -41,7 +41,7 @@ import org.junit.runners.JUnit4;
 public class PathParameterTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final TemporaryFolder folder = new TemporaryFolder();

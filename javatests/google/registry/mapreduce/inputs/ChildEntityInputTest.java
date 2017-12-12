@@ -39,7 +39,6 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
@@ -52,6 +51,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -65,7 +65,7 @@ public class ChildEntityInputTest {
   public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   DomainResource domainA;
   DomainResource domainB;

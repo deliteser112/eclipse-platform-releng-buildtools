@@ -39,17 +39,17 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
 import google.registry.model.smd.EncodedSignedMark;
-import google.registry.testing.ExceptionRule;
 import org.joda.money.Money;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link DomainApplication}. */
 public class DomainApplicationTest extends EntityTestCase {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   DomainApplication domainApplication;
 

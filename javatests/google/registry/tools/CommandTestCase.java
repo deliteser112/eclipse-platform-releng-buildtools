@@ -31,7 +31,6 @@ import com.google.common.reflect.TypeToken;
 import google.registry.model.poll.PollMessage;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.CertificateSamples;
-import google.registry.testing.ExceptionRule;
 import google.registry.tools.params.ParameterFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -40,6 +39,7 @@ import java.io.PrintStream;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -64,7 +64,7 @@ public abstract class CommandTestCase<C extends Command> {
       .build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();

@@ -26,15 +26,15 @@ import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import google.registry.model.EntityTestCase;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.registry.Registry;
-import google.registry.testing.ExceptionRule;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link Cursor}. */
 public class CursorTest extends EntityTestCase {
 
-  @Rule public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testSuccess_persistScopedCursor() {

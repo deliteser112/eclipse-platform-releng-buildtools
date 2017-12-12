@@ -25,11 +25,11 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.annotation.Cache;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.InjectRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -46,7 +46,7 @@ public class CommitLogBucketTest {
   public final InjectRule inject = new InjectRule();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   CommitLogBucket bucket;
 

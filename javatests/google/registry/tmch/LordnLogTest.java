@@ -17,12 +17,12 @@ package google.registry.tmch;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
-import google.registry.testing.ExceptionRule;
 import google.registry.tmch.LordnLog.Result;
 import java.util.Map.Entry;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -31,7 +31,7 @@ import org.junit.runners.JUnit4;
 public class LordnLogTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   public static final ImmutableList<String> EXAMPLE_FROM_RFC =
       ImmutableList.of(

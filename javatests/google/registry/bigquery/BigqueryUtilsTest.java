@@ -23,12 +23,12 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.api.services.bigquery.model.JobReference;
-import google.registry.testing.ExceptionRule;
 import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -37,7 +37,7 @@ import org.junit.runners.JUnit4;
 public class BigqueryUtilsTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private static final DateTime DATE_0 = DateTime.parse("2014-07-17T20:35:42Z");
   private static final DateTime DATE_1 = DateTime.parse("2014-07-17T20:35:42.1Z");

@@ -24,7 +24,6 @@ import com.google.appengine.api.datastore.Text;
 import com.google.common.collect.ImmutableList;
 import google.registry.export.DatastoreBackupInfo.BackupStatus;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import java.util.Date;
@@ -33,6 +32,7 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -41,7 +41,7 @@ import org.junit.runners.JUnit4;
 public class DatastoreBackupInfoTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final InjectRule inject = new InjectRule();

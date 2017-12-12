@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 
 import google.registry.model.server.Lock;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
@@ -30,6 +29,7 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -44,7 +44,7 @@ public final class LockHandlerImplTest {
       .build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private static class CountingCallable implements Callable<Void> {
     int numCalled = 0;

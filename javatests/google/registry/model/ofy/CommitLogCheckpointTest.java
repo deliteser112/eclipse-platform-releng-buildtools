@@ -20,10 +20,10 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -37,7 +37,7 @@ public class CommitLogCheckpointTest {
       .build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private static final DateTime T1 = START_OF_TIME;
   private static final DateTime T2 = START_OF_TIME.plusMillis(1);

@@ -45,7 +45,6 @@ import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.util.Retrier;
 import google.registry.util.SystemClock;
 import google.registry.util.SystemSleeper;
@@ -57,6 +56,7 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -85,7 +85,7 @@ public class CloudDnsWriterTest {
   private CloudDnsWriter writer;
   private ImmutableSet<ResourceRecordSet> stubZone;
 
-  @Rule public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 

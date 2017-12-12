@@ -20,13 +20,13 @@ import static google.registry.testing.LogsSubject.assertAboutLogs;
 
 import com.google.common.testing.TestLogHandler;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import java.io.StringReader;
 import java.util.logging.Level;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -36,7 +36,7 @@ public class WhoisReaderTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
-  @Rule public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   private final FakeClock clock = new FakeClock();
   private final TestLogHandler testLogHandler = new TestLogHandler();

@@ -34,13 +34,13 @@ import com.google.appengine.api.urlfetch.URLFetchService;
 import google.registry.model.registry.Registry;
 import google.registry.request.HttpException.ConflictException;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeResponse;
 import java.net.URL;
 import java.util.Optional;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -88,7 +88,7 @@ public class NordnVerifyActionTest {
       .build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Mock
   private URLFetchService fetchService;

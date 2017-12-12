@@ -24,10 +24,10 @@ import static google.registry.util.DateTimeUtils.latestOf;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
 
 import com.google.common.collect.ImmutableList;
-import google.registry.testing.ExceptionRule;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -39,7 +39,7 @@ public class DateTimeUtilsTest {
       START_OF_TIME, START_OF_TIME.plusDays(1), END_OF_TIME, END_OF_TIME);
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testSuccess_earliestOf() {

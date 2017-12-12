@@ -18,12 +18,12 @@ import static com.google.common.truth.Truth.assertThat;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeJsonResponse;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 
 /**
  * Base class for tests of list actions.
@@ -36,7 +36,7 @@ public class ListActionTestCase {
       .build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private FakeJsonResponse response;
 

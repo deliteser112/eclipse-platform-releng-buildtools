@@ -20,10 +20,10 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.common.base.Strings;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -32,7 +32,7 @@ public class KmsSecretRevisionTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
-  @Rule public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   private KmsSecretRevision secretRevision;
 

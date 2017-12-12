@@ -37,18 +37,18 @@ import google.registry.model.EntityTestCase;
 import google.registry.model.common.EntityGroupRoot;
 import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registrar.Registrar.Type;
-import google.registry.testing.ExceptionRule;
 import google.registry.util.CidrAddressBlock;
 import org.joda.money.CurrencyUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link Registrar}. */
 public class RegistrarTest extends EntityTestCase {
 
   @Rule
-  public ExceptionRule thrown = new ExceptionRule();
+  public ExpectedException thrown = ExpectedException.none();
 
   private Registrar registrar;
   private RegistrarContact abuseAdminContact;

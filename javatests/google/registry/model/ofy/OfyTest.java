@@ -48,7 +48,6 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.DatastoreHelper;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.util.SystemClock;
 import java.util.ConcurrentModificationException;
@@ -56,6 +55,7 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -69,7 +69,7 @@ public class OfyTest {
       .build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   /** An entity to use in save and delete tests. */
   private HistoryEntry someObject;

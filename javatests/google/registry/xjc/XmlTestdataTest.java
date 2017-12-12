@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.xjc.XjcXmlTransformer.unmarshal;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.TestDataHelper;
 import google.registry.xjc.epp.XjcEpp;
 import google.registry.xjc.rde.XjcRdeDeposit;
@@ -27,6 +26,7 @@ import org.junit.Rule;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 /**
@@ -37,7 +37,7 @@ import org.junit.runner.RunWith;
 public class XmlTestdataTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private static class Example {
     final ByteArrayInputStream xmlStream;

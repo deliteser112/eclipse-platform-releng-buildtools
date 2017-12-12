@@ -22,7 +22,6 @@ import static java.nio.charset.StandardCharsets.UTF_16;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.re2j.Pattern;
-import google.registry.testing.ExceptionRule;
 import google.registry.xjc.rde.XjcRdeDeposit;
 import google.registry.xjc.rde.XjcRdeDepositTypeType;
 import google.registry.xjc.rdecontact.XjcRdeContact;
@@ -30,6 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -38,7 +38,7 @@ import org.junit.runners.JUnit4;
 public class XjcObjectTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private static final String RDE_DEPOSIT_FULL =
       readResourceUtf8(XjcObjectTest.class, "testdata/rde_deposit_full.xml");

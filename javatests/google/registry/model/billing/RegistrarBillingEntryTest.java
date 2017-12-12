@@ -22,12 +22,12 @@ import static org.joda.money.CurrencyUnit.USD;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
-import google.registry.testing.ExceptionRule;
 import org.joda.money.CurrencyMismatchException;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -36,7 +36,7 @@ import org.junit.runners.JUnit4;
 public final class RegistrarBillingEntryTest extends EntityTestCase {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testIndexing() throws Exception {

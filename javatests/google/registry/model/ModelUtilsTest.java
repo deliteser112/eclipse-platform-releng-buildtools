@@ -19,12 +19,12 @@ import static com.google.common.truth.Truth.assertThat;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.annotation.Id;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import java.lang.reflect.Field;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -33,7 +33,7 @@ import org.junit.runners.JUnit4;
 public class ModelUtilsTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public AppEngineRule appEngineRule = new AppEngineRule.Builder().build();

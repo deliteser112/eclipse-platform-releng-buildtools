@@ -48,7 +48,6 @@ import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.ShardableTestCase;
 import java.io.IOException;
@@ -60,6 +59,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -81,7 +81,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private final GcsUtils gcsUtils = mock(GcsUtils.class);
 

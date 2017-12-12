@@ -36,12 +36,12 @@ import com.google.common.collect.Iterables;
 import google.registry.bigquery.BigqueryFactory;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.io.IOException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
@@ -57,7 +57,7 @@ public class UpdateSnapshotViewActionTest {
       .build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private final BigqueryFactory bigqueryFactory = mock(BigqueryFactory.class);
   private final Bigquery bigquery = mock(Bigquery.class);

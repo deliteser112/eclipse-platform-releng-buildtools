@@ -40,18 +40,18 @@ import google.registry.model.registry.Registry.RegistryNotFoundException;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.model.registry.label.ReservedList;
-import google.registry.testing.ExceptionRule;
 import java.math.BigDecimal;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link Registry}. */
 public class RegistryTest extends EntityTestCase {
 
-  @Rule public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   Registry registry;
 

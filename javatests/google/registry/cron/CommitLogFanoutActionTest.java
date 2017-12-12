@@ -20,7 +20,6 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import com.google.common.base.Joiner;
 import google.registry.model.ofy.CommitLogBucket;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.Retrier;
 import google.registry.util.TaskEnqueuer;
@@ -29,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -40,7 +40,7 @@ public class CommitLogFanoutActionTest {
   private static final String QUEUE = "the-queue";
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()

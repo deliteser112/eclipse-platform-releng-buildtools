@@ -16,11 +16,11 @@ package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import google.registry.testing.ExceptionRule;
 import java.io.Serializable;
 import java.util.ArrayList;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -29,7 +29,7 @@ import org.junit.runners.JUnit4;
 public class TypeUtilsTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void test_getClassFromString_validClass() {

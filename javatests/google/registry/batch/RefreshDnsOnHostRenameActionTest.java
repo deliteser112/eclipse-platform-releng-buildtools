@@ -46,7 +46,6 @@ import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.async.AsyncFlowMetrics;
 import google.registry.flows.async.AsyncFlowMetrics.OperationResult;
 import google.registry.model.host.HostResource;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
@@ -61,6 +60,7 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -70,7 +70,7 @@ public class RefreshDnsOnHostRenameActionTest
     extends MapreduceTestCase<RefreshDnsOnHostRenameAction> {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public InjectRule inject = new InjectRule();

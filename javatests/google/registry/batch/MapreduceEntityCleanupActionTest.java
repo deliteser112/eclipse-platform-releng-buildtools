@@ -46,7 +46,6 @@ import com.google.appengine.tools.pipeline.impl.model.JobRecord;
 import com.google.appengine.tools.pipeline.impl.model.ShardedValue;
 import com.google.appengine.tools.pipeline.impl.model.Slot;
 import com.google.common.collect.ImmutableList;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.mapreduce.MapreduceTestCase;
@@ -55,6 +54,7 @@ import java.util.Optional;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -62,7 +62,7 @@ import org.junit.runners.JUnit4;
 public class MapreduceEntityCleanupActionTest
     extends MapreduceTestCase<MapreduceEntityCleanupAction> {
 
-  @Rule public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   private static final DatastoreService datastore = getDatastoreService();
   private static final FetchOptions FETCH_OPTIONS = FetchOptions.Builder.withChunkSize(200);

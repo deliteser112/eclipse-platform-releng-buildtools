@@ -30,7 +30,6 @@ import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NoContentException;
 import google.registry.request.HttpException.NotModifiedException;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
@@ -41,6 +40,7 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -53,7 +53,7 @@ public class CheckSnapshotActionTest {
 
   @Rule public final InjectRule inject = new InjectRule();
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withTaskQueue().build();
-  @Rule public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   private final DatastoreBackupService backupService = mock(DatastoreBackupService.class);
 

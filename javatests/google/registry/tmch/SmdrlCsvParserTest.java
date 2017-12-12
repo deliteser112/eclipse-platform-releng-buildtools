@@ -23,11 +23,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.io.CharSource;
 import google.registry.model.smd.SignedMarkRevocationList;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -40,7 +40,7 @@ public class SmdrlCsvParserTest {
       .build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private final FakeClock clock = new FakeClock();
 

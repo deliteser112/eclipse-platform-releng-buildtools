@@ -17,9 +17,9 @@ package google.registry.ui.forms;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.testing.NullPointerTester;
-import google.registry.testing.ExceptionRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -28,7 +28,7 @@ import org.junit.runners.JUnit4;
 public class FormFieldExceptionTest {
 
   @Rule
-  public ExceptionRule thrown = new ExceptionRule();
+  public ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testGetFieldName_multiplePropagations_joinsUsingJsonNotation() throws Exception {

@@ -25,10 +25,10 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
 import google.registry.model.reporting.HistoryEntry;
-import google.registry.testing.ExceptionRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link LrpTokenEntity}. */
 public class LrpTokenEntityTest extends EntityTestCase {
@@ -37,7 +37,7 @@ public class LrpTokenEntityTest extends EntityTestCase {
   LrpTokenEntity redeemedToken;
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Before
   public void setUp() throws Exception {

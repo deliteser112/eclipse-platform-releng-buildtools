@@ -21,10 +21,10 @@ import static google.registry.util.ResourceUtils.readResourceBytes;
 
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.ShardableTestCase;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -33,7 +33,7 @@ import org.junit.runners.JUnit4;
 public class EppXmlTransformerTest extends ShardableTestCase {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testUnmarshalingEppInput() throws Exception {

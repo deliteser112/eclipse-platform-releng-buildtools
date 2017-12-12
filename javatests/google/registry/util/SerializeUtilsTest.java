@@ -18,9 +18,9 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.util.SerializeUtils.deserialize;
 import static google.registry.util.SerializeUtils.serialize;
 
-import google.registry.testing.ExceptionRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -36,7 +36,7 @@ public class SerializeUtilsTest {
   }
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testSerialize_nullValue_returnsNull() throws Exception {

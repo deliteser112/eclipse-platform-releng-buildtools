@@ -32,7 +32,6 @@ import com.google.common.testing.TestLogHandler;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.InjectRule;
 import java.util.logging.Level;
 import javax.servlet.http.HttpServletRequest;
@@ -42,6 +41,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -51,7 +51,7 @@ public class SessionUtilsTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
-  @Rule public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   @Rule public final InjectRule inject = new InjectRule();
 

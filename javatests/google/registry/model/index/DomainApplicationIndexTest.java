@@ -30,17 +30,17 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
 import google.registry.model.domain.DomainApplication;
-import google.registry.testing.ExceptionRule;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link DomainApplicationIndex}. */
 public class DomainApplicationIndexTest extends EntityTestCase {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Before
   public void init() throws Exception {

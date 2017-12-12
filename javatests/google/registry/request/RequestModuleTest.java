@@ -20,9 +20,9 @@ import static google.registry.request.RequestModule.provideJsonPayload;
 import com.google.common.net.MediaType;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.UnsupportedMediaTypeException;
-import google.registry.testing.ExceptionRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -31,7 +31,7 @@ import org.junit.runners.JUnit4;
 public final class RequestModuleTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testProvideJsonPayload() throws Exception {

@@ -25,7 +25,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.InjectRule;
 import google.registry.util.SendEmailService;
 import java.util.Properties;
@@ -38,6 +37,7 @@ import javax.mail.internet.MimeMessage;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -46,7 +46,7 @@ import org.junit.runners.JUnit4;
 public class SendEmailUtilsTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final InjectRule inject = new InjectRule();

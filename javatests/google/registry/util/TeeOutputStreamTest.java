@@ -19,11 +19,11 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
 import com.google.common.collect.ImmutableSet;
-import google.registry.testing.ExceptionRule;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -32,7 +32,7 @@ import org.junit.runners.JUnit4;
 public class TeeOutputStreamTest {
 
   @Rule
-  public ExceptionRule thrown = new ExceptionRule();
+  public ExpectedException thrown = ExpectedException.none();
 
   private final ByteArrayOutputStream outputA = new ByteArrayOutputStream();
   private final ByteArrayOutputStream outputB = new ByteArrayOutputStream();

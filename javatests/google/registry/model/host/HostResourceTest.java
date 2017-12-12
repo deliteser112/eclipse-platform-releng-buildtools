@@ -33,18 +33,18 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
-import google.registry.testing.ExceptionRule;
 import java.net.InetAddress;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link HostResource}. */
 public class HostResourceTest extends EntityTestCase {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   final DateTime day3 = clock.nowUtc();
   final DateTime day2 = day3.minusDays(1);

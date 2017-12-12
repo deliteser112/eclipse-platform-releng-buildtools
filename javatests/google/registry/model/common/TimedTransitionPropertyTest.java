@@ -22,13 +22,13 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedMap;
-import google.registry.testing.ExceptionRule;
 import java.util.Map;
 import java.util.Set;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -37,7 +37,7 @@ import org.junit.runners.JUnit4;
 public class TimedTransitionPropertyTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private static final DateTime A_LONG_TIME_AGO = new DateTime(Long.MIN_VALUE, UTC);
 

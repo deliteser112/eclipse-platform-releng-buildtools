@@ -26,11 +26,11 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.AbstractDataStoreFactory;
 import com.google.api.client.util.store.DataStore;
 import com.google.common.collect.ImmutableSet;
-import google.registry.testing.ExceptionRule;
 import java.io.IOException;
 import java.io.Serializable;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -62,7 +62,7 @@ public class AuthModuleTest {
     }
   }
 
-  @Rule public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void test_clientScopeQualifier() {

@@ -17,9 +17,9 @@ package google.registry.tools.params;
 import static com.google.common.truth.Truth.assertThat;
 
 import google.registry.model.registry.Registry.TldState;
-import google.registry.testing.ExceptionRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -28,7 +28,7 @@ import org.junit.runners.JUnit4;
 public class EnumParameterTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   // There's no additional functionality exposed by this (or any other) EnumParameter, but using
   // this in the test as EnumParameter is abstract.

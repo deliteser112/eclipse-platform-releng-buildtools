@@ -27,7 +27,6 @@ import com.google.common.io.ByteStreams;
 import google.registry.keyring.api.Keyring;
 import google.registry.rde.Ghostryde.DecodeResult;
 import google.registry.testing.BouncyCastleProviderRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeKeyringModule;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -43,6 +42,7 @@ import org.junit.Test;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 /** Unit tests for {@link Ghostryde}. */
@@ -51,7 +51,7 @@ import org.junit.runner.RunWith;
 public class GhostrydeTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();

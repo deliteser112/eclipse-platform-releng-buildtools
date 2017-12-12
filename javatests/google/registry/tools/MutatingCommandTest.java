@@ -27,12 +27,12 @@ import static org.joda.time.DateTimeZone.UTC;
 import google.registry.model.host.HostResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import java.util.Arrays;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -46,7 +46,7 @@ public class MutatingCommandTest {
       .build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   Registrar registrar1;
   Registrar registrar2;

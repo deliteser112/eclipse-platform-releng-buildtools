@@ -32,13 +32,13 @@ import google.registry.model.ofy.Ofy;
 import google.registry.model.poll.PollMessageExternalKeyConverter.PollMessageExternalKeyParseException;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -55,7 +55,7 @@ public class PollMessageExternalKeyConverterTest {
   public InjectRule inject = new InjectRule();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   HistoryEntry historyEntry;
   FakeClock clock = new FakeClock(DateTime.parse("2007-07-07T01:01:01Z"));

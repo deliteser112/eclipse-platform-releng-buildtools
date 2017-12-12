@@ -20,10 +20,10 @@ import static google.registry.model.rde.RdeMode.THIN;
 import static google.registry.model.rde.RdeNamingUtils.makePartialName;
 import static google.registry.model.rde.RdeNamingUtils.makeRydeFilename;
 
-import google.registry.testing.ExceptionRule;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -32,7 +32,7 @@ import org.junit.runners.JUnit4;
 public class RdeNamingUtilsTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testMakeRydeFilename_rdeDeposit() throws Exception {

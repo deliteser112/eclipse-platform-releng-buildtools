@@ -61,7 +61,6 @@ import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.request.RequestParameters;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.BouncyCastleProviderRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.FakeResponse;
@@ -87,6 +86,7 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -115,7 +115,7 @@ public class RdeUploadActionTest {
       new GcsFilename("bucket", "tld_2010-10-17_full_S1_R1-report.xml.ghostryde");
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final SftpServerRule sftpd = new SftpServerRule();

@@ -25,7 +25,6 @@ import com.google.common.io.ByteStreams;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.xjc.JaxbFragment;
 import google.registry.xjc.rdecontact.XjcRdeContact;
 import google.registry.xjc.rdecontact.XjcRdeContactElement;
@@ -39,6 +38,7 @@ import java.io.OutputStream;
 import java.util.NoSuchElementException;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -62,7 +62,7 @@ public class RdeContactReaderTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
-  @Rule public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   /** Reads at least one result at 0 offset 1 maxResults */
   @Test

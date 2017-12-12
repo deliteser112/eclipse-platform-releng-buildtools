@@ -50,7 +50,6 @@ import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.DeterministicStringGenerator;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.InjectRule;
 import google.registry.util.StringGenerator;
 import google.registry.xjc.rdedomain.XjcRdeDomain;
@@ -66,6 +65,7 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -91,7 +91,7 @@ public class XjcToDomainResourceConverterTest {
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
-  @Rule public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   @Rule public final InjectRule inject = new InjectRule();
 

@@ -49,7 +49,6 @@ import google.registry.model.registry.Registry;
 import google.registry.request.HttpException.InternalServerErrorException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.BouncyCastleProviderRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.FakeResponse;
@@ -66,6 +65,7 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
@@ -79,7 +79,7 @@ public class RdeReportActionTest {
   private static final ByteSource IIRDEA_GOOD_XML = RdeTestData.loadBytes("iirdea_good.xml");
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
@@ -182,9 +182,9 @@ public class RdeReportActionTest {
 
   @Test
   public void testRunWithLock_fetchFailed_throwsRuntimeException() throws Exception {
-    class ExpectedException extends RuntimeException {}
-    when(urlFetchService.fetch(any(HTTPRequest.class))).thenThrow(new ExpectedException());
-    thrown.expect(ExpectedException.class);
+    class ExpectedThrownException extends RuntimeException {}
+    when(urlFetchService.fetch(any(HTTPRequest.class))).thenThrow(new ExpectedThrownException());
+    thrown.expect(ExpectedThrownException.class);
     createAction().runWithLock(loadRdeReportCursor());
   }
 

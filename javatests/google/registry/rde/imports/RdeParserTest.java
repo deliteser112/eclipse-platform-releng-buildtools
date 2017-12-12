@@ -19,7 +19,6 @@ import static google.registry.rde.imports.RdeImportsTestData.loadBytes;
 
 import com.google.common.io.ByteSource;
 import google.registry.rde.imports.RdeParser.RdeHeader;
-import google.registry.testing.ExceptionRule;
 import google.registry.xjc.rdecontact.XjcRdeContact;
 import google.registry.xjc.rdedomain.XjcRdeDomain;
 import google.registry.xjc.rdeeppparams.XjcRdeEppParams;
@@ -34,6 +33,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -45,7 +45,7 @@ public class RdeParserTest {
 
   private InputStream xml;
 
-  @Rule public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   private void checkHeader(RdeHeader header) {
     assertThat(header.getTld()).isEqualTo("test");

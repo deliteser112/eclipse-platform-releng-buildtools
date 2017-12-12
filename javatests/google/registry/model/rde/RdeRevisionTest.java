@@ -23,10 +23,10 @@ import static google.registry.model.rde.RdeRevision.saveRevision;
 import com.google.common.base.VerifyException;
 import com.googlecode.objectify.VoidWork;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -38,7 +38,7 @@ public class RdeRevisionTest {
   public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testGetNextRevision_objectDoesntExist_returnsZero() throws Exception {

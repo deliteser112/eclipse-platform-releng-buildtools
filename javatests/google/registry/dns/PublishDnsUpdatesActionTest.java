@@ -32,7 +32,6 @@ import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
 import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeLockHandler;
 import google.registry.testing.InjectRule;
@@ -41,6 +40,7 @@ import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -58,7 +58,7 @@ public class PublishDnsUpdatesActionTest {
   public final InjectRule inject = new InjectRule();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private final FakeClock clock = new FakeClock(DateTime.parse("1971-01-01TZ"));
   private final FakeLockHandler lockHandler = new FakeLockHandler(true);

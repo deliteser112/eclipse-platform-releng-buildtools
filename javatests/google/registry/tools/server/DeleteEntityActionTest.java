@@ -24,11 +24,11 @@ import com.google.appengine.api.datastore.KeyFactory;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeResponse;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -40,7 +40,7 @@ public class DeleteEntityActionTest {
   public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   FakeResponse response = new FakeResponse();
   DeleteEntityAction action = new DeleteEntityAction();

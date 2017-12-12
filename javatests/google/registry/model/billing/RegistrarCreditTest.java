@@ -26,17 +26,17 @@ import google.registry.model.EntityTestCase;
 import google.registry.model.billing.RegistrarCredit.CreditType;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
-import google.registry.testing.ExceptionRule;
 import org.joda.money.CurrencyUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /** Unit tests for {@link RegistrarCredit}. */
 public class RegistrarCreditTest extends EntityTestCase {
 
   @Rule
-  public ExceptionRule thrown = new ExceptionRule();
+  public ExpectedException thrown = ExpectedException.none();
 
   private RegistrarCredit auctionCredit;
   private RegistrarCredit promoCredit;

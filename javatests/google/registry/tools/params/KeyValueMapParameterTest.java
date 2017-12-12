@@ -17,7 +17,6 @@ package google.registry.tools.params;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableMap;
-import google.registry.testing.ExceptionRule;
 import google.registry.tools.params.KeyValueMapParameter.CurrencyUnitToStringMap;
 import google.registry.tools.params.KeyValueMapParameter.StringToIntegerMap;
 import google.registry.tools.params.KeyValueMapParameter.StringToStringMap;
@@ -25,6 +24,7 @@ import org.joda.money.CurrencyUnit;
 import org.joda.money.IllegalCurrencyException;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -33,7 +33,7 @@ import org.junit.runners.JUnit4;
 public class KeyValueMapParameterTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private final StringToStringMap stringToStringInstance = new StringToStringMap();
   private final StringToIntegerMap stringToIntegerInstance = new StringToIntegerMap();

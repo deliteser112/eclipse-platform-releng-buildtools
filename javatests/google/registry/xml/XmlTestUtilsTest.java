@@ -17,9 +17,9 @@ package google.registry.xml;
 import static google.registry.testing.TestDataHelper.loadFile;
 import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 
-import google.registry.testing.ExceptionRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -28,7 +28,7 @@ import org.junit.runners.JUnit4;
 public class XmlTestUtilsTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   void runTest(String file1, String file2) throws Exception {
     assertXmlEquals(loadFile(getClass(), file1), loadFile(getClass(), file2));

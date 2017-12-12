@@ -17,10 +17,10 @@ package google.registry.tools.params;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.beust.jcommander.ParameterException;
-import google.registry.testing.ExceptionRule;
 import org.joda.money.Money;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -29,7 +29,7 @@ import org.junit.runners.JUnit4;
 public class MoneyParameterTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private final MoneyParameter instance = new MoneyParameter();
 

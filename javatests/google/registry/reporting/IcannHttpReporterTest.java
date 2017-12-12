@@ -29,13 +29,13 @@ import com.google.api.client.util.Base64;
 import com.google.api.client.util.StringUtils;
 import com.google.common.io.ByteSource;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.ExceptionRule;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -51,7 +51,7 @@ public class IcannHttpReporterTest {
 
   private MockLowLevelHttpRequest mockRequest;
 
-  @Rule public final ExceptionRule thrown = new ExceptionRule();
+  @Rule public final ExpectedException thrown = ExpectedException.none();
 
   @Rule public AppEngineRule appEngineRule = new AppEngineRule.Builder().withDatastore().build();
 

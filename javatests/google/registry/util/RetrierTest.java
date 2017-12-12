@@ -16,13 +16,13 @@ package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import google.registry.testing.ExceptionRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
 import google.registry.util.Retrier.FailureReporter;
 import java.util.concurrent.Callable;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -31,7 +31,7 @@ import org.junit.runners.JUnit4;
 public class RetrierTest {
 
   @Rule
-  public ExceptionRule thrown = new ExceptionRule();
+  public ExpectedException thrown = ExpectedException.none();
 
   Retrier retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
 

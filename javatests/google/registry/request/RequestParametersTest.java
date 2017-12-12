@@ -28,11 +28,11 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.request.HttpException.BadRequestException;
-import google.registry.testing.ExceptionRule;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -41,7 +41,7 @@ import org.junit.runners.JUnit4;
 public class RequestParametersTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private final HttpServletRequest req = mock(HttpServletRequest.class);
 

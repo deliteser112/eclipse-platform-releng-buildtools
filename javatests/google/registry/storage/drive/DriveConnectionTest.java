@@ -34,12 +34,12 @@ import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.ParentReference;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.MediaType;
-import google.registry.testing.ExceptionRule;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentMatcher;
@@ -49,7 +49,7 @@ import org.mockito.ArgumentMatcher;
 public class DriveConnectionTest {
 
   @Rule
-  public final ExceptionRule thrown = new ExceptionRule();
+  public final ExpectedException thrown = ExpectedException.none();
 
   private final Drive drive = mock(Drive.class);
   private final Files files = mock(Files.class);
