@@ -1087,22 +1087,6 @@ public final class RegistryConfig {
           .put("/", RdapNoticeDescriptor.builder()
               .setTitle("RDAP Help")
               .setDescription(ImmutableList.of(
-                  "RDAP Help Topics (use /help/index for information)",
-                  "syntax",
-                  "tos (Terms of Service)"))
-              .setLinkValueSuffix("help/")
-              .build())
-          .put("/index", RdapNoticeDescriptor.builder()
-              .setTitle("RDAP Help")
-              .setDescription(ImmutableList.of(
-                  "RDAP Help Topics (use /help/index for information)",
-                  "syntax",
-                  "tos (Terms of Service)"))
-              .setLinkValueSuffix("help/index")
-              .build())
-          .put("/syntax", RdapNoticeDescriptor.builder()
-              .setTitle("RDAP Command Syntax")
-              .setDescription(ImmutableList.of(
                   "domain/XXXX",
                   "nameserver/XXXX",
                   "entity/XXXX",
@@ -1114,7 +1098,7 @@ public final class RegistryConfig {
                   "entities?fn=XXXX",
                   "entities?handle=XXXX",
                   "help/XXXX"))
-              .setLinkValueSuffix("help/syntax")
+              .setLinkValueSuffix("help/")
               .setLinkHrefUrlString("https://github.com/google/nomulus/blob/master/docs/rdap.md")
               .build())
           .put("/tos", RdapNoticeDescriptor.builder()

@@ -105,13 +105,6 @@ public class RdapHelpActionTest {
   }
 
   @Test
-  public void testHelpActionIndex_works() throws Exception {
-    assertThat(generateActualJson("/index"))
-        .isEqualTo(generateExpectedJson("index", "rdap_help_index.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
-  }
-
-  @Test
   public void testHelpActionDefault_getsIndex() throws Exception {
     assertThat(generateActualJson(""))
         .isEqualTo(generateExpectedJson("", "rdap_help_index.json"));
@@ -122,12 +115,6 @@ public class RdapHelpActionTest {
   public void testHelpActionSlash_getsIndex() throws Exception {
     assertThat(generateActualJson("/"))
         .isEqualTo(generateExpectedJson("", "rdap_help_index.json"));
-    assertThat(response.getStatus()).isEqualTo(200);
-  }
-
-  @Test
-  public void testHelpActionSyntax_works() throws Exception {
-    generateActualJson("/syntax");
     assertThat(response.getStatus()).isEqualTo(200);
   }
 

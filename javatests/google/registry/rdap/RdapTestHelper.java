@@ -201,24 +201,6 @@ public class RdapTestHelper {
         RdapNoticeDescriptor.builder()
             .setTitle("RDAP Help")
             .setDescription(ImmutableList.of(
-                "RDAP Help Topics (use /help/topic for information)",
-                "syntax",
-                "tos (Terms of Service)"))
-            .setLinkValueSuffix("help/")
-            .build(),
-        "/index",
-        RdapNoticeDescriptor.builder()
-            .setTitle("RDAP Help")
-            .setDescription(ImmutableList.of(
-                "RDAP Help Topics (use /help/topic for information)",
-                "syntax",
-                "tos (Terms of Service)"))
-            .setLinkValueSuffix("help/index")
-            .build(),
-        "/syntax",
-        RdapNoticeDescriptor.builder()
-            .setTitle("RDAP Command Syntax")
-            .setDescription(ImmutableList.of(
                 "domain/XXXX",
                 "nameserver/XXXX",
                 "entity/XXXX",
@@ -230,8 +212,8 @@ public class RdapTestHelper {
                 "entities?fn=XXXX",
                 "entities?handle=XXXX",
                 "help/XXXX"))
-            .setLinkValueSuffix("help/syntax")
-            .setLinkHrefUrlString("https://www.registry.tld/about/rdap/syntax.html")
+            .setLinkValueSuffix("help/")
+            .setLinkHrefUrlString("https://github.com/google/nomulus/blob/master/docs/rdap.md")
             .build(),
         "/tos",
         RdapNoticeDescriptor.builder()

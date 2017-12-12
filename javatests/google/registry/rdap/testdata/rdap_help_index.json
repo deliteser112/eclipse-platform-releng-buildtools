@@ -6,17 +6,25 @@
       "title" : "RDAP Help",
       "description" :
       [
-        "RDAP Help Topics (use \/help\/topic for information)",
-        "syntax",
-        "tos (Terms of Service)"
+        "domain/XXXX",
+        "nameserver/XXXX",
+        "entity/XXXX",
+        "domains?name=XXXX",
+        "domains?nsLdhName=XXXX",
+        "domains?nsIp=XXXX",
+        "nameservers?name=XXXX",
+        "nameservers?ip=XXXX",
+        "entities?fn=XXXX",
+        "entities?handle=XXXX",
+        "help/XXXX"
       ],
       "links" :
       [
         {
           "value" : "https://example.tld/rdap/help/%NAME%",
-          "rel" : "self",
-          "type" : "application/rdap+json",
-          "href" : "https://example.tld/rdap/help/%NAME%"
+          "rel" : "alternate",
+          "type" : "text/html",
+          "href" : "https://github.com/google/nomulus/blob/master/docs/rdap.md"
         }
       ]
     },
