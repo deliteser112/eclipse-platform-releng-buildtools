@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.SimpleSubjectBuilder;
 import google.registry.model.domain.DomainApplication;
@@ -58,13 +57,11 @@ public final class DomainApplicationSubject
 
   public And<DomainApplicationSubject> hasExactlyEncodedSignedMarks(
       EncodedSignedMark... encodedSignedMarks) {
-    if (!Objects.equals(
-        ImmutableSet.copyOf(actual().getEncodedSignedMarks()),
-        ImmutableSet.of(encodedSignedMarks))) {
-      assertThat(actual().getEncodedSignedMarks())
-          .named("the encoded signed marks of " + actualAsString())
-          .containsExactly((Object[]) encodedSignedMarks);
-    }
+    
+    assertThat(actual().getEncodedSignedMarks())
+      .named("the encoded signed marks of " + actualAsString())
+      .containsExactly((Object[]) encodedSignedMarks);
+    
     return andChainer();
   }
 
