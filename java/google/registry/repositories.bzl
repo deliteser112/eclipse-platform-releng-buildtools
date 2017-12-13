@@ -115,6 +115,7 @@ def domain_registry_repositories(
     omit_joda_time=False,
     omit_junit=False,
     omit_org_apache_avro=False,
+    omit_org_apache_beam_runners_direct_java=False,
     omit_org_apache_beam_runners_google_cloud_dataflow_java=False,
     omit_org_apache_beam_sdks_common_runner_api=False,
     omit_org_apache_beam_sdks_java_core=False,
@@ -337,6 +338,8 @@ def domain_registry_repositories(
     junit()
   if not omit_org_apache_avro:
     org_apache_avro()
+  if not omit_org_apache_beam_runners_direct_java:
+    org_apache_beam_runners_direct_java()
   if not omit_org_apache_beam_runners_google_cloud_dataflow_java:
     org_apache_beam_runners_google_cloud_dataflow_java()
   if not omit_org_apache_beam_sdks_common_runner_api:
@@ -1843,6 +1846,24 @@ def org_apache_avro():
       ],
   )
 
+def org_apache_beam_runners_direct_java():
+  java_import_external(
+      name = "org_apache_beam_runners_direct_java",
+      licenses = ["notice"],  # Apache License, Version 2.0
+      jar_sha256 = "f394ad1577c2af67417af27305c9efd50de268d23629171fd2c7813f8d385713",
+      jar_urls = [
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/beam/beam-runners-direct-java/2.2.0/beam-runners-direct-java-2.2.0.jar",
+          "http://repo1.maven.org/maven2/org/apache/beam/beam-runners-direct-java/2.2.0/beam-runners-direct-java-2.2.0.jar",
+      ],
+      deps = [
+          "@org_apache_beam_sdks_java_core",
+          "@joda_time",
+          "@org_slf4j_api",
+          "@com_google_auto_value",
+          "@org_hamcrest_all",
+      ],
+  )
+
 def org_apache_beam_runners_google_cloud_dataflow_java():
   java_import_external(
       name = "org_apache_beam_runners_google_cloud_dataflow_java",
@@ -1948,10 +1969,10 @@ def org_apache_beam_sdks_java_io_google_cloud_platform():
   java_import_external(
       name = "org_apache_beam_sdks_java_io_google_cloud_platform",
       licenses = ["notice"],  # Apache License, Version 2.0
-      jar_sha256 = "a1a502fd7b960859d4ec50de1f4b55927b32a5e9583a7b40371110c3d6a4f297",
+      jar_sha256 = "7b94b19c5ff79e7a0cccf8ae3556b728643fc7b6c23a6fa21806795bbc69ce9a",
       jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-io-google-cloud-platform/2.1.0/beam-sdks-java-io-google-cloud-platform-2.1.0.jar",
-          "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-io-google-cloud-platform/2.1.0/beam-sdks-java-io-google-cloud-platform-2.1.0.jar",
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-io-google-cloud-platform/2.2.0/beam-sdks-java-io-google-cloud-platform-2.2.0.jar",
+          "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-io-google-cloud-platform/2.2.0/beam-sdks-java-io-google-cloud-platform-2.2.0.jar",
       ],
       deps = [
           "@org_apache_beam_sdks_java_extensions_google_cloud_platform_core",
