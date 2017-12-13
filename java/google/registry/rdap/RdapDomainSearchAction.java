@@ -70,7 +70,7 @@ import org.joda.time.DateTime;
   method = {GET, HEAD},
   auth = Auth.AUTH_PUBLIC
 )
-public class RdapDomainSearchAction extends RdapActionBase {
+public class RdapDomainSearchAction extends RdapSearchActionBase {
 
   public static final String PATH = "/rdap/domains";
 
@@ -320,7 +320,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
             HostResource.class,
             "fullyQualifiedHostName",
             partialStringQuery,
-            false, /* includeDeleted */
+            DeletedItemHandling.EXCLUDE,
             MAX_NAMESERVERS_IN_FIRST_STAGE);
     Optional<String> desiredRegistrar = getDesiredRegistrar();
     if (desiredRegistrar.isPresent()) {
@@ -423,7 +423,9 @@ public class RdapDomainSearchAction extends RdapActionBase {
             HostResource.class,
             "inetAddresses",
             inetAddress.getHostAddress(),
-            false,
+            Optional.empty(),
+            Optional.empty(),
+            DeletedItemHandling.EXCLUDE,
             MAX_NAMESERVERS_IN_FIRST_STAGE);
     Optional<String> desiredRegistrar = getDesiredRegistrar();
     if (desiredRegistrar.isPresent()) {
@@ -530,6 +532,7 @@ public class RdapDomainSearchAction extends RdapActionBase {
             ? IncompletenessWarningType.TRUNCATED
             : incompletenessWarningType;
     metricInformationBuilder.setIncompletenessWarningType(finalIncompletenessWarningType);
-    return RdapSearchResults.create(ImmutableList.copyOf(jsonList), finalIncompletenessWarningType);
+    return RdapSearchResults.create(
+        ImmutableList.copyOf(jsonList), finalIncompletenessWarningType, Optional.empty());
   }
 }

@@ -62,7 +62,7 @@ import org.joda.time.DateTime;
   method = {GET, HEAD},
   auth = Auth.AUTH_PUBLIC_ANONYMOUS
 )
-public class RdapNameserverSearchAction extends RdapActionBase {
+public class RdapNameserverSearchAction extends RdapSearchActionBase {
 
   public static final String PATH = "/rdap/nameservers";
 
@@ -86,6 +86,11 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     return PATH;
   }
 
+  private enum CursorType {
+    NAME,
+    ADDRESS
+  }
+
   /**
    * Parses the parameters and calls the appropriate search function.
    *
@@ -103,6 +108,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     if (Booleans.countTrue(nameParam.isPresent(), ipParam.isPresent()) != 1) {
       throw new BadRequestException("You must specify either name=XXXX or ip=YYYY");
     }
+    decodeCursorToken();
     RdapSearchResults results;
     if (nameParam.isPresent()) {
       // syntax: /rdap/nameservers?name=exam*.com
@@ -132,12 +138,22 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     }
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     jsonBuilder.put("nameserverSearchResults", results.jsonList());
+
+    ImmutableList<ImmutableMap<String, Object>> notices = results.getIncompletenessWarnings();
+    if (results.nextCursor().isPresent()) {
+      ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder =
+          new ImmutableList.Builder<>();
+      noticesBuilder.addAll(notices);
+      noticesBuilder.add(
+          RdapJsonFormatter.makeRdapJsonNavigationLinkNotice(
+              Optional.of(
+                  getRequestUrlWithExtraParameter(
+                      "cursor", encodeCursorToken(results.nextCursor().get())))));
+      notices = noticesBuilder.build();
+    }
+
     rdapJsonFormatter.addTopLevelEntries(
-        jsonBuilder,
-        BoilerplateType.NAMESERVER,
-        results.getIncompletenessWarnings(),
-        ImmutableList.of(),
-        fullServletPath);
+        jsonBuilder, BoilerplateType.NAMESERVER, notices, ImmutableList.of(), fullServletPath);
     return jsonBuilder.build();
   }
 
@@ -207,6 +223,9 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     }
     List<HostResource> hostList = new ArrayList<>();
     for (String fqhn : ImmutableSortedSet.copyOf(domainResource.getSubordinateHosts())) {
+      if (cursorString.isPresent() && (fqhn.compareTo(cursorString.get()) <= 0)) {
+        continue;
+      }
       // We can't just check that the host name starts with the initial query string, because
       // then the query ns.exam*.example.com would match against nameserver ns.example.com.
       if (partialStringQuery.matches(fqhn)) {
@@ -223,6 +242,7 @@ public class RdapNameserverSearchAction extends RdapActionBase {
         hostList,
         IncompletenessWarningType.COMPLETE,
         domainResource.getSubordinateHosts().size(),
+        CursorType.NAME,
         now);
   }
 
@@ -240,10 +260,13 @@ public class RdapNameserverSearchAction extends RdapActionBase {
             HostResource.class,
             "fullyQualifiedHostName",
             partialStringQuery,
-            shouldIncludeDeleted(),
+            cursorString,
+            getDeletedItemHandling(),
             querySizeLimit);
     return makeSearchResults(
-        getMatchingResources(query, shouldIncludeDeleted(), now, querySizeLimit), now);
+        getMatchingResources(query, shouldIncludeDeleted(), now, querySizeLimit),
+        CursorType.NAME,
+        now);
   }
 
   /** Searches for nameservers by IP address, returning a JSON array of nameserver info maps. */
@@ -252,21 +275,27 @@ public class RdapNameserverSearchAction extends RdapActionBase {
     int querySizeLimit = getStandardQuerySizeLimit();
     Query<HostResource> query =
         queryItems(
-            HostResource.class,
-            "inetAddresses",
-            inetAddress.getHostAddress(),
-            shouldIncludeDeleted(),
-            querySizeLimit);
+                HostResource.class,
+                "inetAddresses",
+                inetAddress.getHostAddress(),
+                Optional.empty(),
+                cursorString,
+                getDeletedItemHandling(),
+                querySizeLimit);
     return makeSearchResults(
-        getMatchingResources(query, shouldIncludeDeleted(), now, querySizeLimit), now);
+        getMatchingResources(query, shouldIncludeDeleted(), now, querySizeLimit),
+        CursorType.ADDRESS,
+        now);
   }
 
   /** Output JSON for a lists of hosts contained in an {@link RdapResultSet}. */
-  private RdapSearchResults makeSearchResults(RdapResultSet<HostResource> resultSet, DateTime now) {
+  private RdapSearchResults makeSearchResults(
+      RdapResultSet<HostResource> resultSet, CursorType cursorType, DateTime now) {
     return makeSearchResults(
         resultSet.resources(),
         resultSet.incompletenessWarningType(),
         resultSet.numResourcesRetrieved(),
+        cursorType,
         now);
   }
 
@@ -275,22 +304,29 @@ public class RdapNameserverSearchAction extends RdapActionBase {
       List<HostResource> hosts,
       IncompletenessWarningType incompletenessWarningType,
       int numHostsRetrieved,
+      CursorType cursorType,
       DateTime now) {
     metricInformationBuilder.setNumHostsRetrieved(numHostsRetrieved);
     OutputDataType outputDataType =
         (hosts.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
     ImmutableList.Builder<ImmutableMap<String, Object>> jsonListBuilder =
         new ImmutableList.Builder<>();
+    Optional<String> newCursor = Optional.empty();
     for (HostResource host : Iterables.limit(hosts, rdapResultSetMaxSize)) {
+      newCursor =
+          Optional.of(
+              (cursorType == CursorType.NAME)
+                  ? host.getFullyQualifiedHostName()
+                  : host.getRepoId());
       jsonListBuilder.add(
           rdapJsonFormatter.makeRdapJsonForHost(
               host, false, fullServletPath, rdapWhoisServer, now, outputDataType));
     }
     ImmutableList<ImmutableMap<String, Object>> jsonList = jsonListBuilder.build();
-    return RdapSearchResults.create(
-        jsonList,
-        (jsonList.size() < hosts.size())
-            ? IncompletenessWarningType.TRUNCATED
-            : incompletenessWarningType);
+    if (jsonList.size() < hosts.size()) {
+      return RdapSearchResults.create(jsonList, IncompletenessWarningType.TRUNCATED, newCursor);
+    } else {
+      return RdapSearchResults.create(jsonList, incompletenessWarningType, Optional.empty());
+    }
   }
 }

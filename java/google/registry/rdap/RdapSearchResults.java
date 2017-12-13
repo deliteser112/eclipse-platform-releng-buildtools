@@ -20,6 +20,7 @@ import static google.registry.rdap.RdapIcannStandardInformation.TRUNCATION_NOTIC
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.util.Optional;
 
 /**
  * Holds domain, nameserver and entity search results.
@@ -46,13 +47,14 @@ abstract class RdapSearchResults {
   }
 
   static RdapSearchResults create(ImmutableList<ImmutableMap<String, Object>> jsonList) {
-    return create(jsonList, IncompletenessWarningType.COMPLETE);
+    return create(jsonList, IncompletenessWarningType.COMPLETE, Optional.empty());
   }
 
   static RdapSearchResults create(
       ImmutableList<ImmutableMap<String, Object>> jsonList,
-      IncompletenessWarningType incompletenessWarningType) {
-    return new AutoValue_RdapSearchResults(jsonList, incompletenessWarningType);
+      IncompletenessWarningType incompletenessWarningType,
+      Optional<String> nextCursor) {
+    return new AutoValue_RdapSearchResults(jsonList, incompletenessWarningType, nextCursor);
   }
 
   /** List of JSON result object representations. */
@@ -60,6 +62,9 @@ abstract class RdapSearchResults {
 
   /** Type of warning to display regarding possible incomplete data. */
   abstract IncompletenessWarningType incompletenessWarningType();
+
+  /** Cursor for fetching the next page of results, or empty() if there are no more. */
+  abstract Optional<String> nextCursor();
 
   /** Convenience method to get the appropriate warnings for the incompleteness warning type. */
   ImmutableList<ImmutableMap<String, Object>> getIncompletenessWarnings() {

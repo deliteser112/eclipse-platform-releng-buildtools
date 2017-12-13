@@ -61,7 +61,7 @@ import org.joda.time.DateTime;
   method = {GET, HEAD},
   auth = Auth.AUTH_PUBLIC
 )
-public class RdapEntitySearchAction extends RdapActionBase {
+public class RdapEntitySearchAction extends RdapSearchActionBase {
 
   public static final String PATH = "/rdap/entities";
 
@@ -188,7 +188,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
               ContactResource.class,
               "searchName",
               partialStringQuery,
-              false,
+              DeletedItemHandling.EXCLUDE,
               rdapResultSetMaxSize + 1);
       if (authorization.role() != RdapAuthorization.Role.ADMINISTRATOR) {
         query = query.filter("currentSponsorClientId in", authorization.clientIds());
@@ -244,7 +244,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
       int querySizeLimit = getStandardQuerySizeLimit();
       Query<ContactResource> query =
           queryItemsByKey(
-              ContactResource.class, partialStringQuery, shouldIncludeDeleted(), querySizeLimit);
+              ContactResource.class, partialStringQuery, getDeletedItemHandling(), querySizeLimit);
       return makeSearchResults(
           getMatchingResources(query, shouldIncludeDeleted(), now, querySizeLimit),
           registrars,
@@ -317,7 +317,9 @@ public class RdapEntitySearchAction extends RdapActionBase {
     for (ContactResource contact : contacts) {
       if (jsonOutputList.size() >= rdapResultSetMaxSize) {
         return RdapSearchResults.create(
-            ImmutableList.copyOf(jsonOutputList), IncompletenessWarningType.TRUNCATED);
+            ImmutableList.copyOf(jsonOutputList),
+            IncompletenessWarningType.TRUNCATED,
+            Optional.empty());
       }
       // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
       // they are global, and might have different roles for different domains.
@@ -334,7 +336,9 @@ public class RdapEntitySearchAction extends RdapActionBase {
     for (Registrar registrar : registrars) {
       if (jsonOutputList.size() >= rdapResultSetMaxSize) {
         return RdapSearchResults.create(
-            ImmutableList.copyOf(jsonOutputList), IncompletenessWarningType.TRUNCATED);
+            ImmutableList.copyOf(jsonOutputList),
+            IncompletenessWarningType.TRUNCATED,
+            Optional.empty());
       }
       jsonOutputList.add(rdapJsonFormatter.makeRdapJsonForRegistrar(
           registrar, false, fullServletPath, rdapWhoisServer, now, outputDataType));
@@ -343,6 +347,7 @@ public class RdapEntitySearchAction extends RdapActionBase {
         ImmutableList.copyOf(jsonOutputList),
         (jsonOutputList.size() < rdapResultSetMaxSize)
             ? incompletenessWarningType
-            : IncompletenessWarningType.COMPLETE);
+            : IncompletenessWarningType.COMPLETE,
+        Optional.empty());
   }
 }

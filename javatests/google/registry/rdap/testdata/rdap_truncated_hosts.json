@@ -126,6 +126,18 @@
       ]
     },
     {
+      "title" : "Navigation Links",
+      "description" : [ "Links to related pages." ],
+      "links" :
+      [
+        {
+          "type" : "application/rdap+json",
+          "rel" : "next",
+          "href" : "https://example.tld/rdap/nameservers?%NAME%"
+        }
+      ]
+    },
+    {
       "title" : "RDAP Terms of Service",
       "description" :
       [
@@ -149,7 +161,7 @@
           "type" : "text/html"
         }
       ]
-    }
+    },
   ],
   "remarks" :
   [

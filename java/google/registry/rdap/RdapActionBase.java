@@ -62,7 +62,7 @@ import org.joda.time.DateTime;
 import org.json.simple.JSONValue;
 
 /**
- * Base RDAP (new WHOIS) action for single-item domain, nameserver and entity requests.
+ * Base RDAP (new WHOIS) action for all requests.
  *
  * @see <a href="https://tools.ietf.org/html/rfc7482">
  *        RFC 7482: Registration Data Access Protocol (RDAP) Query Format</a>
@@ -80,6 +80,12 @@ public abstract class RdapActionBase implements Runnable {
 
   private static final MediaType RESPONSE_MEDIA_TYPE =
       MediaType.create("application", "rdap+json").withCharset(UTF_8);
+
+  /** Whether to include or exclude deleted items from a query. */
+  protected enum DeletedItemHandling {
+    EXCLUDE,
+    INCLUDE
+  }
 
   @Inject HttpServletRequest request;
   @Inject Response response;
@@ -243,6 +249,10 @@ public abstract class RdapActionBase implements Runnable {
     return true;
   }
 
+  DeletedItemHandling getDeletedItemHandling() {
+    return shouldIncludeDeleted() ? DeletedItemHandling.INCLUDE : DeletedItemHandling.EXCLUDE;
+  }
+
   /**
    * Returns true if the request is authorized to see the resource.
    *
@@ -271,7 +281,9 @@ public abstract class RdapActionBase implements Runnable {
   }
 
   /**
-   * Returns true if the registrar should be visible. This is true iff:
+   * Returns true if the registrar should be visible.
+   *
+   * <p>This is true iff:
    * 1. The resource is active and publicly visible, or the request wants to see deleted items, and
    *     is authorized to do so, and:
    * 2. The request did not specify a registrar to filter on, or the registrar matches.
@@ -297,11 +309,28 @@ public abstract class RdapActionBase implements Runnable {
             : (rdapResultSetMaxSize + 1);
   }
 
+  static <T extends EppResource> Query<T> queryItems(
+      Class<T> clazz,
+      String filterField,
+      RdapSearchPattern partialStringQuery,
+      DeletedItemHandling deletedItemHandling,
+      int resultSetMaxSize) {
+    return queryItems(
+        clazz,
+        filterField,
+        partialStringQuery,
+        Optional.empty(),
+        deletedItemHandling,
+        resultSetMaxSize);
+  }
+
   /**
    * Handles prefix searches in cases where, if we need to filter out deleted items, there are no
-   * pending deletes. In such cases, it is sufficient to check whether {@code deletionTime} is equal
-   * to {@code END_OF_TIME}, because any other value means it has already been deleted. This allows
-   * us to use an equality query for the deletion time.
+   * pending deletes.
+   *
+   * <p>In such cases, it is sufficient to check whether {@code deletionTime} is equal to
+   * {@code END_OF_TIME}, because any other value means it has already been deleted. This allows us
+   * to use an equality query for the deletion time.
    *
    * @param clazz the type of resource to be queried
    * @param filterField the database field of interest
@@ -309,15 +338,18 @@ public abstract class RdapActionBase implements Runnable {
    *        equality query is used; if there is a wildcard, a range query is used instead; the
    *        initial string should not be empty, and any search suffix will be ignored, so the caller
    *        must filter the results if a suffix is specified
-   * @param includeDeleted whether to search for deleted items as well
+   * @param cursorString if a cursor is present, this parameter should specify the cursor string, to
+   *        skip any results up to and including the string; empty() if there is no cursor
+   * @param deletedItemHandling whether to include or exclude deleted items
    * @param resultSetMaxSize the maximum number of results to return
-   * @return the results of the query
+   * @return the query object
    */
   static <T extends EppResource> Query<T> queryItems(
       Class<T> clazz,
       String filterField,
       RdapSearchPattern partialStringQuery,
-      boolean includeDeleted,
+      Optional<String> cursorString,
+      DeletedItemHandling deletedItemHandling,
       int resultSetMaxSize) {
     if (partialStringQuery.getInitialString().length()
         < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH) {
@@ -335,18 +367,36 @@ public abstract class RdapActionBase implements Runnable {
           .filter(filterField + " >=", partialStringQuery.getInitialString())
           .filter(filterField + " <", partialStringQuery.getNextInitialString());
     }
-    if (!includeDeleted) {
-      query = query.filter("deletionTime", END_OF_TIME);
+    if (cursorString.isPresent()) {
+      query = query.filter(filterField + " >", cursorString.get());
     }
-    return query.limit(resultSetMaxSize);
+    return setOtherQueryAttributes(query, deletedItemHandling, resultSetMaxSize);
   }
 
-  /** Variant of queryItems using a simple string rather than an {@link RdapSearchPattern}. */
+  /**
+   * Handles searches using a simple string rather than an {@link RdapSearchPattern}.
+   *
+   * <p>Since the filter is not an inequality, we can support also checking a cursor string against
+   * a different field (which involves an inequality on that field).
+   *
+   * @param clazz the type of resource to be queried
+   * @param filterField the database field of interest
+   * @param queryString the search string
+   * @param cursorField the field which should be compared to the cursor string, or empty() if the
+   *        key should be compared to a key created from the cursor string
+   * @param cursorString if a cursor is present, this parameter should specify the cursor string, to
+   *        skip any results up to and including the string; empty() if there is no cursor
+   * @param deletedItemHandling whether to include or exclude deleted items
+   * @param resultSetMaxSize the maximum number of results to return
+   * @return the query object
+   */
   static <T extends EppResource> Query<T> queryItems(
       Class<T> clazz,
       String filterField,
       String queryString,
-      boolean includeDeleted,
+      Optional<String> cursorField,
+      Optional<String> cursorString,
+      DeletedItemHandling deletedItemHandling,
       int resultSetMaxSize) {
     if (queryString.length() < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH) {
       throw new UnprocessableEntityException(
@@ -355,14 +405,21 @@ public abstract class RdapActionBase implements Runnable {
               RdapSearchPattern.MIN_INITIAL_STRING_LENGTH));
     }
     Query<T> query = ofy().load().type(clazz).filter(filterField, queryString);
-    return setOtherQueryAttributes(query, includeDeleted, resultSetMaxSize);
+    if (cursorString.isPresent()) {
+      if (cursorField.isPresent()) {
+        query = query.filter(cursorField.get() + " >", cursorString.get());
+      } else {
+        query = query.filterKey(">", Key.create(clazz, cursorString.get()));
+      }
+    }
+    return setOtherQueryAttributes(query, deletedItemHandling, resultSetMaxSize);
   }
 
-  /** Variant of queryItems where the field to be searched is the key. */
+  /** Handles searches where the field to be searched is the key. */
   static <T extends EppResource> Query<T> queryItemsByKey(
       Class<T> clazz,
       RdapSearchPattern partialStringQuery,
-      boolean includeDeleted,
+      DeletedItemHandling deletedItemHandling,
       int resultSetMaxSize) {
     if (partialStringQuery.getInitialString().length()
         < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH) {
@@ -380,14 +437,14 @@ public abstract class RdapActionBase implements Runnable {
           .filterKey(">=", Key.create(clazz, partialStringQuery.getInitialString()))
           .filterKey("<", Key.create(clazz, partialStringQuery.getNextInitialString()));
     }
-    return setOtherQueryAttributes(query, includeDeleted, resultSetMaxSize);
+    return setOtherQueryAttributes(query, deletedItemHandling, resultSetMaxSize);
   }
 
-  /** Variant of queryItems searching for a key by a simple string. */
+  /** Handles searches by key using a simple string. */
   static <T extends EppResource> Query<T> queryItemsByKey(
       Class<T> clazz,
       String queryString,
-      boolean includeDeleted,
+      DeletedItemHandling deletedItemHandling,
       int resultSetMaxSize) {
     if (queryString.length() < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH) {
       throw new UnprocessableEntityException(
@@ -396,12 +453,12 @@ public abstract class RdapActionBase implements Runnable {
               RdapSearchPattern.MIN_INITIAL_STRING_LENGTH));
     }
     Query<T> query = ofy().load().type(clazz).filterKey("=", Key.create(clazz, queryString));
-    return setOtherQueryAttributes(query, includeDeleted, resultSetMaxSize);
+    return setOtherQueryAttributes(query, deletedItemHandling, resultSetMaxSize);
   }
 
   private static <T extends EppResource> Query<T> setOtherQueryAttributes(
-      Query<T> query, boolean includeDeleted, int resultSetMaxSize) {
-    if (!includeDeleted) {
+      Query<T> query, DeletedItemHandling deletedItemHandling, int resultSetMaxSize) {
+    if (deletedItemHandling != DeletedItemHandling.INCLUDE) {
       query = query.filter("deletionTime", END_OF_TIME);
     }
     return query.limit(resultSetMaxSize);

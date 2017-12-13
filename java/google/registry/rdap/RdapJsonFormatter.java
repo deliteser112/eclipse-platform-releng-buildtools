@@ -437,6 +437,33 @@ public class RdapJsonFormatter {
   }
 
   /**
+   * Creates a JSON object containing a notice with a next page navigation link, which can then be
+   * inserted into a notices array.
+   *
+   * <p>At the moment, only a next page link is supported. Other types of links (e.g. previous page)
+   * could be added in the future, but it's not clear how to generate such links, given the way we
+   * are querying the database.
+   *
+   * @param nextPageUrl URL string used to navigate to next page, or empty if there is no next
+   */
+  static ImmutableMap<String, Object> makeRdapJsonNavigationLinkNotice(
+      Optional<String> nextPageUrl) {
+    ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
+    jsonBuilder.put("title", "Navigation Links");
+    jsonBuilder.put("description", ImmutableList.of("Links to related pages."));
+    if (nextPageUrl.isPresent()) {
+      jsonBuilder.put(
+          "links",
+          ImmutableList.of(
+              ImmutableMap.of(
+                  "rel", "next",
+                  "href", nextPageUrl.get(),
+                  "type", "application/rdap+json")));
+    }
+    return jsonBuilder.build();
+  }
+
+  /**
    * Creates a JSON object for a {@link DomainResource}.
    *
    * @param domainResource the domain resource object from which the JSON object should be created

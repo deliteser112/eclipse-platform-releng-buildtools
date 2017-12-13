@@ -78,4 +78,10 @@ public final class RdapModule {
   static Optional<Boolean> provideFormatOutput(HttpServletRequest req) {
     return RequestParameters.extractOptionalBooleanParameter(req, "formatOutput");
   }
+
+  @Provides
+  @Parameter("cursor")
+  static Optional<String> provideCursor(HttpServletRequest req) {
+    return RequestParameters.extractOptionalParameter(req, "cursor");
+  }
 }

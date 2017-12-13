@@ -85,6 +85,12 @@ public final class RequestModule {
   }
 
   @Provides
+  @RequestUrl
+  static String provideRequestUrl(HttpServletRequest req) {
+    return req.getRequestURL().toString();
+  }
+
+  @Provides
   @RequestPath
   static String provideRequestPath(HttpServletRequest req) {
     return req.getRequestURI();
