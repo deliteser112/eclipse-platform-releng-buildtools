@@ -158,10 +158,12 @@ public class RdeImportUtils {
           TldState currentState = registry.getTldState(clock.nowUtc());
           checkArgument(
               currentState == TldState.PREDELEGATION,
-              String.format("Tld '%s' is in state %s and cannot be imported", tld, currentState));
+              "TLD '%s' is in state %s and cannot be imported",
+              tld,
+              currentState);
         } catch (RegistryNotFoundException e) {
           throw new IllegalArgumentException(
-              String.format("Tld '%s' not found in the registry", tld));
+              String.format("TLD '%s' not found in the registry", tld));
         }
         // validate that all registrars exist
         while (parser.nextRegistrar()) {

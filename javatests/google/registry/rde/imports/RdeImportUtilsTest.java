@@ -21,6 +21,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -59,7 +60,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -79,9 +79,6 @@ public class RdeImportUtilsTest extends ShardableTestCase {
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   private final GcsUtils gcsUtils = mock(GcsUtils.class);
 
@@ -286,9 +283,11 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   public void testValidateEscrowFile_tldNotFound() throws Exception {
     xmlInput = DEPOSIT_BADTLD_XML.openBufferedStream();
     when(gcsUtils.openInputStream(any(GcsFilename.class))).thenReturn(xmlInput);
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Tld 'badtld' not found in the registry");
-    rdeImportUtils.validateEscrowFileForImport("invalid-deposit-badtld.xml");
+    Exception e =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> rdeImportUtils.validateEscrowFileForImport("invalid-deposit-badtld.xml"));
+    assertThat(e).hasMessageThat().isEqualTo("TLD 'badtld' not found in the registry");
   }
 
   /** Verifies thrown errer when tld in escrow file is not in PREDELEGATION state */
@@ -296,9 +295,13 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   public void testValidateEscrowFile_tldWrongState() throws Exception {
     xmlInput = DEPOSIT_GETLD_XML.openBufferedStream();
     when(gcsUtils.openInputStream(any(GcsFilename.class))).thenReturn(xmlInput);
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Tld 'getld' is in state GENERAL_AVAILABILITY and cannot be imported");
-    rdeImportUtils.validateEscrowFileForImport("invalid-deposit-getld.xml");
+    Exception e =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> rdeImportUtils.validateEscrowFileForImport("invalid-deposit-getld.xml"));
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo("TLD 'getld' is in state GENERAL_AVAILABILITY and cannot be imported");
   }
 
   /** Verifies thrown error when registrar in escrow file is not in the registry */
@@ -306,9 +309,11 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   public void testValidateEscrowFile_badRegistrar() throws Exception {
     xmlInput = DEPOSIT_BADREGISTRAR_XML.openBufferedStream();
     when(gcsUtils.openInputStream(any(GcsFilename.class))).thenReturn(xmlInput);
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrar 'RegistrarY' not found in the registry");
-    rdeImportUtils.validateEscrowFileForImport("invalid-deposit-badregistrar.xml");
+    Exception e =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> rdeImportUtils.validateEscrowFileForImport("invalid-deposit-badregistrar.xml"));
+    assertThat(e).hasMessageThat().isEqualTo("Registrar 'RegistrarY' not found in the registry");
   }
 
   /** Gets the contact with the specified ROID */
