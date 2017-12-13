@@ -25,6 +25,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 
@@ -240,12 +241,10 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     runFlow();
   }
 
-  private void doFailingHostNameTest(
-      String hostName,
-      Class<? extends Throwable> exception) throws Exception {
+  private void doFailingHostNameTest(String hostName, Class<? extends Throwable> exception)
+      throws Exception {
     setEppHostCreateInputWithIps(hostName);
-    thrown.expect(exception);
-    runFlow();
+    assertThrows(exception, this::runFlow);
   }
 
   @Test

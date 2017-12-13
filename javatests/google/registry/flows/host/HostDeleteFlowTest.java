@@ -14,6 +14,7 @@
 
 package google.registry.flows.host;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
@@ -23,6 +24,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 
 import com.google.common.collect.ImmutableMap;
@@ -97,12 +99,12 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   private void doFailingStatusTest(StatusValue statusValue, Class<? extends Exception> exception)
       throws Exception {
     persistResource(
-        newHostResource("ns1.example.tld").asBuilder()
+        newHostResource("ns1.example.tld")
+            .asBuilder()
             .setStatusValues(ImmutableSet.of(statusValue))
             .build());
-    thrown.expect(exception);
-    thrown.expectMessage(statusValue.getXmlName());
-    runFlow();
+    Exception e = expectThrows(exception, this::runFlow);
+    assertThat(e).hasMessageThat().contains(statusValue.getXmlName());
   }
 
   @Test

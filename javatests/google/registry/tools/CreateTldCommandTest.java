@@ -617,13 +617,16 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   private void runFailureReservedListsTest(
       String reservedLists, Class<? extends Exception> errorClass, String errorMsg)
       throws Exception {
-    thrown.expect(errorClass);
-    thrown.expectMessage(errorMsg);
-    runCommandForced(
-        "--reserved_lists",
-        reservedLists,
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
+    Exception e =
+        expectThrows(
+            errorClass,
+            () ->
+                runCommandForced(
+                    "--reserved_lists",
+                    reservedLists,
+                    "--roid_suffix=Q9JYB4C",
+                    "--dns_writers=VoidDnsWriter",
+                    "xn--q9jyb4c"));
+    assertThat(e).hasMessageThat().isEqualTo(errorMsg);
   }
 }

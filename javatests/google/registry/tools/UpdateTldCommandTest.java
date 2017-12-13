@@ -21,6 +21,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.JPY;
@@ -934,11 +935,11 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   }
 
   private void runFailureReservedListsTest(
-      String reservedLists,
-      Class<? extends Exception> errorClass,
-      String errorMsg) throws Exception {
-    thrown.expect(errorClass);
-    thrown.expectMessage(errorMsg);
-    runCommandForced("--reserved_lists", reservedLists, "xn--q9jyb4c");
+      String reservedLists, Class<? extends Exception> errorClass, String errorMsg)
+      throws Exception {
+    Exception e =
+        expectThrows(
+            errorClass, () -> runCommandForced("--reserved_lists", reservedLists, "xn--q9jyb4c"));
+    assertThat(e).hasMessageThat().isEqualTo(errorMsg);
   }
 }

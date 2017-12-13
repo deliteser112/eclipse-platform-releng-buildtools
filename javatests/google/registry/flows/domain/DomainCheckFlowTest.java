@@ -24,6 +24,7 @@ import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -304,8 +305,7 @@ public class DomainCheckFlowTest
   private void doFailingBadLabelTest(String label, Class<? extends Exception> expectedException)
       throws Exception {
     setEppInput("domain_check_template.xml", ImmutableMap.of("LABEL", label));
-    thrown.expect(expectedException);
-    runFlow();
+    assertThrows(expectedException, this::runFlow);
   }
 
   @Test

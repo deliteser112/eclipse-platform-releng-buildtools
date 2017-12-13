@@ -14,6 +14,7 @@
 
 package google.registry.flows.contact;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -22,6 +23,7 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.ResourceFlowTestCase;
@@ -82,17 +84,6 @@ public class ContactDeleteFlowTest
     runFlow();
   }
 
-  private void doFailingStatusTest(StatusValue statusValue, Class<? extends Exception> exception)
-      throws Exception {
-    persistResource(
-        newContactResource(getUniqueIdFromCommand()).asBuilder()
-            .setStatusValues(ImmutableSet.of(statusValue))
-            .build());
-    thrown.expect(exception);
-    thrown.expectMessage(statusValue.getXmlName());
-    runFlow();
-  }
-
   @Test
   public void testFailure_existedButWasClientDeleteProhibited() throws Exception {
     doFailingStatusTest(
@@ -109,6 +100,16 @@ public class ContactDeleteFlowTest
   public void testFailure_existedButWasPendingDelete() throws Exception {
     doFailingStatusTest(
         StatusValue.PENDING_DELETE, ResourceStatusProhibitsOperationException.class);
+  }
+
+  private void doFailingStatusTest(StatusValue statusValue, Class<? extends Exception> exception)
+      throws Exception {
+    persistResource(
+        newContactResource(getUniqueIdFromCommand()).asBuilder()
+            .setStatusValues(ImmutableSet.of(statusValue))
+            .build());
+    Exception e = expectThrows(exception, this::runFlow);
+    assertThat(e).hasMessageThat().contains(statusValue.getXmlName());
   }
 
   @Test

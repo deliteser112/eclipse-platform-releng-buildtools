@@ -17,6 +17,7 @@ package google.registry.flows.session;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppException.UnimplementedObjectServiceException;
@@ -60,11 +61,9 @@ public abstract class LoginFlowTestCase extends FlowTestCase<LoginFlow> {
   }
 
   // Also called in subclasses.
-  void doFailingTest(String xmlFilename, Class<? extends Exception> exception)
-      throws Exception {
+  void doFailingTest(String xmlFilename, Class<? extends Exception> exception) throws Exception {
     setEppInput(xmlFilename);
-    thrown.expect(exception);
-    runFlow();
+    assertThrows(exception, this::runFlow);
   }
 
   @Test

@@ -28,6 +28,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableMap;
@@ -333,8 +334,7 @@ public class DomainApplicationUpdateFlowTest
     setEppInput(xmlFilename);
     persistReferencedEntities();
     persistNewApplication();
-    thrown.expect(expectedException);
-    runFlow();
+    assertThrows(expectedException, this::runFlow);
   }
 
   @Test

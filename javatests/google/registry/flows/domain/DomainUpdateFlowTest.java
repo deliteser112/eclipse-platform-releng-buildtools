@@ -35,6 +35,7 @@ import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static org.joda.money.CurrencyUnit.USD;
@@ -754,8 +755,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput(xmlFilename);
     persistReferencedEntities();
     persistActiveDomain(getUniqueIdFromCommand());
-    thrown.expect(expectedException);
-    runFlow();
+    assertThrows(expectedException, this::runFlow);
   }
 
   @Test

@@ -43,6 +43,7 @@ import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
@@ -637,9 +638,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .build());
     setEppInput("domain_create_lrp.xml");
     persistContactsAndHosts();
-    thrown.expect(InvalidLrpTokenException.class);
-    thrown.expectMessage("Invalid limited registration period token");
-    runFlow();
+    Exception e = expectThrows(InvalidLrpTokenException.class, this::runFlow);
+    assertThat(e).hasMessageThat().isEqualTo("Invalid limited registration period token");
     assertThat(ofy().load().entity(token).now().getRedemptionHistoryEntry()).isNull();
   }
 
@@ -1460,8 +1460,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_uppercase.xml");
     eppLoader.replaceAll("Example.tld", domainName);
     persistContactsAndHosts();
-    thrown.expect(exception);
-    runFlow();
+    assertThrows(exception, this::runFlow);
   }
 
   @Test
@@ -1649,10 +1648,10 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_landrushRegistration() throws Exception {
-    thrown.expect(NoGeneralRegistrationsInCurrentPhaseException.class);
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_registration_landrush.xml");
     persistContactsAndHosts();
+    thrown.expect(NoGeneralRegistrationsInCurrentPhaseException.class);
     runFlow();
   }
 
