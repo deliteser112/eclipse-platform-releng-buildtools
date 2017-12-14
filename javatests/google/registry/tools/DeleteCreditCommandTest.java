@@ -20,6 +20,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.beust.jcommander.ParameterException;
@@ -111,30 +112,34 @@ public class DeleteCreditCommandTest extends CommandTestCase<DeleteCreditCommand
 
   @Test
   public void testFailure_nonexistentParentRegistrar() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrar FakeRegistrar not found");
-    runCommandForced("--registrar=FakeRegistrar", "--credit_id=" + creditAId);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> runCommandForced("--registrar=FakeRegistrar", "--credit_id=" + creditAId));
+    assertThat(thrown).hasMessageThat().contains("Registrar FakeRegistrar not found");
   }
 
   @Test
   public void testFailure_nonexistentCreditId() throws Exception {
     long badId = creditAId + creditBId + 1;
-    thrown.expect(NullPointerException.class);
-    thrown.expectMessage("ID " + badId);
-    runCommandForced("--registrar=TheRegistrar", "--credit_id=" + badId);
+    NullPointerException thrown =
+        expectThrows(
+            NullPointerException.class,
+            () -> runCommandForced("--registrar=TheRegistrar", "--credit_id=" + badId));
+    assertThat(thrown).hasMessageThat().contains("ID " + badId);
   }
 
   @Test
   public void testFailure_noRegistrar() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--registrar");
-    runCommandForced("--credit_id=" + creditAId);
+    ParameterException thrown =
+        expectThrows(ParameterException.class, () -> runCommandForced("--credit_id=" + creditAId));
+    assertThat(thrown).hasMessageThat().contains("--registrar");
   }
 
   @Test
   public void testFailure_noCreditId() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--credit_id");
-    runCommandForced("--registrar=TheRegistrar");
+    ParameterException thrown =
+        expectThrows(ParameterException.class, () -> runCommandForced("--registrar=TheRegistrar"));
+    assertThat(thrown).hasMessageThat().contains("--credit_id");
   }
 }

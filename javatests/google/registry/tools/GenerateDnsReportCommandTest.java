@@ -22,6 +22,7 @@ import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -203,13 +204,11 @@ public class GenerateDnsReportCommandTest extends CommandTestCase<GenerateDnsRep
 
   @Test
   public void testFailure_tldDoesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--tld=foobar");
+    assertThrows(IllegalArgumentException.class, () -> runCommand("--tld=foobar"));
   }
 
   @Test
   public void testFailure_missingTldParameter() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand("");
+    assertThrows(ParameterException.class, () -> runCommand(""));
   }
 }

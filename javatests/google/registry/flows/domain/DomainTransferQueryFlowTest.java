@@ -20,6 +20,8 @@ import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
@@ -175,8 +177,9 @@ public class DomainTransferQueryFlowTest
         contact.asBuilder()
             .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
             .build());
-    thrown.expect(BadAuthInfoForResourceException.class);
-    doFailingTest("domain_transfer_query_contact_authinfo.xml");
+    assertThrows(
+        BadAuthInfoForResourceException.class,
+        () -> doFailingTest("domain_transfer_query_contact_authinfo.xml"));
   }
 
   @Test
@@ -185,39 +188,43 @@ public class DomainTransferQueryFlowTest
     domain = persistResource(domain.asBuilder()
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("badpassword")))
         .build());
-    thrown.expect(BadAuthInfoForResourceException.class);
-    doFailingTest("domain_transfer_query_domain_authinfo.xml");
+    assertThrows(
+        BadAuthInfoForResourceException.class,
+        () -> doFailingTest("domain_transfer_query_domain_authinfo.xml"));
   }
 
   @Test
   public void testFailure_neverBeenTransferred() throws Exception {
     changeTransferStatus(null);
-    thrown.expect(NoTransferHistoryToQueryException.class);
-    doFailingTest("domain_transfer_query.xml");
+    assertThrows(
+        NoTransferHistoryToQueryException.class, () -> doFailingTest("domain_transfer_query.xml"));
   }
 
   @Test
   public void testFailure_unrelatedClient() throws Exception {
     setClientIdForFlow("ClientZ");
-    thrown.expect(NotAuthorizedToViewTransferException.class);
-    doFailingTest("domain_transfer_query.xml");
+    assertThrows(
+        NotAuthorizedToViewTransferException.class,
+        () -> doFailingTest("domain_transfer_query.xml"));
   }
 
   @Test
   public void testFailure_deletedDomain() throws Exception {
     domain = persistResource(
             domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    doFailingTest("domain_transfer_query.xml");
+    ResourceDoesNotExistException thrown =
+        expectThrows(
+            ResourceDoesNotExistException.class, () -> doFailingTest("domain_transfer_query.xml"));
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
   public void testFailure_nonexistentDomain() throws Exception {
     deleteResource(domain);
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    doFailingTest("domain_transfer_query.xml");
+    ResourceDoesNotExistException thrown =
+        expectThrows(
+            ResourceDoesNotExistException.class, () -> doFailingTest("domain_transfer_query.xml"));
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test

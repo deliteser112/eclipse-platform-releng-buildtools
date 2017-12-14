@@ -274,23 +274,20 @@ public class DomainCheckFlowTest
   @Test
   public void testFailure_tooManyIds() throws Exception {
     setEppInput("domain_check_51.xml");
-    thrown.expect(TooManyResourceChecksException.class);
-    runFlow();
+    assertThrows(TooManyResourceChecksException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_wrongTld() throws Exception {
     setEppInput("domain_check.xml");
-    thrown.expect(TldDoesNotExistException.class);
-    runFlow();
+    assertThrows(TldDoesNotExistException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
-    thrown.expect(NotAuthorizedForTldException.class);
-    runFlow();
+    assertThrows(NotAuthorizedForTldException.class, () -> runFlow());
   }
 
   @Test
@@ -389,8 +386,7 @@ public class DomainCheckFlowTest
   @Test
   public void testFailure_predelegation() throws Exception {
     createTld("tld", TldState.PREDELEGATION);
-    thrown.expect(BadCommandForRegistryPhaseException.class);
-    runFlow();
+    assertThrows(BadCommandForRegistryPhaseException.class, () -> runFlow());
   }
 
   @Test
@@ -677,177 +673,152 @@ public class DomainCheckFlowTest
   @Test
   public void testFeeExtension_wrongCurrency_v06() throws Exception {
     setEppInput("domain_check_fee_euro_v06.xml");
-    thrown.expect(CurrencyUnitMismatchException.class);
-    runFlow();
+    assertThrows(CurrencyUnitMismatchException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_wrongCurrency_v11() throws Exception {
     setEppInput("domain_check_fee_euro_v11.xml");
-    thrown.expect(CurrencyUnitMismatchException.class);
-    runFlow();
+    assertThrows(CurrencyUnitMismatchException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_wrongCurrency_v12() throws Exception {
     setEppInput("domain_check_fee_euro_v12.xml");
-    thrown.expect(CurrencyUnitMismatchException.class);
-    runFlow();
+    assertThrows(CurrencyUnitMismatchException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_periodNotInYears_v06() throws Exception {
     setEppInput("domain_check_fee_bad_period_v06.xml");
-    thrown.expect(BadPeriodUnitException.class);
-    runFlow();
+    assertThrows(BadPeriodUnitException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_periodNotInYears_v11() throws Exception {
     setEppInput("domain_check_fee_bad_period_v11.xml");
-    thrown.expect(BadPeriodUnitException.class);
-    runFlow();
+    assertThrows(BadPeriodUnitException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_periodNotInYears_v12() throws Exception {
     setEppInput("domain_check_fee_bad_period_v12.xml");
-    thrown.expect(BadPeriodUnitException.class);
-    runFlow();
+    assertThrows(BadPeriodUnitException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_commandWithPhase_v06() throws Exception {
     setEppInput("domain_check_fee_command_phase_v06.xml");
-    thrown.expect(FeeChecksDontSupportPhasesException.class);
-    runFlow();
+    assertThrows(FeeChecksDontSupportPhasesException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_commandWithPhase_v11() throws Exception {
     setEppInput("domain_check_fee_command_phase_v11.xml");
-    thrown.expect(FeeChecksDontSupportPhasesException.class);
-    runFlow();
+    assertThrows(FeeChecksDontSupportPhasesException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_commandWithPhase_v12() throws Exception {
     setEppInput("domain_check_fee_command_phase_v12.xml");
-    thrown.expect(FeeChecksDontSupportPhasesException.class);
-    runFlow();
+    assertThrows(FeeChecksDontSupportPhasesException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_commandSubphase_v06() throws Exception {
     setEppInput("domain_check_fee_command_subphase_v06.xml");
-    thrown.expect(FeeChecksDontSupportPhasesException.class);
-    runFlow();
+    assertThrows(FeeChecksDontSupportPhasesException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_commandSubphase_v11() throws Exception {
     setEppInput("domain_check_fee_command_subphase_v11.xml");
-    thrown.expect(FeeChecksDontSupportPhasesException.class);
-    runFlow();
+    assertThrows(FeeChecksDontSupportPhasesException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_commandSubphase_v12() throws Exception {
     setEppInput("domain_check_fee_command_subphase_v12.xml");
-    thrown.expect(FeeChecksDontSupportPhasesException.class);
-    runFlow();
+    assertThrows(FeeChecksDontSupportPhasesException.class, () -> runFlow());
   }
 
   // This test is only relevant for v06, since domain names are not specified in v11 or v12.
   @Test
   public void testFeeExtension_feeCheckNotInAvailabilityCheck() throws Exception {
     setEppInput("domain_check_fee_not_in_avail.xml");
-    thrown.expect(OnlyCheckedNamesCanBeFeeCheckedException.class);
-    runFlow();
+    assertThrows(OnlyCheckedNamesCanBeFeeCheckedException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_multiyearRestore_v06() throws Exception {
     setEppInput("domain_check_fee_multiyear_restore_v06.xml");
-    thrown.expect(RestoresAreAlwaysForOneYearException.class);
-    runFlow();
+    assertThrows(RestoresAreAlwaysForOneYearException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_multiyearRestore_v11() throws Exception {
     setEppInput("domain_check_fee_multiyear_restore_v11.xml");
-    thrown.expect(RestoresAreAlwaysForOneYearException.class);
-    runFlow();
+    assertThrows(RestoresAreAlwaysForOneYearException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_multiyearRestore_v12() throws Exception {
     setEppInput("domain_check_fee_multiyear_restore_v12.xml");
-    thrown.expect(RestoresAreAlwaysForOneYearException.class);
-    runFlow();
+    assertThrows(RestoresAreAlwaysForOneYearException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_multiyearTransfer_v06() throws Exception {
     setEppInput("domain_check_fee_multiyear_transfer_v06.xml");
-    thrown.expect(TransfersAreAlwaysForOneYearException.class);
-    runFlow();
+    assertThrows(TransfersAreAlwaysForOneYearException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_multiyearTransfer_v11() throws Exception {
     setEppInput("domain_check_fee_multiyear_transfer_v11.xml");
-    thrown.expect(TransfersAreAlwaysForOneYearException.class);
-    runFlow();
+    assertThrows(TransfersAreAlwaysForOneYearException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_multiyearTransfer_v12() throws Exception {
     setEppInput("domain_check_fee_multiyear_transfer_v12.xml");
-    thrown.expect(TransfersAreAlwaysForOneYearException.class);
-    runFlow();
+    assertThrows(TransfersAreAlwaysForOneYearException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_unknownCommand_v06() throws Exception {
     setEppInput("domain_check_fee_unknown_command_v06.xml");
-    thrown.expect(UnknownFeeCommandException.class);
-    runFlow();
+    assertThrows(UnknownFeeCommandException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_unknownCommand_v11() throws Exception {
     setEppInput("domain_check_fee_unknown_command_v11.xml");
-    thrown.expect(UnknownFeeCommandException.class);
-    runFlow();
+    assertThrows(UnknownFeeCommandException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_unknownCommand_v12() throws Exception {
     setEppInput("domain_check_fee_unknown_command_v12.xml");
-    thrown.expect(UnknownFeeCommandException.class);
-    runFlow();
+    assertThrows(UnknownFeeCommandException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_invalidCommand_v06() throws Exception {
     setEppInput("domain_check_fee_invalid_command_v06.xml");
-    thrown.expect(UnknownFeeCommandException.class);
-    runFlow();
+    assertThrows(UnknownFeeCommandException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_invalidCommand_v11() throws Exception {
     setEppInput("domain_check_fee_invalid_command_v11.xml");
-    thrown.expect(UnknownFeeCommandException.class);
-    runFlow();
+    assertThrows(UnknownFeeCommandException.class, () -> runFlow());
   }
 
   @Test
   public void testFeeExtension_invalidCommand_v12() throws Exception {
     setEppInput("domain_check_fee_invalid_command_v12.xml");
-    thrown.expect(UnknownFeeCommandException.class);
-    runFlow();
+    assertThrows(UnknownFeeCommandException.class, () -> runFlow());
   }
 
   private void runEapFeeCheckTest(String inputFile, String outputFile) throws Exception {

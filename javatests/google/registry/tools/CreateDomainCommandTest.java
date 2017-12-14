@@ -14,6 +14,9 @@
 
 package google.registry.tools;
 
+import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
+
 import com.beust.jcommander.ParameterException;
 import google.registry.testing.DeterministicStringGenerator;
 import org.junit.Before;
@@ -69,86 +72,122 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
 
   @Test
   public void testFailure_duplicateDomains() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Duplicate arguments found: \'example.tld\'");
-    runCommandForced(
-        "--client=NewRegistrar",
-        "--registrant=crr-admin",
-        "--admins=crr-admin",
-        "--techs=crr-tech",
-        "example.tld",
-        "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--admins=crr-admin",
+                    "--techs=crr-tech",
+                    "example.tld",
+                    "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("Duplicate arguments found: \'example.tld\'");
   }
 
   @Test
   public void testFailure_missingDomain() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("Main parameters are required");
-    runCommandForced(
-        "--client=NewRegistrar",
-        "--registrant=crr-admin",
-        "--admins=crr-admin",
-        "--techs=crr-tech");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--admins=crr-admin",
+                    "--techs=crr-tech"));
+    assertThat(thrown).hasMessageThat().contains("Main parameters are required");
   }
 
   @Test
   public void testFailure_missingClientId() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--client");
-    runCommandForced(
-        "--admins=crr-admin", "--techs=crr-tech", "--registrant=crr-admin", "example.tld");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--admins=crr-admin",
+                    "--techs=crr-tech",
+                    "--registrant=crr-admin",
+                    "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("--client");
   }
 
   @Test
   public void testFailure_missingRegistrant() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrant must be specified");
-    runCommandForced(
-        "--client=NewRegistrar", "--admins=crr-admin", "--techs=crr-tech", "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--admins=crr-admin",
+                    "--techs=crr-tech",
+                    "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("Registrant must be specified");
   }
 
   @Test
   public void testFailure_missingAdmins() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("At least one admin must be specified");
-    runCommandForced(
-        "--client=NewRegistrar", "--registrant=crr-admin", "--techs=crr-tech", "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--techs=crr-tech",
+                    "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("At least one admin must be specified");
   }
 
   @Test
   public void testFailure_missingTechs() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("At least one tech must be specified");
-    runCommandForced(
-        "--client=NewRegistrar", "--registrant=crr-admin", "--admins=crr-admin", "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--admins=crr-admin",
+                    "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("At least one tech must be specified");
   }
 
   @Test
   public void testFailure_tooManyNameServers() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("There can be at most 13 nameservers");
-    runCommandForced(
-        "--client=NewRegistrar",
-        "--registrant=crr-admin",
-        "--admins=crr-admin",
-        "--techs=crr-tech",
-        "--nameservers=ns1.zdns.google,ns2.zdns.google,ns3.zdns.google,ns4.zdns.google,"
-            + "ns5.zdns.google,ns6.zdns.google,ns7.zdns.google,ns8.zdns.google,"
-            + "ns9.zdns.google,ns10.zdns.google,ns11.zdns.google,ns12.zdns.google,"
-            + "ns13.zdns.google,ns14.zdns.google",
-        "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--admins=crr-admin",
+                    "--techs=crr-tech",
+                    "--nameservers=ns1.zdns.google,ns2.zdns.google,ns3.zdns.google,ns4.zdns.google,"
+                        + "ns5.zdns.google,ns6.zdns.google,ns7.zdns.google,ns8.zdns.google,"
+                        + "ns9.zdns.google,ns10.zdns.google,ns11.zdns.google,ns12.zdns.google,"
+                        + "ns13.zdns.google,ns14.zdns.google",
+                    "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("There can be at most 13 nameservers");
   }
 
   @Test
   public void testFailure_badPeriod() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--period");
-    runCommandForced(
-        "--client=NewRegistrar",
-        "--registrant=crr-admin",
-        "--admins=crr-admin",
-        "--techs=crr-tech",
-        "--period=x",
-        "--domain=example.tld");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--admins=crr-admin",
+                    "--techs=crr-tech",
+                    "--period=x",
+                    "--domain=example.tld"));
+    assertThat(thrown).hasMessageThat().contains("--period");
   }
 }

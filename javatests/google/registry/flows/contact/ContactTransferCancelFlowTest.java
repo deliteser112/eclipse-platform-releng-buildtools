@@ -22,6 +22,8 @@ import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.getOnlyPollMessage;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
@@ -126,81 +128,86 @@ public class ContactTransferCancelFlowTest
         contact.asBuilder()
             .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
             .build());
-    thrown.expect(BadAuthInfoForResourceException.class);
-    doFailingTest("contact_transfer_cancel_with_authinfo.xml");
+    assertThrows(
+        BadAuthInfoForResourceException.class,
+        () -> doFailingTest("contact_transfer_cancel_with_authinfo.xml"));
   }
 
   @Test
   public void testFailure_neverBeenTransferred() throws Exception {
     changeTransferStatus(null);
-    thrown.expect(NotPendingTransferException.class);
-    doFailingTest("contact_transfer_cancel.xml");
+    assertThrows(
+        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
   }
 
   @Test
   public void testFailure_clientApproved() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_APPROVED);
-    thrown.expect(NotPendingTransferException.class);
-    doFailingTest("contact_transfer_cancel.xml");
+    assertThrows(
+        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
   }
 
  @Test
   public void testFailure_clientRejected() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_REJECTED);
-    thrown.expect(NotPendingTransferException.class);
-    doFailingTest("contact_transfer_cancel.xml");
+    assertThrows(
+        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
   }
 
  @Test
   public void testFailure_clientCancelled() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_CANCELLED);
-    thrown.expect(NotPendingTransferException.class);
-    doFailingTest("contact_transfer_cancel.xml");
+    assertThrows(
+        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
   }
 
   @Test
   public void testFailure_serverApproved() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_APPROVED);
-    thrown.expect(NotPendingTransferException.class);
-    doFailingTest("contact_transfer_cancel.xml");
+    assertThrows(
+        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
   }
 
   @Test
   public void testFailure_serverCancelled() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_CANCELLED);
-    thrown.expect(NotPendingTransferException.class);
-    doFailingTest("contact_transfer_cancel.xml");
+    assertThrows(
+        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
   }
 
   @Test
   public void testFailure_sponsoringClient() throws Exception {
     setClientIdForFlow("TheRegistrar");
-    thrown.expect(NotTransferInitiatorException.class);
-    doFailingTest("contact_transfer_cancel.xml");
+    assertThrows(
+        NotTransferInitiatorException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
   }
 
   @Test
   public void testFailure_unrelatedClient() throws Exception {
     setClientIdForFlow("ClientZ");
-    thrown.expect(NotTransferInitiatorException.class);
-    doFailingTest("contact_transfer_cancel.xml");
+    assertThrows(
+        NotTransferInitiatorException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
   }
 
   @Test
   public void testFailure_deletedContact() throws Exception {
     contact = persistResource(
         contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    doFailingTest("contact_transfer_cancel.xml");
+    ResourceDoesNotExistException thrown =
+        expectThrows(
+            ResourceDoesNotExistException.class,
+            () -> doFailingTest("contact_transfer_cancel.xml"));
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
   public void testFailure_nonexistentContact() throws Exception {
     deleteResource(contact);
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    doFailingTest("contact_transfer_cancel.xml");
+    ResourceDoesNotExistException thrown =
+        expectThrows(
+            ResourceDoesNotExistException.class,
+            () -> doFailingTest("contact_transfer_cancel.xml"));
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test

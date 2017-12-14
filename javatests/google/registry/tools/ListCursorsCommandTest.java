@@ -17,6 +17,7 @@ package google.registry.tools;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import google.registry.model.common.Cursor;
@@ -49,9 +50,9 @@ public class ListCursorsCommandTest extends CommandTestCase<ListCursorsCommand> 
 
   @Test
   public void testListCursors_badCursor_throwsIae() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("Invalid value for --type parameter.");
-    runCommand("--type=love");
+    ParameterException thrown =
+        expectThrows(ParameterException.class, () -> runCommand("--type=love"));
+    assertThat(thrown).hasMessageThat().contains("Invalid value for --type parameter.");
   }
 
   @Test

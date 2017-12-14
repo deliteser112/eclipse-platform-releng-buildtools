@@ -14,6 +14,10 @@
 
 package google.registry.tools;
 
+import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
+
 import com.beust.jcommander.ParameterException;
 import org.junit.Test;
 
@@ -34,21 +38,20 @@ public class GetRegistrarCommandTest extends CommandTestCase<GetRegistrarCommand
 
   @Test
   public void testFailure_registrarDoesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrar with id ClientZ does not exist");
-    runCommand("ClientZ");
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> runCommand("ClientZ"));
+    assertThat(thrown).hasMessageThat().contains("Registrar with id ClientZ does not exist");
   }
 
   @Test
   public void testFailure_noRegistrarName() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand();
+    assertThrows(ParameterException.class, () -> runCommand());
   }
 
   @Test
   public void testFailure_oneRegistrarDoesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrar with id ClientZ does not exist");
-    runCommand("NewRegistrar", "ClientZ");
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> runCommand("NewRegistrar", "ClientZ"));
+    assertThat(thrown).hasMessageThat().contains("Registrar with id ClientZ does not exist");
   }
 }

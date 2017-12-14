@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,9 +29,7 @@ import com.google.api.client.util.store.DataStore;
 import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
 import java.io.Serializable;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -61,9 +60,6 @@ public class AuthModuleTest {
       return result;
     }
   }
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void test_clientScopeQualifier() {
     AuthModule authModule = new AuthModule();
@@ -129,9 +125,8 @@ public class AuthModuleTest {
 
   @Test
   public void test_provideCredential_notStored() {
-    thrown.expect(AuthModule.LoginRequiredException.class);
     // Doing this without the mock setup should cause us to throw an exception because the
     // credential has not been stored.
-    getCredential();
+    assertThrows(AuthModule.LoginRequiredException.class, () -> getCredential());
   }
 }

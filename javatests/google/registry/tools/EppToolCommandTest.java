@@ -14,6 +14,9 @@
 
 package google.registry.tools;
 
+import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
+
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import google.registry.tools.server.ToolsTestData;
@@ -71,8 +74,10 @@ public class EppToolCommandTest extends EppToolCommandTestCase<EppToolCommand> {
 
   @Test
   public void testFailure_nonexistentClientId() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("fakeclient");
-    runCommandForced("--client=fakeclient", "fake-xml");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> runCommandForced("--client=fakeclient", "fake-xml"));
+    assertThat(thrown).hasMessageThat().contains("fakeclient");
   }
 }

@@ -15,37 +15,34 @@
 package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import google.registry.request.HttpException.BadRequestException;
 import javax.servlet.http.HttpServletRequest;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Unit tests for {@link TlsCredentials}. */
 @RunWith(JUnit4.class)
 public final class TlsCredentialsTest {
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testProvideClientCertificateHash() {
     HttpServletRequest req = mock(HttpServletRequest.class);
     when(req.getHeader("X-SSL-Certificate")).thenReturn("data");
-    assertThat(TlsCredentials.EppTlsModule.provideClientCertificateHash(req))
-        .isEqualTo("data");
+    assertThat(TlsCredentials.EppTlsModule.provideClientCertificateHash(req)).isEqualTo("data");
   }
 
   @Test
   public void testProvideClientCertificateHash_missing() {
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("Missing header: X-SSL-Certificate");
     HttpServletRequest req = mock(HttpServletRequest.class);
-    TlsCredentials.EppTlsModule.provideClientCertificateHash(req);
+    BadRequestException thrown =
+        expectThrows(
+            BadRequestException.class,
+            () -> TlsCredentials.EppTlsModule.provideClientCertificateHash(req));
+    assertThat(thrown).hasMessageThat().contains("Missing header: X-SSL-Certificate");
   }
 
   @Test
@@ -58,10 +55,12 @@ public final class TlsCredentialsTest {
 
   @Test
   public void testProvideRequestedServername_missing() {
-    thrown.expect(BadRequestException.class);
-    thrown.expectMessage("Missing header: X-Requested-Servername-SNI");
     HttpServletRequest req = mock(HttpServletRequest.class);
-    TlsCredentials.EppTlsModule.provideRequestedServername(req);
+    BadRequestException thrown =
+        expectThrows(
+            BadRequestException.class,
+            () -> TlsCredentials.EppTlsModule.provideRequestedServername(req));
+    assertThat(thrown).hasMessageThat().contains("Missing header: X-Requested-Servername-SNI");
   }
 
 }

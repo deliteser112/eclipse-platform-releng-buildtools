@@ -24,6 +24,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 
@@ -83,17 +84,17 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
 
   @Test
   public void testFailure_neverExisted() throws Exception {
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage("(ns1.example.tld)");
-    runFlow();
+    ResourceDoesNotExistException thrown =
+        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("(ns1.example.tld)");
   }
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedHost("ns1.example.tld", clock.nowUtc().minusDays(1));
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage("(ns1.example.tld)");
-    runFlow();
+    ResourceDoesNotExistException thrown =
+        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("(ns1.example.tld)");
   }
 
   private void doFailingStatusTest(StatusValue statusValue, Class<? extends Exception> exception)
@@ -129,8 +130,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveHost("ns1.example.tld");
-    thrown.expect(ResourceNotOwnedException.class);
-    runFlow();
+    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
   }
 
   @Test
@@ -181,8 +181,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
             .setPersistedCurrentSponsorClientId("TheRegistrar")  // Shouldn't help.
             .setSuperordinateDomain(Key.create(domain))
             .build());
-    thrown.expect(ResourceNotOwnedException.class);
-    runFlow();
+    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
   }
 
   @Test
@@ -237,8 +236,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
             .setPersistedCurrentSponsorClientId("NewRegistrar")  // Shouldn't help.
             .setSuperordinateDomain(Key.create(domain))
             .build());
-    thrown.expect(ResourceNotOwnedException.class);
-    runFlow();
+    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
   }
 
   @Test
@@ -248,8 +246,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
         .setNameservers(ImmutableSet.of(
             Key.create(persistActiveHost("ns1.example.tld"))))
         .build());
-    thrown.expect(ResourceToDeleteIsReferencedException.class);
-    runFlow();
+    assertThrows(ResourceToDeleteIsReferencedException.class, () -> runFlow());
   }
 
   @Test
@@ -259,30 +256,27 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
         .setNameservers(ImmutableSet.of(
             Key.create(persistActiveHost("ns1.example.tld"))))
         .build());
-    thrown.expect(ResourceToDeleteIsReferencedException.class);
-    runFlow();
+    assertThrows(ResourceToDeleteIsReferencedException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_nonLowerCaseHostname() throws Exception {
     setEppInput("host_delete.xml", ImmutableMap.of("HOSTNAME", "NS1.EXAMPLE.NET"));
-    thrown.expect(HostNameNotLowerCaseException.class);
-    runFlow();
+    assertThrows(HostNameNotLowerCaseException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_nonPunyCodedHostname() throws Exception {
     setEppInput("host_delete.xml", ImmutableMap.of("HOSTNAME", "ns1.çauçalito.tld"));
-    thrown.expect(HostNameNotPunyCodedException.class);
-    thrown.expectMessage("expected ns1.xn--aualito-txac.tld");
-    runFlow();
+    HostNameNotPunyCodedException thrown =
+        expectThrows(HostNameNotPunyCodedException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("expected ns1.xn--aualito-txac.tld");
   }
 
   @Test
   public void testFailure_nonCanonicalHostname() throws Exception {
     setEppInput("host_delete.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld."));
-    thrown.expect(HostNameNotNormalizedException.class);
-    runFlow();
+    assertThrows(HostNameNotNormalizedException.class, () -> runFlow());
   }
 
   @Test

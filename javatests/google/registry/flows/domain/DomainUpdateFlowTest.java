@@ -440,8 +440,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_metadata.xml");
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(OnlyToolCanPassMetadataException.class);
-    runFlow();
+    assertThrows(OnlyToolCanPassMetadataException.class, () -> runFlow());
   }
 
   @Test
@@ -795,8 +794,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
             .setDsData(builder.build())
             .build());
-    thrown.expect(TooManyDsRecordsException.class);
-    runFlow();
+    assertThrows(TooManyDsRecordsException.class, () -> runFlow());
   }
 
   @Test
@@ -806,8 +804,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistDomain();
     // Modify domain so it has 13 nameservers. We will then try to add one in the test.
     modifyDomainToHave13Nameservers();
-    thrown.expect(TooManyNameserversException.class);
-    runFlow();
+    assertThrows(TooManyNameserversException.class, () -> runFlow());
   }
 
   @Test
@@ -815,25 +812,24 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_wrong_extension.xml");
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(UnimplementedExtensionException.class);
-    runFlow();
+    assertThrows(UnimplementedExtensionException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_neverExisted() throws Exception {
     persistReferencedEntities();
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    runFlow();
+    ResourceDoesNotExistException thrown =
+        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     persistReferencedEntities();
     persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    runFlow();
+    ResourceDoesNotExistException thrown =
+        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
@@ -842,9 +838,9 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistActiveContact("sh8013");
     persistActiveContact("mak21");
     persistActiveDomain(getUniqueIdFromCommand());
-    thrown.expect(LinkedResourcesDoNotExistException.class);
-    thrown.expectMessage("(ns2.example.foo)");
-    runFlow();
+    LinkedResourcesDoNotExistException thrown =
+        expectThrows(LinkedResourcesDoNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("(ns2.example.foo)");
   }
 
   @Test
@@ -853,9 +849,9 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistActiveHost("ns2.example.foo");
     persistActiveContact("mak21");
     persistActiveDomain(getUniqueIdFromCommand());
-    thrown.expect(LinkedResourcesDoNotExistException.class);
-    thrown.expectMessage("(sh8013)");
-    runFlow();
+    LinkedResourcesDoNotExistException thrown =
+        expectThrows(LinkedResourcesDoNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("(sh8013)");
   }
 
   @Test
@@ -871,8 +867,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 DesignatedContact.create(Type.TECH, Key.create(
                     loadByForeignKey(ContactResource.class, "foo", clock.nowUtc())))))
             .build());
-    thrown.expect(DuplicateContactForRoleException.class);
-    runFlow();
+    assertThrows(DuplicateContactForRoleException.class, () -> runFlow());
   }
 
   @Test
@@ -880,8 +875,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_prohibited_status.xml");
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(StatusNotClientSettableException.class);
-    runFlow();
+    assertThrows(StatusNotClientSettableException.class, () -> runFlow());
   }
 
   @Test
@@ -941,8 +935,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
             .build());
-    thrown.expect(ResourceHasClientUpdateProhibitedException.class);
-    runFlow();
+    assertThrows(ResourceHasClientUpdateProhibitedException.class, () -> runFlow());
   }
 
   @Test
@@ -952,9 +945,9 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         newDomainResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(SERVER_UPDATE_PROHIBITED))
             .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
-    thrown.expectMessage("serverUpdateProhibited");
-    runFlow();
+    ResourceStatusProhibitsOperationException thrown =
+        expectThrows(ResourceStatusProhibitsOperationException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("serverUpdateProhibited");
   }
 
   @Test
@@ -965,9 +958,9 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setDeletionTime(clock.nowUtc().plusDays(1))
             .addStatusValue(StatusValue.PENDING_DELETE)
             .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
-    thrown.expectMessage("pendingDelete");
-    runFlow();
+    ResourceStatusProhibitsOperationException thrown =
+        expectThrows(ResourceStatusProhibitsOperationException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("pendingDelete");
   }
 
   @Test
@@ -975,8 +968,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_duplicate_contact.xml");
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(DuplicateContactForRoleException.class);
-    runFlow();
+    assertThrows(DuplicateContactForRoleException.class, () -> runFlow());
   }
 
   @Test
@@ -985,8 +977,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_missing_contact_type.xml");
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(MissingContactTypeException.class);
-    runFlow();
+    assertThrows(MissingContactTypeException.class, () -> runFlow());
   }
 
   @Test
@@ -994,8 +985,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     sessionMetadata.setClientId("NewRegistrar");
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(ResourceNotOwnedException.class);
-    runFlow();
+    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
   }
 
   @Test
@@ -1014,8 +1004,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(NotAuthorizedForTldException.class);
-    runFlow();
+    assertThrows(NotAuthorizedForTldException.class, () -> runFlow());
   }
 
   @Test
@@ -1038,8 +1027,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setNameservers(ImmutableSet.of(Key.create(
                 loadByForeignKey(HostResource.class, "ns1.example.foo", clock.nowUtc()))))
             .build());
-    thrown.expect(AddRemoveSameValueException.class);
-    runFlow();
+    assertThrows(AddRemoveSameValueException.class, () -> runFlow());
   }
 
   @Test
@@ -1053,8 +1041,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 Key.create(
                     loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))))
             .build());
-    thrown.expect(AddRemoveSameValueException.class);
-    runFlow();
+    assertThrows(AddRemoveSameValueException.class, () -> runFlow());
   }
 
   @Test
@@ -1067,8 +1054,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
                 DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
             .build());
-    thrown.expect(MissingAdminContactException.class);
-    runFlow();
+    assertThrows(MissingAdminContactException.class, () -> runFlow());
   }
 
   @Test
@@ -1081,8 +1067,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
                 DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
             .build());
-    thrown.expect(MissingTechnicalContactException.class);
-    runFlow();
+    assertThrows(MissingTechnicalContactException.class, () -> runFlow());
   }
 
   @Test
@@ -1096,9 +1081,10 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         .addStatusValue(StatusValue.PENDING_DELETE)
         .build());
     clock.advanceOneMilli();
-    thrown.expect(LinkedResourceInPendingDeleteProhibitsOperationException.class);
-    thrown.expectMessage("mak21");
-    runFlow();
+    LinkedResourceInPendingDeleteProhibitsOperationException thrown =
+        expectThrows(
+            LinkedResourceInPendingDeleteProhibitsOperationException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("mak21");
   }
 
   @Test
@@ -1113,9 +1099,10 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
           .addStatusValue(StatusValue.PENDING_DELETE)
           .build());
     clock.advanceOneMilli();
-    thrown.expect(LinkedResourceInPendingDeleteProhibitsOperationException.class);
-    thrown.expectMessage("ns2.example.foo");
-    runFlow();
+    LinkedResourceInPendingDeleteProhibitsOperationException thrown =
+        expectThrows(
+            LinkedResourceInPendingDeleteProhibitsOperationException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
   }
 
   @Test
@@ -1127,8 +1114,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setAllowedRegistrantContactIds(ImmutableSet.of("contact1234"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(RegistrantNotAllowedException.class);
-    runFlow();
+    assertThrows(RegistrantNotAllowedException.class, () -> runFlow());
   }
 
   @Test
@@ -1140,8 +1126,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotAllowedForTldException.class);
-    runFlow();
+    assertThrows(NameserversNotAllowedForTldException.class, () -> runFlow());
   }
 
   @Test
@@ -1223,8 +1208,8 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         Registry.get("tld").asBuilder()
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
             .build());
-    thrown.expect(NameserversNotSpecifiedForTldWithNameserverWhitelistException.class);
-    runFlow();
+    assertThrows(
+        NameserversNotSpecifiedForTldWithNameserverWhitelistException.class, () -> runFlow());
   }
 
   @Test
@@ -1252,9 +1237,9 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 persistReservedList(
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns3.example.foo"))
             .build());
-    thrown.expect(NameserversNotAllowedForDomainException.class);
-    thrown.expectMessage("ns2.example.foo");
-    runFlow();
+    NameserversNotAllowedForDomainException thrown =
+        expectThrows(NameserversNotAllowedForDomainException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
   }
 
   @Test
@@ -1269,8 +1254,8 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 persistReservedList(
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
             .build());
-    thrown.expect(NameserversNotSpecifiedForNameserverRestrictedDomainException.class);
-    runFlow();
+    assertThrows(
+        NameserversNotSpecifiedForNameserverRestrictedDomainException.class, () -> runFlow());
   }
 
   @Test
@@ -1314,9 +1299,9 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 persistReservedList(
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns3.example.foo"))
             .build());
-    thrown.expect(NameserversNotAllowedForDomainException.class);
-    thrown.expectMessage("ns2.example.foo");
-    runFlow();
+    NameserversNotAllowedForDomainException thrown =
+        expectThrows(NameserversNotAllowedForDomainException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
   }
 
   @Test
@@ -1349,9 +1334,9 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setReservedLists(
                 persistReservedList("reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo"))
             .build());
-    thrown.expect(NameserversNotAllowedForDomainException.class);
-    thrown.expectMessage("ns2.example.foo");
-    runFlow();
+    NameserversNotAllowedForDomainException thrown =
+        expectThrows(NameserversNotAllowedForDomainException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
   }
 
   @Test
@@ -1367,9 +1352,9 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 persistReservedList(
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
             .build());
-    thrown.expect(NameserversNotAllowedForTldException.class);
-    thrown.expectMessage("ns2.example.foo");
-    runFlow();
+    NameserversNotAllowedForTldException thrown =
+        expectThrows(NameserversNotAllowedForTldException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
   }
 
   @Test
@@ -1387,8 +1372,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 persistReservedList(
                     "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
             .build());
-    thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class);
-    runFlow();
+    assertThrows(DomainNotAllowedForTldWithCreateRestrictionException.class, () -> runFlow());
   }
 
   @Test
@@ -1403,8 +1387,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 persistReservedList(
                     "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
             .build());
-    thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class);
-    runFlow();
+    assertThrows(DomainNotAllowedForTldWithCreateRestrictionException.class, () -> runFlow());
   }
 
   @Test
@@ -1458,8 +1441,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(FeesMismatchException.class);
-    runFlow();
+    assertThrows(FeesMismatchException.class, () -> runFlow());
   }
 
   // This test should throw an exception, because the fee extension is required when the fee is not
@@ -1469,8 +1451,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_wildcard.xml", ImmutableMap.of("DOMAIN", "non-free-update.tld"));
     persistReferencedEntities();
     persistDomain();
-    thrown.expect(FeesRequiredForNonFreeOperationException.class);
-    runFlow();
+    assertThrows(FeesRequiredForNonFreeOperationException.class, () -> runFlow());
   }
 
   @Test

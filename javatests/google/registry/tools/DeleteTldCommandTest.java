@@ -18,6 +18,7 @@ import static google.registry.testing.DatastoreHelper.allowRegistrarAccess;
 import static google.registry.testing.DatastoreHelper.newRegistry;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Ascii;
@@ -57,35 +58,30 @@ public class DeleteTldCommandTest extends CommandTestCase<DeleteTldCommand> {
     runCommandForced("--tld=" + TLD_TEST);
 
     Registry.get(TLD_REAL);
-    thrown.expect(RegistryNotFoundException.class);
-    Registry.get(TLD_TEST);
+    assertThrows(RegistryNotFoundException.class, () -> Registry.get(TLD_TEST));
   }
 
   @Test
   public void testFailure_whenTldDoesNotExist() throws Exception {
-    thrown.expect(RegistryNotFoundException.class);
-    runCommandForced("--tld=nonexistenttld");
+    assertThrows(RegistryNotFoundException.class, () -> runCommandForced("--tld=nonexistenttld"));
   }
 
   @Test
   public void testFailure_whenTldIsReal() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    runCommandForced("--tld=" + TLD_REAL);
+    assertThrows(IllegalStateException.class, () -> runCommandForced("--tld=" + TLD_REAL));
   }
 
   @Test
   public void testFailure_whenDomainsArePresent() throws Exception {
     persistDeletedDomain("domain." + TLD_TEST, DateTime.parse("2000-01-01TZ"));
 
-    thrown.expect(IllegalStateException.class);
-    runCommandForced("--tld=" + TLD_TEST);
+    assertThrows(IllegalStateException.class, () -> runCommandForced("--tld=" + TLD_TEST));
   }
 
   @Test
   public void testFailure_whenRegistrarLinksToTld() throws Exception {
     allowRegistrarAccess("TheRegistrar", TLD_TEST);
 
-    thrown.expect(IllegalStateException.class);
-    runCommandForced("--tld=" + TLD_TEST);
+    assertThrows(IllegalStateException.class, () -> runCommandForced("--tld=" + TLD_TEST));
   }
 }

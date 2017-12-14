@@ -14,6 +14,8 @@
 
 package google.registry.tools;
 
+import static google.registry.testing.JUnitBackports.assertThrows;
+
 import com.beust.jcommander.ParameterException;
 import google.registry.testing.DeterministicStringGenerator;
 import org.junit.Before;
@@ -58,30 +60,31 @@ public class CreateContactCommandTest extends EppToolCommandTestCase<CreateConta
 
   @Test
   public void testFailure_missingClientId() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommandForced();
+    assertThrows(ParameterException.class, () -> runCommandForced());
   }
 
   @Test
   public void testFailure_tooManyStreetLines() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommandForced(
-        "--client=NewRegistrar",
-        "--street=\"123 Example Dr.\"",
-        "--street=\"Floor 3\"",
-        "--street=\"Suite 100\"",
-        "--street=\"Office 1\"");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--street=\"123 Example Dr.\"",
+                "--street=\"Floor 3\"",
+                "--street=\"Suite 100\"",
+                "--street=\"Office 1\""));
   }
 
   @Test
   public void testFailure_badPhone() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommandForced("--client=NewRegistrar", "--phone=3");
+    assertThrows(
+        ParameterException.class, () -> runCommandForced("--client=NewRegistrar", "--phone=3"));
   }
 
   @Test
   public void testFailure_badFax() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommandForced("--client=NewRegistrar", "--fax=3");
+    assertThrows(
+        ParameterException.class, () -> runCommandForced("--client=NewRegistrar", "--fax=3"));
   }
 }

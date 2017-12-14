@@ -18,6 +18,7 @@ import static google.registry.model.registrar.Registrar.State.ACTIVE;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableList;
@@ -62,71 +63,81 @@ public class ValidateLoginCredentialsCommandTest
 
   @Test
   public void testFailure_loginWithBadPassword() throws Exception {
-    thrown.expect(BadRegistrarPasswordException.class);
-    runCommand(
-        "--client=NewRegistrar",
-        "--password=" + new StringBuffer(PASSWORD).reverse(),
-        "--cert_hash=" + CERT_HASH,
-        "--ip_address=" + CLIENT_IP);
+    assertThrows(
+        BadRegistrarPasswordException.class,
+        () ->
+            runCommand(
+                "--client=NewRegistrar",
+                "--password=" + new StringBuilder(PASSWORD).reverse(),
+                "--cert_hash=" + CERT_HASH,
+                "--ip_address=" + CLIENT_IP));
   }
 
   @Test
   public void testFailure_loginWithBadCertificateHash() throws Exception {
-    thrown.expect(EppException.class);
-    runCommand(
-        "--client=NewRegistrar",
-        "--password=" + PASSWORD,
-        "--cert_hash=" + new StringBuffer(CERT_HASH).reverse(),
-        "--ip_address=" + CLIENT_IP);
+    assertThrows(
+        EppException.class,
+        () ->
+            runCommand(
+                "--client=NewRegistrar",
+                "--password=" + PASSWORD,
+                "--cert_hash=" + new StringBuilder(CERT_HASH).reverse(),
+                "--ip_address=" + CLIENT_IP));
   }
 
   @Test
   public void testFailure_loginWithBadIp() throws Exception {
-    thrown.expect(EppException.class);
-    runCommand(
-        "--client=NewRegistrar",
-        "--password=" + PASSWORD,
-        "--cert_hash=" + CERT_HASH,
-        "--ip_address=" + new StringBuffer(CLIENT_IP).reverse());
+    assertThrows(
+        EppException.class,
+        () ->
+            runCommand(
+                "--client=NewRegistrar",
+                "--password=" + PASSWORD,
+                "--cert_hash=" + CERT_HASH,
+                "--ip_address=" + new StringBuilder(CLIENT_IP).reverse()));
   }
 
   @Test
   public void testFailure_missingClientId() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand(
-        "--password=" + PASSWORD,
-        "--cert_hash=" + CERT_HASH,
-        "--ip_address=" + CLIENT_IP);
+    assertThrows(
+        ParameterException.class,
+        () ->
+            runCommand(
+                "--password=" + PASSWORD, "--cert_hash=" + CERT_HASH, "--ip_address=" + CLIENT_IP));
   }
 
   @Test
   public void testFailure_missingPassword() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand(
-        "--client=NewRegistrar",
-        "--cert_hash=" + CERT_HASH,
-        "--ip_address=" + CLIENT_IP);
+    assertThrows(
+        ParameterException.class,
+        () ->
+            runCommand(
+                "--client=NewRegistrar", "--cert_hash=" + CERT_HASH, "--ip_address=" + CLIENT_IP));
   }
 
   @Test
   public void testFailure_unknownFlag() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand(
-        "--client=NewRegistrar",
-        "--password=" + PASSWORD,
-        "--cert_hash=" + CERT_HASH,
-        "--ip_address=" + CLIENT_IP,
-        "--unrecognized_flag=foo");
+    assertThrows(
+        ParameterException.class,
+        () ->
+            runCommand(
+                "--client=NewRegistrar",
+                "--password=" + PASSWORD,
+                "--cert_hash=" + CERT_HASH,
+                "--ip_address=" + CLIENT_IP,
+                "--unrecognized_flag=foo"));
   }
 
   @Test
   public void testFailure_certHashAndCertFile() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand(
-        "--client=NewRegistrar",
-        "--password=" + PASSWORD,
-        "--cert_hash=" + CERT_HASH,
-        "--cert_file=" + tmpDir.newFile(),
-        "--ip_address=" + CLIENT_IP);
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommand(
+                "--client=NewRegistrar",
+                "--password=" + PASSWORD,
+                "--cert_hash=" + CERT_HASH,
+                "--cert_file=" + tmpDir.newFile(),
+                "--ip_address=" + CLIENT_IP));
   }
 }

@@ -14,11 +14,13 @@
 
 package google.registry.tools;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableSet;
@@ -150,46 +152,58 @@ public class UniformRapidSuspensionCommandTest
   @Test
   public void testFailure_locksToPreserveWithoutUndo() throws Exception {
     persistActiveDomain("evil.tld");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("--undo");
-    runCommandForced("--domain_name=evil.tld", "--locks_to_preserve=serverDeleteProhibited");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--domain_name=evil.tld", "--locks_to_preserve=serverDeleteProhibited"));
+    assertThat(thrown).hasMessageThat().contains("--undo");
   }
 
   @Test
   public void testFailure_domainNameRequired() throws Exception {
     persistActiveDomain("evil.tld");
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--domain_name");
-    runCommandForced("--hosts=urs1.example.com,urs2.example.com");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () -> runCommandForced("--hosts=urs1.example.com,urs2.example.com"));
+    assertThat(thrown).hasMessageThat().contains("--domain_name");
   }
 
   @Test
   public void testFailure_extraFieldInDsData() throws Exception {
     persistActiveDomain("evil.tld");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Incorrect fields on --dsdata JSON");
-    runCommandForced(
-        "--domain_name=evil.tld",
-        "--dsdata={\"keyTag\":1,\"alg\":1,\"digestType\":1,\"digest\":\"abc\",\"foo\":1}");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--domain_name=evil.tld",
+                    "--dsdata={\"keyTag\":1,\"alg\":1,\"digestType\":1,\"digest\":\"abc\",\"foo\":1}"));
+    assertThat(thrown).hasMessageThat().contains("Incorrect fields on --dsdata JSON");
   }
 
   @Test
   public void testFailure_missingFieldInDsData() throws Exception {
     persistActiveDomain("evil.tld");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Incorrect fields on --dsdata JSON");
-    runCommandForced(
-        "--domain_name=evil.tld",
-        "--dsdata={\"keyTag\":1,\"alg\":1,\"digestType\":1}");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--domain_name=evil.tld",
+                    "--dsdata={\"keyTag\":1,\"alg\":1,\"digestType\":1}"));
+    assertThat(thrown).hasMessageThat().contains("Incorrect fields on --dsdata JSON");
   }
 
   @Test
   public void testFailure_malformedDsData() throws Exception {
     persistActiveDomain("evil.tld");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Invalid --dsdata JSON");
-    runCommandForced(
-        "--domain_name=evil.tld",
-        "--dsdata=[1,2,3]");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> runCommandForced("--domain_name=evil.tld", "--dsdata=[1,2,3]"));
+    assertThat(thrown).hasMessageThat().contains("Invalid --dsdata JSON");
   }
 }

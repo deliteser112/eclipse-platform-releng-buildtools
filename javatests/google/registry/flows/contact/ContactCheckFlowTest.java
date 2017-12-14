@@ -17,6 +17,7 @@ package google.registry.flows.contact;
 import static google.registry.model.eppoutput.CheckData.ContactCheck.create;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.flows.ResourceCheckFlowTestCase;
 import google.registry.flows.exceptions.TooManyResourceChecksException;
@@ -76,8 +77,7 @@ public class ContactCheckFlowTest
   @Test
   public void testTooManyIds() throws Exception {
     setEppInput("contact_check_51.xml");
-    thrown.expect(TooManyResourceChecksException.class);
-    runFlow();
+    assertThrows(TooManyResourceChecksException.class, () -> runFlow());
   }
 
   @Test

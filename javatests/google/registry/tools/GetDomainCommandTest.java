@@ -19,6 +19,7 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.ParameterException;
@@ -95,8 +96,7 @@ public class GetDomainCommandTest extends CommandTestCase<GetDomainCommand> {
 
   @Test
   public void testFailure_noDomainName() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand();
+    assertThrows(ParameterException.class, () -> runCommand());
   }
 
   @Test

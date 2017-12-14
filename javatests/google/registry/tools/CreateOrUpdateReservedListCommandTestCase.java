@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -50,17 +51,17 @@ public abstract class CreateOrUpdateReservedListCommandTestCase
 
   @Test
   public void testFailure_fileDoesntExist() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommandForced(
-        "--name=xn--q9jyb4c-blah",
-        "--input=" + reservedTermsPath + "-nonexistent");
+    assertThrows(
+        ParameterException.class,
+        () ->
+            runCommandForced(
+                "--name=xn--q9jyb4c-blah", "--input=" + reservedTermsPath + "-nonexistent"));
   }
 
   @Test
   public void testFailure_fileDoesntParse() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommandForced(
-        "--name=xn--q9jyb4c-blork",
-        "--input=" + invalidReservedTermsPath);
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> runCommandForced("--name=xn--q9jyb4c-blork", "--input=" + invalidReservedTermsPath));
   }
 }

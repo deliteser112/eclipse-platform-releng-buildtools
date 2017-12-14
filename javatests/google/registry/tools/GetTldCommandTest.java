@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.beust.jcommander.ParameterException;
 import org.junit.Test;
@@ -38,20 +39,17 @@ public class GetTldCommandTest extends CommandTestCase<GetTldCommand> {
 
   @Test
   public void testFailure_tldDoesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("xn--q9jyb4c");
+    assertThrows(IllegalArgumentException.class, () -> runCommand("xn--q9jyb4c"));
   }
 
   @Test
   public void testFailure_noTldName() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand();
+    assertThrows(ParameterException.class, () -> runCommand());
   }
 
   @Test
   public void testFailure_oneTldDoesNotExist() throws Exception {
     createTld("xn--q9jyb4c");
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("xn--q9jyb4c", "example");
+    assertThrows(IllegalArgumentException.class, () -> runCommand("xn--q9jyb4c", "example"));
   }
 }

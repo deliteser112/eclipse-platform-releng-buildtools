@@ -23,6 +23,7 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableSet;
@@ -71,17 +72,17 @@ public class ContactDeleteFlowTest
 
   @Test
   public void testFailure_neverExisted() throws Exception {
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    runFlow();
+    ResourceDoesNotExistException thrown =
+        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    runFlow();
+    ResourceDoesNotExistException thrown =
+        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
@@ -116,8 +117,7 @@ public class ContactDeleteFlowTest
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveContact(getUniqueIdFromCommand());
-    thrown.expect(ResourceNotOwnedException.class);
-    runFlow();
+    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
   }
 
   @Test
@@ -142,8 +142,7 @@ public class ContactDeleteFlowTest
     createTld("tld");
     persistResource(
         newDomainResource("example.tld", persistActiveContact(getUniqueIdFromCommand())));
-    thrown.expect(ResourceToDeleteIsReferencedException.class);
-    runFlow();
+    assertThrows(ResourceToDeleteIsReferencedException.class, () -> runFlow());
   }
 
   @Test
@@ -151,8 +150,7 @@ public class ContactDeleteFlowTest
     createTld("tld");
     persistResource(
         newDomainResource("example.tld", persistActiveContact(getUniqueIdFromCommand())));
-    thrown.expect(ResourceToDeleteIsReferencedException.class);
-    runFlow();
+    assertThrows(ResourceToDeleteIsReferencedException.class, () -> runFlow());
   }
 
   @Test

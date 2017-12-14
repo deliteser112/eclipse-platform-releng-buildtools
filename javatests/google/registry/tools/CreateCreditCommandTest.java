@@ -19,6 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -93,104 +94,131 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
 
   @Test
   public void testFailure_nonexistentParentRegistrar() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrar FakeRegistrar not found");
-    runCommandForced(
-        "--registrar=FakeRegistrar",
-        "--type=PROMOTION",
-        "--tld=tld",
-        "--balance=\"USD 100\"",
-        "--effective_time=2014-11-01T01:02:03Z");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--registrar=FakeRegistrar",
+                    "--type=PROMOTION",
+                    "--tld=tld",
+                    "--balance=\"USD 100\"",
+                    "--effective_time=2014-11-01T01:02:03Z"));
+    assertThat(thrown).hasMessageThat().contains("Registrar FakeRegistrar not found");
   }
 
   @Test
   public void testFailure_nonexistentTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("faketld");
-    runCommandForced(
-        "--registrar=TheRegistrar",
-        "--type=PROMOTION",
-        "--tld=faketld",
-        "--balance=\"USD 100\"",
-        "--effective_time=2014-11-01T01:02:03Z");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--registrar=TheRegistrar",
+                    "--type=PROMOTION",
+                    "--tld=faketld",
+                    "--balance=\"USD 100\"",
+                    "--effective_time=2014-11-01T01:02:03Z"));
+    assertThat(thrown).hasMessageThat().contains("faketld");
   }
 
   @Test
   public void testFailure_nonexistentType() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("Invalid value for --type");
-    runCommandForced(
-        "--registrar=TheRegistrar",
-        "--type=BADTYPE",
-        "--tld=tld",
-        "--balance=\"USD 100\"",
-        "--effective_time=2014-11-01T01:02:03Z");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--registrar=TheRegistrar",
+                    "--type=BADTYPE",
+                    "--tld=tld",
+                    "--balance=\"USD 100\"",
+                    "--effective_time=2014-11-01T01:02:03Z"));
+    assertThat(thrown).hasMessageThat().contains("Invalid value for --type");
   }
 
   @Test
   public void testFailure_negativeBalance() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("negative");
-    runCommandForced(
-        "--registrar=TheRegistrar",
-        "--type=PROMOTION",
-        "--tld=tld",
-        "--balance=\"USD -1\"",
-        "--effective_time=2014-11-01T01:02:03Z");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--registrar=TheRegistrar",
+                    "--type=PROMOTION",
+                    "--tld=tld",
+                    "--balance=\"USD -1\"",
+                    "--effective_time=2014-11-01T01:02:03Z"));
+    assertThat(thrown).hasMessageThat().contains("negative");
   }
 
   @Test
   public void testFailure_noRegistrar() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--registrar");
-    runCommandForced(
-        "--type=PROMOTION",
-        "--tld=tld",
-        "--balance=\"USD 100\"",
-        "--effective_time=2014-11-01T01:02:03Z");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--type=PROMOTION",
+                    "--tld=tld",
+                    "--balance=\"USD 100\"",
+                    "--effective_time=2014-11-01T01:02:03Z"));
+    assertThat(thrown).hasMessageThat().contains("--registrar");
   }
 
   @Test
   public void testFailure_noType() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--type");
-    runCommandForced(
-        "--registrar=TheRegistrar",
-        "--tld=tld",
-        "--balance=\"USD 100\"",
-        "--effective_time=2014-11-01T01:02:03Z");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--registrar=TheRegistrar",
+                    "--tld=tld",
+                    "--balance=\"USD 100\"",
+                    "--effective_time=2014-11-01T01:02:03Z"));
+    assertThat(thrown).hasMessageThat().contains("--type");
   }
 
   @Test
   public void testFailure_noTld() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--tld");
-    runCommandForced(
-        "--registrar=TheRegistrar",
-        "--type=PROMOTION",
-        "--balance=\"USD 100\"",
-        "--effective_time=2014-11-01T01:02:03Z");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--registrar=TheRegistrar",
+                    "--type=PROMOTION",
+                    "--balance=\"USD 100\"",
+                    "--effective_time=2014-11-01T01:02:03Z"));
+    assertThat(thrown).hasMessageThat().contains("--tld");
   }
 
   @Test
   public void testFailure_noBalance() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--balance");
-    runCommandForced(
-        "--registrar=TheRegistrar",
-        "--type=PROMOTION",
-        "--tld=tld",
-        "--effective_time=2014-11-01T01:02:03Z");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--registrar=TheRegistrar",
+                    "--type=PROMOTION",
+                    "--tld=tld",
+                    "--effective_time=2014-11-01T01:02:03Z"));
+    assertThat(thrown).hasMessageThat().contains("--balance");
   }
 
   @Test
   public void testFailure_noEffectiveTime() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--effective_time");
-    runCommandForced(
-        "--registrar=TheRegistrar",
-        "--type=PROMOTION",
-        "--tld=tld",
-        "--balance=\"USD 100\"");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--registrar=TheRegistrar",
+                    "--type=PROMOTION",
+                    "--tld=tld",
+                    "--balance=\"USD 100\""));
+    assertThat(thrown).hasMessageThat().contains("--effective_time");
   }
 }

@@ -14,10 +14,13 @@
 
 package google.registry.flows.contact;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.contact.ContactFlowUtils.BadInternationalizedPostalInfoException;
@@ -66,10 +69,12 @@ public class ContactCreateFlowTest
   @Test
   public void testFailure_alreadyExists() throws Exception {
     persistActiveContact(getUniqueIdFromCommand());
-    thrown.expect(ResourceAlreadyExistsException.class);
-    thrown.expectMessage(
-        String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
-    runFlow();
+    ResourceAlreadyExistsException thrown =
+        expectThrows(ResourceAlreadyExistsException.class, () -> runFlow());
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
   }
 
   @Test
@@ -81,15 +86,13 @@ public class ContactCreateFlowTest
   @Test
   public void testFailure_nonAsciiInIntAddress() throws Exception {
     setEppInput("contact_create_hebrew_int.xml");
-    thrown.expect(BadInternationalizedPostalInfoException.class);
-    runFlow();
+    assertThrows(BadInternationalizedPostalInfoException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_declineDisclosure() throws Exception {
     setEppInput("contact_create_decline_disclosure.xml");
-    thrown.expect(DeclineContactDisclosureFieldDisallowedPolicyException.class);
-    runFlow();
+    assertThrows(DeclineContactDisclosureFieldDisallowedPolicyException.class, () -> runFlow());
   }
 
   @Test

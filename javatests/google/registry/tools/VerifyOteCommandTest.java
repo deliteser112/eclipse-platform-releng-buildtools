@@ -14,8 +14,10 @@
 
 package google.registry.tools;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -66,16 +68,17 @@ public class VerifyOteCommandTest extends CommandTestCase<VerifyOteCommand> {
 
   @Test
   public void testFailure_registrarDoesntExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrar blobio does not exist.");
-    runCommand("blobio");
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> runCommand("blobio"));
+    assertThat(thrown).hasMessageThat().contains("Registrar blobio does not exist.");
   }
 
   @Test
   public void testFailure_noRegistrarsNoCheckAll() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(
-        "Must provide at least one registrar name, or supply --check-all with no names.");
-    runCommand("");
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> runCommand(""));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Must provide at least one registrar name, or supply --check-all with no names.");
   }
 }

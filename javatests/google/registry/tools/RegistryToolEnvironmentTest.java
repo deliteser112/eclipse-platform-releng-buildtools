@@ -15,10 +15,9 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -26,13 +25,9 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class RegistryToolEnvironmentTest {
 
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testGet_withoutSetup_throws() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    RegistryToolEnvironment.get();
+    assertThrows(IllegalStateException.class, () -> RegistryToolEnvironment.get());
   }
 
   @Test
@@ -72,16 +67,18 @@ public class RegistryToolEnvironmentTest {
 
   @Test
   public void testFromArgs_envFlagAfterCommandName_getsIgnored() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    RegistryToolEnvironment.parseFromArgs(new String[] {
-        "registrar_activity_report",
-        "-e", "1406851199"});
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            RegistryToolEnvironment.parseFromArgs(
+                new String[] {"registrar_activity_report", "-e", "1406851199"}));
   }
 
   @Test
   public void testFromArgs_missingEnvironmentFlag_throwsIae() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    RegistryToolEnvironment.parseFromArgs(new String[] {});
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> RegistryToolEnvironment.parseFromArgs(new String[] {}));
   }
 
   @Test
@@ -106,7 +103,8 @@ public class RegistryToolEnvironmentTest {
 
   @Test
   public void testFromArgs_badName_throwsIae() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    RegistryToolEnvironment.parseFromArgs(new String[] { "-e", "alphaville" });
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> RegistryToolEnvironment.parseFromArgs(new String[] {"-e", "alphaville"}));
   }
 }

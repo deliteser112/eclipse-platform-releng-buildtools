@@ -28,6 +28,7 @@ import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.beust.jcommander.ParameterException;
@@ -131,20 +132,21 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
 
   @Test
   public void testFailure_notAsSuperuser() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--ids=1-TLD", "--force");
+    assertThrows(IllegalArgumentException.class, () -> runCommand("--ids=1-TLD", "--force"));
   }
 
   @Test
   public void testFailure_forceAndDryRunIncompatible() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--ids=1-TLD", "--force", "--dry_run", "--superuser");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> runCommand("--ids=1-TLD", "--force", "--dry_run", "--superuser"));
   }
 
   @Test
   public void testFailure_unknownFlag() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand("--ids=1-TLD", "--force", "--unrecognized=foo", "--superuser");
+    assertThrows(
+        ParameterException.class,
+        () -> runCommand("--ids=1-TLD", "--force", "--unrecognized=foo", "--superuser"));
   }
 
   @Test

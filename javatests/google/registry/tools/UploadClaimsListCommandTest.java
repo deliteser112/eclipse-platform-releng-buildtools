@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.model.tmch.ClaimsListShard;
 import java.io.FileNotFoundException;
@@ -52,8 +53,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
       "example,2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001,2010-07-14T00:00:00.0Z",
       "another-example,2013041500/6/A/5/alJAqG2vI2BmCv5PfUvuDkf40000000002,2012-08-16T00:00:00.0Z",
       "anotherexample,2013041500/A/C/7/rHdC4wnrWRvPY6nneCVtQhFj0000000003,2011-08-16T12:00:00.0Z");
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--force", filename);
+    assertThrows(IllegalArgumentException.class, () -> runCommand("--force", filename));
   }
 
   @Test
@@ -64,8 +64,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
       "example,2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001,2010-07-14T00:00:00.0Z",
       "another-example,2013041500/6/A/5/alJAqG2vI2BmCv5PfUvuDkf40000000002,2012-08-16T00:00:00.0Z",
       "anotherexample,2013041500/A/C/7/rHdC4wnrWRvPY6nneCVtQhFj0000000003,2011-08-16T12:00:00.0Z");
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--force", filename);
+    assertThrows(IllegalArgumentException.class, () -> runCommand("--force", filename));
   }
 
   @Test
@@ -76,8 +75,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
       "example,2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001,2010-07-14T00:00:00.0Z",
       "another-example,2013041500/6/A/5/alJAqG2vI2BmCv5PfUvuDkf40000000002,2012-08-16T00:00:00.0Z",
       "anotherexample,2013041500/A/C/7/rHdC4wnrWRvPY6nneCVtQhFj0000000003,2011-08-16T12:00:00.0Z");
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--force", filename);
+    assertThrows(IllegalArgumentException.class, () -> runCommand("--force", filename));
   }
 
   @Test
@@ -88,8 +86,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
       "example,2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001,2010-07-14T00:00:00.0Z",
       "another-example,2013041500/6/A/5/alJAqG2vI2BmCv5PfUvuDkf40000000002,2012-08-16T00:00:00.0Z",
       "anotherexample,2013041500/A/C/7/rHdC4wnrWRvPY6nneCVtQhFj0000000003,2011-08-16T12:00:00.0Z");
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--force", filename);
+    assertThrows(IllegalArgumentException.class, () -> runCommand("--force", filename));
   }
 
   @Test
@@ -100,8 +97,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
       "example,2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001,2010-07-14T00:00:00.0Z",
       "another-example,2013041500/6/A/5/alJAqG2vI2BmCv5PfUvuDkf40000000002,2012-08-16T00:00:00.0Z",
       "anotherexample,2013041500/A/C/7/rHdC4wnrWRvPY6nneCVtQhFj0000000003,2011-08-16T12:00:00.0Z");
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--force", filename);
+    assertThrows(IllegalArgumentException.class, () -> runCommand("--force", filename));
   }
 
   @Test
@@ -112,8 +108,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
       "example,2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001,2010-07-14T00:00:00.0Z",
       "another-example,2013041500/6/A/5/alJAqG2vI2BmCv5PfUvuDkf40000000002,2012-08-16T00:00:00.0Z",
       "anotherexample,2013041500/A/C/7/rHdC4wnrWRvPY6nneCVtQhFj0000000003,2011-08-16T12:00:00.0Z");
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--force", filename);
+    assertThrows(IllegalArgumentException.class, () -> runCommand("--force", filename));
   }
 
   @Test
@@ -124,8 +119,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
       "example,2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001,2010-07-14T00:00:00.0Z",
       "another-example,2013041500/6/A/5/alJAqG2vI2BmCv5PfUvuDkf40000000002,2012-08-16T00:00:00.0Z",
       "anotherexample,2013041500/A/C/7/rHdC4wnrWRvPY6nneCVtQhFj0000000003,2011-08-16T12:00:00.0Z");
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--force", filename);
+    assertThrows(IllegalArgumentException.class, () -> runCommand("--force", filename));
   }
 
   @Test
@@ -136,8 +130,7 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
       "example,2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001,2010-07-14T00:00:00.0Z,extra",
       "another-example,2013041500/6/A/5/alJAqG2vI2BmCv5PfUvuDkf40000000002,2012-08-16T00:00:00.0Z",
       "anotherexample,2013041500/A/C/7/rHdC4wnrWRvPY6nneCVtQhFj0000000003,2011-08-16T12:00:00.0Z");
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--force", filename);
+    assertThrows(IllegalArgumentException.class, () -> runCommand("--force", filename));
   }
 
   @Test
@@ -148,25 +141,21 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
       "example,2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001,2010-07-14T00:00:00.0Z",
       "another-example,2013041500/6/A/5/alJAqG2vI2BmCv5PfUvuDkf40000000002,foo",
       "anotherexample,2013041500/A/C/7/rHdC4wnrWRvPY6nneCVtQhFj0000000003,2011-08-16T12:00:00.0Z");
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--force", filename);
+    assertThrows(IllegalArgumentException.class, () -> runCommand("--force", filename));
   }
 
   @Test
   public void testFailure_fileDoesNotExist() throws Exception {
-    thrown.expect(FileNotFoundException.class);
-    runCommand("--force", "nonexistent_file.csv");
+    assertThrows(FileNotFoundException.class, () -> runCommand("--force", "nonexistent_file.csv"));
   }
 
   @Test
   public void testFailure_noFileNamePassed() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--force");
+    assertThrows(IllegalArgumentException.class, () -> runCommand("--force"));
   }
 
   @Test
   public void testFailure_tooManyArguments() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--force", "foo", "bar");
+    assertThrows(IllegalArgumentException.class, () -> runCommand("--force", "foo", "bar"));
   }
 }

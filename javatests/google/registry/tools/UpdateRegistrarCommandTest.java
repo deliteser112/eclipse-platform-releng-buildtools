@@ -21,6 +21,8 @@ import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.ParameterException;
@@ -70,9 +72,11 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
             .setIanaIdentifier(null)
             .setPhonePasscode(null)
             .build());
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("--passcode is required for REAL registrars.");
-    runCommand("--registrar_type=REAL", "--iana_id=1000", "--force", "NewRegistrar");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> runCommand("--registrar_type=REAL", "--iana_id=1000", "--force", "NewRegistrar"));
+    assertThat(thrown).hasMessageThat().contains("--passcode is required for REAL registrars.");
   }
 
   @Test
@@ -217,14 +221,17 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   public void testFailure_billingAccountMap_doesNotContainEntryForTldAllowed() throws Exception {
     createTlds("foo");
     assertThat(loadRegistrar("NewRegistrar").getBillingAccountMap()).isEmpty();
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("USD");
-    runCommand(
-        "--billing_account_map=JPY=789xyz",
-        "--allowed_tlds=foo",
-        "--force",
-        "--registrar_type=REAL",
-        "NewRegistrar");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommand(
+                    "--billing_account_map=JPY=789xyz",
+                    "--allowed_tlds=foo",
+                    "--force",
+                    "--registrar_type=REAL",
+                    "NewRegistrar"));
+    assertThat(thrown).hasMessageThat().contains("USD");
   }
 
   @Test
@@ -276,11 +283,15 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
             .setAmount(Money.parse("USD 10.00"))
             .build());
     assertThat(registrar.getBillingMethod()).isEqualTo(BillingMethod.EXTERNAL);
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage(
-        "Refusing to change billing method on Registrar 'NewRegistrar' from EXTERNAL to BRAINTREE"
-            + " because current balance is non-zero: {USD=USD 10.00}");
-    runCommand("--billing_method=braintree", "--force", "NewRegistrar");
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () -> runCommand("--billing_method=braintree", "--force", "NewRegistrar"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo(
+            "Refusing to change billing method on Registrar 'NewRegistrar' from EXTERNAL to "
+                + "BRAINTREE because current balance is non-zero: {USD=USD 10.00}");
   }
 
   @Test
@@ -437,174 +448,267 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
 
   @Test
   public void testFailure_invalidRegistrarType() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand("--registrar_type=INVALID_TYPE", "--force", "NewRegistrar");
+    assertThrows(
+        ParameterException.class,
+        () -> runCommand("--registrar_type=INVALID_TYPE", "--force", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_invalidRegistrarState() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand("--registrar_state=INVALID_STATE", "--force", "NewRegistrar");
+    assertThrows(
+        ParameterException.class,
+        () -> runCommand("--registrar_state=INVALID_STATE", "--force", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_negativeIanaId() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--iana_id=-1", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> runCommand("--iana_id=-1", "--force", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_nonIntegerIanaId() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand("--iana_id=ABC123", "--force", "NewRegistrar");
+    assertThrows(
+        ParameterException.class, () -> runCommand("--iana_id=ABC123", "--force", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_negativeBillingId() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--billing_id=-1", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> runCommand("--billing_id=-1", "--force", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_nonIntegerBillingId() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand("--billing_id=ABC123", "--force", "NewRegistrar");
+    assertThrows(
+        ParameterException.class,
+        () -> runCommand("--billing_id=ABC123", "--force", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_passcodeTooShort() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--passcode=0123", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> runCommand("--passcode=0123", "--force", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_passcodeTooLong() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--passcode=012345", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> runCommand("--passcode=012345", "--force", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_invalidPasscode() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--passcode=code1", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> runCommand("--passcode=code1", "--force", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_allowedTldDoesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--allowed_tlds=foobar", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> runCommand("--allowed_tlds=foobar", "--force", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_addAllowedTldDoesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--add_allowed_tlds=foobar", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> runCommand("--add_allowed_tlds=foobar", "--force", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_allowedTldsAndAddAllowedTlds() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--allowed_tlds=bar", "--add_allowed_tlds=foo", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommand("--allowed_tlds=bar", "--add_allowed_tlds=foo", "--force", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_invalidIpWhitelist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--ip_whitelist=foobarbaz", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> runCommand("--ip_whitelist=foobarbaz", "--force", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_invalidCertFileContents() throws Exception {
-    thrown.expect(Exception.class);
-    runCommand("--cert_file=" + writeToTmpFile("ABCDEF"), "--force", "NewRegistrar");
+    assertThrows(
+        Exception.class,
+        () -> runCommand("--cert_file=" + writeToTmpFile("ABCDEF"), "--force", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_certHashAndCertFile() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--cert_file=" + getCertFilename(), "--cert_hash=ABCDEF", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommand(
+                "--cert_file=" + getCertFilename(),
+                "--cert_hash=ABCDEF",
+                "--force",
+                "NewRegistrar"));
   }
 
   @Test
   public void testFailure_missingClientId() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand("--force");
+    assertThrows(ParameterException.class, () -> runCommand("--force"));
   }
 
   @Test
   public void testFailure_missingStreetLines() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--city Brooklyn", "--state NY", "--zip 11223", "--cc US", "--force",
-        "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommand(
+                "--city Brooklyn",
+                "--state NY",
+                "--zip 11223",
+                "--cc US",
+                "--force",
+                "NewRegistrar"));
   }
 
   @Test
   public void testFailure_missingCity() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--street=\"1234 Main St\"", "--street \"4th Floor\"", "--street \"Suite 1\"",
-        "--state NY", "--zip 11223", "--cc US", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommand(
+                "--street=\"1234 Main St\"",
+                "--street \"4th Floor\"",
+                "--street \"Suite 1\"",
+                "--state NY",
+                "--zip 11223",
+                "--cc US",
+                "--force",
+                "NewRegistrar"));
   }
 
   @Test
   public void testFailure_missingState() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--street=\"1234 Main St\"", "--street \"4th Floor\"", "--street \"Suite 1\"",
-        "--city Brooklyn", "--zip 11223", "--cc US", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommand(
+                "--street=\"1234 Main St\"",
+                "--street \"4th Floor\"",
+                "--street \"Suite 1\"",
+                "--city Brooklyn",
+                "--zip 11223",
+                "--cc US",
+                "--force",
+                "NewRegistrar"));
   }
 
   @Test
   public void testFailure_missingZip() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--street=\"1234 Main St\"", "--street \"4th Floor\"", "--street \"Suite 1\"",
-        "--city Brooklyn", "--state NY", "--cc US", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommand(
+                "--street=\"1234 Main St\"",
+                "--street \"4th Floor\"",
+                "--street \"Suite 1\"",
+                "--city Brooklyn",
+                "--state NY",
+                "--cc US",
+                "--force",
+                "NewRegistrar"));
   }
 
   @Test
   public void testFailure_missingCc() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--street=\"1234 Main St\"", "--street \"4th Floor\"", "--street \"Suite 1\"",
-        "--city Brooklyn", "--state NY", "--zip 11223", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommand(
+                "--street=\"1234 Main St\"",
+                "--street \"4th Floor\"",
+                "--street \"Suite 1\"",
+                "--city Brooklyn",
+                "--state NY",
+                "--zip 11223",
+                "--force",
+                "NewRegistrar"));
   }
 
   @Test
   public void testFailure_missingInvalidCc() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--street=\"1234 Main St\"", "--street \"4th Floor\"", "--street \"Suite 1\"",
-        "--city Brooklyn", "--state NY", "--zip 11223", "--cc USA", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommand(
+                "--street=\"1234 Main St\"",
+                "--street \"4th Floor\"",
+                "--street \"Suite 1\"",
+                "--city Brooklyn",
+                "--state NY",
+                "--zip 11223",
+                "--cc USA",
+                "--force",
+                "NewRegistrar"));
   }
 
   @Test
   public void testFailure_tooManyStreetLines() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--street \"Attn:Hey You Guys\"", "--street \"1234 Main St\"",
-        "--street \"4th Floor\"", "--street \"Suite 1\"", "--city Brooklyn", "--state NY",
-        "--zip 11223", "--cc USA", "--force", "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommand(
+                "--street \"Attn:Hey You Guys\"",
+                "--street \"1234 Main St\"",
+                "--street \"4th Floor\"",
+                "--street \"Suite 1\"",
+                "--city Brooklyn",
+                "--state NY",
+                "--zip 11223",
+                "--cc USA",
+                "--force",
+                "NewRegistrar"));
   }
 
   @Test
   public void testFailure_tooFewStreetLines() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--street", "--city Brooklyn", "--state NY", "--zip 11223", "--cc USA", "--force",
-        "NewRegistrar");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommand(
+                "--street",
+                "--city Brooklyn",
+                "--state NY",
+                "--zip 11223",
+                "--cc USA",
+                "--force",
+                "NewRegistrar"));
   }
 
   @Test
   public void testFailure_unknownFlag() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand("--force", "--unrecognized_flag=foo", "NewRegistrar");
+    assertThrows(
+        ParameterException.class,
+        () -> runCommand("--force", "--unrecognized_flag=foo", "NewRegistrar"));
   }
 
   @Test
   public void testFailure_doesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrar ClientZ not found");
-    runCommand("--force", "ClientZ");
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> runCommand("--force", "ClientZ"));
+    assertThat(thrown).hasMessageThat().contains("Registrar ClientZ not found");
   }
 
   @Test
   public void testFailure_registrarNameSimilarToExisting() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    // Normalizes identically to "The Registrar" which is created by AppEngineRule.
-    runCommand("--name tHeRe GiStRaR", "--force", "NewRegistrar");
+    // Note that "tHeRe GiStRaR" normalizes identically to "The Registrar", which is created by
+    // AppEngineRule.
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> runCommand("--name tHeRe GiStRaR", "--force", "NewRegistrar"));
   }
 }

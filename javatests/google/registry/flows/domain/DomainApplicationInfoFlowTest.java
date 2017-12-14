@@ -22,6 +22,8 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -261,9 +263,9 @@ public class DomainApplicationInfoFlowTest
 
   @Test
   public void testFailure_neverExisted() throws Exception {
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    runFlow();
+    ResourceDoesNotExistException thrown =
+        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
@@ -274,9 +276,9 @@ public class DomainApplicationInfoFlowTest
         .setDeletionTime(clock.nowUtc().minusDays(1))
         .setRegistrant(Key.create(persistActiveContact("jd1234")))
         .build());
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    runFlow();
+    ResourceDoesNotExistException thrown =
+        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
@@ -285,8 +287,7 @@ public class DomainApplicationInfoFlowTest
         AppEngineRule.makeRegistrar1().asBuilder().setClientId("ClientZ").build());
     sessionMetadata.setClientId("ClientZ");
     persistTestEntities(HostsState.NO_HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
-    thrown.expect(ResourceNotOwnedException.class);
-    runFlow();
+    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
   }
 
   @Test
@@ -297,16 +298,14 @@ public class DomainApplicationInfoFlowTest
         .setRegistrant(Key.create(persistActiveContact("jd1234")))
         .setPhase(LaunchPhase.SUNRUSH)
         .build());
-    thrown.expect(ApplicationDomainNameMismatchException.class);
-    runFlow();
+    assertThrows(ApplicationDomainNameMismatchException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_noApplicationId() throws Exception {
     setEppInput("domain_info_sunrise_no_application_id.xml");
     persistTestEntities(HostsState.NO_HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
-    thrown.expect(MissingApplicationIdException.class);
-    runFlow();
+    assertThrows(MissingApplicationIdException.class, () -> runFlow());
   }
 
   @Test
@@ -314,8 +313,7 @@ public class DomainApplicationInfoFlowTest
     persistTestEntities(HostsState.NO_HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
     application = persistResource(
         application.asBuilder().setPhase(LaunchPhase.SUNRISE).build());
-    thrown.expect(ApplicationLaunchPhaseMismatchException.class);
-    runFlow();
+    assertThrows(ApplicationLaunchPhaseMismatchException.class, () -> runFlow());
   }
 
   /** Test that we load contacts and hosts as a batch rather than individually. */

@@ -29,6 +29,7 @@ import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableMap;
@@ -371,8 +372,7 @@ public class DomainApplicationUpdateFlowTest
 
     setEppInput("domain_update_sunrise_dsdata_add.xml");
     persistResource(newApplicationBuilder().setDsData(builder.build()).build());
-    thrown.expect(TooManyDsRecordsException.class);
-    runFlow();
+    assertThrows(TooManyDsRecordsException.class, () -> runFlow());
   }
 
   private void modifyApplicationToHave13Nameservers() throws Exception {
@@ -395,40 +395,37 @@ public class DomainApplicationUpdateFlowTest
     // Modify application to have 13 nameservers. We will then remove one and add one in the test.
     modifyApplicationToHave13Nameservers();
     setEppInput("domain_update_sunrise_add_nameserver.xml");
-    thrown.expect(TooManyNameserversException.class);
-    runFlow();
+    assertThrows(TooManyNameserversException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_wrongExtension() throws Exception {
     setEppInput("domain_update_sunrise_wrong_extension.xml");
-    thrown.expect(UnimplementedExtensionException.class);
-    runFlow();
+    assertThrows(UnimplementedExtensionException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_applicationDomainNameMismatch() throws Exception {
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setFullyQualifiedDomainName("something.tld").build());
-    thrown.expect(ApplicationDomainNameMismatchException.class);
-    runFlow();
+    assertThrows(ApplicationDomainNameMismatchException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_neverExisted() throws Exception {
     persistReferencedEntities();
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    runFlow();
+    ResourceDoesNotExistException thrown =
+        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setDeletionTime(START_OF_TIME).build());
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    runFlow();
+    ResourceDoesNotExistException thrown =
+        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
@@ -437,8 +434,7 @@ public class DomainApplicationUpdateFlowTest
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setStatusValues(
         ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED)).build());
-    thrown.expect(ResourceHasClientUpdateProhibitedException.class);
-    runFlow();
+    assertThrows(ResourceHasClientUpdateProhibitedException.class, () -> runFlow());
   }
 
   @Test
@@ -446,16 +442,15 @@ public class DomainApplicationUpdateFlowTest
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setStatusValues(
         ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED)).build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
-    thrown.expectMessage("serverUpdateProhibited");
-    runFlow();
+    ResourceStatusProhibitsOperationException thrown =
+        expectThrows(ResourceStatusProhibitsOperationException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("serverUpdateProhibited");
   }
 
   private void doIllegalApplicationStatusTest(ApplicationStatus status) throws Exception {
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setApplicationStatus(status).build());
-    thrown.expect(ApplicationStatusProhibitsUpdateException.class);
-    runFlow();
+    assertThrows(ApplicationStatusProhibitsUpdateException.class, () -> runFlow());
   }
 
   @Test
@@ -479,9 +474,9 @@ public class DomainApplicationUpdateFlowTest
     persistActiveContact("sh8013");
     persistActiveContact("mak21");
     persistNewApplication();
-    thrown.expect(LinkedResourcesDoNotExistException.class);
-    thrown.expectMessage("(ns2.example.tld)");
-    runFlow();
+    LinkedResourcesDoNotExistException thrown =
+        expectThrows(LinkedResourcesDoNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("(ns2.example.tld)");
   }
 
   @Test
@@ -490,9 +485,9 @@ public class DomainApplicationUpdateFlowTest
     persistActiveHost("ns2.example.tld");
     persistActiveContact("mak21");
     persistNewApplication();
-    thrown.expect(LinkedResourcesDoNotExistException.class);
-    thrown.expectMessage("(sh8013)");
-    runFlow();
+    LinkedResourcesDoNotExistException thrown =
+        expectThrows(LinkedResourcesDoNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("(sh8013)");
   }
 
   @Test
@@ -505,8 +500,7 @@ public class DomainApplicationUpdateFlowTest
     persistResource(reloadDomainApplication().asBuilder().setContacts(ImmutableSet.of(
         DesignatedContact.create(Type.TECH, Key.create(
             loadByForeignKey(ContactResource.class, "foo", clock.nowUtc()))))).build());
-    thrown.expect(DuplicateContactForRoleException.class);
-    runFlow();
+    assertThrows(DuplicateContactForRoleException.class, () -> runFlow());
   }
 
   @Test
@@ -514,8 +508,7 @@ public class DomainApplicationUpdateFlowTest
     setEppInput("domain_update_sunrise_prohibited_status.xml");
     persistReferencedEntities();
     persistNewApplication();
-    thrown.expect(StatusNotClientSettableException.class);
-    runFlow();
+    assertThrows(StatusNotClientSettableException.class, () -> runFlow());
   }
 
 
@@ -536,8 +529,7 @@ public class DomainApplicationUpdateFlowTest
     setEppInput("domain_update_sunrise_duplicate_contact.xml");
     persistReferencedEntities();
     persistNewApplication();
-    thrown.expect(DuplicateContactForRoleException.class);
-    runFlow();
+    assertThrows(DuplicateContactForRoleException.class, () -> runFlow());
   }
 
   @Test
@@ -546,8 +538,7 @@ public class DomainApplicationUpdateFlowTest
     persistReferencedEntities();
     persistNewApplication();
     // We need to test for missing type, but not for invalid - the schema enforces that for us.
-    thrown.expect(MissingContactTypeException.class);
-    runFlow();
+    assertThrows(MissingContactTypeException.class, () -> runFlow());
   }
 
   @Test
@@ -555,8 +546,7 @@ public class DomainApplicationUpdateFlowTest
     sessionMetadata.setClientId("NewRegistrar");
     persistReferencedEntities();
     persistApplication();
-    thrown.expect(ResourceNotOwnedException.class);
-    runFlow();
+    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
   }
 
   @Test
@@ -575,8 +565,7 @@ public class DomainApplicationUpdateFlowTest
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistReferencedEntities();
     persistApplication();
-    thrown.expect(NotAuthorizedForTldException.class);
-    runFlow();
+    assertThrows(NotAuthorizedForTldException.class, () -> runFlow());
   }
 
   @Test
@@ -598,8 +587,7 @@ public class DomainApplicationUpdateFlowTest
         .setNameservers(ImmutableSet.of(Key.create(
             loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
         .build());
-    thrown.expect(AddRemoveSameValueException.class);
-    runFlow();
+    assertThrows(AddRemoveSameValueException.class, () -> runFlow());
   }
 
   @Test
@@ -612,8 +600,7 @@ public class DomainApplicationUpdateFlowTest
             Key.create(
                 loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))))
         .build());
-    thrown.expect(AddRemoveSameValueException.class);
-    runFlow();
+    assertThrows(AddRemoveSameValueException.class, () -> runFlow());
   }
 
   @Test
@@ -625,8 +612,7 @@ public class DomainApplicationUpdateFlowTest
             DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
             DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
         .build());
-    thrown.expect(MissingAdminContactException.class);
-    runFlow();
+    assertThrows(MissingAdminContactException.class, () -> runFlow());
   }
 
   @Test
@@ -638,8 +624,7 @@ public class DomainApplicationUpdateFlowTest
             DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
             DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
         .build());
-    thrown.expect(MissingTechnicalContactException.class);
-    runFlow();
+    assertThrows(MissingTechnicalContactException.class, () -> runFlow());
   }
 
   @Test
@@ -651,8 +636,7 @@ public class DomainApplicationUpdateFlowTest
             .setAllowedRegistrantContactIds(ImmutableSet.of("contact1234"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(RegistrantNotAllowedException.class);
-    runFlow();
+    assertThrows(RegistrantNotAllowedException.class, () -> runFlow());
   }
 
   @Test
@@ -664,8 +648,7 @@ public class DomainApplicationUpdateFlowTest
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotAllowedForTldException.class);
-    runFlow();
+    assertThrows(NameserversNotAllowedForTldException.class, () -> runFlow());
   }
 
   @Test
@@ -692,8 +675,8 @@ public class DomainApplicationUpdateFlowTest
                 ImmutableSet.of("ns1.example.tld", "ns2.example.tld"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotSpecifiedForTldWithNameserverWhitelistException.class);
-    runFlow();
+    assertThrows(
+        NameserversNotSpecifiedForTldWithNameserverWhitelistException.class, () -> runFlow());
   }
 
   @Test
@@ -746,9 +729,9 @@ public class DomainApplicationUpdateFlowTest
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.tld:ns3.example.tld"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotAllowedForDomainException.class);
-    thrown.expectMessage("ns2.example.tld");
-    runFlow();
+    NameserversNotAllowedForDomainException thrown =
+        expectThrows(NameserversNotAllowedForDomainException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("ns2.example.tld");
   }
 
   @Test
@@ -764,8 +747,8 @@ public class DomainApplicationUpdateFlowTest
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.tld:ns2.example.tld"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotSpecifiedForNameserverRestrictedDomainException.class);
-    runFlow();
+    assertThrows(
+        NameserversNotSpecifiedForNameserverRestrictedDomainException.class, () -> runFlow());
   }
 
   @Test
@@ -825,9 +808,9 @@ public class DomainApplicationUpdateFlowTest
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.tld:ns3.example.tld"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotAllowedForDomainException.class);
-    thrown.expectMessage("ns2.example.tld");
-    runFlow();
+    NameserversNotAllowedForDomainException thrown =
+        expectThrows(NameserversNotAllowedForDomainException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("ns2.example.tld");
   }
 
   @Test
@@ -845,9 +828,9 @@ public class DomainApplicationUpdateFlowTest
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.tld:ns2.example.tld"))
             .build());
     clock.advanceOneMilli();
-    thrown.expect(NameserversNotAllowedForTldException.class);
-    thrown.expectMessage("ns2.example.tld");
-    runFlow();
+    NameserversNotAllowedForTldException thrown =
+        expectThrows(NameserversNotAllowedForTldException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("ns2.example.tld");
   }
 
   @Test
@@ -859,8 +842,7 @@ public class DomainApplicationUpdateFlowTest
         "domain_update_sunrise_fee.xml",
         ImmutableMap.of("DOMAIN", "non-free-update.tld", "AMOUNT", "12.00"));
     clock.advanceOneMilli();
-    thrown.expect(FeesMismatchException.class);
-    runFlow();
+    assertThrows(FeesMismatchException.class, () -> runFlow());
   }
 
   @Test

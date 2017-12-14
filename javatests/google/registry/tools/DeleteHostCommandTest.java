@@ -14,6 +14,8 @@
 
 package google.registry.tools;
 
+import static google.registry.testing.JUnitBackports.assertThrows;
+
 import com.beust.jcommander.ParameterException;
 import org.junit.Test;
 
@@ -57,33 +59,48 @@ public class DeleteHostCommandTest extends EppToolCommandTestCase<DeleteHostComm
 
   @Test
   public void testFailure_noReason() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand("--client=NewRegistrar", "--host=ns1.example.tld", "--force");
+    assertThrows(
+        ParameterException.class,
+        () -> runCommand("--client=NewRegistrar", "--host=ns1.example.tld", "--force"));
   }
 
   @Test
   public void testFailure_missingClientId() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand("--host=ns1.example.tld", "--force", "--reason=Test");
+    assertThrows(
+        ParameterException.class,
+        () -> runCommand("--host=ns1.example.tld", "--force", "--reason=Test"));
   }
 
   @Test
   public void testFailure_missingHostName() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand("--client=NewRegistrar", "--force", "--reason=Test");
+    assertThrows(
+        ParameterException.class,
+        () -> runCommand("--client=NewRegistrar", "--force", "--reason=Test"));
   }
 
   @Test
   public void testFailure_unknownFlag() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand(
-        "--client=NewRegistrar", "--host=ns1.example.tld", "--force", "--reason=Test", "--foo");
+    assertThrows(
+        ParameterException.class,
+        () ->
+            runCommand(
+                "--client=NewRegistrar",
+                "--host=ns1.example.tld",
+                "--force",
+                "--reason=Test",
+                "--foo"));
   }
 
   @Test
   public void testFailure_mainParameter() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand(
-        "--client=NewRegistrar", "--host=ns1.example.tld", "--force", "--reason=Test", "foo");
+    assertThrows(
+        ParameterException.class,
+        () ->
+            runCommand(
+                "--client=NewRegistrar",
+                "--host=ns1.example.tld",
+                "--force",
+                "--reason=Test",
+                "foo"));
   }
 }

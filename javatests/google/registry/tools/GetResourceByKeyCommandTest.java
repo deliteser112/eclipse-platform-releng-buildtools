@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
@@ -21,6 +22,8 @@ import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.ParameterException;
@@ -68,10 +71,16 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   @Test
   public void testFailure_domain_oneDoesNotExist() throws Exception {
     persistActiveDomain("example.tld");
-    thrown.expect(NullPointerException.class);
-    thrown.expectMessage("Could not load resource for key: Key<?>(DomainBase(\"4-TLD\"))");
-    runCommand(
-        "agR0ZXN0chULEgpEb21haW5CYXNlIgUyLVRMRAw", "agR0ZXN0chULEgpEb21haW5CYXNlIgU0LVRMRAw");
+    NullPointerException thrown =
+        expectThrows(
+            NullPointerException.class,
+            () ->
+                runCommand(
+                    "agR0ZXN0chULEgpEb21haW5CYXNlIgUyLVRMRAw",
+                    "agR0ZXN0chULEgpEb21haW5CYXNlIgU0LVRMRAw"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Could not load resource for key: Key<?>(DomainBase(\"4-TLD\"))");
   }
 
   @Test
@@ -111,11 +120,16 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   @Test
   public void testFailure_contact_oneDoesNotExist() throws Exception {
     persistActiveContact("sh8013");
-    thrown.expect(NullPointerException.class);
-    thrown.expectMessage("Could not load resource for key: Key<?>(ContactResource(\"3-ROID\"))");
-    runCommand(
-        "agR0ZXN0chsLEg9Db250YWN0UmVzb3VyY2UiBjItUk9JRAw",
-        "agR0ZXN0chsLEg9Db250YWN0UmVzb3VyY2UiBjMtUk9JRAw");
+    NullPointerException thrown =
+        expectThrows(
+            NullPointerException.class,
+            () ->
+                runCommand(
+                    "agR0ZXN0chsLEg9Db250YWN0UmVzb3VyY2UiBjItUk9JRAw",
+                    "agR0ZXN0chsLEg9Db250YWN0UmVzb3VyY2UiBjMtUk9JRAw"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Could not load resource for key: Key<?>(ContactResource(\"3-ROID\"))");
   }
 
   @Test
@@ -155,11 +169,16 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   @Test
   public void testFailure_host_oneDoesNotExist() throws Exception {
     persistActiveHost("ns1.example.tld");
-    thrown.expect(NullPointerException.class);
-    thrown.expectMessage("Could not load resource for key: Key<?>(HostResource(\"3-ROID\"))");
-    runCommand(
-        "agR0ZXN0chgLEgxIb3N0UmVzb3VyY2UiBjItUk9JRAw",
-        "agR0ZXN0chgLEgxIb3N0UmVzb3VyY2UiBjMtUk9JRAw");
+    NullPointerException thrown =
+        expectThrows(
+            NullPointerException.class,
+            () ->
+                runCommand(
+                    "agR0ZXN0chgLEgxIb3N0UmVzb3VyY2UiBjItUk9JRAw",
+                    "agR0ZXN0chgLEgxIb3N0UmVzb3VyY2UiBjMtUk9JRAw"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Could not load resource for key: Key<?>(HostResource(\"3-ROID\"))");
   }
 
   @Test
@@ -186,21 +205,25 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
 
   @Test
   public void testFailure_keyDoesNotExist() throws Exception {
-    thrown.expect(NullPointerException.class);
-    thrown.expectMessage("Could not load resource for key: Key<?>(DomainBase(\"2-TLD\"))");
-    runCommand("agR0ZXN0chULEgpEb21haW5CYXNlIgUyLVRMRAw");
+    NullPointerException thrown =
+        expectThrows(
+            NullPointerException.class,
+            () -> runCommand("agR0ZXN0chULEgpEb21haW5CYXNlIgUyLVRMRAw"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Could not load resource for key: Key<?>(DomainBase(\"2-TLD\"))");
   }
 
   @Test
   public void testFailure_nonsenseKey() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Could not parse Reference");
-    runCommand("agR0ZXN0chULEgpEb21haW5CYXN");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class, () -> runCommand("agR0ZXN0chULEgpEb21haW5CYXN"));
+    assertThat(thrown).hasMessageThat().contains("Could not parse Reference");
   }
 
   @Test
   public void testFailure_noParameters() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand();
+    assertThrows(ParameterException.class, () -> runCommand());
   }
 }

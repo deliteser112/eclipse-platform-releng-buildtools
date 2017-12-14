@@ -18,6 +18,7 @@ import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -101,23 +102,20 @@ public class DomainClaimsCheckFlowTest
   @Test
   public void testFailure_TooManyIds() throws Exception {
     setEppInput("domain_check_claims_51.xml");
-    thrown.expect(TooManyResourceChecksException.class);
-    runFlow();
+    assertThrows(TooManyResourceChecksException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_tldDoesntExist() throws Exception {
     setEppInput("domain_check_claims_bad_tld.xml");
-    thrown.expect(TldDoesNotExistException.class);
-    runFlow();
+    assertThrows(TldDoesNotExistException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
-    thrown.expect(NotAuthorizedForTldException.class);
-    runFlow();
+    assertThrows(NotAuthorizedForTldException.class, () -> runFlow());
   }
 
   @Test
@@ -138,8 +136,7 @@ public class DomainClaimsCheckFlowTest
     createTld("tld", TldState.PREDELEGATION);
     persistResource(Registry.get("tld").asBuilder().build());
     setEppInput("domain_check_claims.xml");
-    thrown.expect(BadCommandForRegistryPhaseException.class);
-    runFlow();
+    assertThrows(BadCommandForRegistryPhaseException.class, () -> runFlow());
   }
 
   @Test
@@ -147,8 +144,7 @@ public class DomainClaimsCheckFlowTest
     createTld("tld", TldState.SUNRISE);
     persistResource(Registry.get("tld").asBuilder().build());
     setEppInput("domain_check_claims.xml");
-    thrown.expect(DomainClaimsCheckNotAllowedInSunrise.class);
-    runFlow();
+    assertThrows(DomainClaimsCheckNotAllowedInSunrise.class, () -> runFlow());
   }
 
   @Test
@@ -158,8 +154,7 @@ public class DomainClaimsCheckFlowTest
     persistResource(
         Registry.get("tld2").asBuilder().setClaimsPeriodEnd(clock.nowUtc().minusMillis(1)).build());
     setEppInput("domain_check_claims_multiple_tlds.xml");
-    thrown.expect(ClaimsPeriodEndedException.class);
-    runFlow();
+    assertThrows(ClaimsPeriodEndedException.class, () -> runFlow());
   }
 
   @Test

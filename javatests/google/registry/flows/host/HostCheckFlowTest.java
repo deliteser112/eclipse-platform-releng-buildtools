@@ -17,6 +17,7 @@ package google.registry.flows.host;
 import static google.registry.model.eppoutput.CheckData.HostCheck.create;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.flows.ResourceCheckFlowTestCase;
 import google.registry.flows.exceptions.TooManyResourceChecksException;
@@ -75,8 +76,7 @@ public class HostCheckFlowTest extends ResourceCheckFlowTestCase<HostCheckFlow, 
   @Test
   public void testTooManyIds() throws Exception {
     setEppInput("host_check_51.xml");
-    thrown.expect(TooManyResourceChecksException.class);
-    runFlow();
+    assertThrows(TooManyResourceChecksException.class, () -> runFlow());
   }
 
   @Test

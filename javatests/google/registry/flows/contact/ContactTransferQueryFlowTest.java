@@ -14,10 +14,13 @@
 
 package google.registry.flows.contact;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
@@ -138,8 +141,9 @@ public class ContactTransferQueryFlowTest
         contact.asBuilder()
             .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
             .build());
-    thrown.expect(BadAuthInfoForResourceException.class);
-    doFailingTest("contact_transfer_query_with_authinfo.xml");
+    assertThrows(
+        BadAuthInfoForResourceException.class,
+        () -> doFailingTest("contact_transfer_query_with_authinfo.xml"));
   }
 
   @Test
@@ -147,39 +151,43 @@ public class ContactTransferQueryFlowTest
     // Set the contact to a different ROID, but don't persist it; this is just so the substitution
     // code above will write the wrong ROID into the file.
     contact = contact.asBuilder().setRepoId("DEADBEEF_TLD-ROID").build();
-    thrown.expect(BadAuthInfoForResourceException.class);
-    doFailingTest("contact_transfer_query_with_roid.xml");
+    assertThrows(
+        BadAuthInfoForResourceException.class,
+        () -> doFailingTest("contact_transfer_query_with_roid.xml"));
   }
 
   @Test
   public void testFailure_neverBeenTransferred() throws Exception {
     changeTransferStatus(null);
-    thrown.expect(NoTransferHistoryToQueryException.class);
-    doFailingTest("contact_transfer_query.xml");
+    assertThrows(
+        NoTransferHistoryToQueryException.class, () -> doFailingTest("contact_transfer_query.xml"));
   }
 
   @Test
   public void testFailure_unrelatedClient() throws Exception {
     setClientIdForFlow("ClientZ");
-    thrown.expect(NotAuthorizedToViewTransferException.class);
-    doFailingTest("contact_transfer_query.xml");
+    assertThrows(
+        NotAuthorizedToViewTransferException.class,
+        () -> doFailingTest("contact_transfer_query.xml"));
   }
 
   @Test
   public void testFailure_deletedContact() throws Exception {
     contact = persistResource(
         contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    doFailingTest("contact_transfer_query.xml");
+    ResourceDoesNotExistException thrown =
+        expectThrows(
+            ResourceDoesNotExistException.class, () -> doFailingTest("contact_transfer_query.xml"));
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
   public void testFailure_nonexistentContact() throws Exception {
     deleteResource(contact);
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    doFailingTest("contact_transfer_query.xml");
+    ResourceDoesNotExistException thrown =
+        expectThrows(
+            ResourceDoesNotExistException.class, () -> doFailingTest("contact_transfer_query.xml"));
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test

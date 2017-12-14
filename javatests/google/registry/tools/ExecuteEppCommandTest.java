@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.ParameterException;
@@ -77,19 +78,20 @@ public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppComm
 
   @Test
   public void testFailure_missingClientId() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand("--force", "foo.xml");
+    assertThrows(ParameterException.class, () -> runCommand("--force", "foo.xml"));
   }
 
   @Test
   public void testFailure_forceAndDryRunIncompatible() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommand("--client=NewRegistrar", "--force", "--dry_run", eppFile);
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> runCommand("--client=NewRegistrar", "--force", "--dry_run", eppFile));
   }
 
   @Test
   public void testFailure_unknownFlag() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand("--client=NewRegistrar", "--unrecognized=foo", "--force", "foo.xml");
+    assertThrows(
+        ParameterException.class,
+        () -> runCommand("--client=NewRegistrar", "--unrecognized=foo", "--force", "foo.xml"));
   }
 }

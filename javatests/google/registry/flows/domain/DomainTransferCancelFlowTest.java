@@ -29,6 +29,8 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
@@ -211,8 +213,9 @@ public class DomainTransferCancelFlowTest
         contact.asBuilder()
             .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
             .build());
-    thrown.expect(BadAuthInfoForResourceException.class);
-    doFailingTest("domain_transfer_cancel_contact_authinfo.xml");
+    assertThrows(
+        BadAuthInfoForResourceException.class,
+        () -> doFailingTest("domain_transfer_cancel_contact_authinfo.xml"));
   }
 
   @Test
@@ -221,89 +224,94 @@ public class DomainTransferCancelFlowTest
     domain = persistResource(domain.asBuilder()
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("badpassword")))
         .build());
-    thrown.expect(BadAuthInfoForResourceException.class);
-    doFailingTest("domain_transfer_cancel_domain_authinfo.xml");
+    assertThrows(
+        BadAuthInfoForResourceException.class,
+        () -> doFailingTest("domain_transfer_cancel_domain_authinfo.xml"));
   }
 
   @Test
   public void testFailure_neverBeenTransferred() throws Exception {
     changeTransferStatus(null);
-    thrown.expect(NotPendingTransferException.class);
-    doFailingTest("domain_transfer_cancel.xml");
+    assertThrows(
+        NotPendingTransferException.class, () -> doFailingTest("domain_transfer_cancel.xml"));
   }
 
   @Test
   public void testFailure_clientApproved() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_APPROVED);
-    thrown.expect(NotPendingTransferException.class);
-    doFailingTest("domain_transfer_cancel.xml");
+    assertThrows(
+        NotPendingTransferException.class, () -> doFailingTest("domain_transfer_cancel.xml"));
   }
 
  @Test
   public void testFailure_clientRejected() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_REJECTED);
-    thrown.expect(NotPendingTransferException.class);
-    doFailingTest("domain_transfer_cancel.xml");
+    assertThrows(
+        NotPendingTransferException.class, () -> doFailingTest("domain_transfer_cancel.xml"));
   }
 
  @Test
   public void testFailure_clientCancelled() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_CANCELLED);
-    thrown.expect(NotPendingTransferException.class);
-    doFailingTest("domain_transfer_cancel.xml");
+    assertThrows(
+        NotPendingTransferException.class, () -> doFailingTest("domain_transfer_cancel.xml"));
   }
 
   @Test
   public void testFailure_serverApproved() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_APPROVED);
-    thrown.expect(NotPendingTransferException.class);
-    doFailingTest("domain_transfer_cancel.xml");
+    assertThrows(
+        NotPendingTransferException.class, () -> doFailingTest("domain_transfer_cancel.xml"));
   }
 
   @Test
   public void testFailure_serverCancelled() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_CANCELLED);
-    thrown.expect(NotPendingTransferException.class);
-    doFailingTest("domain_transfer_cancel.xml");
+    assertThrows(
+        NotPendingTransferException.class, () -> doFailingTest("domain_transfer_cancel.xml"));
   }
 
   @Test
   public void testFailure_sponsoringClient() throws Exception {
     setClientIdForFlow("TheRegistrar");
-    thrown.expect(NotTransferInitiatorException.class);
-    doFailingTest("domain_transfer_cancel.xml");
+    assertThrows(
+        NotTransferInitiatorException.class, () -> doFailingTest("domain_transfer_cancel.xml"));
   }
 
   @Test
   public void testFailure_unrelatedClient() throws Exception {
     setClientIdForFlow("ClientZ");
-    thrown.expect(NotTransferInitiatorException.class);
-    doFailingTest("domain_transfer_cancel.xml");
+    assertThrows(
+        NotTransferInitiatorException.class, () -> doFailingTest("domain_transfer_cancel.xml"));
   }
 
   @Test
   public void testFailure_deletedDomain() throws Exception {
     domain = persistResource(
         domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    doFailingTest("domain_transfer_cancel.xml");
+    ResourceDoesNotExistException thrown =
+        expectThrows(
+            ResourceDoesNotExistException.class, () -> doFailingTest("domain_transfer_cancel.xml"));
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
   public void testFailure_nonexistentDomain() throws Exception {
     deleteResource(domain);
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    doFailingTest("domain_transfer_cancel.xml");
+    ResourceDoesNotExistException thrown =
+        expectThrows(
+            ResourceDoesNotExistException.class, () -> doFailingTest("domain_transfer_cancel.xml"));
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
         loadRegistrar("NewRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
-    thrown.expect(NotAuthorizedForTldException.class);
-    doSuccessfulTest("domain_transfer_cancel.xml", "domain_transfer_cancel_response.xml");
+    assertThrows(
+        NotAuthorizedForTldException.class,
+        () ->
+            doSuccessfulTest("domain_transfer_cancel.xml", "domain_transfer_cancel_response.xml"));
   }
 
   @Test

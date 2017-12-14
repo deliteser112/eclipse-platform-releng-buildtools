@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import google.registry.rde.RdeTestData;
 import google.registry.xml.XmlException;
@@ -101,9 +102,11 @@ public class ValidateEscrowDepositCommandTest
   @Test
   public void testRun_badXml() throws Exception {
     String file = writeToTmpFile(RdeTestData.loadFile("deposit_full.xml").substring(0, 2000));
-    thrown.expect(XmlException.class);
-    thrown.expectMessage("Syntax error at line 46, column 38: "
-        + "XML document structures must start and end within the same entity.");
-    runCommand("--input=" + file);
+    XmlException thrown = expectThrows(XmlException.class, () -> runCommand("--input=" + file));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Syntax error at line 46, column 38: "
+                + "XML document structures must start and end within the same entity.");
   }
 }

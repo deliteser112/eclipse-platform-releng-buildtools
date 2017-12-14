@@ -14,7 +14,10 @@
 
 package google.registry.tools;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import org.junit.Test;
@@ -43,18 +46,18 @@ public class CreateHostCommandTest extends EppToolCommandTestCase<CreateHostComm
 
   @Test
   public void testFailure_missingHost() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommandForced("--client=NewRegistrar");
+    assertThrows(ParameterException.class, () -> runCommandForced("--client=NewRegistrar"));
   }
 
   @Test
   public void testFailure_invalidIpAddress() throws Exception {
     createTld("tld");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("'a.b.c.d' is not an IP string literal.");
-    runCommandForced(
-        "--client=NewRegistrar",
-        "--host=example.tld",
-        "--addresses=a.b.c.d");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar", "--host=example.tld", "--addresses=a.b.c.d"));
+    assertThat(thrown).hasMessageThat().contains("'a.b.c.d' is not an IP string literal.");
   }
 }

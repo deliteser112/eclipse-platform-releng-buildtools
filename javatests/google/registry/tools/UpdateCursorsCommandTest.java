@@ -18,6 +18,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import google.registry.model.common.Cursor;
@@ -110,14 +112,17 @@ public class UpdateCursorsCommandTest extends CommandTestCase<UpdateCursorsComma
 
   @Test
   public void testFailure_badTld() throws Exception {
-    thrown.expect(RegistryNotFoundException.class);
-    runCommandForced("--type=brda", "--timestamp=1984-12-18T00:00:00Z", "bar");
+    assertThrows(
+        RegistryNotFoundException.class,
+        () -> runCommandForced("--type=brda", "--timestamp=1984-12-18T00:00:00Z", "bar"));
   }
 
   @Test
   public void testFailure_badCursorType() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("Invalid value for --type parameter");
-    runCommandForced("--type=rbda", "--timestamp=1984-12-18T00:00:00Z", "foo");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () -> runCommandForced("--type=rbda", "--timestamp=1984-12-18T00:00:00Z", "foo"));
+    assertThat(thrown).hasMessageThat().contains("Invalid value for --type parameter");
   }
 }

@@ -192,130 +192,197 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
 
   @Test
   public void testFailure_duplicateDomains() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Duplicate arguments found");
-    runCommandForced(
-        "--client=NewRegistrar",
-        "--registrant=crr-admin",
-        "--password=2fooBAR",
-        "example.tld",
-        "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--password=2fooBAR",
+                    "example.tld",
+                    "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("Duplicate arguments found");
   }
 
   @Test
   public void testFailure_missingDomain() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("Main parameters are required");
-    runCommandForced("--client=NewRegistrar", "--registrant=crr-admin", "--password=2fooBAR");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar", "--registrant=crr-admin", "--password=2fooBAR"));
+    assertThat(thrown).hasMessageThat().contains("Main parameters are required");
   }
 
   @Test
   public void testFailure_missingClientId() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--client");
-    runCommandForced("--registrant=crr-admin", "--password=2fooBAR", "example.tld");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () -> runCommandForced("--registrant=crr-admin", "--password=2fooBAR", "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("--client");
   }
 
   @Test
   public void testFailure_addTooManyNameServers() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("You can add at most 13 nameservers");
-    runCommandForced(
-        "--client=NewRegistrar",
-        "--add_nameservers=ns1.zdns.google,ns2.zdns.google,ns3.zdns.google,ns4.zdns.google,"
-            + "ns5.zdns.google,ns6.zdns.google,ns7.zdns.google,ns8.zdns.google,"
-            + "ns9.zdns.google,ns10.zdns.google,ns11.zdns.google,ns12.zdns.google,"
-            + "ns13.zdns.google,ns14.zdns.google",
-        "--add_admins=crr-admin2",
-        "--add_techs=crr-tech2",
-        "--add_statuses=serverDeleteProhibited",
-        "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--add_nameservers=ns1.zdns.google,ns2.zdns.google,ns3.zdns.google,ns4.zdns.google,"
+                        + "ns5.zdns.google,ns6.zdns.google,ns7.zdns.google,ns8.zdns.google,"
+                        + "ns9.zdns.google,ns10.zdns.google,ns11.zdns.google,ns12.zdns.google,"
+                        + "ns13.zdns.google,ns14.zdns.google",
+                    "--add_admins=crr-admin2",
+                    "--add_techs=crr-tech2",
+                    "--add_statuses=serverDeleteProhibited",
+                    "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("You can add at most 13 nameservers");
   }
 
   @Test
   public void testFailure_providedNameserversAndAddNameservers() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("If you provide the nameservers flag, "
-            + "you cannot use the add_nameservers and remove_nameservers flags.");
-    runCommandForced(
-        "--client=NewRegistrar",
-        "--add_nameservers=ns1.zdns.google",
-        "--nameservers=ns2.zdns.google,ns3.zdns.google",
-        "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--add_nameservers=ns1.zdns.google",
+                    "--nameservers=ns2.zdns.google,ns3.zdns.google",
+                    "example.tld"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "If you provide the nameservers flag, "
+                + "you cannot use the add_nameservers and remove_nameservers flags.");
   }
 
   @Test
   public void testFailure_providedNameserversAndRemoveNameservers() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("If you provide the nameservers flag, "
-            + "you cannot use the add_nameservers and remove_nameservers flags.");
-    runCommandForced(
-        "--client=NewRegistrar",
-        "--remove_nameservers=ns1.zdns.google",
-        "--nameservers=ns2.zdns.google,ns3.zdns.google",
-        "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--remove_nameservers=ns1.zdns.google",
+                    "--nameservers=ns2.zdns.google,ns3.zdns.google",
+                    "example.tld"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "If you provide the nameservers flag, "
+                + "you cannot use the add_nameservers and remove_nameservers flags.");
   }
 
   @Test
   public void testFailure_providedAdminsAndAddAdmins() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(
-        "If you provide the admins flag, you cannot use the add_admins and remove_admins flags.");
-    runCommandForced(
-        "--client=NewRegistrar", "--add_admins=crr-admin2", "--admins=crr-admin2", "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--add_admins=crr-admin2",
+                    "--admins=crr-admin2",
+                    "example.tld"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo(
+            "If you provide the admins flag, "
+                + "you cannot use the add_admins and remove_admins flags.");
   }
 
   @Test
   public void testFailure_providedAdminsAndRemoveAdmins() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(
-        "If you provide the admins flag, you cannot use the add_admins and remove_admins flags.");
-    runCommandForced(
-        "--client=NewRegistrar",
-        "--remove_admins=crr-admin2",
-        "--admins=crr-admin2",
-        "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--remove_admins=crr-admin2",
+                    "--admins=crr-admin2",
+                    "example.tld"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo(
+            "If you provide the admins flag, "
+                + "you cannot use the add_admins and remove_admins flags.");
   }
 
   @Test
   public void testFailure_providedTechsAndAddTechs() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(
-        "If you provide the techs flag, you cannot use the add_techs and remove_techs flags.");
-    runCommandForced(
-        "--client=NewRegistrar", "--add_techs=crr-tech2", "--techs=crr-tech2", "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--add_techs=crr-tech2",
+                    "--techs=crr-tech2",
+                    "example.tld"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "If you provide the techs flag, you cannot use the add_techs and remove_techs flags.");
   }
 
   @Test
   public void testFailure_providedTechsAndRemoveTechs() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage(
-        "If you provide the techs flag, you cannot use the add_techs and remove_techs flags.");
-    runCommandForced(
-        "--client=NewRegistrar", "--remove_techs=crr-tech2", "--techs=crr-tech2", "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--remove_techs=crr-tech2",
+                    "--techs=crr-tech2",
+                    "example.tld"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "If you provide the techs flag, you cannot use the add_techs and remove_techs flags.");
   }
 
   @Test
   public void testFailure_providedStatusesAndAddStatuses() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("If you provide the statuses flag, "
-            + "you cannot use the add_statuses and remove_statuses flags.");
-    runCommandForced(
-        "--client=NewRegistrar",
-        "--add_statuses=serverHold",
-        "--statuses=crr-serverHold",
-        "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--add_statuses=serverHold",
+                    "--statuses=crr-serverHold",
+                    "example.tld"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "If you provide the statuses flag, "
+                + "you cannot use the add_statuses and remove_statuses flags.");
   }
 
   @Test
   public void testFailure_providedStatusesAndRemoveStatuses() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("If you provide the statuses flag, "
-            + "you cannot use the add_statuses and remove_statuses flags.");
-    runCommandForced(
-        "--client=NewRegistrar",
-        "--remove_statuses=serverHold",
-        "--statuses=crr-serverHold",
-        "example.tld");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--remove_statuses=serverHold",
+                    "--statuses=crr-serverHold",
+                    "example.tld"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "If you provide the statuses flag, "
+                + "you cannot use the add_statuses and remove_statuses flags.");
   }
 }

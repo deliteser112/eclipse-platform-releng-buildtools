@@ -14,6 +14,8 @@
 
 package google.registry.tools;
 
+import static google.registry.testing.JUnitBackports.assertThrows;
+
 import com.beust.jcommander.ParameterException;
 import org.junit.Test;
 
@@ -57,69 +59,123 @@ public class UpdateServerLocksCommandTest extends EppToolCommandTestCase<UpdateS
 
   @Test
   public void testFailure_applyAllRemoveOne_failsDueToOverlap() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommandForced("--client=NewRegistrar", "--registrar_request=true", "--reason=Test",
-        "--domain_name=example.tld", "--apply=all", "--remove=serverRenewProhibited");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--registrar_request=true",
+                "--reason=Test",
+                "--domain_name=example.tld",
+                "--apply=all",
+                "--remove=serverRenewProhibited"));
   }
 
   @Test
   public void testFailure_illegalStatus() throws Exception {
     // The EPP status is a valid one by RFC, but invalid for this command.
-    thrown.expect(IllegalArgumentException.class);
-    runCommandForced("--client=NewRegistrar", "--registrar_request=true", "--reason=Test",
-        "--domain_name=example.tld", "--apply=clientRenewProhibited");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--registrar_request=true",
+                "--reason=Test",
+                "--domain_name=example.tld",
+                "--apply=clientRenewProhibited"));
   }
 
   @Test
   public void testFailure_unrecognizedStatus() throws Exception {
     // Handles a status passed to the command that doesn't correspond to any
     // EPP-valid status.
-    thrown.expect(IllegalArgumentException.class);
-    runCommandForced("--client=NewRegistrar", "--registrar_request=true", "--reason=Test",
-        "--domain_name=example.tld", "--apply=foo");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--registrar_request=true",
+                "--reason=Test",
+                "--domain_name=example.tld",
+                "--apply=foo"));
   }
 
   @Test
   public void testFailure_mainParameter() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommandForced("--client=NewRegistrar", "--registrar_request=true", "--reason=Test",
-        "--domain_name=example.tld", "example2.tld", "--apply=serverRenewProhibited");
+    assertThrows(
+        ParameterException.class,
+        () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--registrar_request=true",
+                "--reason=Test",
+                "--domain_name=example.tld",
+                "example2.tld",
+                "--apply=serverRenewProhibited"));
   }
 
   @Test
   public void testFailure_noOp() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommandForced("--client=NewRegistrar", "--domain_name=example.tld", "--apply=all",
-        "--remove=serverRenewProhibited,serverTransferProhibited,"
-            + "serverDeleteProhibited,serverUpdateProhibited,serverHold",
-            "--registrar_request=true", "--reason=Test");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--domain_name=example.tld",
+                "--apply=all",
+                "--remove=serverRenewProhibited,serverTransferProhibited,"
+                    + "serverDeleteProhibited,serverUpdateProhibited,serverHold",
+                "--registrar_request=true",
+                "--reason=Test"));
   }
 
   @Test
   public void testFailure_missingClientId() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommandForced("--domain_name=example.tld", "--registrar_request=true",
-        "--apply=serverRenewProhibited", "--reason=Test");
+    assertThrows(
+        ParameterException.class,
+        () ->
+            runCommandForced(
+                "--domain_name=example.tld",
+                "--registrar_request=true",
+                "--apply=serverRenewProhibited",
+                "--reason=Test"));
   }
 
   @Test
   public void testFailure_unknownFlag() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommandForced("--client=NewRegistrar", "--registrar_request=true", "--reason=Test",
-        "--domain_name=example.tld", "--apply=serverRenewProhibited", "--foo=bar");
+    assertThrows(
+        ParameterException.class,
+        () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--registrar_request=true",
+                "--reason=Test",
+                "--domain_name=example.tld",
+                "--apply=serverRenewProhibited",
+                "--foo=bar"));
   }
 
   @Test
   public void testFailure_noReasonWhenNotRegistrarRequested() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommandForced("--client=NewRegistrar", "--registrar_request=false",
-        "--domain_name=example.tld", "--apply=serverRenewProhibited");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--registrar_request=false",
+                "--domain_name=example.tld",
+                "--apply=serverRenewProhibited"));
   }
 
   @Test
   public void testFailure_missingRegistrarRequest() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommandForced("--client=NewRegistrar", "--reason=Test",
-        "--domain_name=example.tld", "--apply=serverRenewProhibited");
+    assertThrows(
+        ParameterException.class,
+        () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--reason=Test",
+                "--domain_name=example.tld",
+                "--apply=serverRenewProhibited"));
   }
 }

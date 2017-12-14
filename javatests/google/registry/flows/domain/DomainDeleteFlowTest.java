@@ -42,6 +42,8 @@ import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -636,8 +638,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   public void testFailure_predelegation() throws Exception {
     createTld("tld", TldState.PREDELEGATION);
     setUpSuccessfulTest();
-    thrown.expect(BadCommandForRegistryPhaseException.class);
-    runFlow();
+    assertThrows(BadCommandForRegistryPhaseException.class, () -> runFlow());
   }
 
   @Test
@@ -651,17 +652,17 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
 
   @Test
   public void testFailure_neverExisted() throws Exception {
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    runFlow();
+    ResourceDoesNotExistException thrown =
+        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    runFlow();
+    ResourceDoesNotExistException thrown =
+        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
@@ -674,16 +675,14 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     domain = persistResource(domain.asBuilder()
         .addSubordinateHost(subordinateHost.getFullyQualifiedHostName())
         .build());
-    thrown.expect(DomainToDeleteHasHostsException.class);
-    runFlow();
+    assertThrows(DomainToDeleteHasHostsException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveDomain(getUniqueIdFromCommand());
-    thrown.expect(ResourceNotOwnedException.class);
-    runFlow();
+    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
   }
 
   @Test
@@ -700,8 +699,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setUpSuccessfulTest();
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
-    thrown.expect(NotAuthorizedForTldException.class);
-    runFlow();
+    assertThrows(NotAuthorizedForTldException.class, () -> runFlow());
   }
 
   @Test
@@ -719,9 +717,9 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
         .addStatusValue(StatusValue.CLIENT_DELETE_PROHIBITED)
         .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
-    thrown.expectMessage("clientDeleteProhibited");
-    runFlow();
+    ResourceStatusProhibitsOperationException thrown =
+        expectThrows(ResourceStatusProhibitsOperationException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("clientDeleteProhibited");
   }
 
   @Test
@@ -729,9 +727,9 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
         .addStatusValue(StatusValue.SERVER_DELETE_PROHIBITED)
         .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
-    thrown.expectMessage("serverDeleteProhibited");
-    runFlow();
+    ResourceStatusProhibitsOperationException thrown =
+        expectThrows(ResourceStatusProhibitsOperationException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("serverDeleteProhibited");
   }
 
   @Test
@@ -739,9 +737,9 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     persistResource(newDomainResource(getUniqueIdFromCommand()).asBuilder()
         .addStatusValue(StatusValue.PENDING_DELETE)
         .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
-    thrown.expectMessage("pendingDelete");
-    runFlow();
+    ResourceStatusProhibitsOperationException thrown =
+        expectThrows(ResourceStatusProhibitsOperationException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("pendingDelete");
   }
 
   @Test
@@ -764,8 +762,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   public void testFailure_metadataNotFromTool() throws Exception {
     setEppInput("domain_delete_metadata.xml");
     persistResource(newDomainResource(getUniqueIdFromCommand()));
-    thrown.expect(OnlyToolCanPassMetadataException.class);
-    runFlow();
+    assertThrows(OnlyToolCanPassMetadataException.class, () -> runFlow());
   }
 
   @Test

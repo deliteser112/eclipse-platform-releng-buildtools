@@ -386,8 +386,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTlds("foo.tld", "tld");
     setEppInput("domain_create_wildcard.xml", ImmutableMap.of("DOMAIN", "foo.tld"));
     persistContactsAndHosts();
-    thrown.expect(DomainNameExistsAsTldException.class);
-    runFlow();
+    assertThrows(DomainNameExistsAsTldException.class, () -> runFlow());
   }
 
   @Test
@@ -395,8 +394,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTlds("foo.tld", "tld");
     setEppInput("domain_create_wildcard.xml", ImmutableMap.of("DOMAIN", "FOO.TLD"));
     persistContactsAndHosts();
-    thrown.expect(BadDomainNameCharacterException.class);
-    runFlow();
+    assertThrows(BadDomainNameCharacterException.class, () -> runFlow());
   }
 
   @Test
@@ -536,72 +534,63 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testFailure_refundableFee_v06() throws Exception {
     setEppInput("domain_create_fee_refundable.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistContactsAndHosts();
-    thrown.expect(UnsupportedFeeAttributeException.class);
-    runFlow();
+    assertThrows(UnsupportedFeeAttributeException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_refundableFee_v11() throws Exception {
     setEppInput("domain_create_fee_refundable.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistContactsAndHosts();
-    thrown.expect(UnsupportedFeeAttributeException.class);
-    runFlow();
+    assertThrows(UnsupportedFeeAttributeException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_refundableFee_v12() throws Exception {
     setEppInput("domain_create_fee_refundable.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
     persistContactsAndHosts();
-    thrown.expect(UnsupportedFeeAttributeException.class);
-    runFlow();
+    assertThrows(UnsupportedFeeAttributeException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_gracePeriodFee_v06() throws Exception {
     setEppInput("domain_create_fee_grace_period.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistContactsAndHosts();
-    thrown.expect(UnsupportedFeeAttributeException.class);
-    runFlow();
+    assertThrows(UnsupportedFeeAttributeException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_gracePeriodFee_v11() throws Exception {
     setEppInput("domain_create_fee_grace_period.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistContactsAndHosts();
-    thrown.expect(UnsupportedFeeAttributeException.class);
-    runFlow();
+    assertThrows(UnsupportedFeeAttributeException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_gracePeriodFee_v12() throws Exception {
     setEppInput("domain_create_fee_grace_period.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
     persistContactsAndHosts();
-    thrown.expect(UnsupportedFeeAttributeException.class);
-    runFlow();
+    assertThrows(UnsupportedFeeAttributeException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_appliedFee_v06() throws Exception {
     setEppInput("domain_create_fee_applied.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistContactsAndHosts();
-    thrown.expect(UnsupportedFeeAttributeException.class);
-    runFlow();
+    assertThrows(UnsupportedFeeAttributeException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_appliedFee_v11() throws Exception {
     setEppInput("domain_create_fee_applied.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistContactsAndHosts();
-    thrown.expect(UnsupportedFeeAttributeException.class);
-    runFlow();
+    assertThrows(UnsupportedFeeAttributeException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_appliedFee_v12() throws Exception {
     setEppInput("domain_create_fee_applied.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
     persistContactsAndHosts();
-    thrown.expect(UnsupportedFeeAttributeException.class);
-    runFlow();
+    assertThrows(UnsupportedFeeAttributeException.class, () -> runFlow());
   }
 
   @Test
@@ -621,8 +610,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testFailure_metadataNotFromTool() throws Exception {
     setEppInput("domain_create_metadata.xml");
     persistContactsAndHosts();
-    thrown.expect(OnlyToolCanPassMetadataException.class);
-    runFlow();
+    assertThrows(OnlyToolCanPassMetadataException.class, () -> runFlow());
   }
 
   @Test
@@ -649,9 +637,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .setLrpPeriod(new Interval(clock.nowUtc().minusDays(1), clock.nowUtc().plusDays(1)))
         .build());
     persistContactsAndHosts();
-    thrown.expect(InvalidLrpTokenException.class);
-    thrown.expectMessage("Invalid limited registration period token");
-    runFlow();
+    InvalidLrpTokenException thrown = expectThrows(InvalidLrpTokenException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("Invalid limited registration period token");
   }
 
   @Test
@@ -750,8 +737,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testFailure_periodInMonths() throws Exception {
     setEppInput("domain_create_months.xml");
     persistContactsAndHosts();
-    thrown.expect(BadPeriodUnitException.class);
-    runFlow();
+    assertThrows(BadPeriodUnitException.class, () -> runFlow());
   }
 
   @Test
@@ -783,8 +769,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistClaimsList(ImmutableMap.of("example", CLAIMS_KEY));
     setEppInput("domain_create.xml");
     persistContactsAndHosts();
-    thrown.expect(MissingClaimsNoticeException.class);
-    runFlow();
+    assertThrows(MissingClaimsNoticeException.class, () -> runFlow());
   }
 
   @Test
@@ -792,8 +777,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_claim_notice.xml");
     persistClaimsList(ImmutableMap.of());
     persistContactsAndHosts();
-    thrown.expect(UnexpectedClaimsNoticeException.class);
-    runFlow();
+    assertThrows(UnexpectedClaimsNoticeException.class, () -> runFlow());
   }
 
   @Test
@@ -804,40 +788,35 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(Registry.get("tld").asBuilder()
         .setClaimsPeriodEnd(clock.nowUtc())
         .build());
-    thrown.expect(ClaimsPeriodEndedException.class);
-    runFlow();
+    assertThrows(ClaimsPeriodEndedException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_tooManyNameservers() throws Exception {
     setEppInput("domain_create_14_nameservers.xml");
     persistContactsAndHosts();
-    thrown.expect(TooManyNameserversException.class);
-    runFlow();
+    assertThrows(TooManyNameserversException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_secDnsMaxSigLife() throws Exception {
     setEppInput("domain_create_dsdata.xml");
     persistContactsAndHosts();
-    thrown.expect(MaxSigLifeNotSupportedException.class);
-    runFlow();
+    assertThrows(MaxSigLifeNotSupportedException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_secDnsTooManyDsRecords() throws Exception {
     setEppInput("domain_create_dsdata_9_records.xml");
     persistContactsAndHosts();
-    thrown.expect(TooManyDsRecordsException.class);
-    runFlow();
+    assertThrows(TooManyDsRecordsException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_wrongExtension() throws Exception {
     setEppInput("domain_create_wrong_extension.xml");
     persistContactsAndHosts();
-    thrown.expect(UnimplementedExtensionException.class);
-    runFlow();
+    assertThrows(UnimplementedExtensionException.class, () -> runFlow());
   }
 
   @Test
@@ -846,8 +825,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(
         Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, 20)).build());
     persistContactsAndHosts();
-    thrown.expect(FeesMismatchException.class);
-    runFlow();
+    assertThrows(FeesMismatchException.class, () -> runFlow());
   }
 
   @Test
@@ -856,8 +834,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(
         Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, 20)).build());
     persistContactsAndHosts();
-    thrown.expect(FeesMismatchException.class);
-    runFlow();
+    assertThrows(FeesMismatchException.class, () -> runFlow());
   }
 
   @Test
@@ -866,8 +843,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(
         Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, 20)).build());
     persistContactsAndHosts();
-    thrown.expect(FeesMismatchException.class);
-    runFlow();
+    assertThrows(FeesMismatchException.class, () -> runFlow());
   }
 
   @Test
@@ -882,8 +858,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .setServerStatusChangeBillingCost(Money.of(EUR, 19))
         .build());
     persistContactsAndHosts();
-    thrown.expect(CurrencyUnitMismatchException.class);
-    runFlow();
+    assertThrows(CurrencyUnitMismatchException.class, () -> runFlow());
   }
 
   @Test
@@ -898,8 +873,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .setServerStatusChangeBillingCost(Money.of(EUR, 19))
         .build());
     persistContactsAndHosts();
-    thrown.expect(CurrencyUnitMismatchException.class);
-    runFlow();
+    assertThrows(CurrencyUnitMismatchException.class, () -> runFlow());
   }
 
   @Test
@@ -914,8 +888,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .setServerStatusChangeBillingCost(Money.of(EUR, 19))
         .build());
     persistContactsAndHosts();
-    thrown.expect(CurrencyUnitMismatchException.class);
-    runFlow();
+    assertThrows(CurrencyUnitMismatchException.class, () -> runFlow());
   }
 
   @Test
@@ -939,16 +912,14 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testFailure_reserved() throws Exception {
     setEppInput("domain_create_reserved.xml");
     persistContactsAndHosts();
-    thrown.expect(DomainReservedException.class);
-    runFlow();
+    assertThrows(DomainReservedException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_anchorTenantViaAuthCode_wrongAuthCode() throws Exception {
     setEppInput("domain_create_anchor_wrong_authcode.xml");
     persistContactsAndHosts();
-    thrown.expect(DomainReservedException.class);
-    runFlow();
+    assertThrows(DomainReservedException.class, () -> runFlow());
   }
 
   @Test
@@ -1045,9 +1016,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistActiveHost("ns1.example.net");
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
-    thrown.expect(LinkedResourcesDoNotExistException.class);
-    thrown.expectMessage("(ns2.example.net)");
-    runFlow();
+    LinkedResourcesDoNotExistException thrown =
+        expectThrows(LinkedResourcesDoNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("(ns2.example.net)");
   }
 
   @Test
@@ -1059,9 +1030,10 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .addStatusValue(StatusValue.PENDING_DELETE)
         .build());
     clock.advanceOneMilli();
-    thrown.expect(LinkedResourceInPendingDeleteProhibitsOperationException.class);
-    thrown.expectMessage("ns2.example.net");
-    runFlow();
+    LinkedResourceInPendingDeleteProhibitsOperationException thrown =
+        expectThrows(
+            LinkedResourceInPendingDeleteProhibitsOperationException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("ns2.example.net");
   }
 
   @Test
@@ -1069,8 +1041,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     persistActiveDomainApplication(getUniqueIdFromCommand());
     clock.advanceOneMilli();
-    thrown.expect(DomainHasOpenApplicationsException.class);
-    runFlow();
+    assertThrows(DomainHasOpenApplicationsException.class, () -> runFlow());
   }
 
   @Test
@@ -1095,9 +1066,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistActiveHost("ns1.example.net");
     persistActiveHost("ns2.example.net");
     persistActiveContact("jd1234");
-    thrown.expect(LinkedResourcesDoNotExistException.class);
-    thrown.expectMessage("(sh8013)");
-    runFlow();
+    LinkedResourcesDoNotExistException thrown =
+        expectThrows(LinkedResourcesDoNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("(sh8013)");
   }
 
   @Test
@@ -1109,57 +1080,52 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .addStatusValue(StatusValue.PENDING_DELETE)
         .build());
     clock.advanceOneMilli();
-    thrown.expect(LinkedResourceInPendingDeleteProhibitsOperationException.class);
-    thrown.expectMessage("jd1234");
-    runFlow();
+    LinkedResourceInPendingDeleteProhibitsOperationException thrown =
+        expectThrows(
+            LinkedResourceInPendingDeleteProhibitsOperationException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("jd1234");
   }
 
   @Test
   public void testFailure_wrongTld() throws Exception {
     persistContactsAndHosts("net");
     deleteTld("tld");
-    thrown.expect(TldDoesNotExistException.class);
-    runFlow();
+    assertThrows(TldDoesNotExistException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_predelegation() throws Exception {
     createTld("tld", TldState.PREDELEGATION);
     persistContactsAndHosts();
-    thrown.expect(NoGeneralRegistrationsInCurrentPhaseException.class);
-    runFlow();
+    assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_sunrise() throws Exception {
     createTld("tld", TldState.SUNRISE);
     persistContactsAndHosts();
-    thrown.expect(NoGeneralRegistrationsInCurrentPhaseException.class);
-    runFlow();
+    assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_sunrush() throws Exception {
     createTld("tld", TldState.SUNRUSH);
     persistContactsAndHosts();
-    thrown.expect(NoGeneralRegistrationsInCurrentPhaseException.class);
-    runFlow();
+    assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_landrush() throws Exception {
     createTld("tld", TldState.LANDRUSH);
     persistContactsAndHosts();
-    thrown.expect(NoGeneralRegistrationsInCurrentPhaseException.class);
-    runFlow();
+    assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_quietPeriod() throws Exception {
     createTld("tld", TldState.QUIET_PERIOD);
     persistContactsAndHosts();
-    thrown.expect(NoGeneralRegistrationsInCurrentPhaseException.class);
-    runFlow();
+    assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, () -> runFlow());
   }
 
   @Test
@@ -1232,8 +1198,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testFailure_duplicateContact() throws Exception {
     setEppInput("domain_create_duplicate_contact.xml");
     persistContactsAndHosts();
-    thrown.expect(DuplicateContactForRoleException.class);
-    runFlow();
+    assertThrows(DuplicateContactForRoleException.class, () -> runFlow());
   }
 
   @Test
@@ -1241,40 +1206,35 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     // We need to test for missing type, but not for invalid - the schema enforces that for us.
     setEppInput("domain_create_missing_contact_type.xml");
     persistContactsAndHosts();
-    thrown.expect(MissingContactTypeException.class);
-    runFlow();
+    assertThrows(MissingContactTypeException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_missingRegistrant() throws Exception {
     setEppInput("domain_create_missing_registrant.xml");
     persistContactsAndHosts();
-    thrown.expect(MissingRegistrantException.class);
-    runFlow();
+    assertThrows(MissingRegistrantException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_missingAdmin() throws Exception {
     setEppInput("domain_create_missing_admin.xml");
     persistContactsAndHosts();
-    thrown.expect(MissingAdminContactException.class);
-    runFlow();
+    assertThrows(MissingAdminContactException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_missingTech() throws Exception {
     setEppInput("domain_create_missing_tech.xml");
     persistContactsAndHosts();
-    thrown.expect(MissingTechnicalContactException.class);
-    runFlow();
+    assertThrows(MissingTechnicalContactException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_missingNonRegistrantContacts() throws Exception {
     setEppInput("domain_create_missing_non_registrant_contacts.xml");
     persistContactsAndHosts();
-    thrown.expect(MissingAdminContactException.class);
-    runFlow();
+    assertThrows(MissingAdminContactException.class, () -> runFlow());
   }
 
   @Test
@@ -1282,8 +1242,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("xn--q9jyb4c");
     setEppInput("domain_create_bad_idn_minna.xml");
     persistContactsAndHosts("net");
-    thrown.expect(InvalidIdnDomainLabelException.class);
-    runFlow();
+    assertThrows(InvalidIdnDomainLabelException.class, () -> runFlow());
   }
 
   @Test
@@ -1291,16 +1250,14 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_bad_validator_id.xml");
     persistClaimsList(ImmutableMap.of("exampleone", CLAIMS_KEY));
     persistContactsAndHosts();
-    thrown.expect(InvalidTrademarkValidatorException.class);
-    runFlow();
+    assertThrows(InvalidTrademarkValidatorException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_codeMark() throws Exception {
     setEppInput("domain_create_code_with_mark.xml");
     persistContactsAndHosts();
-    thrown.expect(UnsupportedMarkTypeException.class);
-    runFlow();
+    assertThrows(UnsupportedMarkTypeException.class, () -> runFlow());
   }
 
   @Test
@@ -1308,8 +1265,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.SUNRISE);
     setEppInput("domain_create_signed_mark.xml");
     persistContactsAndHosts();
-    thrown.expect(NoGeneralRegistrationsInCurrentPhaseException.class);
-    runFlow();
+    assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, () -> runFlow());
   }
 
   @Test
@@ -1317,8 +1273,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2010-08-17T09:00:00.0Z"));
     setEppInput("domain_create_claim_notice.xml");
     persistContactsAndHosts();
-    thrown.expect(ExpiredClaimException.class);
-    runFlow();
+    assertThrows(ExpiredClaimException.class, () -> runFlow());
   }
 
   @Test
@@ -1326,8 +1281,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2009-09-16T09:00:00.0Z"));
     setEppInput("domain_create_claim_notice.xml");
     persistContactsAndHosts();
-    thrown.expect(AcceptedTooLongAgoException.class);
-    runFlow();
+    assertThrows(AcceptedTooLongAgoException.class, () -> runFlow());
   }
 
   @Test
@@ -1335,8 +1289,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
     setEppInput("domain_create_malformed_claim_notice1.xml");
     persistContactsAndHosts();
-    thrown.expect(MalformedTcnIdException.class);
-    runFlow();
+    assertThrows(MalformedTcnIdException.class, () -> runFlow());
   }
 
   @Test
@@ -1344,8 +1297,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
     setEppInput("domain_create_malformed_claim_notice2.xml");
     persistContactsAndHosts();
-    thrown.expect(MalformedTcnIdException.class);
-    runFlow();
+    assertThrows(MalformedTcnIdException.class, () -> runFlow());
   }
 
   @Test
@@ -1353,8 +1305,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
     setEppInput("domain_create_bad_checksum_claim_notice.xml");
     persistContactsAndHosts();
-    thrown.expect(InvalidTcnIdChecksumException.class);
-    runFlow();
+    assertThrows(InvalidTcnIdChecksumException.class, () -> runFlow());
   }
 
   @Test
@@ -1367,8 +1318,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(loadRegistrar("TheRegistrar").asBuilder()
         .setBlockPremiumNames(true)
         .build());
-    thrown.expect(PremiumNameBlockedException.class);
-    runFlow();
+    assertThrows(PremiumNameBlockedException.class, () -> runFlow());
   }
 
   @Test
@@ -1376,8 +1326,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("example");
     setEppInput("domain_create_premium.xml");
     persistContactsAndHosts("net");
-    thrown.expect(FeesRequiredForPremiumNameException.class);
-    runFlow();
+    assertThrows(FeesRequiredForPremiumNameException.class, () -> runFlow());
   }
 
   @Test
@@ -1388,8 +1337,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("net");
     setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistContactsAndHosts();
-    thrown.expect(UndeclaredServiceExtensionException.class);
-    runFlow();
+    assertThrows(UndeclaredServiceExtensionException.class, () -> runFlow());
   }
 
   @Test
@@ -1400,8 +1348,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("net");
     setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistContactsAndHosts();
-    thrown.expect(UndeclaredServiceExtensionException.class);
-    runFlow();
+    assertThrows(UndeclaredServiceExtensionException.class, () -> runFlow());
   }
 
   @Test
@@ -1412,32 +1359,28 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("net");
     setEppInput("domain_create_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
     persistContactsAndHosts();
-    thrown.expect(UndeclaredServiceExtensionException.class);
-    runFlow();
+    assertThrows(UndeclaredServiceExtensionException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_feeGivenInWrongScale_v06() throws Exception {
     setEppInput("domain_create_fee_bad_scale.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistContactsAndHosts();
-    thrown.expect(CurrencyValueScaleException.class);
-    runFlow();
+    assertThrows(CurrencyValueScaleException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_feeGivenInWrongScale_v11() throws Exception {
     setEppInput("domain_create_fee_bad_scale.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistContactsAndHosts();
-    thrown.expect(CurrencyValueScaleException.class);
-    runFlow();
+    assertThrows(CurrencyValueScaleException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_feeGivenInWrongScale_v12() throws Exception {
     setEppInput("domain_create_fee_bad_scale.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
     persistContactsAndHosts();
-    thrown.expect(CurrencyValueScaleException.class);
-    runFlow();
+    assertThrows(CurrencyValueScaleException.class, () -> runFlow());
   }
 
   @Test
@@ -1450,8 +1393,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .asBuilder()
             .setState(State.SUSPENDED)
             .build());
-    thrown.expect(RegistrarMustBeActiveToCreateDomainsException.class);
-    runFlow();
+    assertThrows(RegistrarMustBeActiveToCreateDomainsException.class, () -> runFlow());
   }
 
   private void doFailingDomainNameTest(
@@ -1534,8 +1476,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.SUNRISE);
     setEppInput("domain_create_registration_sunrise.xml");
     persistContactsAndHosts();
-    thrown.expect(NoGeneralRegistrationsInCurrentPhaseException.class);
-    runFlow();
+    assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, () -> runFlow());
   }
 
   @Test
@@ -1586,8 +1527,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_registration_sunrush.xml");
     persistContactsAndHosts();
-    thrown.expect(NoGeneralRegistrationsInCurrentPhaseException.class);
-    runFlow();
+    assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, () -> runFlow());
   }
 
   @Test
@@ -1599,8 +1539,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
             .setAllowedTlds(ImmutableSet.of("irrelevant"))
             .build());
     persistContactsAndHosts();
-    thrown.expect(NotAuthorizedForTldException.class);
-    runFlow();
+    assertThrows(NotAuthorizedForTldException.class, () -> runFlow());
   }
 
   @Test
@@ -1651,8 +1590,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_registration_landrush.xml");
     persistContactsAndHosts();
-    thrown.expect(NoGeneralRegistrationsInCurrentPhaseException.class);
-    runFlow();
+    assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, () -> runFlow());
   }
 
   @Test
@@ -1705,9 +1643,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(Registry.get("tld").asBuilder()
         .setAllowedRegistrantContactIds(ImmutableSet.of("someone"))
         .build());
-    thrown.expect(RegistrantNotAllowedException.class);
-    thrown.expectMessage("jd1234");
-    runFlow();
+    RegistrantNotAllowedException thrown =
+        expectThrows(RegistrantNotAllowedException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("jd1234");
   }
 
   @Test
@@ -1716,9 +1654,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(Registry.get("tld").asBuilder()
         .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.net"))
         .build());
-    thrown.expect(NameserversNotAllowedForTldException.class);
-    thrown.expectMessage("ns1.example.net");
-    runFlow();
+    NameserversNotAllowedForTldException thrown =
+        expectThrows(NameserversNotAllowedForTldException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("ns1.example.net");
   }
 
   @Test
@@ -1728,8 +1666,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         .setAllowedFullyQualifiedHostNames(ImmutableSet.of("somethingelse.example.net"))
         .build());
     persistContactsAndHosts();
-    thrown.expect(NameserversNotSpecifiedForTldWithNameserverWhitelistException.class);
-    runFlow();
+    assertThrows(
+        NameserversNotSpecifiedForTldWithNameserverWhitelistException.class, () -> runFlow());
   }
 
   @Test
@@ -1770,8 +1708,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                     "example,NAMESERVER_RESTRICTED,"
                         + "ns1.example.net:ns2.example.net:ns3.example.net"))
             .build());
-    thrown.expect(NameserversNotSpecifiedForNameserverRestrictedDomainException.class);
-    runFlow();
+    assertThrows(
+        NameserversNotSpecifiedForNameserverRestrictedDomainException.class, () -> runFlow());
   }
 
   @Test
@@ -1784,9 +1722,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                 persistReservedList(
                     "reserved", "example,NAMESERVER_RESTRICTED,ns2.example.net:ns3.example.net"))
             .build());
-    thrown.expect(NameserversNotAllowedForDomainException.class);
-    thrown.expectMessage("ns1.example.net");
-    runFlow();
+    NameserversNotAllowedForDomainException thrown =
+        expectThrows(NameserversNotAllowedForDomainException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("ns1.example.net");
   }
 
   @Test
@@ -1800,9 +1738,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                 persistReservedList(
                     "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.net:ns2.example.net"))
             .build());
-    thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class);
-    thrown.expectMessage("example.tld");
-    runFlow();
+    DomainNotAllowedForTldWithCreateRestrictionException thrown =
+        expectThrows(DomainNotAllowedForTldWithCreateRestrictionException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("example.tld");
   }
 
   @Test
@@ -1850,9 +1788,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                     "example,NAMESERVER_RESTRICTED,"
                         + "ns1.example.net:ns2.example.net:ns3.example.net"))
             .build());
-    thrown.expect(NameserversNotAllowedForTldException.class);
-    thrown.expectMessage("ns1.example.net");
-    runFlow();
+    NameserversNotAllowedForTldException thrown =
+        expectThrows(NameserversNotAllowedForTldException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("ns1.example.net");
   }
 
   @Test
@@ -1869,9 +1807,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                     "example,NAMESERVER_RESTRICTED,"
                         + "ns2.example.net:ns3.example.net:ns4.example.net"))
             .build());
-    thrown.expect(NameserversNotAllowedForDomainException.class);
-    thrown.expectMessage("ns1.example.net");
-    runFlow();
+    NameserversNotAllowedForDomainException thrown =
+        expectThrows(NameserversNotAllowedForDomainException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("ns1.example.net");
   }
 
   @Test
@@ -1890,9 +1828,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                     "lol,NAMESERVER_RESTRICTED,"
                         + "ns1.example.net:ns2.example.net:ns3.example.net"))
             .build());
-    thrown.expect(DomainNotAllowedForTldWithCreateRestrictionException.class);
-    thrown.expectMessage("example.tld");
-    runFlow();
+    DomainNotAllowedForTldWithCreateRestrictionException thrown =
+        expectThrows(DomainNotAllowedForTldWithCreateRestrictionException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("example.tld");
   }
 
   @Test
@@ -2020,8 +1958,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testFailure_max10Years() throws Exception {
     setEppInput("domain_create_11_years.xml");
     persistContactsAndHosts();
-    thrown.expect(ExceedsMaxRegistrationYearsException.class);
-    runFlow();
+    assertThrows(ExceedsMaxRegistrationYearsException.class, () -> runFlow());
   }
 
   @Test

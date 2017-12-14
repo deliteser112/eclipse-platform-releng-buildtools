@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
@@ -226,45 +227,69 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
 
   @Test
   public void testFailure_missingAssigneeOrFile() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Exactly one of either assignee or filename must be specified.");
-    runCommand("--tlds=tld");
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> runCommand("--tlds=tld"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Exactly one of either assignee or filename must be specified.");
   }
 
   @Test
   public void testFailure_bothAssigneeAndFile() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Exactly one of either assignee or filename must be specified.");
-    runCommand("--assignee=domain.tld", "--tlds=tld", "--input=" + assigneeFilePath);
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> runCommand("--assignee=domain.tld", "--tlds=tld", "--input=" + assigneeFilePath));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Exactly one of either assignee or filename must be specified.");
   }
 
   @Test
   public void testFailure_bothMetadataAndFile() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Metadata cannot be specified along with a filename.");
-    runCommand("--tlds=tld", "--input=" + assigneeFilePath, "--metadata=key=foo");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> runCommand("--tlds=tld", "--input=" + assigneeFilePath, "--metadata=key=foo"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Metadata cannot be specified along with a filename.");
   }
 
   @Test
   public void testFailure_bothAssigneeAndMetadataColumns() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Metadata columns cannot be specified along with an assignee.");
-    runCommand("--assignee=domain.tld", "--tlds=tld", "--metadata_columns=foo=1");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> runCommand("--assignee=domain.tld", "--tlds=tld", "--metadata_columns=foo=1"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Metadata columns cannot be specified along with an assignee.");
   }
 
   @Test
   public void testFailure_badTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("TLDs do not exist: foo");
-    runCommand("--assignee=domain.tld", "--tlds=foo");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> runCommand("--assignee=domain.tld", "--tlds=foo"));
+    assertThat(thrown).hasMessageThat().contains("TLDs do not exist: foo");
   }
 
   @Test
   public void testFailure_oneAssignee_byFile_insufficientMetadata() throws Exception {
     Files.asCharSink(assigneeFile, UTF_8).write("domain.tld,foo");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Entry for domain.tld does not have a value for key2 (index 2)");
-    runCommand("--input=" + assigneeFilePath, "--tlds=tld", "--metadata_columns=key=1,key2=2");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommand(
+                    "--input=" + assigneeFilePath,
+                    "--tlds=tld",
+                    "--metadata_columns=key=1,key2=2"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Entry for domain.tld does not have a value for key2 (index 2)");
   }
 
   private void assertLrpTokens(LrpTokenEntity... expected) throws Exception {

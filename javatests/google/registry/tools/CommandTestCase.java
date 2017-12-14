@@ -39,7 +39,6 @@ import java.io.PrintStream;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -62,9 +61,6 @@ public abstract class CommandTestCase<C extends Command> {
       .withDatastore()
       .withTaskQueue()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();

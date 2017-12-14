@@ -92,13 +92,6 @@ public class LoadTestCommandTest extends CommandTestCase<LoadTestCommand> {
         eq(MediaType.PLAIN_TEXT_UTF_8),
         eq(new byte[0]));
   }
-  @Test
-  public void test_prompt() throws Exception {
-    thrown.expect(IllegalStateException.class);
-    runCommand();
-    verifyZeroInteractions(connection);
-    assertInStderr("Unable to access stdin (are you running with bazel run?)");
-  }
 
   @Test
   public void test_badTLD() throws Exception {

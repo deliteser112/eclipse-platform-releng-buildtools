@@ -15,7 +15,9 @@
 package google.registry.tools;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Mockito.when;
 
@@ -51,89 +53,135 @@ public class GenerateEscrowDepositCommandTest
 
   @Test
   public void testCommand_missingTld() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("The following option is required: -t, --tld");
-    runCommand("--watermark=2017-01-01T00:00:00Z", "--mode=thin", "-r 42", "-o test");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommand("--watermark=2017-01-01T00:00:00Z", "--mode=thin", "-r 42", "-o test"));
+    assertThat(thrown).hasMessageThat().contains("The following option is required: -t, --tld");
   }
 
   @Test
   public void testCommand_emptyTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Null or empty TLD specified");
-    runCommand("--tld=", "--watermark=2017-01-01T00:00:00Z", "--mode=thin", "-r 42", "-o test");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommand(
+                    "--tld=",
+                    "--watermark=2017-01-01T00:00:00Z",
+                    "--mode=thin",
+                    "-r 42",
+                    "-o test"));
+    assertThat(thrown).hasMessageThat().contains("Null or empty TLD specified");
   }
 
   @Test
   public void testCommand_invalidTld() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("TLDs do not exist: invalid");
-    runCommand(
-        "--tld=invalid", "--watermark=2017-01-01T00:00:00Z", "--mode=thin", "-r 42", "-o test");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommand(
+                    "--tld=invalid",
+                    "--watermark=2017-01-01T00:00:00Z",
+                    "--mode=thin",
+                    "-r 42",
+                    "-o test"));
+    assertThat(thrown).hasMessageThat().contains("TLDs do not exist: invalid");
   }
 
   @Test
   public void testCommand_missingWatermark() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("The following option is required: -w, --watermark");
-    runCommand("--tld=tld", "--mode=full", "-r 42", "-o test");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () -> runCommand("--tld=tld", "--mode=full", "-r 42", "-o test"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("The following option is required: -w, --watermark");
   }
 
   @Test
   public void testCommand_emptyWatermark() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Invalid format: \"\"");
-    runCommand("--tld=tld", "--watermark=", "--mode=full", "-r 42", "-o test");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> runCommand("--tld=tld", "--watermark=", "--mode=full", "-r 42", "-o test"));
+    assertThat(thrown).hasMessageThat().contains("Invalid format: \"\"");
   }
 
   @Test
   public void testCommand_missingOutdir() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("The following option is required: -o, --outdir");
-    runCommand("--tld=tld", "--watermark=2017-01-01T00:00:00Z", "--mode=thin", "-r 42");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommand(
+                    "--tld=tld", "--watermark=2017-01-01T00:00:00Z", "--mode=thin", "-r 42"));
+    assertThat(thrown).hasMessageThat().contains("The following option is required: -o, --outdir");
   }
 
   @Test
   public void testCommand_emptyOutdir() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("Output subdirectory must not be empty");
-    runCommand(
-        "--tld=tld", "--watermark=2017-01-01T00:00:00Z", "--mode=thin", "--outdir=", "-r 42");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommand(
+                    "--tld=tld",
+                    "--watermark=2017-01-01T00:00:00Z",
+                    "--mode=thin",
+                    "--outdir=",
+                    "-r 42"));
+    assertThat(thrown).hasMessageThat().contains("Output subdirectory must not be empty");
   }
 
   @Test
   public void testCommand_invalidWatermark() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("Each watermark date must be the start of a day");
-    runCommand(
-        "--tld=tld",
-        "--watermark=2017-01-01T10:00:00Z,2017-01-02T00:00:00Z",
-        "--mode=thin",
-        "-r 42",
-        "-o test");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommand(
+                    "--tld=tld",
+                    "--watermark=2017-01-01T10:00:00Z,2017-01-02T00:00:00Z",
+                    "--mode=thin",
+                    "-r 42",
+                    "-o test"));
+    assertThat(thrown).hasMessageThat().contains("Each watermark date must be the start of a day");
   }
 
   @Test
   public void testCommand_invalidMode() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("Invalid value for -m parameter. Allowed values:[FULL, THIN]");
-    runCommand(
-        "--tld=tld",
-        "--watermark=2017-01-01T00:00:00Z",
-        "--mode=thing",
-        "-r 42",
-        "-o test");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommand(
+                    "--tld=tld",
+                    "--watermark=2017-01-01T00:00:00Z",
+                    "--mode=thing",
+                    "-r 42",
+                    "-o test"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Invalid value for -m parameter. Allowed values:[FULL, THIN]");
   }
 
   @Test
   public void testCommand_invalidRevision() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("Revision must be greater than or equal to zero");
-    runCommand(
-        "--tld=tld",
-        "--watermark=2017-01-01T00:00:00Z",
-        "--mode=thin",
-        "-r -1",
-        "-o test");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommand(
+                    "--tld=tld",
+                    "--watermark=2017-01-01T00:00:00Z",
+                    "--mode=thin",
+                    "-r -1",
+                    "-o test"));
+    assertThat(thrown).hasMessageThat().contains("Revision must be greater than or equal to zero");
   }
 
   @Test

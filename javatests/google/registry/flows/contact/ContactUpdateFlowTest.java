@@ -14,12 +14,15 @@
 
 package google.registry.flows.contact;
 
+import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.ContactResourceSubject.assertAboutContacts;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.newContactResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -253,25 +256,24 @@ public class ContactUpdateFlowTest
 
   @Test
   public void testFailure_neverExisted() throws Exception {
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    runFlow();
+    ResourceDoesNotExistException thrown =
+        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
-    thrown.expect(ResourceDoesNotExistException.class);
-    thrown.expectMessage(String.format("(%s)", getUniqueIdFromCommand()));
-    runFlow();
+    ResourceDoesNotExistException thrown =
+        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
   public void testFailure_statusValueNotClientSettable() throws Exception {
     setEppInput("contact_update_prohibited_status.xml");
     persistActiveContact(getUniqueIdFromCommand());
-    thrown.expect(StatusNotClientSettableException.class);
-    runFlow();
+    assertThrows(StatusNotClientSettableException.class, () -> runFlow());
   }
 
   @Test
@@ -289,8 +291,7 @@ public class ContactUpdateFlowTest
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveContact(getUniqueIdFromCommand());
-    thrown.expect(ResourceNotOwnedException.class);
-    runFlow();
+    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
   }
 
   @Test
@@ -337,8 +338,7 @@ public class ContactUpdateFlowTest
         newContactResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
             .build());
-    thrown.expect(ResourceHasClientUpdateProhibitedException.class);
-    runFlow();
+    assertThrows(ResourceHasClientUpdateProhibitedException.class, () -> runFlow());
   }
 
   @Test
@@ -347,9 +347,9 @@ public class ContactUpdateFlowTest
         newContactResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
             .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
-    thrown.expectMessage("serverUpdateProhibited");
-    runFlow();
+    ResourceStatusProhibitsOperationException thrown =
+        expectThrows(ResourceStatusProhibitsOperationException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("serverUpdateProhibited");
   }
 
   @Test
@@ -358,9 +358,9 @@ public class ContactUpdateFlowTest
         newContactResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
             .build());
-    thrown.expect(ResourceStatusProhibitsOperationException.class);
-    thrown.expectMessage("pendingDelete");
-    runFlow();
+    ResourceStatusProhibitsOperationException thrown =
+        expectThrows(ResourceStatusProhibitsOperationException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("pendingDelete");
   }
 
   @Test
@@ -373,24 +373,21 @@ public class ContactUpdateFlowTest
   public void testFailure_nonAsciiInIntAddress() throws Exception {
     setEppInput("contact_update_hebrew_int.xml");
     persistActiveContact(getUniqueIdFromCommand());
-    thrown.expect(BadInternationalizedPostalInfoException.class);
-    runFlow();
+    assertThrows(BadInternationalizedPostalInfoException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_declineDisclosure() throws Exception {
     setEppInput("contact_update_decline_disclosure.xml");
     persistActiveContact(getUniqueIdFromCommand());
-    thrown.expect(DeclineContactDisclosureFieldDisallowedPolicyException.class);
-    runFlow();
+    assertThrows(DeclineContactDisclosureFieldDisallowedPolicyException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_addRemoveSameValue() throws Exception {
     setEppInput("contact_update_add_remove_same.xml");
     persistActiveContact(getUniqueIdFromCommand());
-    thrown.expect(AddRemoveSameValueException.class);
-    runFlow();
+    assertThrows(AddRemoveSameValueException.class, () -> runFlow());
   }
 
   @Test

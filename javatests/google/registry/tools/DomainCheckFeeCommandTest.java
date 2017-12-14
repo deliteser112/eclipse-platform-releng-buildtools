@@ -14,6 +14,8 @@
 
 package google.registry.tools;
 
+import static google.registry.testing.JUnitBackports.assertThrows;
+
 import com.beust.jcommander.ParameterException;
 import org.junit.Test;
 
@@ -59,19 +61,18 @@ public class DomainCheckFeeCommandTest extends EppToolCommandTestCase<DomainChec
 
   @Test
   public void testFailure_missingClientId() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommandForced("example.tld");
+    assertThrows(ParameterException.class, () -> runCommandForced("example.tld"));
   }
 
   @Test
   public void testFailure_NoMainParameter() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommandForced("--client=NewRegistrar");
+    assertThrows(ParameterException.class, () -> runCommandForced("--client=NewRegistrar"));
   }
 
   @Test
   public void testFailure_unknownFlag() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommandForced("--client=NewRegistrar", "--unrecognized=foo", "example.tld");
+    assertThrows(
+        ParameterException.class,
+        () -> runCommandForced("--client=NewRegistrar", "--unrecognized=foo", "example.tld"));
   }
 }

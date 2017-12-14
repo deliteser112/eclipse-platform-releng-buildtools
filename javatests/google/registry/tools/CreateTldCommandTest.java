@@ -78,16 +78,24 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testFailure_multipleArguments() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Can't create more than one TLD at a time");
-    runCommandForced("--roid_suffix=BLAH", "--dns_writers=VoidDnsWriter", "xn--q9jyb4c", "test");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--roid_suffix=BLAH", "--dns_writers=VoidDnsWriter", "xn--q9jyb4c", "test"));
+    assertThat(thrown).hasMessageThat().contains("Can't create more than one TLD at a time");
   }
 
   @Test
   public void testFailure_multipleDuplicateArguments() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Can't create more than one TLD at a time");
-    runCommandForced("--roid_suffix=BLAH", "--dns_writers=VoidDnsWriter", "test", "test");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--roid_suffix=BLAH", "--dns_writers=VoidDnsWriter", "test", "test"));
+    assertThat(thrown).hasMessageThat().contains("Can't create more than one TLD at a time");
   }
 
   @Test
@@ -303,13 +311,16 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testFailure_invalidAddGracePeriod() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Invalid format: \"5m\"");
-    runCommandForced(
-        "--add_grace_period=5m",
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--add_grace_period=5m",
+                    "--roid_suffix=Q9JYB4C",
+                    "--dns_writers=VoidDnsWriter",
+                    "xn--q9jyb4c"));
+    assertThat(thrown).hasMessageThat().contains("Invalid format: \"5m\"");
   }
 
   @Test
@@ -327,101 +338,131 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testFailure_invalidRedemptionGracePeriod() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Invalid format: \"5m\"");
-    runCommandForced(
-        "--redemption_grace_period=5m",
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--redemption_grace_period=5m",
+                    "--roid_suffix=Q9JYB4C",
+                    "--dns_writers=VoidDnsWriter",
+                    "xn--q9jyb4c"));
+    assertThat(thrown).hasMessageThat().contains("Invalid format: \"5m\"");
   }
 
   @Test
   public void testFailure_invalidPendingDeleteLength() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Invalid format: \"5m\"");
-    runCommandForced(
-        "--pending_delete_length=5m",
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--pending_delete_length=5m",
+                    "--roid_suffix=Q9JYB4C",
+                    "--dns_writers=VoidDnsWriter",
+                    "xn--q9jyb4c"));
+    assertThat(thrown).hasMessageThat().contains("Invalid format: \"5m\"");
   }
 
   @Test
   public void testFailure_invalidTldState() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("Invalid value for --initial_tld_state parameter");
-    runCommandForced(
-        "--initial_tld_state=INVALID_STATE",
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--initial_tld_state=INVALID_STATE",
+                    "--roid_suffix=Q9JYB4C",
+                    "--dns_writers=VoidDnsWriter",
+                    "xn--q9jyb4c"));
+    assertThat(thrown).hasMessageThat().contains("Invalid value for --initial_tld_state parameter");
   }
 
   @Test
   public void testFailure_bothTldStateFlags() throws Exception {
     DateTime now = DateTime.now(UTC);
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Don't pass both --initial_tld_state and --tld_state_transitions");
-    runCommandForced(
-        String.format(
-            "--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE",
-            now, now.plus(Duration.millis(1))),
-        "--initial_tld_state=GENERAL_AVAILABILITY",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    String.format(
+                        "--tld_state_transitions=%s=PREDELEGATION,%s=SUNRISE",
+                        now, now.plus(Duration.millis(1))),
+                    "--initial_tld_state=GENERAL_AVAILABILITY",
+                    "--dns_writers=VoidDnsWriter",
+                    "xn--q9jyb4c"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Don't pass both --initial_tld_state and --tld_state_transitions");
   }
 
   @Test
   public void testFailure_negativeInitialRenewBillingCost() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Renew billing cost cannot be negative");
-    runCommandForced(
-        "--initial_renew_billing_cost=USD -42",
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--initial_renew_billing_cost=USD -42",
+                    "--roid_suffix=Q9JYB4C",
+                    "--dns_writers=VoidDnsWriter",
+                    "xn--q9jyb4c"));
+    assertThat(thrown).hasMessageThat().contains("Renew billing cost cannot be negative");
   }
 
   @Test
   public void testFailure_invalidEapCurrency() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("All EAP fees must be in the registry's currency");
-    runCommandForced(
-        String.format(
-            "--eap_fee_schedule=\"%s=JPY 123456\"", START_OF_TIME.toString(DATETIME_FORMAT)),
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    String.format(
+                        "--eap_fee_schedule=\"%s=JPY 123456\"",
+                        START_OF_TIME.toString(DATETIME_FORMAT)),
+                    "--roid_suffix=Q9JYB4C",
+                    "--dns_writers=VoidDnsWriter",
+                    "xn--q9jyb4c"));
+    assertThat(thrown).hasMessageThat().contains("All EAP fees must be in the registry's currency");
   }
 
   @Test
   public void testFailure_noTldName() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("Main parameters are required (\"Names of the TLDs\")");
-    runCommandForced();
+    ParameterException thrown = expectThrows(ParameterException.class, () -> runCommandForced());
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Main parameters are required (\"Names of the TLDs\")");
   }
 
   @Test
   public void testFailure_noDnsWriter() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("At least one DNS writer must be specified");
-    runCommandForced("xn--q9jyb4c", "--roid_suffix=Q9JYB4C");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> runCommandForced("xn--q9jyb4c", "--roid_suffix=Q9JYB4C"));
+    assertThat(thrown).hasMessageThat().contains("At least one DNS writer must be specified");
   }
 
   @Test
   public void testFailure_alreadyExists() throws Exception {
     createTld("xn--q9jyb4c");
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("TLD 'xn--q9jyb4c' already exists");
-    runCommandForced("--roid_suffix=NOTDUPE", "--dns_writers=VoidDnsWriter", "xn--q9jyb4c");
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () ->
+                runCommandForced(
+                    "--roid_suffix=NOTDUPE", "--dns_writers=VoidDnsWriter", "xn--q9jyb4c"));
+    assertThat(thrown).hasMessageThat().contains("TLD 'xn--q9jyb4c' already exists");
   }
 
   @Test
   public void testFailure_tldStartsWithDigit() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("TLDs cannot begin with a number");
-    runCommandForced("1foo", "--roid_suffix=1FOO", "--dns_writers=VoidDnsWriter");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () -> runCommandForced("1foo", "--roid_suffix=1FOO", "--dns_writers=VoidDnsWriter"));
+    assertThat(thrown).hasMessageThat().contains("TLDs cannot begin with a number");
   }
 
   @Test
@@ -556,43 +597,60 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testFailure_setPremiumListThatDoesntExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("The premium list 'phonies' doesn't exist");
-    runCommandForced(
-        "--premium_list=phonies",
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--premium_list=phonies",
+                    "--roid_suffix=Q9JYB4C",
+                    "--dns_writers=VoidDnsWriter",
+                    "xn--q9jyb4c"));
+    assertThat(thrown).hasMessageThat().contains("The premium list 'phonies' doesn't exist");
   }
 
   @Test
   public void testFailure_addLrpPeriod_backwardsInterval() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage(
-        "--lrp_period=2005-06-09T12:30:00Z/2004-07-10T13:30:00Z not an ISO-8601 interval");
-    runCommandForced(
-        "--lrp_period=2005-06-09T12:30:00Z/2004-07-10T13:30:00Z",
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--lrp_period=2005-06-09T12:30:00Z/2004-07-10T13:30:00Z",
+                    "--roid_suffix=Q9JYB4C",
+                    "--dns_writers=VoidDnsWriter",
+                    "xn--q9jyb4c"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "--lrp_period=2005-06-09T12:30:00Z/2004-07-10T13:30:00Z not an ISO-8601 interval");
   }
 
   @Test
   public void testFailure_addLrpPeriod_badInterval() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("--lrp_period=foobar not an ISO-8601 interval");
-    runCommandForced(
-        "--lrp_period=foobar",
-        "--roid_suffix=Q9JYB4C",
-        "--dns_writers=VoidDnsWriter",
-        "xn--q9jyb4c");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--lrp_period=foobar",
+                    "--roid_suffix=Q9JYB4C",
+                    "--dns_writers=VoidDnsWriter",
+                    "xn--q9jyb4c"));
+    assertThat(thrown).hasMessageThat().contains("--lrp_period=foobar not an ISO-8601 interval");
   }
 
   @Test
   public void testFailure_specifiedDnsWriters_dontExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Invalid DNS writer name(s) specified: [Deadbeef, Invalid]");
-    runCommandForced("xn--q9jyb4c", "--roid_suffix=Q9JYB4C", "--dns_writers=Invalid,Deadbeef");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "xn--q9jyb4c", "--roid_suffix=Q9JYB4C", "--dns_writers=Invalid,Deadbeef"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Invalid DNS writer name(s) specified: [Deadbeef, Invalid]");
   }
 
   private void runSuccessfulReservedListsTest(String reservedLists) throws Exception {

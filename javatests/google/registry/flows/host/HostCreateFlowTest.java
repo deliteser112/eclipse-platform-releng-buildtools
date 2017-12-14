@@ -26,6 +26,7 @@ import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 
@@ -125,8 +126,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     createTlds("bar.tld", "tld");
 
     setEppHostCreateInputWithIps("ns1.bar.tld");
-    thrown.expect(HostNameTooShallowException.class);
-    runFlow();
+    assertThrows(HostNameTooShallowException.class, () -> runFlow());
   }
 
   @Test
@@ -154,8 +154,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     setEppHostCreateInput("ns1.example.tld", null);
     createTld("tld");
     persistActiveDomain("example.tld");
-    thrown.expect(SubordinateHostMustHaveIpException.class);
-    runFlow();
+    assertThrows(SubordinateHostMustHaveIpException.class, () -> runFlow());
   }
 
   @Test
@@ -163,17 +162,16 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     setEppHostCreateInputWithIps("ns1.example.external");
     createTld("tld");
     persistActiveDomain("example.tld");
-    thrown.expect(UnexpectedExternalHostIpException.class);
-    runFlow();
+    assertThrows(UnexpectedExternalHostIpException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_superordinateMissing() throws Exception {
     setEppHostCreateInput("ns1.example.tld", null);
     createTld("tld");
-    thrown.expect(SuperordinateDomainDoesNotExistException.class);
-    thrown.expectMessage("(example.tld)");
-    runFlow();
+    SuperordinateDomainDoesNotExistException thrown =
+        expectThrows(SuperordinateDomainDoesNotExistException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("(example.tld)");
   }
 
   @Test
@@ -186,48 +184,49 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
         .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
         .build());
     clock.advanceOneMilli();
-    thrown.expect(SuperordinateDomainInPendingDeleteException.class);
-    thrown.expectMessage("Superordinate domain for this hostname is in pending delete");
-    runFlow();
+    SuperordinateDomainInPendingDeleteException thrown =
+        expectThrows(SuperordinateDomainInPendingDeleteException.class, () -> runFlow());
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Superordinate domain for this hostname is in pending delete");
   }
 
   @Test
   public void testFailure_alreadyExists() throws Exception {
     setEppHostCreateInput("ns1.example.tld", null);
     persistActiveHost(getUniqueIdFromCommand());
-    thrown.expect(ResourceAlreadyExistsException.class);
-    thrown.expectMessage(
-        String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
-    runFlow();
+    ResourceAlreadyExistsException thrown =
+        expectThrows(ResourceAlreadyExistsException.class, () -> runFlow());
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
   }
 
   @Test
   public void testFailure_nonLowerCaseHostname() throws Exception {
     setEppHostCreateInput("ns1.EXAMPLE.tld", null);
-    thrown.expect(HostNameNotLowerCaseException.class);
-    runFlow();
+    assertThrows(HostNameNotLowerCaseException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_nonPunyCodedHostname() throws Exception {
     setEppHostCreateInput("ns1.çauçalito.みんな", null);
-    thrown.expect(HostNameNotPunyCodedException.class);
-    thrown.expectMessage("expected ns1.xn--aualito-txac.xn--q9jyb4c");
-    runFlow();
+    HostNameNotPunyCodedException thrown =
+        expectThrows(HostNameNotPunyCodedException.class, () -> runFlow());
+    assertThat(thrown).hasMessageThat().contains("expected ns1.xn--aualito-txac.xn--q9jyb4c");
   }
 
   @Test
   public void testFailure_nonCanonicalHostname() throws Exception {
     setEppHostCreateInput("ns1.example.tld.", null);
-    thrown.expect(HostNameNotNormalizedException.class);
-    runFlow();
+    assertThrows(HostNameNotNormalizedException.class, () -> runFlow());
   }
 
   @Test
   public void testFailure_longHostName() throws Exception {
     setEppHostCreateInputWithIps("a" + Strings.repeat(".labelpart", 25) + ".tld");
-    thrown.expect(HostNameTooLongException.class);
-    runFlow();
+    assertThrows(HostNameTooLongException.class, () -> runFlow());
   }
 
   @Test
@@ -237,8 +236,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
         "<host:addr ip=\"v4\">192.0.2.2</host:addr>\n"
             + "<host:addr ip=\"v6\">192.0.2.29</host:addr>\n"
             + "<host:addr ip=\"v6\">1080:0:0:0:8:800:200C:417A</host:addr>");
-    thrown.expect(IpAddressVersionMismatchException.class);
-    runFlow();
+    assertThrows(IpAddressVersionMismatchException.class, () -> runFlow());
   }
 
   private void doFailingHostNameTest(String hostName, Class<? extends Throwable> exception)
@@ -281,8 +279,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   public void testFailure_ccTldInBailiwick() throws Exception {
     createTld("co.uk");
     setEppHostCreateInputWithIps("foo.co.uk");
-    thrown.expect(HostNameTooShallowException.class);
-    runFlow();
+    assertThrows(HostNameTooShallowException.class, () -> runFlow());
   }
 
   @Test

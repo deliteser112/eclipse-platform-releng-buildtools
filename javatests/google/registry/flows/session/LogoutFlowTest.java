@@ -15,6 +15,7 @@
 package google.registry.flows.session;
 
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.flows.FlowTestCase;
 import google.registry.flows.FlowUtils.NotLoggedInException;
@@ -43,7 +44,6 @@ public class LogoutFlowTest extends FlowTestCase<LogoutFlow> {
   @Test
   public void testFailure() throws Exception {
     sessionMetadata.setClientId(null);  // Turn off the implicit login
-    thrown.expect(NotLoggedInException.class);
-    runFlow();
+    assertThrows(NotLoggedInException.class, () -> runFlow());
   }
 }

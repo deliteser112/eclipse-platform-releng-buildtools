@@ -27,6 +27,7 @@ import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -270,16 +271,25 @@ public class UpdateApplicationStatusCommandTest
 
   @Test
   public void testFailure_applicationDoesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    runCommandForced("--ids=555-Q9JYB4C", "--msg=\"Application rejected\"", "--status=REJECTED");
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            runCommandForced(
+                "--ids=555-Q9JYB4C", "--msg=\"Application rejected\"", "--status=REJECTED"));
   }
 
   @Test
   public void testFailure_historyClientIdDoesNotExist() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("fakeclient");
-    runCommandForced(
-        "--history_client_id=fakeclient", "--ids=2-Q9JYB4C", "--msg=Ignored", "--status=REJECTED");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--history_client_id=fakeclient",
+                    "--ids=2-Q9JYB4C",
+                    "--msg=Ignored",
+                    "--status=REJECTED"));
+    assertThat(thrown).hasMessageThat().contains("fakeclient");
   }
 }
 

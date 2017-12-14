@@ -17,23 +17,19 @@ package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.ResourceUtils.readResourceBytes;
 
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.testing.ShardableTestCase;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /** Tests for {@link EppXmlTransformer}. */
 @RunWith(JUnit4.class)
 public class EppXmlTransformerTest extends ShardableTestCase {
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
 
   @Test
   public void testUnmarshalingEppInput() throws Exception {
@@ -44,8 +40,11 @@ public class EppXmlTransformerTest extends ShardableTestCase {
 
   @Test
   public void testUnmarshalingWrongClassThrows() throws Exception {
-    thrown.expect(ClassCastException.class);
-    EppXmlTransformer.unmarshal(
-        EppOutput.class, readResourceBytes(getClass(), "testdata/contact_info.xml").read());
+    assertThrows(
+        ClassCastException.class,
+        () ->
+            EppXmlTransformer.unmarshal(
+                EppOutput.class,
+                readResourceBytes(getClass(), "testdata/contact_info.xml").read()));
   }
 }

@@ -19,6 +19,7 @@ import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistActiveDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.ParameterException;
@@ -87,8 +88,7 @@ public class GetApplicationCommandTest extends CommandTestCase<GetApplicationCom
 
   @Test
   public void testFailure_noApplicationId() throws Exception {
-    thrown.expect(ParameterException.class);
-    runCommand();
+    assertThrows(ParameterException.class, () -> runCommand());
   }
 
   @Test

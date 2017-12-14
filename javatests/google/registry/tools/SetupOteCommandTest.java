@@ -22,6 +22,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.ParameterException;
@@ -203,132 +204,168 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
   @Test
   public void testFailure_missingIpWhitelist() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("option is required: -w, --ip_whitelist");
-    runCommandForced(
-        "--registrar=blobio",
-        "--dns_writers=VoidDnsWriter",
-        "--certfile=" + getCertFilename());
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--registrar=blobio",
+                    "--dns_writers=VoidDnsWriter",
+                    "--certfile=" + getCertFilename()));
+    assertThat(thrown).hasMessageThat().contains("option is required: -w, --ip_whitelist");
   }
 
   @Test
   public void testFailure_missingRegistrar() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("option is required: -r, --registrar");
-    runCommandForced(
-        "--ip_whitelist=1.1.1.1",
-        "--dns_writers=VoidDnsWriter",
-        "--certfile=" + getCertFilename());
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--ip_whitelist=1.1.1.1",
+                    "--dns_writers=VoidDnsWriter",
+                    "--certfile=" + getCertFilename()));
+    assertThat(thrown).hasMessageThat().contains("option is required: -r, --registrar");
   }
 
   @Test
   public void testFailure_missingCertificateFile() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("option is required: -c, --certfile");
-    runCommandForced(
-        "--ip_whitelist=1.1.1.1",
-        "--dns_writers=VoidDnsWriter",
-        "--registrar=blobio");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--ip_whitelist=1.1.1.1", "--dns_writers=VoidDnsWriter", "--registrar=blobio"));
+    assertThat(thrown).hasMessageThat().contains("option is required: -c, --certfile");
   }
 
   @Test
   public void testFailure_missingDnsWriter() throws Exception {
-    thrown.expect(ParameterException.class);
-    thrown.expectMessage("option is required: --dns_writers");
-    runCommandForced(
-        "--ip_whitelist=1.1.1.1",
-        "--certfile=" + getCertFilename(),
-        "--registrar=blobio");
+    ParameterException thrown =
+        expectThrows(
+            ParameterException.class,
+            () ->
+                runCommandForced(
+                    "--ip_whitelist=1.1.1.1",
+                    "--certfile=" + getCertFilename(),
+                    "--registrar=blobio"));
+    assertThat(thrown).hasMessageThat().contains("option is required: --dns_writers");
   }
 
   @Test
   public void testFailure_invalidCert() throws Exception {
-    thrown.expect(CertificateParsingException.class);
-    thrown.expectMessage("No X509Certificate found");
-    runCommandForced(
-        "--ip_whitelist=1.1.1.1",
-        "--registrar=blobio",
-        "--dns_writers=VoidDnsWriter",
-        "--certfile=/dev/null");
+    CertificateParsingException thrown =
+        expectThrows(
+            CertificateParsingException.class,
+            () ->
+                runCommandForced(
+                    "--ip_whitelist=1.1.1.1",
+                    "--registrar=blobio",
+                    "--dns_writers=VoidDnsWriter",
+                    "--certfile=/dev/null"));
+    assertThat(thrown).hasMessageThat().contains("No X509Certificate found");
   }
 
   @Test
   public void testFailure_invalidRegistrar() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrar name is invalid");
-    runCommandForced(
-        "--ip_whitelist=1.1.1.1",
-        "--registrar=3blobio",
-        "--dns_writers=VoidDnsWriter",
-        "--certfile=" + getCertFilename());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--ip_whitelist=1.1.1.1",
+                    "--registrar=3blobio",
+                    "--dns_writers=VoidDnsWriter",
+                    "--certfile=" + getCertFilename()));
+    assertThat(thrown).hasMessageThat().contains("Registrar name is invalid");
   }
 
   @Test
   public void testFailure_invalidDnsWriter() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Invalid DNS writer name(s) specified: [InvalidDnsWriter]");
-    runCommandForced(
-        "--ip_whitelist=1.1.1.1",
-        "--registrar=blobio",
-        "--dns_writers=InvalidDnsWriter",
-        "--certfile=" + getCertFilename());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--ip_whitelist=1.1.1.1",
+                    "--registrar=blobio",
+                    "--dns_writers=InvalidDnsWriter",
+                    "--certfile=" + getCertFilename()));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Invalid DNS writer name(s) specified: [InvalidDnsWriter]");
   }
 
   @Test
   public void testFailure_registrarTooShort() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrar name is invalid");
-    runCommandForced(
-        "--ip_whitelist=1.1.1.1",
-        "--registrar=bl",
-        "--dns_writers=VoidDnsWriter",
-        "--certfile=" + getCertFilename());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--ip_whitelist=1.1.1.1",
+                    "--registrar=bl",
+                    "--dns_writers=VoidDnsWriter",
+                    "--certfile=" + getCertFilename()));
+    assertThat(thrown).hasMessageThat().contains("Registrar name is invalid");
   }
 
   @Test
   public void testFailure_registrarTooLong() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrar name is invalid");
-    runCommandForced(
-        "--ip_whitelist=1.1.1.1",
-        "--registrar=blobiotoooolong",
-        "--dns_writers=VoidDnsWriter",
-        "--certfile=" + getCertFilename());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--ip_whitelist=1.1.1.1",
+                    "--registrar=blobiotoooolong",
+                    "--dns_writers=VoidDnsWriter",
+                    "--certfile=" + getCertFilename()));
+    assertThat(thrown).hasMessageThat().contains("Registrar name is invalid");
   }
 
   @Test
   public void testFailure_registrarInvalidCharacter() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrar name is invalid");
-    runCommandForced(
-        "--ip_whitelist=1.1.1.1",
-        "--registrar=blo#bio",
-        "--dns_writers=VoidDnsWriter",
-        "--certfile=" + getCertFilename());
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--ip_whitelist=1.1.1.1",
+                    "--registrar=blo#bio",
+                    "--dns_writers=VoidDnsWriter",
+                    "--certfile=" + getCertFilename()));
+    assertThat(thrown).hasMessageThat().contains("Registrar name is invalid");
   }
 
   @Test
   public void testFailure_invalidPremiumList() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("The premium list 'foo' doesn't exist");
-    runCommandForced(
-        "--ip_whitelist=1.1.1.1",
-        "--registrar=blobio",
-        "--dns_writers=VoidDnsWriter",
-        "--certfile=" + getCertFilename(),
-        "--premium_list=foo");
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--ip_whitelist=1.1.1.1",
+                    "--registrar=blobio",
+                    "--dns_writers=VoidDnsWriter",
+                    "--certfile=" + getCertFilename(),
+                    "--premium_list=foo"));
+    assertThat(thrown).hasMessageThat().contains("The premium list 'foo' doesn't exist");
   }
 
   @Test
   public void testFailure_tldExists() throws Exception {
     createTld("blobio-sunrise");
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("TLD 'blobio-sunrise' already exists");
-    runCommandForced(
-        "--ip_whitelist=1.1.1.1",
-        "--registrar=blobio",
-        "--dns_writers=VoidDnsWriter",
-        "--certfile=" + getCertFilename());
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () ->
+                runCommandForced(
+                    "--ip_whitelist=1.1.1.1",
+                    "--registrar=blobio",
+                    "--dns_writers=VoidDnsWriter",
+                    "--certfile=" + getCertFilename()));
+    assertThat(thrown).hasMessageThat().contains("TLD 'blobio-sunrise' already exists");
   }
 
   @Test
@@ -338,12 +375,15 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         .setRegistrarName("blobio-1")
         .build();
     persistResource(registrar);
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Registrar blobio-1 already exists");
-    runCommandForced(
-        "--ip_whitelist=1.1.1.1",
-        "--registrar=blobio",
-        "--dns_writers=VoidDnsWriter",
-        "--certfile=" + getCertFilename());
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () ->
+                runCommandForced(
+                    "--ip_whitelist=1.1.1.1",
+                    "--registrar=blobio",
+                    "--dns_writers=VoidDnsWriter",
+                    "--certfile=" + getCertFilename()));
+    assertThat(thrown).hasMessageThat().contains("Registrar blobio-1 already exists");
   }
 }

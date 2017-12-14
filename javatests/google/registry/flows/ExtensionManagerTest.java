@@ -15,6 +15,7 @@
 package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -38,7 +39,6 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -50,10 +50,6 @@ public class ExtensionManagerTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Test
   public void testDuplicateExtensionsForbidden() throws Exception {
     ExtensionManager manager = new TestInstanceBuilder()
@@ -65,8 +61,7 @@ public class ExtensionManagerTest {
             MetadataExtension.class)
         .build();
     manager.register(MetadataExtension.class, LaunchCreateExtension.class);
-    thrown.expect(UnsupportedRepeatedExtensionException.class);
-    manager.validate();
+    assertThrows(UnsupportedRepeatedExtensionException.class, () -> manager.validate());
   }
 
   @Test
@@ -97,8 +92,7 @@ public class ExtensionManagerTest {
         .setSuppliedExtensions(FeeInfoCommandExtensionV06.class)
         .build();
     manager.register(FeeInfoCommandExtensionV06.class);
-    thrown.expect(UndeclaredServiceExtensionException.class);
-    manager.validate();
+    assertThrows(UndeclaredServiceExtensionException.class, () -> manager.validate());
   }
 
   @Test
@@ -131,8 +125,7 @@ public class ExtensionManagerTest {
         .setSuppliedExtensions(MetadataExtension.class)
         .build();
     manager.register(MetadataExtension.class);
-    thrown.expect(OnlyToolCanPassMetadataException.class);
-    manager.validate();
+    assertThrows(OnlyToolCanPassMetadataException.class, () -> manager.validate());
   }
 
   @Test
@@ -156,8 +149,7 @@ public class ExtensionManagerTest {
         .setIsSuperuser(false)
         .build();
     manager.register(DomainTransferRequestSuperuserExtension.class);
-    thrown.expect(UnauthorizedForSuperuserExtensionException.class);
-    manager.validate();
+    assertThrows(UnauthorizedForSuperuserExtensionException.class, () -> manager.validate());
   }
 
   @Test
@@ -169,8 +161,7 @@ public class ExtensionManagerTest {
         .setIsSuperuser(true)
         .build();
     manager.register(DomainTransferRequestSuperuserExtension.class);
-    thrown.expect(UnauthorizedForSuperuserExtensionException.class);
-    manager.validate();
+    assertThrows(UnauthorizedForSuperuserExtensionException.class, () -> manager.validate());
   }
 
   @Test
@@ -180,8 +171,7 @@ public class ExtensionManagerTest {
         .setDeclaredUris()
         .setSuppliedExtensions(LaunchCreateExtension.class)
         .build();
-    thrown.expect(UnimplementedExtensionException.class);
-    manager.validate();
+    assertThrows(UnimplementedExtensionException.class, () -> manager.validate());
   }
 
   /** A builder for a test-ready {@link ExtensionManager} instance. */
