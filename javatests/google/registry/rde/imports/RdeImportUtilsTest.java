@@ -37,6 +37,7 @@ import com.google.common.io.ByteSource;
 import com.googlecode.objectify.Key;
 import google.registry.gcs.GcsUtils;
 import google.registry.model.EppResource;
+import google.registry.model.EppResource.ForeignKeyedEppResource;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DesignatedContact.Type;
@@ -106,7 +107,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   @Test
   public void testImportNewContact() {
     final ContactResource newContact = buildNewContact();
-    ofy().transact(() -> rdeImportUtils.importEppResource(newContact));
+    importResourceInTransaction(newContact);
     assertEppResourceIndexEntityFor(newContact);
     assertForeignKeyIndexFor(newContact);
 
@@ -129,7 +130,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
             .setLastEppUpdateTime(newContact.getLastEppUpdateTime().plusSeconds(1))
             .build();
     try {
-      ofy().transact(() -> rdeImportUtils.importEppResource(updatedContact));
+      importResourceInTransaction(updatedContact);
       fail("Expected ResourceExistsException");
     } catch (ResourceExistsException expected) {
       // verify the updated contact was not saved
@@ -145,7 +146,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   @Test
   public void testImportNewHost() throws UnknownHostException {
     final HostResource newHost = buildNewHost();
-    ofy().transact(() -> rdeImportUtils.importEppResource(newHost));
+    importResourceInTransaction(newHost);
 
     assertEppResourceIndexEntityFor(newHost);
     assertForeignKeyIndexFor(newHost);
@@ -165,11 +166,11 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     persistResource(newHost);
     final HostResource updatedHost =
         newHost
-          .asBuilder()
-          .setLastEppUpdateTime(newHost.getLastEppUpdateTime().plusSeconds(1))
-          .build();
+            .asBuilder()
+            .setLastEppUpdateTime(newHost.getLastEppUpdateTime().plusSeconds(1))
+            .build();
     try {
-      ofy().transact(() -> rdeImportUtils.importEppResource(updatedHost));
+      importResourceInTransaction(updatedHost);
       fail("Expected ResourceExistsException");
     } catch (ResourceExistsException expected) {
       // verify the contact was not updated
@@ -184,7 +185,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   @Test
   public void testImportNewDomain() throws Exception {
     final DomainResource newDomain = buildNewDomain();
-    ofy().transact(() -> rdeImportUtils.importEppResource(newDomain));
+    importResourceInTransaction(newDomain);
 
     DomainResource saved = getDomain("Dexample1-TEST");
     assertThat(saved.getFullyQualifiedDomainName())
@@ -209,7 +210,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
             .setFullyQualifiedDomainName("1" + newDomain.getFullyQualifiedDomainName())
             .build();
     try {
-      ofy().transact(() -> rdeImportUtils.importEppResource(updatedDomain));
+      importResourceInTransaction(updatedDomain);
       fail("Expected ResourceExistsException");
     } catch (ResourceExistsException expected) {
       DomainResource saved = getDomain("Dexample1-TEST");
@@ -353,5 +354,15 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     assertThat(indices).hasSize(1);
     assertThat(indices.get(0).getBucket())
         .isEqualTo(EppResourceIndexBucket.getBucketKey(Key.create(resource)));
+  }
+
+  private <T extends EppResource & ForeignKeyedEppResource> void importResourceInTransaction(
+      T resource) {
+    ofy()
+        .transact(
+            () -> {
+              rdeImportUtils.importEppResource(resource);
+              return null;
+            });
   }
 }

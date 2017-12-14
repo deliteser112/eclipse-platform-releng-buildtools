@@ -110,8 +110,8 @@ public class RdeImportUtils {
    * <p>If the resource is imported, {@link ForeignKeyIndex} and {@link EppResourceIndex} are also
    * created.
    */
-  public <T extends EppResource & ForeignKeyedEppResource> void
-      importEppResource(final T resource) {
+  public <T extends EppResource & ForeignKeyedEppResource> void importEppResource(
+      final T resource) {
     Object existing = ofy.load().key(Key.create(resource)).now();
     if (existing != null) {
       // This will roll back the transaction and prevent duplicate history entries from being saved.
