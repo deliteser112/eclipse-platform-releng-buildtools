@@ -16,6 +16,7 @@ package google.registry.rde.imports;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.rde.imports.RdeImportsTestData.loadBytes;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
@@ -33,7 +34,6 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -57,24 +57,20 @@ public class RdeHostInputTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
-
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   /** Number of shards cannot be negative */
   @Test
   public void testNegativeShards_throwsIllegalArgumentException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Number of shards must be greater than zero");
-    getInput(Optional.of(-1));
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> getInput(Optional.of(-1)));
+    assertThat(thrown).hasMessageThat().contains("Number of shards must be greater than zero");
   }
 
   /** Number of shards cannot be zero */
   @Test
   public void testZeroShards_throwsIllegalArgumentException() throws Exception {
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Number of shards must be greater than zero");
-    getInput(Optional.of(0));
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> getInput(Optional.of(0)));
+    assertThat(thrown).hasMessageThat().contains("Number of shards must be greater than zero");
   }
 
   /** Escrow file with zero hosts results in one reader */

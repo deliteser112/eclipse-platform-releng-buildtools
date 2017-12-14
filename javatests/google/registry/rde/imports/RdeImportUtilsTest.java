@@ -21,9 +21,9 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -78,8 +78,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
 
   private InputStream xmlInput;
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   private final GcsUtils gcsUtils = mock(GcsUtils.class);
 
@@ -103,7 +102,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     }
   }
 
-  /** Verifies import of a contact that has not been previously imported */
+  /** Verifies import of a contact that has not been previously imported. */
   @Test
   public void testImportNewContact() {
     final ContactResource newContact = buildNewContact();
@@ -111,7 +110,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     assertEppResourceIndexEntityFor(newContact);
     assertForeignKeyIndexFor(newContact);
 
-    // verify the new contact was saved
+    // Verify that the new contact was saved.
     ContactResource saved = getContact("TEST-123");
     assertThat(saved).isNotNull();
     assertThat(saved.getContactId()).isEqualTo(newContact.getContactId());
@@ -119,7 +118,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     assertThat(saved.getLastEppUpdateTime()).isEqualTo(newContact.getLastEppUpdateTime());
   }
 
-  /** Verifies that a contact will not be imported more than once */
+  /** Verifies that a contact will not be imported more than once. */
   @Test
   public void testImportExistingContact() {
     ContactResource newContact = buildNewContact();
@@ -129,20 +128,16 @@ public class RdeImportUtilsTest extends ShardableTestCase {
             .asBuilder()
             .setLastEppUpdateTime(newContact.getLastEppUpdateTime().plusSeconds(1))
             .build();
-    try {
-      importResourceInTransaction(updatedContact);
-      fail("Expected ResourceExistsException");
-    } catch (ResourceExistsException expected) {
-      // verify the updated contact was not saved
-      ContactResource saved = getContact("TEST-123");
-      assertThat(saved).isNotNull();
-      assertThat(saved.getContactId()).isEqualTo(newContact.getContactId());
-      assertThat(saved.getEmailAddress()).isEqualTo(newContact.getEmailAddress());
-      assertThat(saved.getLastEppUpdateTime()).isEqualTo(newContact.getLastEppUpdateTime());
-    }
+    assertThrows(ResourceExistsException.class, () -> importResourceInTransaction(updatedContact));
+    // Verify that the updated contact was not saved.
+    ContactResource saved = getContact("TEST-123");
+    assertThat(saved).isNotNull();
+    assertThat(saved.getContactId()).isEqualTo(newContact.getContactId());
+    assertThat(saved.getEmailAddress()).isEqualTo(newContact.getEmailAddress());
+    assertThat(saved.getLastEppUpdateTime()).isEqualTo(newContact.getLastEppUpdateTime());
   }
 
-  /** Verifies import of a host that has not been previously imported */
+  /** Verifies import of a host that has not been previously imported. */
   @Test
   public void testImportNewHost() throws UnknownHostException {
     final HostResource newHost = buildNewHost();
@@ -151,7 +146,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     assertEppResourceIndexEntityFor(newHost);
     assertForeignKeyIndexFor(newHost);
 
-    // verify the new contact was saved
+    // Verify that the new contact was saved.
     HostResource saved = getHost("FOO_ROID");
     assertThat(saved).isNotNull();
     assertThat(saved.getFullyQualifiedHostName()).isEqualTo(newHost.getFullyQualifiedHostName());
@@ -159,7 +154,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     assertThat(saved.getLastEppUpdateTime()).isEqualTo(newHost.getLastEppUpdateTime());
   }
 
-  /** Verifies that a host will not be imported more than once */
+  /** Verifies that a host will not be imported more than once. */
   @Test
   public void testImportExistingHost() throws UnknownHostException {
     HostResource newHost = buildNewHost();
@@ -169,17 +164,13 @@ public class RdeImportUtilsTest extends ShardableTestCase {
             .asBuilder()
             .setLastEppUpdateTime(newHost.getLastEppUpdateTime().plusSeconds(1))
             .build();
-    try {
-      importResourceInTransaction(updatedHost);
-      fail("Expected ResourceExistsException");
-    } catch (ResourceExistsException expected) {
-      // verify the contact was not updated
-      HostResource saved = getHost("FOO_ROID");
-      assertThat(saved).isNotNull();
-      assertThat(saved.getFullyQualifiedHostName()).isEqualTo(newHost.getFullyQualifiedHostName());
-      assertThat(saved.getInetAddresses()).isEqualTo(newHost.getInetAddresses());
-      assertThat(saved.getLastEppUpdateTime()).isEqualTo(newHost.getLastEppUpdateTime());
-    }
+    assertThrows(ResourceExistsException.class, () -> importResourceInTransaction(updatedHost));
+    // Verify that the contact was not updated.
+    HostResource saved = getHost("FOO_ROID");
+    assertThat(saved).isNotNull();
+    assertThat(saved.getFullyQualifiedHostName()).isEqualTo(newHost.getFullyQualifiedHostName());
+    assertThat(saved.getInetAddresses()).isEqualTo(newHost.getInetAddresses());
+    assertThat(saved.getLastEppUpdateTime()).isEqualTo(newHost.getLastEppUpdateTime());
   }
 
   @Test
@@ -209,23 +200,18 @@ public class RdeImportUtilsTest extends ShardableTestCase {
             .asBuilder()
             .setFullyQualifiedDomainName("1" + newDomain.getFullyQualifiedDomainName())
             .build();
-    try {
-      importResourceInTransaction(updatedDomain);
-      fail("Expected ResourceExistsException");
-    } catch (ResourceExistsException expected) {
-      DomainResource saved = getDomain("Dexample1-TEST");
-      assertThat(saved.getFullyQualifiedDomainName())
-          .isEqualTo(newDomain.getFullyQualifiedDomainName());
-      assertThat(saved.getStatusValues()).isEqualTo(newDomain.getStatusValues());
-      assertThat(saved.getRegistrant()).isEqualTo(newDomain.getRegistrant());
-      assertThat(saved.getContacts()).isEqualTo(newDomain.getContacts());
-      assertThat(saved.getCurrentSponsorClientId())
-          .isEqualTo(newDomain.getCurrentSponsorClientId());
-      assertThat(saved.getCreationClientId()).isEqualTo(newDomain.getCreationClientId());
-      assertThat(saved.getCreationTime()).isEqualTo(newDomain.getCreationTime());
-      assertThat(saved.getRegistrationExpirationTime())
-          .isEqualTo(newDomain.getRegistrationExpirationTime());
-    }
+    assertThrows(ResourceExistsException.class, () -> importResourceInTransaction(updatedDomain));
+    DomainResource saved = getDomain("Dexample1-TEST");
+    assertThat(saved.getFullyQualifiedDomainName())
+        .isEqualTo(newDomain.getFullyQualifiedDomainName());
+    assertThat(saved.getStatusValues()).isEqualTo(newDomain.getStatusValues());
+    assertThat(saved.getRegistrant()).isEqualTo(newDomain.getRegistrant());
+    assertThat(saved.getContacts()).isEqualTo(newDomain.getContacts());
+    assertThat(saved.getCurrentSponsorClientId()).isEqualTo(newDomain.getCurrentSponsorClientId());
+    assertThat(saved.getCreationClientId()).isEqualTo(newDomain.getCreationClientId());
+    assertThat(saved.getCreationTime()).isEqualTo(newDomain.getCreationTime());
+    assertThat(saved.getRegistrationExpirationTime())
+        .isEqualTo(newDomain.getRegistrationExpirationTime());
   }
 
   private static ContactResource buildNewContact() {
@@ -258,9 +244,10 @@ public class RdeImportUtilsTest extends ShardableTestCase {
         .setRepoId("Dexample1-TEST")
         .setStatusValues(ImmutableSet.of(StatusValue.OK))
         .setRegistrant(Key.create(registrant))
-        .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, Key.create(admin)),
-            DesignatedContact.create(Type.TECH, Key.create(admin))))
+        .setContacts(
+            ImmutableSet.of(
+                DesignatedContact.create(Type.ADMIN, Key.create(admin)),
+                DesignatedContact.create(Type.TECH, Key.create(admin))))
         .setPersistedCurrentSponsorClientId("registrarx")
         .setCreationClientId("registrarx")
         .setCreationTime(DateTime.parse("1999-04-03T22:00:00.0Z"))
@@ -275,8 +262,9 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     when(gcsUtils.openInputStream(any(GcsFilename.class))).thenReturn(xmlInput);
     rdeImportUtils.validateEscrowFileForImport("valid-deposit-file.xml");
     // stored to avoid an error in FOSS build, marked "CheckReturnValue"
-    InputStream unusedResult = verify(gcsUtils).openInputStream(
-        new GcsFilename("import-bucket", "valid-deposit-file.xml"));
+    InputStream unusedResult =
+        verify(gcsUtils)
+            .openInputStream(new GcsFilename("import-bucket", "valid-deposit-file.xml"));
   }
 
   /** Verifies thrown error when tld in escrow file is not in the registry */

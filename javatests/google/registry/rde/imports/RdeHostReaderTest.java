@@ -16,6 +16,7 @@ package google.registry.rde.imports;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.rde.imports.RdeImportsTestData.loadBytes;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
@@ -39,7 +40,6 @@ import java.io.OutputStream;
 import java.util.NoSuchElementException;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -58,9 +58,6 @@ public class RdeHostReaderTest {
       GcsServiceFactory.createGcsService(RetryParams.getDefaultInstance());
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   /** Reads at least one result at 0 offset 1 maxResults */
   @Test
   public void testZeroOffsetOneResult_readsOne() throws Exception {
@@ -75,8 +72,7 @@ public class RdeHostReaderTest {
     pushToGcs(DEPOSIT_3_HOST);
     RdeHostReader reader = getReader(0, 1);
     reader.next();
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   /** Skips already-processed records after rehydration */
@@ -90,8 +86,7 @@ public class RdeHostReaderTest {
     reader = cloneReader(reader);
     reader.beginSlice();
     // reader will not advance any further
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   /** Reads three hosts */
@@ -112,8 +107,7 @@ public class RdeHostReaderTest {
     for (int i = 0; i < 3; i++) {
       reader.next();
     }
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   /** Reads one host from file then stops at end of file */
@@ -122,8 +116,7 @@ public class RdeHostReaderTest {
     pushToGcs(DEPOSIT_1_HOST);
     RdeHostReader reader = getReader(0, 3);
     reader.next();
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   /** Skips three hosts with offset of three */
@@ -170,8 +163,7 @@ public class RdeHostReaderTest {
     reader.beginSlice();
     reader.next();
     reader.next();
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   private void pushToGcs(ByteSource source) throws IOException {

@@ -18,6 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.rde.imports.RdeImportsTestData.loadBytes;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
@@ -42,7 +43,6 @@ import java.util.NoSuchElementException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -65,9 +65,6 @@ public class RdeDomainReaderTest {
       .withDatastore()
       .build();
 
-  @Rule
-  public final ExpectedException thrown = ExpectedException.none();
-
   @Before
   public void before() {
     createTld("test");
@@ -89,8 +86,7 @@ public class RdeDomainReaderTest {
     pushToGcs(DEPOSIT_3_DOMAIN);
     RdeDomainReader reader = getReader(0, 1);
     reader.next();
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   /** Skips already-processed records after rehydration */
@@ -104,8 +100,7 @@ public class RdeDomainReaderTest {
     reader = cloneObject(reader);
     reader.beginSlice();
     // reader will not advance any further
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   /** Reads three domains */
@@ -126,8 +121,7 @@ public class RdeDomainReaderTest {
     for (int i = 0; i < 3; i++) {
       reader.next();
     }
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   /** Reads one domain from file then stops at end of file */
@@ -136,8 +130,7 @@ public class RdeDomainReaderTest {
     pushToGcs(DEPOSIT_1_DOMAIN);
     RdeDomainReader reader = getReader(0, 3);
     reader.next();
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   /** Skips three domains with offset of three */
@@ -184,8 +177,7 @@ public class RdeDomainReaderTest {
     reader.beginSlice();
     reader.next();
     reader.next();
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   private void pushToGcs(ByteSource source) throws IOException {

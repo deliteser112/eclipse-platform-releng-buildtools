@@ -26,6 +26,7 @@ import static google.registry.testing.DatastoreHelper.getHistoryEntries;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static java.util.Arrays.asList;
 
@@ -65,7 +66,6 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -90,9 +90,6 @@ public class XjcToDomainResourceConverterTest {
       "google.registry.xjc.smd"));
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   @Rule public final InjectRule inject = new InjectRule();
 
   private Unmarshaller unmarshaller;
@@ -216,9 +213,11 @@ public class XjcToDomainResourceConverterTest {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_pendingRestorePeriod.xml");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Unsupported grace period status: PENDING_RESTORE");
-    convertDomainInTransaction(xjcDomain);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> convertDomainInTransaction(xjcDomain));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Unsupported grace period status: PENDING_RESTORE");
   }
 
   @Test
@@ -270,9 +269,9 @@ public class XjcToDomainResourceConverterTest {
     persistActiveHost("ns1.example.net");
     persistActiveHost("ns2.example.net");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_host_attrs.xml");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Host attributes are not yet supported");
-    convertDomainInTransaction(xjcDomain);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> convertDomainInTransaction(xjcDomain));
+    assertThat(thrown).hasMessageThat().contains("Host attributes are not yet supported");
   }
 
   @Test
@@ -281,18 +280,20 @@ public class XjcToDomainResourceConverterTest {
     persistActiveContact("sh8013");
     persistActiveHost("ns1.example.net");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_host_objs.xml");
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("HostResource not found with name 'ns2.example.net'");
-    convertDomainInTransaction(xjcDomain);
+    IllegalStateException thrown =
+        expectThrows(IllegalStateException.class, () -> convertDomainInTransaction(xjcDomain));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("HostResource not found with name 'ns2.example.net'");
   }
 
   @Test
   public void testConvertDomainResourceRegistrantNotFound() throws Exception {
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment.xml");
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Registrant not found: 'jd1234'");
-    convertDomainInTransaction(xjcDomain);
+    IllegalStateException thrown =
+        expectThrows(IllegalStateException.class, () -> convertDomainInTransaction(xjcDomain));
+    assertThat(thrown).hasMessageThat().contains("Registrant not found: 'jd1234'");
   }
 
   @Test
@@ -300,18 +301,20 @@ public class XjcToDomainResourceConverterTest {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_registrant_missing.xml");
-    thrown.expect(IllegalArgumentException.class);
-    thrown.expectMessage("Registrant is missing for domain 'example1.example'");
-    convertDomainInTransaction(xjcDomain);
+    IllegalArgumentException thrown =
+        expectThrows(IllegalArgumentException.class, () -> convertDomainInTransaction(xjcDomain));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Registrant is missing for domain 'example1.example'");
   }
 
   @Test
   public void testConvertDomainResourceAdminNotFound() throws Exception {
     persistActiveContact("jd1234");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment.xml");
-    thrown.expect(IllegalStateException.class);
-    thrown.expectMessage("Contact not found: 'sh8013'");
-    convertDomainInTransaction(xjcDomain);
+    IllegalStateException thrown =
+        expectThrows(IllegalStateException.class, () -> convertDomainInTransaction(xjcDomain));
+    assertThat(thrown).hasMessageThat().contains("Contact not found: 'sh8013'");
   }
 
   @Test

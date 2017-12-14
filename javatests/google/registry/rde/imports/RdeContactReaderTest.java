@@ -15,6 +15,7 @@
 package google.registry.rde.imports;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
@@ -38,7 +39,6 @@ import java.io.OutputStream;
 import java.util.NoSuchElementException;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -61,9 +61,6 @@ public class RdeContactReaderTest {
       GcsServiceFactory.createGcsService(RetryParams.getDefaultInstance());
 
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
-
-  @Rule public final ExpectedException thrown = ExpectedException.none();
-
   /** Reads at least one result at 0 offset 1 maxResults */
   @Test
   public void testZeroOffsetOneResult_readsOne() throws Exception {
@@ -78,8 +75,7 @@ public class RdeContactReaderTest {
     pushToGcs(DEPOSIT_3_CONTACT);
     RdeContactReader reader = getReader(0, 1);
     reader.next();
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   /** Skips already-processed records after rehydration */
@@ -93,8 +89,7 @@ public class RdeContactReaderTest {
     reader = cloneReader(reader);
     reader.beginSlice();
     // reader will not advance any further
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   /** Reads three contacts */
@@ -115,8 +110,7 @@ public class RdeContactReaderTest {
     for (int i = 0; i < 3; i++) {
       reader.next();
     }
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   /** Reads one contact from file then stops at end of file */
@@ -125,8 +119,7 @@ public class RdeContactReaderTest {
     pushToGcs(DEPOSIT_1_CONTACT);
     RdeContactReader reader = getReader(0, 3);
     reader.next();
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   /** Skips three contacts with offset of three */
@@ -173,8 +166,7 @@ public class RdeContactReaderTest {
     reader.beginSlice();
     reader.next();
     reader.next();
-    thrown.expect(NoSuchElementException.class);
-    reader.next();
+    assertThrows(NoSuchElementException.class, reader::next);
   }
 
   private void pushToGcs(ByteSource source) throws IOException {
