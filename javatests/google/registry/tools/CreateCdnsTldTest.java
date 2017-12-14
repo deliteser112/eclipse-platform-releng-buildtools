@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.ManagedZone;
+import com.google.api.services.dns.model.ManagedZoneDnsSecConfig;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import org.junit.Before;
@@ -55,23 +56,29 @@ public class CreateCdnsTldTest extends CommandTestCase<CreateCdnsTld> {
     }
   }
 
+  private ManagedZone createZone(
+      String nameServerSet, String description, String dnsName, String name) {
+    return new ManagedZone()
+        .setNameServerSet(nameServerSet)
+        .setDnsName(dnsName)
+        .setDescription(description)
+        .setName(name)
+        .setDnssecConfig(new ManagedZoneDnsSecConfig().setState("ON").setNonExistence("NSEC"));
+  }
+
   @Test
   public void testBasicFunctionality() throws Exception {
     runCommand("--dns_name=tld.", "--name=tld", "--description=test run", "--force");
     verify(request).execute();
     assertThat(projectId.getValue()).isEqualTo("test-project");
     ManagedZone zone = requestBody.getValue();
-    assertThat(zone.getNameServerSet()).isEqualTo("cloud-dns-registry-test");
-    assertThat(zone.getDnsName()).isEqualTo("tld.");
-    assertThat(zone.getName()).isEqualTo("tld");
+    assertThat(zone).isEqualTo(createZone("cloud-dns-registry-test", "test run", "tld.", "tld"));
   }
 
   @Test
   public void testNameDefault() throws Exception {
     runCommand("--dns_name=tld.", "--description=test run", "--force");
     ManagedZone zone = requestBody.getValue();
-    assertThat(zone.getNameServerSet()).isEqualTo("cloud-dns-registry-test");
-    assertThat(zone.getDnsName()).isEqualTo("tld.");
-    assertThat(zone.getName()).isEqualTo("tld.");
+    assertThat(zone).isEqualTo(createZone("cloud-dns-registry-test", "test run", "tld.", "tld."));
   }
 }

@@ -23,6 +23,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.ManagedZone;
+import com.google.api.services.dns.model.ManagedZoneDnsSecConfig;
 import com.google.common.annotations.VisibleForTesting;
 import google.registry.config.RegistryConfig.Config;
 import java.io.IOException;
@@ -58,16 +59,18 @@ class CreateCdnsTld extends ConfirmingCommand {
 
   private static final String KEY_VALUE_FORMAT = "  %s = %s";
 
-  private ManagedZone requestBody;
+  private ManagedZone managedZone;
 
   @Override
   protected void init() throws IOException, GeneralSecurityException {
-    requestBody = new ManagedZone();
-    requestBody.setDescription(description);
-    // TODO(b/67413698): allow parameterizing the nameserver set once it's safe to do so.
-    requestBody.setNameServerSet("cloud-dns-registry-test");
-    requestBody.setDnsName(dnsName);
-    requestBody.setName((name != null) ? name : dnsName);
+    managedZone =
+        new ManagedZone()
+            .setDescription(description)
+            // TODO(b/67413698): allow parameterizing the nameserver set once it's safe to do so.
+            .setNameServerSet("cloud-dns-registry-test")
+            .setDnsName(dnsName)
+            .setName((name != null) ? name : dnsName)
+            .setDnssecConfig(new ManagedZoneDnsSecConfig().setNonExistence("NSEC").setState("ON"));
   }
 
   @Override
@@ -75,7 +78,7 @@ class CreateCdnsTld extends ConfirmingCommand {
     return String.format(
         "Creating TLD with:\n%s\n%s",
         String.format(KEY_VALUE_FORMAT, "projectId", projectId),
-        requestBody
+        managedZone
             .entrySet()
             .stream()
             .map(entry -> String.format(KEY_VALUE_FORMAT, entry.getKey(), entry.getValue()))
@@ -85,7 +88,7 @@ class CreateCdnsTld extends ConfirmingCommand {
   @Override
   public String execute() throws IOException, GeneralSecurityException {
     Dns dnsService = createDnsService();
-    Dns.ManagedZones.Create request = dnsService.managedZones().create(projectId, requestBody);
+    Dns.ManagedZones.Create request = dnsService.managedZones().create(projectId, managedZone);
     ManagedZone response = request.execute();
     return String.format("Created managed zone: %s", response);
   }
