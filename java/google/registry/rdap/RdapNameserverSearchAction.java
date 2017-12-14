@@ -139,21 +139,12 @@ public class RdapNameserverSearchAction extends RdapSearchActionBase {
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     jsonBuilder.put("nameserverSearchResults", results.jsonList());
 
-    ImmutableList<ImmutableMap<String, Object>> notices = results.getIncompletenessWarnings();
-    if (results.nextCursor().isPresent()) {
-      ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder =
-          new ImmutableList.Builder<>();
-      noticesBuilder.addAll(notices);
-      noticesBuilder.add(
-          RdapJsonFormatter.makeRdapJsonNavigationLinkNotice(
-              Optional.of(
-                  getRequestUrlWithExtraParameter(
-                      "cursor", encodeCursorToken(results.nextCursor().get())))));
-      notices = noticesBuilder.build();
-    }
-
     rdapJsonFormatter.addTopLevelEntries(
-        jsonBuilder, BoilerplateType.NAMESERVER, notices, ImmutableList.of(), fullServletPath);
+        jsonBuilder,
+        BoilerplateType.NAMESERVER,
+        getNotices(results),
+        ImmutableList.of(),
+        fullServletPath);
     return jsonBuilder.build();
   }
 

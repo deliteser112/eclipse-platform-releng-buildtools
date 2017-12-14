@@ -419,6 +419,7 @@ public abstract class RdapActionBase implements Runnable {
   static <T extends EppResource> Query<T> queryItemsByKey(
       Class<T> clazz,
       RdapSearchPattern partialStringQuery,
+      Optional<String> cursorString,
       DeletedItemHandling deletedItemHandling,
       int resultSetMaxSize) {
     if (partialStringQuery.getInitialString().length()
@@ -436,6 +437,9 @@ public abstract class RdapActionBase implements Runnable {
       query = query
           .filterKey(">=", Key.create(clazz, partialStringQuery.getInitialString()))
           .filterKey("<", Key.create(clazz, partialStringQuery.getNextInitialString()));
+    }
+    if (cursorString.isPresent()) {
+      query = query.filterKey(">", Key.create(clazz, cursorString.get()));
     }
     return setOtherQueryAttributes(query, deletedItemHandling, resultSetMaxSize);
   }

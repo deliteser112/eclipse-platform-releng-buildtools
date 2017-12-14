@@ -18,6 +18,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
 import google.registry.request.Parameter;
 import google.registry.request.ParameterMap;
 import google.registry.request.RequestUrl;
@@ -111,5 +112,21 @@ public abstract class RdapSearchActionBase extends RdapActionBase {
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  ImmutableList<ImmutableMap<String, Object>> getNotices(RdapSearchResults results) {
+    ImmutableList<ImmutableMap<String, Object>> notices = results.getIncompletenessWarnings();
+    if (results.nextCursor().isPresent()) {
+      ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder =
+          new ImmutableList.Builder<>();
+      noticesBuilder.addAll(notices);
+      noticesBuilder.add(
+          RdapJsonFormatter.makeRdapJsonNavigationLinkNotice(
+              Optional.of(
+                  getRequestUrlWithExtraParameter(
+                      "cursor", encodeCursorToken(results.nextCursor().get())))));
+      notices = noticesBuilder.build();
+    }
+    return notices;
   }
 }

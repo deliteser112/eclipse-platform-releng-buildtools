@@ -3,14 +3,14 @@
   [
     {
       "objectClassName" : "entity",
-      "handle" : "9-ROID",
+      "handle" : "0001-ROID",
       "status" : ["active"],
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/9-ROID",
+          "value" : "https://example.com/rdap/entity/0001-ROID",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/9-ROID",
+          "href": "https://example.com/rdap/entity/0001-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -49,14 +49,14 @@
     },
     {
       "objectClassName" : "entity",
-      "handle" : "A-ROID",
+      "handle" : "0002-ROID",
       "status" : ["active"],
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/A-ROID",
+          "value" : "https://example.com/rdap/entity/0002-ROID",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/A-ROID",
+          "href": "https://example.com/rdap/entity/0002-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -95,14 +95,14 @@
     },
     {
       "objectClassName" : "entity",
-      "handle" : "B-ROID",
+      "handle" : "0003-ROID",
       "status" : ["active"],
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/B-ROID",
+          "value" : "https://example.com/rdap/entity/0003-ROID",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/B-ROID",
+          "href": "https://example.com/rdap/entity/0003-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -141,14 +141,14 @@
     },
     {
       "objectClassName" : "entity",
-      "handle" : "C-ROID",
+      "handle" : "0004-ROID",
       "status" : ["active"],
       "links" :
       [
         {
-          "value" : "https://example.com/rdap/entity/C-ROID",
+          "value" : "https://example.com/rdap/entity/0004-ROID",
           "rel" : "self",
-          "href": "https://example.com/rdap/entity/C-ROID",
+          "href": "https://example.com/rdap/entity/0004-ROID",
           "type" : "application/rdap+json"
         }
       ],
@@ -196,6 +196,18 @@
       [
         "Search results per query are limited."
       ]
+    },
+    {
+      "title" : "Navigation Links",
+      "links" :
+      [
+        {
+          "type" : "application/rdap+json",
+          "href" : "https://example.com/rdap/entities?%NAME%",
+          "rel" : "next"
+        }
+      ],
+      "description" : [ "Links to related pages." ],
     },
     {
       "title" : "RDAP Terms of Service",

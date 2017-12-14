@@ -14,6 +14,8 @@
 
 package google.registry.rdap;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.config.RdapNoticeDescriptor;
@@ -21,6 +23,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import javax.annotation.Nullable;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 public class RdapTestHelper {
 
@@ -244,5 +248,33 @@ public class RdapTestHelper {
             .setLinkHrefUrlString("https://www.registry.tld/about/rdap/tos.html")
             .build());
     return rdapJsonFormatter;
+  }
+
+  static String getLinkToNext(Object results) {
+    assertThat(results).isInstanceOf(JSONObject.class);
+    Object notices = ((JSONObject) results).get("notices");
+    assertThat(notices).isInstanceOf(JSONArray.class);
+    for (Object notice : (JSONArray) notices) {
+      assertThat(notice).isInstanceOf(JSONObject.class);
+      Object title = ((JSONObject) notice).get("title");
+      assertThat(title).isInstanceOf(String.class);
+      if (!title.equals("Navigation Links")) {
+        continue;
+      }
+      Object links = ((JSONObject) notice).get("links");
+      assertThat(links).isInstanceOf(JSONArray.class);
+      for (Object link : (JSONArray) links) {
+        assertThat(link).isInstanceOf(JSONObject.class);
+        Object rel = ((JSONObject) link).get("rel");
+        assertThat(rel).isInstanceOf(String.class);
+        if (!rel.equals("next")) {
+          continue;
+        }
+        Object href = ((JSONObject) link).get("href");
+        assertThat(href).isInstanceOf(String.class);
+        return (String) href;
+      }
+    }
+    return null;
   }
 }

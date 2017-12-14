@@ -226,6 +226,18 @@
       ]
     },
     {
+      "title" : "Navigation Links",
+      "links" :
+      [
+        {
+          "type" : "application/rdap+json",
+          "href" : "https://example.com/rdap/entities?%NAME%",
+          "rel" : "next"
+        }
+      ],
+      "description" : [ "Links to related pages." ],
+    },
+    {
       "title" : "RDAP Terms of Service",
       "description" :
       [

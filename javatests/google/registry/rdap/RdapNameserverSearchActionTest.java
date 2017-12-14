@@ -709,34 +709,6 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
     verifyErrorMetrics();
   }
 
-  private String getLinkToNext(Object results) {
-    assertThat(results).isInstanceOf(JSONObject.class);
-    Object notices = ((JSONObject) results).get("notices");
-    assertThat(notices).isInstanceOf(JSONArray.class);
-    for (Object notice : (JSONArray) notices) {
-      assertThat(notice).isInstanceOf(JSONObject.class);
-      Object title = ((JSONObject) notice).get("title");
-      assertThat(title).isInstanceOf(String.class);
-      if (!title.equals("Navigation Links")) {
-        continue;
-      }
-      Object links = ((JSONObject) notice).get("links");
-      assertThat(links).isInstanceOf(JSONArray.class);
-      for (Object link : (JSONArray) links) {
-        assertThat(link).isInstanceOf(JSONObject.class);
-        Object rel = ((JSONObject) link).get("rel");
-        assertThat(rel).isInstanceOf(String.class);
-        if (!rel.equals("next")) {
-          continue;
-        }
-        Object href = ((JSONObject) link).get("href");
-        assertThat(href).isInstanceOf(String.class);
-        return (String) href;
-      }
-    }
-    return null;
-  }
-
   /**
    * Checks multi-page result set navigation using the cursor.
    *
@@ -757,7 +729,7 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
               ? generateActualJsonWithName(queryString, cursor)
               : generateActualJsonWithIp(queryString, cursor);
       assertThat(response.getStatus()).isEqualTo(200);
-      String linkToNext = getLinkToNext(results);
+      String linkToNext = RdapTestHelper.getLinkToNext(results);
       if (i == expectedPageCount - 1) {
         assertThat(linkToNext).isNull();
       } else {

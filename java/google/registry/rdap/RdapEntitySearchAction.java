@@ -51,6 +51,24 @@ import org.joda.time.DateTime;
  *
  * <p>All commands and responses conform to the RDAP spec as defined in RFCs 7480 through 7485.
  *
+ * <p>The RDAP specification lumps contacts and registrars together and calls them "entities", which
+ * is confusing for us, because "entity" means something else in Objectify. But here, when we use
+ * the term, it means either a contact or registrar. When searching for entities, we always start by
+ * returning all matching contacts, and after that all matching registrars.
+ *
+ * <p>There are two ways to search for entities: by full name (for contacts, the search name, for
+ * registrars, the registrar name) or by handle (for contacts, the ROID, for registrars, the IANA
+ * number). The ICANN operational profile document specifies this meaning for handle searches.
+ *
+ * <p>Cursors are complicated by the fact that we are essentially doing two independent searches:
+ * one for contacts, and one for registrars. To accommodate this, the cursor has a prefix indicating
+ * the type of the last returned item. If the last item was a contact, we return c:{value}, where
+ * the value is either the search name or the ROID. If the last item was a registrar, we return
+ * r:{value}, where the value is either the registrar name or the IANA number. If we get a c:
+ * cursor, we use it to weed out contacts, and fetch all registrars. If we get an r: cursor, we know
+ * that we can skip the contact search altogether (because we returned a registrar, and all
+ * registrars come after all contacts).
+ *
  * @see <a href="http://tools.ietf.org/html/rfc7482">RFC 7482: Registration Data Access Protocol
  *     (RDAP) Query Format</a>
  * @see <a href="http://tools.ietf.org/html/rfc7483">RFC 7483: JSON Responses for the Registration
@@ -69,6 +87,20 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
   @Inject @Parameter("fn") Optional<String> fnParam;
   @Inject @Parameter("handle") Optional<String> handleParam;
   @Inject RdapEntitySearchAction() {}
+
+  private enum QueryType {
+    FULL_NAME,
+    HANDLE
+  }
+
+  private enum CursorType {
+    NONE,
+    CONTACT,
+    REGISTRAR
+  }
+
+  private static final String CONTACT_CURSOR_PREFIX = "c:";
+  private static final String REGISTRAR_CURSOR_PREFIX = "r:";
 
   @Override
   public String getHumanReadableObjectTypeName() {
@@ -90,6 +122,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
   public ImmutableMap<String, Object> getJsonObjectForResource(
       String pathSearchString, boolean isHeadRequest) {
     DateTime now = clock.nowUtc();
+
     // RDAP syntax example: /rdap/entities?fn=Bobby%20Joe*.
     // The pathSearchString is not used by search commands.
     if (pathSearchString.length() > 0) {
@@ -98,21 +131,54 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
     if (Booleans.countTrue(fnParam.isPresent(), handleParam.isPresent()) != 1) {
       throw new BadRequestException("You must specify either fn=XXXX or handle=YYYY");
     }
+
+    // Decode the cursor token and extract the prefix and string portions.
+    decodeCursorToken();
+    CursorType cursorType;
+    Optional<String> cursorQueryString;
+    if (!cursorString.isPresent()) {
+      cursorType = CursorType.NONE;
+      cursorQueryString = Optional.empty();
+    } else {
+      if (cursorString.get().startsWith(CONTACT_CURSOR_PREFIX)) {
+        cursorType = CursorType.CONTACT;
+        cursorQueryString =
+            Optional.of(cursorString.get().substring(CONTACT_CURSOR_PREFIX.length()));
+      } else if (cursorString.get().startsWith(REGISTRAR_CURSOR_PREFIX)) {
+        cursorType = CursorType.REGISTRAR;
+        cursorQueryString =
+            Optional.of(cursorString.get().substring(REGISTRAR_CURSOR_PREFIX.length()));
+      } else {
+        throw new BadRequestException(String.format("invalid cursor: %s", cursorTokenParam));
+      }
+    }
+
+    // Search by name.
     RdapSearchResults results;
     if (fnParam.isPresent()) {
       metricInformationBuilder.setSearchType(SearchType.BY_FULL_NAME);
       // syntax: /rdap/entities?fn=Bobby%20Joe*
       // The name is the contact name or registrar name (not registrar contact name).
       results =
-          searchByName(recordWildcardType(RdapSearchPattern.create(fnParam.get(), false)), now);
+          searchByName(
+              recordWildcardType(RdapSearchPattern.create(fnParam.get(), false)),
+              cursorType,
+              cursorQueryString,
+              now);
+
+    // Search by handle.
     } else {
       metricInformationBuilder.setSearchType(SearchType.BY_HANDLE);
       // syntax: /rdap/entities?handle=12345-*
       // The handle is either the contact roid or the registrar clientId.
       results =
           searchByHandle(
-              recordWildcardType(RdapSearchPattern.create(handleParam.get(), false)), now);
+              recordWildcardType(RdapSearchPattern.create(handleParam.get(), false)),
+              cursorQueryString,
+              now);
     }
+
+    // Build the result object and return it.
     if (results.jsonList().isEmpty()) {
       throw new NotFoundException("No entities found");
     }
@@ -121,7 +187,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
     rdapJsonFormatter.addTopLevelEntries(
         jsonBuilder,
         BoilerplateType.ENTITY,
-        results.getIncompletenessWarnings(),
+        getNotices(results),
         ImmutableList.of(),
         fullServletPath);
     return jsonBuilder.build();
@@ -133,8 +199,8 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
    * <p>As per Gustavo Lozano of ICANN, registrar name search should be by registrar name only, not
    * by registrar contact name:
    *
-   * <p>The search is by registrar name only. The profile is supporting the functionality defined
-   * in the Base Registry Agreement.
+   * <p>The search is by registrar name only. The profile is supporting the functionality defined in
+   * the Base Registry Agreement.
    *
    * <p>According to RFC 7482 section 6.1, punycode is only used for domain name labels, so we can
    * assume that entity names are regular unicode.
@@ -143,14 +209,19 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
    * set to null when the contact is deleted, so a deleted contact can never have a name.
    *
    * <p>Since we are restricting access to contact names, we don't want name searches to return
-   * contacts whose names are not visible. That would allow unscrupulous users to query by name
-   * and infer that all returned contacts contain that name string. So we check the authorization
-   * level to determine what to do.
+   * contacts whose names are not visible. That would allow unscrupulous users to query by name and
+   * infer that all returned contacts contain that name string. So we check the authorization level
+   * to determine what to do.
    *
-   * @see <a href="https://newgtlds.icann.org/sites/default/files/agreements/agreement-approved-09jan14-en.htm">1.6
-   * of Section 4 of the Base Registry Agreement</a>
+   * @see <a
+   *     href="https://newgtlds.icann.org/sites/default/files/agreements/agreement-approved-09jan14-en.htm">1.6
+   *     of Section 4 of the Base Registry Agreement</a>
    */
-  private RdapSearchResults searchByName(final RdapSearchPattern partialStringQuery, DateTime now) {
+  private RdapSearchResults searchByName(
+      final RdapSearchPattern partialStringQuery,
+      CursorType cursorType,
+      Optional<String> cursorQueryString,
+      DateTime now) {
     // For wildcard searches, make sure the initial string is long enough, and don't allow suffixes.
     if (partialStringQuery.getHasWildcard() && (partialStringQuery.getSuffix() != null)) {
       throw new UnprocessableEntityException(
@@ -166,21 +237,27 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
               ? "Initial search string required in wildcard entity name searches"
               : "Initial search string required when searching for deleted entities");
     }
-    // Get the registrar matches.
+    // Get the registrar matches. If we have a registrar cursor, weed out registrars up to and
+    // including the one we ended with last time.
     ImmutableList<Registrar> registrars =
         Streams.stream(Registrar.loadAllCached())
             .filter(
                 registrar ->
                     partialStringQuery.matches(registrar.getRegistrarName())
+                        && ((cursorType != CursorType.REGISTRAR)
+                            || (registrar.getRegistrarName().compareTo(cursorQueryString.get())
+                                > 0))
                         && shouldBeVisible(registrar))
             .limit(rdapResultSetMaxSize + 1)
             .collect(toImmutableList());
     // Get the contact matches and return the results, fetching an additional contact to detect
     // truncation. Don't bother searching for contacts by name if the request would not be able to
-    // see any names anyway.
+    // see any names anyway. Also, if a registrar cursor is present, we have already moved past the
+    // contacts, and don't need to fetch them this time.
     RdapResultSet<ContactResource> resultSet;
     RdapAuthorization authorization = getAuthorization();
-    if (authorization.role() == RdapAuthorization.Role.PUBLIC) {
+    if ((authorization.role() == RdapAuthorization.Role.PUBLIC)
+        || (cursorType == CursorType.REGISTRAR)) {
       resultSet = RdapResultSet.create(ImmutableList.of());
     } else {
       Query<ContactResource> query =
@@ -188,6 +265,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
               ContactResource.class,
               "searchName",
               partialStringQuery,
+              cursorQueryString, // if we get this far, and there's a cursor, it must be a contact
               DeletedItemHandling.EXCLUDE,
               rdapResultSetMaxSize + 1);
       if (authorization.role() != RdapAuthorization.Role.ADMINISTRATOR) {
@@ -195,7 +273,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
       }
       resultSet = getMatchingResources(query, false, now, rdapResultSetMaxSize + 1);
     }
-    return makeSearchResults(resultSet, registrars, now);
+    return makeSearchResults(resultSet, registrars, QueryType.FULL_NAME, now);
   }
 
   /**
@@ -209,7 +287,9 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
    * there is no equivalent string suffix that can be used as a query filter, so we disallow use.
    */
   private RdapSearchResults searchByHandle(
-      final RdapSearchPattern partialStringQuery, DateTime now) {
+      final RdapSearchPattern partialStringQuery,
+      Optional<String> cursorQueryString,
+      DateTime now) {
     if (partialStringQuery.getSuffix() != null) {
       throw new UnprocessableEntityException("Suffixes not allowed in entity handle searches");
     }
@@ -228,6 +308,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
           IncompletenessWarningType.COMPLETE,
           contactResourceList.size(),
           getMatchingRegistrars(partialStringQuery.getInitialString()),
+          QueryType.HANDLE,
           now);
     // Handle queries with a wildcard (or including deleted), but no suffix. Because the handle
     // for registrars is the IANA identifier number, don't allow wildcard searches for registrars,
@@ -240,14 +321,20 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
               : getMatchingRegistrars(partialStringQuery.getInitialString());
       // Get the contact matches and return the results, fetching an additional contact to detect
       // truncation. If we are including deleted entries, we must fetch more entries, in case some
-      // get excluded due to permissioning.
+      // get excluded due to permissioning. Any cursor present must be a contact cursor, because we
+      // would never return a registrar for this search.
       int querySizeLimit = getStandardQuerySizeLimit();
       Query<ContactResource> query =
           queryItemsByKey(
-              ContactResource.class, partialStringQuery, getDeletedItemHandling(), querySizeLimit);
+              ContactResource.class,
+              partialStringQuery,
+              cursorQueryString,
+              getDeletedItemHandling(),
+              querySizeLimit);
       return makeSearchResults(
           getMatchingResources(query, shouldIncludeDeleted(), now, querySizeLimit),
           registrars,
+          QueryType.HANDLE,
           now);
     }
   }
@@ -271,12 +358,16 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
    * properties of the {@link RdapResultSet} structure and passes them as separate arguments.
    */
   private RdapSearchResults makeSearchResults(
-      RdapResultSet<ContactResource> resultSet, List<Registrar> registrars, DateTime now) {
+      RdapResultSet<ContactResource> resultSet,
+      List<Registrar> registrars,
+      QueryType queryType,
+      DateTime now) {
     return makeSearchResults(
         resultSet.resources(),
         resultSet.incompletenessWarningType(),
         resultSet.numResourcesRetrieved(),
         registrars,
+        queryType,
         now);
   }
 
@@ -292,6 +383,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
    * @param numContactsRetrieved the number of contacts retrieved in the process of generating the
    *        results
    * @param registrars the list of registrars which can be returned
+   * @param queryType whether the query was by full name or by handle
    * @param now the current date and time
    * @return an {@link RdapSearchResults} object
    */
@@ -300,6 +392,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
       IncompletenessWarningType incompletenessWarningType,
       int numContactsRetrieved,
       List<Registrar> registrars,
+      QueryType queryType,
       DateTime now) {
 
     metricInformationBuilder.setNumContactsRetrieved(numContactsRetrieved);
@@ -314,12 +407,16 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
     // so we can tell whether to display the truncation notification.
     RdapAuthorization authorization = getAuthorization();
     List<ImmutableMap<String, Object>> jsonOutputList = new ArrayList<>();
+    // Each time we add a contact or registrar to the output data set, remember what the appropriate
+    // cursor would be if it were the last item returned. When we stop adding items, the last cursor
+    // value we remembered will be the right one to pass back.
+    Optional<String> newCursor = Optional.empty();
     for (ContactResource contact : contacts) {
       if (jsonOutputList.size() >= rdapResultSetMaxSize) {
         return RdapSearchResults.create(
             ImmutableList.copyOf(jsonOutputList),
             IncompletenessWarningType.TRUNCATED,
-            Optional.empty());
+            newCursor);
       }
       // As per Andy Newton on the regext mailing list, contacts by themselves have no role, since
       // they are global, and might have different roles for different domains.
@@ -332,16 +429,28 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
           now,
           outputDataType,
           authorization));
+      newCursor =
+          Optional.of(
+              CONTACT_CURSOR_PREFIX
+                  + ((queryType == QueryType.FULL_NAME)
+                      ? contact.getSearchName()
+                      : contact.getRepoId()));
     }
     for (Registrar registrar : registrars) {
       if (jsonOutputList.size() >= rdapResultSetMaxSize) {
         return RdapSearchResults.create(
             ImmutableList.copyOf(jsonOutputList),
             IncompletenessWarningType.TRUNCATED,
-            Optional.empty());
+            newCursor);
       }
       jsonOutputList.add(rdapJsonFormatter.makeRdapJsonForRegistrar(
           registrar, false, fullServletPath, rdapWhoisServer, now, outputDataType));
+      newCursor =
+          Optional.of(
+              REGISTRAR_CURSOR_PREFIX
+                  + ((queryType == QueryType.FULL_NAME)
+                      ? registrar.getRegistrarName()
+                      : registrar.getIanaIdentifier()));
     }
     return RdapSearchResults.create(
         ImmutableList.copyOf(jsonOutputList),

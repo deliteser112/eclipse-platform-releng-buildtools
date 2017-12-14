@@ -121,6 +121,10 @@ public class ContactResource extends EppResource implements
     return internationalizedPostalInfo;
   }
 
+  public String getSearchName() {
+    return searchName;
+  }
+
   public ContactPhoneNumber getVoiceNumber() {
     return voice;
   }
