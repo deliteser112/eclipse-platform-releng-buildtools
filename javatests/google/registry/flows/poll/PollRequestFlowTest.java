@@ -221,6 +221,6 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
   public void testFailure_messageIdProvided() throws Exception {
     setEppInput("poll_with_id.xml");
     assertTransactionalFlow(false);
-    assertThrows(UnexpectedMessageIdException.class, () -> runFlow());
+    assertThrows(UnexpectedMessageIdException.class, this::runFlow);
   }
 }

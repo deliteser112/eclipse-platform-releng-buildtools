@@ -182,7 +182,7 @@ public class LoadSnapshotActionTest {
   @Test
   public void testFailure_doPost_badGcsFilename() throws Exception {
     action.snapshotFile = "gs://bucket/snapshot";
-    BadRequestException thrown = expectThrows(BadRequestException.class, () -> action.run());
+    BadRequestException thrown = expectThrows(BadRequestException.class, action::run);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Error calling load snapshot: backup info file extension missing");
@@ -192,7 +192,7 @@ public class LoadSnapshotActionTest {
   public void testFailure_doPost_bigqueryThrowsException() throws Exception {
     when(bigqueryJobsInsert.execute()).thenThrow(new IOException("The Internet has gone missing"));
     InternalServerErrorException thrown =
-        expectThrows(InternalServerErrorException.class, () -> action.run());
+        expectThrows(InternalServerErrorException.class, action::run);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Error loading snapshot: The Internet has gone missing");

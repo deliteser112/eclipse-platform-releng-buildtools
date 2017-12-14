@@ -126,7 +126,7 @@ public class DomainApplicationDeleteFlowTest
   @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -137,7 +137,7 @@ public class DomainApplicationDeleteFlowTest
         .setDeletionTime(clock.nowUtc().minusSeconds(1))
         .build());
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -146,7 +146,7 @@ public class DomainApplicationDeleteFlowTest
     sessionMetadata.setClientId("NewRegistrar");
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
-    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
+    assertThrows(ResourceNotOwnedException.class, this::runFlow);
   }
 
   @Test
@@ -164,7 +164,7 @@ public class DomainApplicationDeleteFlowTest
     persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
-    assertThrows(NotAuthorizedForTldException.class, () -> runFlow());
+    assertThrows(NotAuthorizedForTldException.class, this::runFlow);
   }
   
   @Test
@@ -186,7 +186,7 @@ public class DomainApplicationDeleteFlowTest
         .setRepoId("1-TLD")
         .setPhase(LaunchPhase.SUNRISE)
         .build());
-    assertThrows(SunriseApplicationCannotBeDeletedInLandrushException.class, () -> runFlow());
+    assertThrows(SunriseApplicationCannotBeDeletedInLandrushException.class, this::runFlow);
   }
 
   @Test
@@ -232,14 +232,14 @@ public class DomainApplicationDeleteFlowTest
     setEppInput("domain_delete_application_landrush.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
-    assertThrows(LaunchPhaseMismatchException.class, () -> runFlow());
+    assertThrows(LaunchPhaseMismatchException.class, this::runFlow);
   }
 
   @Test
   public void testFailure_wrongExtension() throws Exception {
     setEppInput("domain_delete_application_wrong_extension.xml");
     persistActiveDomainApplication("example.tld");
-    assertThrows(UnimplementedExtensionException.class, () -> runFlow());
+    assertThrows(UnimplementedExtensionException.class, this::runFlow);
   }
 
   @Test
@@ -247,7 +247,7 @@ public class DomainApplicationDeleteFlowTest
     createTld("tld", TldState.PREDELEGATION);
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
-    assertThrows(BadCommandForRegistryPhaseException.class, () -> runFlow());
+    assertThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
   }
 
   @Test
@@ -255,7 +255,7 @@ public class DomainApplicationDeleteFlowTest
     createTld("tld", TldState.QUIET_PERIOD);
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
-    assertThrows(BadCommandForRegistryPhaseException.class, () -> runFlow());
+    assertThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
   }
 
   @Test
@@ -263,7 +263,7 @@ public class DomainApplicationDeleteFlowTest
     createTld("tld", TldState.GENERAL_AVAILABILITY);
     persistResource(
         newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
-    assertThrows(BadCommandForRegistryPhaseException.class, () -> runFlow());
+    assertThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
   }
 
   @Test
@@ -300,7 +300,7 @@ public class DomainApplicationDeleteFlowTest
   public void testFailure_applicationIdForDifferentDomain() throws Exception {
     persistResource(
         newDomainApplication("invalid.tld").asBuilder().setRepoId("1-TLD").build());
-    assertThrows(ApplicationDomainNameMismatchException.class, () -> runFlow());
+    assertThrows(ApplicationDomainNameMismatchException.class, this::runFlow);
   }
 
   @Test

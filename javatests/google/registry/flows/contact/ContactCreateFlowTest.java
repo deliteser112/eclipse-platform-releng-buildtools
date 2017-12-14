@@ -70,7 +70,7 @@ public class ContactCreateFlowTest
   public void testFailure_alreadyExists() throws Exception {
     persistActiveContact(getUniqueIdFromCommand());
     ResourceAlreadyExistsException thrown =
-        expectThrows(ResourceAlreadyExistsException.class, () -> runFlow());
+        expectThrows(ResourceAlreadyExistsException.class, this::runFlow);
     assertThat(thrown)
         .hasMessageThat()
         .contains(
@@ -86,13 +86,13 @@ public class ContactCreateFlowTest
   @Test
   public void testFailure_nonAsciiInIntAddress() throws Exception {
     setEppInput("contact_create_hebrew_int.xml");
-    assertThrows(BadInternationalizedPostalInfoException.class, () -> runFlow());
+    assertThrows(BadInternationalizedPostalInfoException.class, this::runFlow);
   }
 
   @Test
   public void testFailure_declineDisclosure() throws Exception {
     setEppInput("contact_create_decline_disclosure.xml");
-    assertThrows(DeclineContactDisclosureFieldDisallowedPolicyException.class, () -> runFlow());
+    assertThrows(DeclineContactDisclosureFieldDisallowedPolicyException.class, this::runFlow);
   }
 
   @Test

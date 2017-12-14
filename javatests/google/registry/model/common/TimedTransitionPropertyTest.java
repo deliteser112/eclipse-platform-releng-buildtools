@@ -165,7 +165,7 @@ public class TimedTransitionPropertyTest {
     timedString = forMapify("0", StringTimedTransition.class);
     // Simulate a load from Datastore by clearing, but don't insert any transitions.
     timedString.clear();
-    assertThrows(IllegalStateException.class, () -> timedString.checkValidity());
+    assertThrows(IllegalStateException.class, timedString::checkValidity);
   }
 
   @Test
@@ -177,6 +177,6 @@ public class TimedTransitionPropertyTest {
     // omit a transition corresponding to START_OF_TIME.
     timedString.clear();
     timedString.put(DATE_1, transition1);
-    assertThrows(IllegalStateException.class, () -> timedString.checkValidity());
+    assertThrows(IllegalStateException.class, timedString::checkValidity);
   }
 }

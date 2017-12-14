@@ -73,7 +73,7 @@ public class ContactDeleteFlowTest
   @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -81,7 +81,7 @@ public class ContactDeleteFlowTest
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -117,7 +117,7 @@ public class ContactDeleteFlowTest
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveContact(getUniqueIdFromCommand());
-    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
+    assertThrows(ResourceNotOwnedException.class, this::runFlow);
   }
 
   @Test
@@ -142,7 +142,7 @@ public class ContactDeleteFlowTest
     createTld("tld");
     persistResource(
         newDomainResource("example.tld", persistActiveContact(getUniqueIdFromCommand())));
-    assertThrows(ResourceToDeleteIsReferencedException.class, () -> runFlow());
+    assertThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
   }
 
   @Test
@@ -150,7 +150,7 @@ public class ContactDeleteFlowTest
     createTld("tld");
     persistResource(
         newDomainResource("example.tld", persistActiveContact(getUniqueIdFromCommand())));
-    assertThrows(ResourceToDeleteIsReferencedException.class, () -> runFlow());
+    assertThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
   }
 
   @Test

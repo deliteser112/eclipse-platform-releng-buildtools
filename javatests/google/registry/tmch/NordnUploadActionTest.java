@@ -199,7 +199,7 @@ public class NordnUploadActionTest {
   public void testFailure_nullRegistryUser() throws Exception {
     persistClaimsModeDomain();
     persistResource(Registry.get("tld").asBuilder().setLordnUsername(null).build());
-    VerifyException thrown = expectThrows(VerifyException.class, () -> action.run());
+    VerifyException thrown = expectThrows(VerifyException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("lordnUsername is not set for tld.");
   }
 
@@ -207,7 +207,7 @@ public class NordnUploadActionTest {
   public void testFetchFailure() throws Exception {
     persistClaimsModeDomain();
     when(httpResponse.getResponseCode()).thenReturn(SC_INTERNAL_SERVER_ERROR);
-    assertThrows(UrlFetchException.class, () -> action.run());
+    assertThrows(UrlFetchException.class, action::run);
   }
 
   private HTTPRequest getCapturedHttpRequest() throws Exception {

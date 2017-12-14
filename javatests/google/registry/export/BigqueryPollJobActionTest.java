@@ -189,13 +189,13 @@ public class BigqueryPollJobActionTest {
   public void testJobPending() throws Exception {
     when(bigqueryJobsGet.execute()).thenReturn(
         new Job().setStatus(new JobStatus().setState("PENDING")));
-    assertThrows(NotModifiedException.class, () -> action.run());
+    assertThrows(NotModifiedException.class, action::run);
   }
 
   @Test
   public void testJobStatusUnreadable() throws Exception {
     when(bigqueryJobsGet.execute()).thenThrow(IOException.class);
-    assertThrows(NotModifiedException.class, () -> action.run());
+    assertThrows(NotModifiedException.class, action::run);
   }
 
   @Test
@@ -203,7 +203,7 @@ public class BigqueryPollJobActionTest {
     when(bigqueryJobsGet.execute()).thenReturn(
         new Job().setStatus(new JobStatus().setState("DONE")));
     action.payload = "payload".getBytes(UTF_8);
-    BadRequestException thrown = expectThrows(BadRequestException.class, () -> action.run());
+    BadRequestException thrown = expectThrows(BadRequestException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Cannot deserialize task from payload");
   }
 }

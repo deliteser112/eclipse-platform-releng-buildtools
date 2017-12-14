@@ -85,7 +85,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("(ns1.example.tld)");
   }
 
@@ -93,7 +93,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedHost("ns1.example.tld", clock.nowUtc().minusDays(1));
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("(ns1.example.tld)");
   }
 
@@ -130,7 +130,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveHost("ns1.example.tld");
-    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
+    assertThrows(ResourceNotOwnedException.class, this::runFlow);
   }
 
   @Test
@@ -181,7 +181,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
             .setPersistedCurrentSponsorClientId("TheRegistrar")  // Shouldn't help.
             .setSuperordinateDomain(Key.create(domain))
             .build());
-    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
+    assertThrows(ResourceNotOwnedException.class, this::runFlow);
   }
 
   @Test
@@ -236,7 +236,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
             .setPersistedCurrentSponsorClientId("NewRegistrar")  // Shouldn't help.
             .setSuperordinateDomain(Key.create(domain))
             .build());
-    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
+    assertThrows(ResourceNotOwnedException.class, this::runFlow);
   }
 
   @Test
@@ -246,7 +246,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
         .setNameservers(ImmutableSet.of(
             Key.create(persistActiveHost("ns1.example.tld"))))
         .build());
-    assertThrows(ResourceToDeleteIsReferencedException.class, () -> runFlow());
+    assertThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
   }
 
   @Test
@@ -256,27 +256,27 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
         .setNameservers(ImmutableSet.of(
             Key.create(persistActiveHost("ns1.example.tld"))))
         .build());
-    assertThrows(ResourceToDeleteIsReferencedException.class, () -> runFlow());
+    assertThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
   }
 
   @Test
   public void testFailure_nonLowerCaseHostname() throws Exception {
     setEppInput("host_delete.xml", ImmutableMap.of("HOSTNAME", "NS1.EXAMPLE.NET"));
-    assertThrows(HostNameNotLowerCaseException.class, () -> runFlow());
+    assertThrows(HostNameNotLowerCaseException.class, this::runFlow);
   }
 
   @Test
   public void testFailure_nonPunyCodedHostname() throws Exception {
     setEppInput("host_delete.xml", ImmutableMap.of("HOSTNAME", "ns1.çauçalito.tld"));
     HostNameNotPunyCodedException thrown =
-        expectThrows(HostNameNotPunyCodedException.class, () -> runFlow());
+        expectThrows(HostNameNotPunyCodedException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("expected ns1.xn--aualito-txac.tld");
   }
 
   @Test
   public void testFailure_nonCanonicalHostname() throws Exception {
     setEppInput("host_delete.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld."));
-    assertThrows(HostNameNotNormalizedException.class, () -> runFlow());
+    assertThrows(HostNameNotNormalizedException.class, this::runFlow);
   }
 
   @Test

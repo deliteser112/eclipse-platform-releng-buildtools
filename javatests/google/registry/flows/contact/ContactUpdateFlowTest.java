@@ -257,7 +257,7 @@ public class ContactUpdateFlowTest
   @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -265,7 +265,7 @@ public class ContactUpdateFlowTest
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -273,7 +273,7 @@ public class ContactUpdateFlowTest
   public void testFailure_statusValueNotClientSettable() throws Exception {
     setEppInput("contact_update_prohibited_status.xml");
     persistActiveContact(getUniqueIdFromCommand());
-    assertThrows(StatusNotClientSettableException.class, () -> runFlow());
+    assertThrows(StatusNotClientSettableException.class, this::runFlow);
   }
 
   @Test
@@ -291,7 +291,7 @@ public class ContactUpdateFlowTest
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveContact(getUniqueIdFromCommand());
-    assertThrows(ResourceNotOwnedException.class, () -> runFlow());
+    assertThrows(ResourceNotOwnedException.class, this::runFlow);
   }
 
   @Test
@@ -338,7 +338,7 @@ public class ContactUpdateFlowTest
         newContactResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
             .build());
-    assertThrows(ResourceHasClientUpdateProhibitedException.class, () -> runFlow());
+    assertThrows(ResourceHasClientUpdateProhibitedException.class, this::runFlow);
   }
 
   @Test
@@ -348,7 +348,7 @@ public class ContactUpdateFlowTest
             .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
             .build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(ResourceStatusProhibitsOperationException.class, () -> runFlow());
+        expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("serverUpdateProhibited");
   }
 
@@ -359,7 +359,7 @@ public class ContactUpdateFlowTest
             .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
             .build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(ResourceStatusProhibitsOperationException.class, () -> runFlow());
+        expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("pendingDelete");
   }
 
@@ -373,21 +373,21 @@ public class ContactUpdateFlowTest
   public void testFailure_nonAsciiInIntAddress() throws Exception {
     setEppInput("contact_update_hebrew_int.xml");
     persistActiveContact(getUniqueIdFromCommand());
-    assertThrows(BadInternationalizedPostalInfoException.class, () -> runFlow());
+    assertThrows(BadInternationalizedPostalInfoException.class, this::runFlow);
   }
 
   @Test
   public void testFailure_declineDisclosure() throws Exception {
     setEppInput("contact_update_decline_disclosure.xml");
     persistActiveContact(getUniqueIdFromCommand());
-    assertThrows(DeclineContactDisclosureFieldDisallowedPolicyException.class, () -> runFlow());
+    assertThrows(DeclineContactDisclosureFieldDisallowedPolicyException.class, this::runFlow);
   }
 
   @Test
   public void testFailure_addRemoveSameValue() throws Exception {
     setEppInput("contact_update_add_remove_same.xml");
     persistActiveContact(getUniqueIdFromCommand());
-    assertThrows(AddRemoveSameValueException.class, () -> runFlow());
+    assertThrows(AddRemoveSameValueException.class, this::runFlow);
   }
 
   @Test

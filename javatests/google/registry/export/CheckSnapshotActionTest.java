@@ -122,7 +122,7 @@ public class CheckSnapshotActionTest {
   public void testPost_forPendingBackup_returnsNotModified() throws Exception {
     setPendingBackup();
 
-    NotModifiedException thrown = expectThrows(NotModifiedException.class, () -> action.run());
+    NotModifiedException thrown = expectThrows(NotModifiedException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Datastore backup some_backup still pending");
   }
 
@@ -138,7 +138,7 @@ public class CheckSnapshotActionTest {
             .plus(Duration.standardMinutes(3))
             .plus(Duration.millis(1234)));
 
-    NoContentException thrown = expectThrows(NoContentException.class, () -> action.run());
+    NoContentException thrown = expectThrows(NoContentException.class, action::run);
     assertThat(thrown)
         .hasMessageThat()
         .contains(
@@ -186,7 +186,7 @@ public class CheckSnapshotActionTest {
     when(backupService.findByName("some_backup"))
         .thenThrow(new IllegalArgumentException("No backup found"));
 
-    BadRequestException thrown = expectThrows(BadRequestException.class, () -> action.run());
+    BadRequestException thrown = expectThrows(BadRequestException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Bad backup name some_backup: No backup found");
   }
 
@@ -216,7 +216,7 @@ public class CheckSnapshotActionTest {
     when(backupService.findByName("some_backup"))
         .thenThrow(new IllegalArgumentException("No backup found"));
 
-    BadRequestException thrown = expectThrows(BadRequestException.class, () -> action.run());
+    BadRequestException thrown = expectThrows(BadRequestException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Bad backup name some_backup: No backup found");
   }
 }

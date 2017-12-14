@@ -102,20 +102,20 @@ public class DomainClaimsCheckFlowTest
   @Test
   public void testFailure_TooManyIds() throws Exception {
     setEppInput("domain_check_claims_51.xml");
-    assertThrows(TooManyResourceChecksException.class, () -> runFlow());
+    assertThrows(TooManyResourceChecksException.class, this::runFlow);
   }
 
   @Test
   public void testFailure_tldDoesntExist() throws Exception {
     setEppInput("domain_check_claims_bad_tld.xml");
-    assertThrows(TldDoesNotExistException.class, () -> runFlow());
+    assertThrows(TldDoesNotExistException.class, this::runFlow);
   }
 
   @Test
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
-    assertThrows(NotAuthorizedForTldException.class, () -> runFlow());
+    assertThrows(NotAuthorizedForTldException.class, this::runFlow);
   }
 
   @Test
@@ -136,7 +136,7 @@ public class DomainClaimsCheckFlowTest
     createTld("tld", TldState.PREDELEGATION);
     persistResource(Registry.get("tld").asBuilder().build());
     setEppInput("domain_check_claims.xml");
-    assertThrows(BadCommandForRegistryPhaseException.class, () -> runFlow());
+    assertThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
   }
 
   @Test
@@ -144,7 +144,7 @@ public class DomainClaimsCheckFlowTest
     createTld("tld", TldState.SUNRISE);
     persistResource(Registry.get("tld").asBuilder().build());
     setEppInput("domain_check_claims.xml");
-    assertThrows(DomainClaimsCheckNotAllowedInSunrise.class, () -> runFlow());
+    assertThrows(DomainClaimsCheckNotAllowedInSunrise.class, this::runFlow);
   }
 
   @Test
@@ -154,7 +154,7 @@ public class DomainClaimsCheckFlowTest
     persistResource(
         Registry.get("tld2").asBuilder().setClaimsPeriodEnd(clock.nowUtc().minusMillis(1)).build());
     setEppInput("domain_check_claims_multiple_tlds.xml");
-    assertThrows(ClaimsPeriodEndedException.class, () -> runFlow());
+    assertThrows(ClaimsPeriodEndedException.class, this::runFlow);
   }
 
   @Test

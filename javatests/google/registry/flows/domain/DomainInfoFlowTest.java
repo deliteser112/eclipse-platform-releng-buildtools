@@ -376,7 +376,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -386,7 +386,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
         .setDeletionTime(clock.nowUtc().minusDays(1))
         .build());
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -399,7 +399,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
         .build());
     sessionMetadata.setClientId("ClientZ");
     setEppInput("domain_info_with_auth.xml");
-    assertThrows(BadAuthInfoForResourceException.class, () -> runFlow());
+    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
   }
 
   @Test
@@ -410,7 +410,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
         .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("diffpw")))
         .build());
     setEppInput("domain_info_with_auth.xml");
-    assertThrows(BadAuthInfoForResourceException.class, () -> runFlow());
+    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
   }
 
   @Test
@@ -425,7 +425,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our registrant.
     eppLoader.replaceAll("JD1234-REP", registrant.getRepoId());
-    assertThrows(BadAuthInfoForResourceException.class, () -> runFlow());
+    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
   }
 
   @Test
@@ -439,7 +439,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our registrant.
     eppLoader.replaceAll("JD1234-REP", registrant.getRepoId());
-    assertThrows(BadAuthInfoForResourceException.class, () -> runFlow());
+    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
   }
 
   @Test
@@ -454,7 +454,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our contact.
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
-    assertThrows(BadAuthInfoForResourceException.class, () -> runFlow());
+    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
   }
 
   @Test
@@ -468,7 +468,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our contact.
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
-    assertThrows(BadAuthInfoForResourceException.class, () -> runFlow());
+    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
   }
 
   @Test
@@ -479,7 +479,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our unrelated contact.
     eppLoader.replaceAll("JD1234-REP", unrelatedContact.getRepoId());
-    assertThrows(BadAuthInfoForResourceException.class, () -> runFlow());
+    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
   }
 
   @Test
@@ -489,7 +489,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our unrelated contact.
     eppLoader.replaceAll("JD1234-REP", unrelatedContact.getRepoId());
-    assertThrows(BadAuthInfoForResourceException.class, () -> runFlow());
+    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
   }
 
   /**
@@ -568,7 +568,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_wrongCurrency() throws Exception {
     setEppInput("domain_info_fee_create_euro.xml");
     persistTestEntities(false);
-    assertThrows(CurrencyUnitMismatchException.class, () -> runFlow());
+    assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
   }
 
   /** Test requesting a period that isn't in years. */
@@ -576,7 +576,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_periodNotInYears() throws Exception {
     setEppInput("domain_info_fee_bad_period.xml");
     persistTestEntities(false);
-    assertThrows(BadPeriodUnitException.class, () -> runFlow());
+    assertThrows(BadPeriodUnitException.class, this::runFlow);
   }
 
   /** Test a command that specifies a phase. */
@@ -584,7 +584,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_commandPhase() throws Exception {
     setEppInput("domain_info_fee_command_phase.xml");
     persistTestEntities(false);
-    assertThrows(FeeChecksDontSupportPhasesException.class, () -> runFlow());
+    assertThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
   }
 
   /** Test a command that specifies a subphase. */
@@ -592,7 +592,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_commandSubphase() throws Exception {
     setEppInput("domain_info_fee_command_subphase.xml");
     persistTestEntities(false);
-    assertThrows(FeeChecksDontSupportPhasesException.class, () -> runFlow());
+    assertThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
   }
 
   /** Test a restore for more than one year. */
@@ -600,7 +600,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_multiyearRestore() throws Exception {
     setEppInput("domain_info_fee_multiyear_restore.xml");
     persistTestEntities(false);
-    assertThrows(RestoresAreAlwaysForOneYearException.class, () -> runFlow());
+    assertThrows(RestoresAreAlwaysForOneYearException.class, this::runFlow);
   }
 
   /** Test a transfer for more than one year. */
@@ -608,7 +608,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_multiyearTransfer() throws Exception {
     setEppInput("domain_info_fee_multiyear_transfer.xml");
     persistTestEntities(false);
-    assertThrows(TransfersAreAlwaysForOneYearException.class, () -> runFlow());
+    assertThrows(TransfersAreAlwaysForOneYearException.class, this::runFlow);
   }
 
   /** Test that we load contacts and hosts as a batch rather than individually. */

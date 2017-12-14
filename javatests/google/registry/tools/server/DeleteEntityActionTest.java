@@ -85,7 +85,7 @@ public class DeleteEntityActionTest {
     Entity entity = new Entity("not", "here");
     String rawKey = KeyFactory.keyToString(entity.getKey());
     action.rawKeys = rawKey;
-    BadRequestException thrown = expectThrows(BadRequestException.class, () -> action.run());
+    BadRequestException thrown = expectThrows(BadRequestException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Could not find entity with key " + rawKey);
   }
 
@@ -97,7 +97,7 @@ public class DeleteEntityActionTest {
     Entity entity = new Entity("non", "existent");
     String rawKey = KeyFactory.keyToString(entity.getKey());
     action.rawKeys = String.format("%s,%s", ofyKey, rawKey);
-    BadRequestException thrown = expectThrows(BadRequestException.class, () -> action.run());
+    BadRequestException thrown = expectThrows(BadRequestException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Could not find entity with key " + rawKey);
   }
 }

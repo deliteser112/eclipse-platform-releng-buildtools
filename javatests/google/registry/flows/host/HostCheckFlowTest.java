@@ -76,7 +76,7 @@ public class HostCheckFlowTest extends ResourceCheckFlowTestCase<HostCheckFlow, 
   @Test
   public void testTooManyIds() throws Exception {
     setEppInput("host_check_51.xml");
-    assertThrows(TooManyResourceChecksException.class, () -> runFlow());
+    assertThrows(TooManyResourceChecksException.class, this::runFlow);
   }
 
   @Test

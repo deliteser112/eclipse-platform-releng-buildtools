@@ -159,7 +159,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.modeStrings = ImmutableSet.of("full");
-    assertThrows(BadRequestException.class, () -> action.run());
+    assertThrows(BadRequestException.class, action::run);
   }
 
   @Test
@@ -167,7 +167,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.tlds = ImmutableSet.of("tld");
-    assertThrows(BadRequestException.class, () -> action.run());
+    assertThrows(BadRequestException.class, action::run);
   }
 
   @Test
@@ -175,7 +175,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.watermarks = ImmutableSet.of(clock.nowUtc());
-    assertThrows(BadRequestException.class, () -> action.run());
+    assertThrows(BadRequestException.class, action::run);
   }
 
   @Test
@@ -183,7 +183,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.revision = Optional.of(42);
-    assertThrows(BadRequestException.class, () -> action.run());
+    assertThrows(BadRequestException.class, action::run);
   }
 
   @Test
@@ -241,7 +241,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.modeStrings = ImmutableSet.of();
     action.tlds = ImmutableSet.of("lol");
     action.watermarks = ImmutableSet.of(clock.nowUtc());
-    assertThrows(BadRequestException.class, () -> action.run());
+    assertThrows(BadRequestException.class, action::run);
   }
 
   @Test
@@ -253,7 +253,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.modeStrings = ImmutableSet.of("full", "thing");
     action.tlds = ImmutableSet.of("lol");
     action.watermarks = ImmutableSet.of(clock.nowUtc());
-    assertThrows(BadRequestException.class, () -> action.run());
+    assertThrows(BadRequestException.class, action::run);
   }
 
   @Test
@@ -265,7 +265,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.modeStrings = ImmutableSet.of("full");
     action.tlds = ImmutableSet.of();
     action.watermarks = ImmutableSet.of(clock.nowUtc());
-    assertThrows(BadRequestException.class, () -> action.run());
+    assertThrows(BadRequestException.class, action::run);
   }
 
   @Test
@@ -277,7 +277,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.modeStrings = ImmutableSet.of("full");
     action.tlds = ImmutableSet.of("lol");
     action.watermarks = ImmutableSet.of();
-    assertThrows(BadRequestException.class, () -> action.run());
+    assertThrows(BadRequestException.class, action::run);
   }
 
   @Test
@@ -289,7 +289,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.modeStrings = ImmutableSet.of("full");
     action.tlds = ImmutableSet.of("lol");
     action.watermarks = ImmutableSet.of(DateTime.parse("2001-01-01T01:36:45Z"));
-    assertThrows(BadRequestException.class, () -> action.run());
+    assertThrows(BadRequestException.class, action::run);
   }
 
   @Test
@@ -302,7 +302,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.tlds = ImmutableSet.of("lol");
     action.watermarks = ImmutableSet.of(DateTime.parse("2001-01-01T00:00:00Z"));
     action.revision = Optional.of(-1);
-    assertThrows(BadRequestException.class, () -> action.run());
+    assertThrows(BadRequestException.class, action::run);
   }
 
   @Test

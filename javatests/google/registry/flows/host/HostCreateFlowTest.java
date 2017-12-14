@@ -126,7 +126,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     createTlds("bar.tld", "tld");
 
     setEppHostCreateInputWithIps("ns1.bar.tld");
-    assertThrows(HostNameTooShallowException.class, () -> runFlow());
+    assertThrows(HostNameTooShallowException.class, this::runFlow);
   }
 
   @Test
@@ -154,7 +154,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     setEppHostCreateInput("ns1.example.tld", null);
     createTld("tld");
     persistActiveDomain("example.tld");
-    assertThrows(SubordinateHostMustHaveIpException.class, () -> runFlow());
+    assertThrows(SubordinateHostMustHaveIpException.class, this::runFlow);
   }
 
   @Test
@@ -162,7 +162,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     setEppHostCreateInputWithIps("ns1.example.external");
     createTld("tld");
     persistActiveDomain("example.tld");
-    assertThrows(UnexpectedExternalHostIpException.class, () -> runFlow());
+    assertThrows(UnexpectedExternalHostIpException.class, this::runFlow);
   }
 
   @Test
@@ -170,7 +170,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     setEppHostCreateInput("ns1.example.tld", null);
     createTld("tld");
     SuperordinateDomainDoesNotExistException thrown =
-        expectThrows(SuperordinateDomainDoesNotExistException.class, () -> runFlow());
+        expectThrows(SuperordinateDomainDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("(example.tld)");
   }
 
@@ -185,7 +185,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
         .build());
     clock.advanceOneMilli();
     SuperordinateDomainInPendingDeleteException thrown =
-        expectThrows(SuperordinateDomainInPendingDeleteException.class, () -> runFlow());
+        expectThrows(SuperordinateDomainInPendingDeleteException.class, this::runFlow);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Superordinate domain for this hostname is in pending delete");
@@ -196,7 +196,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     setEppHostCreateInput("ns1.example.tld", null);
     persistActiveHost(getUniqueIdFromCommand());
     ResourceAlreadyExistsException thrown =
-        expectThrows(ResourceAlreadyExistsException.class, () -> runFlow());
+        expectThrows(ResourceAlreadyExistsException.class, this::runFlow);
     assertThat(thrown)
         .hasMessageThat()
         .contains(
@@ -206,27 +206,27 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   @Test
   public void testFailure_nonLowerCaseHostname() throws Exception {
     setEppHostCreateInput("ns1.EXAMPLE.tld", null);
-    assertThrows(HostNameNotLowerCaseException.class, () -> runFlow());
+    assertThrows(HostNameNotLowerCaseException.class, this::runFlow);
   }
 
   @Test
   public void testFailure_nonPunyCodedHostname() throws Exception {
     setEppHostCreateInput("ns1.çauçalito.みんな", null);
     HostNameNotPunyCodedException thrown =
-        expectThrows(HostNameNotPunyCodedException.class, () -> runFlow());
+        expectThrows(HostNameNotPunyCodedException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("expected ns1.xn--aualito-txac.xn--q9jyb4c");
   }
 
   @Test
   public void testFailure_nonCanonicalHostname() throws Exception {
     setEppHostCreateInput("ns1.example.tld.", null);
-    assertThrows(HostNameNotNormalizedException.class, () -> runFlow());
+    assertThrows(HostNameNotNormalizedException.class, this::runFlow);
   }
 
   @Test
   public void testFailure_longHostName() throws Exception {
     setEppHostCreateInputWithIps("a" + Strings.repeat(".labelpart", 25) + ".tld");
-    assertThrows(HostNameTooLongException.class, () -> runFlow());
+    assertThrows(HostNameTooLongException.class, this::runFlow);
   }
 
   @Test
@@ -236,7 +236,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
         "<host:addr ip=\"v4\">192.0.2.2</host:addr>\n"
             + "<host:addr ip=\"v6\">192.0.2.29</host:addr>\n"
             + "<host:addr ip=\"v6\">1080:0:0:0:8:800:200C:417A</host:addr>");
-    assertThrows(IpAddressVersionMismatchException.class, () -> runFlow());
+    assertThrows(IpAddressVersionMismatchException.class, this::runFlow);
   }
 
   private void doFailingHostNameTest(String hostName, Class<? extends Throwable> exception)
@@ -279,7 +279,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   public void testFailure_ccTldInBailiwick() throws Exception {
     createTld("co.uk");
     setEppHostCreateInputWithIps("foo.co.uk");
-    assertThrows(HostNameTooShallowException.class, () -> runFlow());
+    assertThrows(HostNameTooShallowException.class, this::runFlow);
   }
 
   @Test

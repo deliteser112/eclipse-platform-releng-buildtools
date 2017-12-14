@@ -165,13 +165,13 @@ public class NordnVerifyActionTest {
   @Test
   public void failureVerifyUnauthorized() throws Exception {
     when(httpResponse.getResponseCode()).thenReturn(SC_UNAUTHORIZED);
-    assertThrows(Exception.class, () -> action.run());
+    assertThrows(Exception.class, action::run);
   }
 
   @Test
   public void failureVerifyNotReady() throws Exception {
     when(httpResponse.getResponseCode()).thenReturn(SC_NO_CONTENT);
-    ConflictException thrown = expectThrows(ConflictException.class, () -> action.run());
+    ConflictException thrown = expectThrows(ConflictException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Not ready");
   }
 }

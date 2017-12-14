@@ -147,7 +147,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -156,28 +156,28 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
     persistResource(
       persistHostResource().asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, () -> runFlow());
+        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
   public void testFailure_nonLowerCaseHostname() throws Exception {
     setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "NS1.EXAMPLE.NET"));
-    assertThrows(HostNameNotLowerCaseException.class, () -> runFlow());
+    assertThrows(HostNameNotLowerCaseException.class, this::runFlow);
   }
 
   @Test
   public void testFailure_nonPunyCodedHostname() throws Exception {
     setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "ns1.çauçalito.tld"));
     HostNameNotPunyCodedException thrown =
-        expectThrows(HostNameNotPunyCodedException.class, () -> runFlow());
+        expectThrows(HostNameNotPunyCodedException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("expected ns1.xn--aualito-txac.tld");
   }
 
   @Test
   public void testFailure_nonCanonicalHostname() throws Exception {
     setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld."));
-    assertThrows(HostNameNotNormalizedException.class, () -> runFlow());
+    assertThrows(HostNameNotNormalizedException.class, this::runFlow);
   }
 
   @Test

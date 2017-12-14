@@ -256,7 +256,7 @@ public class DomainAllocateFlowTest
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.net"))
             .build());
     NameserversNotAllowedForTldException thrown =
-        expectThrows(NameserversNotAllowedForTldException.class, () -> runFlowAsSuperuser());
+        expectThrows(NameserversNotAllowedForTldException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("ns1.example.net");
   }
 
@@ -271,7 +271,7 @@ public class DomainAllocateFlowTest
                 ImmutableSet.of("ns1.example.net", "ns2.example.net"))
             .build());
     RegistrantNotAllowedException thrown =
-        expectThrows(RegistrantNotAllowedException.class, () -> runFlowAsSuperuser());
+        expectThrows(RegistrantNotAllowedException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("jd1234");
   }
 
@@ -287,7 +287,7 @@ public class DomainAllocateFlowTest
             .build());
     assertThrows(
         NameserversNotSpecifiedForTldWithNameserverWhitelistException.class,
-        () -> runFlowAsSuperuser());
+        this::runFlowAsSuperuser);
   }
 
   @Test
@@ -317,7 +317,7 @@ public class DomainAllocateFlowTest
                     "example-one,NAMESERVER_RESTRICTED," + "ns2.example.net:ns3.example.net"))
             .build());
     NameserversNotAllowedForDomainException thrown =
-        expectThrows(NameserversNotAllowedForDomainException.class, () -> runFlowAsSuperuser());
+        expectThrows(NameserversNotAllowedForDomainException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("ns1.example.net");
   }
 
@@ -335,7 +335,7 @@ public class DomainAllocateFlowTest
             .build());
     assertThrows(
         NameserversNotSpecifiedForNameserverRestrictedDomainException.class,
-        () -> runFlowAsSuperuser());
+        this::runFlowAsSuperuser);
   }
 
   @Test
@@ -371,7 +371,7 @@ public class DomainAllocateFlowTest
                 ImmutableSet.of("ns1.example.net", "ns2.example.net", "ns3.example.net"))
             .build());
     NameserversNotAllowedForDomainException thrown =
-        expectThrows(NameserversNotAllowedForDomainException.class, () -> runFlowAsSuperuser());
+        expectThrows(NameserversNotAllowedForDomainException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("ns1.example.net");
   }
 
@@ -390,7 +390,7 @@ public class DomainAllocateFlowTest
                 ImmutableSet.of("ns4.example.net", "ns2.example.net", "ns3.example.net"))
             .build());
     NameserversNotAllowedForTldException thrown =
-        expectThrows(NameserversNotAllowedForTldException.class, () -> runFlowAsSuperuser());
+        expectThrows(NameserversNotAllowedForTldException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("ns1.example.net");
   }
 
@@ -575,7 +575,7 @@ public class DomainAllocateFlowTest
   public void testFailure_alreadyExists() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     persistActiveDomain(getUniqueIdFromCommand());
-    assertThrows(ResourceAlreadyExistsException.class, () -> runFlowAsSuperuser());
+    assertThrows(ResourceAlreadyExistsException.class, this::runFlowAsSuperuser);
   }
 
   @Test
@@ -610,7 +610,7 @@ public class DomainAllocateFlowTest
   public void testFailure_applicationDeleted() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     persistResource(application.asBuilder().setDeletionTime(clock.nowUtc()).build());
-    assertThrows(MissingApplicationException.class, () -> runFlowAsSuperuser());
+    assertThrows(MissingApplicationException.class, this::runFlowAsSuperuser);
   }
 
   @Test
@@ -619,7 +619,7 @@ public class DomainAllocateFlowTest
     persistResource(application.asBuilder()
         .setApplicationStatus(ApplicationStatus.REJECTED)
         .build());
-    assertThrows(HasFinalStatusException.class, () -> runFlowAsSuperuser());
+    assertThrows(HasFinalStatusException.class, this::runFlowAsSuperuser);
   }
 
   @Test
@@ -628,14 +628,14 @@ public class DomainAllocateFlowTest
     persistResource(application.asBuilder()
         .setApplicationStatus(ApplicationStatus.ALLOCATED)
         .build());
-    assertThrows(HasFinalStatusException.class, () -> runFlowAsSuperuser());
+    assertThrows(HasFinalStatusException.class, this::runFlowAsSuperuser);
   }
 
   @Test
   public void testFailure_applicationDoesNotExist() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     setEppInput("domain_allocate_bad_application_roid.xml");
-    assertThrows(MissingApplicationException.class, () -> runFlowAsSuperuser());
+    assertThrows(MissingApplicationException.class, this::runFlowAsSuperuser);
   }
 
   @Test
@@ -653,7 +653,7 @@ public class DomainAllocateFlowTest
   public void testFailure_max10Years() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     setEppInput("domain_allocate_11_years.xml");
-    assertThrows(ExceedsMaxRegistrationYearsException.class, () -> runFlowAsSuperuser());
+    assertThrows(ExceedsMaxRegistrationYearsException.class, this::runFlowAsSuperuser);
   }
 
   @Test

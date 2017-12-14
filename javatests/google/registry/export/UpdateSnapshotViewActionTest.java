@@ -124,7 +124,7 @@ public class UpdateSnapshotViewActionTest {
     when(bigqueryTables.update(anyString(), anyString(), anyString(), any(Table.class)))
         .thenThrow(new IOException("I'm sorry Dave, I can't let you do that"));
     InternalServerErrorException thrown =
-        expectThrows(InternalServerErrorException.class, () -> action.run());
+        expectThrows(InternalServerErrorException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Error in update snapshot view action");
   }
 }
