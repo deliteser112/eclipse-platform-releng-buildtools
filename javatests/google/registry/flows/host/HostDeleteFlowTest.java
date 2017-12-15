@@ -23,14 +23,15 @@ import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
-import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
@@ -75,7 +76,8 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     assertAboutHosts().that(deletedHost).hasStatusValue(StatusValue.PENDING_DELETE);
     assertAsyncDeletionTaskEnqueued(
         deletedHost, "TheRegistrar", Trid.create("ABC-12345", "server-trid"), false);
-    assertAboutHosts().that(deletedHost)
+    assertAboutHosts()
+        .that(deletedHost)
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.HOST_PENDING_DELETE);
     assertNoBillingEvents();
@@ -130,7 +132,8 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveHost("ns1.example.tld");
-    assertThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -144,7 +147,8 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     assertAboutHosts().that(deletedHost).hasStatusValue(StatusValue.PENDING_DELETE);
     assertAsyncDeletionTaskEnqueued(
         deletedHost, "NewRegistrar", Trid.create("ABC-12345", "server-trid"), true);
-    assertAboutHosts().that(deletedHost)
+    assertAboutHosts()
+        .that(deletedHost)
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.HOST_PENDING_DELETE);
     assertNoBillingEvents();
@@ -155,13 +159,16 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   public void testSuccess_authorizedClientReadFromSuperordinate() throws Exception {
     sessionMetadata.setClientId("TheRegistrar");
     createTld("tld");
-    DomainResource domain = persistResource(
-        newDomainResource("example.tld").asBuilder()
-            .setPersistedCurrentSponsorClientId("TheRegistrar")
-            .build());
+    DomainResource domain =
+        persistResource(
+            newDomainResource("example.tld")
+                .asBuilder()
+                .setPersistedCurrentSponsorClientId("TheRegistrar")
+                .build());
     persistResource(
-        newHostResource("ns1.example.tld").asBuilder()
-            .setPersistedCurrentSponsorClientId("NewRegistrar")  // Shouldn't hurt.
+        newHostResource("ns1.example.tld")
+            .asBuilder()
+            .setPersistedCurrentSponsorClientId("NewRegistrar") // Shouldn't hurt.
             .setSuperordinateDomain(Key.create(domain))
             .build());
     clock.advanceOneMilli();
@@ -172,16 +179,20 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   public void testFailure_unauthorizedClientReadFromSuperordinate() throws Exception {
     sessionMetadata.setClientId("TheRegistrar");
     createTld("tld");
-    DomainResource domain = persistResource(
-        newDomainResource("example.tld").asBuilder()
-            .setPersistedCurrentSponsorClientId("NewRegistrar")
-            .build());
+    DomainResource domain =
+        persistResource(
+            newDomainResource("example.tld")
+                .asBuilder()
+                .setPersistedCurrentSponsorClientId("NewRegistrar")
+                .build());
     persistResource(
-        newHostResource("ns1.example.tld").asBuilder()
-            .setPersistedCurrentSponsorClientId("TheRegistrar")  // Shouldn't help.
+        newHostResource("ns1.example.tld")
+            .asBuilder()
+            .setPersistedCurrentSponsorClientId("TheRegistrar") // Shouldn't help.
             .setSuperordinateDomain(Key.create(domain))
             .build());
-    assertThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -192,20 +203,25 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     DateTime now = clock.nowUtc();
     DateTime requestTime = now.minusDays(1).minus(Registry.DEFAULT_AUTOMATIC_TRANSFER_LENGTH);
     DateTime transferExpirationTime = now.minusDays(1);
-    DomainResource domain = persistResource(newDomainResource("example.tld").asBuilder()
-        .setPersistedCurrentSponsorClientId("NewRegistrar")  // Shouldn't hurt.
-        .addStatusValue(StatusValue.PENDING_TRANSFER)
-        .setTransferData(new TransferData.Builder()
-            .setTransferStatus(TransferStatus.PENDING)
-            .setGainingClientId("NewRegistrar")
-            .setTransferRequestTime(requestTime)
-            .setLosingClientId("TheRegistrar")
-            .setPendingTransferExpirationTime(transferExpirationTime)
-            .build())
-        .build());
+    DomainResource domain =
+        persistResource(
+            newDomainResource("example.tld")
+                .asBuilder()
+                .setPersistedCurrentSponsorClientId("NewRegistrar") // Shouldn't hurt.
+                .addStatusValue(StatusValue.PENDING_TRANSFER)
+                .setTransferData(
+                    new TransferData.Builder()
+                        .setTransferStatus(TransferStatus.PENDING)
+                        .setGainingClientId("NewRegistrar")
+                        .setTransferRequestTime(requestTime)
+                        .setLosingClientId("TheRegistrar")
+                        .setPendingTransferExpirationTime(transferExpirationTime)
+                        .build())
+                .build());
     persistResource(
-        newHostResource("ns1.example.tld").asBuilder()
-            .setPersistedCurrentSponsorClientId("TheRegistrar")  // Shouldn't hurt.
+        newHostResource("ns1.example.tld")
+            .asBuilder()
+            .setPersistedCurrentSponsorClientId("TheRegistrar") // Shouldn't hurt.
             .setSuperordinateDomain(Key.create(domain))
             .build());
     clock.advanceOneMilli();
@@ -220,49 +236,60 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
     DateTime now = clock.nowUtc();
     DateTime requestTime = now.minusDays(1).minus(Registry.DEFAULT_AUTOMATIC_TRANSFER_LENGTH);
     DateTime transferExpirationTime = now.minusDays(1);
-    DomainResource domain = persistResource(newDomainResource("example.tld").asBuilder()
-        .setPersistedCurrentSponsorClientId("NewRegistrar")  // Shouldn't help.
-        .addStatusValue(StatusValue.PENDING_TRANSFER)
-        .setTransferData(new TransferData.Builder()
-            .setTransferStatus(TransferStatus.PENDING)
-            .setGainingClientId("TheRegistrar")
-            .setTransferRequestTime(requestTime)
-            .setLosingClientId("NewRegistrar")
-            .setPendingTransferExpirationTime(transferExpirationTime)
-            .build())
-        .build());
+    DomainResource domain =
+        persistResource(
+            newDomainResource("example.tld")
+                .asBuilder()
+                .setPersistedCurrentSponsorClientId("NewRegistrar") // Shouldn't help.
+                .addStatusValue(StatusValue.PENDING_TRANSFER)
+                .setTransferData(
+                    new TransferData.Builder()
+                        .setTransferStatus(TransferStatus.PENDING)
+                        .setGainingClientId("TheRegistrar")
+                        .setTransferRequestTime(requestTime)
+                        .setLosingClientId("NewRegistrar")
+                        .setPendingTransferExpirationTime(transferExpirationTime)
+                        .build())
+                .build());
     persistResource(
-        newHostResource("ns1.example.tld").asBuilder()
-            .setPersistedCurrentSponsorClientId("NewRegistrar")  // Shouldn't help.
+        newHostResource("ns1.example.tld")
+            .asBuilder()
+            .setPersistedCurrentSponsorClientId("NewRegistrar") // Shouldn't help.
             .setSuperordinateDomain(Key.create(domain))
             .build());
-    assertThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_failfastWhenLinkedToDomain() throws Exception {
     createTld("tld");
-    persistResource(newDomainResource("example.tld").asBuilder()
-        .setNameservers(ImmutableSet.of(
-            Key.create(persistActiveHost("ns1.example.tld"))))
-        .build());
-    assertThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
+    persistResource(
+        newDomainResource("example.tld")
+            .asBuilder()
+            .setNameservers(ImmutableSet.of(Key.create(persistActiveHost("ns1.example.tld"))))
+            .build());
+    EppException thrown = expectThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_failfastWhenLinkedToApplication() throws Exception {
     createTld("tld");
-    persistResource(newDomainApplication("example.tld").asBuilder()
-        .setNameservers(ImmutableSet.of(
-            Key.create(persistActiveHost("ns1.example.tld"))))
-        .build());
-    assertThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
+    persistResource(
+        newDomainApplication("example.tld")
+            .asBuilder()
+            .setNameservers(ImmutableSet.of(Key.create(persistActiveHost("ns1.example.tld"))))
+            .build());
+    EppException thrown = expectThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_nonLowerCaseHostname() throws Exception {
     setEppInput("host_delete.xml", ImmutableMap.of("HOSTNAME", "NS1.EXAMPLE.NET"));
-    assertThrows(HostNameNotLowerCaseException.class, this::runFlow);
+    EppException thrown = expectThrows(HostNameNotLowerCaseException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -276,7 +303,8 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   @Test
   public void testFailure_nonCanonicalHostname() throws Exception {
     setEppInput("host_delete.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld."));
-    assertThrows(HostNameNotNormalizedException.class, this::runFlow);
+    EppException thrown = expectThrows(HostNameNotNormalizedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test

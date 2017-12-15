@@ -19,13 +19,14 @@ import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
+import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.host.HostFlowUtils.HostNameNotLowerCaseException;
@@ -57,12 +58,12 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
             .setFullyQualifiedHostName(getUniqueIdFromCommand())
             .setRepoId("1FF-FOOBAR")
             .setPersistedCurrentSponsorClientId("my sponsor")
-            .setStatusValues(
-                ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
-            .setInetAddresses(ImmutableSet.of(
-                InetAddresses.forString("192.0.2.2"),
-                InetAddresses.forString("1080:0:0:0:8:800:200C:417A"),
-                InetAddresses.forString("192.0.2.29")))
+            .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
+            .setInetAddresses(
+                ImmutableSet.of(
+                    InetAddresses.forString("192.0.2.2"),
+                    InetAddresses.forString("1080:0:0:0:8:800:200C:417A"),
+                    InetAddresses.forString("192.0.2.29")))
             .setPersistedCurrentSponsorClientId("TheRegistrar")
             .setCreationClientId("NewRegistrar")
             .setLastEppUpdateClientId("NewRegistrar")
@@ -89,9 +90,10 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   public void testSuccess_linked() throws Exception {
     persistHostResource();
     persistResource(
-        newDomainResource("example.foobar").asBuilder()
-          .addNameservers(ImmutableSet.of(Key.create(persistHostResource())))
-          .build());
+        newDomainResource("example.foobar")
+            .asBuilder()
+            .addNameservers(ImmutableSet.of(Key.create(persistHostResource())))
+            .build());
     assertTransactionalFlow(false);
     // Check that the persisted host info was returned.
     runFlowAssertResponse(
@@ -102,16 +104,19 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
     assertNoBillingEvents();
   }
 
-  private void runTest_superordinateDomain(DateTime domainTransferTime,
-      @Nullable DateTime lastSuperordinateChange) throws Exception {
-    DomainResource domain = persistResource(
-        newDomainResource("parent.foobar").asBuilder()
-            .setRepoId("BEEF-FOOBAR")
-            .setLastTransferTime(domainTransferTime)
-            .setPersistedCurrentSponsorClientId("superclientid")
-            .build());
+  private void runTest_superordinateDomain(
+      DateTime domainTransferTime, @Nullable DateTime lastSuperordinateChange) throws Exception {
+    DomainResource domain =
+        persistResource(
+            newDomainResource("parent.foobar")
+                .asBuilder()
+                .setRepoId("BEEF-FOOBAR")
+                .setLastTransferTime(domainTransferTime)
+                .setPersistedCurrentSponsorClientId("superclientid")
+                .build());
     persistResource(
-        persistHostResource().asBuilder()
+        persistHostResource()
+            .asBuilder()
             .setRepoId("CEEF-FOOBAR")
             .setSuperordinateDomain(Key.create(domain))
             .setLastSuperordinateChange(lastSuperordinateChange)
@@ -126,17 +131,15 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   }
 
   @Test
-  public void testSuccess_withSuperordinateDomain_hostMovedAfterDomainTransfer()
-      throws Exception {
-    runTest_superordinateDomain(DateTime.parse("2000-01-08T09:00:00.0Z"),
-        DateTime.parse("2000-03-01T01:00:00.0Z"));
+  public void testSuccess_withSuperordinateDomain_hostMovedAfterDomainTransfer() throws Exception {
+    runTest_superordinateDomain(
+        DateTime.parse("2000-01-08T09:00:00.0Z"), DateTime.parse("2000-03-01T01:00:00.0Z"));
   }
 
   @Test
-  public void testSuccess_withSuperordinateDomain_hostMovedBeforeDomainTransfer()
-      throws Exception {
-    runTest_superordinateDomain(DateTime.parse("2000-04-08T09:00:00.0Z"),
-        DateTime.parse("2000-02-08T09:00:00.0Z"));
+  public void testSuccess_withSuperordinateDomain_hostMovedBeforeDomainTransfer() throws Exception {
+    runTest_superordinateDomain(
+        DateTime.parse("2000-04-08T09:00:00.0Z"), DateTime.parse("2000-02-08T09:00:00.0Z"));
   }
 
   @Test
@@ -154,7 +157,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
     persistResource(
-      persistHostResource().asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
+        persistHostResource().asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     ResourceDoesNotExistException thrown =
         expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
@@ -163,7 +166,8 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   @Test
   public void testFailure_nonLowerCaseHostname() throws Exception {
     setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "NS1.EXAMPLE.NET"));
-    assertThrows(HostNameNotLowerCaseException.class, this::runFlow);
+    EppException thrown = expectThrows(HostNameNotLowerCaseException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -177,7 +181,8 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   @Test
   public void testFailure_nonCanonicalHostname() throws Exception {
     setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld."));
-    assertThrows(HostNameNotNormalizedException.class, this::runFlow);
+    EppException thrown = expectThrows(HostNameNotNormalizedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
