@@ -20,7 +20,6 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.services.bigquery.Bigquery;
 import com.google.api.services.bigquery.BigqueryScopes;
 import com.google.api.services.bigquery.model.TableFieldSchema;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
@@ -28,6 +27,7 @@ import dagger.multibindings.Multibinds;
 import google.registry.config.RegistryConfig.Config;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /** Dagger module for Google {@link Bigquery} connection objects. */
 @Module

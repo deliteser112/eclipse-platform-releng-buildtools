@@ -21,7 +21,6 @@ import static com.google.common.collect.Maps.uniqueIndex;
 import static com.googlecode.objectify.ObjectifyService.ofy;
 import static google.registry.config.RegistryConfig.getBaseOfyRetryDuration;
 import static google.registry.util.CollectionUtils.union;
-import static google.registry.util.ObjectifyUtils.OBJECTS_TO_KEYS;
 
 import com.google.appengine.api.datastore.DatastoreFailureException;
 import com.google.appengine.api.datastore.DatastoreTimeoutException;
@@ -170,7 +169,7 @@ public class Ofy {
         assertInTransaction();
         checkState(Streams.stream(entities).allMatch(notNull()), "Can't save a null entity.");
         checkProhibitedAnnotations(entities, NotBackedUp.class, VirtualEntity.class);
-        ImmutableMap<Key<?>, ?> keysToEntities = uniqueIndex(entities, OBJECTS_TO_KEYS);
+        ImmutableMap<Key<?>, ?> keysToEntities = uniqueIndex(entities, Key::create);
         TRANSACTION_INFO.get().putSaves(keysToEntities);
       }
     };

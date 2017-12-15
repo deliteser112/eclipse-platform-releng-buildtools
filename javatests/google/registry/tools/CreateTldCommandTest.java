@@ -14,9 +14,8 @@
 
 package google.registry.tools;
 
-import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.registry.label.ReservedListTest.GET_NAME_FUNCTION;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
@@ -31,6 +30,7 @@ import static org.joda.time.Duration.standardMinutes;
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
+import com.googlecode.objectify.Key;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import java.io.ByteArrayOutputStream;
@@ -283,7 +283,12 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "--roid_suffix=Q9JYB4C",
         "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
-    assertThat(transform(Registry.get("xn--q9jyb4c").getReservedLists(), GET_NAME_FUNCTION))
+    assertThat(
+            Registry.get("xn--q9jyb4c")
+                .getReservedLists()
+                .stream()
+                .map(Key::getName)
+                .collect(toImmutableList()))
         .containsExactly("xn--q9jyb4c_abuse", "common_abuse");
   }
 

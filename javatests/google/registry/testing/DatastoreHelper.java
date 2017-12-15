@@ -43,10 +43,8 @@ import static java.util.Arrays.asList;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.base.Ascii;
-import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.base.Supplier;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -103,6 +101,7 @@ import google.registry.tmch.LordnTask;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import javax.annotation.Nullable;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -669,8 +668,9 @@ public class DatastoreHelper {
   /** Assert that the actual billing events match the expected ones, ignoring IDs and order. */
   public static void assertBillingEventsEqual(
       Iterable<BillingEvent> actual, Iterable<BillingEvent> expected) {
-    assertThat(Iterables.transform(actual, BILLING_EVENT_ID_STRIPPER))
-        .containsExactlyElementsIn(Iterables.transform(expected, BILLING_EVENT_ID_STRIPPER));
+    assertThat(Streams.stream(actual).map(BILLING_EVENT_ID_STRIPPER).collect(toImmutableList()))
+        .containsExactlyElementsIn(
+            Streams.stream(expected).map(BILLING_EVENT_ID_STRIPPER).collect(toImmutableList()));
   }
 
   /** Assert that the expected billing events are exactly the ones found in the fake Datastore. */
@@ -688,9 +688,12 @@ public class DatastoreHelper {
    */
   public static void assertBillingEventsForResource(
       EppResource resource, BillingEvent... expected) throws Exception {
-    assertThat(FluentIterable.from(getBillingEvents(resource)).transform(BILLING_EVENT_ID_STRIPPER))
+    assertThat(
+            Streams.stream(getBillingEvents(resource))
+                .map(BILLING_EVENT_ID_STRIPPER)
+                .collect(toImmutableList()))
         .containsExactlyElementsIn(
-            FluentIterable.from(expected).transform(BILLING_EVENT_ID_STRIPPER));
+            Arrays.stream(expected).map(BILLING_EVENT_ID_STRIPPER).collect(toImmutableList()));
   }
 
   /** Assert that there are no billing events. */
@@ -711,15 +714,20 @@ public class DatastoreHelper {
   /** Assert that the actual poll messages match the expected ones, ignoring IDs and order. */
   public static void assertPollMessagesEqual(
       Iterable<PollMessage> actual, Iterable<PollMessage> expected) {
-    assertThat(Iterables.transform(actual, POLL_MESSAGE_ID_STRIPPER))
-        .containsExactlyElementsIn(Iterables.transform(expected, POLL_MESSAGE_ID_STRIPPER));
+    assertThat(Streams.stream(actual).map(POLL_MESSAGE_ID_STRIPPER).collect(toImmutableList()))
+        .containsExactlyElementsIn(
+            Streams.stream(expected).map(POLL_MESSAGE_ID_STRIPPER).collect(toImmutableList()));
   }
 
   public static void assertPollMessagesForResource(EppResource resource, PollMessage... expected)
       throws Exception {
-    assertThat(FluentIterable.from(getPollMessages(resource)).transform(POLL_MESSAGE_ID_STRIPPER))
+    assertThat(
+            getPollMessages(resource)
+                .stream()
+                .map(POLL_MESSAGE_ID_STRIPPER)
+                .collect(toImmutableList()))
         .containsExactlyElementsIn(
-            FluentIterable.from(expected).transform(POLL_MESSAGE_ID_STRIPPER));
+            Arrays.stream(expected).map(POLL_MESSAGE_ID_STRIPPER).collect(toImmutableList()));
   }
 
   /** Helper to effectively erase the poll message ID to facilitate comparison. */

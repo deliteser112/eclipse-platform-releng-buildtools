@@ -19,9 +19,9 @@ import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.request.auth.Auth.AUTH_INTERNAL_ONLY;
 import static google.registry.testing.JUnitBackports.expectThrows;
 
-import com.google.common.base.Function;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;

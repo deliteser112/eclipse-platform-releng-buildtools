@@ -14,7 +14,6 @@
 
 package google.registry.model.ofy;
 
-import static com.google.common.base.Functions.constant;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Maps.filterValues;
@@ -76,7 +75,7 @@ class TransactionInfo {
 
   void putDeletes(Iterable<Key<?>> keys) {
     assertNotReadOnly();
-    changesBuilder.putAll(toMap(keys, constant(TransactionInfo.Delete.SENTINEL)));
+    changesBuilder.putAll(toMap(keys, k -> TransactionInfo.Delete.SENTINEL));
   }
 
   ImmutableSet<Key<?>> getTouchedKeys() {

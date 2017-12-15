@@ -19,7 +19,6 @@ import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Lists.partition;
-import static com.google.common.collect.Lists.transform;
 import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
@@ -27,7 +26,6 @@ import static java.util.Arrays.asList;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.api.taskqueue.TaskOptions;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import google.registry.config.RegistryEnvironment;
@@ -41,6 +39,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Function;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -235,15 +234,17 @@ public class LoadTestAction implements Runnable {
       // Do successful creates on random names
       tasks.addAll(
           createTasks(
-              transform(
-                  createNumCopies(xmlContactCreateTmpl, successfulContactCreatesPerSecond),
-                  randomNameReplacer("%contact%", MAX_CONTACT_LENGTH)),
+              createNumCopies(xmlContactCreateTmpl, successfulContactCreatesPerSecond)
+                  .stream()
+                  .map(randomNameReplacer("%contact%", MAX_CONTACT_LENGTH))
+                  .collect(toImmutableList()),
               startSecond));
       tasks.addAll(
           createTasks(
-              transform(
-                  createNumCopies(xmlHostCreateTmpl, successfulHostCreatesPerSecond),
-                  randomNameReplacer("%host%", ARBITRARY_VALID_HOST_LENGTH)),
+              createNumCopies(xmlHostCreateTmpl, successfulHostCreatesPerSecond)
+                  .stream()
+                  .map(randomNameReplacer("%host%", ARBITRARY_VALID_HOST_LENGTH))
+                  .collect(toImmutableList()),
               startSecond));
       tasks.addAll(
           createTasks(

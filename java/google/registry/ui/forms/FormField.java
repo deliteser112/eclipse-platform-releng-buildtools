@@ -22,8 +22,6 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -36,6 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import javax.annotation.Detainted;
 import javax.annotation.Nullable;
 import javax.annotation.Tainted;
@@ -137,7 +136,7 @@ public final class FormField<I, O> {
   /** Returns an optional form field named {@code name} with a specific {@code inputType}. */
   public static <T> Builder<T, T> named(String name, Class<T> typeIn) {
     checkArgument(!name.isEmpty());
-    return new Builder<>(name, checkNotNull(typeIn), typeIn, Functions.identity());
+    return new Builder<>(name, checkNotNull(typeIn), typeIn, x -> x);
   }
 
   /**
@@ -445,8 +444,8 @@ public final class FormField<I, O> {
      * @see #transform(Function)
      */
     public <T> Builder<I, T> transform(Class<T> newType, Function<O, T> transform) {
-      return new Builder<>(name, typeIn, checkNotNull(newType),
-          Functions.compose(checkNotNull(transform), converter));
+      return new Builder<>(
+          name, typeIn, checkNotNull(newType), this.converter.andThen(checkNotNull(transform)));
     }
 
     /**
@@ -456,7 +455,7 @@ public final class FormField<I, O> {
      * which {@code transform} is expected to conform.
      */
     public Builder<I, O> transform(Function<O, O> transform) {
-      this.converter = Functions.compose(checkNotNull(transform), converter);
+      this.converter = this.converter.andThen(checkNotNull(transform));
       return this;
     }
 

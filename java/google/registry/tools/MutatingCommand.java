@@ -16,7 +16,6 @@ package google.registry.tools;
 
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
-import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -227,6 +226,6 @@ public abstract class MutatingCommand extends ConfirmingCommand implements Remot
   protected String prompt() {
     return changedEntitiesMap.isEmpty()
         ? "No entity changes to apply."
-        : changedEntitiesMap.values().stream().map(toStringFunction()).collect(joining("\n"));
+        : changedEntitiesMap.values().stream().map(Object::toString).collect(joining("\n"));
   }
 }

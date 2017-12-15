@@ -14,9 +14,8 @@
 
 package google.registry.tools;
 
-import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.registry.label.ReservedListTest.GET_NAME_FUNCTION;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
@@ -282,7 +281,12 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   public void testSuccess_setReservedLists() throws Exception {
     runCommandForced("--reserved_lists=xn--q9jyb4c_r1,xn--q9jyb4c_r2", "xn--q9jyb4c");
 
-    assertThat(transform(Registry.get("xn--q9jyb4c").getReservedLists(), GET_NAME_FUNCTION))
+    assertThat(
+            Registry.get("xn--q9jyb4c")
+                .getReservedLists()
+                .stream()
+                .map(Key::getName)
+                .collect(toImmutableList()))
         .containsExactly("xn--q9jyb4c_r1", "xn--q9jyb4c_r2");
   }
 
@@ -292,7 +296,12 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
         .setReservedListsByName(ImmutableSet.of("xn--q9jyb4c_r1", "xn--q9jyb4c_r2"))
         .build());
     runCommandForced("--reserved_lists=xn--q9jyb4c_r2", "xn--q9jyb4c");
-    assertThat(transform(Registry.get("xn--q9jyb4c").getReservedLists(), GET_NAME_FUNCTION))
+    assertThat(
+            Registry.get("xn--q9jyb4c")
+                .getReservedLists()
+                .stream()
+                .map(Key::getName)
+                .collect(toImmutableList()))
         .containsExactly("xn--q9jyb4c_r2");
   }
 
@@ -302,7 +311,12 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
         .setReservedListsByName(ImmutableSet.of("xn--q9jyb4c_r1"))
         .build());
     runCommandForced("--add_reserved_lists=xn--q9jyb4c_r2", "xn--q9jyb4c");
-    assertThat(transform(Registry.get("xn--q9jyb4c").getReservedLists(), GET_NAME_FUNCTION))
+    assertThat(
+            Registry.get("xn--q9jyb4c")
+                .getReservedLists()
+                .stream()
+                .map(Key::getName)
+                .collect(toImmutableList()))
         .containsExactly("xn--q9jyb4c_r1", "xn--q9jyb4c_r2");
   }
 
@@ -321,7 +335,12 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
         .setReservedListsByName(ImmutableSet.of("xn--q9jyb4c_r1", "xn--q9jyb4c_r2"))
         .build());
     runCommandForced("--remove_reserved_lists=xn--q9jyb4c_r1", "xn--q9jyb4c");
-    assertThat(transform(Registry.get("xn--q9jyb4c").getReservedLists(), GET_NAME_FUNCTION))
+    assertThat(
+            Registry.get("xn--q9jyb4c")
+                .getReservedLists()
+                .stream()
+                .map(Key::getName)
+                .collect(toImmutableList()))
         .containsExactly("xn--q9jyb4c_r2");
   }
 

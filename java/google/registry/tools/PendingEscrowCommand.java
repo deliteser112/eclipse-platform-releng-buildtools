@@ -17,7 +17,6 @@ package google.registry.tools;
 import static java.util.stream.Collectors.joining;
 
 import com.beust.jcommander.Parameters;
-import com.google.common.base.Functions;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.Ordering;
 import google.registry.rde.PendingDeposit;
@@ -49,7 +48,7 @@ final class PendingEscrowCommand implements RemoteApiCommand {
         SORTER
             .sortedCopy(checker.getTldsAndWatermarksPendingDepositForRdeAndBrda().values())
             .stream()
-            .map(Functions.toStringFunction())
+            .map(Object::toString)
             .collect(joining("\n")));
   }
 }

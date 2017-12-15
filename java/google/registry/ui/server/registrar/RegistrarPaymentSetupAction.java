@@ -14,7 +14,6 @@
 
 package google.registry.ui.server.registrar;
 
-import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
@@ -118,7 +117,7 @@ public final class RegistrarPaymentSetupAction implements Runnable, JsonAction {
                     accountIds
                         .keySet()
                         .stream()
-                        .map(toStringFunction())
+                        .map(Object::toString)
                         .collect(toImmutableList()))));
   }
 }

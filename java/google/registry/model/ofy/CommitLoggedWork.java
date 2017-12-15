@@ -25,7 +25,6 @@ import static google.registry.model.ofy.CommitLogBucket.loadBucket;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -153,9 +152,7 @@ class CommitLoggedWork<R> extends VoidWork {
     mutations =
         union(info.getSaves(), untouchedRootsWithTouchedChildren)
             .stream()
-            .map(
-                (Function<Object, ImmutableObject>)
-                    (Object saveEntity) -> CommitLogMutation.create(manifestKey, saveEntity))
+            .map(entity -> (ImmutableObject) CommitLogMutation.create(manifestKey, entity))
             .collect(toImmutableSet());
     ofy().saveWithoutBackup()
       .entities(new ImmutableSet.Builder<>()

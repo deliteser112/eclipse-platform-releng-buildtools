@@ -15,9 +15,9 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
-import static java.util.stream.Collectors.toList;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameters;
@@ -71,7 +71,7 @@ public class UnlockDomainCommand extends LockOrUnlockDomainCommand {
               "removeAdmins", ImmutableList.of(),
               "removeTechs", ImmutableList.of(),
               "removeStatuses",
-                  statusesToRemove.stream().map(StatusValue::getXmlName).collect(toList()),
+                  statusesToRemove.stream().map(StatusValue::getXmlName).collect(toImmutableList()),
               "change", false));
     }
   }

@@ -37,8 +37,6 @@ import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
@@ -72,6 +70,8 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse.DomainTransferResponse;
 import google.registry.model.transfer.TransferStatus;
+import java.util.Arrays;
+import java.util.stream.Stream;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -262,22 +262,21 @@ public class DomainTransferApproveFlowTest
             .build();
     assertBillingEventsForResource(
         domain,
-        FluentIterable.from(expectedCancellationBillingEvents)
-            .transform(
-                (Function<BillingEvent.Cancellation.Builder, BillingEvent>)
-                    builder -> builder.setParent(historyEntryTransferApproved).build())
-            .append(
-                transferBillingEvent,
-                getLosingClientAutorenewEvent()
-                    .asBuilder()
-                    .setRecurrenceEndTime(clock.nowUtc())
-                    .build(),
-                getGainingClientAutorenewEvent()
-                    .asBuilder()
-                    .setEventTime(domain.getRegistrationExpirationTime())
-                    .setParent(historyEntryTransferApproved)
-                    .build())
-            .toArray(BillingEvent.class));
+        Stream.concat(
+                Arrays.stream(expectedCancellationBillingEvents)
+                    .map(builder -> builder.setParent(historyEntryTransferApproved).build()),
+                Stream.of(
+                    transferBillingEvent,
+                    getLosingClientAutorenewEvent()
+                        .asBuilder()
+                        .setRecurrenceEndTime(clock.nowUtc())
+                        .build(),
+                    getGainingClientAutorenewEvent()
+                        .asBuilder()
+                        .setEventTime(domain.getRegistrationExpirationTime())
+                        .setParent(historyEntryTransferApproved)
+                        .build()))
+            .toArray(size -> new BillingEvent[size]));
     // There should be a grace period for the new transfer billing event.
     assertGracePeriods(
         domain.getGracePeriods(),
@@ -299,21 +298,20 @@ public class DomainTransferApproveFlowTest
     // for the gaining client that begins at the new expiration time.
     assertBillingEventsForResource(
         domain,
-        FluentIterable.from(expectedCancellationBillingEvents)
-            .transform(
-                (Function<BillingEvent.Cancellation.Builder, BillingEvent>)
-                    builder -> builder.setParent(historyEntryTransferApproved).build())
-            .append(
-                getLosingClientAutorenewEvent()
-                    .asBuilder()
-                    .setRecurrenceEndTime(clock.nowUtc())
-                    .build(),
-                getGainingClientAutorenewEvent()
-                    .asBuilder()
-                    .setEventTime(domain.getRegistrationExpirationTime())
-                    .setParent(historyEntryTransferApproved)
-                    .build())
-            .toArray(BillingEvent.class));
+        Stream.concat(
+                Arrays.stream(expectedCancellationBillingEvents)
+                    .map(builder -> builder.setParent(historyEntryTransferApproved).build()),
+                Stream.of(
+                    getLosingClientAutorenewEvent()
+                        .asBuilder()
+                        .setRecurrenceEndTime(clock.nowUtc())
+                        .build(),
+                    getGainingClientAutorenewEvent()
+                        .asBuilder()
+                        .setEventTime(domain.getRegistrationExpirationTime())
+                        .setParent(historyEntryTransferApproved)
+                        .build()))
+            .toArray(size -> new BillingEvent[size]));
     // There should be no grace period.
     assertGracePeriods(domain.getGracePeriods(), ImmutableMap.of());
   }

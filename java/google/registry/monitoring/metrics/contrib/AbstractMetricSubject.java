@@ -15,11 +15,10 @@
 package google.registry.monitoring.metrics.contrib;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.truth.FailureMetadata;
 import com.google.common.truth.Subject;
@@ -63,15 +62,13 @@ abstract class AbstractMetricSubject<T, S extends AbstractMetricSubject<T, S>>
    */
   protected final Set<ImmutableList<String>> expectedNondefaultLabelTuples = new HashSet<>();
 
-  /**
-   * Function to convert a metric point to a nice string representation for use in error messages.
-   */
-  protected final Function<MetricPoint<T>, String> metricPointConverter =
-      metricPoint ->
-          String.format(
-              "%s => %s",
-              Joiner.on(':').join(metricPoint.labelValues()),
-              getMessageRepresentation(metricPoint.value()));
+  /** Converts a metric point to a nice string representation for use in error messages. */
+  protected String convertMetricPoint(MetricPoint<T> metricPoint) {
+    return String.format(
+        "%s => %s",
+        Joiner.on(':').join(metricPoint.labelValues()),
+        getMessageRepresentation(metricPoint.value()));
+  }
 
   protected AbstractMetricSubject(FailureMetadata metadata, Metric<T> actual) {
     super(metadata, checkNotNull(actual));
@@ -101,9 +98,11 @@ abstract class AbstractMetricSubject<T, S extends AbstractMetricSubject<T, S>>
           "has a value for labels",
           Joiner.on(':').join(labels),
           "has labeled values",
-          Lists.transform(
-              Ordering.<MetricPoint<T>>natural().sortedCopy(actual().getTimestampedValues()),
-              metricPointConverter));
+          Ordering.<MetricPoint<T>>natural()
+              .sortedCopy(actual().getTimestampedValues())
+              .stream()
+              .map(this::convertMetricPoint)
+              .collect(toImmutableList()));
     }
     if (!metricPoint.value().equals(value)) {
       failWithBadResults(
@@ -129,9 +128,11 @@ abstract class AbstractMetricSubject<T, S extends AbstractMetricSubject<T, S>>
           "has a value for labels",
           Joiner.on(':').join(labels),
           "has labeled values",
-          Lists.transform(
-              Ordering.<MetricPoint<T>>natural().sortedCopy(actual().getTimestampedValues()),
-              metricPointConverter));
+          Ordering.<MetricPoint<T>>natural()
+              .sortedCopy(actual().getTimestampedValues())
+              .stream()
+              .map(this::convertMetricPoint)
+              .collect(toImmutableList()));
     }
     if (hasDefaultValue(metricPoint)) {
       failWithBadResults(
@@ -169,9 +170,11 @@ abstract class AbstractMetricSubject<T, S extends AbstractMetricSubject<T, S>>
               "has",
               "no other nondefault values",
               "has labeled values",
-              Lists.transform(
-                  Ordering.<MetricPoint<T>>natural().sortedCopy(actual().getTimestampedValues()),
-                  metricPointConverter));
+              Ordering.<MetricPoint<T>>natural()
+                  .sortedCopy(actual().getTimestampedValues())
+                  .stream()
+                  .map(this::convertMetricPoint)
+                  .collect(toImmutableList()));
         }
         return andChainer();
       }

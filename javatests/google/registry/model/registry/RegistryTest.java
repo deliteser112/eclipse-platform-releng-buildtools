@@ -14,12 +14,11 @@
 
 package google.registry.model.registry;
 
-import static com.google.common.collect.Iterables.transform;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.model.registry.label.ReservedListTest.GET_NAME_FUNCTION;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newRegistry;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
@@ -142,7 +141,7 @@ public class RegistryTest extends EntityTestCase {
         "mouse,FULLY_BLOCKED");
     Registry r = Registry.get("tld")
         .asBuilder().setReservedLists(ImmutableSet.of(rl5, rl6)).build();
-    assertThat(transform(r.getReservedLists(), GET_NAME_FUNCTION))
+    assertThat(r.getReservedLists().stream().map(Key::getName).collect(toImmutableList()))
         .containsExactly("tld-reserved5", "tld-reserved6");
     r = Registry.get("tld").asBuilder().setReservedLists(ImmutableSet.<ReservedList> of()).build();
     assertThat(r.getReservedLists()).isEmpty();
@@ -163,7 +162,7 @@ public class RegistryTest extends EntityTestCase {
         .asBuilder()
         .setReservedListsByName(ImmutableSet.of("tld-reserved24", "tld-reserved25"))
         .build();
-    assertThat(transform(r.getReservedLists(), GET_NAME_FUNCTION))
+    assertThat(r.getReservedLists().stream().map(Key::getName).collect(toImmutableList()))
         .containsExactly("tld-reserved24", "tld-reserved25");
     r = Registry.get("tld").asBuilder().setReservedListsByName(ImmutableSet.<String> of()).build();
     assertThat(r.getReservedLists()).isEmpty();

@@ -15,10 +15,9 @@
 package google.registry.model.ofy;
 
 import static com.googlecode.objectify.ObjectifyService.ofy;
-import static google.registry.util.ObjectifyUtils.OBJECTS_TO_KEYS;
 
-import com.google.common.base.Functions;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
@@ -38,13 +37,13 @@ abstract class AugmentedDeleter implements Deleter {
 
   @Override
   public Result<Void> entities(Iterable<?> entities) {
-    handleDeletion(Iterables.transform(entities, OBJECTS_TO_KEYS));
+    handleDeletion(Iterables.transform(entities, Key::create));
     return delegate.entities(entities);
   }
 
   @Override
   public Result<Void> entities(Object... entities) {
-    handleDeletion(FluentIterable.from(entities).transform(OBJECTS_TO_KEYS));
+    handleDeletion(FluentIterable.from(entities).transform(Key::create));
     return delegate.entities(entities);
   }
 
@@ -65,11 +64,8 @@ abstract class AugmentedDeleter implements Deleter {
     // Magic to convert the type Iterable<? extends Key<?>> (a family of types which allows for
     // homogeneous iterables of a fixed Key<T> type, e.g. List<Key<Lock>>, and is convenient for
     // callers) into the type Iterable<Key<?>> (a concrete type of heterogeneous keys, which is
-    // convenient for users).  We do this by passing each key through the identity function
-    // parameterized for Key<?>, which erases any homogeneous typing on the iterable.
-    //   See: http://www.angelikalanger.com/GenericsFAQ/FAQSections/TypeArguments.html#FAQ104
-    Iterable<Key<?>> retypedKeys = Iterables.transform(keys, Functions.<Key<?>>identity());
-    handleDeletion(retypedKeys);
+    // convenient for users).
+    handleDeletion(ImmutableList.<Key<?>>copyOf(keys));
     return delegate.keys(keys);
   }
 

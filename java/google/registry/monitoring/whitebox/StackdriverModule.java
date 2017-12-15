@@ -21,7 +21,6 @@ import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.monitoring.v3.MonitoringScopes;
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
 import com.google.appengine.api.modules.ModulesService;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import dagger.Module;
@@ -31,6 +30,7 @@ import google.registry.monitoring.metrics.MetricReporter;
 import google.registry.monitoring.metrics.MetricWriter;
 import google.registry.monitoring.metrics.stackdriver.StackdriverWriter;
 import java.util.Set;
+import java.util.function.Function;
 import org.joda.time.Duration;
 
 /** Dagger module for Google Stackdriver service connection objects. */

@@ -16,6 +16,7 @@ package google.registry.reporting;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.reporting.IcannReportingModule.MANIFEST_FILE_NAME;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -119,7 +120,7 @@ public class IcannReportingStager {
     return fields
         .stream()
         .map((schema) -> schema.getName().replace('_', '-'))
-        .collect(ImmutableList.toImmutableList());
+        .collect(toImmutableList());
   }
 
   /** Creates and stores activity reports on GCS, returns a list of files stored. */
@@ -183,7 +184,7 @@ public class IcannReportingStager {
             // Ignore TLD, Registrar name and IANA id
             .skip(3)
             .map((Object o) -> Integer.parseInt(o.toString()))
-            .collect(Collectors.toList());
+            .collect(toImmutableList());
     checkState(
         rowVals.size() == totals.size(),
         "Number of elements in totals not equal to number of elements in row!");

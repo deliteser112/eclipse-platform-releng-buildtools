@@ -14,6 +14,7 @@
 
 package google.registry.flows.domain;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -37,12 +38,10 @@ import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
-import static java.util.stream.Collectors.toSet;
 import static org.joda.money.CurrencyUnit.EUR;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.appengine.repackaged.com.google.common.collect.Sets;
-import com.google.common.base.Function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -91,7 +90,6 @@ import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferStatus;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -257,6 +255,11 @@ public class DomainTransferRequestFlowTest
         expectedExpirationTime, implicitTransferTime, Period.create(1, Unit.YEARS));
   }
 
+  /** Implements the missing Optional.stream function that is added in Java 9. */
+  private static <T> Stream<T> optionalToStream(Optional<T> optional) {
+    return optional.map(Stream::of).orElseGet(Stream::empty);
+  }
+
   private void assertHistoryEntriesContainBillingEventsAndGracePeriods(
       DateTime expectedExpirationTime,
       DateTime implicitTransferTime,
@@ -304,16 +307,16 @@ public class DomainTransferRequestFlowTest
     BillingEvent.Recurring gainingClientAutorenew =
         getGainingClientAutorenewEvent().asBuilder().setEventTime(expectedExpirationTime).build();
     // Construct extra billing events expected by the specific test.
-    Set<BillingEvent> extraBillingEvents =
+    ImmutableSet<BillingEvent> extraBillingEvents =
         Stream.of(extraExpectedBillingEvents)
-            .map(
-                (Function<BillingEvent.Cancellation.Builder, BillingEvent>)
-                    builder -> builder.setParent(historyEntryTransferRequest).build())
-            .collect(toSet());
+            .map(builder -> builder.setParent(historyEntryTransferRequest).build())
+            .collect(toImmutableSet());
     // Assert that the billing events we constructed above actually exist in Datastore.
-    Set<BillingEvent> expectedBillingEvents =
-        Sets.newHashSet(losingClientAutorenew, gainingClientAutorenew);
-    optionalTransferBillingEvent.ifPresent(expectedBillingEvents::add);
+    ImmutableSet<BillingEvent> expectedBillingEvents =
+        Stream.concat(
+                Stream.of(losingClientAutorenew, gainingClientAutorenew),
+                optionalToStream(optionalTransferBillingEvent))
+            .collect(toImmutableSet());
     assertBillingEvents(Sets.union(expectedBillingEvents, extraBillingEvents));
     // Assert that the domain's TransferData server-approve billing events match the above.
     if (expectTransferBillingEvent) {
@@ -328,8 +331,10 @@ public class DomainTransferRequestFlowTest
         gainingClientAutorenew);
     // Assert that the full set of server-approve billing events is exactly the extra ones plus
     // the transfer billing event (if present) and the gaining client autorenew.
-    Set<BillingEvent> expectedServeApproveBillingEvents = Sets.newHashSet(gainingClientAutorenew);
-    optionalTransferBillingEvent.ifPresent(expectedServeApproveBillingEvents::add);
+    ImmutableSet<BillingEvent> expectedServeApproveBillingEvents =
+        Stream.concat(
+                Stream.of(gainingClientAutorenew), optionalToStream(optionalTransferBillingEvent))
+            .collect(toImmutableSet());
     assertBillingEventsEqual(
         Iterables.filter(
             ofy()

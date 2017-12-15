@@ -15,7 +15,6 @@
 package google.registry.backup;
 
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
-import static com.google.common.base.Functions.constant;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Maps.toMap;
 import static com.google.common.truth.Truth.assertThat;
@@ -247,7 +246,7 @@ public class RestoreCommitLogsActionTest {
   }
 
   private CommitLogCheckpoint createCheckpoint(DateTime now) {
-    return CommitLogCheckpoint.create(now, toMap(getBucketIds(), constant(now)));
+    return CommitLogCheckpoint.create(now, toMap(getBucketIds(), x -> now));
   }
 
   private Iterable<ImmutableObject> saveDiffFile(

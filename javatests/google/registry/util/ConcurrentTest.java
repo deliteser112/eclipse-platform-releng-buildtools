@@ -17,12 +17,11 @@ package google.registry.util;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.expectThrows;
 
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.NullPointerTester;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import google.registry.testing.AppEngineRule;
+import java.util.function.Function;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,7 +38,7 @@ public class ConcurrentTest {
 
   @Test
   public void testTransform_emptyList_returnsEmptyList() throws Exception {
-    assertThat(Concurrent.transform(ImmutableList.of(), Functions.identity())).isEmpty();
+    assertThat(Concurrent.transform(ImmutableList.of(), x -> x)).isEmpty();
   }
 
   @Test
@@ -66,8 +65,7 @@ public class ConcurrentTest {
 
   @Test
   public void testNullness() throws Exception {
-    NullPointerTester tester = new NullPointerTester()
-        .setDefault(Function.class, Functions.identity());
+    NullPointerTester tester = new NullPointerTester().setDefault(Function.class, x -> x);
     tester.testAllPublicStaticMethods(Concurrent.class);
   }
 }

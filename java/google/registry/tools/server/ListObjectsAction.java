@@ -18,8 +18,6 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
@@ -42,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 
@@ -187,7 +186,7 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
       // Next, add to the mapping all the aliases, with their values defined as whatever was in the
       // map under the aliased field's original name.
       fieldMap.putAll(
-          Maps.transformValues(getFieldAliases(), Functions.forMap(new HashMap<>(fieldMap))));
+          new HashMap<>(Maps.transformValues(getFieldAliases(), value -> fieldMap.get(value))));
       Set<String> expectedFields = ImmutableSortedSet.copyOf(fieldMap.keySet());
       for (String field : fields) {
         checkArgument(fieldMap.containsKey(field),
@@ -235,8 +234,7 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
 
     if (isHeaderRowInUse(data)) {
       // Add a row of headers (column names mapping to themselves).
-      Map<String, String> headerRow =
-          Maps.asMap(data.columnKeySet(), Functions.identity());
+      Map<String, String> headerRow = Maps.asMap(data.columnKeySet(), key -> key);
       lines.add(rowFormatter.apply(headerRow));
 
       // Add a row of separator lines (column names mapping to '-' * column width).

@@ -18,8 +18,8 @@ import static com.google.appengine.tools.development.testing.LocalTaskQueueTestC
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.getFirst;
-import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Multisets.containsOccurrences;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
@@ -32,7 +32,6 @@ import com.google.appengine.api.taskqueue.dev.QueueStateInfo;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.HeaderWrapper;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
 import com.google.common.base.Ascii;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
@@ -55,6 +54,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.function.Function;
 import javax.annotation.Nonnull;
 import org.joda.time.Duration;
 
@@ -196,7 +196,12 @@ public class TaskQueueHelper {
       Function<TaskStateInfo, String> propertyGetter,
       String... expectedTaskProperties) throws Exception {
     // Ordering is irrelevant but duplicates should be considered independently.
-    assertThat(transform(getQueueInfo(queueName).getTaskInfo(), propertyGetter))
+    assertThat(
+            getQueueInfo(queueName)
+                .getTaskInfo()
+                .stream()
+                .map(propertyGetter)
+                .collect(toImmutableList()))
         .containsExactly((Object[]) expectedTaskProperties);
   }
 

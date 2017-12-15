@@ -251,6 +251,27 @@ public class ImmutableObjectTest {
     assertThat(cloned.heterogenousMap).containsEntry("b", "");
   }
 
+  /** Subclass of ImmutableObject with fields that are containers containing null values. */
+  public static class NullInContainersObject extends ImmutableObject {
+    Object[] array = new Object[] {null};
+    List<?> list = newArrayList((Object) null);
+    Set<?> set = newHashSet((Object) null);
+    Map<String, ?> map = newHashMap();
+
+    public NullInContainersObject() {
+      map.put("a", null);
+    }
+  }
+
+  @Test
+  public void testToDiffableFieldMap_withEmptyAndNulls() {
+    Map<String, Object> diffableFieldMap = new NullInContainersObject().toDiffableFieldMap();
+    assertThat((List<?>) diffableFieldMap.get("array")).containsExactly((Object) null);
+    assertThat((List<?>) diffableFieldMap.get("list")).containsExactly((Object) null);
+    assertThat((Set<?>) diffableFieldMap.get("set")).containsExactly((Object) null);
+    assertThat((Map<?, ?>) diffableFieldMap.get("map")).containsExactly("a", (Object) null);
+  }
+
   /** Subclass of ImmutableObject with keys to other objects. */
   public static class RootObject extends ImmutableObject {
 

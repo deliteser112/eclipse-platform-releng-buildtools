@@ -25,8 +25,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -36,6 +34,7 @@ import com.google.common.testing.NullPointerTester;
 import com.google.re2j.Pattern;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -241,7 +240,7 @@ public class FormFieldTest {
     assertThat(
             FormField.named("lol")
                 .transform(Object.class, Integer::parseInt)
-                .transform(String.class, Functions.toStringFunction())
+                .transform(String.class, Object::toString)
                 .build()
                 .convert("123"))
         .hasValue("123");
@@ -484,11 +483,12 @@ public class FormFieldTest {
 
   @Test
   public void testNullness() {
-    NullPointerTester tester = new NullPointerTester()
-        .setDefault(Class.class, Object.class)
-        .setDefault(Function.class, Functions.identity())
-        .setDefault(Pattern.class, Pattern.compile("."))
-        .setDefault(String.class, "hello.com");
+    NullPointerTester tester =
+        new NullPointerTester()
+            .setDefault(Class.class, Object.class)
+            .setDefault(Function.class, x -> x)
+            .setDefault(Pattern.class, Pattern.compile("."))
+            .setDefault(String.class, "hello.com");
     tester.testAllPublicStaticMethods(FormField.class);
     tester.testAllPublicInstanceMethods(FormField.named("lol"));
     tester.testAllPublicInstanceMethods(FormField.named("lol").build());

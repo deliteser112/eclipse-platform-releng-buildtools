@@ -21,15 +21,12 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
-import com.google.common.base.Functions;
-import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import com.google.common.collect.Streams;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import google.registry.config.RdapNoticeDescriptor;
@@ -59,7 +56,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -1091,16 +1090,17 @@ public class RdapJsonFormatter {
    */
   private static ImmutableList<String> makeStatusValueList(
       ImmutableSet<StatusValue> statusValues, boolean isDeleted) {
-    FluentIterable<RdapStatus> iterable =
-        FluentIterable.from(statusValues)
-            .transform(Functions.forMap(statusToRdapStatusMap, RdapStatus.OBSCURED));
+    Stream<RdapStatus> stream =
+        statusValues
+            .stream()
+            .map(status -> statusToRdapStatusMap.getOrDefault(status, RdapStatus.OBSCURED));
     if (isDeleted) {
-      iterable =
-          iterable
-              .filter(Predicates.not(Predicates.equalTo(RdapStatus.ACTIVE)))
-              .append(RdapStatus.REMOVED);
+      stream =
+          Stream.concat(
+              stream.filter(rdapStatus -> !Objects.equals(rdapStatus, RdapStatus.ACTIVE)),
+              Stream.of(RdapStatus.REMOVED));
     }
-    return Streams.stream(iterable)
+    return stream
         .map(RdapStatus::getDisplayName)
         .collect(toImmutableSortedSet(Ordering.natural()))
         .asList();

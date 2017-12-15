@@ -16,23 +16,24 @@ package google.registry.flows;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.EppXmlTransformer.marshal;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.BILLING_EVENT_ID_STRIPPER;
+import static google.registry.testing.DatastoreHelper.POLL_MESSAGE_ID_STRIPPER;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.xml.XmlTestUtils.assertXmlEquals;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.ObjectArrays;
+import com.google.common.collect.Streams;
 import google.registry.config.RegistryConfig.ConfigModule.TmchCaMode;
 import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.flows.picker.FlowPicker;
@@ -58,8 +59,10 @@ import google.registry.tmch.TmchCertificateAuthority;
 import google.registry.tmch.TmchXmlSignature;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import google.registry.xml.ValidationMode;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -217,6 +220,18 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     return builder.build();
   }
 
+  private static BillingEvent expandGracePeriod(GracePeriod gracePeriod) {
+    assertThat(gracePeriod.hasBillingEvent())
+        .named("Billing event is present for grace period: " + gracePeriod)
+        .isTrue();
+    return ofy()
+        .load()
+        .key(
+            firstNonNull(
+                gracePeriod.getOneTimeBillingEvent(), gracePeriod.getRecurringBillingEvent()))
+        .now();
+  }
+
   /**
    * Assert that the actual grace periods and the corresponding billing events referenced from
    * their keys match the expected map of grace periods to billing events.  For the expected map,
@@ -225,19 +240,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   public void assertGracePeriods(
       Iterable<GracePeriod> actual,
       ImmutableMap<GracePeriod, ? extends BillingEvent> expected) {
-    Function<GracePeriod, BillingEvent> gracePeriodExpander =
-        gracePeriod -> {
-          assertThat(gracePeriod.hasBillingEvent())
-              .named("Billing event is present for grace period: " + gracePeriod)
-              .isTrue();
-          return ofy()
-              .load()
-              .key(
-                  firstNonNull(
-                      gracePeriod.getOneTimeBillingEvent(), gracePeriod.getRecurringBillingEvent()))
-              .now();
-        };
-    assertThat(canonicalizeGracePeriods(Maps.toMap(actual, gracePeriodExpander)))
+    assertThat(canonicalizeGracePeriods(Maps.toMap(actual, FlowTestCase::expandGracePeriod)))
         .isEqualTo(canonicalizeGracePeriods(expected));
   }
 
@@ -261,12 +264,11 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   /** Assert that the list matches all the poll messages in the fake Datastore. */
   public void assertPollMessagesHelper(Iterable<PollMessage> pollMessages, PollMessage... expected)
       throws Exception {
-    // To facilitate comparison, remove the ids.
-    Function<PollMessage, PollMessage> idStripper =
-        pollMessage -> pollMessage.asBuilder().setId(1L).build();
     // Ordering is irrelevant but duplicates should be considered independently.
-    assertThat(FluentIterable.from(pollMessages).transform(idStripper))
-        .containsExactlyElementsIn(FluentIterable.from(expected).transform(idStripper));
+    assertThat(
+            Streams.stream(pollMessages).map(POLL_MESSAGE_ID_STRIPPER).collect(toImmutableList()))
+        .containsExactlyElementsIn(
+            Arrays.stream(expected).map(POLL_MESSAGE_ID_STRIPPER).collect(toImmutableList()));
   }
 
   private EppOutput runFlowInternal(CommitMode commitMode, UserPrivileges userPrivileges)

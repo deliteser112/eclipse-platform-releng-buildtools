@@ -21,7 +21,6 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -32,6 +31,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+import java.util.function.Function;
 
 /** Utilities for multithreaded operations in App Engine requests. */
 public final class Concurrent {

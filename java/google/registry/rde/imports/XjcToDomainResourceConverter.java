@@ -22,7 +22,6 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.base.Ascii;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
@@ -59,6 +58,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.ProviderException;
 import java.security.SecureRandom;
 import java.util.Random;
+import java.util.function.Function;
 import org.joda.time.DateTime;
 
 /** Utility class that converts an {@link XjcRdeDomainElement} into a {@link DomainResource}. */

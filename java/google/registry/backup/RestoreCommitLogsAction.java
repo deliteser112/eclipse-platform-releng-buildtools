@@ -15,6 +15,7 @@
 package google.registry.backup;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterators.peekingIterator;
 import static google.registry.backup.BackupUtils.createDeserializingIterator;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -25,8 +26,6 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityTranslator;
 import com.google.appengine.tools.cloudstorage.GcsFileMetadata;
 import com.google.appengine.tools.cloudstorage.GcsService;
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.PeekingIterator;
 import com.googlecode.objectify.Key;
@@ -50,8 +49,8 @@ import java.nio.channels.Channels;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -117,15 +116,18 @@ public class RestoreCommitLogsAction implements Runnable {
     }
     // Restore the CommitLogCheckpointRoot and CommitLogBuckets.
     saveOfy(
-        FluentIterable.from(bucketTimestamps.entrySet())
-            .transform(
-                (Function<Entry<Integer, DateTime>, ImmutableObject>)
-                    entry ->
-                        new CommitLogBucket.Builder()
-                            .setBucketNum(entry.getKey())
-                            .setLastWrittenTime(entry.getValue())
-                            .build())
-            .append(CommitLogCheckpointRoot.create(lastCheckpoint.getCheckpointTime())));
+        Stream.concat(
+                bucketTimestamps
+                    .entrySet()
+                    .stream()
+                    .map(
+                        entry ->
+                            new CommitLogBucket.Builder()
+                                .setBucketNum(entry.getKey())
+                                .setLastWrittenTime(entry.getValue())
+                                .build()),
+                Stream.of(CommitLogCheckpointRoot.create(lastCheckpoint.getCheckpointTime())))
+            .collect(toImmutableList()));
     logger.info("Restore complete");
   }
 

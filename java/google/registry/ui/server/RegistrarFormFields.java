@@ -20,7 +20,6 @@ import static com.google.common.collect.Range.closed;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 
 import com.google.common.base.Ascii;
-import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
@@ -38,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 /** Form fields for validating input for the {@code Registrar} class. */
 public final class RegistrarFormFields {

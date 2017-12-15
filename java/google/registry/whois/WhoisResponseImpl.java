@@ -19,7 +19,6 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import google.registry.model.eppcommon.Address;
 import google.registry.util.Idn;
@@ -27,6 +26,7 @@ import google.registry.xml.UtcDateTimeAdapter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 

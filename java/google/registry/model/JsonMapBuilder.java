@@ -16,7 +16,6 @@ package google.registry.model;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
-import com.google.common.base.Functions;
 import com.google.common.collect.Streams;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -67,7 +66,7 @@ public final class JsonMapBuilder {
         name,
         value == null
             ? Collections.EMPTY_LIST
-            : Streams.stream(value).map(Functions.toStringFunction()).collect(toImmutableList()));
+            : Streams.stream(value).map(Object::toString).collect(toImmutableList()));
     return this;
   }
 

@@ -15,7 +15,7 @@
 package google.registry.request;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Function;
+import java.util.function.Function;
 
 /**
  * Mapping of an {@link Action} to a {@link Runnable} instantiator for request handling.

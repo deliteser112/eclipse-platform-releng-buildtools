@@ -36,11 +36,9 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.JUnitBackports.expectThrows;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InternetDomainName;
-import com.googlecode.objectify.Key;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservedList.ReservedListEntry;
@@ -585,7 +583,4 @@ public class ReservedListTest {
         .contains(
             "List 'blah' cannot contain duplicate labels. Dupes (with counts) were: [lol x 2]");
   }
-
-  /** Gets the name of a reserved list. */
-  public static final Function<Key<ReservedList>, String> GET_NAME_FUNCTION = Key::getName;
 }

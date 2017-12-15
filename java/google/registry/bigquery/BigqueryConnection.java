@@ -51,7 +51,6 @@ import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableReference;
 import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.ViewDefinition;
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.io.BaseEncoding;
@@ -359,36 +358,33 @@ public class BigqueryConnection implements AutoCloseable {
   }
 
   /**
-   * A function that updates the specified Bigquery table to reflect the metadata from the input
-   * DestinationTable, passing the same DestinationTable through as the output.  If the specified
-   * table does not already exist, it will be inserted into the dataset.
+   * Updates the specified Bigquery table to reflect the metadata from the input.
+   *
+   * <p>Returns the input DestinationTable. If the specified table does not already exist, it will
+   * be inserted into the dataset.
    *
    * <p>Clients can call this function directly to update a table on demand, or can pass it to
    * Futures.transform() to update a table produced as the asynchronous result of a load or query
    * job (e.g. to add a description to it).
    */
-  private class UpdateTableFunction implements Function<DestinationTable, DestinationTable> {
-    @Override
-    public DestinationTable apply(final DestinationTable destinationTable) {
-      Table table = destinationTable.getTable();
-      TableReference ref = table.getTableReference();
-      try {
-        if (checkTableExists(ref.getDatasetId(), ref.getTableId())) {
-          // Make sure to use patch() rather than update(). The former changes only those properties
-          // which are specified, while the latter would change everything, blanking out unspecified
-          // properties.
-          bigquery.tables()
-              .patch(ref.getProjectId(), ref.getDatasetId(), ref.getTableId(), table)
-              .execute();
-        } else {
-          bigquery.tables()
-              .insert(ref.getProjectId(), ref.getDatasetId(), table)
-              .execute();
-        }
-        return destinationTable;
-      } catch (IOException e) {
-        throw BigqueryJobFailureException.create(e);
+  private DestinationTable updateTable(final DestinationTable destinationTable) {
+    Table table = destinationTable.getTable();
+    TableReference ref = table.getTableReference();
+    try {
+      if (checkTableExists(ref.getDatasetId(), ref.getTableId())) {
+        // Make sure to use patch() rather than update(). The former changes only those properties
+        // which are specified, while the latter would change everything, blanking out unspecified
+        // properties.
+        bigquery
+            .tables()
+            .patch(ref.getProjectId(), ref.getDatasetId(), ref.getTableId(), table)
+            .execute();
+      } else {
+        bigquery.tables().insert(ref.getProjectId(), ref.getDatasetId(), table).execute();
       }
+      return destinationTable;
+    } catch (IOException e) {
+      throw BigqueryJobFailureException.create(e);
     }
   }
 
@@ -408,7 +404,7 @@ public class BigqueryConnection implements AutoCloseable {
                 .setSourceFormat(sourceFormat.toString())
                 .setSourceUris(ImmutableList.copyOf(sourceUris))
                 .setDestinationTable(dest.getTableReference())));
-    return transform(runJobToCompletion(job, dest), new UpdateTableFunction(), directExecutor());
+    return transform(runJobToCompletion(job, dest), this::updateTable, directExecutor());
   }
 
   /**
@@ -421,11 +417,9 @@ public class BigqueryConnection implements AutoCloseable {
       DestinationTable dest) {
     if (dest.type == TableType.VIEW) {
       // Use Futures.transform() rather than calling apply() directly so that any exceptions thrown
-      // by calling UpdateTableFunction will be propagated on the get() call, not from here.
+      // by calling updateTable will be propagated on the get() call, not from here.
       return transform(
-          Futures.immediateFuture(dest.withQuery(querySql)),
-          new UpdateTableFunction(),
-          directExecutor());
+          Futures.immediateFuture(dest.withQuery(querySql)), this::updateTable, directExecutor());
     } else {
       Job job = new Job()
           .setConfiguration(new JobConfiguration()
@@ -434,7 +428,7 @@ public class BigqueryConnection implements AutoCloseable {
                   .setDefaultDataset(getDataset())
                   .setWriteDisposition(dest.getWriteDisposition().toString())
                   .setDestinationTable(dest.getTableReference())));
-      return transform(runJobToCompletion(job, dest), new UpdateTableFunction(), directExecutor());
+      return transform(runJobToCompletion(job, dest), this::updateTable, directExecutor());
     }
   }
 

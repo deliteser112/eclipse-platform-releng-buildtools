@@ -19,11 +19,11 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
-import com.google.common.base.Function;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfig.Config;
 import java.util.Set;
+import java.util.function.Function;
 
 /** Dagger module for Google {@link Drive} service connection objects. */
 @Module

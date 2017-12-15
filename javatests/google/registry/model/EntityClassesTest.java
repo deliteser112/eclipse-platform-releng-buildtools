@@ -18,7 +18,6 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EntityClasses.ALL_CLASSES;
 import static google.registry.util.TypeUtils.hasAnnotation;
-import static java.util.stream.Collectors.toSet;
 
 import com.google.common.collect.Ordering;
 import com.googlecode.objectify.Key;
@@ -63,13 +62,13 @@ public class EntityClassesTest {
             .stream()
             .filter(hasAnnotation(Entity.class))
             .map(Key::getKind)
-            .collect(toSet());
+            .collect(toImmutableSet());
     Set<String> entitySubclassKinds =
         ALL_CLASSES
             .stream()
             .filter(hasAnnotation(EntitySubclass.class))
             .map(Key::getKind)
-            .collect(toSet());
+            .collect(toImmutableSet());
     assertThat(baseEntityKinds).named("base entity kinds").containsAllIn(entitySubclassKinds);
   }
 

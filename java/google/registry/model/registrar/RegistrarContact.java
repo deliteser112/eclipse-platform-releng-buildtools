@@ -14,13 +14,11 @@
 
 package google.registry.model.registrar;
 
-import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableSortedCopy;
-import static google.registry.util.ObjectifyUtils.OBJECTS_TO_KEYS;
 import static java.util.stream.Collectors.joining;
 
 import com.google.common.base.Enums;
@@ -171,7 +169,7 @@ public class RegistrarContact extends ImmutableObject implements Jsonifiable {
                                     .type(RegistrarContact.class)
                                     .ancestor(registrar)
                                     .keys()),
-                            contacts.stream().map(OBJECTS_TO_KEYS).collect(toImmutableSet())));
+                            contacts.stream().map(Key::create).collect(toImmutableSet())));
                 ofy().save().entities(contacts);
               }
             });
@@ -272,7 +270,7 @@ public class RegistrarContact extends ImmutableObject implements Jsonifiable {
         .put("emailAddress", emailAddress)
         .put("phoneNumber", phoneNumber)
         .put("faxNumber", faxNumber)
-        .put("types", getTypes().stream().map(toStringFunction()).collect(joining(",")))
+        .put("types", getTypes().stream().map(Object::toString).collect(joining(",")))
         .put("visibleInWhoisAsAdmin", visibleInWhoisAsAdmin)
         .put("visibleInWhoisAsTech", visibleInWhoisAsTech)
         .put("visibleInDomainWhoisAsAbuse", visibleInDomainWhoisAsAbuse)

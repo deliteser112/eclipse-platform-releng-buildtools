@@ -21,7 +21,6 @@ import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static google.registry.util.DateTimeUtils.latestOf;
 
-import com.google.common.base.Function;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.Query;
@@ -44,6 +43,7 @@ import google.registry.util.FormattingLogger;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
