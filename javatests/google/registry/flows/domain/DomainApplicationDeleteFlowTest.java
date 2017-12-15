@@ -26,13 +26,14 @@ import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.flows.EppException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
@@ -77,8 +78,7 @@ public class DomainApplicationDeleteFlowTest
 
   @Test
   public void testDryRun() throws Exception {
-    persistResource(
-        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     dryRunFlowAssertResponse(loadFile("domain_delete_response.xml"));
   }
 
@@ -88,38 +88,45 @@ public class DomainApplicationDeleteFlowTest
     persistActiveContact("sh8013");
     persistResource(newHostResource("ns1.example.net"));
     // Create the DomainApplication to test.
-    persistResource(newDomainApplication("example.tld").asBuilder()
-        .setRepoId("1-TLD")
-        .setRegistrant(
-            Key.create(
-                loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))
-        .setNameservers(ImmutableSet.of(
-            Key.create(
-                loadByForeignKey(HostResource.class, "ns1.example.net", clock.nowUtc()))))
-        .build());
+    persistResource(
+        newDomainApplication("example.tld")
+            .asBuilder()
+            .setRepoId("1-TLD")
+            .setRegistrant(
+                Key.create(loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))
+            .setNameservers(
+                ImmutableSet.of(
+                    Key.create(
+                        loadByForeignKey(HostResource.class, "ns1.example.net", clock.nowUtc()))))
+            .build());
     doSuccessfulTest();
-    for (Key<? extends EppResource> key : ImmutableList.of(
-        loadAndGetKey(ContactResource.class, "sh8013", clock.nowUtc()),
-        loadAndGetKey(HostResource.class, "ns1.example.net", clock.nowUtc()))) {
+    for (Key<? extends EppResource> key :
+        ImmutableList.of(
+            loadAndGetKey(ContactResource.class, "sh8013", clock.nowUtc()),
+            loadAndGetKey(HostResource.class, "ns1.example.net", clock.nowUtc()))) {
       assertThat(isLinked(key, clock.nowUtc())).isFalse();
     }
   }
 
   @Test
   public void testSuccess_clientDeleteProhibited() throws Exception {
-    persistResource(newDomainApplication("example.tld").asBuilder()
-        .setRepoId("1-TLD")
-        .addStatusValue(StatusValue.CLIENT_DELETE_PROHIBITED)
-        .build());
+    persistResource(
+        newDomainApplication("example.tld")
+            .asBuilder()
+            .setRepoId("1-TLD")
+            .addStatusValue(StatusValue.CLIENT_DELETE_PROHIBITED)
+            .build());
     doSuccessfulTest();
   }
 
   @Test
   public void testSuccess_serverDeleteProhibited() throws Exception {
-    persistResource(newDomainApplication("example.tld").asBuilder()
-        .setRepoId("1-TLD")
-        .addStatusValue(StatusValue.SERVER_DELETE_PROHIBITED)
-        .build());
+    persistResource(
+        newDomainApplication("example.tld")
+            .asBuilder()
+            .setRepoId("1-TLD")
+            .addStatusValue(StatusValue.SERVER_DELETE_PROHIBITED)
+            .build());
     doSuccessfulTest();
   }
 
@@ -132,10 +139,12 @@ public class DomainApplicationDeleteFlowTest
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
-    persistResource(newDomainApplication("example.tld").asBuilder()
-        .setRepoId("1-TLD")
-        .setDeletionTime(clock.nowUtc().minusSeconds(1))
-        .build());
+    persistResource(
+        newDomainApplication("example.tld")
+            .asBuilder()
+            .setRepoId("1-TLD")
+            .setDeletionTime(clock.nowUtc().minusSeconds(1))
+            .build());
     ResourceDoesNotExistException thrown =
         expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
@@ -144,16 +153,15 @@ public class DomainApplicationDeleteFlowTest
   @Test
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
-    persistResource(
-        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
-    assertThrows(ResourceNotOwnedException.class, this::runFlow);
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testSuccess_superuserUnauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
-    persistResource(
-        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
@@ -164,9 +172,10 @@ public class DomainApplicationDeleteFlowTest
     persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
-    assertThrows(NotAuthorizedForTldException.class, this::runFlow);
+    EppException thrown = expectThrows(NotAuthorizedForTldException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
-  
+
   @Test
   public void testSuccess_superuserNotAuthorizedForTld() throws Exception {
     persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
@@ -181,23 +190,27 @@ public class DomainApplicationDeleteFlowTest
   public void testFailure_sunriseDuringLandrush() throws Exception {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_delete_application_landrush.xml", ImmutableMap.of("DOMAIN", "example.tld"));
-    persistResource(newDomainApplication("example.tld")
-        .asBuilder()
-        .setRepoId("1-TLD")
-        .setPhase(LaunchPhase.SUNRISE)
-        .build());
-    assertThrows(SunriseApplicationCannotBeDeletedInLandrushException.class, this::runFlow);
+    persistResource(
+        newDomainApplication("example.tld")
+            .asBuilder()
+            .setRepoId("1-TLD")
+            .setPhase(LaunchPhase.SUNRISE)
+            .build());
+    EppException thrown =
+        expectThrows(SunriseApplicationCannotBeDeletedInLandrushException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testSuccess_superuserSunriseDuringLandrush() throws Exception {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_delete_application_landrush.xml", ImmutableMap.of("DOMAIN", "example.tld"));
-    persistResource(newDomainApplication("example.tld")
-        .asBuilder()
-        .setRepoId("1-TLD")
-        .setPhase(LaunchPhase.SUNRISE)
-        .build());
+    persistResource(
+        newDomainApplication("example.tld")
+            .asBuilder()
+            .setRepoId("1-TLD")
+            .setPhase(LaunchPhase.SUNRISE)
+            .build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
@@ -207,11 +220,12 @@ public class DomainApplicationDeleteFlowTest
   public void testSuccess_sunrushDuringLandrush() throws Exception {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_delete_application_landrush.xml", ImmutableMap.of("DOMAIN", "example.tld"));
-    persistResource(newDomainApplication("example.tld")
-        .asBuilder()
-        .setRepoId("1-TLD")
-        .setPhase(LaunchPhase.SUNRUSH)
-        .build());
+    persistResource(
+        newDomainApplication("example.tld")
+            .asBuilder()
+            .setRepoId("1-TLD")
+            .setPhase(LaunchPhase.SUNRUSH)
+            .build());
     doSuccessfulTest();
   }
 
@@ -219,58 +233,59 @@ public class DomainApplicationDeleteFlowTest
   public void testSuccess_sunriseDuringSunrush() throws Exception {
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_delete_application_sunrush.xml");
-    persistResource(newDomainApplication("example.tld")
-        .asBuilder()
-        .setRepoId("1-TLD")
-        .setPhase(LaunchPhase.SUNRISE)
-        .build());
+    persistResource(
+        newDomainApplication("example.tld")
+            .asBuilder()
+            .setRepoId("1-TLD")
+            .setPhase(LaunchPhase.SUNRISE)
+            .build());
     doSuccessfulTest();
   }
 
   @Test
   public void testFailure_mismatchedPhase() throws Exception {
     setEppInput("domain_delete_application_landrush.xml", ImmutableMap.of("DOMAIN", "example.tld"));
-    persistResource(
-        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
-    assertThrows(LaunchPhaseMismatchException.class, this::runFlow);
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    EppException thrown = expectThrows(LaunchPhaseMismatchException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_wrongExtension() throws Exception {
     setEppInput("domain_delete_application_wrong_extension.xml");
     persistActiveDomainApplication("example.tld");
-    assertThrows(UnimplementedExtensionException.class, this::runFlow);
+    EppException thrown = expectThrows(UnimplementedExtensionException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_predelegation() throws Exception {
     createTld("tld", TldState.PREDELEGATION);
-    persistResource(
-        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
-    assertThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    EppException thrown = expectThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_quietPeriod() throws Exception {
     createTld("tld", TldState.QUIET_PERIOD);
-    persistResource(
-        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
-    assertThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    EppException thrown = expectThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_generalAvailability() throws Exception {
     createTld("tld", TldState.GENERAL_AVAILABILITY);
-    persistResource(
-        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
-    assertThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    EppException thrown = expectThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testSuccess_superuserQuietPeriod() throws Exception {
     createTld("tld", TldState.QUIET_PERIOD);
-    persistResource(
-        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
@@ -279,8 +294,7 @@ public class DomainApplicationDeleteFlowTest
   @Test
   public void testSuccess_superuserPredelegation() throws Exception {
     createTld("tld", TldState.PREDELEGATION);
-    persistResource(
-        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
@@ -289,8 +303,7 @@ public class DomainApplicationDeleteFlowTest
   @Test
   public void testSuccess_superuserGeneralAvailability() throws Exception {
     createTld("tld", TldState.GENERAL_AVAILABILITY);
-    persistResource(
-        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
@@ -298,15 +311,14 @@ public class DomainApplicationDeleteFlowTest
 
   @Test
   public void testFailure_applicationIdForDifferentDomain() throws Exception {
-    persistResource(
-        newDomainApplication("invalid.tld").asBuilder().setRepoId("1-TLD").build());
-    assertThrows(ApplicationDomainNameMismatchException.class, this::runFlow);
+    persistResource(newDomainApplication("invalid.tld").asBuilder().setRepoId("1-TLD").build());
+    EppException thrown = expectThrows(ApplicationDomainNameMismatchException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testIcannActivityReportField_getsLogged() throws Exception {
-    persistResource(
-        newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     clock.advanceOneMilli();
     runFlow();
     assertIcannReportingActivityFieldLogged("srs-dom-delete");

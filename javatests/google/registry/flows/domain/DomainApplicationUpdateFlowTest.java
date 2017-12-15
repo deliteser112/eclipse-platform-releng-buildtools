@@ -28,13 +28,14 @@ import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
-import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.flows.EppException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.AddRemoveSameValueException;
@@ -83,7 +84,7 @@ public class DomainApplicationUpdateFlowTest
     extends ResourceFlowTestCase<DomainApplicationUpdateFlow, DomainApplication> {
 
   private static final DelegationSignerData SOME_DSDATA =
-      DelegationSignerData.create(1, 2, 3, new byte[]{0, 1, 2});
+      DelegationSignerData.create(1, 2, 3, new byte[] {0, 1, 2});
 
   ContactResource sh8013Contact;
   ContactResource mak21Contact;
@@ -111,13 +112,17 @@ public class DomainApplicationUpdateFlowTest
   }
 
   private DomainApplication persistApplication() throws Exception {
-    return persistResource(newApplicationBuilder()
-        .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.TECH, Key.create(sh8013Contact)),
-            DesignatedContact.create(Type.ADMIN, Key.create(unusedContact))))
-        .setNameservers(ImmutableSet.of(Key.create(
-            loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
-        .build());
+    return persistResource(
+        newApplicationBuilder()
+            .setContacts(
+                ImmutableSet.of(
+                    DesignatedContact.create(Type.TECH, Key.create(sh8013Contact)),
+                    DesignatedContact.create(Type.ADMIN, Key.create(unusedContact))))
+            .setNameservers(
+                ImmutableSet.of(
+                    Key.create(
+                        loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
+            .build());
   }
 
   private Builder newApplicationBuilder() throws Exception {
@@ -134,8 +139,10 @@ public class DomainApplicationUpdateFlowTest
     runFlowAssertResponse(loadFile("domain_update_response.xml"));
     // Check that the application was updated. These values came from the xml.
     DomainApplication application = reloadDomainApplication();
-    assertAboutApplications().that(application)
-        .hasStatusValue(StatusValue.CLIENT_HOLD).and()
+    assertAboutApplications()
+        .that(application)
+        .hasStatusValue(StatusValue.CLIENT_HOLD)
+        .and()
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.DOMAIN_APPLICATION_UPDATE);
     assertThat(application.getAuthInfo().getPw().getValue()).isEqualTo("2BARfoo");
@@ -178,8 +185,7 @@ public class DomainApplicationUpdateFlowTest
     setEppInput("domain_update_sunrise_registrant_to_tech.xml");
     persistReferencedEntities();
     ContactResource sh8013 = loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc());
-    persistResource(
-        newApplicationBuilder().setRegistrant(Key.create(sh8013)).build());
+    persistResource(newApplicationBuilder().setRegistrant(Key.create(sh8013)).build());
     clock.advanceOneMilli();
     runFlowAssertResponse(loadFile("domain_update_response.xml"));
   }
@@ -190,13 +196,15 @@ public class DomainApplicationUpdateFlowTest
     persistReferencedEntities();
     ContactResource sh8013 = loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc());
     Key<ContactResource> sh8013Key = Key.create(sh8013);
-    persistResource(newApplicationBuilder()
-        .setRegistrant(sh8013Key)
-        .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, sh8013Key),
-            DesignatedContact.create(Type.BILLING, sh8013Key),
-            DesignatedContact.create(Type.TECH, sh8013Key)))
-        .build());
+    persistResource(
+        newApplicationBuilder()
+            .setRegistrant(sh8013Key)
+            .setContacts(
+                ImmutableSet.of(
+                    DesignatedContact.create(Type.ADMIN, sh8013Key),
+                    DesignatedContact.create(Type.BILLING, sh8013Key),
+                    DesignatedContact.create(Type.TECH, sh8013Key)))
+            .build());
     clock.advanceOneMilli();
     runFlowAssertResponse(loadFile("domain_update_response.xml"));
   }
@@ -204,11 +212,15 @@ public class DomainApplicationUpdateFlowTest
   @Test
   public void testSuccess_removeClientUpdateProhibited() throws Exception {
     persistReferencedEntities();
-    persistResource(persistApplication().asBuilder().setStatusValues(
-        ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED)).build());
+    persistResource(
+        persistApplication()
+            .asBuilder()
+            .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
+            .build());
     clock.advanceOneMilli();
     runFlow();
-    assertAboutApplications().that(reloadDomainApplication())
+    assertAboutApplications()
+        .that(reloadDomainApplication())
         .doesNotHaveStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED);
   }
 
@@ -222,8 +234,10 @@ public class DomainApplicationUpdateFlowTest
     assertTransactionalFlow(true);
     clock.advanceOneMilli();
     runFlowAssertResponse(loadFile("domain_update_response.xml"));
-    assertAboutApplications().that(reloadDomainApplication())
-        .hasExactlyDsData(expectedDsData).and()
+    assertAboutApplications()
+        .that(reloadDomainApplication())
+        .hasExactlyDsData(expectedDsData)
+        .and()
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.DOMAIN_APPLICATION_UPDATE);
   }
@@ -233,25 +247,25 @@ public class DomainApplicationUpdateFlowTest
     doSecDnsSuccessfulTest(
         "domain_update_sunrise_dsdata_add.xml",
         null,
-        ImmutableSet.of(DelegationSignerData.create(
-            12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))));
+        ImmutableSet.of(
+            DelegationSignerData.create(12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))));
   }
-
 
   @Test
   public void testSuccess_secDnsAddPreservesExisting() throws Exception {
     doSecDnsSuccessfulTest(
         "domain_update_sunrise_dsdata_add.xml",
         ImmutableSet.of(SOME_DSDATA),
-        ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
-            12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))));
+        ImmutableSet.of(
+            SOME_DSDATA,
+            DelegationSignerData.create(12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))));
   }
 
   @Test
   public void testSuccess_secDnsAddToMaxRecords() throws Exception {
     ImmutableSet.Builder<DelegationSignerData> builder = new ImmutableSet.Builder<>();
     for (int i = 0; i < 7; ++i) {
-      builder.add(DelegationSignerData.create(i, 2, 3, new byte[]{0, 1, 2}));
+      builder.add(DelegationSignerData.create(i, 2, 3, new byte[] {0, 1, 2}));
     }
     ImmutableSet<DelegationSignerData> commonDsData = builder.build();
 
@@ -259,16 +273,20 @@ public class DomainApplicationUpdateFlowTest
         "domain_update_sunrise_dsdata_add.xml",
         commonDsData,
         ImmutableSet.copyOf(
-            union(commonDsData, ImmutableSet.of(DelegationSignerData.create(
-                12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))))));
+            union(
+                commonDsData,
+                ImmutableSet.of(
+                    DelegationSignerData.create(
+                        12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))))));
   }
 
   @Test
   public void testSuccess_secDnsRemove() throws Exception {
     doSecDnsSuccessfulTest(
         "domain_update_sunrise_dsdata_rem.xml",
-        ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
-            12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))),
+        ImmutableSet.of(
+            SOME_DSDATA,
+            DelegationSignerData.create(12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))),
         ImmutableSet.of(SOME_DSDATA));
   }
 
@@ -277,8 +295,9 @@ public class DomainApplicationUpdateFlowTest
     // As an aside, this test also validates that it's ok to set the 'urgent' attribute to false.
     doSecDnsSuccessfulTest(
         "domain_update_sunrise_dsdata_rem_all.xml",
-        ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
-            12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))),
+        ImmutableSet.of(
+            SOME_DSDATA,
+            DelegationSignerData.create(12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))),
         ImmutableSet.of());
   }
 
@@ -286,28 +305,36 @@ public class DomainApplicationUpdateFlowTest
   public void testSuccess_secDnsAddRemove() throws Exception {
     doSecDnsSuccessfulTest(
         "domain_update_sunrise_dsdata_add_rem.xml",
-        ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
-            12345, 3, 1, base16().decode("38EC35D5B3A34B33C99B"))),
-        ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
-            12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))));
+        ImmutableSet.of(
+            SOME_DSDATA,
+            DelegationSignerData.create(12345, 3, 1, base16().decode("38EC35D5B3A34B33C99B"))),
+        ImmutableSet.of(
+            SOME_DSDATA,
+            DelegationSignerData.create(12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))));
   }
 
   @Test
   public void testSuccess_secDnsAddRemoveToMaxRecords() throws Exception {
     ImmutableSet.Builder<DelegationSignerData> builder = new ImmutableSet.Builder<>();
     for (int i = 0; i < 7; ++i) {
-      builder.add(DelegationSignerData.create(i, 2, 3, new byte[]{0, 1, 2}));
+      builder.add(DelegationSignerData.create(i, 2, 3, new byte[] {0, 1, 2}));
     }
     ImmutableSet<DelegationSignerData> commonDsData = builder.build();
 
     doSecDnsSuccessfulTest(
         "domain_update_sunrise_dsdata_add_rem.xml",
         ImmutableSet.copyOf(
-            union(commonDsData, ImmutableSet.of(DelegationSignerData.create(
-                12345, 3, 1, base16().decode("38EC35D5B3A34B33C99B"))))),
+            union(
+                commonDsData,
+                ImmutableSet.of(
+                    DelegationSignerData.create(
+                        12345, 3, 1, base16().decode("38EC35D5B3A34B33C99B"))))),
         ImmutableSet.copyOf(
-            union(commonDsData, ImmutableSet.of(DelegationSignerData.create(
-                12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))))));
+            union(
+                commonDsData,
+                ImmutableSet.of(
+                    DelegationSignerData.create(
+                        12346, 3, 1, base16().decode("38EC35D5B3A34B44C39B"))))));
   }
 
   @Test
@@ -315,10 +342,12 @@ public class DomainApplicationUpdateFlowTest
     // Adding and removing the same dsData is a no-op because removes are processed first.
     doSecDnsSuccessfulTest(
         "domain_update_sunrise_dsdata_add_rem_same.xml",
-        ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
-            12345, 3, 1, base16().decode("38EC35D5B3A34B33C99B"))),
-        ImmutableSet.of(SOME_DSDATA, DelegationSignerData.create(
-            12345, 3, 1, base16().decode("38EC35D5B3A34B33C99B"))));
+        ImmutableSet.of(
+            SOME_DSDATA,
+            DelegationSignerData.create(12345, 3, 1, base16().decode("38EC35D5B3A34B33C99B"))),
+        ImmutableSet.of(
+            SOME_DSDATA,
+            DelegationSignerData.create(12345, 3, 1, base16().decode("38EC35D5B3A34B33C99B"))));
   }
 
   @Test
@@ -330,12 +359,13 @@ public class DomainApplicationUpdateFlowTest
         ImmutableSet.of(SOME_DSDATA));
   }
 
-  private void doSecDnsFailingTest(Class<? extends Exception> expectedException, String xmlFilename)
-      throws Exception {
+  private void doSecDnsFailingTest(
+      Class<? extends EppException> expectedException, String xmlFilename) throws Exception {
     setEppInput(xmlFilename);
     persistReferencedEntities();
     persistNewApplication();
-    assertThrows(expectedException, this::runFlow);
+    EppException thrown = expectThrows(expectedException, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -352,40 +382,40 @@ public class DomainApplicationUpdateFlowTest
   @Test
   public void testFailure_secDnsUrgentNotSupported() throws Exception {
     doSecDnsFailingTest(
-        UrgentAttributeNotSupportedException.class,
-        "domain_update_sunrise_dsdata_urgent.xml");
+        UrgentAttributeNotSupportedException.class, "domain_update_sunrise_dsdata_urgent.xml");
   }
 
   @Test
   public void testFailure_secDnsChangeNotSupported() throws Exception {
     doSecDnsFailingTest(
-        MaxSigLifeChangeNotSupportedException.class,
-        "domain_update_sunrise_maxsiglife.xml");
+        MaxSigLifeChangeNotSupportedException.class, "domain_update_sunrise_maxsiglife.xml");
   }
 
   @Test
   public void testFailure_secDnsTooManyDsRecords() throws Exception {
     ImmutableSet.Builder<DelegationSignerData> builder = new ImmutableSet.Builder<>();
     for (int i = 0; i < 8; ++i) {
-      builder.add(DelegationSignerData.create(i, 2, 3, new byte[]{0, 1, 2}));
+      builder.add(DelegationSignerData.create(i, 2, 3, new byte[] {0, 1, 2}));
     }
 
     setEppInput("domain_update_sunrise_dsdata_add.xml");
     persistResource(newApplicationBuilder().setDsData(builder.build()).build());
-    assertThrows(TooManyDsRecordsException.class, this::runFlow);
+    EppException thrown = expectThrows(TooManyDsRecordsException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   private void modifyApplicationToHave13Nameservers() throws Exception {
     ImmutableSet.Builder<Key<HostResource>> nameservers = new ImmutableSet.Builder<>();
     for (int i = 1; i < 15; i++) {
       if (i != 2) { // Skip 2 since that's the one that the tests will add.
-        nameservers.add(Key.create(loadByForeignKey(
-            HostResource.class, String.format("ns%d.example.tld", i), clock.nowUtc())));
+        nameservers.add(
+            Key.create(
+                loadByForeignKey(
+                    HostResource.class, String.format("ns%d.example.tld", i), clock.nowUtc())));
       }
     }
-    persistResource(reloadDomainApplication().asBuilder()
-        .setNameservers(nameservers.build())
-        .build());
+    persistResource(
+        reloadDomainApplication().asBuilder().setNameservers(nameservers.build()).build());
   }
 
   @Test
@@ -395,20 +425,23 @@ public class DomainApplicationUpdateFlowTest
     // Modify application to have 13 nameservers. We will then remove one and add one in the test.
     modifyApplicationToHave13Nameservers();
     setEppInput("domain_update_sunrise_add_nameserver.xml");
-    assertThrows(TooManyNameserversException.class, this::runFlow);
+    EppException thrown = expectThrows(TooManyNameserversException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_wrongExtension() throws Exception {
     setEppInput("domain_update_sunrise_wrong_extension.xml");
-    assertThrows(UnimplementedExtensionException.class, this::runFlow);
+    EppException thrown = expectThrows(UnimplementedExtensionException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_applicationDomainNameMismatch() throws Exception {
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setFullyQualifiedDomainName("something.tld").build());
-    assertThrows(ApplicationDomainNameMismatchException.class, this::runFlow);
+    EppException thrown = expectThrows(ApplicationDomainNameMismatchException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -432,16 +465,22 @@ public class DomainApplicationUpdateFlowTest
   public void testFailure_clientUpdateProhibited() throws Exception {
     setEppInput("domain_update_sunrise_authinfo.xml");
     persistReferencedEntities();
-    persistResource(newApplicationBuilder().setStatusValues(
-        ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED)).build());
-    assertThrows(ResourceHasClientUpdateProhibitedException.class, this::runFlow);
+    persistResource(
+        newApplicationBuilder()
+            .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
+            .build());
+    EppException thrown =
+        expectThrows(ResourceHasClientUpdateProhibitedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_serverUpdateProhibited() throws Exception {
     persistReferencedEntities();
-    persistResource(newApplicationBuilder().setStatusValues(
-        ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED)).build());
+    persistResource(
+        newApplicationBuilder()
+            .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
+            .build());
     ResourceStatusProhibitsOperationException thrown =
         expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("serverUpdateProhibited");
@@ -450,7 +489,9 @@ public class DomainApplicationUpdateFlowTest
   private void doIllegalApplicationStatusTest(ApplicationStatus status) throws Exception {
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setApplicationStatus(status).build());
-    assertThrows(ApplicationStatusProhibitsUpdateException.class, this::runFlow);
+    EppException thrown =
+        expectThrows(ApplicationStatusProhibitsUpdateException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -497,10 +538,18 @@ public class DomainApplicationUpdateFlowTest
     persistNewApplication();
     // Add a tech contact to the persisted entity, which should cause the flow to fail when it tries
     // to add "mak21" as a second tech contact.
-    persistResource(reloadDomainApplication().asBuilder().setContacts(ImmutableSet.of(
-        DesignatedContact.create(Type.TECH, Key.create(
-            loadByForeignKey(ContactResource.class, "foo", clock.nowUtc()))))).build());
-    assertThrows(DuplicateContactForRoleException.class, this::runFlow);
+    persistResource(
+        reloadDomainApplication()
+            .asBuilder()
+            .setContacts(
+                ImmutableSet.of(
+                    DesignatedContact.create(
+                        Type.TECH,
+                        Key.create(
+                            loadByForeignKey(ContactResource.class, "foo", clock.nowUtc())))))
+            .build());
+    EppException thrown = expectThrows(DuplicateContactForRoleException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -508,9 +557,9 @@ public class DomainApplicationUpdateFlowTest
     setEppInput("domain_update_sunrise_prohibited_status.xml");
     persistReferencedEntities();
     persistNewApplication();
-    assertThrows(StatusNotClientSettableException.class, this::runFlow);
+    EppException thrown = expectThrows(StatusNotClientSettableException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
-
 
   @Test
   public void testSuccess_superuserProhibitedStatusValue() throws Exception {
@@ -519,9 +568,7 @@ public class DomainApplicationUpdateFlowTest
     persistNewApplication();
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE,
-        UserPrivileges.SUPERUSER,
-        loadFile("domain_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_update_response.xml"));
   }
 
   @Test
@@ -529,7 +576,8 @@ public class DomainApplicationUpdateFlowTest
     setEppInput("domain_update_sunrise_duplicate_contact.xml");
     persistReferencedEntities();
     persistNewApplication();
-    assertThrows(DuplicateContactForRoleException.class, this::runFlow);
+    EppException thrown = expectThrows(DuplicateContactForRoleException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -538,7 +586,8 @@ public class DomainApplicationUpdateFlowTest
     persistReferencedEntities();
     persistNewApplication();
     // We need to test for missing type, but not for invalid - the schema enforces that for us.
-    assertThrows(MissingContactTypeException.class, this::runFlow);
+    EppException thrown = expectThrows(MissingContactTypeException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -546,7 +595,8 @@ public class DomainApplicationUpdateFlowTest
     sessionMetadata.setClientId("NewRegistrar");
     persistReferencedEntities();
     persistApplication();
-    assertThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -565,7 +615,8 @@ public class DomainApplicationUpdateFlowTest
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistReferencedEntities();
     persistApplication();
-    assertThrows(NotAuthorizedForTldException.class, this::runFlow);
+    EppException thrown = expectThrows(NotAuthorizedForTldException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -583,48 +634,62 @@ public class DomainApplicationUpdateFlowTest
   public void testFailure_sameNameserverAddedAndRemoved() throws Exception {
     setEppInput("domain_update_sunrise_add_remove_same_host.xml");
     persistReferencedEntities();
-    persistResource(newApplicationBuilder()
-        .setNameservers(ImmutableSet.of(Key.create(
-            loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
-        .build());
-    assertThrows(AddRemoveSameValueException.class, this::runFlow);
+    persistResource(
+        newApplicationBuilder()
+            .setNameservers(
+                ImmutableSet.of(
+                    Key.create(
+                        loadByForeignKey(HostResource.class, "ns1.example.tld", clock.nowUtc()))))
+            .build());
+    EppException thrown = expectThrows(AddRemoveSameValueException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_sameContactAddedAndRemoved() throws Exception {
     setEppInput("domain_update_sunrise_add_remove_same_contact.xml");
     persistReferencedEntities();
-    persistResource(newApplicationBuilder()
-        .setContacts(ImmutableSet.of(DesignatedContact.create(
-            Type.TECH,
-            Key.create(
-                loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))))
-        .build());
-    assertThrows(AddRemoveSameValueException.class, this::runFlow);
+    persistResource(
+        newApplicationBuilder()
+            .setContacts(
+                ImmutableSet.of(
+                    DesignatedContact.create(
+                        Type.TECH,
+                        Key.create(
+                            loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))))
+            .build());
+    EppException thrown = expectThrows(AddRemoveSameValueException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_removeAdmin() throws Exception {
     setEppInput("domain_update_sunrise_remove_admin.xml");
     persistReferencedEntities();
-    persistResource(newApplicationBuilder()
-        .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
-            DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
-        .build());
-    assertThrows(MissingAdminContactException.class, this::runFlow);
+    persistResource(
+        newApplicationBuilder()
+            .setContacts(
+                ImmutableSet.of(
+                    DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
+                    DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
+            .build());
+    EppException thrown = expectThrows(MissingAdminContactException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_removeTech() throws Exception {
     setEppInput("domain_update_sunrise_remove_tech.xml");
     persistReferencedEntities();
-    persistResource(newApplicationBuilder()
-        .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
-            DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
-        .build());
-    assertThrows(MissingTechnicalContactException.class, this::runFlow);
+    persistResource(
+        newApplicationBuilder()
+            .setContacts(
+                ImmutableSet.of(
+                    DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
+                    DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
+            .build());
+    EppException thrown = expectThrows(MissingTechnicalContactException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -632,11 +697,13 @@ public class DomainApplicationUpdateFlowTest
     persistReferencedEntities();
     persistApplication();
     persistResource(
-        Registry.get("tld").asBuilder()
+        Registry.get("tld")
+            .asBuilder()
             .setAllowedRegistrantContactIds(ImmutableSet.of("contact1234"))
             .build());
     clock.advanceOneMilli();
-    assertThrows(RegistrantNotAllowedException.class, this::runFlow);
+    EppException thrown = expectThrows(RegistrantNotAllowedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -644,17 +711,20 @@ public class DomainApplicationUpdateFlowTest
     persistReferencedEntities();
     persistApplication();
     persistResource(
-        Registry.get("tld").asBuilder()
+        Registry.get("tld")
+            .asBuilder()
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
             .build());
     clock.advanceOneMilli();
-    assertThrows(NameserversNotAllowedForTldException.class, this::runFlow);
+    EppException thrown = expectThrows(NameserversNotAllowedForTldException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testSuccess_nameserverAndRegistrantWhitelisted() throws Exception {
     persistResource(
-        Registry.get("tld").asBuilder()
+        Registry.get("tld")
+            .asBuilder()
             .setAllowedRegistrantContactIds(ImmutableSet.of("sh8013"))
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.tld"))
             .build());
@@ -675,8 +745,10 @@ public class DomainApplicationUpdateFlowTest
                 ImmutableSet.of("ns1.example.tld", "ns2.example.tld"))
             .build());
     clock.advanceOneMilli();
-    assertThrows(
-        NameserversNotSpecifiedForTldWithNameserverWhitelistException.class, this::runFlow);
+    EppException thrown =
+        expectThrows(
+            NameserversNotSpecifiedForTldWithNameserverWhitelistException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -747,8 +819,10 @@ public class DomainApplicationUpdateFlowTest
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.tld:ns2.example.tld"))
             .build());
     clock.advanceOneMilli();
-    assertThrows(
-        NameserversNotSpecifiedForNameserverRestrictedDomainException.class, this::runFlow);
+    EppException thrown =
+        expectThrows(
+            NameserversNotSpecifiedForNameserverRestrictedDomainException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -842,7 +916,8 @@ public class DomainApplicationUpdateFlowTest
         "domain_update_sunrise_fee.xml",
         ImmutableMap.of("DOMAIN", "non-free-update.tld", "AMOUNT", "12.00"));
     clock.advanceOneMilli();
-    assertThrows(FeesMismatchException.class, this::runFlow);
+    EppException thrown = expectThrows(FeesMismatchException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
