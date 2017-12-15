@@ -23,13 +23,14 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
@@ -73,8 +74,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     sessionMetadata.setClientId("NewRegistrar");
     clock.setTo(DateTime.parse("2005-03-03T22:00:00.000Z"));
     createTld("tld");
-    persistResource(
-        AppEngineRule.makeRegistrar1().asBuilder().setClientId("ClientZ").build());
+    persistResource(AppEngineRule.makeRegistrar1().asBuilder().setClientId("ClientZ").build());
   }
 
   private void persistTestEntities(String domainName, boolean inactive) {
@@ -82,40 +82,47 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     contact = persistActiveContact("sh8013");
     host1 = persistActiveHost("ns1.example.tld");
     host2 = persistActiveHost("ns1.example.net");
-    domain = persistResource(new DomainResource.Builder()
-        .setFullyQualifiedDomainName(domainName)
-        .setRepoId("2FF-TLD")
-        .setPersistedCurrentSponsorClientId("NewRegistrar")
-        .setCreationClientId("TheRegistrar")
-        .setLastEppUpdateClientId("NewRegistrar")
-        .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))
-        .setLastEppUpdateTime(DateTime.parse("1999-12-03T09:00:00.0Z"))
-        .setLastTransferTime(DateTime.parse("2000-04-08T09:00:00.0Z"))
-        .setRegistrationExpirationTime(DateTime.parse("2005-04-03T22:00:00.0Z"))
-        .setRegistrant(Key.create(registrant))
-        .setContacts(ImmutableSet.of(
-            DesignatedContact.create(Type.ADMIN, Key.create(contact)),
-            DesignatedContact.create(Type.TECH, Key.create(contact))))
-        .setNameservers(inactive ? null : ImmutableSet.of(Key.create(host1), Key.create(host2)))
-        .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
-        .build());
+    domain =
+        persistResource(
+            new DomainResource.Builder()
+                .setFullyQualifiedDomainName(domainName)
+                .setRepoId("2FF-TLD")
+                .setPersistedCurrentSponsorClientId("NewRegistrar")
+                .setCreationClientId("TheRegistrar")
+                .setLastEppUpdateClientId("NewRegistrar")
+                .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))
+                .setLastEppUpdateTime(DateTime.parse("1999-12-03T09:00:00.0Z"))
+                .setLastTransferTime(DateTime.parse("2000-04-08T09:00:00.0Z"))
+                .setRegistrationExpirationTime(DateTime.parse("2005-04-03T22:00:00.0Z"))
+                .setRegistrant(Key.create(registrant))
+                .setContacts(
+                    ImmutableSet.of(
+                        DesignatedContact.create(Type.ADMIN, Key.create(contact)),
+                        DesignatedContact.create(Type.TECH, Key.create(contact))))
+                .setNameservers(
+                    inactive ? null : ImmutableSet.of(Key.create(host1), Key.create(host2)))
+                .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("2fooBAR")))
+                .build());
     // Set the superordinate domain of ns1.example.com to example.com. In reality, this would have
     // happened in the flow that created it, but here we just overwrite it in Datastore.
-    host1 = persistResource(
-        host1.asBuilder().setSuperordinateDomain(Key.create(domain)).build());
+    host1 = persistResource(host1.asBuilder().setSuperordinateDomain(Key.create(domain)).build());
     // Create a subordinate host that is not delegated to by anyone.
-    host3 = persistResource(
-        new HostResource.Builder()
-            .setFullyQualifiedHostName("ns2.example.tld")
-            .setRepoId("3FF-TLD")
-            .setSuperordinateDomain(Key.create(domain))
-            .build());
+    host3 =
+        persistResource(
+            new HostResource.Builder()
+                .setFullyQualifiedHostName("ns2.example.tld")
+                .setRepoId("3FF-TLD")
+                .setSuperordinateDomain(Key.create(domain))
+                .build());
     // Add the subordinate host keys to the existing domain.
-    domain = persistResource(domain.asBuilder()
-        .setSubordinateHosts(ImmutableSet.of(
-            host1.getFullyQualifiedHostName(),
-            host3.getFullyQualifiedHostName()))
-        .build());
+    domain =
+        persistResource(
+            domain
+                .asBuilder()
+                .setSubordinateHosts(
+                    ImmutableSet.of(
+                        host1.getFullyQualifiedHostName(), host3.getFullyQualifiedHostName()))
+                .build());
   }
 
   private void persistTestEntities(boolean inactive) {
@@ -239,11 +246,15 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testSuccess_secDns() throws Exception {
     persistTestEntities(false);
     // Add the dsData to the saved resource and change the nameservers to match the sample xml.
-    persistResource(domain.asBuilder()
-        .setDsData(ImmutableSet.of(DelegationSignerData.create(
-            12345, 3, 1, base16().decode("49FD46E6C4B45C55D4AC"))))
-        .setNameservers(ImmutableSet.of(Key.create(host1), Key.create(host3)))
-        .build());
+    persistResource(
+        domain
+            .asBuilder()
+            .setDsData(
+                ImmutableSet.of(
+                    DelegationSignerData.create(
+                        12345, 3, 1, base16().decode("49FD46E6C4B45C55D4AC"))))
+            .setNameservers(ImmutableSet.of(Key.create(host1), Key.create(host3)))
+            .build());
     doSuccessfulTest("domain_info_response_dsdata.xml", false);
   }
 
@@ -251,16 +262,18 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     persistTestEntities(false);
     // Add the grace period to the saved resource, and change a few other fields to match the sample
     // xml.
-    persistResource(domain.asBuilder()
-        .addGracePeriod(
-            GracePeriod.create(gracePeriodStatus, clock.nowUtc().plusDays(1), "foo", null))
-        .setCreationClientId("NewRegistrar")
-        .setCreationTimeForTest(DateTime.parse("2003-11-26T22:00:00.0Z"))
-        .setRegistrationExpirationTime(DateTime.parse("2005-11-26T22:00:00.0Z"))
-        .setLastTransferTime(null)
-        .setLastEppUpdateTime(null)
-        .setLastEppUpdateClientId(null)
-        .build());
+    persistResource(
+        domain
+            .asBuilder()
+            .addGracePeriod(
+                GracePeriod.create(gracePeriodStatus, clock.nowUtc().plusDays(1), "foo", null))
+            .setCreationClientId("NewRegistrar")
+            .setCreationTimeForTest(DateTime.parse("2003-11-26T22:00:00.0Z"))
+            .setRegistrationExpirationTime(DateTime.parse("2005-11-26T22:00:00.0Z"))
+            .setLastTransferTime(null)
+            .setLastEppUpdateTime(null)
+            .setLastEppUpdateClientId(null)
+            .build());
     doSuccessfulTest("domain_info_response_addperiod.xml", false);
   }
 
@@ -278,13 +291,16 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testSuccess_autoRenewGracePeriod() throws Exception {
     persistTestEntities(false);
     // Add an AUTO_RENEW grace period to the saved resource.
-    persistResource(domain.asBuilder()
-        .addGracePeriod(GracePeriod.createForRecurring(
-            GracePeriodStatus.AUTO_RENEW,
-            clock.nowUtc().plusDays(1),
-            "foo",
-            Key.create(Recurring.class, 12345)))
-        .build());
+    persistResource(
+        domain
+            .asBuilder()
+            .addGracePeriod(
+                GracePeriod.createForRecurring(
+                    GracePeriodStatus.AUTO_RENEW,
+                    clock.nowUtc().plusDays(1),
+                    "foo",
+                    Key.create(Recurring.class, 12345)))
+            .build());
     doSuccessfulTest("domain_info_response_autorenewperiod.xml", false);
   }
 
@@ -293,11 +309,14 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     persistTestEntities(false);
     // Add an REDEMPTION grace period to the saved resource, and change a few other fields to match
     // the sample xml.
-    persistResource(domain.asBuilder()
-        .addGracePeriod(GracePeriod.create(
-            GracePeriodStatus.REDEMPTION, clock.nowUtc().plusDays(1), "foo", null))
-        .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
-        .build());
+    persistResource(
+        domain
+            .asBuilder()
+            .addGracePeriod(
+                GracePeriod.create(
+                    GracePeriodStatus.REDEMPTION, clock.nowUtc().plusDays(1), "foo", null))
+            .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
+            .build());
     doSuccessfulTest("domain_info_response_redemptionperiod.xml", false);
   }
 
@@ -305,10 +324,13 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testSuccess_renewGracePeriod() throws Exception {
     persistTestEntities(false);
     // Add an RENEW grace period to the saved resource.
-    persistResource(domain.asBuilder()
-        .addGracePeriod(
-            GracePeriod.create(GracePeriodStatus.RENEW, clock.nowUtc().plusDays(1), "foo", null))
-        .build());
+    persistResource(
+        domain
+            .asBuilder()
+            .addGracePeriod(
+                GracePeriod.create(
+                    GracePeriodStatus.RENEW, clock.nowUtc().plusDays(1), "foo", null))
+            .build());
     doSuccessfulTest("domain_info_response_renewperiod.xml", false);
   }
 
@@ -316,12 +338,16 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testSuccess_multipleRenewGracePeriods() throws Exception {
     persistTestEntities(false);
     // Add multiple RENEW grace periods to the saved resource.
-    persistResource(domain.asBuilder()
-        .addGracePeriod(
-            GracePeriod.create(GracePeriodStatus.RENEW, clock.nowUtc().plusDays(1), "foo", null))
-        .addGracePeriod(
-            GracePeriod.create(GracePeriodStatus.RENEW, clock.nowUtc().plusDays(2), "foo", null))
-        .build());
+    persistResource(
+        domain
+            .asBuilder()
+            .addGracePeriod(
+                GracePeriod.create(
+                    GracePeriodStatus.RENEW, clock.nowUtc().plusDays(1), "foo", null))
+            .addGracePeriod(
+                GracePeriod.create(
+                    GracePeriodStatus.RENEW, clock.nowUtc().plusDays(2), "foo", null))
+            .build());
     doSuccessfulTest("domain_info_response_renewperiod.xml", false);
   }
 
@@ -329,10 +355,13 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testSuccess_transferGracePeriod() throws Exception {
     persistTestEntities(false);
     // Add an TRANSFER grace period to the saved resource.
-    persistResource(domain.asBuilder()
-        .addGracePeriod(GracePeriod.create(
-            GracePeriodStatus.TRANSFER, clock.nowUtc().plusDays(1), "foo", null))
-        .build());
+    persistResource(
+        domain
+            .asBuilder()
+            .addGracePeriod(
+                GracePeriod.create(
+                    GracePeriodStatus.TRANSFER, clock.nowUtc().plusDays(1), "foo", null))
+            .build());
     doSuccessfulTest("domain_info_response_transferperiod.xml", false);
   }
 
@@ -341,9 +370,8 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     persistTestEntities(false);
     // Set the domain to be pending delete with no grace period, which will cause an RGP status of
     // pending delete to show up, too.
-    persistResource(domain.asBuilder()
-        .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
-        .build());
+    persistResource(
+        domain.asBuilder().setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE)).build());
     doSuccessfulTest("domain_info_response_pendingdelete.xml", false);
   }
 
@@ -351,12 +379,15 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testSuccess_stackedAddRenewGracePeriods() throws Exception {
     persistTestEntities(false);
     // Add both an ADD and RENEW grace period, both which should show up in the RGP status.
-    persistResource(domain.asBuilder()
-        .addGracePeriod(
-            GracePeriod.create(GracePeriodStatus.ADD, clock.nowUtc().plusDays(1), "foo", null))
-        .addGracePeriod(
-            GracePeriod.create(GracePeriodStatus.RENEW, clock.nowUtc().plusDays(2), "foo", null))
-        .build());
+    persistResource(
+        domain
+            .asBuilder()
+            .addGracePeriod(
+                GracePeriod.create(GracePeriodStatus.ADD, clock.nowUtc().plusDays(1), "foo", null))
+            .addGracePeriod(
+                GracePeriod.create(
+                    GracePeriodStatus.RENEW, clock.nowUtc().plusDays(2), "foo", null))
+            .build());
     doSuccessfulTest("domain_info_response_stackedaddrenewperiod.xml", false);
   }
 
@@ -364,12 +395,16 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testSuccess_secDnsAndAddGracePeriod() throws Exception {
     persistTestEntities(false);
     // Add both an ADD grace period and SecDNS data.
-    persistResource(domain.asBuilder()
-        .addGracePeriod(
-            GracePeriod.create(GracePeriodStatus.ADD, clock.nowUtc().plusDays(1), "foo", null))
-        .setDsData(ImmutableSet.of(DelegationSignerData.create(
-            12345, 3, 1, base16().decode("49FD46E6C4B45C55D4AC"))))
-        .build());
+    persistResource(
+        domain
+            .asBuilder()
+            .addGracePeriod(
+                GracePeriod.create(GracePeriodStatus.ADD, clock.nowUtc().plusDays(1), "foo", null))
+            .setDsData(
+                ImmutableSet.of(
+                    DelegationSignerData.create(
+                        12345, 3, 1, base16().decode("49FD46E6C4B45C55D4AC"))))
+            .build());
     doSuccessfulTest("domain_info_response_dsdata_addperiod.xml", false);
   }
 
@@ -382,9 +417,11 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
 
   @Test
   public void testFailure_existedButWasDeleted() throws Exception {
-    persistResource(newDomainResource("example.tld").asBuilder()
-        .setDeletionTime(clock.nowUtc().minusDays(1))
-        .build());
+    persistResource(
+        newDomainResource("example.tld")
+            .asBuilder()
+            .setDeletionTime(clock.nowUtc().minusDays(1))
+            .build());
     ResourceDoesNotExistException thrown =
         expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
@@ -394,81 +431,99 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFailure_differentRegistrarWrongAuthInfo() throws Exception {
     persistTestEntities(false);
     // Change the password of the domain so that it does not match the file.
-    persistResource(domain.asBuilder()
-        .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("diffpw")))
-        .build());
+    persistResource(
+        domain
+            .asBuilder()
+            .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("diffpw")))
+            .build());
     sessionMetadata.setClientId("ClientZ");
     setEppInput("domain_info_with_auth.xml");
-    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_wrongAuthInfo() throws Exception {
     persistTestEntities(false);
     // Change the password of the domain so that it does not match the file.
-    persistResource(domain.asBuilder()
-        .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("diffpw")))
-        .build());
+    persistResource(
+        domain
+            .asBuilder()
+            .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("diffpw")))
+            .build());
     setEppInput("domain_info_with_auth.xml");
-    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_differentRegistrarWrongRegistrantAuthInfo() throws Exception {
     persistTestEntities(false);
     // Change the password of the registrant so that it does not match the file.
-    registrant = persistResource(
-        registrant.asBuilder()
-            .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("diffpw")))
-            .build());
+    registrant =
+        persistResource(
+            registrant
+                .asBuilder()
+                .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("diffpw")))
+                .build());
     sessionMetadata.setClientId("ClientZ");
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our registrant.
     eppLoader.replaceAll("JD1234-REP", registrant.getRepoId());
-    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_wrongRegistrantAuthInfo() throws Exception {
     persistTestEntities(false);
     // Change the password of the registrant so that it does not match the file.
-    registrant = persistResource(
-        registrant.asBuilder()
-            .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("diffpw")))
-            .build());
+    registrant =
+        persistResource(
+            registrant
+                .asBuilder()
+                .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("diffpw")))
+                .build());
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our registrant.
     eppLoader.replaceAll("JD1234-REP", registrant.getRepoId());
-    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_differentRegistrarWrongContactAuthInfo() throws Exception {
     persistTestEntities(false);
     // Change the password of the contact so that it does not match the file.
-    contact = persistResource(
-        contact.asBuilder()
-            .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("diffpw")))
-            .build());
+    contact =
+        persistResource(
+            contact
+                .asBuilder()
+                .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("diffpw")))
+                .build());
     sessionMetadata.setClientId("ClientZ");
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our contact.
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
-    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_wrongContactAuthInfo() throws Exception {
     persistTestEntities(false);
     // Change the password of the contact so that it does not match the file.
-    contact = persistResource(
-        contact.asBuilder()
-            .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("diffpw")))
-            .build());
+    contact =
+        persistResource(
+            contact
+                .asBuilder()
+                .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("diffpw")))
+                .build());
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our contact.
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
-    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -479,7 +534,8 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our unrelated contact.
     eppLoader.replaceAll("JD1234-REP", unrelatedContact.getRepoId());
-    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -489,12 +545,13 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our unrelated contact.
     eppLoader.replaceAll("JD1234-REP", unrelatedContact.getRepoId());
-    assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   /**
-   * Test create command. Fee extension version 6 is the only one which supports fee extensions
-   * on info commands and responses, so we don't need to test the other versions.
+   * Test create command. Fee extension version 6 is the only one which supports fee extensions on
+   * info commands and responses, so we don't need to test the other versions.
    */
   @Test
   public void testFeeExtension_createCommand() throws Exception {
@@ -568,7 +625,8 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_wrongCurrency() throws Exception {
     setEppInput("domain_info_fee_create_euro.xml");
     persistTestEntities(false);
-    assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
+    EppException thrown = expectThrows(CurrencyUnitMismatchException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   /** Test requesting a period that isn't in years. */
@@ -576,7 +634,8 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_periodNotInYears() throws Exception {
     setEppInput("domain_info_fee_bad_period.xml");
     persistTestEntities(false);
-    assertThrows(BadPeriodUnitException.class, this::runFlow);
+    EppException thrown = expectThrows(BadPeriodUnitException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   /** Test a command that specifies a phase. */
@@ -584,7 +643,8 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_commandPhase() throws Exception {
     setEppInput("domain_info_fee_command_phase.xml");
     persistTestEntities(false);
-    assertThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
+    EppException thrown = expectThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   /** Test a command that specifies a subphase. */
@@ -592,7 +652,8 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_commandSubphase() throws Exception {
     setEppInput("domain_info_fee_command_subphase.xml");
     persistTestEntities(false);
-    assertThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
+    EppException thrown = expectThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   /** Test a restore for more than one year. */
@@ -600,7 +661,8 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_multiyearRestore() throws Exception {
     setEppInput("domain_info_fee_multiyear_restore.xml");
     persistTestEntities(false);
-    assertThrows(RestoresAreAlwaysForOneYearException.class, this::runFlow);
+    EppException thrown = expectThrows(RestoresAreAlwaysForOneYearException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   /** Test a transfer for more than one year. */
@@ -608,7 +670,8 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_multiyearTransfer() throws Exception {
     setEppInput("domain_info_fee_multiyear_transfer.xml");
     persistTestEntities(false);
-    assertThrows(TransfersAreAlwaysForOneYearException.class, this::runFlow);
+    EppException thrown = expectThrows(TransfersAreAlwaysForOneYearException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   /** Test that we load contacts and hosts as a batch rather than individually. */
