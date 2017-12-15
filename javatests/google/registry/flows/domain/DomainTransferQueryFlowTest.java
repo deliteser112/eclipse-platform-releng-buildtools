@@ -20,9 +20,10 @@ import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
-import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.expectThrows;
 
+import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.exceptions.NoTransferHistoryToQueryException;
@@ -47,18 +48,18 @@ public class DomainTransferQueryFlowTest
     setupDomainWithPendingTransfer("example", "tld");
   }
 
-  private void doSuccessfulTest(
-      String commandFilename,
-      String expectedXmlFilename) throws Exception {
+  private void doSuccessfulTest(String commandFilename, String expectedXmlFilename)
+      throws Exception {
     setEppInput(commandFilename);
     // Replace the ROID in the xml file with the one generated in our test.
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
     // Setup done; run the test.
     assertTransactionalFlow(false);
     runFlowAssertResponse(loadFile(expectedXmlFilename));
-    assertAboutDomains().that(domain).hasOneHistoryEntryEachOfTypes(
-        HistoryEntry.Type.DOMAIN_CREATE,
-        HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST);
+    assertAboutDomains()
+        .that(domain)
+        .hasOneHistoryEntryEachOfTypes(
+            HistoryEntry.Type.DOMAIN_CREATE, HistoryEntry.Type.DOMAIN_TRANSFER_REQUEST);
     assertBillingEvents(
         getBillingEventForImplicitTransfer(),
         getGainingClientAutorenewEvent(),
@@ -79,139 +80,142 @@ public class DomainTransferQueryFlowTest
 
   @Test
   public void testSuccess() throws Exception {
-    doSuccessfulTest(
-        "domain_transfer_query.xml",
-        "domain_transfer_query_response.xml");
+    doSuccessfulTest("domain_transfer_query.xml", "domain_transfer_query_response.xml");
   }
 
   @Test
   public void testSuccess_sponsoringClient() throws Exception {
     setClientIdForFlow("TheRegistrar");
-    doSuccessfulTest(
-        "domain_transfer_query.xml",
-        "domain_transfer_query_response.xml");
+    doSuccessfulTest("domain_transfer_query.xml", "domain_transfer_query_response.xml");
   }
 
   @Test
   public void testSuccess_domainAuthInfo() throws Exception {
     setClientIdForFlow("ClientZ");
     doSuccessfulTest(
-        "domain_transfer_query_domain_authinfo.xml",
-        "domain_transfer_query_response.xml");
+        "domain_transfer_query_domain_authinfo.xml", "domain_transfer_query_response.xml");
   }
 
   @Test
   public void testSuccess_contactAuthInfo() throws Exception {
     setClientIdForFlow("ClientZ");
     doSuccessfulTest(
-        "domain_transfer_query_contact_authinfo.xml",
-        "domain_transfer_query_response.xml");
+        "domain_transfer_query_contact_authinfo.xml", "domain_transfer_query_response.xml");
   }
 
   @Test
   public void testSuccess_clientApproved() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_APPROVED);
     doSuccessfulTest(
-        "domain_transfer_query.xml",
-        "domain_transfer_query_response_client_approved.xml");
+        "domain_transfer_query.xml", "domain_transfer_query_response_client_approved.xml");
   }
 
- @Test
+  @Test
   public void testSuccess_clientRejected() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_REJECTED);
     doSuccessfulTest(
-        "domain_transfer_query.xml",
-        "domain_transfer_query_response_client_rejected.xml");
+        "domain_transfer_query.xml", "domain_transfer_query_response_client_rejected.xml");
   }
 
- @Test
+  @Test
   public void testSuccess_clientCancelled() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_CANCELLED);
     doSuccessfulTest(
-        "domain_transfer_query.xml",
-        "domain_transfer_query_response_client_cancelled.xml");
+        "domain_transfer_query.xml", "domain_transfer_query_response_client_cancelled.xml");
   }
 
   @Test
   public void testSuccess_serverApproved() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_APPROVED);
     doSuccessfulTest(
-        "domain_transfer_query.xml",
-        "domain_transfer_query_response_server_approved.xml");
+        "domain_transfer_query.xml", "domain_transfer_query_response_server_approved.xml");
   }
 
   @Test
   public void testSuccess_serverCancelled() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_CANCELLED);
     doSuccessfulTest(
-        "domain_transfer_query.xml",
-        "domain_transfer_query_response_server_cancelled.xml");
+        "domain_transfer_query.xml", "domain_transfer_query_response_server_cancelled.xml");
   }
 
   @Test
   public void testSuccess_tenYears() throws Exception {
     // Extend registration by 9 years here; with the extra 1 year from the transfer, we should
     // hit the 10-year capping.
-    domain = persistResource(domain.asBuilder()
-        .setRegistrationExpirationTime(domain.getRegistrationExpirationTime().plusYears(9))
-        .build());
-    doSuccessfulTest(
-        "domain_transfer_query.xml",
-        "domain_transfer_query_response_10_years.xml");
+    domain =
+        persistResource(
+            domain
+                .asBuilder()
+                .setRegistrationExpirationTime(domain.getRegistrationExpirationTime().plusYears(9))
+                .build());
+    doSuccessfulTest("domain_transfer_query.xml", "domain_transfer_query_response_10_years.xml");
   }
 
   @Test
   public void testFailure_pendingDeleteDomain() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_CANCELLED);
-    domain = persistResource(
-        domain.asBuilder().setDeletionTime(clock.nowUtc().plusDays(1)).build());
+    domain =
+        persistResource(domain.asBuilder().setDeletionTime(clock.nowUtc().plusDays(1)).build());
     doSuccessfulTest(
-        "domain_transfer_query.xml",
-        "domain_transfer_query_response_server_cancelled.xml");
+        "domain_transfer_query.xml", "domain_transfer_query_response_server_cancelled.xml");
   }
 
   @Test
   public void testFailure_badContactPassword() throws Exception {
     // Change the contact's password so it does not match the password in the file.
-    contact = persistResource(
-        contact.asBuilder()
-            .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
-            .build());
-    assertThrows(
-        BadAuthInfoForResourceException.class,
-        () -> doFailingTest("domain_transfer_query_contact_authinfo.xml"));
+    contact =
+        persistResource(
+            contact
+                .asBuilder()
+                .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
+                .build());
+    EppException thrown =
+        expectThrows(
+            BadAuthInfoForResourceException.class,
+            () -> doFailingTest("domain_transfer_query_contact_authinfo.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_badDomainPassword() throws Exception {
     // Change the domain's password so it does not match the password in the file.
-    domain = persistResource(domain.asBuilder()
-        .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("badpassword")))
-        .build());
-    assertThrows(
-        BadAuthInfoForResourceException.class,
-        () -> doFailingTest("domain_transfer_query_domain_authinfo.xml"));
+    domain =
+        persistResource(
+            domain
+                .asBuilder()
+                .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("badpassword")))
+                .build());
+    EppException thrown =
+        expectThrows(
+            BadAuthInfoForResourceException.class,
+            () -> doFailingTest("domain_transfer_query_domain_authinfo.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_neverBeenTransferred() throws Exception {
     changeTransferStatus(null);
-    assertThrows(
-        NoTransferHistoryToQueryException.class, () -> doFailingTest("domain_transfer_query.xml"));
+    EppException thrown =
+        expectThrows(
+            NoTransferHistoryToQueryException.class,
+            () -> doFailingTest("domain_transfer_query.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_unrelatedClient() throws Exception {
     setClientIdForFlow("ClientZ");
-    assertThrows(
-        NotAuthorizedToViewTransferException.class,
-        () -> doFailingTest("domain_transfer_query.xml"));
+    EppException thrown =
+        expectThrows(
+            NotAuthorizedToViewTransferException.class,
+            () -> doFailingTest("domain_transfer_query.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_deletedDomain() throws Exception {
-    domain = persistResource(
-            domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
+    domain =
+        persistResource(domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     ResourceDoesNotExistException thrown =
         expectThrows(
             ResourceDoesNotExistException.class, () -> doFailingTest("domain_transfer_query.xml"));

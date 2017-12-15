@@ -31,8 +31,8 @@ import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
-import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
@@ -44,6 +44,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
 import com.googlecode.objectify.Key;
+import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
@@ -107,15 +108,19 @@ public class DomainTransferApproveFlowTest
   }
 
   private void assertTransferApproved(DomainResource domain, TransferData oldTransferData) {
-    assertAboutDomains().that(domain)
-        .hasCurrentSponsorClientId("NewRegistrar").and()
-        .hasLastTransferTime(clock.nowUtc()).and()
+    assertAboutDomains()
+        .that(domain)
+        .hasCurrentSponsorClientId("NewRegistrar")
+        .and()
+        .hasLastTransferTime(clock.nowUtc())
+        .and()
         .doesNotHaveStatusValue(StatusValue.PENDING_TRANSFER);
     // The domain TransferData should reflect the approved transfer as we expect, with
     // all the speculative server-approve fields nulled out.
     assertThat(domain.getTransferData())
         .isEqualTo(
-            oldTransferData.copyConstantFieldsToBuilder()
+            oldTransferData
+                .copyConstantFieldsToBuilder()
                 .setTransferStatus(TransferStatus.CLIENT_APPROVED)
                 .setPendingTransferExpirationTime(clock.nowUtc())
                 .setTransferredRegistrationExpirationTime(domain.getRegistrationExpirationTime())
@@ -139,12 +144,10 @@ public class DomainTransferApproveFlowTest
       String expectedXmlFilename,
       DateTime expectedExpirationTime,
       int expectedYearsToCharge,
-      BillingEvent.Cancellation.Builder... expectedCancellationBillingEvents) throws Exception {
+      BillingEvent.Cancellation.Builder... expectedCancellationBillingEvents)
+      throws Exception {
     runSuccessfulFlowWithAssertions(
-        tld,
-        commandFilename,
-        expectedXmlFilename,
-        expectedExpirationTime);
+        tld, commandFilename, expectedXmlFilename, expectedExpirationTime);
     assertHistoryEntriesContainBillingEventsAndGracePeriods(
         tld, expectedYearsToCharge, expectedCancellationBillingEvents);
   }
@@ -153,7 +156,8 @@ public class DomainTransferApproveFlowTest
       String tld,
       String commandFilename,
       String expectedXmlFilename,
-      DateTime expectedExpirationTime) throws Exception {
+      DateTime expectedExpirationTime)
+      throws Exception {
     setEppLoader(commandFilename);
     Registry registry = Registry.get(tld);
     domain = reloadResourceByForeignKey();
@@ -179,8 +183,7 @@ public class DomainTransferApproveFlowTest
             DOMAIN_CREATE, DOMAIN_TRANSFER_REQUEST, DOMAIN_TRANSFER_APPROVE);
     final HistoryEntry historyEntryTransferApproved =
         getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_APPROVE);
-    assertAboutHistoryEntries().that(historyEntryTransferApproved)
-        .hasOtherClientId("NewRegistrar");
+    assertAboutHistoryEntries().that(historyEntryTransferApproved).hasOtherClientId("NewRegistrar");
     assertTransferApproved(domain, originalTransferData);
     assertAboutDomains().that(domain).hasRegistrationExpirationTime(expectedExpirationTime);
     assertThat(ofy().load().key(domain.getAutorenewBillingEvent()).now().getEventTime())
@@ -197,11 +200,12 @@ public class DomainTransferApproveFlowTest
 
     PollMessage gainingTransferPollMessage =
         getOnlyPollMessage(domain, "NewRegistrar", clock.nowUtc(), PollMessage.OneTime.class);
-    PollMessage gainingAutorenewPollMessage = getOnlyPollMessage(
-        domain,
-        "NewRegistrar",
-        domain.getRegistrationExpirationTime(),
-        PollMessage.Autorenew.class);
+    PollMessage gainingAutorenewPollMessage =
+        getOnlyPollMessage(
+            domain,
+            "NewRegistrar",
+            domain.getRegistrationExpirationTime(),
+            PollMessage.Autorenew.class);
     assertThat(gainingTransferPollMessage.getEventTime()).isEqualTo(clock.nowUtc());
     assertThat(gainingAutorenewPollMessage.getEventTime())
         .isEqualTo(domain.getRegistrationExpirationTime());
@@ -228,8 +232,10 @@ public class DomainTransferApproveFlowTest
 
     // After the expected grace time, the grace period should be gone.
     assertThat(
-        domain.cloneProjectedAtTime(clock.nowUtc().plus(registry.getTransferGracePeriodLength()))
-            .getGracePeriods()).isEmpty();
+            domain
+                .cloneProjectedAtTime(clock.nowUtc().plus(registry.getTransferGracePeriodLength()))
+                .getGracePeriods())
+        .isEmpty();
   }
 
   private void assertHistoryEntriesContainBillingEventsAndGracePeriods(
@@ -285,8 +291,7 @@ public class DomainTransferApproveFlowTest
   }
 
   private void assertHistoryEntriesDoNotContainTransferBillingEventsOrGracePeriods(
-      BillingEvent.Cancellation.Builder... expectedCancellationBillingEvents)
-      throws Exception {
+      BillingEvent.Cancellation.Builder... expectedCancellationBillingEvents) throws Exception {
     domain = reloadResourceByForeignKey();
     final HistoryEntry historyEntryTransferApproved =
         getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_APPROVE);
@@ -354,9 +359,7 @@ public class DomainTransferApproveFlowTest
             .build());
     setupDomainWithPendingTransfer("example", "net");
     doSuccessfulTest(
-        "net",
-        "domain_transfer_approve_net.xml",
-        "domain_transfer_approve_response_net.xml");
+        "net", "domain_transfer_approve_net.xml", "domain_transfer_approve_response_net.xml");
   }
 
   @Test
@@ -379,9 +382,7 @@ public class DomainTransferApproveFlowTest
   public void testSuccess_autorenewBeforeTransfer() throws Exception {
     domain = reloadResourceByForeignKey();
     DateTime oldExpirationTime = clock.nowUtc().minusDays(1);
-    persistResource(domain.asBuilder()
-        .setRegistrationExpirationTime(oldExpirationTime)
-        .build());
+    persistResource(domain.asBuilder().setRegistrationExpirationTime(oldExpirationTime).build());
     // The autorenew should be subsumed into the transfer resulting in 1 year of renewal in total.
     clock.advanceOneMilli();
     doSuccessfulTest(
@@ -395,7 +396,7 @@ public class DomainTransferApproveFlowTest
             .setReason(Reason.RENEW)
             .setTargetId("example.tld")
             .setClientId("TheRegistrar")
-            .setEventTime(clock.nowUtc())  // The cancellation happens at the moment of transfer.
+            .setEventTime(clock.nowUtc()) // The cancellation happens at the moment of transfer.
             .setBillingTime(
                 oldExpirationTime.plus(Registry.get("tld").getAutoRenewGracePeriodLength()))
             .setRecurringEventKey(domain.getAutorenewBillingEvent()));
@@ -404,86 +405,109 @@ public class DomainTransferApproveFlowTest
   @Test
   public void testFailure_badContactPassword() throws Exception {
     // Change the contact's password so it does not match the password in the file.
-    contact = persistResource(
-        contact.asBuilder()
-            .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
-            .build());
-    assertThrows(
-        BadAuthInfoForResourceException.class,
-        () -> doFailingTest("domain_transfer_approve_contact_authinfo.xml"));
+    contact =
+        persistResource(
+            contact
+                .asBuilder()
+                .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
+                .build());
+    EppException thrown =
+        expectThrows(
+            BadAuthInfoForResourceException.class,
+            () -> doFailingTest("domain_transfer_approve_contact_authinfo.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_badDomainPassword() throws Exception {
     // Change the domain's password so it does not match the password in the file.
-    persistResource(domain.asBuilder()
-        .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("badpassword")))
-        .build());
-    assertThrows(
-        BadAuthInfoForResourceException.class,
-        () -> doFailingTest("domain_transfer_approve_domain_authinfo.xml"));
+    persistResource(
+        domain
+            .asBuilder()
+            .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("badpassword")))
+            .build());
+    EppException thrown =
+        expectThrows(
+            BadAuthInfoForResourceException.class,
+            () -> doFailingTest("domain_transfer_approve_domain_authinfo.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_neverBeenTransferred() throws Exception {
     changeTransferStatus(null);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_clientApproved() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_APPROVED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
- @Test
+  @Test
   public void testFailure_clientRejected() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_REJECTED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
- @Test
+  @Test
   public void testFailure_clientCancelled() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_CANCELLED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_serverApproved() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_APPROVED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_serverCancelled() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_CANCELLED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_gainingClient() throws Exception {
     setClientIdForFlow("NewRegistrar");
-    assertThrows(
-        ResourceNotOwnedException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            ResourceNotOwnedException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_unrelatedClient() throws Exception {
     setClientIdForFlow("ClientZ");
-    assertThrows(
-        ResourceNotOwnedException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            ResourceNotOwnedException.class, () -> doFailingTest("domain_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_deletedDomain() throws Exception {
-    persistResource(
-        domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
+    persistResource(domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     ResourceDoesNotExistException thrown =
         expectThrows(
             ResourceDoesNotExistException.class,
@@ -505,11 +529,13 @@ public class DomainTransferApproveFlowTest
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
-    assertThrows(
-        NotAuthorizedForTldException.class,
-        () ->
-            doSuccessfulTest(
-                "tld", "domain_transfer_approve.xml", "domain_transfer_approve_response.xml"));
+    EppException thrown =
+        expectThrows(
+            NotAuthorizedForTldException.class,
+            () ->
+                doSuccessfulTest(
+                    "tld", "domain_transfer_approve.xml", "domain_transfer_approve_response.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -559,8 +585,7 @@ public class DomainTransferApproveFlowTest
     clock.advanceOneMilli();
     setUpGracePeriodDurations();
     DomainTransactionRecord previousSuccessRecord =
-        DomainTransactionRecord.create(
-            "tld", clock.nowUtc().plusDays(1), TRANSFER_SUCCESSFUL, 1);
+        DomainTransactionRecord.create("tld", clock.nowUtc().plusDays(1), TRANSFER_SUCCESSFUL, 1);
     // We only want to cancel TRANSFER_SUCCESSFUL records
     DomainTransactionRecord notCancellableRecord =
         DomainTransactionRecord.create("tld", clock.nowUtc().plusDays(1), NET_ADDS_4_YR, 5);
