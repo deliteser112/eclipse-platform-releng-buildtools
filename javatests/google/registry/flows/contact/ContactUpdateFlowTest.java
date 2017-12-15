@@ -21,11 +21,12 @@ import static google.registry.testing.DatastoreHelper.newContactResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.AddRemoveSameValueException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
@@ -259,6 +260,7 @@ public class ContactUpdateFlowTest
     ResourceDoesNotExistException thrown =
         expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -267,13 +269,15 @@ public class ContactUpdateFlowTest
     ResourceDoesNotExistException thrown =
         expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_statusValueNotClientSettable() throws Exception {
     setEppInput("contact_update_prohibited_status.xml");
     persistActiveContact(getUniqueIdFromCommand());
-    assertThrows(StatusNotClientSettableException.class, this::runFlow);
+    EppException thrown = expectThrows(StatusNotClientSettableException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -282,16 +286,15 @@ public class ContactUpdateFlowTest
     persistActiveContact(getUniqueIdFromCommand());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE,
-        UserPrivileges.SUPERUSER,
-        loadFile("contact_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("contact_update_response.xml"));
   }
 
   @Test
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveContact(getUniqueIdFromCommand());
-    assertThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -307,11 +310,13 @@ public class ContactUpdateFlowTest
   public void testSuccess_clientUpdateProhibited_removed() throws Exception {
     setEppInput("contact_update_remove_client_update_prohibited.xml");
     persistResource(
-        newContactResource(getUniqueIdFromCommand()).asBuilder()
+        newContactResource(getUniqueIdFromCommand())
+            .asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
             .build());
     doSuccessfulTest();
-    assertAboutContacts().that(reloadResourceByForeignKey())
+    assertAboutContacts()
+        .that(reloadResourceByForeignKey())
         .doesNotHaveStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED);
   }
 
@@ -319,48 +324,56 @@ public class ContactUpdateFlowTest
   public void testSuccess_superuserClientUpdateProhibited_notRemoved() throws Exception {
     setEppInput("contact_update_prohibited_status.xml");
     persistResource(
-        newContactResource(getUniqueIdFromCommand()).asBuilder()
+        newContactResource(getUniqueIdFromCommand())
+            .asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
             .build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE,
-        UserPrivileges.SUPERUSER,
-        loadFile("contact_update_response.xml"));
-    assertAboutContacts().that(reloadResourceByForeignKey())
-        .hasStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED).and()
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("contact_update_response.xml"));
+    assertAboutContacts()
+        .that(reloadResourceByForeignKey())
+        .hasStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED)
+        .and()
         .hasStatusValue(StatusValue.SERVER_DELETE_PROHIBITED);
   }
 
   @Test
   public void testFailure_clientUpdateProhibited_notRemoved() throws Exception {
     persistResource(
-        newContactResource(getUniqueIdFromCommand()).asBuilder()
+        newContactResource(getUniqueIdFromCommand())
+            .asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
             .build());
-    assertThrows(ResourceHasClientUpdateProhibitedException.class, this::runFlow);
+    EppException thrown =
+        expectThrows(ResourceHasClientUpdateProhibitedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_serverUpdateProhibited() throws Exception {
     persistResource(
-        newContactResource(getUniqueIdFromCommand()).asBuilder()
+        newContactResource(getUniqueIdFromCommand())
+            .asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.SERVER_UPDATE_PROHIBITED))
             .build());
     ResourceStatusProhibitsOperationException thrown =
         expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("serverUpdateProhibited");
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_pendingDeleteProhibited() throws Exception {
     persistResource(
-        newContactResource(getUniqueIdFromCommand()).asBuilder()
+        newContactResource(getUniqueIdFromCommand())
+            .asBuilder()
             .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
             .build());
     ResourceStatusProhibitsOperationException thrown =
         expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("pendingDelete");
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -373,21 +386,26 @@ public class ContactUpdateFlowTest
   public void testFailure_nonAsciiInIntAddress() throws Exception {
     setEppInput("contact_update_hebrew_int.xml");
     persistActiveContact(getUniqueIdFromCommand());
-    assertThrows(BadInternationalizedPostalInfoException.class, this::runFlow);
+    EppException thrown =
+        expectThrows(BadInternationalizedPostalInfoException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_declineDisclosure() throws Exception {
     setEppInput("contact_update_decline_disclosure.xml");
     persistActiveContact(getUniqueIdFromCommand());
-    assertThrows(DeclineContactDisclosureFieldDisallowedPolicyException.class, this::runFlow);
+    EppException thrown =
+        expectThrows(DeclineContactDisclosureFieldDisallowedPolicyException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_addRemoveSameValue() throws Exception {
     setEppInput("contact_update_add_remove_same.xml");
     persistActiveContact(getUniqueIdFromCommand());
-    assertThrows(AddRemoveSameValueException.class, this::runFlow);
+    EppException thrown = expectThrows(AddRemoveSameValueException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test

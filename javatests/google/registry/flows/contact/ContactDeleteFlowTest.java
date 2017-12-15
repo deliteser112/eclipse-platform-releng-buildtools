@@ -23,10 +23,11 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableSet;
+import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
@@ -75,6 +76,7 @@ public class ContactDeleteFlowTest
     ResourceDoesNotExistException thrown =
         expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -83,6 +85,7 @@ public class ContactDeleteFlowTest
     ResourceDoesNotExistException thrown =
         expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -103,21 +106,23 @@ public class ContactDeleteFlowTest
         StatusValue.PENDING_DELETE, ResourceStatusProhibitsOperationException.class);
   }
 
-  private void doFailingStatusTest(StatusValue statusValue, Class<? extends Exception> exception)
+  private void doFailingStatusTest(StatusValue statusValue, Class<? extends EppException> exception)
       throws Exception {
     persistResource(
         newContactResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(statusValue))
             .build());
-    Exception e = expectThrows(exception, this::runFlow);
-    assertThat(e).hasMessageThat().contains(statusValue.getXmlName());
+    EppException thrown = expectThrows(exception, this::runFlow);
+    assertThat(thrown).hasMessageThat().contains(statusValue.getXmlName());
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveContact(getUniqueIdFromCommand());
-    assertThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -131,7 +136,8 @@ public class ContactDeleteFlowTest
     assertAboutContacts().that(deletedContact).hasStatusValue(StatusValue.PENDING_DELETE);
     assertAsyncDeletionTaskEnqueued(
         deletedContact, "NewRegistrar", Trid.create("ABC-12345", "server-trid"), true);
-    assertAboutContacts().that(deletedContact)
+    assertAboutContacts()
+        .that(deletedContact)
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.CONTACT_PENDING_DELETE);
     assertNoBillingEvents();
@@ -142,7 +148,8 @@ public class ContactDeleteFlowTest
     createTld("tld");
     persistResource(
         newDomainResource("example.tld", persistActiveContact(getUniqueIdFromCommand())));
-    assertThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
+    EppException thrown = expectThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -150,7 +157,8 @@ public class ContactDeleteFlowTest
     createTld("tld");
     persistResource(
         newDomainResource("example.tld", persistActiveContact(getUniqueIdFromCommand())));
-    assertThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
+    EppException thrown = expectThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test

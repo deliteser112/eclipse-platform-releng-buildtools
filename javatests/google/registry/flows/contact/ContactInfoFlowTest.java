@@ -20,6 +20,7 @@ import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableList;
@@ -167,6 +168,7 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
     ResourceDoesNotExistException thrown =
         expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -175,6 +177,7 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
     ResourceDoesNotExistException thrown =
         expectThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test

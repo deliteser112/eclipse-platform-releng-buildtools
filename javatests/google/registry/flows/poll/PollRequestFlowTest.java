@@ -20,9 +20,11 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableList;
+import google.registry.flows.EppException;
 import google.registry.flows.FlowTestCase;
 import google.registry.flows.poll.PollRequestFlow.UnexpectedMessageIdException;
 import google.registry.model.contact.ContactResource;
@@ -221,6 +223,7 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
   public void testFailure_messageIdProvided() throws Exception {
     setEppInput("poll_with_id.xml");
     assertTransactionalFlow(false);
-    assertThrows(UnexpectedMessageIdException.class, this::runFlow);
+    EppException thrown = expectThrows(UnexpectedMessageIdException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 }

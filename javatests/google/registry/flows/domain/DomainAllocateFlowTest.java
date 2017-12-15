@@ -30,7 +30,7 @@ import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
-import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
@@ -43,6 +43,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.domain.DomainAllocateFlow.HasFinalStatusException;
 import google.registry.flows.domain.DomainAllocateFlow.MissingApplicationException;
@@ -258,6 +259,7 @@ public class DomainAllocateFlowTest
     NameserversNotAllowedForTldException thrown =
         expectThrows(NameserversNotAllowedForTldException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("ns1.example.net");
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -273,6 +275,7 @@ public class DomainAllocateFlowTest
     RegistrantNotAllowedException thrown =
         expectThrows(RegistrantNotAllowedException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("jd1234");
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -285,9 +288,11 @@ public class DomainAllocateFlowTest
             .setAllowedRegistrantContactIds(ImmutableSet.of("jd1234"))
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.net, ns2.example.net"))
             .build());
-    assertThrows(
-        NameserversNotSpecifiedForTldWithNameserverWhitelistException.class,
-        this::runFlowAsSuperuser);
+    EppException thrown =
+        expectThrows(
+            NameserversNotSpecifiedForTldWithNameserverWhitelistException.class,
+            this::runFlowAsSuperuser);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -319,6 +324,7 @@ public class DomainAllocateFlowTest
     NameserversNotAllowedForDomainException thrown =
         expectThrows(NameserversNotAllowedForDomainException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("ns1.example.net");
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -333,9 +339,11 @@ public class DomainAllocateFlowTest
                     "reserved",
                     "example-one,NAMESERVER_RESTRICTED," + "ns2.example.net:ns3.example.net"))
             .build());
-    assertThrows(
-        NameserversNotSpecifiedForNameserverRestrictedDomainException.class,
-        this::runFlowAsSuperuser);
+    EppException thrown =
+        expectThrows(
+            NameserversNotSpecifiedForNameserverRestrictedDomainException.class,
+            this::runFlowAsSuperuser);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -373,6 +381,7 @@ public class DomainAllocateFlowTest
     NameserversNotAllowedForDomainException thrown =
         expectThrows(NameserversNotAllowedForDomainException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("ns1.example.net");
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -392,6 +401,7 @@ public class DomainAllocateFlowTest
     NameserversNotAllowedForTldException thrown =
         expectThrows(NameserversNotAllowedForTldException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("ns1.example.net");
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -404,18 +414,22 @@ public class DomainAllocateFlowTest
   @Test
   public void testSuccess_nonDefaultAddGracePeriod() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
-    persistResource(Registry.get("tld").asBuilder()
-        .setAddGracePeriodLength(Duration.standardMinutes(6))
-        .build());
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setAddGracePeriodLength(Duration.standardMinutes(6))
+            .build());
     doSuccessfulTest(2);
   }
 
   @Test
   public void testSuccess_nonDefaultSunrushAddGracePeriod() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
-    persistResource(Registry.get("tld").asBuilder()
-        .setSunrushAddGracePeriodLength(Duration.standardMinutes(9))
-        .build());
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setSunrushAddGracePeriodLength(Duration.standardMinutes(9))
+            .build());
     doSuccessfulTest(2);
   }
 
@@ -439,9 +453,10 @@ public class DomainAllocateFlowTest
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     setEppInput("domain_allocate_dsdata.xml");
     doSuccessfulTest(2);
-    assertAboutDomains().that(reloadResourceByForeignKey())
-        .hasExactlyDsData(DelegationSignerData.create(
-              12345, 3, 1, base16().decode("49FD46E6C4B45C55D4AC")));
+    assertAboutDomains()
+        .that(reloadResourceByForeignKey())
+        .hasExactlyDsData(
+            DelegationSignerData.create(12345, 3, 1, base16().decode("49FD46E6C4B45C55D4AC")));
   }
 
   @Test
@@ -466,24 +481,26 @@ public class DomainAllocateFlowTest
   private void doSuccessfulClaimsNoticeTest() throws Exception {
     setEppInput("domain_allocate_claims_notice.xml");
     runFlowAsSuperuser();
-    assertAboutDomains().that(getOnlyGlobalResource(DomainResource.class))
-        .hasLaunchNotice(LaunchNotice.create(
-            "370d0b7c9223372036854775807",
-            "tmch",
-            DateTime.parse("2011-08-16T09:00:00.0Z"),
-            DateTime.parse("2010-07-16T09:00:00.0Z")));
+    assertAboutDomains()
+        .that(getOnlyGlobalResource(DomainResource.class))
+        .hasLaunchNotice(
+            LaunchNotice.create(
+                "370d0b7c9223372036854775807",
+                "tmch",
+                DateTime.parse("2011-08-16T09:00:00.0Z"),
+                DateTime.parse("2010-07-16T09:00:00.0Z")));
   }
 
   @Test
   public void testSuccess_claimsNotice() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     doSuccessfulClaimsNoticeTest();
-    String expectedCsv = String.format(
-        "%s,example-one.tld,370d0b7c9223372036854775807,1,"
-        + "2010-09-16T10:00:00.000Z,2010-07-16T09:00:00.000Z,2010-08-16T10:00:00.000Z",
-        reloadResourceByForeignKey().getRepoId());
-    assertTasksEnqueued(
-        "lordn-claims", new TaskMatcher().payload(expectedCsv).tag("tld"));
+    String expectedCsv =
+        String.format(
+            "%s,example-one.tld,370d0b7c9223372036854775807,1,"
+                + "2010-09-16T10:00:00.000Z,2010-07-16T09:00:00.000Z,2010-08-16T10:00:00.000Z",
+            reloadResourceByForeignKey().getRepoId());
+    assertTasksEnqueued("lordn-claims", new TaskMatcher().payload(expectedCsv).tag("tld"));
   }
 
   @Test
@@ -491,10 +508,11 @@ public class DomainAllocateFlowTest
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     clock.setTo(DateTime.parse("2011-08-17T09:00:00.0Z"));
     doSuccessfulClaimsNoticeTest();
-    String expectedCsv = String.format(
-        "%s,example-one.tld,370d0b7c9223372036854775807,1,"
-        + "2011-08-17T09:00:00.000Z,2010-07-16T09:00:00.000Z,2010-08-16T10:00:00.000Z",
-        reloadResourceByForeignKey().getRepoId());
+    String expectedCsv =
+        String.format(
+            "%s,example-one.tld,370d0b7c9223372036854775807,1,"
+                + "2011-08-17T09:00:00.000Z,2010-07-16T09:00:00.000Z,2010-08-16T10:00:00.000Z",
+            reloadResourceByForeignKey().getRepoId());
     assertTasksEnqueued("lordn-claims", new TaskMatcher().payload(expectedCsv).tag("tld"));
   }
 
@@ -505,11 +523,11 @@ public class DomainAllocateFlowTest
     doSuccessfulTest(2);
     DomainResource domain = getOnlyGlobalResource(DomainResource.class);
     assertThat(domain.getSmdId()).isEqualTo(SMD_ID);
-    String expectedCsv = String.format(
-        "%s,example-one.tld,1-1,1,2010-09-16T10:00:00.000Z,2010-08-16T10:00:00.000Z",
-        domain.getRepoId());
-    assertTasksEnqueued(
-        "lordn-sunrise", new TaskMatcher().payload(expectedCsv).tag("tld"));
+    String expectedCsv =
+        String.format(
+            "%s,example-one.tld,1-1,1,2010-09-16T10:00:00.000Z,2010-08-16T10:00:00.000Z",
+            domain.getRepoId());
+    assertTasksEnqueued("lordn-sunrise", new TaskMatcher().payload(expectedCsv).tag("tld"));
   }
 
   @Test
@@ -575,7 +593,9 @@ public class DomainAllocateFlowTest
   public void testFailure_alreadyExists() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     persistActiveDomain(getUniqueIdFromCommand());
-    assertThrows(ResourceAlreadyExistsException.class, this::runFlowAsSuperuser);
+    EppException thrown =
+        expectThrows(ResourceAlreadyExistsException.class, this::runFlowAsSuperuser);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -610,32 +630,34 @@ public class DomainAllocateFlowTest
   public void testFailure_applicationDeleted() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     persistResource(application.asBuilder().setDeletionTime(clock.nowUtc()).build());
-    assertThrows(MissingApplicationException.class, this::runFlowAsSuperuser);
+    EppException thrown = expectThrows(MissingApplicationException.class, this::runFlowAsSuperuser);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_applicationRejected() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
-    persistResource(application.asBuilder()
-        .setApplicationStatus(ApplicationStatus.REJECTED)
-        .build());
-    assertThrows(HasFinalStatusException.class, this::runFlowAsSuperuser);
+    persistResource(
+        application.asBuilder().setApplicationStatus(ApplicationStatus.REJECTED).build());
+    EppException thrown = expectThrows(HasFinalStatusException.class, this::runFlowAsSuperuser);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_applicationAllocated() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
-    persistResource(application.asBuilder()
-        .setApplicationStatus(ApplicationStatus.ALLOCATED)
-        .build());
-    assertThrows(HasFinalStatusException.class, this::runFlowAsSuperuser);
+    persistResource(
+        application.asBuilder().setApplicationStatus(ApplicationStatus.ALLOCATED).build());
+    EppException thrown = expectThrows(HasFinalStatusException.class, this::runFlowAsSuperuser);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_applicationDoesNotExist() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     setEppInput("domain_allocate_bad_application_roid.xml");
-    assertThrows(MissingApplicationException.class, this::runFlowAsSuperuser);
+    EppException thrown = expectThrows(MissingApplicationException.class, this::runFlowAsSuperuser);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -644,16 +666,20 @@ public class DomainAllocateFlowTest
     clock.advanceOneMilli();
     setEppInput("domain_allocate_no_nameservers.xml");
     assertTransactionalFlow(true);
-    assertThrows(
-        OnlySuperuserCanAllocateException.class,
-        () -> runFlow(CommitMode.LIVE, UserPrivileges.NORMAL));
+    EppException thrown =
+        expectThrows(
+            OnlySuperuserCanAllocateException.class,
+            () -> runFlow(CommitMode.LIVE, UserPrivileges.NORMAL));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_max10Years() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     setEppInput("domain_allocate_11_years.xml");
-    assertThrows(ExceedsMaxRegistrationYearsException.class, this::runFlowAsSuperuser);
+    EppException thrown =
+        expectThrows(ExceedsMaxRegistrationYearsException.class, this::runFlowAsSuperuser);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -678,11 +704,12 @@ public class DomainAllocateFlowTest
     DomainResource domain = reloadResourceByForeignKey();
     HistoryEntry historyEntry =
         getOnlyHistoryEntryOfType(domain, HistoryEntry.Type.DOMAIN_ALLOCATE);
-    assertThat(historyEntry.getDomainTransactionRecords()).containsExactly(
-        DomainTransactionRecord.create(
-            "tld",
-            historyEntry.getModificationTime().plusMinutes(9),
-            TransactionReportField.netAddsFieldFromYears(2),
-            1));
+    assertThat(historyEntry.getDomainTransactionRecords())
+        .containsExactly(
+            DomainTransactionRecord.create(
+                "tld",
+                historyEntry.getModificationTime().plusMinutes(9),
+                TransactionReportField.netAddsFieldFromYears(2),
+                1));
   }
 }

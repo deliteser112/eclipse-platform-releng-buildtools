@@ -18,7 +18,9 @@ import static google.registry.model.registrar.Registrar.State.ACTIVE;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableList;
@@ -63,38 +65,44 @@ public class ValidateLoginCredentialsCommandTest
 
   @Test
   public void testFailure_loginWithBadPassword() throws Exception {
-    assertThrows(
-        BadRegistrarPasswordException.class,
-        () ->
-            runCommand(
-                "--client=NewRegistrar",
-                "--password=" + new StringBuilder(PASSWORD).reverse(),
-                "--cert_hash=" + CERT_HASH,
-                "--ip_address=" + CLIENT_IP));
+    EppException thrown =
+        expectThrows(
+            BadRegistrarPasswordException.class,
+            () ->
+                runCommand(
+                    "--client=NewRegistrar",
+                    "--password=" + new StringBuilder(PASSWORD).reverse(),
+                    "--cert_hash=" + CERT_HASH,
+                    "--ip_address=" + CLIENT_IP));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_loginWithBadCertificateHash() throws Exception {
-    assertThrows(
-        EppException.class,
-        () ->
-            runCommand(
-                "--client=NewRegistrar",
-                "--password=" + PASSWORD,
-                "--cert_hash=" + new StringBuilder(CERT_HASH).reverse(),
-                "--ip_address=" + CLIENT_IP));
+    EppException thrown =
+        expectThrows(
+            EppException.class,
+            () ->
+                runCommand(
+                    "--client=NewRegistrar",
+                    "--password=" + PASSWORD,
+                    "--cert_hash=" + new StringBuilder(CERT_HASH).reverse(),
+                    "--ip_address=" + CLIENT_IP));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_loginWithBadIp() throws Exception {
-    assertThrows(
-        EppException.class,
-        () ->
-            runCommand(
-                "--client=NewRegistrar",
-                "--password=" + PASSWORD,
-                "--cert_hash=" + CERT_HASH,
-                "--ip_address=" + new StringBuilder(CLIENT_IP).reverse()));
+    EppException thrown =
+        expectThrows(
+            EppException.class,
+            () ->
+                runCommand(
+                    "--client=NewRegistrar",
+                    "--password=" + PASSWORD,
+                    "--cert_hash=" + CERT_HASH,
+                    "--ip_address=" + new StringBuilder(CLIENT_IP).reverse()));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test

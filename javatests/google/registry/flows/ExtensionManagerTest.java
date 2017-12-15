@@ -15,7 +15,8 @@
 package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -50,128 +51,148 @@ public class ExtensionManagerTest {
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .build();
+
   @Test
   public void testDuplicateExtensionsForbidden() throws Exception {
-    ExtensionManager manager = new TestInstanceBuilder()
-        .setEppRequestSource(EppRequestSource.TOOL)
-        .setDeclaredUris()
-        .setSuppliedExtensions(
-            MetadataExtension.class,
-            LaunchCreateExtension.class,
-            MetadataExtension.class)
-        .build();
+    ExtensionManager manager =
+        new TestInstanceBuilder()
+            .setEppRequestSource(EppRequestSource.TOOL)
+            .setDeclaredUris()
+            .setSuppliedExtensions(
+                MetadataExtension.class, LaunchCreateExtension.class, MetadataExtension.class)
+            .build();
     manager.register(MetadataExtension.class, LaunchCreateExtension.class);
-    assertThrows(UnsupportedRepeatedExtensionException.class, () -> manager.validate());
+    EppException thrown =
+        expectThrows(UnsupportedRepeatedExtensionException.class, manager::validate);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testUndeclaredExtensionsLogged() throws Exception {
     TestLogHandler handler = new TestLogHandler();
     Logger.getLogger(ExtensionManager.class.getCanonicalName()).addHandler(handler);
-    ExtensionManager manager = new TestInstanceBuilder()
-        .setEppRequestSource(EppRequestSource.TOOL)
-        .setDeclaredUris()
-        .setSuppliedExtensions(MetadataExtension.class)
-        .build();
+    ExtensionManager manager =
+        new TestInstanceBuilder()
+            .setEppRequestSource(EppRequestSource.TOOL)
+            .setDeclaredUris()
+            .setSuppliedExtensions(MetadataExtension.class)
+            .build();
     manager.register(MetadataExtension.class);
     manager.validate();
     ImmutableList.Builder<String> logMessages = new ImmutableList.Builder<>();
     for (LogRecord record : handler.getStoredLogRecords()) {
       logMessages.add(record.getMessage());
     }
-    assertThat(logMessages.build()).contains(
-        "Client clientId is attempting to run HelloFlow without declaring "
-            + "URIs [urn:google:params:xml:ns:metadata-1.0] on login");
+    assertThat(logMessages.build())
+        .contains(
+            "Client clientId is attempting to run HelloFlow without declaring "
+                + "URIs [urn:google:params:xml:ns:metadata-1.0] on login");
   }
 
   @Test
   public void testBlacklistedExtensions_forbiddenWhenUndeclared() throws Exception {
-    ExtensionManager manager = new TestInstanceBuilder()
-        .setEppRequestSource(EppRequestSource.TOOL)
-        .setDeclaredUris()
-        .setSuppliedExtensions(FeeInfoCommandExtensionV06.class)
-        .build();
+    ExtensionManager manager =
+        new TestInstanceBuilder()
+            .setEppRequestSource(EppRequestSource.TOOL)
+            .setDeclaredUris()
+            .setSuppliedExtensions(FeeInfoCommandExtensionV06.class)
+            .build();
     manager.register(FeeInfoCommandExtensionV06.class);
-    assertThrows(UndeclaredServiceExtensionException.class, () -> manager.validate());
+    EppException thrown =
+        expectThrows(UndeclaredServiceExtensionException.class, manager::validate);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testBlacklistedExtensions_allowedWhenDeclared() throws Exception {
-    ExtensionManager manager = new TestInstanceBuilder()
-        .setEppRequestSource(EppRequestSource.TOOL)
-        .setDeclaredUris(ServiceExtension.FEE_0_6.getUri())
-        .setSuppliedExtensions(FeeInfoCommandExtensionV06.class)
-        .build();
+    ExtensionManager manager =
+        new TestInstanceBuilder()
+            .setEppRequestSource(EppRequestSource.TOOL)
+            .setDeclaredUris(ServiceExtension.FEE_0_6.getUri())
+            .setSuppliedExtensions(FeeInfoCommandExtensionV06.class)
+            .build();
     manager.register(FeeInfoCommandExtensionV06.class);
     manager.validate();
   }
 
   @Test
   public void testMetadataExtension_allowedForToolSource() throws Exception {
-    ExtensionManager manager = new TestInstanceBuilder()
-        .setEppRequestSource(EppRequestSource.TOOL)
-        .setDeclaredUris()
-        .setSuppliedExtensions(MetadataExtension.class)
-        .build();
+    ExtensionManager manager =
+        new TestInstanceBuilder()
+            .setEppRequestSource(EppRequestSource.TOOL)
+            .setDeclaredUris()
+            .setSuppliedExtensions(MetadataExtension.class)
+            .build();
     manager.register(MetadataExtension.class);
     manager.validate();
   }
 
   @Test
   public void testMetadataExtension_forbiddenWhenNotToolSource() throws Exception {
-    ExtensionManager manager = new TestInstanceBuilder()
-        .setEppRequestSource(EppRequestSource.CONSOLE)
-        .setDeclaredUris()
-        .setSuppliedExtensions(MetadataExtension.class)
-        .build();
+    ExtensionManager manager =
+        new TestInstanceBuilder()
+            .setEppRequestSource(EppRequestSource.CONSOLE)
+            .setDeclaredUris()
+            .setSuppliedExtensions(MetadataExtension.class)
+            .build();
     manager.register(MetadataExtension.class);
-    assertThrows(OnlyToolCanPassMetadataException.class, () -> manager.validate());
+    EppException thrown = expectThrows(OnlyToolCanPassMetadataException.class, manager::validate);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testSuperuserExtension_allowedForToolSource() throws Exception {
-    ExtensionManager manager = new TestInstanceBuilder()
-        .setEppRequestSource(EppRequestSource.TOOL)
-        .setDeclaredUris()
-        .setSuppliedExtensions(DomainTransferRequestSuperuserExtension.class)
-        .setIsSuperuser(true)
-        .build();
+    ExtensionManager manager =
+        new TestInstanceBuilder()
+            .setEppRequestSource(EppRequestSource.TOOL)
+            .setDeclaredUris()
+            .setSuppliedExtensions(DomainTransferRequestSuperuserExtension.class)
+            .setIsSuperuser(true)
+            .build();
     manager.register(DomainTransferRequestSuperuserExtension.class);
     manager.validate();
   }
 
   @Test
   public void testSuperuserExtension_forbiddenWhenNotSuperuser() throws Exception {
-    ExtensionManager manager = new TestInstanceBuilder()
-        .setEppRequestSource(EppRequestSource.TOOL)
-        .setDeclaredUris()
-        .setSuppliedExtensions(DomainTransferRequestSuperuserExtension.class)
-        .setIsSuperuser(false)
-        .build();
+    ExtensionManager manager =
+        new TestInstanceBuilder()
+            .setEppRequestSource(EppRequestSource.TOOL)
+            .setDeclaredUris()
+            .setSuppliedExtensions(DomainTransferRequestSuperuserExtension.class)
+            .setIsSuperuser(false)
+            .build();
     manager.register(DomainTransferRequestSuperuserExtension.class);
-    assertThrows(UnauthorizedForSuperuserExtensionException.class, () -> manager.validate());
+    EppException thrown =
+        expectThrows(UnauthorizedForSuperuserExtensionException.class, manager::validate);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testSuperuserExtension_forbiddenWhenNotToolSource() throws Exception {
-    ExtensionManager manager = new TestInstanceBuilder()
-        .setEppRequestSource(EppRequestSource.CONSOLE)
-        .setDeclaredUris()
-        .setSuppliedExtensions(DomainTransferRequestSuperuserExtension.class)
-        .setIsSuperuser(true)
-        .build();
+    ExtensionManager manager =
+        new TestInstanceBuilder()
+            .setEppRequestSource(EppRequestSource.CONSOLE)
+            .setDeclaredUris()
+            .setSuppliedExtensions(DomainTransferRequestSuperuserExtension.class)
+            .setIsSuperuser(true)
+            .build();
     manager.register(DomainTransferRequestSuperuserExtension.class);
-    assertThrows(UnauthorizedForSuperuserExtensionException.class, () -> manager.validate());
+    EppException thrown =
+        expectThrows(UnauthorizedForSuperuserExtensionException.class, manager::validate);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testUnimplementedExtensionsForbidden() throws Exception {
-    ExtensionManager manager = new TestInstanceBuilder()
-        .setEppRequestSource(EppRequestSource.TOOL)
-        .setDeclaredUris()
-        .setSuppliedExtensions(LaunchCreateExtension.class)
-        .build();
-    assertThrows(UnimplementedExtensionException.class, () -> manager.validate());
+    ExtensionManager manager =
+        new TestInstanceBuilder()
+            .setEppRequestSource(EppRequestSource.TOOL)
+            .setDeclaredUris()
+            .setSuppliedExtensions(LaunchCreateExtension.class)
+            .build();
+    EppException thrown = expectThrows(UnimplementedExtensionException.class, manager::validate);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   /** A builder for a test-ready {@link ExtensionManager} instance. */

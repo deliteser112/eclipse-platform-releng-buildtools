@@ -17,8 +17,10 @@ package google.registry.flows.session;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
+import google.registry.flows.EppException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppException.UnimplementedObjectServiceException;
 import google.registry.flows.EppException.UnimplementedProtocolVersionException;
@@ -61,9 +63,10 @@ public abstract class LoginFlowTestCase extends FlowTestCase<LoginFlow> {
   }
 
   // Also called in subclasses.
-  void doFailingTest(String xmlFilename, Class<? extends Exception> exception) throws Exception {
+  void doFailingTest(String xmlFilename, Class<? extends EppException> exception) throws Exception {
     setEppInput(xmlFilename);
-    assertThrows(exception, this::runFlow);
+    EppException thrown = expectThrows(exception, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test

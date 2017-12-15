@@ -22,9 +22,10 @@ import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.getOnlyPollMessage;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.expectThrows;
 
+import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.exceptions.NotPendingTransferException;
@@ -124,80 +125,103 @@ public class ContactTransferCancelFlowTest
   @Test
   public void testFailure_badContactPassword() throws Exception {
     // Change the contact's password so it does not match the password in the file.
-    contact = persistResource(
-        contact.asBuilder()
-            .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
-            .build());
-    assertThrows(
-        BadAuthInfoForResourceException.class,
-        () -> doFailingTest("contact_transfer_cancel_with_authinfo.xml"));
+    contact =
+        persistResource(
+            contact
+                .asBuilder()
+                .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
+                .build());
+    EppException thrown =
+        expectThrows(
+            BadAuthInfoForResourceException.class,
+            () -> doFailingTest("contact_transfer_cancel_with_authinfo.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_neverBeenTransferred() throws Exception {
     changeTransferStatus(null);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_clientApproved() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_APPROVED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
- @Test
+  @Test
   public void testFailure_clientRejected() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_REJECTED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
- @Test
+  @Test
   public void testFailure_clientCancelled() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_CANCELLED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_serverApproved() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_APPROVED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_serverCancelled() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_CANCELLED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_sponsoringClient() throws Exception {
     setClientIdForFlow("TheRegistrar");
-    assertThrows(
-        NotTransferInitiatorException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
+    EppException thrown =
+        expectThrows(
+            NotTransferInitiatorException.class,
+            () -> doFailingTest("contact_transfer_cancel.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_unrelatedClient() throws Exception {
     setClientIdForFlow("ClientZ");
-    assertThrows(
-        NotTransferInitiatorException.class, () -> doFailingTest("contact_transfer_cancel.xml"));
+    EppException thrown =
+        expectThrows(
+            NotTransferInitiatorException.class,
+            () -> doFailingTest("contact_transfer_cancel.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_deletedContact() throws Exception {
-    contact = persistResource(
-        contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
+    contact =
+        persistResource(contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     ResourceDoesNotExistException thrown =
         expectThrows(
             ResourceDoesNotExistException.class,
             () -> doFailingTest("contact_transfer_cancel.xml"));
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -208,6 +232,7 @@ public class ContactTransferCancelFlowTest
             ResourceDoesNotExistException.class,
             () -> doFailingTest("contact_transfer_cancel.xml"));
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test

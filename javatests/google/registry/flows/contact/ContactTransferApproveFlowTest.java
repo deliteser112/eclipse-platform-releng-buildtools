@@ -23,9 +23,10 @@ import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.getOnlyPollMessage;
 import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.expectThrows;
 
+import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
 import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
@@ -144,65 +145,82 @@ public class ContactTransferApproveFlowTest
         contact.asBuilder()
             .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
             .build());
-    assertThrows(
+    EppException thrown = expectThrows(
         BadAuthInfoForResourceException.class,
         () -> doFailingTest("contact_transfer_approve_with_authinfo.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_neverBeenTransferred() throws Exception {
     changeTransferStatus(null);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_clientApproved() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_APPROVED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
- @Test
+  @Test
   public void testFailure_clientRejected() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_REJECTED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
- @Test
+  @Test
   public void testFailure_clientCancelled() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_CANCELLED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_serverApproved() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_APPROVED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_serverCancelled() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_CANCELLED);
-    assertThrows(
-        NotPendingTransferException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            NotPendingTransferException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_gainingClient() throws Exception {
     setClientIdForFlow("NewRegistrar");
-    assertThrows(
-        ResourceNotOwnedException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            ResourceNotOwnedException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_unrelatedClient() throws Exception {
     setClientIdForFlow("ClientZ");
-    assertThrows(
-        ResourceNotOwnedException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    EppException thrown =
+        expectThrows(
+            ResourceNotOwnedException.class, () -> doFailingTest("contact_transfer_approve.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -214,6 +232,7 @@ public class ContactTransferApproveFlowTest
             ResourceDoesNotExistException.class,
             () -> doFailingTest("contact_transfer_approve.xml"));
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -226,6 +245,7 @@ public class ContactTransferApproveFlowTest
             ResourceDoesNotExistException.class,
             () -> doFailingTest("contact_transfer_approve.xml"));
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
