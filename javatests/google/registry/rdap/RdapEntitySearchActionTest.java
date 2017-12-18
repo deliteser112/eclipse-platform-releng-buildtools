@@ -419,35 +419,49 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
    * Checks multi-page result set navigation using the cursor.
    *
    * <p>If there are more results than the max result set size, the RDAP code returns a cursor token
-   * which can be used in a subsequent call to get the next chunk of results. This method starts by
-   * making the query without a cursor, then follows the chain of pages using each returned cursor
-   * to ask for the next one, and makes sure that the expected number of pages are fetched.
+   * which can be used in a subsequent call to get the next chunk of results.
    *
    * @param queryType type of query being run
-   * @param queryString the full name or handle query string
-   * @param expectedPageCount how many pages we expect to retrieve; all but the last will have a
-   *     cursor
+   * @param paramValue the query string
+   * @param expectedNames an immutable list of the entity names we expect to retrieve
    */
-  private void checkCursorNavigation(QueryType queryType, String queryString, int expectedPageCount)
+  private void checkCursorNavigation(
+      QueryType queryType, String paramValue, ImmutableList<String> expectedNames)
       throws Exception {
     String cursor = null;
-    for (int i = 0; i < expectedPageCount; i++) {
+    int expectedNameOffset = 0;
+    int expectedPageCount =
+        (expectedNames.size() + action.rdapResultSetMaxSize - 1) / action.rdapResultSetMaxSize;
+    for (int pageNum = 0; pageNum < expectedPageCount; pageNum++) {
       Object results =
           (queryType == QueryType.FULL_NAME)
-              ? generateActualJsonWithFullName(queryString, cursor)
-              : generateActualJsonWithHandle(queryString, cursor);
+              ? generateActualJsonWithFullName(paramValue, cursor)
+              : generateActualJsonWithHandle(paramValue, cursor);
       assertThat(response.getStatus()).isEqualTo(200);
       String linkToNext = RdapTestHelper.getLinkToNext(results);
-      if (i == expectedPageCount - 1) {
+      if (pageNum == expectedPageCount - 1) {
         assertThat(linkToNext).isNull();
       } else {
         assertThat(linkToNext).isNotNull();
         int pos = linkToNext.indexOf("cursor=");
         assertThat(pos).isAtLeast(0);
         cursor = URLDecoder.decode(linkToNext.substring(pos + 7), "UTF-8");
-        Object nameserverSearchResults = ((JSONObject) results).get("entitySearchResults");
-        assertThat(nameserverSearchResults).isInstanceOf(JSONArray.class);
-        assertThat(((JSONArray) nameserverSearchResults)).hasSize(action.rdapResultSetMaxSize);
+        Object searchResults = ((JSONObject) results).get("entitySearchResults");
+        assertThat(searchResults).isInstanceOf(JSONArray.class);
+        assertThat(((JSONArray) searchResults)).hasSize(action.rdapResultSetMaxSize);
+        for (Object item : ((JSONArray) searchResults)) {
+          assertThat(item).isInstanceOf(JSONObject.class);
+          Object vcardArray = ((JSONObject) item).get("vcardArray");
+          assertThat(vcardArray).isInstanceOf(JSONArray.class);
+          Object vcardData = ((JSONArray) vcardArray).get(1);
+          assertThat(vcardData).isInstanceOf(JSONArray.class);
+          Object vcardFn = ((JSONArray) vcardData).get(1);
+          assertThat(vcardFn).isInstanceOf(JSONArray.class);
+          Object name = ((JSONArray) vcardFn).get(3);
+          assertThat(name).isNotNull();
+          assertThat(name).isInstanceOf(String.class);
+          assertThat(name).isEqualTo(expectedNames.get(expectedNameOffset++));
+        }
         response = new FakeResponse();
         action.response = response;
       }
@@ -696,7 +710,19 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
   public void testNameMatchContacts_cursorNavigation() throws Exception {
     login("2-RegistrarTest");
     createManyContactsAndRegistrars(9, 0, registrarTest);
-    checkCursorNavigation(QueryType.FULL_NAME, "Entity *", 3);
+    checkCursorNavigation(
+        QueryType.FULL_NAME,
+        "Entity *",
+        ImmutableList.of(
+            "Entity 1",
+            "Entity 2",
+            "Entity 3",
+            "Entity 4",
+            "Entity 5",
+            "Entity 6",
+            "Entity 7",
+            "Entity 8",
+            "Entity 9"));
   }
 
   @Test
@@ -736,7 +762,23 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
   @Test
   public void testNameMatchRegistrars_cursorNavigation() throws Exception {
     createManyContactsAndRegistrars(0, 13, registrarTest);
-    checkCursorNavigation(QueryType.FULL_NAME, "Entity *", 4);
+    checkCursorNavigation(
+        QueryType.FULL_NAME,
+        "Entity *",
+        ImmutableList.of(
+            "Entity 1",
+            "Entity 10",
+            "Entity 11",
+            "Entity 12",
+            "Entity 13",
+            "Entity 2",
+            "Entity 3",
+            "Entity 4",
+            "Entity 5",
+            "Entity 6",
+            "Entity 7",
+            "Entity 8",
+            "Entity 9"));
   }
 
   @Test
@@ -756,7 +798,16 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
   public void testNameMatchMix_cursorNavigation() throws Exception {
     login("2-RegistrarTest");
     createManyContactsAndRegistrars(3, 3, registrarTest);
-    checkCursorNavigation(QueryType.FULL_NAME, "Entity *", 2);
+    checkCursorNavigation(
+        QueryType.FULL_NAME,
+        "Entity *",
+        ImmutableList.of(
+            "Entity 1",
+            "Entity 2",
+            "Entity 3",
+            "Entity 4",
+            "Entity 5",
+            "Entity 6"));
   }
 
   @Test
@@ -1002,14 +1053,49 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
 
   @Test
   public void testHandleMatchContact_cursorNavigationWithFullLastPage() throws Exception {
+    login("2-RegistrarTest");
     createManyContactsAndRegistrars(12, 0, registrarTest);
-    checkCursorNavigation(QueryType.HANDLE, "00*", 3);
+    checkCursorNavigation(
+        QueryType.HANDLE,
+        "00*",
+        // Contacts are returned in ROID order, not name order, by handle searches.
+        ImmutableList.of(
+            "Entity 1",
+            "Entity 2",
+            "Entity 3",
+            "Entity 4",
+            "Entity 5",
+            "Entity 6",
+            "Entity 7",
+            "Entity 8",
+            "Entity 9",
+            "Entity 10",
+            "Entity 11",
+            "Entity 12"));
   }
 
   @Test
   public void testHandleMatchContact_cursorNavigationWithPartialLastPage() throws Exception {
+    login("2-RegistrarTest");
     createManyContactsAndRegistrars(13, 0, registrarTest);
-    checkCursorNavigation(QueryType.HANDLE, "00*", 4);
+    checkCursorNavigation(
+        QueryType.HANDLE,
+        "00*",
+        // Contacts are returned in ROID order, not name order, by handle searches.
+        ImmutableList.of(
+            "Entity 1",
+            "Entity 2",
+            "Entity 3",
+            "Entity 4",
+            "Entity 5",
+            "Entity 6",
+            "Entity 7",
+            "Entity 8",
+            "Entity 9",
+            "Entity 10",
+            "Entity 11",
+            "Entity 12",
+            "Entity 13"));
   }
 
   @Test

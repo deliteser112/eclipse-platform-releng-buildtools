@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
@@ -64,6 +65,7 @@ import google.registry.testing.InjectRule;
 import google.registry.ui.server.registrar.SessionUtils;
 import google.registry.util.Idn;
 import java.net.IDN;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +73,7 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.junit.Before;
@@ -93,13 +96,14 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
   public final InjectRule inject = new InjectRule();
 
   private final HttpServletRequest request = mock(HttpServletRequest.class);
-  private final FakeResponse response = new FakeResponse();
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
   private final SessionUtils sessionUtils = mock(SessionUtils.class);
   private final User user = new User("rdap.user@example.com", "gmail.com", "12345");
   private final UserAuthInfo userAuthInfo = UserAuthInfo.create(user, false);
   private final UserAuthInfo adminUserAuthInfo = UserAuthInfo.create(user, true);
   private final RdapDomainSearchAction action = new RdapDomainSearchAction();
+
+  private FakeResponse response = new FakeResponse();
 
   private Registrar registrar;
   private DomainResource domainCatLol;
@@ -118,30 +122,49 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
   enum RequestType { NONE, NAME, NS_LDH_NAME, NS_IP }
 
   private Object generateActualJson(RequestType requestType, String paramValue) {
+    return generateActualJson(requestType, paramValue, null);
+  }
+
+  private Object generateActualJson(
+      RequestType requestType, String paramValue, String cursor) {
     action.requestPath = RdapDomainSearchAction.PATH;
+    String requestTypeParam = null;
     switch (requestType) {
       case NAME:
         action.nameParam = Optional.of(paramValue);
         action.nsLdhNameParam = Optional.empty();
         action.nsIpParam = Optional.empty();
+        requestTypeParam = "name";
         break;
       case NS_LDH_NAME:
         action.nameParam = Optional.empty();
         action.nsLdhNameParam = Optional.of(paramValue);
         action.nsIpParam = Optional.empty();
+        requestTypeParam = "nsLdhName";
         break;
       case NS_IP:
         action.nameParam = Optional.empty();
         action.nsLdhNameParam = Optional.empty();
         action.nsIpParam = Optional.of(paramValue);
+        requestTypeParam = "nsIp";
         break;
       default:
         action.nameParam = Optional.empty();
         action.nsLdhNameParam = Optional.empty();
         action.nsIpParam = Optional.empty();
+        requestTypeParam = "";
         break;
     }
-    action.rdapResultSetMaxSize = 4;
+    if (paramValue != null) {
+      if (cursor == null) {
+        action.parameterMap = ImmutableListMultimap.of(requestTypeParam, paramValue);
+        action.cursorTokenParam = Optional.empty();
+      } else {
+        action.parameterMap =
+            ImmutableListMultimap.of(requestTypeParam, paramValue, "cursor", cursor);
+        action.cursorTokenParam = Optional.of(cursor);
+      }
+    }
     action.run();
     return JSONValue.parse(response.getPayload());
   }
@@ -371,6 +394,8 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
     action.request = request;
     action.requestMethod = Action.Method.GET;
     action.fullServletPath = "https://example.com/rdap";
+    action.requestUrl = "https://example.com/rdap/domains";
+    action.parameterMap = ImmutableListMultimap.of();
     action.requestMethod = POST;
     action.response = response;
     action.registrarParam = Optional.empty();
@@ -381,6 +406,8 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
     action.sessionUtils = sessionUtils;
     action.authResult = AuthResult.create(AuthLevel.USER, userAuthInfo);
     action.rdapMetrics = rdapMetrics;
+    action.cursorTokenParam = Optional.empty();
+    action.rdapResultSetMaxSize = 4;
   }
 
   private void login(String clientId) {
@@ -426,6 +453,30 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
       String domain4Name,
       String domain4Handle,
       String expectedOutputFile) {
+    return generateExpectedJsonForFourDomains(
+        domain1Name,
+        domain1Handle,
+        domain2Name,
+        domain2Handle,
+        domain3Name,
+        domain3Handle,
+        domain4Name,
+        domain4Handle,
+        "none",
+        expectedOutputFile);
+  }
+
+  private Object generateExpectedJsonForFourDomains(
+      String domain1Name,
+      String domain1Handle,
+      String domain2Name,
+      String domain2Handle,
+      String domain3Name,
+      String domain3Handle,
+      String domain4Name,
+      String domain4Handle,
+      String nextQuery,
+      String expectedOutputFile) {
     return JSONValue.parse(
         loadFile(
             this.getClass(),
@@ -444,6 +495,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
                 .put("DOMAINPUNYCODENAME4", domain4Name)
                 .put("DOMAINNAME4", IDN.toUnicode(domain4Name))
                 .put("DOMAINHANDLE4", domain4Handle)
+                .put("NEXT_QUERY", nextQuery)
                 .build()));
   }
 
@@ -567,6 +619,30 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
       String domainHandle3,
       String domainName4,
       String domainHandle4) {
+    return readMultiDomainFile(
+        fileName,
+        domainName1,
+        domainHandle1,
+        domainName2,
+        domainHandle2,
+        domainName3,
+        domainHandle3,
+        domainName4,
+        domainHandle4,
+        "none");
+  }
+
+  private Object readMultiDomainFile(
+      String fileName,
+      String domainName1,
+      String domainHandle1,
+      String domainName2,
+      String domainHandle2,
+      String domainName3,
+      String domainHandle3,
+      String domainName4,
+      String domainHandle4,
+      String nextQuery) {
     return JSONValue.parse(loadFile(
         this.getClass(),
         fileName,
@@ -579,6 +655,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
             .put("DOMAINHANDLE3", domainHandle3)
             .put("DOMAINNAME4", domainName4)
             .put("DOMAINHANDLE4", domainHandle4)
+            .put("NEXT_QUERY", nextQuery)
             .build()));
   }
 
@@ -645,6 +722,26 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
       String domainRoid3,
       String domainRoid4,
       String fileName) {
+    runSuccessfulTestWithFourDomains(
+        requestType,
+        queryString,
+        domainRoid1,
+        domainRoid2,
+        domainRoid3,
+        domainRoid4,
+        "none",
+        fileName);
+  }
+
+  private void runSuccessfulTestWithFourDomains(
+      RequestType requestType,
+      String queryString,
+      String domainRoid1,
+      String domainRoid2,
+      String domainRoid3,
+      String domainRoid4,
+      String nextQuery,
+      String fileName) {
     rememberWildcardType(queryString);
     assertThat(generateActualJson(requestType, queryString))
         .isEqualTo(
@@ -657,7 +754,8 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
                 "domain3.lol",
                 domainRoid3,
                 "domain4.lol",
-                domainRoid4));
+                domainRoid4,
+                nextQuery));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -729,6 +827,50 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
       int statusCode) {
     metricStatusCode = statusCode;
     verifyMetrics(searchType, numDomainsRetrieved, numHostsRetrieved);
+  }
+
+  /**
+   * Checks multi-page result set navigation using the cursor.
+   *
+   * <p>If there are more results than the max result set size, the RDAP code returns a cursor token
+   * which can be used in a subsequent call to get the next chunk of results.
+   *
+   * @param requestType the type of query (name, nameserver name or nameserver address)
+   * @param paramValue the query string
+   * @param expectedNames an immutable list of the domain names we expect to retrieve
+   */
+  private void checkCursorNavigation(
+      RequestType requestType, String paramValue, ImmutableList<String> expectedNames)
+      throws Exception {
+    String cursor = null;
+    int expectedNameOffset = 0;
+    int expectedPageCount =
+        (expectedNames.size() + action.rdapResultSetMaxSize - 1) / action.rdapResultSetMaxSize;
+    for (int pageNum = 0; pageNum < expectedPageCount; pageNum++) {
+      Object results = generateActualJson(requestType, paramValue, cursor);
+      assertThat(response.getStatus()).isEqualTo(200);
+      String linkToNext = RdapTestHelper.getLinkToNext(results);
+      if (pageNum == expectedPageCount - 1) {
+        assertThat(linkToNext).isNull();
+      } else {
+        assertThat(linkToNext).isNotNull();
+        int pos = linkToNext.indexOf("cursor=");
+        assertThat(pos).isAtLeast(0);
+        cursor = URLDecoder.decode(linkToNext.substring(pos + 7), "UTF-8");
+        Object searchResults = ((JSONObject) results).get("domainSearchResults");
+        assertThat(searchResults).isInstanceOf(JSONArray.class);
+        assertThat(((JSONArray) searchResults)).hasSize(action.rdapResultSetMaxSize);
+        for (Object item : ((JSONArray) searchResults)) {
+          assertThat(item).isInstanceOf(JSONObject.class);
+          Object name = ((JSONObject) item).get("ldhName");
+          assertThat(name).isNotNull();
+          assertThat(name).isInstanceOf(String.class);
+          assertThat(name).isEqualTo(expectedNames.get(expectedNameOffset++));
+        }
+        response = new FakeResponse();
+        action.response = response;
+      }
+    }
   }
 
   @Test
@@ -1032,6 +1174,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
                 "cat.example", "21-EXAMPLE",
                 "cat.lol", "C-LOL",
                 "cat.xn--q9jyb4c", "2D-Q9JYB4C",
+                "name=cat*&cursor=Y2F0LnhuLS1xOWp5YjRj",
                 "rdap_domains_four_with_one_unicode_truncated.json"));
     assertThat(response.getStatus()).isEqualTo(200);
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(5L), IncompletenessWarningType.TRUNCATED);
@@ -1192,6 +1335,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "46-LOL",
         "45-LOL",
         "44-LOL",
+        "name=domain*.lol&cursor=ZG9tYWluNC5sb2w%3D",
         "rdap_domains_four_truncated.json");
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(5L), IncompletenessWarningType.TRUNCATED);
   }
@@ -1210,7 +1354,8 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
             "domain1.lol",
             "46-LOL",
             "domain2.lol",
-            "45-LOL"));
+            "45-LOL",
+            "name=*.lol&cursor=ZG9tYWluMi5sb2w%3D"));
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(5L), IncompletenessWarningType.TRUNCATED);
   }
 
@@ -1226,6 +1371,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "4A-LOL",
         "49-LOL",
         "48-LOL",
+        "name=domain*.lol&cursor=ZG9tYWluNC5sb2w%3D",
         "rdap_domains_four_truncated.json");
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(5L), IncompletenessWarningType.TRUNCATED);
   }
@@ -1244,9 +1390,52 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
             "domain24.lol",
             "49-LOL",
             "domain30.lol",
-            "43-LOL"));
+            "43-LOL",
+            "name=domain*.lol&cursor=ZG9tYWluMzAubG9s"));
     assertThat(response.getStatus()).isEqualTo(200);
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(27L), IncompletenessWarningType.TRUNCATED);
+  }
+
+  @Test
+  public void testDomainMatch_cursorNavigationWithInitialString() throws Exception {
+    createManyDomainsAndHosts(11, 1, 2);
+    checkCursorNavigation(
+        RequestType.NAME,
+        "domain*.lol",
+        ImmutableList.of(
+            "domain1.lol",
+            "domain10.lol",
+            "domain11.lol",
+            "domain2.lol",
+            "domain3.lol",
+            "domain4.lol",
+            "domain5.lol",
+            "domain6.lol",
+            "domain7.lol",
+            "domain8.lol",
+            "domain9.lol"));
+  }
+
+  @Test
+  public void testDomainMatch_cursorNavigationWithTldSuffix() throws Exception {
+    createManyDomainsAndHosts(11, 1, 2);
+    checkCursorNavigation(
+        RequestType.NAME,
+        "*.lol",
+        ImmutableList.of(
+            "cat.lol",
+            "cat2.lol",
+            "domain1.lol",
+            "domain10.lol",
+            "domain11.lol",
+            "domain2.lol",
+            "domain3.lol",
+            "domain4.lol",
+            "domain5.lol",
+            "domain6.lol",
+            "domain7.lol",
+            "domain8.lol",
+            "domain9.lol"));
   }
 
   @Test
@@ -1595,6 +1784,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "46-LOL",
         "45-LOL",
         "44-LOL",
+        "nsLdhName=ns1.domain1.lol&cursor=ZG9tYWluNC5sb2w%3D",
         "rdap_domains_four_truncated.json");
     verifyMetrics(
         SearchType.BY_NAMESERVER_NAME,
@@ -1613,6 +1803,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "4A-LOL",
         "49-LOL",
         "48-LOL",
+        "nsLdhName=ns1.domain1.lol&cursor=ZG9tYWluNC5sb2w%3D",
         "rdap_domains_four_truncated.json");
     verifyMetrics(
         SearchType.BY_NAMESERVER_NAME,
@@ -1664,6 +1855,23 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         Optional.of(2L),
         Optional.of(2500L),
         IncompletenessWarningType.MIGHT_BE_INCOMPLETE);
+  }
+
+  @Test
+  public void testNameserverMatch_cursorNavigation() throws Exception {
+    createManyDomainsAndHosts(8, 1, 2);
+    checkCursorNavigation(
+        RequestType.NS_LDH_NAME,
+        "ns*.domain1.lol",
+        ImmutableList.of(
+            "domain1.lol",
+            "domain2.lol",
+            "domain3.lol",
+            "domain4.lol",
+            "domain5.lol",
+            "domain6.lol",
+            "domain7.lol",
+            "domain8.lol"));
   }
 
   @Test
@@ -1819,6 +2027,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "46-LOL",
         "45-LOL",
         "44-LOL",
+        "nsIp=5.5.5.1&cursor=ZG9tYWluNC5sb2w%3D",
         "rdap_domains_four_truncated.json");
     verifyMetrics(
         SearchType.BY_NAMESERVER_ADDRESS,
@@ -1837,11 +2046,29 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "4A-LOL",
         "49-LOL",
         "48-LOL",
+        "nsIp=5.5.5.1&cursor=ZG9tYWluNC5sb2w%3D",
         "rdap_domains_four_truncated.json");
     verifyMetrics(
         SearchType.BY_NAMESERVER_ADDRESS,
         Optional.of(9L),
         Optional.of(1L),
         IncompletenessWarningType.TRUNCATED);
+  }
+
+  @Test
+  public void testAddressMatch_cursorNavigation() throws Exception {
+    createManyDomainsAndHosts(7, 1, 2);
+    checkCursorNavigation(
+        RequestType.NS_IP,
+        "5.5.5.1",
+        ImmutableList.of(
+            "domain1.lol",
+            "domain2.lol",
+            "domain3.lol",
+            "domain4.lol",
+            "domain5.lol",
+            "domain6.lol",
+            "domain7.lol",
+            "domain8.lol"));
   }
 }

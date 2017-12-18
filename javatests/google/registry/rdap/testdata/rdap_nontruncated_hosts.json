@@ -5,14 +5,14 @@
       "objectClassName" : "nameserver",
       "handle" : "14-ROID",
       "status" : ["active"],
-      "ldhName" : "ns1.cat.lol",
+      "ldhName" : "nsx1.cat.lol",
       "links" :
       [
         {
-          "value" : "https://example.tld/rdap/nameserver/ns1.cat.lol",
+          "value" : "https://example.tld/rdap/nameserver/nsx1.cat.lol",
           "rel" : "self",
           "type" : "application/rdap+json",
-          "href" : "https://example.tld/rdap/nameserver/ns1.cat.lol"
+          "href" : "https://example.tld/rdap/nameserver/nsx1.cat.lol"
         }
       ],
       "ipAddresses" :
@@ -33,14 +33,14 @@
       "objectClassName" : "nameserver",
       "handle" : "15-ROID",
       "status" : ["active"],
-      "ldhName" : "ns2.cat.lol",
+      "ldhName" : "nsx2.cat.lol",
       "links" :
       [
         {
-          "value" : "https://example.tld/rdap/nameserver/ns2.cat.lol",
+          "value" : "https://example.tld/rdap/nameserver/nsx2.cat.lol",
           "rel" : "self",
           "type" : "application/rdap+json",
-          "href" : "https://example.tld/rdap/nameserver/ns2.cat.lol"
+          "href" : "https://example.tld/rdap/nameserver/nsx2.cat.lol"
         }
       ],
       "ipAddresses" :
@@ -61,14 +61,14 @@
       "objectClassName" : "nameserver",
       "handle" : "16-ROID",
       "status" : ["active"],
-      "ldhName" : "ns3.cat.lol",
+      "ldhName" : "nsx3.cat.lol",
       "links" :
       [
         {
-          "value" : "https://example.tld/rdap/nameserver/ns3.cat.lol",
+          "value" : "https://example.tld/rdap/nameserver/nsx3.cat.lol",
           "rel" : "self",
           "type" : "application/rdap+json",
-          "href" : "https://example.tld/rdap/nameserver/ns3.cat.lol"
+          "href" : "https://example.tld/rdap/nameserver/nsx3.cat.lol"
         }
       ],
       "ipAddresses" :
@@ -89,14 +89,14 @@
       "objectClassName" : "nameserver",
       "handle" : "17-ROID",
       "status" : ["active"],
-      "ldhName" : "ns4.cat.lol",
+      "ldhName" : "nsx4.cat.lol",
       "links" :
       [
         {
-          "value" : "https://example.tld/rdap/nameserver/ns4.cat.lol",
+          "value" : "https://example.tld/rdap/nameserver/nsx4.cat.lol",
           "rel" : "self",
           "type" : "application/rdap+json",
-          "href" : "https://example.tld/rdap/nameserver/ns4.cat.lol"
+          "href" : "https://example.tld/rdap/nameserver/nsx4.cat.lol"
         }
       ],
       "ipAddresses" :

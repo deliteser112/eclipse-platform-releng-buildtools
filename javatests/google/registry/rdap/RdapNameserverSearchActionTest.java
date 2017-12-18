@@ -272,7 +272,7 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
     ImmutableList.Builder<HostResource> hostsBuilder = new ImmutableList.Builder<>();
     ImmutableSet.Builder<String> subordinateHostsBuilder = new ImmutableSet.Builder<>();
     for (int i = 1; i <= numHosts; i++) {
-      String hostName = String.format("ns%d.cat.lol", i);
+      String hostName = String.format("nsx%d.cat.lol", i);
       subordinateHostsBuilder.add(hostName);
       hostsBuilder.add(makeHostResource(hostName, "5.5.5.1", "5.5.5.2"));
     }
@@ -575,7 +575,7 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
   @Test
   public void testNameMatch_nontruncatedResultSet() throws Exception {
     createManyHosts(4);
-    assertThat(generateActualJsonWithName("ns*.cat.lol"))
+    assertThat(generateActualJsonWithName("nsx*.cat.lol"))
       .isEqualTo(generateExpectedJson("rdap_nontruncated_hosts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
     verifyMetrics(4);
@@ -584,10 +584,10 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
   @Test
   public void testNameMatch_truncatedResultSet() throws Exception {
     createManyHosts(5);
-    assertThat(generateActualJsonWithName("ns*.cat.lol"))
+    assertThat(generateActualJsonWithName("nsx*.cat.lol"))
         .isEqualTo(
             generateExpectedJson(
-                "name=ns*.cat.lol&cursor=bnM0LmNhdC5sb2w%3D", "rdap_truncated_hosts.json"));
+                "name=nsx*.cat.lol&cursor=bnN4NC5jYXQubG9s", "rdap_truncated_hosts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
     verifyMetrics(5);
   }
@@ -595,10 +595,10 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
   @Test
   public void testNameMatch_reallyTruncatedResultSet() throws Exception {
     createManyHosts(9);
-    assertThat(generateActualJsonWithName("ns*.cat.lol"))
+    assertThat(generateActualJsonWithName("nsx*.cat.lol"))
         .isEqualTo(
             generateExpectedJson(
-                "name=ns*.cat.lol&cursor=bnM0LmNhdC5sb2w%3D", "rdap_truncated_hosts.json"));
+                "name=nsx*.cat.lol&cursor=bnN4NC5jYXQubG9s", "rdap_truncated_hosts.json"));
     assertThat(response.getStatus()).isEqualTo(200);
     // When searching names, we look for additional matches, in case some are not visible.
     verifyMetrics(9);
@@ -716,30 +716,40 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
    * which can be used in a subsequent call to get the next chunk of results.
    *
    * @param byName true if we are searching by name; false if we are searching by address
-   * @param queryString the name or address query string
-   * @param expectedPageCount how many pages we expect to retrieve; all but the last will have a
-   *     cursor
+   * @param paramValue the query string
+   * @param expectedNames an immutable list of the host names we expect to retrieve
    */
-  private void checkCursorNavigation(boolean byName, String queryString, int expectedPageCount)
+  private void checkCursorNavigation(
+      boolean byName, String paramValue, ImmutableList<String> expectedNames)
       throws Exception {
     String cursor = null;
-    for (int i = 0; i < expectedPageCount; i++) {
+    int expectedNameOffset = 0;
+    int expectedPageCount =
+        (expectedNames.size() + action.rdapResultSetMaxSize - 1) / action.rdapResultSetMaxSize;
+    for (int pageNum = 0; pageNum < expectedPageCount; pageNum++) {
       Object results =
           byName
-              ? generateActualJsonWithName(queryString, cursor)
-              : generateActualJsonWithIp(queryString, cursor);
+              ? generateActualJsonWithName(paramValue, cursor)
+              : generateActualJsonWithIp(paramValue, cursor);
       assertThat(response.getStatus()).isEqualTo(200);
       String linkToNext = RdapTestHelper.getLinkToNext(results);
-      if (i == expectedPageCount - 1) {
+      if (pageNum == expectedPageCount - 1) {
         assertThat(linkToNext).isNull();
       } else {
         assertThat(linkToNext).isNotNull();
         int pos = linkToNext.indexOf("cursor=");
         assertThat(pos).isAtLeast(0);
         cursor = URLDecoder.decode(linkToNext.substring(pos + 7), "UTF-8");
-        Object nameserverSearchResults = ((JSONObject) results).get("nameserverSearchResults");
-        assertThat(nameserverSearchResults).isInstanceOf(JSONArray.class);
-        assertThat(((JSONArray) nameserverSearchResults)).hasSize(action.rdapResultSetMaxSize);
+        Object searchResults = ((JSONObject) results).get("nameserverSearchResults");
+        assertThat(searchResults).isInstanceOf(JSONArray.class);
+        assertThat(((JSONArray) searchResults)).hasSize(action.rdapResultSetMaxSize);
+        for (Object item : ((JSONArray) searchResults)) {
+          assertThat(item).isInstanceOf(JSONObject.class);
+          Object name = ((JSONObject) item).get("ldhName");
+          assertThat(name).isNotNull();
+          assertThat(name).isInstanceOf(String.class);
+          assertThat(name).isEqualTo(expectedNames.get(expectedNameOffset++));
+        }
         response = new FakeResponse();
         action.response = response;
       }
@@ -749,13 +759,43 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
   @Test
   public void testNameMatch_cursorNavigationWithSuperordinateDomain() throws Exception {
     createManyHosts(9);
-    checkCursorNavigation(true, "ns*.cat.lol", 3);
+    checkCursorNavigation(
+        true,
+        "ns*.cat.lol",
+        ImmutableList.of(
+            "nsx1.cat.lol",
+            "nsx2.cat.lol",
+            "nsx3.cat.lol",
+            "nsx4.cat.lol",
+            "nsx5.cat.lol",
+            "nsx6.cat.lol",
+            "nsx7.cat.lol",
+            "nsx8.cat.lol",
+            "nsx9.cat.lol"));
   }
 
   @Test
   public void testNameMatch_cursorNavigationWithPrefix() throws Exception {
     createManyHosts(9);
-    checkCursorNavigation(true, "ns*", 4);
+    checkCursorNavigation(
+        true,
+        "ns*",
+        ImmutableList.of(
+            "ns1.cat.1.test",
+            "ns1.cat.external",
+            "ns1.cat.lol",
+            "ns1.cat.xn--q9jyb4c",
+            "ns1.cat2.lol",
+            "ns2.cat.lol",
+            "nsx1.cat.lol",
+            "nsx2.cat.lol",
+            "nsx3.cat.lol",
+            "nsx4.cat.lol",
+            "nsx5.cat.lol",
+            "nsx6.cat.lol",
+            "nsx7.cat.lol",
+            "nsx8.cat.lol",
+            "nsx9.cat.lol"));
   }
 
   @Test
@@ -921,6 +961,18 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
   @Test
   public void testAddressMatch_cursorNavigation() throws Exception {
     createManyHosts(9);
-    checkCursorNavigation(false, "5.5.5.1", 3);
+    checkCursorNavigation(
+        false,
+        "5.5.5.1",
+        ImmutableList.of(
+            "nsx1.cat.lol",
+            "nsx2.cat.lol",
+            "nsx3.cat.lol",
+            "nsx4.cat.lol",
+            "nsx5.cat.lol",
+            "nsx6.cat.lol",
+            "nsx7.cat.lol",
+            "nsx8.cat.lol",
+            "nsx9.cat.lol"));
   }
 }

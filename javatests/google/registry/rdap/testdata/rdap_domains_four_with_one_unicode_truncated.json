@@ -128,6 +128,18 @@
       ]
     },
     {
+      "title" : "Navigation Links",
+      "description" : [ "Links to related pages." ],
+      "links" :
+      [
+        {
+          "type" : "application/rdap+json",
+          "rel" : "next",
+          "href" : "https://example.com/rdap/domains?%NEXT_QUERY%"
+        }
+      ]
+    },
+    {
       "title" : "RDAP Terms of Service",
       "description" :
       [

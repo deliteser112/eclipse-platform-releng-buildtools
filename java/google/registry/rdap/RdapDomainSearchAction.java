@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -120,6 +121,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
       throw new BadRequestException(
           "You must specify either name=XXXX, nsLdhName=YYYY or nsIp=ZZZZ");
     }
+    decodeCursorToken();
     RdapSearchResults results;
     if (nameParam.isPresent()) {
       metricInformationBuilder.setSearchType(SearchType.BY_DOMAIN_NAME);
@@ -163,7 +165,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     rdapJsonFormatter.addTopLevelEntries(
         builder,
         BoilerplateType.DOMAIN,
-        results.getIncompletenessWarnings(),
+        getNotices(results),
         ImmutableList.of(),
         fullServletPath);
     return builder.build();
@@ -241,11 +243,14 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
             .load()
             .type(DomainResource.class)
             .filter("fullyQualifiedDomainName <", partialStringQuery.getNextInitialString())
-            .filter("fullyQualifiedDomainName >=", partialStringQuery.getInitialString())
-            .limit(querySizeLimit);
+            .filter("fullyQualifiedDomainName >=", partialStringQuery.getInitialString());
+    if (cursorString.isPresent()) {
+      query = query.filter("fullyQualifiedDomainName >", cursorString.get());
+    }
     if (partialStringQuery.getSuffix() != null) {
       query = query.filter("tld", partialStringQuery.getSuffix());
     }
+    query = query.limit(querySizeLimit);
     // Always check for visibility, because we couldn't look at the deletionTime in the query.
     return makeSearchResults(getMatchingResources(query, true, now, querySizeLimit), now);
   }
@@ -261,9 +266,11 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
         ofy()
             .load()
             .type(DomainResource.class)
-            .filter("tld", tld)
-            .order("fullyQualifiedDomainName")
-            .limit(querySizeLimit);
+            .filter("tld", tld);
+    if (cursorString.isPresent()) {
+      query = query.filter("fullyQualifiedDomainName >", cursorString.get());
+    }
+    query = query.order("fullyQualifiedDomainName").limit(querySizeLimit);
     return makeSearchResults(getMatchingResources(query, true, now, querySizeLimit), now);
   }
 
@@ -459,10 +466,19 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
           .filter("nsHosts in", chunk);
       if (!shouldIncludeDeleted()) {
         query = query.filter("deletionTime >", now);
+      // If we are not performing an inequality query, we can filter on the cursor in the query.
+      // Otherwise, we will need to filter the results afterward.
+      } else if (cursorString.isPresent()) {
+        query = query.filter("fullyQualifiedDomainName >", cursorString.get());
       }
-      Streams.stream(query)
-          .filter(domain -> isAuthorized(domain, now))
-          .forEach(domainSetBuilder::add);
+      Stream<DomainResource> stream =
+          Streams.stream(query).filter(domain -> isAuthorized(domain, now));
+      if (cursorString.isPresent()) {
+        stream =
+            stream.filter(
+                domain -> (domain.getFullyQualifiedDomainName().compareTo(cursorString.get()) > 0));
+      }
+      stream.forEach(domainSetBuilder::add);
     }
     List<DomainResource> domains = domainSetBuilder.build().asList();
     metricInformationBuilder.setNumHostsRetrieved(numHostKeysSearched);
@@ -519,7 +535,9 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
         (domains.size() > 1) ? OutputDataType.SUMMARY : OutputDataType.FULL;
     RdapAuthorization authorization = getAuthorization();
     List<ImmutableMap<String, Object>> jsonList = new ArrayList<>();
+    Optional<String> newCursor = Optional.empty();
     for (DomainResource domain : domains) {
+      newCursor = Optional.of(domain.getFullyQualifiedDomainName());
       jsonList.add(
           rdapJsonFormatter.makeRdapJsonForDomain(
               domain, false, fullServletPath, rdapWhoisServer, now, outputDataType, authorization));
@@ -533,6 +551,10 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
             : incompletenessWarningType;
     metricInformationBuilder.setIncompletenessWarningType(finalIncompletenessWarningType);
     return RdapSearchResults.create(
-        ImmutableList.copyOf(jsonList), finalIncompletenessWarningType, Optional.empty());
+        ImmutableList.copyOf(jsonList),
+        finalIncompletenessWarningType,
+        (finalIncompletenessWarningType == IncompletenessWarningType.TRUNCATED)
+            ? newCursor
+            : Optional.empty());
   }
 }
