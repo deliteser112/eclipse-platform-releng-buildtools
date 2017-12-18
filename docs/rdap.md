@@ -341,6 +341,50 @@ formatted version can be requested by adding an extra parameter:
 The result is still valid JSON, but with extra whitespace added to align the
 data on the page.
 
+### Next page links <a id="next_page_links"></a>
+
+The number of results returned in a domain, nameserver or entity search is
+capped at a certain number. If there are more results than the limit, two
+notices will be added to the returned JSON. The first is a standard Search
+Policy notice, indicating that the results have been truncated. The second has a
+title of `Navigation Links`, and a links section containing a link with `rel`
+type `next`. This link can be used to retrieve the next page of results (which
+may have a further link, and so on until all results have been retrieved).
+
+The links are not foolproof, and caution should be exercised. If a matching
+record is added or deleted between the time successive pages are requested, a
+gap or a duplicate may appear.
+
+Here are examples of the notices which will appear when the result set is
+truncated.
+
+```
+  "notices" :
+  [
+    {
+      "title" : "Search Policy",
+      "type" : "result set truncated due to unexplainable reasons",
+      "description" :
+      [
+        "Search results per query are limited."
+      ]
+    },
+    {
+      "title" : "Navigation Links",
+      "links" :
+      [
+        {
+          "type" : "application/rdap+json",
+          "href" :
+              "https://ex.com/rdap/domains?name=abc*.tld&cursor=a5927CDb902wE=",
+          "rel" : "next"
+        }
+      ],
+      "description" : [ "Links to related pages." ],
+    },
+    ...
+```
+
 ### Additional features
 
 We anticipate adding additional features during the pilot program, such as the
