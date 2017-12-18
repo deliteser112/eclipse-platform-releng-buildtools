@@ -37,6 +37,7 @@ import google.registry.dns.DnsModule;
 import google.registry.dns.PublishDnsUpdatesAction;
 import google.registry.dns.ReadDnsQueueAction;
 import google.registry.dns.RefreshDnsAction;
+import google.registry.dns.writer.VoidDnsWriterModule;
 import google.registry.dns.writer.clouddns.CloudDnsWriterModule;
 import google.registry.dns.writer.dnsupdate.DnsUpdateConfigModule;
 import google.registry.dns.writer.dnsupdate.DnsUpdateWriterModule;
@@ -101,6 +102,7 @@ import google.registry.tmch.TmchSmdrlAction;
         RequestModule.class,
         SheetModule.class,
         TmchModule.class,
+        VoidDnsWriterModule.class,
         WhiteboxModule.class,
     })
 interface BackendRequestComponent {
