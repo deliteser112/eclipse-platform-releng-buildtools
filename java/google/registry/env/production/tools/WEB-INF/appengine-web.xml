@@ -9,7 +9,7 @@
   <sessions-enabled>true</sessions-enabled>
   <instance-class>B4_1G</instance-class>
   <basic-scaling>
-    <max-instances>50</max-instances>
+    <max-instances>5</max-instances>
     <idle-timeout>10m</idle-timeout>
   </basic-scaling>
 
