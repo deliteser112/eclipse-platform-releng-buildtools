@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.model.EppResourceUtils.projectResourceOntoBuilderAtTime;
 
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.IgnoreSave;
@@ -31,6 +30,7 @@ import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.annotations.ReportedOn;
 import google.registry.model.contact.PostalInfo.Type;
 import google.registry.model.transfer.TransferData;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.xml.bind.annotation.XmlElement;
@@ -175,7 +175,7 @@ public class ContactResource extends EppResource implements
   @XmlElement(name = "postalInfo")
   public ImmutableList<PostalInfo> getPostalInfosAsList() {
     return Stream.of(localizedPostalInfo, internationalizedPostalInfo)
-        .filter(Predicates.notNull())
+        .filter(Objects::nonNull)
         .collect(toImmutableList());
   }
 

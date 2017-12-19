@@ -15,7 +15,6 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.registrar.Registrar.loadByClientId;
 import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
@@ -35,6 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 /** Command to verify that a registrar has passed OT&amp;E. */
 @Parameters(
@@ -118,7 +118,7 @@ final class VerifyOteCommand implements ServerSideCommand {
               // If it matches, provide the shortened name, and otherwise return null.
               return name.equals(replacedName) ? null : replacedName;
             })
-        .filter(notNull())
+        .filter(Objects::nonNull)
         .collect(toImmutableSet());
   }
 }

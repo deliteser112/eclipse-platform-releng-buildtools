@@ -16,7 +16,6 @@ package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Predicates.notNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Maps.filterValues;
 import static com.google.common.io.Resources.getResource;
@@ -45,6 +44,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /** A command to execute an epp command. */
 abstract class EppToolCommand extends ConfirmingCommand implements ServerSideCommand {
@@ -145,7 +145,7 @@ abstract class EppToolCommand extends ConfirmingCommand implements ServerSideCom
       params.put("superuser", superuser);
       params.put("xml", URLEncoder.encode(command.xml, UTF_8.toString()));
       String requestBody =
-          Joiner.on('&').withKeyValueSeparator("=").join(filterValues(params, notNull()));
+          Joiner.on('&').withKeyValueSeparator("=").join(filterValues(params, Objects::nonNull));
       responses.add(nullToEmpty(connection.send(
           "/_dr/epptool",
           ImmutableMap.<String, String>of(),

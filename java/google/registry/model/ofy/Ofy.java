@@ -16,7 +16,6 @@ package google.registry.model.ofy;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.Maps.uniqueIndex;
 import static com.googlecode.objectify.ObjectifyService.ofy;
 import static google.registry.config.RegistryConfig.getBaseOfyRetryDuration;
@@ -135,7 +134,7 @@ public class Ofy {
       @Override
       protected void handleDeletion(Iterable<Key<?>> keys) {
         assertInTransaction();
-        checkState(Streams.stream(keys).allMatch(notNull()), "Can't delete a null key.");
+        checkState(Streams.stream(keys).allMatch(Objects::nonNull), "Can't delete a null key.");
         checkProhibitedAnnotations(keys, NotBackedUp.class, VirtualEntity.class);
         TRANSACTION_INFO.get().putDeletes(keys);
       }
@@ -167,7 +166,8 @@ public class Ofy {
       @Override
       protected void handleSave(Iterable<?> entities) {
         assertInTransaction();
-        checkState(Streams.stream(entities).allMatch(notNull()), "Can't save a null entity.");
+        checkState(
+            Streams.stream(entities).allMatch(Objects::nonNull), "Can't save a null entity.");
         checkProhibitedAnnotations(entities, NotBackedUp.class, VirtualEntity.class);
         ImmutableMap<Key<?>, ?> keysToEntities = uniqueIndex(entities, Key::create);
         TRANSACTION_INFO.get().putSaves(keysToEntities);

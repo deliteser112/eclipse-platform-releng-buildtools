@@ -14,7 +14,6 @@
 
 package google.registry.tools;
 
-import static com.google.common.base.Predicates.notNull;
 import static com.google.common.util.concurrent.Futures.addCallback;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
@@ -30,6 +29,7 @@ import google.registry.export.ExportConstants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /** Command to load Datastore snapshots into Bigquery. */
 @Parameters(separators = " =", commandDescription = "Load Datastore snapshot into Bigquery")
@@ -120,7 +120,7 @@ final class LoadSnapshotCommand extends BigqueryCommand {
     }
     // Block on the completion of all the load jobs.
     List<?> results = Futures.successfulAsList(loadJobs.values()).get();
-    int numSucceeded = (int) results.stream().filter(notNull()).count();
+    int numSucceeded = (int) results.stream().filter(Objects::nonNull).count();
     System.err.printf(
         "All load jobs have terminated: %d/%d successful.\n",
         numSucceeded, loadJobs.size());

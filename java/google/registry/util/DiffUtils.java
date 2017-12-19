@@ -14,8 +14,6 @@
 
 package google.registry.util;
 
-import static com.google.common.base.Predicates.notNull;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -111,7 +109,7 @@ public final class DiffUtils {
     ImmutableSortedMap.Builder<Integer, Object> builder =
         new ImmutableSortedMap.Builder<>(Ordering.natural());
     int i = 0;
-    for (Object item : Iterables.filter(iterable, notNull())) {
+    for (Object item : Iterables.filter(iterable, Objects::nonNull)) {
       builder.put(i++, item);
     }
     return builder.build();

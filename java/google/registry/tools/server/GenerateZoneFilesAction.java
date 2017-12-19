@@ -15,7 +15,6 @@
 package google.registry.tools.server;
 
 import static com.google.appengine.tools.cloudstorage.GcsServiceFactory.createGcsService;
-import static com.google.common.base.Predicates.notNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterators.filter;
 import static com.google.common.io.BaseEncoding.base16;
@@ -58,6 +57,7 @@ import java.net.InetAddress;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -255,7 +255,8 @@ public class GenerateZoneFilesAction implements Runnable, JsonActionRunner.JsonA
           Writer osWriter = new OutputStreamWriter(gcsOutput, UTF_8);
           PrintWriter writer = new PrintWriter(osWriter)) {
         writer.printf(HEADER_FORMAT, tld);
-        for (Iterator<String> stanzaIter = filter(stanzas, notNull()); stanzaIter.hasNext(); ) {
+        for (Iterator<String> stanzaIter = filter(stanzas, Objects::nonNull);
+            stanzaIter.hasNext(); ) {
           writer.println(stanzaIter.next());
           getContext().incrementCounter(stanzaCounter);
         }
