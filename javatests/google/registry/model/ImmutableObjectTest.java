@@ -269,7 +269,7 @@ public class ImmutableObjectTest {
     assertThat((List<?>) diffableFieldMap.get("array")).containsExactly((Object) null);
     assertThat((List<?>) diffableFieldMap.get("list")).containsExactly((Object) null);
     assertThat((Set<?>) diffableFieldMap.get("set")).containsExactly((Object) null);
-    assertThat((Map<?, ?>) diffableFieldMap.get("map")).containsExactly("a", (Object) null);
+    assertThat((Map<?, ?>) diffableFieldMap.get("map")).containsExactly("a", null);
   }
 
   /** Subclass of ImmutableObject with keys to other objects. */

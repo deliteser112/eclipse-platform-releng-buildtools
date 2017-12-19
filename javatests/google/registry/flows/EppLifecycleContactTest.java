@@ -86,7 +86,7 @@ public class EppLifecycleContactTest extends EppTestCase {
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
     assertCommandAndResponse(
         "contact_create_sh8013.xml",
-        ImmutableMap.<String, String>of(),
+        ImmutableMap.of(),
         "contact_create_response_sh8013.xml",
         ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
         DateTime.parse("2000-06-01T00:00:00Z"));

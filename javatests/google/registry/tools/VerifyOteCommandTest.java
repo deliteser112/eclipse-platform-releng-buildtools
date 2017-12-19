@@ -41,10 +41,9 @@ public class VerifyOteCommandTest extends CommandTestCase<VerifyOteCommand> {
   public void init() throws Exception {
     command.setConnection(connection);
     ImmutableMap<String, Object> response =
-        ImmutableMap.<String, Object>of(
-            "blobio", "Num actions: 19 - Reqs passed: 19/19 - Overall: PASS");
+        ImmutableMap.of("blobio", "Num actions: 19 - Reqs passed: 19/19 - Overall: PASS");
     when(connection.sendJson(anyString(), anyMapOf(String.class, Object.class)))
-        .thenReturn(ImmutableMap.<String, Object>of("blobio", response));
+        .thenReturn(ImmutableMap.of("blobio", response));
   }
 
   @Test

@@ -70,7 +70,7 @@ public class EppMetricTest {
   public void test_zeroTlds_areRecordedAsAbsent() throws Exception {
     EppMetric metric =
         EppMetric.builderForRequest("request-id-1", new FakeClock())
-            .setTlds(ImmutableSet.<String>of())
+            .setTlds(ImmutableSet.of())
             .build();
     assertThat(metric.getTld()).isEmpty();
   }

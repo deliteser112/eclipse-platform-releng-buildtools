@@ -88,8 +88,7 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
   }
 
   protected MapreduceRunner makeDefaultRunner() {
-    return new MapreduceRunner(
-        Optional.<Integer>of(getEppResourceIndexBucketCount()), Optional.<Integer>of(1));
+    return new MapreduceRunner(Optional.of(getEppResourceIndexBucketCount()), Optional.of(1));
   }
 
   protected List<QueueStateInfo.TaskStateInfo> getTasks(String queueName) {
@@ -178,7 +177,7 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
    */
   protected void executeTasksUntilEmpty(String queueName, @Nullable FakeClock clock)
       throws Exception {
-    executeTasks(queueName, clock, Optional.<Integer>empty());
+    executeTasks(queueName, clock, Optional.empty());
   }
 
   /**

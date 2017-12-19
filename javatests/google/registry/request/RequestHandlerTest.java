@@ -211,7 +211,7 @@ public final class RequestHandlerTest {
   @Before
   public void before() throws Exception {
     // Initialize here, not inline, so that we pick up the mocked UserService.
-    handler = RequestHandler.<Component>createForTest(
+    handler = RequestHandler.createForTest(
         Component.class,
         Providers.<Builder>of(new Builder() {
           @Override
@@ -421,7 +421,7 @@ public final class RequestHandlerTest {
     when(req.getMethod()).thenReturn("GET");
     when(req.getRequestURI()).thenReturn("/auth/adminUser");
     when(requestAuthenticator.authorize(AUTH_INTERNAL_OR_ADMIN.authSettings(), req))
-        .thenReturn(Optional.<AuthResult>empty());
+        .thenReturn(Optional.empty());
 
     handler.handleRequest(req, rsp);
 

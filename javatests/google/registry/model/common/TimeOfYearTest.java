@@ -63,7 +63,7 @@ public class TimeOfYearTest {
     DateTime startDate = DateTime.parse("2012-05-01T00:00:00Z");
     DateTime endDate = DateTime.parse("2016-05-01T00:00:00Z");
     TimeOfYear timeOfYear = TimeOfYear.fromDateTime(DateTime.parse("2012-05-01T00:00:00Z"));
-    ImmutableSet<DateTime> expected = ImmutableSet.<DateTime>of(
+    ImmutableSet<DateTime> expected = ImmutableSet.of(
         DateTime.parse("2012-05-01T00:00:00Z"),
         DateTime.parse("2013-05-01T00:00:00Z"),
         DateTime.parse("2014-05-01T00:00:00Z"),
@@ -78,7 +78,7 @@ public class TimeOfYearTest {
     DateTime startDate = DateTime.parse("2012-05-01T00:00:00Z");
     DateTime endDate = DateTime.parse("2016-05-01T00:00:00Z");
     TimeOfYear timeOfYear = TimeOfYear.fromDateTime(DateTime.parse("2012-05-01T00:00:00Z"));
-    ImmutableSet<DateTime> expected = ImmutableSet.<DateTime>of(
+    ImmutableSet<DateTime> expected = ImmutableSet.of(
         DateTime.parse("2013-05-01T00:00:00Z"),
         DateTime.parse("2014-05-01T00:00:00Z"),
         DateTime.parse("2015-05-01T00:00:00Z"),
@@ -92,7 +92,7 @@ public class TimeOfYearTest {
     DateTime startDate = DateTime.parse("2012-05-01T00:00:00Z");
     DateTime endDate = DateTime.parse("2016-05-01T00:00:00Z");
     TimeOfYear timeOfYear = TimeOfYear.fromDateTime(DateTime.parse("2012-05-01T00:00:00Z"));
-    ImmutableSet<DateTime> expected = ImmutableSet.<DateTime>of(
+    ImmutableSet<DateTime> expected = ImmutableSet.of(
         DateTime.parse("2012-05-01T00:00:00Z"),
         DateTime.parse("2013-05-01T00:00:00Z"),
         DateTime.parse("2014-05-01T00:00:00Z"),
@@ -106,7 +106,7 @@ public class TimeOfYearTest {
     DateTime startDate = DateTime.parse("2012-05-01T00:00:00Z");
     DateTime endDate = DateTime.parse("2016-05-01T00:00:00Z");
     TimeOfYear timeOfYear = TimeOfYear.fromDateTime(DateTime.parse("2012-05-01T00:00:00Z"));
-    ImmutableSet<DateTime> expected = ImmutableSet.<DateTime>of(
+    ImmutableSet<DateTime> expected = ImmutableSet.of(
         DateTime.parse("2013-05-01T00:00:00Z"),
         DateTime.parse("2014-05-01T00:00:00Z"),
         DateTime.parse("2015-05-01T00:00:00Z"));
@@ -117,10 +117,8 @@ public class TimeOfYearTest {
   @Test
   public void testSuccess_getInstancesInRange_normalizedLowerBound() {
     TimeOfYear timeOfYear = TimeOfYear.fromDateTime(START_OF_TIME);
-    ImmutableSet<DateTime> expected = ImmutableSet.<DateTime>of(
-        START_OF_TIME,
-        START_OF_TIME.plusYears(1),
-        START_OF_TIME.plusYears(2));
+    ImmutableSet<DateTime> expected =
+        ImmutableSet.of(START_OF_TIME, START_OF_TIME.plusYears(1), START_OF_TIME.plusYears(2));
     assertThat(timeOfYear.getInstancesInRange(Range.atMost(START_OF_TIME.plusYears(2))))
         .containsExactlyElementsIn(expected);
   }
@@ -128,10 +126,8 @@ public class TimeOfYearTest {
   @Test
   public void testSuccess_getInstancesInRange_normalizedUpperBound() {
     TimeOfYear timeOfYear = TimeOfYear.fromDateTime(END_OF_TIME);
-    ImmutableSet<DateTime> expected = ImmutableSet.<DateTime>of(
-        END_OF_TIME.minusYears(2),
-        END_OF_TIME.minusYears(1),
-        END_OF_TIME);
+    ImmutableSet<DateTime> expected =
+        ImmutableSet.of(END_OF_TIME.minusYears(2), END_OF_TIME.minusYears(1), END_OF_TIME);
     assertThat(timeOfYear.getInstancesInRange(Range.atLeast(END_OF_TIME.minusYears(2))))
         .containsExactlyElementsIn(expected);
   }

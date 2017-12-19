@@ -112,13 +112,13 @@ public class RestoreCommitLogsActionTest {
         CommitLogManifest.create(
             getBucketKey(1),
             now.minusMinutes(3),
-            ImmutableSet.<Key<?>>of(Key.create(TestObject.create("previous to delete")))),
+            ImmutableSet.of(Key.create(TestObject.create("previous to delete")))),
         CommitLogMutation.create(manifest1aKey, TestObject.create("a")),
         CommitLogMutation.create(manifest1aKey, TestObject.create("b")),
         CommitLogManifest.create(
             getBucketKey(2),
             now.minusMinutes(2),
-            ImmutableSet.<Key<?>>of(Key.create(TestObject.create("a")))),
+            ImmutableSet.of(Key.create(TestObject.create("a")))),
         CommitLogMutation.create(manifest1bKey, TestObject.create("c")),
         CommitLogMutation.create(manifest1bKey, TestObject.create("d")));
     Iterable<ImmutableObject> file2CommitLogs = saveDiffFile(
@@ -126,7 +126,7 @@ public class RestoreCommitLogsActionTest {
         CommitLogManifest.create(
             getBucketKey(1),
             now.minusMinutes(1),
-            ImmutableSet.<Key<?>>of(Key.create(TestObject.create("c")))),
+            ImmutableSet.of(Key.create(TestObject.create("c")))),
         CommitLogMutation.create(manifest2Key, TestObject.create("e")),
         CommitLogMutation.create(manifest2Key, TestObject.create("f")));
     action.fromTime = now.minusMinutes(1).minusMillis(1);
@@ -150,7 +150,7 @@ public class RestoreCommitLogsActionTest {
     assertExpectedIds("previous to keep");
     assertInDatastore(commitLogs);
     assertInDatastore(asList(CommitLogCheckpointRoot.create(now)));
-    assertCommitLogBuckets(ImmutableMap.<Integer, DateTime>of());
+    assertCommitLogBuckets(ImmutableMap.of());
   }
 
   @Test
@@ -183,7 +183,7 @@ public class RestoreCommitLogsActionTest {
         CommitLogManifest.create(
             getBucketKey(1),
             now,
-            ImmutableSet.<Key<?>>of(Key.create(TestObject.create("previous to delete")))));
+            ImmutableSet.of(Key.create(TestObject.create("previous to delete")))));
     action.run();
     ofy().clearSessionCache();
     assertExpectedIds("previous to keep");
@@ -236,7 +236,7 @@ public class RestoreCommitLogsActionTest {
         CommitLogManifest.create(
             getBucketKey(1),
             now,
-            ImmutableSet.<Key<?>>of(Key.create(TestObject.create("previous to delete")))));
+            ImmutableSet.of(Key.create(TestObject.create("previous to delete")))));
     action.run();
     ofy().clearSessionCache();
     assertExpectedIds("previous to keep");
@@ -252,7 +252,7 @@ public class RestoreCommitLogsActionTest {
   private Iterable<ImmutableObject> saveDiffFile(
       CommitLogCheckpoint checkpoint, ImmutableObject... entities) throws IOException {
     DateTime now = checkpoint.getCheckpointTime();
-    List<ImmutableObject> allEntities = Lists.<ImmutableObject>asList(checkpoint, entities);
+    List<ImmutableObject> allEntities = Lists.asList(checkpoint, entities);
     ByteArrayOutputStream output = new ByteArrayOutputStream();
     for (ImmutableObject entity : allEntities) {
       serializeEntity(entity, output);

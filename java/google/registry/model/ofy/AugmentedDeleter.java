@@ -65,7 +65,7 @@ abstract class AugmentedDeleter implements Deleter {
     // homogeneous iterables of a fixed Key<T> type, e.g. List<Key<Lock>>, and is convenient for
     // callers) into the type Iterable<Key<?>> (a concrete type of heterogeneous keys, which is
     // convenient for users).
-    handleDeletion(ImmutableList.<Key<?>>copyOf(keys));
+    handleDeletion(ImmutableList.copyOf(keys));
     return delegate.keys(keys);
   }
 

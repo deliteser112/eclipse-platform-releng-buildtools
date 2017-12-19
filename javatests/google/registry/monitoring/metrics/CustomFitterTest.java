@@ -26,11 +26,11 @@ import org.junit.runners.JUnit4;
 /** Tests for {@link CustomFitter}. */
 @RunWith(JUnit4.class)
 public class CustomFitterTest {
+
   @Test
   public void testCreateCustomFitter_emptyBounds_throwsException() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
-            IllegalArgumentException.class, () -> CustomFitter.create(ImmutableSet.<Double>of()));
+        expectThrows(IllegalArgumentException.class, () -> CustomFitter.create(ImmutableSet.of()));
     assertThat(thrown).hasMessageThat().contains("boundaries must not be empty");
   }
 
@@ -45,7 +45,6 @@ public class CustomFitterTest {
   @Test
   public void testCreateCustomFitter_hasGivenBounds() {
     CustomFitter fitter = CustomFitter.create(ImmutableSortedSet.of(1.0, 2.0));
-
     assertThat(fitter.boundaries()).containsExactly(1.0, 2.0).inOrder();
   }
 }

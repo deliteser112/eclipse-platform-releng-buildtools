@@ -50,7 +50,6 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
-import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
 import java.util.stream.Stream;
 import org.joda.money.Money;
@@ -124,10 +123,7 @@ public class DomainResourceTest extends EntityTestCase {
                     .setLosingClientId("losing")
                     .setPendingTransferExpirationTime(clock.nowUtc())
                     .setServerApproveEntities(
-                        ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
-                            oneTimeBillKey,
-                            recurringBillKey,
-                            autorenewPollKey))
+                        ImmutableSet.of(oneTimeBillKey, recurringBillKey, autorenewPollKey))
                     .setServerApproveBillingEvent(oneTimeBillKey)
                     .setServerApproveAutorenewEvent(recurringBillKey)
                     .setServerApproveAutorenewPollMessage(autorenewPollKey)
@@ -186,11 +182,15 @@ public class DomainResourceTest extends EntityTestCase {
 
   @Test
   public void testEmptySetsAndArraysBecomeNull() {
-    assertThat(newDomainResource("example.com").asBuilder()
-        .setNameservers(null).build().nsHosts).isNull();
-    assertThat(newDomainResource("example.com").asBuilder()
-        .setNameservers(ImmutableSet.<Key<HostResource>>of()).build().nsHosts)
-            .isNull();
+    assertThat(newDomainResource("example.com").asBuilder().setNameservers(null).build().nsHosts)
+        .isNull();
+    assertThat(
+            newDomainResource("example.com")
+                .asBuilder()
+                .setNameservers(ImmutableSet.of())
+                .build()
+                .nsHosts)
+        .isNull();
     assertThat(newDomainResource("example.com").asBuilder()
         .setNameservers(ImmutableSet.of(Key.create(newHostResource("foo.example.tld"))))
             .build().nsHosts)
@@ -292,22 +292,27 @@ public class DomainResourceTest extends EntityTestCase {
             .setPeriodYears(1)
             .setParent(historyEntry)
             .build());
-    domain = domain.asBuilder()
-       .setRegistrationExpirationTime(oldExpirationTime)
-       .setTransferData(domain.getTransferData().asBuilder()
-           .setTransferStatus(TransferStatus.PENDING)
-           .setTransferRequestTime(clock.nowUtc().minusDays(4))
-           .setPendingTransferExpirationTime(clock.nowUtc().plusDays(1))
-           .setGainingClientId("winner")
-           .setServerApproveBillingEvent(Key.create(transferBillingEvent))
-           .setServerApproveEntities(ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
-               Key.create(transferBillingEvent)))
-           .build())
-        .addGracePeriod(
-            // Okay for billing event to be null since the point of this grace period is just
-            // to check that the transfer will clear all existing grace periods.
-            GracePeriod.create(GracePeriodStatus.ADD, clock.nowUtc().plusDays(100), "foo", null))
-        .build();
+    domain =
+        domain
+            .asBuilder()
+            .setRegistrationExpirationTime(oldExpirationTime)
+            .setTransferData(
+                domain
+                    .getTransferData()
+                    .asBuilder()
+                    .setTransferStatus(TransferStatus.PENDING)
+                    .setTransferRequestTime(clock.nowUtc().minusDays(4))
+                    .setPendingTransferExpirationTime(clock.nowUtc().plusDays(1))
+                    .setGainingClientId("winner")
+                    .setServerApproveBillingEvent(Key.create(transferBillingEvent))
+                    .setServerApproveEntities(ImmutableSet.of(Key.create(transferBillingEvent)))
+                    .build())
+            .addGracePeriod(
+                // Okay for billing event to be null since the point of this grace period is just
+                // to check that the transfer will clear all existing grace periods.
+                GracePeriod.create(
+                    GracePeriodStatus.ADD, clock.nowUtc().plusDays(100), "foo", null))
+            .build();
     DomainResource afterTransfer = domain.cloneProjectedAtTime(clock.nowUtc().plusDays(1));
     DateTime newExpirationTime = oldExpirationTime.plusYears(1);
     Key<BillingEvent.Recurring> serverApproveAutorenewEvent =

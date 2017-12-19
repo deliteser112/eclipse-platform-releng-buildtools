@@ -31,7 +31,6 @@ import google.registry.model.host.HostInfoData;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.EppLoader;
 import google.registry.xml.ValidationMode;
-import java.net.InetAddress;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,7 +57,7 @@ public class StatusValueAdapterTest {
                     .setCreationTime(START_OF_TIME)
                     .setCurrentSponsorClientId("")
                     .setFullyQualifiedHostName("")
-                    .setInetAddresses(ImmutableSet.<InetAddress>of())
+                    .setInetAddresses(ImmutableSet.of())
                     .setRepoId("")
                     .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
                     .build())

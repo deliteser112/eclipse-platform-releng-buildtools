@@ -53,7 +53,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     DateTime startTime = DateTime.parse("2000-06-01T00:00:00Z");
     assertCommandAndResponse(
         "contact_create_sh8013.xml",
-        ImmutableMap.<String, String>of(),
+        ImmutableMap.of(),
         "contact_create_response_sh8013.xml",
         ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
         startTime);

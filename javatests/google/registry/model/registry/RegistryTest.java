@@ -143,7 +143,7 @@ public class RegistryTest extends EntityTestCase {
         .asBuilder().setReservedLists(ImmutableSet.of(rl5, rl6)).build();
     assertThat(r.getReservedLists().stream().map(Key::getName).collect(toImmutableList()))
         .containsExactly("tld-reserved5", "tld-reserved6");
-    r = Registry.get("tld").asBuilder().setReservedLists(ImmutableSet.<ReservedList> of()).build();
+    r = Registry.get("tld").asBuilder().setReservedLists(ImmutableSet.of()).build();
     assertThat(r.getReservedLists()).isEmpty();
   }
 
@@ -164,7 +164,7 @@ public class RegistryTest extends EntityTestCase {
         .build();
     assertThat(r.getReservedLists().stream().map(Key::getName).collect(toImmutableList()))
         .containsExactly("tld-reserved24", "tld-reserved25");
-    r = Registry.get("tld").asBuilder().setReservedListsByName(ImmutableSet.<String> of()).build();
+    r = Registry.get("tld").asBuilder().setReservedListsByName(ImmutableSet.of()).build();
     assertThat(r.getReservedLists()).isEmpty();
   }
 

@@ -124,7 +124,7 @@ public class RegistrarCreditBalanceTest extends EntityTestCase {
 
   @Test
   public void testSuccess_balanceMap_getActiveBalance_emptyMap() throws Exception {
-    BalanceMap map = new BalanceMap(ImmutableMap.<DateTime, Map<DateTime, Money>>of());
+    BalanceMap map = new BalanceMap(ImmutableMap.of());
     assertThat(map.getActiveBalanceAtTime(START_OF_TIME)).isEmpty();
     assertThat(map.getActiveBalanceAtTime(clock.nowUtc())).isEmpty();
     assertThat(map.getActiveBalanceAtTime(END_OF_TIME)).isEmpty();

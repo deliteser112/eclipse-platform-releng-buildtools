@@ -59,7 +59,7 @@ public class FakeOAuthService implements OAuthService {
   }
 
   public void setAuthorizedScopes(String... scopes) {
-    this.authorizedScopes = ImmutableList.<String>copyOf(scopes);
+    this.authorizedScopes = ImmutableList.copyOf(scopes);
   }
 
   @Override

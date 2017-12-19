@@ -148,7 +148,7 @@ public class TimedTransitionPropertyTest {
         IllegalArgumentException.class,
         () ->
             TimedTransitionProperty.fromValueMap(
-                ImmutableSortedMap.<DateTime, String>of(), StringTimedTransition.class));
+                ImmutableSortedMap.of(), StringTimedTransition.class));
   }
 
   @Test

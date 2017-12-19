@@ -36,7 +36,7 @@ public class PublishDetailReportCommandTest extends CommandTestCase<PublishDetai
   public void init() throws Exception {
     command.setConnection(connection);
     when(connection.sendJson(anyString(), anyMapOf(String.class, Object.class)))
-        .thenReturn(ImmutableMap.<String, Object>of("driveId", "some123id"));
+        .thenReturn(ImmutableMap.of("driveId", "some123id"));
   }
 
   @Test

@@ -52,7 +52,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
    * The TLD to be used (for those subclasses that use TLDs; defaults to empty).
    */
   protected List<String> getTlds() {
-    return ImmutableList.<String>of();
+    return ImmutableList.of();
   }
 
   /**
@@ -101,7 +101,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     } else {
       runCommand(tldsParameter);
     }
-    verifySent(null, Optional.<Boolean>empty(), Optional.<Boolean>empty());
+    verifySent(null, Optional.empty(), Optional.empty());
   }
 
   @Test
@@ -111,7 +111,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     } else {
       runCommand("--fields=fieldName", tldsParameter);
     }
-    verifySent("fieldName", Optional.<Boolean>empty(), Optional.<Boolean>empty());
+    verifySent("fieldName", Optional.empty(), Optional.empty());
   }
 
   @Test
@@ -121,7 +121,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     } else {
       runCommand("--fields=*", tldsParameter);
     }
-    verifySent("*", Optional.<Boolean>empty(), Optional.<Boolean>empty());
+    verifySent("*", Optional.empty(), Optional.empty());
   }
 
   @Test
@@ -131,7 +131,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     } else {
       runCommand("--fields=fieldName", "--header=true", tldsParameter);
     }
-    verifySent("fieldName", Optional.of(Boolean.TRUE), Optional.<Boolean>empty());
+    verifySent("fieldName", Optional.of(Boolean.TRUE), Optional.empty());
   }
 
   @Test
@@ -141,7 +141,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     } else {
       runCommand("--fields=fieldName", "--header=false", tldsParameter);
     }
-    verifySent("fieldName", Optional.of(Boolean.FALSE), Optional.<Boolean>empty());
+    verifySent("fieldName", Optional.of(Boolean.FALSE), Optional.empty());
   }
 
   @Test
@@ -151,7 +151,7 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     } else {
       runCommand("--fields=fieldName", "--full_field_names", tldsParameter);
     }
-    verifySent("fieldName", Optional.<Boolean>empty(), Optional.of(Boolean.TRUE));
+    verifySent("fieldName", Optional.empty(), Optional.of(Boolean.TRUE));
   }
 
   @Test

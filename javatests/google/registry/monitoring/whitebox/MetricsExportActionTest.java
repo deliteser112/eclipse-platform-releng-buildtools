@@ -104,7 +104,7 @@ public class MetricsExportActionTest {
   @Test
   public void testSuccess_emptyErrors() throws Exception {
     when(insertAll.execute()).thenReturn(response);
-    response.setInsertErrors(ImmutableList.<InsertErrors>of());
+    response.setInsertErrors(ImmutableList.of());
     action.run();
     verify(insertAll).execute();
   }

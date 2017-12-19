@@ -101,8 +101,7 @@ public class EppControllerTest extends ShardableTestCase {
     loggerToIntercept.addHandler(logHandler);
 
     when(sessionMetadata.getClientId()).thenReturn("some-client");
-    when(flowComponentBuilder.flowModule(Matchers.<FlowModule>any()))
-        .thenReturn(flowComponentBuilder);
+    when(flowComponentBuilder.flowModule(Matchers.any())).thenReturn(flowComponentBuilder);
     when(flowComponentBuilder.build()).thenReturn(flowComponent);
     when(flowComponent.flowRunner()).thenReturn(flowRunner);
     when(eppOutput.isResponse()).thenReturn(true);

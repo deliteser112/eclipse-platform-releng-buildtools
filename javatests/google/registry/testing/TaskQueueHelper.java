@@ -213,7 +213,7 @@ public class TaskQueueHelper {
 
   public static void assertTasksEnqueued(String queueName, Iterable<TaskStateInfo> taskStateInfos)
       throws Exception {
-    ImmutableList.Builder<TaskMatcher> taskMatchers = ImmutableList.builder();
+    ImmutableList.Builder<TaskMatcher> taskMatchers = new ImmutableList.Builder<>();
     for (TaskStateInfo taskStateInfo : taskStateInfos) {
       taskMatchers.add(new TaskMatcher(taskStateInfo));
     }

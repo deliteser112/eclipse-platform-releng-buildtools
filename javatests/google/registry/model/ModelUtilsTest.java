@@ -86,7 +86,7 @@ public class ModelUtilsTest {
 
   @Test
   public void testGetAllFields() throws Exception {
-    Map<String, Field> expected = ImmutableMap.<String, Field>of(
+    Map<String, Field> expected = ImmutableMap.of(
         "id", TestClass.class.getDeclaredField("id"),
         "a", TestClass.class.getDeclaredField("a"),
         "b", TestClass.class.getDeclaredField("b"));

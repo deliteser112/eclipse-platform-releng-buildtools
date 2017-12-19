@@ -159,7 +159,7 @@ public class OfyCommitLogTest {
   @Test
   public void testTransactNew_deleteNotBackedUpKind_throws() throws Exception {
     final CommitLogManifest backupsArentAllowedOnMe =
-        CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.<Key<?>>of());
+        CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.of());
     IllegalArgumentException thrown =
         expectThrows(
             IllegalArgumentException.class,
@@ -170,7 +170,7 @@ public class OfyCommitLogTest {
   @Test
   public void testTransactNew_saveNotBackedUpKind_throws() throws Exception {
     final CommitLogManifest backupsArentAllowedOnMe =
-        CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.<Key<?>>of());
+        CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.of());
     IllegalArgumentException thrown =
         expectThrows(
             IllegalArgumentException.class,

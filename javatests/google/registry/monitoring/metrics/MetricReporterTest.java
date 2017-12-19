@@ -43,20 +43,19 @@ public class MetricReporterTest {
 
   @Test
   public void testRunOneIteration_enqueuesBatch() throws Exception {
-    Metric<?> metric =
-        new Counter("/name", "description", "vdn", ImmutableSet.<LabelDescriptor>of());
+    Metric<?> metric = new Counter("/name", "description", "vdn", ImmutableSet.of());
     when(registry.getRegisteredMetrics()).thenReturn(ImmutableList.of(metric, metric));
     MetricReporter reporter = new MetricReporter(writer, 10L, threadFactory, registry, writeQueue);
 
     reporter.runOneIteration();
 
-    verify(writeQueue).offer(Optional.of(ImmutableList.<MetricPoint<?>>of()));
+    verify(writeQueue).offer(Optional.of(ImmutableList.of()));
   }
 
   @Test
   public void testShutDown_enqueuesBatchAndPoisonPill() throws Exception {
     // Set up a registry with no metrics.
-    when(registry.getRegisteredMetrics()).thenReturn(ImmutableList.<Metric<?>>of());
+    when(registry.getRegisteredMetrics()).thenReturn(ImmutableList.of());
     MetricReporter reporter =
         spy(new MetricReporter(writer, 10L, threadFactory, registry, writeQueue));
 
@@ -64,7 +63,7 @@ public class MetricReporterTest {
 
     verify(reporter).runOneIteration();
     InOrder interactions = Mockito.inOrder(writeQueue);
-    interactions.verify(writeQueue).offer(Optional.of(ImmutableList.<MetricPoint<?>>of()));
-    interactions.verify(writeQueue).offer(Optional.<ImmutableList<MetricPoint<?>>>empty());
+    interactions.verify(writeQueue).offer(Optional.of(ImmutableList.of()));
+    interactions.verify(writeQueue).offer(Optional.empty());
   }
 }

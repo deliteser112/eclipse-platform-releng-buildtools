@@ -79,7 +79,7 @@ public class FlowRunnerTest extends ShardableTestCase {
     flowRunner.isSuperuser = false;
     flowRunner.isTransactional = false;
     flowRunner.sessionMetadata =
-        new StatelessRequestSessionMetadata("TheRegistrar", ImmutableSet.<String>of());
+        new StatelessRequestSessionMetadata("TheRegistrar", ImmutableSet.of());
     flowRunner.trid = Trid.create("client-123", "server-456");
     flowRunner.flowReporter = Mockito.mock(FlowReporter.class);
   }

@@ -113,7 +113,7 @@ public final class SheepCounterExample {
               "/is_sleeping",
               "Tracks sleep state.",
               "Sleeping?",
-              ImmutableSet.<LabelDescriptor>of(),
+              ImmutableSet.of(),
               Boolean.class);
 
   /**
@@ -128,8 +128,8 @@ public final class SheepCounterExample {
               "/sleep_quality",
               "Quality of the sleep.",
               "Quality",
-              ImmutableSet.<LabelDescriptor>of(),
-              () -> ImmutableMap.of(ImmutableList.<String>of(), new Random().nextDouble()),
+              ImmutableSet.of(),
+              () -> ImmutableMap.of(ImmutableList.of(), new Random().nextDouble()),
               Double.class);
 
   /**

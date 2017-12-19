@@ -86,7 +86,7 @@ public class CheckSnapshotActionTest {
         new DatastoreBackupInfo(
             backupInfo.getName(),
             backupInfo.getStartTime(),
-            Optional.<DateTime>empty(),
+            Optional.empty(),
             backupInfo.getKinds(),
             backupInfo.getGcsFilename());
 

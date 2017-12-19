@@ -51,7 +51,7 @@ public class LogsSubject extends Subject<LogsSubject, TestLogHandler> {
       };
 
   private List<String> getMessagesAtLevel(Level level) {
-    ImmutableList.Builder<String> builder = ImmutableList.<String>builder();
+    ImmutableList.Builder<String> builder = new ImmutableList.Builder<>();
     for (LogRecord log : actual().getStoredLogRecords()) {
       if (log.getLevel().equals(level)) {
         builder.add(log.getMessage());

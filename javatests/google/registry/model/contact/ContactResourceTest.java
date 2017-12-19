@@ -35,7 +35,6 @@ import google.registry.model.eppcommon.PresenceMarker;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.transfer.TransferData;
-import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
 import org.junit.Before;
 import org.junit.Test;
@@ -101,8 +100,7 @@ public class ContactResourceTest extends EntityTestCase {
                 .setLosingClientId("losing")
                 .setPendingTransferExpirationTime(clock.nowUtc())
                 .setServerApproveEntities(
-                    ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
-                        Key.create(BillingEvent.OneTime.class, 1)))
+                    ImmutableSet.of(Key.create(BillingEvent.OneTime.class, 1)))
                 .setTransferRequestTime(clock.nowUtc())
                 .setTransferStatus(TransferStatus.SERVER_APPROVED)
                 .setTransferRequestTrid(Trid.create("client-trid", "server-trid"))

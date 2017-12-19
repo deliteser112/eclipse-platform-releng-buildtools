@@ -95,7 +95,6 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.EncodedSignedMark;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferData.Builder;
-import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
 import google.registry.tmch.LordnTask;
 import java.util.Arrays;
@@ -513,7 +512,7 @@ public class DatastoreHelper {
             .setTransferData(createTransferDataBuilder(requestTime, expirationTime)
                     .setPendingTransferExpirationTime(now.plus(getContactAutomaticTransferLength()))
                 .setServerApproveEntities(
-                    ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
+                    ImmutableSet.of(
                     // Pretend it's 3 days since the request
                     Key.create(persistResource(
                         createPollMessageForImplicitTransfer(
@@ -600,7 +599,7 @@ public class DatastoreHelper {
             .setServerApproveBillingEvent(Key.create(transferBillingEvent))
             .setServerApproveAutorenewEvent(Key.create(gainingClientAutorenewEvent))
             .setServerApproveAutorenewPollMessage(Key.create(gainingClientAutorenewPollMessage))
-            .setServerApproveEntities(ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
+            .setServerApproveEntities(ImmutableSet.of(
                 Key.create(transferBillingEvent),
                 Key.create(gainingClientAutorenewEvent),
                 Key.create(gainingClientAutorenewPollMessage),
@@ -646,14 +645,14 @@ public class DatastoreHelper {
   }
 
   private static Iterable<BillingEvent> getBillingEvents() {
-    return Iterables.<BillingEvent>concat(
+    return Iterables.concat(
         ofy().load().type(BillingEvent.OneTime.class),
         ofy().load().type(BillingEvent.Recurring.class),
         ofy().load().type(BillingEvent.Cancellation.class));
   }
 
   private static Iterable<BillingEvent> getBillingEvents(EppResource resource) {
-    return Iterables.<BillingEvent>concat(
+    return Iterables.concat(
         ofy().load().type(BillingEvent.OneTime.class).ancestor(resource),
         ofy().load().type(BillingEvent.Recurring.class).ancestor(resource),
         ofy().load().type(BillingEvent.Cancellation.class).ancestor(resource));

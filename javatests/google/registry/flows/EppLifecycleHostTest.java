@@ -49,7 +49,7 @@ public class EppLifecycleHostTest extends EppTestCase {
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
     assertCommandAndResponse(
         "hello.xml",
-        ImmutableMap.<String, String>of(),
+        ImmutableMap.of(),
         "greeting.xml",
         ImmutableMap.of("DATE", "2000-06-02T00:00:00Z"),
         DateTime.parse("2000-06-02T00:00:00Z"));
@@ -78,7 +78,7 @@ public class EppLifecycleHostTest extends EppTestCase {
         "host_info.xml",
         ImmutableMap.of("HOSTNAME", "ns1.example.tld"),
         "host_info_response.xml",
-        ImmutableMap.<String, String>of(
+        ImmutableMap.of(
             "HOSTNAME", "ns1.example.tld", "ROID", "1-ROID", "CRDATE", "2000-06-02T00:01:00Z"),
         DateTime.parse("2000-06-02T00:02:00Z"));
     assertThat(getRecordedEppMetric())
@@ -93,7 +93,7 @@ public class EppLifecycleHostTest extends EppTestCase {
         "host_delete.xml",
         ImmutableMap.of("HOSTNAME", "ns1.example.tld"),
         "generic_success_action_pending_response.xml",
-        ImmutableMap.<String, String>of(),
+        ImmutableMap.of(),
         DateTime.parse("2000-06-02T00:03:00Z"));
     assertThat(getRecordedEppMetric())
         .hasClientId("NewRegistrar")
@@ -113,7 +113,7 @@ public class EppLifecycleHostTest extends EppTestCase {
     // Create the fakesite domain.
     assertCommandAndResponse(
         "contact_create_sh8013.xml",
-        ImmutableMap.<String, String>of(),
+        ImmutableMap.of(),
         "contact_create_response_sh8013.xml",
         ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
         DateTime.parse("2000-06-01T00:00:00Z"));
@@ -164,7 +164,7 @@ public class EppLifecycleHostTest extends EppTestCase {
 
     assertCommandAndResponse(
         "contact_create_sh8013.xml",
-        ImmutableMap.<String, String>of(),
+        ImmutableMap.of(),
         "contact_create_response_sh8013.xml",
         ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
         DateTime.parse("2000-06-01T00:00:00Z"));

@@ -62,8 +62,7 @@ public class SignedMarkRevocationListTest {
   public void testEmpty() throws Exception {
     // When Datastore is empty, it should give us an empty thing.
     assertThat(SignedMarkRevocationList.get())
-        .isEqualTo(SignedMarkRevocationList.create(
-            START_OF_TIME, ImmutableMap.<String, DateTime>of()));
+        .isEqualTo(SignedMarkRevocationList.create(START_OF_TIME, ImmutableMap.of()));
   }
 
   @Test
@@ -114,7 +113,7 @@ public class SignedMarkRevocationListTest {
     assertThrows(
         NullPointerException.class,
         () ->
-            SignedMarkRevocationList.create(START_OF_TIME, ImmutableMap.<String, DateTime>of())
+            SignedMarkRevocationList.create(START_OF_TIME, ImmutableMap.of())
                 .isSmdRevoked(null, clock.nowUtc()));
   }
 

@@ -78,7 +78,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
         .doThrow(fakeException)
         .doCallRealMethod()
         .when(spyCommand)
-        .saveTokens(Mockito.<ImmutableSet<LrpTokenEntity>>any());
+        .saveTokens(Mockito.any());
     runCommand("--assignee=domain.tld", "--tlds=tld");
     assertLrpTokens(
         createToken("LRP_abcdefghijklmnop", "domain.tld", ImmutableSet.of("tld"), null, null));

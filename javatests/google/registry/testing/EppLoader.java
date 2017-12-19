@@ -29,7 +29,7 @@ public class EppLoader {
   private String eppXml;
 
   public EppLoader(Object context, String eppXmlFilename) {
-    this(context, eppXmlFilename, ImmutableMap.<String, String>of());
+    this(context, eppXmlFilename, ImmutableMap.of());
   }
 
   public EppLoader(Object context, String eppXmlFilename, Map<String, String> substitutions) {

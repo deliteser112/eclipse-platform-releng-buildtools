@@ -32,9 +32,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.transfer.TransferData;
-import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.model.transfer.TransferStatus;
-import java.net.InetAddress;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,21 +50,23 @@ public class HostResourceTest extends EntityTestCase {
   public void setUp() throws Exception {
     createTld("com");
     // Set up a new persisted registrar entity.
-    domain = persistResource(
-        newDomainResource("example.com").asBuilder()
-            .setRepoId("1-COM")
-            .setTransferData(new TransferData.Builder()
-                .setGainingClientId("gaining")
-                .setLosingClientId("losing")
-                .setPendingTransferExpirationTime(clock.nowUtc())
-                .setServerApproveEntities(
-                    ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
-                        Key.create(BillingEvent.OneTime.class, 1)))
-                .setTransferRequestTime(clock.nowUtc())
-                .setTransferStatus(TransferStatus.SERVER_APPROVED)
-                .setTransferRequestTrid(Trid.create("client-trid", "server-trid"))
-                .build())
-            .build());
+    domain =
+        persistResource(
+            newDomainResource("example.com")
+                .asBuilder()
+                .setRepoId("1-COM")
+                .setTransferData(
+                    new TransferData.Builder()
+                        .setGainingClientId("gaining")
+                        .setLosingClientId("losing")
+                        .setPendingTransferExpirationTime(clock.nowUtc())
+                        .setServerApproveEntities(
+                            ImmutableSet.of(Key.create(BillingEvent.OneTime.class, 1)))
+                        .setTransferRequestTime(clock.nowUtc())
+                        .setTransferStatus(TransferStatus.SERVER_APPROVED)
+                        .setTransferRequestTrid(Trid.create("client-trid", "server-trid"))
+                        .build())
+                .build());
     host =
         persistResource(
             cloneAndSetAutoTimestamps(
@@ -119,9 +119,8 @@ public class HostResourceTest extends EntityTestCase {
   @Test
   public void testEmptySetsBecomeNull() throws Exception {
     assertThat(new HostResource.Builder().setInetAddresses(null).build().inetAddresses).isNull();
-    assertThat(new HostResource.Builder()
-        .setInetAddresses(ImmutableSet.<InetAddress>of()).build().inetAddresses)
-            .isNull();
+    assertThat(new HostResource.Builder().setInetAddresses(ImmutableSet.of()).build().inetAddresses)
+        .isNull();
     assertThat(
             new HostResource.Builder()
                 .setInetAddresses(ImmutableSet.of(InetAddresses.forString("127.0.0.1")))

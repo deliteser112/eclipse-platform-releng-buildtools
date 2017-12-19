@@ -37,7 +37,6 @@ import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
-import google.registry.model.host.HostResource;
 import google.registry.model.smd.EncodedSignedMark;
 import org.joda.money.Money;
 import org.junit.Before;
@@ -123,16 +122,13 @@ public class DomainApplicationTest extends EntityTestCase {
   @Test
   public void testEmptySetsAndArraysBecomeNull() {
     assertThat(emptyBuilder().setNameservers(null).build().nsHosts).isNull();
-    assertThat(emptyBuilder()
-        .setNameservers(ImmutableSet.<Key<HostResource>>of())
-        .build()
-        .nsHosts)
-            .isNull();
-    assertThat(emptyBuilder()
-        .setNameservers(ImmutableSet.of(Key.create(newHostResource("foo.example.tld"))))
-        .build()
-        .nsHosts)
-            .isNotNull();
+    assertThat(emptyBuilder().setNameservers(ImmutableSet.of()).build().nsHosts).isNull();
+    assertThat(
+            emptyBuilder()
+                .setNameservers(ImmutableSet.of(Key.create(newHostResource("foo.example.tld"))))
+                .build()
+                .nsHosts)
+        .isNotNull();
     // This behavior should also hold true for ImmutableObjects nested in collections.
     assertThat(emptyBuilder()
         .setDsData(ImmutableSet.of(DelegationSignerData.create(1, 1, 1, null)))

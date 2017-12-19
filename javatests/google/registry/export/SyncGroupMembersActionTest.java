@@ -154,11 +154,11 @@ public class SyncGroupMembersActionTest {
     when(connection.getMembersOfGroup("newregistrar-primary-contacts@domain-registry.example"))
         .thenReturn(ImmutableSet.of("defunct@example.com", "janedoe@theregistrar.com"));
     when(connection.getMembersOfGroup("newregistrar-marketing-contacts@domain-registry.example"))
-        .thenReturn(ImmutableSet.<String> of());
+        .thenReturn(ImmutableSet.of());
     when(connection.getMembersOfGroup("theregistrar-technical-contacts@domain-registry.example"))
-        .thenReturn(ImmutableSet.<String> of());
+        .thenReturn(ImmutableSet.of());
     when(connection.getMembersOfGroup("theregistrar-primary-contacts@domain-registry.example"))
-        .thenReturn(ImmutableSet.<String> of());
+        .thenReturn(ImmutableSet.of());
     persistResource(
         new RegistrarContact.Builder()
             .setParent(loadRegistrar("NewRegistrar"))
@@ -200,7 +200,7 @@ public class SyncGroupMembersActionTest {
   @Test
   public void test_doPost_gracefullyHandlesExceptionForSingleRegistrar() throws Exception {
     when(connection.getMembersOfGroup("newregistrar-primary-contacts@domain-registry.example"))
-        .thenReturn(ImmutableSet.<String> of());
+        .thenReturn(ImmutableSet.of());
     when(connection.getMembersOfGroup("theregistrar-primary-contacts@domain-registry.example"))
         .thenThrow(new IOException("Internet was deleted"));
     runAction();

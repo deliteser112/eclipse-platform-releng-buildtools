@@ -31,8 +31,7 @@ public class StoredMetricTest {
   @Test
   public void testGetCardinality_reflectsCurrentCardinality() {
     StoredMetric<Boolean> smallMetric =
-        new StoredMetric<>(
-            "/metric", "description", "vdn", ImmutableSet.<LabelDescriptor>of(), Boolean.class);
+        new StoredMetric<>("/metric", "description", "vdn", ImmutableSet.of(), Boolean.class);
     assertThat(smallMetric.getCardinality()).isEqualTo(0);
 
     smallMetric.set(true);

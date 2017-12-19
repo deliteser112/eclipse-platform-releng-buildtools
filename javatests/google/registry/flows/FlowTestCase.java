@@ -116,7 +116,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   }
 
   protected void setEppInput(String inputFilename) {
-    eppLoader = new EppLoader(this, inputFilename, ImmutableMap.<String, String>of());
+    eppLoader = new EppLoader(this, inputFilename, ImmutableMap.of());
   }
 
   protected void setEppInput(String inputFilename, Map<String, String> substitutions) {

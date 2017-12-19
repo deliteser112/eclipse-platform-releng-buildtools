@@ -56,7 +56,7 @@ public class DomainApplicationIndexTest extends EntityTestCase {
     IllegalArgumentException thrown =
         expectThrows(
             IllegalArgumentException.class,
-            () -> createWithSpecifiedKeys("blah.com", ImmutableSet.<Key<DomainApplication>>of()));
+            () -> createWithSpecifiedKeys("blah.com", ImmutableSet.of()));
     assertThat(thrown).hasMessageThat().contains("Keys must not be null or empty.");
   }
 

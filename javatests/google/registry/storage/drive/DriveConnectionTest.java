@@ -170,9 +170,7 @@ public class DriveConnectionTest {
             .setParents(ImmutableList.of(new ParentReference().setId("driveFolderId")))),
         argThat(hasByteArrayContent(DATA))))
             .thenReturn(insert);
-    ChildList emptyChildList = new ChildList()
-        .setItems(ImmutableList.<ChildReference> of())
-        .setNextPageToken(null);
+    ChildList emptyChildList = new ChildList().setItems(ImmutableList.of()).setNextPageToken(null);
     when(childrenList.execute()).thenReturn(emptyChildList);
     assertThat(driveConnection.createOrUpdateFile(
             "title",

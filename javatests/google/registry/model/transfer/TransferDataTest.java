@@ -23,7 +23,6 @@ import google.registry.model.billing.BillingEvent;
 import google.registry.model.domain.Period;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.poll.PollMessage;
-import google.registry.model.transfer.TransferData.TransferServerApproveEntity;
 import google.registry.testing.AppEngineRule;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -74,7 +73,7 @@ public class TransferDataTest {
             .setPendingTransferExpirationTime(now)
             .setTransferStatus(TransferStatus.PENDING)
             .setServerApproveEntities(
-                ImmutableSet.<Key<? extends TransferServerApproveEntity>>of(
+                ImmutableSet.of(
                     transferBillingEventKey,
                     otherServerApproveBillingEventKey,
                     recurringBillingEventKey,

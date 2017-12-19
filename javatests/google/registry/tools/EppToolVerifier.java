@@ -168,7 +168,7 @@ public class EppToolVerifier {
     ArgumentCaptor<byte[]> params = ArgumentCaptor.forClass(byte[].class);
     verify(connection, atLeast(0)).send(
         eq("/_dr/epptool"),
-        eq(ImmutableMap.<String, Object>of()),
+        eq(ImmutableMap.of()),
         eq(MediaType.FORM_DATA),
         params.capture());
     capturedParams = ImmutableList.copyOf(params.getAllValues());

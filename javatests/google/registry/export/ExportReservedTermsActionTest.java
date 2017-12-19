@@ -96,10 +96,12 @@ public class ExportReservedTermsActionTest {
 
   @Test
   public void test_uploadFileToDrive_doesNothingIfReservedListsNotConfigured() throws Exception {
-    persistResource(Registry.get("tld").asBuilder()
-        .setReservedLists(ImmutableSet.<ReservedList>of())
-        .setDriveFolderId(null)
-        .build());
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setReservedLists(ImmutableSet.of())
+            .setDriveFolderId(null)
+            .build());
     runAction("tld");
     verify(response).setStatus(SC_OK);
     verify(response).setPayload("No reserved lists configured");

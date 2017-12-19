@@ -158,7 +158,7 @@ public class ChildEntityInputTest {
     setupSecondDomainResources();
     Set<ImmutableObject> seen = new HashSet<>();
     InputReader<ImmutableObject> reader = EppResourceInputs.createChildEntityInput(
-        ImmutableSet.<Class<? extends EppResource>>of(EppResource.class),
+        ImmutableSet.of(EppResource.class),
         ImmutableSet.<Class<? extends ImmutableObject>>of(
             HistoryEntry.class, BillingEvent.OneTime.class, BillingEvent.Recurring.class))
         .createReaders().get(0);
@@ -188,16 +188,14 @@ public class ChildEntityInputTest {
 
   @Test
   public void testSuccess_childEntityInput_polymorphicBaseType() throws Exception {
-    createChildEntityInput(
-        ImmutableSet.<Class<? extends EppResource>>of(EppResource.class),
-        ImmutableSet.<Class<? extends ImmutableObject>>of(BillingEvent.class));
+    createChildEntityInput(ImmutableSet.of(EppResource.class), ImmutableSet.of(BillingEvent.class));
   }
 
   @Test
   public void testSuccess_childEntityReader_multipleChildTypes() throws Exception {
     setupResources();
     InputReader<ImmutableObject> reader = EppResourceInputs.createChildEntityInput(
-        ImmutableSet.<Class<? extends EppResource>>of(EppResource.class),
+        ImmutableSet.of(EppResource.class),
         ImmutableSet.<Class<? extends ImmutableObject>>of(
             HistoryEntry.class, BillingEvent.OneTime.class, BillingEvent.Recurring.class))
         .createReaders().get(0);
@@ -235,7 +233,7 @@ public class ChildEntityInputTest {
   public void testSuccess_childEntityReader_polymorphicChildFiltering() throws Exception {
     setupResources();
     InputReader<ImmutableObject> reader = EppResourceInputs.createChildEntityInput(
-        ImmutableSet.<Class<? extends EppResource>>of(EppResource.class),
+        ImmutableSet.of(EppResource.class),
         ImmutableSet.<Class<? extends ImmutableObject>>of(BillingEvent.OneTime.class))
             .createReaders().get(0);
     assertThat(getAllFromReader(reader)).containsExactly(oneTimeA);
@@ -245,7 +243,7 @@ public class ChildEntityInputTest {
   public void testSuccess_childEntityReader_polymorphicChildClass() throws Exception {
     setupResources();
     InputReader<ImmutableObject> reader = EppResourceInputs.createChildEntityInput(
-        ImmutableSet.<Class<? extends EppResource>>of(EppResource.class),
+        ImmutableSet.of(EppResource.class),
         ImmutableSet.<Class<? extends ImmutableObject>>of(BillingEvent.class))
         .createReaders().get(0);
     assertThat(getAllFromReader(reader)).containsExactly(oneTimeA, recurringA);
@@ -303,11 +301,13 @@ public class ChildEntityInputTest {
   public void testSuccess_childEntityReader_survivesAcrossSerialization() throws Exception {
     setupResources();
     Set<ImmutableObject> seen = new HashSet<>();
-    InputReader<ImmutableObject> reader = EppResourceInputs.createChildEntityInput(
-        ImmutableSet.<Class<? extends EppResource>>of(EppResource.class),
-        ImmutableSet.<Class<? extends ImmutableObject>>of(
-            HistoryEntry.class, BillingEvent.OneTime.class, BillingEvent.Recurring.class))
-        .createReaders().get(0);
+    InputReader<ImmutableObject> reader =
+        EppResourceInputs.createChildEntityInput(
+                ImmutableSet.of(EppResource.class),
+                ImmutableSet.<Class<? extends ImmutableObject>>of(
+                    HistoryEntry.class, BillingEvent.OneTime.class, BillingEvent.Recurring.class))
+            .createReaders()
+            .get(0);
     reader.beginShard();
     reader.beginSlice();
     seen.add(reader.next());

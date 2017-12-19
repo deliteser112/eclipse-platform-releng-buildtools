@@ -29,7 +29,7 @@ import org.junit.runners.JUnit4;
 public class IdnTableTest {
   @Test
   public void testDigits() {
-    ImmutableList<String> of = ImmutableList.<String>of(
+    ImmutableList<String> of = ImmutableList.of(
         "# URL: https://love.example/lolcatattack.txt",
         "# Policy: https://love.example/policy.html",
         "U+0030",
@@ -42,8 +42,7 @@ public class IdnTableTest {
         "U+0037",
         "U+0038",
         "U+0039");
-    IdnTable idnTable =
-        IdnTable.createFrom("lolcatattack", of, Optional.<LanguageValidator>empty());
+    IdnTable idnTable = IdnTable.createFrom("lolcatattack", of, Optional.empty());
     assertThat(idnTable.isValidLabel("0123456789")).isTrue();
     assertThat(idnTable.isValidLabel("54321a")).isFalse();
     assertThat(idnTable.isValidLabel("AAA000")).isFalse();
@@ -51,7 +50,7 @@ public class IdnTableTest {
 
   @Test
   public void testIgnoreCommentAndEmptyLines() {
-    IdnTable idnTable = IdnTable.createFrom("lolcatattack", ImmutableList.<String>of(
+    IdnTable idnTable = IdnTable.createFrom("lolcatattack", ImmutableList.of(
         "# URL: https://love.example/lolcatattack.txt",
         "# Policy: https://love.example/policy.html",
         "U+0030",
@@ -65,21 +64,25 @@ public class IdnTableTest {
         "U+0036",
         "U+0037",
         "U+0038",
-        "U+0039"), Optional.<LanguageValidator>empty());
+        "U+0039"), Optional.empty());
     assertThat(idnTable.isValidLabel("0123456789")).isFalse();
     assertThat(idnTable.isValidLabel("023456789")).isTrue();  // Works when you remove 1
   }
 
   @Test
   public void testSurrogates() {
-    IdnTable idnTable = IdnTable.createFrom("lolcatattack", ImmutableList.<String>of(
-        "# URL: https://love.example/lolcatattack.txt",
-        "# Policy: https://love.example/policy.html",
-        "U+0035",
-        "U+0036",
-        "U+0037",
-        "U+2070E",
-        "U+20731"), Optional.<LanguageValidator>empty());
+    IdnTable idnTable =
+        IdnTable.createFrom(
+            "lolcatattack",
+            ImmutableList.of(
+                "# URL: https://love.example/lolcatattack.txt",
+                "# Policy: https://love.example/policy.html",
+                "U+0035",
+                "U+0036",
+                "U+0037",
+                "U+2070E",
+                "U+20731"),
+            Optional.empty());
     assertThat(idnTable.getName()).isEqualTo("lolcatattack");
     assertThat(idnTable.isValidLabel("𠜎")).isTrue();
     assertThat(idnTable.isValidLabel("𠜱")).isTrue();
@@ -90,34 +93,31 @@ public class IdnTableTest {
 
   @Test
   public void testSpecialComments_getParsed() {
-    ImmutableList<String> of = ImmutableList.<String>of(
-        "# URL: https://love.example/lolcatattack.txt",
-        "# Policy: https://love.example/policy.html");
+    ImmutableList<String> of =
+        ImmutableList.of(
+            "# URL: https://love.example/lolcatattack.txt",
+            "# Policy: https://love.example/policy.html");
     IdnTable idnTable =
-        IdnTable.createFrom("lolcatattack", of, Optional.<LanguageValidator>empty());
+        IdnTable.createFrom("lolcatattack", of, Optional.empty());
     assertThat(idnTable.getUrl()).isEqualTo(URI.create("https://love.example/lolcatattack.txt"));
     assertThat(idnTable.getPolicy()).isEqualTo(URI.create("https://love.example/policy.html"));
   }
 
   @Test
   public void testMissingUrl_throwsNpe() {
-    ImmutableList<String> of = ImmutableList.<String>of(
-        "# Policy: https://love.example/policy.html");
+    ImmutableList<String> of = ImmutableList.of("# Policy: https://love.example/policy.html");
     NullPointerException thrown =
         expectThrows(
-            NullPointerException.class,
-            () -> IdnTable.createFrom("sloth", of, Optional.<LanguageValidator>empty()));
+            NullPointerException.class, () -> IdnTable.createFrom("sloth", of, Optional.empty()));
     assertThat(thrown).hasMessageThat().contains("sloth missing '# URL:");
   }
 
   @Test
   public void testMissingPolicy_throwsNpe() {
-    ImmutableList<String> of = ImmutableList.<String>of(
-        "# URL: https://love.example/sloth.txt");
+    ImmutableList<String> of = ImmutableList.of("# URL: https://love.example/sloth.txt");
     NullPointerException thrown =
         expectThrows(
-            NullPointerException.class,
-            () -> IdnTable.createFrom("sloth", of, Optional.<LanguageValidator>empty()));
+            NullPointerException.class, () -> IdnTable.createFrom("sloth", of, Optional.empty()));
     assertThat(thrown).hasMessageThat().contains("sloth missing '# Policy:");
   }
 }

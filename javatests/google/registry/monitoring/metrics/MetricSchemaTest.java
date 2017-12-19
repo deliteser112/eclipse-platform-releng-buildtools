@@ -38,7 +38,7 @@ public class MetricSchemaTest {
                     "description",
                     "valueDisplayName",
                     Kind.GAUGE,
-                    ImmutableSet.<LabelDescriptor>of()));
+                    ImmutableSet.of()));
     assertThat(thrown).hasMessageThat().contains("Name must not be blank");
   }
 
@@ -49,11 +49,7 @@ public class MetricSchemaTest {
             IllegalArgumentException.class,
             () ->
                 MetricSchema.create(
-                    "/name",
-                    "",
-                    "valueDisplayName",
-                    Kind.GAUGE,
-                    ImmutableSet.<LabelDescriptor>of()));
+                    "/name", "", "valueDisplayName", Kind.GAUGE, ImmutableSet.of()));
     assertThat(thrown).hasMessageThat().contains("Description must not be blank");
   }
 
@@ -62,9 +58,7 @@ public class MetricSchemaTest {
     IllegalArgumentException thrown =
         expectThrows(
             IllegalArgumentException.class,
-            () ->
-                MetricSchema.create(
-                    "/name", "description", "", Kind.GAUGE, ImmutableSet.<LabelDescriptor>of()));
+            () -> MetricSchema.create("/name", "description", "", Kind.GAUGE, ImmutableSet.of()));
     assertThat(thrown).hasMessageThat().contains("Value Display Name must not be empty");
   }
 
@@ -75,11 +69,7 @@ public class MetricSchemaTest {
             IllegalArgumentException.class,
             () ->
                 MetricSchema.create(
-                    "foo",
-                    "description",
-                    "valueDisplayName",
-                    Kind.GAUGE,
-                    ImmutableSet.<LabelDescriptor>of()));
+                    "foo", "description", "valueDisplayName", Kind.GAUGE, ImmutableSet.of()));
     assertThat(thrown).hasMessageThat().contains("Name must be URL-like and start with a '/'");
   }
 }

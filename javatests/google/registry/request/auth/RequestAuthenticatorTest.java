@@ -74,7 +74,7 @@ public class RequestAuthenticatorTest {
       UserPolicy.ADMIN);
 
   private static final AuthSettings AUTH_NO_METHODS = AuthSettings.create(
-      ImmutableList.<AuthMethod>of(),
+      ImmutableList.of(),
       AuthLevel.APP,
       UserPolicy.IGNORED);
 
@@ -120,7 +120,7 @@ public class RequestAuthenticatorTest {
   private RequestAuthenticator createRequestAuthenticator(UserService userService) {
     return new RequestAuthenticator(
         new AppEngineInternalAuthenticationMechanism(),
-        ImmutableList.<AuthenticationMechanism>of(
+        ImmutableList.of(
             new OAuthAuthenticationMechanism(
                 fakeOAuthService,
                 ImmutableSet.of("test-scope1", "test-scope2", "test-scope3"),
