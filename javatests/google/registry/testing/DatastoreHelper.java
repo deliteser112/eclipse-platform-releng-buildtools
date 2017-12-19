@@ -660,16 +660,20 @@ public class DatastoreHelper {
 
   /** Assert that the actual billing event matches the expected one, ignoring IDs. */
   public static void assertBillingEventsEqual(BillingEvent actual, BillingEvent expected) {
-    assertThat(BILLING_EVENT_ID_STRIPPER.apply(actual))
-        .isEqualTo(BILLING_EVENT_ID_STRIPPER.apply(expected));
+    assertThat(stripBillingEventId(actual)).isEqualTo(stripBillingEventId(expected));
   }
 
   /** Assert that the actual billing events match the expected ones, ignoring IDs and order. */
   public static void assertBillingEventsEqual(
       Iterable<BillingEvent> actual, Iterable<BillingEvent> expected) {
-    assertThat(Streams.stream(actual).map(BILLING_EVENT_ID_STRIPPER).collect(toImmutableList()))
+    assertThat(
+            Streams.stream(actual)
+                .map(DatastoreHelper::stripBillingEventId)
+                .collect(toImmutableList()))
         .containsExactlyElementsIn(
-            Streams.stream(expected).map(BILLING_EVENT_ID_STRIPPER).collect(toImmutableList()));
+            Streams.stream(expected)
+                .map(DatastoreHelper::stripBillingEventId)
+                .collect(toImmutableList()));
   }
 
   /** Assert that the expected billing events are exactly the ones found in the fake Datastore. */
@@ -689,10 +693,12 @@ public class DatastoreHelper {
       EppResource resource, BillingEvent... expected) throws Exception {
     assertThat(
             Streams.stream(getBillingEvents(resource))
-                .map(BILLING_EVENT_ID_STRIPPER)
+                .map(DatastoreHelper::stripBillingEventId)
                 .collect(toImmutableList()))
         .containsExactlyElementsIn(
-            Arrays.stream(expected).map(BILLING_EVENT_ID_STRIPPER).collect(toImmutableList()));
+            Arrays.stream(expected)
+                .map(DatastoreHelper::stripBillingEventId)
+                .collect(toImmutableList()));
   }
 
   /** Assert that there are no billing events. */
@@ -700,9 +706,10 @@ public class DatastoreHelper {
     assertThat(getBillingEvents()).isEmpty();
   }
 
-  /** Helper to effectively erase the billing event ID to facilitate comparison. */
-  public static final Function<BillingEvent, BillingEvent> BILLING_EVENT_ID_STRIPPER =
-      billingEvent -> billingEvent.asBuilder().setId(1L).build();
+  /** Strips the billing event ID (really, sets it to a constant value) to facilitate comparison. */
+  public static BillingEvent stripBillingEventId(BillingEvent billingEvent) {
+    return billingEvent.asBuilder().setId(1L).build();
+  }
 
   /** Assert that the actual poll message matches the expected one, ignoring IDs. */
   public static void assertPollMessagesEqual(PollMessage actual, PollMessage expected) {

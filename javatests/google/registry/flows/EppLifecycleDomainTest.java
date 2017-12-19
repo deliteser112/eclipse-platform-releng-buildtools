@@ -14,20 +14,40 @@
 
 package google.registry.flows;
 
+import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_AND_CLOSE;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_ACTION_PENDING;
+import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.testing.DatastoreHelper.assertBillingEventsForResource;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.DatastoreHelper.stripBillingEventId;
 import static google.registry.testing.EppMetricSubject.assertThat;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
+import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
+import com.googlecode.objectify.Key;
+import google.registry.model.billing.BillingEvent;
+import google.registry.model.billing.BillingEvent.Flag;
+import google.registry.model.billing.BillingEvent.OneTime;
+import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
+import google.registry.model.reporting.HistoryEntry.Type;
 import google.registry.testing.AppEngineRule;
+import java.util.Objects;
+import java.util.Optional;
+import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -50,31 +70,37 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
   /** Create the two administrative contacts and two hosts. */
   void createContactsAndHosts() throws Exception {
-    DateTime startTime = DateTime.parse("2000-06-01T00:00:00Z");
-    assertCommandAndResponse(
-        "contact_create_sh8013.xml",
-        ImmutableMap.of(),
-        "contact_create_response_sh8013.xml",
-        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
-        startTime);
-    assertCommandAndResponse(
-        "contact_create_jd1234.xml",
-        "contact_create_response_jd1234.xml",
-        startTime.plusMinutes(1));
+    DateTime createTime = DateTime.parse("2000-06-01T00:00:00Z");
+    createContacts(createTime);
     assertCommandAndResponse(
         "host_create.xml",
         ImmutableMap.of("HOSTNAME", "ns1.example.external"),
         "host_create_response.xml",
         ImmutableMap.of(
-            "HOSTNAME", "ns1.example.external", "CRDATE", startTime.plusMinutes(2).toString()),
-        startTime.plusMinutes(2));
+            "HOSTNAME", "ns1.example.external", "CRDATE", createTime.plusMinutes(2).toString()),
+        createTime.plusMinutes(2));
     assertCommandAndResponse(
         "host_create.xml",
         ImmutableMap.of("HOSTNAME", "ns2.example.external"),
         "host_create_response.xml",
         ImmutableMap.of(
-            "HOSTNAME", "ns2.example.external", "CRDATE", startTime.plusMinutes(3).toString()),
-        startTime.plusMinutes(3));
+            "HOSTNAME", "ns2.example.external", "CRDATE", createTime.plusMinutes(3).toString()),
+        createTime.plusMinutes(3));
+  }
+
+  private void createContacts(DateTime createTime) throws Exception {
+    assertCommandAndResponse(
+        "contact_create_sh8013.xml",
+        ImmutableMap.of(),
+        "contact_create_response_sh8013.xml",
+        ImmutableMap.of("CRDATE", createTime.toString()),
+        createTime);
+    assertCommandAndResponse(
+        "contact_create_jd1234.xml",
+        ImmutableMap.of(),
+        "contact_create_response_jd1234.xml",
+        ImmutableMap.of("CRDATE", createTime.plusMinutes(1).toString()),
+        createTime.plusMinutes(1));
   }
 
   /** Creates the domain fakesite.example with two nameservers on it. */
@@ -117,18 +143,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
   @Test
   public void testDomainDeleteRestore() throws Exception {
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
-
-    // Create contacts sh8013 and jd1234.
-    assertCommandAndResponse(
-        "contact_create_sh8013.xml",
-        null,
-        "contact_create_response_sh8013.xml",
-        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
-        DateTime.parse("2000-06-01T00:00:00Z"));
-    assertCommandAndResponse(
-        "contact_create_jd1234.xml",
-        "contact_create_response_jd1234.xml",
-        DateTime.parse("2000-06-01T00:01:00Z"));
+    createContacts(DateTime.parse("2000-06-01T00:00:00Z"));
 
     // Create domain example.tld
     assertCommandAndResponse(
@@ -152,40 +167,235 @@ public class EppLifecycleDomainTest extends EppTestCase {
   }
 
   @Test
-  public void testDomainDeletion_withinAddGracePeriod() throws Exception {
+  public void testDomainDeletion_withinAddGracePeriod_deletesImmediately() throws Exception {
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    createContacts(DateTime.parse("2000-06-01T00:00:00Z"));
 
-    // Create contacts sh8013 and jd1234.
+    // Create domain example.tld
+    DateTime createTime = DateTime.parse("2000-06-01T00:02:00Z");
     assertCommandAndResponse(
-        "contact_create_sh8013.xml",
-        null,
-        "contact_create_response_sh8013.xml",
-        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
-        DateTime.parse("2000-06-01T00:00:00Z"));
-    assertCommandAndResponse(
-        "contact_create_jd1234.xml",
-        "contact_create_response_jd1234.xml",
-        DateTime.parse("2000-06-01T00:01:00Z"));
+        "domain_create_no_hosts_or_dsdata.xml",
+        "domain_create_response.xml",
+        createTime);
 
+    DomainResource domain =
+        loadByForeignKey(DomainResource.class, "example.tld", createTime.plusHours(1));
+
+    // Delete domain example.tld within the add grace period.
+    DateTime deleteTime = createTime.plusDays(1);
+    assertCommandAndResponse(
+        "domain_delete.xml",
+        "generic_success_response.xml",
+        deleteTime);
+
+    // Verify that it is immediately non-existent.
+    assertCommandAndResponse(
+        "domain_info.xml",
+        "domain_info_response_nonexistent.xml",
+        deleteTime.plusSeconds(1));
+
+    // The expected one-time billing event, that should have an associated Cancellation.
+    OneTime oneTimeCreateBillingEvent = makeOneTimeCreateBillingEvent(domain, createTime);
+    // Verify that the OneTime billing event associated with the domain creation is canceled.
+    assertBillingEventsForResource(
+        domain,
+        // Check the existence of the expected create one-time billing event.
+        oneTimeCreateBillingEvent,
+        makeRecurringCreateBillingEvent(domain, createTime, deleteTime),
+        // Check for the existence of a cancellation for the given one-time billing event.
+        makeCancellationBillingEventFor(
+            domain, oneTimeCreateBillingEvent, createTime, deleteTime));
+
+    assertCommandAndResponse("logout.xml", "logout_response.xml");
+  }
+
+  @Test
+  public void testDomainDeletion_outsideAddGracePeriod_showsRedemptionPeriod() throws Exception {
+    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    createContacts(DateTime.parse("2000-06-01T00:00:00Z"));
+
+    DateTime createTime = DateTime.parse("2000-06-01T00:02:00Z");
     // Create domain example.tld
     assertCommandAndResponse(
         "domain_create_no_hosts_or_dsdata.xml",
         "domain_create_response.xml",
-        DateTime.parse("2000-06-01T00:02:00Z"));
+        createTime);
 
+    DateTime deleteTime = DateTime.parse("2000-07-07T00:02:00Z"); // 1 month and 6 days after
     // Delete domain example.tld after its add grace period has expired.
     assertCommandAndResponse(
         "domain_delete.xml",
         "generic_success_action_pending_response.xml",
-        DateTime.parse("2000-07-01T00:02:00Z"));
+        deleteTime);
 
-    // Poke the domain a little at various times to see its status
+    // Verify that domain shows redemptionPeriod soon after deletion.
     assertCommandAndResponse(
         "domain_info.xml",
-        "domain_info_response_pendingdelete.xml",
-        DateTime.parse("2000-08-01T00:02:00Z")); // 1 day out.
+        ImmutableMap.of(),
+        "domain_info_response_wildcard.xml",
+        ImmutableMap.of("STATUS", "redemptionPeriod"),
+        DateTime.parse("2000-07-08T00:00:00Z"));
+
+    // Verify that the domain shows pendingDelete next.
+    assertCommandAndResponse(
+        "domain_info.xml",
+        ImmutableMap.of(),
+        "domain_info_response_wildcard.xml",
+        ImmutableMap.of("STATUS", "pendingDelete"),
+        DateTime.parse("2000-08-08T00:00:00Z"));
+
+    // Verify that the domain is non-existent (available for registration) later.
+    assertCommandAndResponse(
+        "domain_info.xml",
+        "domain_info_response_nonexistent.xml",
+        DateTime.parse("2000-09-01T00:00:00Z"));
+
+    DomainResource domain =
+        loadByForeignKey(
+            DomainResource.class, "example.tld", DateTime.parse("2000-08-01T00:02:00Z"));
+    // Verify that the autorenew was ended and that the one-time billing event is not canceled.
+    assertBillingEventsForResource(
+        domain,
+        makeOneTimeCreateBillingEvent(domain, createTime),
+        makeRecurringCreateBillingEvent(domain, createTime, deleteTime));
 
     assertCommandAndResponse("logout.xml", "logout_response.xml");
+  }
+
+  @Test
+  public void testEapDomainDeletion_withinAddGracePeriod_eapFeeIsNotRefunded() throws Exception {
+    assertCommandAndResponse("login_valid_fee_extension.xml", "login_response.xml");
+    createContacts(DateTime.parse("2000-06-01T00:00:00Z"));
+
+    // Set the EAP schedule.
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setEapFeeSchedule(
+                ImmutableSortedMap.of(
+                    START_OF_TIME, Money.of(USD, 0),
+                    DateTime.parse("2000-06-01T00:00:00Z"), Money.of(USD, 100),
+                    DateTime.parse("2000-06-02T00:00:00Z"), Money.of(USD, 0)))
+            .build());
+
+    // Create domain example.tld, which should have an EAP fee of USD 100.
+    DateTime createTime = DateTime.parse("2000-06-01T00:02:00Z");
+    assertCommandAndResponse(
+        "domain_create_eap_fee.xml",
+        "domain_create_response_eap_fee.xml",
+        createTime);
+
+    DomainResource domain =
+        loadByForeignKey(
+            DomainResource.class, "example.tld", DateTime.parse("2000-06-01T00:03:00Z"));
+
+    // Delete domain example.tld within the add grade period.
+    DateTime deleteTime = createTime.plusDays(1);
+    assertCommandAndResponse(
+        "domain_delete.xml",
+        "domain_delete_response_fee.xml",
+        deleteTime);
+
+    // Verify that the OneTime billing event associated with the base fee of domain registration and
+    // is canceled and the autorenew is ended, but that the EAP fee is not canceled.
+    OneTime expectedCreateEapBillingEvent =
+        new BillingEvent.OneTime.Builder()
+            .setReason(Reason.FEE_EARLY_ACCESS)
+            .setTargetId("example.tld")
+            .setClientId("NewRegistrar")
+            .setCost(Money.parse("USD 100.00"))
+            .setEventTime(createTime)
+            .setBillingTime(createTime.plus(Registry.get("tld").getRenewGracePeriodLength()))
+            .setParent(getOnlyHistoryEntryOfType(domain, Type.DOMAIN_CREATE))
+            .build();
+
+    // The expected one-time billing event, that should have an associated Cancellation.
+    OneTime expectedOneTimeCreateBillingEvent = makeOneTimeCreateBillingEvent(domain, createTime);
+    assertBillingEventsForResource(
+        domain,
+        // Check for the expected create one-time billing event ...
+        expectedOneTimeCreateBillingEvent,
+        // ... and the expected one-time EAP fee billing event ...
+        expectedCreateEapBillingEvent,
+        makeRecurringCreateBillingEvent(domain, createTime, deleteTime),
+        // ... and verify that the create one-time billing event was canceled ...
+        makeCancellationBillingEventFor(
+            domain, expectedOneTimeCreateBillingEvent, createTime, deleteTime));
+    // ... but there was NOT a Cancellation for the EAP fee, as this would fail if additional
+    // billing events were present.
+
+    assertCommandAndResponse("logout.xml", "logout_response.xml");
+  }
+
+  /** Makes a one-time billing event corresponding to the given domain's creation. */
+  private static BillingEvent.OneTime makeOneTimeCreateBillingEvent(
+      DomainResource domain, DateTime createTime) {
+    return new BillingEvent.OneTime.Builder()
+        .setReason(Reason.CREATE)
+        .setTargetId(domain.getFullyQualifiedDomainName())
+        .setClientId(domain.getCurrentSponsorClientId())
+        .setCost(Money.parse("USD 26.00"))
+        .setPeriodYears(2)
+        .setEventTime(createTime)
+        .setBillingTime(createTime.plus(Registry.get(domain.getTld()).getRenewGracePeriodLength()))
+        .setParent(getOnlyHistoryEntryOfType(domain, Type.DOMAIN_CREATE))
+        .build();
+  }
+
+  /** Makes a recurring billing event corresponding to the given domain's creation. */
+  private static BillingEvent.Recurring makeRecurringCreateBillingEvent(
+      DomainResource domain, DateTime createTime, DateTime endTime) {
+    return new BillingEvent.Recurring.Builder()
+        .setReason(Reason.RENEW)
+        .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
+        .setTargetId(domain.getFullyQualifiedDomainName())
+        .setClientId(domain.getCurrentSponsorClientId())
+        .setEventTime(createTime.plusYears(2))
+        .setRecurrenceEndTime(endTime)
+        .setParent(getOnlyHistoryEntryOfType(domain, Type.DOMAIN_CREATE))
+        .build();
+  }
+
+  /** Makes a cancellation billing event cancelling out the given domain create billing event. */
+  private static BillingEvent.Cancellation makeCancellationBillingEventFor(
+      DomainResource domain,
+      OneTime billingEventToCancel,
+      DateTime createTime,
+      DateTime deleteTime) {
+    return new BillingEvent.Cancellation.Builder()
+        .setTargetId(domain.getFullyQualifiedDomainName())
+        .setClientId(domain.getCurrentSponsorClientId())
+        .setEventTime(deleteTime)
+        .setOneTimeEventKey(findKeyToActualOneTimeBillingEvent(billingEventToCancel))
+        .setBillingTime(createTime.plus(Registry.get(domain.getTld()).getRenewGracePeriodLength()))
+        .setReason(Reason.CREATE)
+        .setParent(getOnlyHistoryEntryOfType(domain, Type.DOMAIN_DELETE))
+        .build();
+  }
+
+  /**
+   * Finds the Key to the actual one-time create billing event associated with a domain's creation.
+   *
+   * <p>This is used in the situation where we have created an expected billing event associated
+   * with the domain's creation (which is passed as the parameter here), then need to locate the key
+   * to the actual billing event in Datastore that would be seen on a Cancellation billing event.
+   * This is necessary because the ID will be different even though all the rest of the fields are
+   * the same.
+   */
+  private static Key<OneTime> findKeyToActualOneTimeBillingEvent(OneTime expectedBillingEvent) {
+    Optional<OneTime> actualCreateBillingEvent =
+        ofy()
+            .load()
+            .type(BillingEvent.OneTime.class)
+            .list()
+            .stream()
+            .filter(
+                b ->
+                    Objects.equals(
+                        stripBillingEventId(b), stripBillingEventId(expectedBillingEvent)))
+            .findFirst();
+    assertThat(actualCreateBillingEvent).isPresent();
+    return Key.create(actualCreateBillingEvent.get());
   }
 
   @Test
@@ -751,17 +961,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     createTlds("bar.foo.tld", "foo.tld");
 
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
-
-    assertCommandAndResponse(
-        "contact_create_sh8013.xml",
-        null,
-        "contact_create_response_sh8013.xml",
-        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
-        DateTime.parse("2000-06-01T00:00:00Z"));
-    assertCommandAndResponse(
-        "contact_create_jd1234.xml",
-        "contact_create_response_jd1234.xml",
-        DateTime.parse("2000-06-01T00:01:00Z"));
+    createContacts(DateTime.parse("2000-06-01T00:00:00Z"));
 
     // Create domain example.bar.foo.tld
     assertCommandAndResponse(
@@ -795,17 +995,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     createTld("tld.foo");
 
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
-
-    assertCommandAndResponse(
-        "contact_create_sh8013.xml",
-        null,
-        "contact_create_response_sh8013.xml",
-        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
-        DateTime.parse("2000-06-01T00:00:00Z"));
-    assertCommandAndResponse(
-        "contact_create_jd1234.xml",
-        "contact_create_response_jd1234.xml",
-        DateTime.parse("2000-06-01T00:01:00Z"));
+    createContacts(DateTime.parse("2000-06-01T00:00:00Z"));
 
     // Create domain example.tld.foo
     assertCommandAndResponse(

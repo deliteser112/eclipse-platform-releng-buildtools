@@ -1,0 +1,25 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <response>
+    <result code="1000">
+      <msg>Command completed successfully</msg>
+    </result>
+    <resData>
+      <domain:creData xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>example.tld</domain:name>
+        <domain:crDate>2000-06-01T00:02:00Z</domain:crDate>
+        <domain:exDate>2002-06-01T00:02:00Z</domain:exDate>
+      </domain:creData>
+    </resData>
+    <extension>
+      <fee:creData xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
+        <fee:currency>USD</fee:currency>
+        <fee:fee description="create">26.00</fee:fee>
+        <fee:fee description="Early Access Period, fee expires: 2000-06-02T00:00:00.000Z">100.00</fee:fee>
+      </fee:creData>
+    </extension>
+    <trID>
+      <clTRID>ABC-12345</clTRID>
+      <svTRID>server-trid</svTRID>
+    </trID>
+  </response>
+</epp>

@@ -25,7 +25,7 @@
     </resData>
     <extension>
       <rgp:infData xmlns:rgp="urn:ietf:params:xml:ns:rgp-1.0">
-        <rgp:rgpStatus s="pendingDelete"/>
+        <rgp:rgpStatus s="%STATUS%"/>
       </rgp:infData>
     </extension>
     <trID>

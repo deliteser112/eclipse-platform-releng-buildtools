@@ -189,11 +189,11 @@ public abstract class BillingEvent extends ImmutableObject
     @Override
     public T build() {
       T instance = getInstance();
-      checkNotNull(instance.reason);
-      checkNotNull(instance.clientId);
-      checkNotNull(instance.eventTime);
-      checkNotNull(instance.targetId);
-      checkNotNull(instance.parent);
+      checkNotNull(instance.reason, "Reason must be set");
+      checkNotNull(instance.clientId, "Client ID must be set");
+      checkNotNull(instance.eventTime, "Event time must be set");
+      checkNotNull(instance.targetId, "Target ID must be set");
+      checkNotNull(instance.parent, "Parent must be set");
       return super.build();
     }
   }
@@ -502,8 +502,8 @@ public abstract class BillingEvent extends ImmutableObject
       @Override
       public Cancellation build() {
         Cancellation instance = getInstance();
-        checkNotNull(instance.billingTime);
-        checkNotNull(instance.reason);
+        checkNotNull(instance.billingTime, "Must set billing time");
+        checkNotNull(instance.reason, "Must set reason");
         checkState((instance.refOneTime == null) != (instance.refRecurring == null),
             "Cancellations must have exactly one billing event key set");
         return super.build();
