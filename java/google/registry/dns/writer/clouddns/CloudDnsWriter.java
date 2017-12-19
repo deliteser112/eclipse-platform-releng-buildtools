@@ -28,6 +28,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.common.net.InternetDomainName;
 import com.google.common.util.concurrent.RateLimiter;
 import google.registry.config.RegistryConfig.Config;
@@ -379,7 +380,23 @@ public class CloudDnsWriter extends BaseDnsWriter {
    */
   private void updateResourceRecords(
       ImmutableSet<ResourceRecordSet> additions, ImmutableSet<ResourceRecordSet> deletions) {
-    Change change = new Change().setAdditions(additions.asList()).setDeletions(deletions.asList());
+    // Find records that are both in additions and deletions, so we can remove them from both before
+    // requesting the change. This is mostly for optimization reasons - not doing so doesn't affect
+    // the result.
+    ImmutableSet<ResourceRecordSet> intersection =
+        Sets.intersection(additions, deletions).immutableCopy();
+    logger.infofmt(
+        "There are %s common items out of the %s items in 'additions' and %s items in 'deletions'",
+        intersection.size(), additions.size(), deletions.size());
+    // Exit early if we have nothing to update - dnsConnection doesn't work on empty changes
+    if (additions.equals(deletions)) {
+      logger.infofmt("Returning early because additions is the same as deletions");
+      return;
+    }
+    Change change =
+        new Change()
+            .setAdditions(ImmutableList.copyOf(Sets.difference(additions, intersection)))
+            .setDeletions(ImmutableList.copyOf(Sets.difference(deletions, intersection)));
 
     rateLimiter.acquire();
     try {

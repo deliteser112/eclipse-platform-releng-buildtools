@@ -490,4 +490,10 @@ public class CloudDnsWriterTest {
     writer.commit();
     assertThat(zoneNameCaptor.getValue()).isEqualTo("triple-secret-tld");
   }
+
+  @Test
+  public void testEmptyCommit() {
+    writer.commit();
+    verify(dnsConnection, times(0)).changes();
+  }
 }
