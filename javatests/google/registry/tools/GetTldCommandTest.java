@@ -44,7 +44,7 @@ public class GetTldCommandTest extends CommandTestCase<GetTldCommand> {
 
   @Test
   public void testFailure_noTldName() throws Exception {
-    assertThrows(ParameterException.class, () -> runCommand());
+    assertThrows(ParameterException.class, this::runCommand);
   }
 
   @Test

@@ -295,22 +295,21 @@ public class MutatingCommandTest {
         stageEntityChange(null, null);
       }
     };
-    assertThrows(IllegalArgumentException.class, () -> command.init());
+    assertThrows(IllegalArgumentException.class, command::init);
   }
 
   @Test
   public void testFailure_updateSameEntityTwice() throws Exception {
-    MutatingCommand command = new MutatingCommand() {
-      @Override
-      protected void init() {
-        stageEntityChange(host1, newHost1);
-        stageEntityChange(host1, host1.asBuilder()
-            .setLastEppUpdateTime(DateTime.now(UTC))
-            .build());
-      }
-    };
-    IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> command.init());
+    MutatingCommand command =
+        new MutatingCommand() {
+          @Override
+          protected void init() {
+            stageEntityChange(host1, newHost1);
+            stageEntityChange(
+                host1, host1.asBuilder().setLastEppUpdateTime(DateTime.now(UTC)).build());
+          }
+        };
+    IllegalArgumentException thrown = expectThrows(IllegalArgumentException.class, command::init);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Cannot apply multiple changes for the same entity");
@@ -324,8 +323,7 @@ public class MutatingCommandTest {
         stageEntityChange(host1, host2);
       }
     };
-    IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> command.init());
+    IllegalArgumentException thrown = expectThrows(IllegalArgumentException.class, command::init);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Both entity versions in an update must have the same Key.");
@@ -333,14 +331,14 @@ public class MutatingCommandTest {
 
   @Test
   public void testFailure_updateDifferentStringId() throws Exception {
-    MutatingCommand command = new MutatingCommand() {
-      @Override
-      public void init() {
-        stageEntityChange(registrar1, registrar2);
-      }
-    };
-    IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> command.init());
+    MutatingCommand command =
+        new MutatingCommand() {
+          @Override
+          public void init() {
+            stageEntityChange(registrar1, registrar2);
+          }
+        };
+    IllegalArgumentException thrown = expectThrows(IllegalArgumentException.class, command::init);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Both entity versions in an update must have the same Key.");
@@ -348,14 +346,14 @@ public class MutatingCommandTest {
 
   @Test
   public void testFailure_updateDifferentKind() throws Exception {
-    MutatingCommand command = new MutatingCommand() {
-      @Override
-      public void init() {
-        stageEntityChange(host1, registrar1);
-      }
-    };
-    IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> command.init());
+    MutatingCommand command =
+        new MutatingCommand() {
+          @Override
+          public void init() {
+            stageEntityChange(host1, registrar1);
+          }
+        };
+    IllegalArgumentException thrown = expectThrows(IllegalArgumentException.class, command::init);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Both entity versions in an update must have the same Key.");
@@ -363,61 +361,61 @@ public class MutatingCommandTest {
 
   @Test
   public void testFailure_updateModifiedEntity() throws Exception {
-    MutatingCommand command = new MutatingCommand() {
-      @Override
-      public void init() {
-        stageEntityChange(host1, newHost1);
-      }
-    };
+    MutatingCommand command =
+        new MutatingCommand() {
+          @Override
+          public void init() {
+            stageEntityChange(host1, newHost1);
+          }
+        };
     command.init();
     persistResource(newHost1);
-    IllegalStateException thrown =
-        expectThrows(IllegalStateException.class, () -> command.execute());
+    IllegalStateException thrown = expectThrows(IllegalStateException.class, command::execute);
     assertThat(thrown).hasMessageThat().contains("Entity changed since init() was called.");
   }
 
   @Test
   public void testFailure_createExistingEntity() throws Exception {
-    MutatingCommand command = new MutatingCommand() {
-      @Override
-      protected void init() {
-        stageEntityChange(null, newHost1);
-      }
-    };
+    MutatingCommand command =
+        new MutatingCommand() {
+          @Override
+          protected void init() {
+            stageEntityChange(null, newHost1);
+          }
+        };
     command.init();
     persistResource(newHost1);
-    IllegalStateException thrown =
-        expectThrows(IllegalStateException.class, () -> command.execute());
+    IllegalStateException thrown = expectThrows(IllegalStateException.class, command::execute);
     assertThat(thrown).hasMessageThat().contains("Entity changed since init() was called.");
   }
 
   @Test
   public void testFailure_deleteChangedEntity() throws Exception {
-    MutatingCommand command = new MutatingCommand() {
-      @Override
-      protected void init() {
-        stageEntityChange(host1, null);
-      }
-    };
+    MutatingCommand command =
+        new MutatingCommand() {
+          @Override
+          protected void init() {
+            stageEntityChange(host1, null);
+          }
+        };
     command.init();
     persistResource(newHost1);
-    IllegalStateException thrown =
-        expectThrows(IllegalStateException.class, () -> command.execute());
+    IllegalStateException thrown = expectThrows(IllegalStateException.class, command::execute);
     assertThat(thrown).hasMessageThat().contains("Entity changed since init() was called.");
   }
 
   @Test
   public void testFailure_deleteRemovedEntity() throws Exception {
-    MutatingCommand command = new MutatingCommand() {
-      @Override
-      protected void init() {
-        stageEntityChange(host1, null);
-      }
-    };
+    MutatingCommand command =
+        new MutatingCommand() {
+          @Override
+          protected void init() {
+            stageEntityChange(host1, null);
+          }
+        };
     command.init();
     deleteResource(host1);
-    IllegalStateException thrown =
-        expectThrows(IllegalStateException.class, () -> command.execute());
+    IllegalStateException thrown = expectThrows(IllegalStateException.class, command::execute);
     assertThat(thrown).hasMessageThat().contains("Entity changed since init() was called.");
   }
 }

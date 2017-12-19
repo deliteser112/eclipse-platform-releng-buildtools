@@ -78,7 +78,7 @@ public class GetApplicationIdsCommandTest extends CommandTestCase<GetApplication
 
   @Test
   public void testFailure_noDomainName() throws Exception {
-    assertThrows(ParameterException.class, () -> runCommand());
+    assertThrows(ParameterException.class, this::runCommand);
   }
 
   private void persistDomainApplication(String domainName, String repoId) {

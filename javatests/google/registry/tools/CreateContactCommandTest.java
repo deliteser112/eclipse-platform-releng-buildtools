@@ -60,7 +60,7 @@ public class CreateContactCommandTest extends EppToolCommandTestCase<CreateConta
 
   @Test
   public void testFailure_missingClientId() throws Exception {
-    assertThrows(ParameterException.class, () -> runCommandForced());
+    assertThrows(ParameterException.class, this::runCommandForced);
   }
 
   @Test

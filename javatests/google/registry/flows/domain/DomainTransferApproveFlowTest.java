@@ -276,7 +276,7 @@ public class DomainTransferApproveFlowTest
                         .setEventTime(domain.getRegistrationExpirationTime())
                         .setParent(historyEntryTransferApproved)
                         .build()))
-            .toArray(size -> new BillingEvent[size]));
+            .toArray(BillingEvent[]::new));
     // There should be a grace period for the new transfer billing event.
     assertGracePeriods(
         domain.getGracePeriods(),
@@ -311,7 +311,7 @@ public class DomainTransferApproveFlowTest
                         .setEventTime(domain.getRegistrationExpirationTime())
                         .setParent(historyEntryTransferApproved)
                         .build()))
-            .toArray(size -> new BillingEvent[size]));
+            .toArray(BillingEvent[]::new));
     // There should be no grace period.
     assertGracePeriods(domain.getGracePeriods(), ImmutableMap.of());
   }

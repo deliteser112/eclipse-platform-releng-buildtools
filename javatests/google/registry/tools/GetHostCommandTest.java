@@ -107,6 +107,6 @@ public class GetHostCommandTest extends CommandTestCase<GetHostCommand> {
 
   @Test
   public void testFailure_noHostName() throws Exception {
-    assertThrows(ParameterException.class, () -> runCommand());
+    assertThrows(ParameterException.class, this::runCommand);
   }
 }

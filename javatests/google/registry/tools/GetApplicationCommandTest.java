@@ -88,7 +88,7 @@ public class GetApplicationCommandTest extends CommandTestCase<GetApplicationCom
 
   @Test
   public void testFailure_noApplicationId() throws Exception {
-    assertThrows(ParameterException.class, () -> runCommand());
+    assertThrows(ParameterException.class, this::runCommand);
   }
 
   @Test

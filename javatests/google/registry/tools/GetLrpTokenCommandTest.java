@@ -82,7 +82,7 @@ public class GetLrpTokenCommandTest extends CommandTestCase<GetLrpTokenCommand> 
   @Test
   public void testFailure_noArgs() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> runCommand());
+        expectThrows(IllegalArgumentException.class, this::runCommand);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Exactly one of either token or assignee must be specified.");

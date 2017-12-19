@@ -74,8 +74,7 @@ public class RdeParserTest {
   @Test
   public void testGetContactNotAtElement_throwsIllegalStateException() throws Exception {
     try (RdeParser parser = new RdeParser(xml)) {
-      IllegalStateException thrown =
-          expectThrows(IllegalStateException.class, () -> parser.getContact());
+      IllegalStateException thrown = expectThrows(IllegalStateException.class, parser::getContact);
       assertThat(thrown)
           .hasMessageThat()
           .contains("Not at element urn:ietf:params:xml:ns:rdeContact-1.0:contact");
@@ -159,8 +158,7 @@ public class RdeParserTest {
   @Test
   public void testGetDomainNotAtElement_throwsIllegalStateException() throws Exception {
     try (RdeParser parser = new RdeParser(xml)) {
-      IllegalStateException thrown =
-          expectThrows(IllegalStateException.class, () -> parser.getDomain());
+      IllegalStateException thrown = expectThrows(IllegalStateException.class, parser::getDomain);
       assertThat(thrown)
           .hasMessageThat()
           .contains("Not at element urn:ietf:params:xml:ns:rdeDomain-1.0:domain");
@@ -272,8 +270,7 @@ public class RdeParserTest {
   @Test
   public void testGetHostNotAtElement_throwsIllegalStateException() throws Exception {
     try (RdeParser parser = new RdeParser(xml)) {
-      IllegalStateException thrown =
-          expectThrows(IllegalStateException.class, () -> parser.getHost());
+      IllegalStateException thrown = expectThrows(IllegalStateException.class, parser::getHost);
       assertThat(thrown)
           .hasMessageThat()
           .contains("Not at element urn:ietf:params:xml:ns:rdeHost-1.0:host");
@@ -387,7 +384,7 @@ public class RdeParserTest {
   public void testGetRegistrarNotAtElement_throwsIllegalStateException() throws Exception {
     try (RdeParser parser = new RdeParser(xml)) {
       IllegalStateException thrown =
-          expectThrows(IllegalStateException.class, () -> parser.getRegistrar());
+          expectThrows(IllegalStateException.class, parser::getRegistrar);
       assertThat(thrown)
           .hasMessageThat()
           .contains("Not at element urn:ietf:params:xml:ns:rdeRegistrar-1.0:registrar");
@@ -426,8 +423,7 @@ public class RdeParserTest {
   @Test
   public void testGetNndnNotAtElement_throwsIllegalStateException() throws Exception {
     try (RdeParser parser = new RdeParser(xml)) {
-      IllegalStateException thrown =
-          expectThrows(IllegalStateException.class, () -> parser.getNndn());
+      IllegalStateException thrown = expectThrows(IllegalStateException.class, parser::getNndn);
       assertThat(thrown)
           .hasMessageThat()
           .contains("Not at element urn:ietf:params:xml:ns:rdeNNDN-1.0:NNDN");
@@ -465,8 +461,7 @@ public class RdeParserTest {
   @Test
   public void testGetIdnNotAtElement_throwsIllegalStateException() throws Exception {
     try (RdeParser parser = new RdeParser(xml)) {
-      IllegalStateException thrown =
-          expectThrows(IllegalStateException.class, () -> parser.getIdn());
+      IllegalStateException thrown = expectThrows(IllegalStateException.class, parser::getIdn);
       assertThat(thrown)
           .hasMessageThat()
           .contains("Not at element urn:ietf:params:xml:ns:rdeIDN-1.0:idnTableRef");
@@ -507,7 +502,7 @@ public class RdeParserTest {
   public void testGetEppParamsNotAtElement_throwsIllegalStateException() throws Exception {
     try (RdeParser parser = new RdeParser(xml)) {
       IllegalStateException thrown =
-          expectThrows(IllegalStateException.class, () -> parser.getEppParams());
+          expectThrows(IllegalStateException.class, parser::getEppParams);
       assertThat(thrown)
           .hasMessageThat()
           .contains("Not at element urn:ietf:params:xml:ns:rdeEppParams-1.0:eppParams");

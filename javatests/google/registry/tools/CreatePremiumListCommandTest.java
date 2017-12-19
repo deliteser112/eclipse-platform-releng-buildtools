@@ -102,7 +102,7 @@ public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
 
   @Test
   public void testRun_noInputFileSpecified_throwsException() throws Exception  {
-    ParameterException thrown = expectThrows(ParameterException.class, () -> runCommand());
+    ParameterException thrown = expectThrows(ParameterException.class, this::runCommand);
     assertThat(thrown).hasMessageThat().contains("The following option is required");
   }
 

@@ -127,6 +127,6 @@ public class AuthModuleTest {
   public void test_provideCredential_notStored() {
     // Doing this without the mock setup should cause us to throw an exception because the
     // credential has not been stored.
-    assertThrows(AuthModule.LoginRequiredException.class, () -> getCredential());
+    assertThrows(AuthModule.LoginRequiredException.class, this::getCredential);
   }
 }

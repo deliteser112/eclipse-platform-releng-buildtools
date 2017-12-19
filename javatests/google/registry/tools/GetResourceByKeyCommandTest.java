@@ -224,6 +224,6 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
 
   @Test
   public void testFailure_noParameters() throws Exception {
-    assertThrows(ParameterException.class, () -> runCommand());
+    assertThrows(ParameterException.class, this::runCommand);
   }
 }

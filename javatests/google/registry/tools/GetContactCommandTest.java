@@ -80,7 +80,7 @@ public class GetContactCommandTest extends CommandTestCase<GetContactCommand> {
 
   @Test
   public void testFailure_noContact() throws Exception {
-    assertThrows(ParameterException.class, () -> runCommand());
+    assertThrows(ParameterException.class, this::runCommand);
   }
 
   @Test

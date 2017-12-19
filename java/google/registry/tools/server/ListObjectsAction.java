@@ -185,8 +185,7 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
       fieldMap.putAll(getFieldOverrides(object));
       // Next, add to the mapping all the aliases, with their values defined as whatever was in the
       // map under the aliased field's original name.
-      fieldMap.putAll(
-          new HashMap<>(Maps.transformValues(getFieldAliases(), value -> fieldMap.get(value))));
+      fieldMap.putAll(new HashMap<>(Maps.transformValues(getFieldAliases(), fieldMap::get)));
       Set<String> expectedFields = ImmutableSortedSet.copyOf(fieldMap.keySet());
       for (String field : fields) {
         checkArgument(fieldMap.containsKey(field),

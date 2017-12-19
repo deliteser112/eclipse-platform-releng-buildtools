@@ -321,7 +321,7 @@ public class GenerateAuctionDataCommandTest extends CommandTestCase<GenerateAuct
 
   @Test
   public void testFailure_missingTldName() throws Exception {
-    assertThrows(ParameterException.class, () -> runCommand());
+    assertThrows(ParameterException.class, this::runCommand);
   }
 
   @Test

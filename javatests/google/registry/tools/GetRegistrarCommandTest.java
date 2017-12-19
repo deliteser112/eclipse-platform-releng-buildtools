@@ -45,7 +45,7 @@ public class GetRegistrarCommandTest extends CommandTestCase<GetRegistrarCommand
 
   @Test
   public void testFailure_noRegistrarName() throws Exception {
-    assertThrows(ParameterException.class, () -> runCommand());
+    assertThrows(ParameterException.class, this::runCommand);
   }
 
   @Test

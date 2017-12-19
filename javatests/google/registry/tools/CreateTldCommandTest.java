@@ -434,7 +434,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testFailure_noTldName() throws Exception {
-    ParameterException thrown = expectThrows(ParameterException.class, () -> runCommandForced());
+    ParameterException thrown = expectThrows(ParameterException.class, this::runCommandForced);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Main parameters are required (\"Names of the TLDs\")");

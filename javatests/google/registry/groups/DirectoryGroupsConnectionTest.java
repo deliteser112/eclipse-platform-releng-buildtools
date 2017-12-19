@@ -114,7 +114,7 @@ public class DirectoryGroupsConnectionTest {
   public void test_addMemberToGroup_handlesExceptionThrownByDirectoryService() throws Exception {
     when(membersInsert.execute()).thenThrow(
         makeResponseException(SC_INTERNAL_SERVER_ERROR, "Could not contact Directory server."));
-    assertThrows(GoogleJsonResponseException.class, () -> runAddMemberTest());
+    assertThrows(GoogleJsonResponseException.class, this::runAddMemberTest);
   }
 
   @Test
@@ -178,7 +178,7 @@ public class DirectoryGroupsConnectionTest {
   public void test_createGroup_handlesExceptionThrownByDirectoryService() throws Exception {
     when(groupsInsert.execute()).thenThrow(
         makeResponseException(SC_INTERNAL_SERVER_ERROR, "Could not contact Directory server."));
-    assertThrows(GoogleJsonResponseException.class, () -> runCreateGroupTest());
+    assertThrows(GoogleJsonResponseException.class, this::runCreateGroupTest);
   }
 
   @Test

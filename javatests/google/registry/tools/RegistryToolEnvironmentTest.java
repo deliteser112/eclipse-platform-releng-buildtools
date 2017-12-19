@@ -27,7 +27,7 @@ public class RegistryToolEnvironmentTest {
 
   @Test
   public void testGet_withoutSetup_throws() throws Exception {
-    assertThrows(IllegalStateException.class, () -> RegistryToolEnvironment.get());
+    assertThrows(IllegalStateException.class, RegistryToolEnvironment::get);
   }
 
   @Test
