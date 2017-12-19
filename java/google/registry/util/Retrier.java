@@ -19,11 +19,11 @@ import static com.google.common.base.Throwables.throwIfUnchecked;
 import static com.google.common.math.IntMath.pow;
 import static google.registry.util.PredicateUtils.supertypeOf;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import java.io.Serializable;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.Predicate;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.joda.time.Duration;
@@ -88,7 +88,7 @@ public class Retrier implements Serializable {
       try {
         return callable.call();
       } catch (Throwable e) {
-        if (++failures == attempts || !isRetryable.apply(e)) {
+        if (++failures == attempts || !isRetryable.test(e)) {
           failureReporter.afterFinalFailure(e, failures);
           throwIfUnchecked(e);
           throw new RuntimeException(e);

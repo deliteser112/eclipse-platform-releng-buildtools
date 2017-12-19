@@ -33,12 +33,10 @@ import com.google.appengine.api.taskqueue.dev.QueueStateInfo.HeaderWrapper;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
 import com.google.common.base.Ascii;
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultiset;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.net.HttpHeaders;
@@ -55,6 +53,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import org.joda.time.Duration;
 
@@ -156,7 +155,7 @@ public class TaskQueueHelper {
      * TaskStateInfo).
      */
     @Override
-    public boolean apply(@Nonnull TaskStateInfo info) {
+    public boolean test(@Nonnull TaskStateInfo info) {
       MatchableTaskInfo actual = new MatchableTaskInfo(info);
       return (expected.taskName == null || Objects.equals(expected.taskName, actual.taskName))
           && (expected.url == null || Objects.equals(expected.url, actual.url))
@@ -241,7 +240,7 @@ public class TaskQueueHelper {
     LinkedList<TaskStateInfo> taskInfos = new LinkedList<>(qsi.getTaskInfo());
     for (final TaskMatcher taskMatcher : taskMatchers) {
       try {
-        taskInfos.remove(Iterables.find(taskInfos, taskMatcher));
+        taskInfos.remove(taskInfos.stream().filter(taskMatcher).findFirst().get());
       } catch (NoSuchElementException e) {
         final Map<String, Object> taskMatcherMap = taskMatcher.expected.toMap();
         assert_()

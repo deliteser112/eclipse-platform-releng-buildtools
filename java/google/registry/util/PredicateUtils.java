@@ -14,7 +14,7 @@
 
 package google.registry.util;
 
-import com.google.common.base.Predicate;
+import java.util.function.Predicate;
 
 /** Utility class containing {@link Predicate} methods. */
 public class PredicateUtils {
@@ -34,7 +34,7 @@ public class PredicateUtils {
     }
 
     @Override
-    public boolean apply(Class<?> superClass) {
+    public boolean test(Class<?> superClass) {
       return superClass.isAssignableFrom(subClass);
     }
   }

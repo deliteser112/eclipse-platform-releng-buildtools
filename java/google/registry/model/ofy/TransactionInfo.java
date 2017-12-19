@@ -21,8 +21,6 @@ import static com.google.common.collect.Maps.toMap;
 import static google.registry.model.ofy.CommitLogBucket.getArbitraryBucketId;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -31,8 +29,6 @@ import org.joda.time.DateTime;
 
 /** Metadata for an {@link Ofy} transaction that saves commit logs. */
 class TransactionInfo {
-
-  private static final Predicate<Object> IS_DELETE = Predicates.equalTo(Delete.SENTINEL);
 
   private enum Delete { SENTINEL }
 
@@ -75,7 +71,7 @@ class TransactionInfo {
 
   void putDeletes(Iterable<Key<?>> keys) {
     assertNotReadOnly();
-    changesBuilder.putAll(toMap(keys, k -> TransactionInfo.Delete.SENTINEL));
+    changesBuilder.putAll(toMap(keys, k -> Delete.SENTINEL));
   }
 
   ImmutableSet<Key<?>> getTouchedKeys() {
@@ -83,7 +79,8 @@ class TransactionInfo {
   }
 
   ImmutableSet<Key<?>> getDeletes() {
-    return ImmutableSet.copyOf(filterValues(changesBuilder.build(), IS_DELETE).keySet());
+    return ImmutableSet.copyOf(
+        filterValues(changesBuilder.build(), Delete.SENTINEL::equals).keySet());
   }
 
   ImmutableSet<Object> getSaves() {
@@ -91,7 +88,7 @@ class TransactionInfo {
         .build()
         .values()
         .stream()
-        .filter(Predicates.not(IS_DELETE))
+        .filter(change -> !Delete.SENTINEL.equals(change))
         .collect(toImmutableSet());
   }
 }

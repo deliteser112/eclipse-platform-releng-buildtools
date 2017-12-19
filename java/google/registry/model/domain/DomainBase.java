@@ -15,7 +15,6 @@
 package google.registry.model.domain;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Strings.emptyToNull;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
@@ -30,7 +29,6 @@ import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static google.registry.util.DomainNameUtils.getTldFromDomainName;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
@@ -47,6 +45,7 @@ import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /** Shared base class for {@link DomainResource} and {@link DomainApplication}. */
@@ -154,7 +153,10 @@ public abstract class DomainBase extends EppResource {
 
   /** Associated contacts for the domain (other than registrant). */
   public ImmutableSet<DesignatedContact> getContacts() {
-    return nullToEmpty(allContacts).stream().filter(not(IS_REGISTRANT)).collect(toImmutableSet());
+    return nullToEmpty(allContacts)
+        .stream()
+        .filter(IS_REGISTRANT.negate())
+        .collect(toImmutableSet());
   }
 
   public DomainAuthInfo getAuthInfo() {

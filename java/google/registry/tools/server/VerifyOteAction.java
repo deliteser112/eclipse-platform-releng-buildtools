@@ -15,7 +15,6 @@
 package google.registry.tools.server;
 
 import static com.google.common.base.Predicates.equalTo;
-import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Maps.toMap;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
@@ -25,7 +24,6 @@ import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultiset;
@@ -51,6 +49,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 
@@ -147,13 +146,13 @@ public class VerifyOteAction implements Runnable, JsonAction {
     CONTACT_UPDATES(0, equalTo(Type.CONTACT_UPDATE)),
     DOMAIN_APPLICATION_CREATES(0, equalTo(Type.DOMAIN_APPLICATION_CREATE)),
     DOMAIN_APPLICATION_CREATES_LANDRUSH(
-        1, equalTo(Type.DOMAIN_APPLICATION_CREATE), not(IS_SUNRISE)),
+        1, equalTo(Type.DOMAIN_APPLICATION_CREATE), IS_SUNRISE.negate()),
     DOMAIN_APPLICATION_CREATES_SUNRISE(1, equalTo(Type.DOMAIN_APPLICATION_CREATE), IS_SUNRISE),
     DOMAIN_APPLICATION_DELETES(2, equalTo(Type.DOMAIN_APPLICATION_DELETE)),
     DOMAIN_APPLICATION_UPDATES(2, equalTo(Type.DOMAIN_APPLICATION_UPDATE)),
     DOMAIN_AUTORENEWS(0, equalTo(Type.DOMAIN_AUTORENEW)),
     DOMAIN_CREATES(0, equalTo(Type.DOMAIN_CREATE)),
-    DOMAIN_CREATES_ASCII(1, equalTo(Type.DOMAIN_CREATE), not(IS_IDN)),
+    DOMAIN_CREATES_ASCII(1, equalTo(Type.DOMAIN_CREATE), IS_IDN.negate()),
     DOMAIN_CREATES_IDN(1, equalTo(Type.DOMAIN_CREATE), IS_IDN),
     DOMAIN_CREATES_WITH_CLAIMS_NOTICE(1, equalTo(Type.DOMAIN_CREATE), HAS_CLAIMS_NOTICE),
     DOMAIN_CREATES_WITH_FEE(
@@ -161,7 +160,7 @@ public class VerifyOteAction implements Runnable, JsonAction {
         equalTo(Type.DOMAIN_CREATE),
         eppInput -> eppInput.getSingleExtension(FeeCreateCommandExtension.class) != null),
     DOMAIN_CREATES_WITH_SEC_DNS(1, equalTo(Type.DOMAIN_CREATE), HAS_SEC_DNS),
-    DOMAIN_CREATES_WITHOUT_SEC_DNS(0, equalTo(Type.DOMAIN_CREATE), not(HAS_SEC_DNS)),
+    DOMAIN_CREATES_WITHOUT_SEC_DNS(0, equalTo(Type.DOMAIN_CREATE), HAS_SEC_DNS.negate()),
     DOMAIN_DELETES(2, equalTo(Type.DOMAIN_DELETE)),
     DOMAIN_RENEWS(0, equalTo(Type.DOMAIN_RENEW)),
     DOMAIN_RESTORES(1, equalTo(Type.DOMAIN_RESTORE)),
@@ -171,9 +170,9 @@ public class VerifyOteAction implements Runnable, JsonAction {
     DOMAIN_TRANSFER_REQUESTS(1, equalTo(Type.DOMAIN_TRANSFER_REQUEST)),
     DOMAIN_UPDATES(0, equalTo(Type.DOMAIN_UPDATE)),
     DOMAIN_UPDATES_WITH_SEC_DNS(1, equalTo(Type.DOMAIN_UPDATE), HAS_SEC_DNS),
-    DOMAIN_UPDATES_WITHOUT_SEC_DNS(0, equalTo(Type.DOMAIN_UPDATE), not(HAS_SEC_DNS)),
+    DOMAIN_UPDATES_WITHOUT_SEC_DNS(0, equalTo(Type.DOMAIN_UPDATE), HAS_SEC_DNS.negate()),
     HOST_CREATES(0, equalTo(Type.HOST_CREATE)),
-    HOST_CREATES_EXTERNAL(0, equalTo(Type.HOST_CREATE), not(IS_SUBORDINATE)),
+    HOST_CREATES_EXTERNAL(0, equalTo(Type.HOST_CREATE), IS_SUBORDINATE.negate()),
     HOST_CREATES_SUBORDINATE(1, equalTo(Type.HOST_CREATE), IS_SUBORDINATE),
     HOST_DELETES(1, equalTo(Type.HOST_DELETE)),
     HOST_UPDATES(1, equalTo(Type.HOST_UPDATE)),
@@ -221,9 +220,9 @@ public class VerifyOteAction implements Runnable, JsonAction {
      */
     boolean matches(HistoryEntry.Type historyType, Optional<EppInput> eppInput) {
       if (eppInputFilter.isPresent() && eppInput.isPresent()) {
-        return typeFilter.apply(historyType) && eppInputFilter.get().apply(eppInput.get());
+        return typeFilter.test(historyType) && eppInputFilter.get().test(eppInput.get());
       } else {
-        return typeFilter.apply(historyType);
+        return typeFilter.test(historyType);
       }
     }
   }

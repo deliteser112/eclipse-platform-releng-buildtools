@@ -28,7 +28,6 @@ import static google.registry.model.registrar.RegistrarContact.Type.WHOIS;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
@@ -40,6 +39,7 @@ import google.registry.model.registrar.RegistrarContact;
 import google.registry.util.Clock;
 import google.registry.util.DateTimeUtils;
 import java.io.IOException;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -162,7 +162,7 @@ class SyncRegistrarsSheet {
     StringBuilder result = new StringBuilder();
     boolean first = true;
     for (RegistrarContact contact : contacts) {
-      if (!filter.apply(contact)) {
+      if (!filter.test(contact)) {
         continue;
       }
       if (first) {
