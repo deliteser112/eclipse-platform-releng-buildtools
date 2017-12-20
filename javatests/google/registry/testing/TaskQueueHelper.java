@@ -44,11 +44,12 @@ import com.google.common.net.MediaType;
 import google.registry.dns.DnsConstants;
 import google.registry.model.ImmutableObject;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -232,7 +233,7 @@ public class TaskQueueHelper {
       throws Exception {
     QueueStateInfo qsi = getQueueInfo(queueName);
     assertThat(qsi.getTaskInfo()).hasSize(taskMatchers.size());
-    LinkedList<TaskStateInfo> taskInfos = new LinkedList<>(qsi.getTaskInfo());
+    List<TaskStateInfo> taskInfos = new ArrayList<>(qsi.getTaskInfo());
     for (final TaskMatcher taskMatcher : taskMatchers) {
       try {
         taskInfos.remove(taskInfos.stream().filter(taskMatcher).findFirst().get());
