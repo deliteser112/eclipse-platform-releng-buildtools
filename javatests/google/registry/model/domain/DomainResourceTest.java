@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
 import google.registry.model.billing.BillingEvent;
@@ -51,7 +52,6 @@ import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
-import java.util.stream.Stream;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -369,7 +369,7 @@ public class DomainResourceTest extends EntityTestCase {
         domain
             .asBuilder()
             .setGracePeriods(
-                Stream.concat(addGracePeriods.stream(), renewGracePeriods.stream())
+                Streams.concat(addGracePeriods.stream(), renewGracePeriods.stream())
                     .collect(toImmutableSet()))
             .build();
     assertThat(domain.getGracePeriodsOfType(GracePeriodStatus.ADD)).isEqualTo(addGracePeriods);

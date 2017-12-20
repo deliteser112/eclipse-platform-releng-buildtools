@@ -48,6 +48,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppRequestSource;
@@ -313,7 +314,7 @@ public class DomainTransferRequestFlowTest
             .collect(toImmutableSet());
     // Assert that the billing events we constructed above actually exist in Datastore.
     ImmutableSet<BillingEvent> expectedBillingEvents =
-        Stream.concat(
+        Streams.concat(
                 Stream.of(losingClientAutorenew, gainingClientAutorenew),
                 optionalToStream(optionalTransferBillingEvent))
             .collect(toImmutableSet());
@@ -332,7 +333,7 @@ public class DomainTransferRequestFlowTest
     // Assert that the full set of server-approve billing events is exactly the extra ones plus
     // the transfer billing event (if present) and the gaining client autorenew.
     ImmutableSet<BillingEvent> expectedServeApproveBillingEvents =
-        Stream.concat(
+        Streams.concat(
                 Stream.of(gainingClientAutorenew), optionalToStream(optionalTransferBillingEvent))
             .collect(toImmutableSet());
     assertBillingEventsEqual(

@@ -25,6 +25,7 @@ import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.inputs.InMemoryInput;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryEnvironment;
 import google.registry.mapreduce.MapreduceRunner;
@@ -66,7 +67,7 @@ public class KillAllCommitLogsAction implements Runnable {
     Input<Key<?>> input =
         new InMemoryInput<>(
             Lists.partition(
-                Stream.concat(
+                Streams.concat(
                         Stream.of(CommitLogCheckpointRoot.getKey()),
                         CommitLogBucket.getAllBucketKeys().stream())
                     .collect(toImmutableList()),

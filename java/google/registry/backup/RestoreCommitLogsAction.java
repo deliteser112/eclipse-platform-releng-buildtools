@@ -28,6 +28,7 @@ import com.google.appengine.tools.cloudstorage.GcsFileMetadata;
 import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.PeekingIterator;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.util.ResultNow;
@@ -116,7 +117,7 @@ public class RestoreCommitLogsAction implements Runnable {
     }
     // Restore the CommitLogCheckpointRoot and CommitLogBuckets.
     saveOfy(
-        Stream.concat(
+        Streams.concat(
                 bucketTimestamps
                     .entrySet()
                     .stream()

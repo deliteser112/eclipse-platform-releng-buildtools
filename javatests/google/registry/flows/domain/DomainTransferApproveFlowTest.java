@@ -41,6 +41,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
@@ -262,7 +263,7 @@ public class DomainTransferApproveFlowTest
             .build();
     assertBillingEventsForResource(
         domain,
-        Stream.concat(
+        Streams.concat(
                 Arrays.stream(expectedCancellationBillingEvents)
                     .map(builder -> builder.setParent(historyEntryTransferApproved).build()),
                 Stream.of(
@@ -298,7 +299,7 @@ public class DomainTransferApproveFlowTest
     // for the gaining client that begins at the new expiration time.
     assertBillingEventsForResource(
         domain,
-        Stream.concat(
+        Streams.concat(
                 Arrays.stream(expectedCancellationBillingEvents)
                     .map(builder -> builder.setParent(historyEntryTransferApproved).build()),
                 Stream.of(

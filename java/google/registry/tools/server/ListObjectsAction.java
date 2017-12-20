@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Streams;
 import google.registry.model.ImmutableObject;
 import google.registry.request.JsonResponse;
 import google.registry.request.Parameter;
@@ -150,7 +151,7 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
     final ImmutableMap<String, String> nameMapping =
         ((fullFieldNames != null) && fullFieldNames.isPresent() && fullFieldNames.get())
             ? getFieldAliases() : getFieldAliases().inverse();
-    return Stream.concat(getPrimaryKeyFields().stream(), fieldsToUse.stream())
+    return Streams.concat(getPrimaryKeyFields().stream(), fieldsToUse.stream())
         .map(field -> nameMapping.getOrDefault(field, field))
         .collect(toImmutableSet());
   }
@@ -207,7 +208,7 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
         Maps.transformEntries(
             data.columnMap(),
             (columnName, columnValues) ->
-                Stream.concat(
+                Streams.concat(
                         Stream.of(includingHeader ? columnName : ""),
                         columnValues.values().stream())
                     .map(String::length)

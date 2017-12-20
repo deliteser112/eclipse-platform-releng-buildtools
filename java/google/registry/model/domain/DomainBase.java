@@ -32,6 +32,7 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.IgnoreSave;
@@ -46,7 +47,6 @@ import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 /** Shared base class for {@link DomainResource} and {@link DomainApplication}. */
 @ReportedOn
@@ -250,7 +250,7 @@ public abstract class DomainBase extends EppResource {
       checkArgument(contacts.stream().noneMatch(IS_REGISTRANT), "Registrant cannot be a contact");
       // Replace the non-registrant contacts inside allContacts.
       getInstance().allContacts =
-          Stream.concat(
+          Streams.concat(
                   nullToEmpty(getInstance().allContacts).stream().filter(IS_REGISTRANT),
                   contacts.stream())
               .collect(toImmutableSet());

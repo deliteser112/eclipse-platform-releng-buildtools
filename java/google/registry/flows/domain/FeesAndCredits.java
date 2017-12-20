@@ -20,13 +20,13 @@ import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Streams;
 import google.registry.model.Buildable;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.fee.BaseFee;
 import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Credit;
 import google.registry.model.domain.fee.Fee;
-import java.util.stream.Stream;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 
@@ -103,7 +103,7 @@ public class FeesAndCredits extends ImmutableObject implements Buildable {
 
   /** Returns all fees and credits for the event. */
   public ImmutableList<BaseFee> getFeesAndCredits() {
-    return Stream.concat(getFees().stream(), getCredits().stream()).collect(toImmutableList());
+    return Streams.concat(getFees().stream(), getCredits().stream()).collect(toImmutableList());
   }
 
   @Override
