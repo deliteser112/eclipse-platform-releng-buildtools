@@ -16,6 +16,7 @@ package google.registry.model;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.EntityClasses.ALL_CLASSES;
 import static google.registry.util.TypeUtils.hasAnnotation;
 
@@ -45,12 +46,7 @@ public class EntityClassesTest {
 
   @Test
   public void testEntityClasses_baseEntitiesHaveUniqueKinds() throws Exception {
-    assertThat(
-            ALL_CLASSES
-                .stream()
-                .filter(hasAnnotation(Entity.class))
-                .map(Key::getKind)
-                .collect(toImmutableSet()))
+    assertThat(ALL_CLASSES.stream().filter(hasAnnotation(Entity.class)).map(Key::getKind))
         .named("base entity kinds")
         .containsNoDuplicates();
   }

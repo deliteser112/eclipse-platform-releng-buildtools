@@ -14,8 +14,8 @@
 
 package google.registry.tools;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
@@ -283,12 +283,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
         "--roid_suffix=Q9JYB4C",
         "--dns_writers=VoidDnsWriter",
         "xn--q9jyb4c");
-    assertThat(
-            Registry.get("xn--q9jyb4c")
-                .getReservedLists()
-                .stream()
-                .map(Key::getName)
-                .collect(toImmutableList()))
+    assertThat(Registry.get("xn--q9jyb4c").getReservedLists().stream().map(Key::getName))
         .containsExactly("xn--q9jyb4c_abuse", "common_abuse");
   }
 

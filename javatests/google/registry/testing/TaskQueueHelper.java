@@ -18,11 +18,11 @@ import static com.google.appengine.tools.development.testing.LocalTaskQueueTestC
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Multisets.containsOccurrences;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.util.DiffUtils.prettyPrintEntityDeepDiff;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
@@ -195,12 +195,7 @@ public class TaskQueueHelper {
       Function<TaskStateInfo, String> propertyGetter,
       String... expectedTaskProperties) throws Exception {
     // Ordering is irrelevant but duplicates should be considered independently.
-    assertThat(
-            getQueueInfo(queueName)
-                .getTaskInfo()
-                .stream()
-                .map(propertyGetter)
-                .collect(toImmutableList()))
+    assertThat(getQueueInfo(queueName).getTaskInfo().stream().map(propertyGetter))
         .containsExactly((Object[]) expectedTaskProperties);
   }
 
