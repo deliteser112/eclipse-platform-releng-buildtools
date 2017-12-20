@@ -22,6 +22,7 @@ import org.apache.beam.runners.dataflow.DataflowRunner;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.coders.SerializableCoder;
+import org.apache.beam.sdk.io.DefaultFilenamePolicy.Params;
 import org.apache.beam.sdk.io.FileBasedSink;
 import org.apache.beam.sdk.io.TextIO;
 import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
@@ -82,33 +83,26 @@ public class InvoicingPipeline {
                 .usingStandardSql()
                 .withoutValidation());
 
-    billingEvents.apply(
-        "Write events to separate CSVs keyed by registrarId_tld pair",
-        TextIO.<BillingEvent>writeCustomType()
-            .to(
-                InvoicingUtils.makeDestinationFunction(beamBucket + "/results"),
-                InvoicingUtils.makeEmptyDestinationParams(beamBucket + "/results"))
-            .withFormatFunction(BillingEvent::toCsv)
-            .withoutSharding()
-            .withTempDirectory(
-                FileBasedSink.convertToFileResourceIfPossible(beamBucket + "/temporary"))
-            .withHeader(BillingEvent.getHeader()));
-
-    billingEvents
-        .apply("Generate overall invoice rows", new GenerateInvoiceRows())
-        .apply(
-            "Write overall invoice to CSV",
-            TextIO.write()
-                .to(beamBucket + "/results/overall_invoice")
-                .withHeader(InvoiceGroupingKey.invoiceHeader())
-                .withoutSharding()
-                .withSuffix(".csv"));
-
+    applyTerminalTransforms(billingEvents);
     p.run();
   }
 
+  /**
+   * Applies output transforms to the {@code BillingEvent} source collection.
+   *
+   * <p>This is factored out purely to facilitate testing.
+   */
+  void applyTerminalTransforms(PCollection<BillingEvent> billingEvents) {
+    billingEvents.apply(
+        "Write events to separate CSVs keyed by registrarId_tld pair", writeDetailReports());
+
+    billingEvents
+        .apply("Generate overall invoice rows", new GenerateInvoiceRows())
+        .apply("Write overall invoice to CSV", writeInvoice());
+  }
+
   /** Transform that converts a {@code BillingEvent} into an invoice CSV row. */
-  static class GenerateInvoiceRows
+  private static class GenerateInvoiceRows
       extends PTransform<PCollection<BillingEvent>, PCollection<String>> {
     @Override
     public PCollection<String> expand(PCollection<BillingEvent> input) {
@@ -124,5 +118,27 @@ public class InvoicingPipeline {
               MapElements.into(TypeDescriptors.strings())
                   .via((KV<InvoiceGroupingKey, Long> kv) -> kv.getKey().toCsv(kv.getValue())));
     }
+  }
+
+  /** Returns an IO transform that writes the overall invoice to a single CSV file. */
+  private TextIO.Write writeInvoice() {
+    return TextIO.write()
+        .to(beamBucket + "/results/overall_invoice")
+        .withHeader(InvoiceGroupingKey.invoiceHeader())
+        .withoutSharding()
+        .withSuffix(".csv");
+  }
+
+  /** Returns an IO transform that writes detail reports to registrar-tld keyed CSV files. */
+  private TextIO.TypedWrite<BillingEvent, Params> writeDetailReports() {
+    return TextIO.<BillingEvent>writeCustomType()
+        .to(
+            InvoicingUtils.makeDestinationFunction(beamBucket + "/results"),
+            InvoicingUtils.makeEmptyDestinationParams(beamBucket + "/results"))
+        .withFormatFunction(BillingEvent::toCsv)
+        .withoutSharding()
+        .withTempDirectory(FileBasedSink.convertToFileResourceIfPossible(beamBucket + "/temporary"))
+        .withHeader(BillingEvent.getHeader())
+        .withSuffix(".csv");
   }
 }

@@ -13,6 +13,7 @@ java_library(
     resources = glob(["testdata/*"]),
     deps = [
         "//java/google/registry/beam",
+        "//java/google/registry/util",
         "//javatests/google/registry/testing",
         "@com_google_apis_google_api_services_bigquery",
         "@com_google_dagger",
@@ -33,6 +34,7 @@ java_library(
 GenTestRules(
     name = "GeneratedTestRules",
     default_test_size = "small",
+    medium_tests = ["InvoicingPipelineTest.java"],
     test_files = glob(["*Test.java"]),
     deps = [":beam"],
 )
