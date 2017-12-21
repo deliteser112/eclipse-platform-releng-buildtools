@@ -116,7 +116,7 @@ public class BillingEventTest {
   @Test
   public void testGenerateBillingEventFilename() {
     BillingEvent event = BillingEvent.parseFromRecord(schemaAndRecord);
-    assertThat(event.toFilename()).isEqualTo("myRegistrar_test");
+    assertThat(event.toFilename("2017-10")).isEqualTo("invoice_details_2017-10_myRegistrar_test");
   }
 
   @Test

@@ -17,6 +17,7 @@ java_library(
         "//java/google/registry/util",
         "@com_google_api_client_appengine",
         "@com_google_apis_google_api_services_dataflow",
+        "@com_google_appengine_api_1_0_sdk",
         "@com_google_dagger",
         "@com_google_guava",
         "@com_google_http_client",

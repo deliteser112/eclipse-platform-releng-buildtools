@@ -22,6 +22,9 @@ import com.google.api.services.dataflow.Dataflow;
 import com.google.api.services.dataflow.model.LaunchTemplateParameters;
 import com.google.api.services.dataflow.model.LaunchTemplateResponse;
 import com.google.api.services.dataflow.model.RuntimeEnvironment;
+import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.TaskOptions;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
@@ -30,9 +33,12 @@ import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import javax.inject.Inject;
+import org.joda.time.Duration;
+import org.joda.time.YearMonth;
 
 /**
- * Invokes the {@code InvoicingPipeline} beam template via the REST api.
+ * Invokes the {@code InvoicingPipeline} beam template via the REST api, and enqueues the {@link
+ * PublishInvoicesAction} to publish the subsequent output.
  *
  * <p>This action runs the {@link google.registry.beam.InvoicingPipeline} beam template, staged at
  * gs://<projectId>-beam/templates/invoicing. The pipeline then generates invoices for the month and
@@ -43,25 +49,35 @@ public class GenerateInvoicesAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @Inject @Config("projectId") String projectId;
-  @Inject @Config("apacheBeamBucketUrl") String beamBucketUrl;
+  @Inject
+  @Config("projectId")
+  String projectId;
+
+  @Inject
+  @Config("apacheBeamBucketUrl")
+  String beamBucketUrl;
+
+  @Inject YearMonth yearMonth;
   @Inject Dataflow dataflow;
   @Inject Response response;
-  @Inject GenerateInvoicesAction() {}
+
+  @Inject
+  GenerateInvoicesAction() {}
 
   static final String PATH = "/_dr/task/generateInvoices";
 
   @Override
   public void run() {
-    logger.info("Launching dataflow job");
+    logger.infofmt("Launching invoicing pipeline for %s", yearMonth);
     try {
       LaunchTemplateParameters params =
           new LaunchTemplateParameters()
-              .setJobName("test-invoicing")
+              .setJobName(String.format("invoicing-%s", yearMonth))
               .setEnvironment(
                   new RuntimeEnvironment()
                       .setZone("us-east1-c")
-                      .setTempLocation(beamBucketUrl + "/temp"));
+                      .setTempLocation(beamBucketUrl + "/temporary"))
+              .setParameters(ImmutableMap.of("yearMonth", yearMonth.toString("yyyy-MM")));
       LaunchTemplateResponse launchResponse =
           dataflow
               .projects()
@@ -70,6 +86,14 @@ public class GenerateInvoicesAction implements Runnable {
               .setGcsPath(beamBucketUrl + "/templates/invoicing")
               .execute();
       logger.infofmt("Got response: %s", launchResponse.getJob().toPrettyString());
+      String jobId = launchResponse.getJob().getId();
+      TaskOptions uploadTask =
+          TaskOptions.Builder.withUrl(PublishInvoicesAction.PATH)
+              .method(TaskOptions.Method.POST)
+              // Dataflow jobs tend to take about 10 minutes to complete.
+              .countdownMillis(Duration.standardMinutes(10).getMillis())
+              .param(BillingModule.PARAM_JOB_ID, jobId);
+      QueueFactory.getQueue(BillingModule.BILLING_QUEUE).add(uploadTask);
     } catch (IOException e) {
       logger.warningfmt("Template Launch failed due to: %s", e.getMessage());
       response.setStatus(SC_INTERNAL_SERVER_ERROR);

@@ -39,15 +39,23 @@ public class InvoicingUtils {
    * Returns a function mapping from {@code BillingEvent} to filename {@code Params}.
    *
    * <p>Beam uses this to determine which file a given {@code BillingEvent} should get placed into.
+   *
+   * @param outputBucket the GCS bucket we're outputting reports to
+   * @param yearMonthProvider a runtime provider for the yyyy-MM we're generating the invoice for
    */
-  static SerializableFunction<BillingEvent, Params> makeDestinationFunction(String outputBucket) {
+  static SerializableFunction<BillingEvent, Params> makeDestinationFunction(
+      String outputBucket, ValueProvider<String> yearMonthProvider) {
     return billingEvent ->
         new Params()
             .withShardTemplate("")
             .withSuffix(".csv")
             .withBaseFilename(
-                FileBasedSink.convertToFileResourceIfPossible(
-                    String.format("%s/%s", outputBucket, billingEvent.toFilename())));
+                NestedValueProvider.of(
+                    yearMonthProvider,
+                    yearMonth ->
+                        FileBasedSink.convertToFileResourceIfPossible(
+                            String.format(
+                                "%s/%s", outputBucket, billingEvent.toFilename(yearMonth)))));
   }
 
   /**

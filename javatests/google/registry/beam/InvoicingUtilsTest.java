@@ -15,6 +15,7 @@
 package google.registry.beam;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -35,11 +36,11 @@ public class InvoicingUtilsTest {
   @Test
   public void testDestinationFunction_generatesProperFileParams() {
     SerializableFunction<BillingEvent, Params> destinationFunction =
-        InvoicingUtils.makeDestinationFunction("my/directory");
+        InvoicingUtils.makeDestinationFunction("my/directory", StaticValueProvider.of("2017-10"));
 
     BillingEvent billingEvent = mock(BillingEvent.class);
     // We mock BillingEvent to make the test independent of the implementation of toFilename()
-    when(billingEvent.toFilename()).thenReturn("registrar_tld");
+    when(billingEvent.toFilename(any())).thenReturn("invoice_details_2017-10_registrar_tld");
 
     assertThat(destinationFunction.apply(billingEvent))
         .isEqualTo(
@@ -47,7 +48,8 @@ public class InvoicingUtilsTest {
                 .withShardTemplate("")
                 .withSuffix(".csv")
                 .withBaseFilename(
-                    FileBasedSink.convertToFileResourceIfPossible("my/directory/registrar_tld")));
+                    FileBasedSink.convertToFileResourceIfPossible(
+                        "my/directory/invoice_details_2017-10_registrar_tld")));
   }
 
   @Test

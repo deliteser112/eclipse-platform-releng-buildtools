@@ -28,7 +28,6 @@ import dagger.Provides;
 import google.registry.bigquery.BigqueryConnection;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
-import google.registry.util.Clock;
 import google.registry.util.SendEmailService;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -38,7 +37,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.joda.time.Duration;
 import org.joda.time.YearMonth;
 import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 /** Module for dependencies required by ICANN monthly transactions/activity reporting. */
 @Module
@@ -50,7 +48,6 @@ public final class IcannReportingModule {
     ACTIVITY
   }
 
-  static final String PARAM_YEAR_MONTH = "yearMonth";
   static final String PARAM_SUBDIR = "subdir";
   static final String PARAM_REPORT_TYPE = "reportType";
   static final String ICANN_REPORTING_DATA_SET = "icann_reporting";
@@ -58,29 +55,6 @@ public final class IcannReportingModule {
   static final String MANIFEST_FILE_NAME = "MANIFEST.txt";
   private static final String DEFAULT_SUBDIR = "icann/monthly";
   private static final String BIGQUERY_SCOPE = "https://www.googleapis.com/auth/cloud-platform";
-
-  /** Extracts an optional YearMonth in yyyy-MM format from the request. */
-  @Provides
-  @Parameter(PARAM_YEAR_MONTH)
-  static Optional<YearMonth> provideYearMonthOptional(HttpServletRequest req) {
-    DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM");
-    Optional<String> optionalYearMonthStr = extractOptionalParameter(req, PARAM_YEAR_MONTH);
-    try {
-      return optionalYearMonthStr.map(s -> YearMonth.parse(s, formatter));
-    } catch (IllegalArgumentException e) {
-      throw new BadRequestException(
-          String.format(
-              "yearMonth must be in yyyy-MM format, got %s instead",
-              optionalYearMonthStr.orElse("UNSPECIFIED YEARMONTH")));
-    }
-  }
-
-  /** Provides the yearMonth in yyyy-MM format, defaults to one month prior to run time. */
-  @Provides
-  static YearMonth provideYearMonth(
-      @Parameter(PARAM_YEAR_MONTH) Optional<YearMonth> yearMonthOptional, Clock clock) {
-    return yearMonthOptional.orElseGet(() -> new YearMonth(clock.nowUtc().minusMonths(1)));
-  }
 
   /** Provides an optional subdirectory to store/upload reports to, extracted from the request. */
   @Provides

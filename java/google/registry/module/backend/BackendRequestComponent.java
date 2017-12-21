@@ -30,6 +30,7 @@ import google.registry.batch.ResaveAllEppResourcesAction;
 import google.registry.batch.VerifyEntityIntegrityAction;
 import google.registry.billing.BillingModule;
 import google.registry.billing.GenerateInvoicesAction;
+import google.registry.billing.PublishInvoicesAction;
 import google.registry.cron.CommitLogFanoutAction;
 import google.registry.cron.CronModule;
 import google.registry.cron.TldFanoutAction;
@@ -147,6 +148,7 @@ interface BackendRequestComponent {
   TmchDnlAction tmchDnlAction();
   TmchSmdrlAction tmchSmdrlAction();
   UpdateSnapshotViewAction updateSnapshotViewAction();
+  PublishInvoicesAction uploadInvoicesAction();
   VerifyEntityIntegrityAction verifyEntityIntegrityAction();
 
   @Subcomponent.Builder

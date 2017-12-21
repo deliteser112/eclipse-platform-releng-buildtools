@@ -17,6 +17,7 @@ package google.registry.beam;
 import google.registry.beam.BillingEvent.InvoiceGroupingKey;
 import google.registry.beam.BillingEvent.InvoiceGroupingKey.InvoiceGroupingKeyCoder;
 import google.registry.config.RegistryConfig.Config;
+import java.io.Serializable;
 import javax.inject.Inject;
 import org.apache.beam.runners.dataflow.DataflowRunner;
 import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
@@ -29,6 +30,7 @@ import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
+import org.apache.beam.sdk.options.ValueProvider.NestedValueProvider;
 import org.apache.beam.sdk.transforms.Count;
 import org.apache.beam.sdk.transforms.MapElements;
 import org.apache.beam.sdk.transforms.PTransform;
@@ -49,7 +51,7 @@ import org.apache.beam.sdk.values.TypeDescriptors;
  *
  * @see <a href="https://cloud.google.com/dataflow/docs/templates/overview">Dataflow Templates</a>
  */
-public class InvoicingPipeline {
+public class InvoicingPipeline implements Serializable {
 
   @Inject @Config("projectId") String projectId;
   @Inject @Config("apacheBeamBucketUrl") String beamBucket;
@@ -66,12 +68,12 @@ public class InvoicingPipeline {
 
   /** Deploys the invoicing pipeline as a template on GCS, for a given projectID and GCS bucket. */
   public void deploy() {
+    // We can't store options as a member variable due to serialization concerns.
     InvoicingPipelineOptions options = PipelineOptionsFactory.as(InvoicingPipelineOptions.class);
     options.setProject(projectId);
     options.setRunner(DataflowRunner.class);
     options.setStagingLocation(beamBucket + "/staging");
     options.setTemplateLocation(beamBucket + "/templates/invoicing");
-
     Pipeline p = Pipeline.create(options);
 
     PCollection<BillingEvent> billingEvents =
@@ -81,9 +83,9 @@ public class InvoicingPipeline {
                 .fromQuery(InvoicingUtils.makeQueryProvider(options.getYearMonth(), projectId))
                 .withCoder(SerializableCoder.of(BillingEvent.class))
                 .usingStandardSql()
-                .withoutValidation());
-
-    applyTerminalTransforms(billingEvents);
+                .withoutValidation()
+                .withTemplateCompatibility());
+    applyTerminalTransforms(billingEvents, options.getYearMonth());
     p.run();
   }
 
@@ -92,13 +94,15 @@ public class InvoicingPipeline {
    *
    * <p>This is factored out purely to facilitate testing.
    */
-  void applyTerminalTransforms(PCollection<BillingEvent> billingEvents) {
+  void applyTerminalTransforms(
+      PCollection<BillingEvent> billingEvents, ValueProvider<String> yearMonthProvider) {
     billingEvents.apply(
-        "Write events to separate CSVs keyed by registrarId_tld pair", writeDetailReports());
+        "Write events to separate CSVs keyed by registrarId_tld pair",
+        writeDetailReports(yearMonthProvider));
 
     billingEvents
         .apply("Generate overall invoice rows", new GenerateInvoiceRows())
-        .apply("Write overall invoice to CSV", writeInvoice());
+        .apply("Write overall invoice to CSV", writeInvoice(yearMonthProvider));
   }
 
   /** Transform that converts a {@code BillingEvent} into an invoice CSV row. */
@@ -121,19 +125,23 @@ public class InvoicingPipeline {
   }
 
   /** Returns an IO transform that writes the overall invoice to a single CSV file. */
-  private TextIO.Write writeInvoice() {
+  private TextIO.Write writeInvoice(ValueProvider<String> yearMonthProvider) {
     return TextIO.write()
-        .to(beamBucket + "/results/overall_invoice")
+        .to(
+            NestedValueProvider.of(
+                yearMonthProvider,
+                yearMonth -> String.format("%s/results/CRR-INV-%s", beamBucket, yearMonth)))
         .withHeader(InvoiceGroupingKey.invoiceHeader())
         .withoutSharding()
         .withSuffix(".csv");
   }
 
   /** Returns an IO transform that writes detail reports to registrar-tld keyed CSV files. */
-  private TextIO.TypedWrite<BillingEvent, Params> writeDetailReports() {
+  private TextIO.TypedWrite<BillingEvent, Params> writeDetailReports(
+      ValueProvider<String> yearMonthProvider) {
     return TextIO.<BillingEvent>writeCustomType()
         .to(
-            InvoicingUtils.makeDestinationFunction(beamBucket + "/results"),
+            InvoicingUtils.makeDestinationFunction(beamBucket + "/results", yearMonthProvider),
             InvoicingUtils.makeEmptyDestinationParams(beamBucket + "/results"))
         .withFormatFunction(BillingEvent::toCsv)
         .withoutSharding()

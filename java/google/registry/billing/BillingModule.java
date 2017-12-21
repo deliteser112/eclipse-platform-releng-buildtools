@@ -14,6 +14,8 @@
 
 package google.registry.billing;
 
+import static google.registry.request.RequestParameters.extractRequiredParameter;
+
 import com.google.api.client.googleapis.extensions.appengine.auth.oauth2.AppIdentityCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -22,8 +24,10 @@ import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.request.Parameter;
 import java.util.Set;
 import java.util.function.Function;
+import javax.servlet.http.HttpServletRequest;
 
 /** Module for dependencies required by monthly billing actions. */
 @Module
@@ -31,6 +35,15 @@ public final class BillingModule {
 
   private static final String CLOUD_PLATFORM_SCOPE =
       "https://www.googleapis.com/auth/cloud-platform";
+  static final String BILLING_QUEUE = "billing";
+  static final String PARAM_JOB_ID = "jobId";
+
+  /** Provides the invoicing Dataflow jobId enqueued by {@link GenerateInvoicesAction}. */
+  @Provides
+  @Parameter(PARAM_JOB_ID)
+  static String provideJobId(HttpServletRequest req) {
+    return extractRequiredParameter(req, PARAM_JOB_ID);
+  }
 
   /** Constructs a {@link Dataflow} API client with default settings. */
   @Provides

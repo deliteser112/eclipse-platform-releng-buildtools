@@ -171,8 +171,8 @@ public abstract class BillingEvent implements Serializable {
    * <p>When modifying this function, take care to ensure that there's no way to generate an illegal
    * filepath with the arguments, such as "../sensitive_info".
    */
-  String toFilename() {
-    return String.format("%s_%s", registrarId(), tld());
+  String toFilename(String yearMonth) {
+    return String.format("invoice_details_%s_%s_%s", yearMonth, registrarId(), tld());
   }
 
   /** Generates a CSV representation of this {@code BillingEvent}. */

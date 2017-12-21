@@ -35,7 +35,6 @@ import google.registry.util.Retrier;
 import javax.inject.Inject;
 import org.joda.time.Duration;
 import org.joda.time.YearMonth;
-import org.joda.time.format.DateTimeFormat;
 
 /**
  * Action that generates monthly ICANN activity and transactions reports.
@@ -98,9 +97,6 @@ public final class IcannReportingStagingAction implements Runnable {
           TaskOptions uploadTask = TaskOptions.Builder.withUrl(IcannReportingUploadAction.PATH)
               .method(Method.POST)
               .countdownMillis(Duration.standardMinutes(2).getMillis())
-              .param(
-                  IcannReportingModule.PARAM_YEAR_MONTH,
-                  DateTimeFormat.forPattern("yyyy-MM").print(yearMonth))
               .param(IcannReportingModule.PARAM_SUBDIR, subdir);
           QueueFactory.getQueue(CRON_QUEUE).add(uploadTask);
           return null;

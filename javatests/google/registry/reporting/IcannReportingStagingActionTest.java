@@ -62,12 +62,11 @@ public class IcannReportingStagingActionTest {
     when(stager.stageReports(ReportType.TRANSACTIONS)).thenReturn(ImmutableList.of("c", "d"));
   }
 
-  private static void assertUploadTaskEnqueued(String yearMonth, String subDir) throws Exception {
+  private static void assertUploadTaskEnqueued(String subDir) throws Exception {
     TaskMatcher matcher =
         new TaskMatcher()
             .url("/_dr/task/icannReportingUpload")
             .method("POST")
-            .param("yearMonth", yearMonth)
             .param("subdir", subDir);
     assertTasksEnqueued("retryable-cron-tasks", matcher);
   }
@@ -94,7 +93,7 @@ public class IcannReportingStagingActionTest {
         .emailResults(
             "ICANN Monthly report staging summary [SUCCESS]",
             "Completed staging the following 2 ICANN reports:\na\nb");
-    assertUploadTaskEnqueued("2017-06", "default/dir");
+    assertUploadTaskEnqueued("default/dir");
   }
 
   @Test
@@ -109,7 +108,7 @@ public class IcannReportingStagingActionTest {
         .emailResults(
             "ICANN Monthly report staging summary [SUCCESS]",
             "Completed staging the following 4 ICANN reports:\na\nb\nc\nd");
-    assertUploadTaskEnqueued("2017-06", "default/dir");
+    assertUploadTaskEnqueued("default/dir");
   }
 
   @Test
@@ -127,7 +126,7 @@ public class IcannReportingStagingActionTest {
         .emailResults(
             "ICANN Monthly report staging summary [SUCCESS]",
             "Completed staging the following 4 ICANN reports:\na\nb\nc\nd");
-    assertUploadTaskEnqueued("2017-06", "default/dir");
+    assertUploadTaskEnqueued("default/dir");
   }
 
   @Test

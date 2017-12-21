@@ -22,6 +22,7 @@ java_library(
         "@com_google_truth",
         "@com_google_truth_extensions_truth_java8_extension",
         "@javax_servlet_api",
+        "@joda_time",
         "@junit",
         "@org_mockito_all",
     ],

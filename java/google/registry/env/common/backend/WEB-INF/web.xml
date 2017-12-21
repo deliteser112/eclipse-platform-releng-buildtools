@@ -68,6 +68,15 @@
     <url-pattern>/_dr/task/generateInvoices</url-pattern>
   </servlet-mapping>
 
+  <!--
+    Emails the month's invoice CSV to the internal billing team, and publishes
+    the detail reports to the individual registrars' drive accounts.
+  -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/publishInvoices</url-pattern>
+  </servlet-mapping>
+
   <!-- ICANN Monthly Reporting -->
 
   <!--

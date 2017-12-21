@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import org.apache.beam.runners.direct.DirectRunner;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
+import org.apache.beam.sdk.options.ValueProvider.StaticValueProvider;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
 import org.apache.beam.sdk.values.PCollection;
@@ -124,17 +125,17 @@ public class InvoicingPipelineTest {
   /** Returns a map from filename to expected contents for detail reports. */
   private ImmutableMap<String, ImmutableList<String>> getExpectedDetailReportMap() {
     return ImmutableMap.of(
-        "theRegistrar_test.csv",
+        "invoice_details_2017-10_theRegistrar_test.csv",
         ImmutableList.of(
             "1,2017-10-04 00:00:00 UTC,2017-10-04 00:00:00 UTC,theRegistrar,234,"
                 + "test,RENEW,mydomain2.test,REPO-ID,3,USD,20.50,",
             "1,2017-10-04 00:00:00 UTC,2017-10-04 00:00:00 UTC,theRegistrar,234,"
                 + "test,RENEW,mydomain.test,REPO-ID,3,USD,20.50,"),
-        "theRegistrar_hello.csv",
+        "invoice_details_2017-10_theRegistrar_hello.csv",
         ImmutableList.of(
             "1,2017-10-02 00:00:00 UTC,2017-09-29 00:00:00 UTC,theRegistrar,234,"
                 + "hello,CREATE,mydomain3.hello,REPO-ID,5,JPY,70.75,"),
-        "googledomains_test.csv",
+        "invoice_details_2017-10_googledomains_test.csv",
         ImmutableList.of(
             "1,2017-10-04 00:00:00 UTC,2017-10-04 00:00:00 UTC,googledomains,456,"
                 + "test,RENEW,mydomain4.test,REPO-ID,1,USD,20.50,"));
@@ -154,7 +155,7 @@ public class InvoicingPipelineTest {
   public void testEndToEndPipeline_generatesExpectedFiles() throws Exception {
     ImmutableList<BillingEvent> inputRows = getInputEvents();
     PCollection<BillingEvent> input = p.apply(Create.of(inputRows));
-    invoicingPipeline.applyTerminalTransforms(input);
+    invoicingPipeline.applyTerminalTransforms(input, StaticValueProvider.of("2017-10"));
     p.run();
 
     for (Entry<String, ImmutableList<String>> entry : getExpectedDetailReportMap().entrySet()) {
@@ -166,7 +167,7 @@ public class InvoicingPipelineTest {
           .containsExactlyElementsIn(entry.getValue());
     }
 
-    ImmutableList<String> overallInvoice = resultFileContents("overall_invoice.csv");
+    ImmutableList<String> overallInvoice = resultFileContents("CRR-INV-2017-10.csv");
     assertThat(overallInvoice.get(0))
         .isEqualTo(
             "StartDate,EndDate,ProductAccountKey,Amount,AmountCurrency,BillingProductCode,"
@@ -179,7 +180,7 @@ public class InvoicingPipelineTest {
   /** Returns the text contents of a file under the beamBucket/results directory. */
   private ImmutableList<String> resultFileContents(String filename) throws Exception {
     File resultFile =
-        new File(String.format("%s/results/%s", invoicingPipeline.beamBucket, filename));
+        new File(String.format("%s/results/%s", tempFolder.getRoot().getAbsolutePath(), filename));
     return ImmutableList.copyOf(
         ResourceUtils.readResourceUtf8(resultFile.toURI().toURL()).split("\n"));
   }
