@@ -21,9 +21,7 @@ import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.EntitySubclass;
@@ -31,6 +29,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
 import google.registry.model.Buildable;
+import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.annotations.ExternalMessagingName;
 import google.registry.model.domain.DomainRenewData;
@@ -232,34 +231,38 @@ public abstract class PollMessage extends ImmutableObject
       }
 
       public Builder setResponseData(ImmutableList<? extends ResponseData> responseData) {
-        FluentIterable<? extends ResponseData> iterable = FluentIterable.from(responseData);
         getInstance().contactPendingActionNotificationResponses =
             forceEmptyToNull(
-                Streams.stream(iterable)
+                responseData
+                    .stream()
                     .filter(ContactPendingActionNotificationResponse.class::isInstance)
                     .map(ContactPendingActionNotificationResponse.class::cast)
                     .collect(toImmutableList()));
         getInstance().contactTransferResponses =
             forceEmptyToNull(
-                Streams.stream(iterable)
+                responseData
+                    .stream()
                     .filter(ContactTransferResponse.class::isInstance)
                     .map(ContactTransferResponse.class::cast)
                     .collect(toImmutableList()));
         getInstance().domainPendingActionNotificationResponses =
             forceEmptyToNull(
-                Streams.stream(iterable)
+                responseData
+                    .stream()
                     .filter(DomainPendingActionNotificationResponse.class::isInstance)
                     .map(DomainPendingActionNotificationResponse.class::cast)
                     .collect(toImmutableList()));
         getInstance().domainTransferResponses =
             forceEmptyToNull(
-                Streams.stream(iterable)
+                responseData
+                    .stream()
                     .filter(DomainTransferResponse.class::isInstance)
                     .map(DomainTransferResponse.class::cast)
                     .collect(toImmutableList()));
         getInstance().hostPendingActionNotificationResponses =
             forceEmptyToNull(
-                Streams.stream(iterable)
+                responseData
+                    .stream()
                     .filter(HostPendingActionNotificationResponse.class::isInstance)
                     .map(HostPendingActionNotificationResponse.class::cast)
                     .collect(toImmutableList()));

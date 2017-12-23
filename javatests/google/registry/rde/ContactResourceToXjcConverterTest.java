@@ -15,10 +15,10 @@
 package google.registry.rde;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.contact.ContactAddress;
@@ -87,7 +87,7 @@ public class ContactResourceToXjcConverterTest {
 
     // o  One or more <status> elements that describe the status of the
     //    contact object.
-    assertThat(FluentIterable.from(bean.getStatuses()).transform(XjcContactStatusType::getS))
+    assertThat(bean.getStatuses().stream().map(XjcContactStatusType::getS))
         .containsExactly(
             XjcContactStatusValueType.CLIENT_DELETE_PROHIBITED,
             XjcContactStatusValueType.SERVER_UPDATE_PROHIBITED);

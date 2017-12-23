@@ -25,7 +25,6 @@ import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 import com.google.common.base.Ascii;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
@@ -50,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 
@@ -290,12 +290,13 @@ public class VerifyOteAction implements Runnable, JsonAction {
     /** Returns a string showing all possible actions and how many times each was performed. */
     @Override
     public String toString() {
-      return FluentIterable.from(EnumSet.allOf(StatType.class))
-          .transform(
-              statType ->
-                  String.format("%s: %d", statType.description(), statCounts.count(statType)))
-          .append(String.format("TOTAL: %d", statCounts.size()))
-          .join(Joiner.on("\n"));
+      return String.format(
+          "%s\nTOTAL: %d",
+          EnumSet.allOf(StatType.class)
+              .stream()
+              .map(stat -> String.format("%s: %d", stat.description(), statCounts.count(stat)))
+              .collect(Collectors.joining("\n")),
+          statCounts.size());
     }
   }
 }

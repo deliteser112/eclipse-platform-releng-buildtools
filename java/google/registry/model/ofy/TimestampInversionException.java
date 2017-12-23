@@ -14,11 +14,10 @@
 
 package google.registry.model.ofy;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import google.registry.model.BackupGroupRoot;
+import java.util.Arrays;
 import java.util.Map;
 import org.joda.time.DateTime;
 
@@ -43,19 +42,19 @@ class TimestampInversionException extends RuntimeException {
 
   private TimestampInversionException(DateTime transactionTime, String problem) {
     super(
-        Joiner.on('\n')
-            .join(
-                String.format(
-                    "Timestamp inversion between transaction time (%s) and %s",
-                    transactionTime, problem),
-                getFileAndLine(
-                    FluentIterable.from(new Exception().getStackTrace())
-                        .firstMatch(
-                            (StackTraceElement element) ->
-                                !element
-                                        .getClassName()
-                                        .startsWith(Objectify.class.getPackage().getName())
-                                    && !element.getClassName().startsWith(Ofy.class.getName()))
-                        .get())));
+        String.format(
+            "Timestamp inversion between transaction time (%s) and %s\n%s",
+            transactionTime,
+            problem,
+            getFileAndLine(
+                Arrays.stream(new Exception().getStackTrace())
+                    .filter(
+                        element ->
+                            !element
+                                    .getClassName()
+                                    .startsWith(Objectify.class.getPackage().getName())
+                                && !element.getClassName().startsWith(Ofy.class.getName()))
+                    .findFirst()
+                    .get())));
   }
 }

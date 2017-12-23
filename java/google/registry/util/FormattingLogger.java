@@ -14,7 +14,7 @@
 
 package google.registry.util;
 
-import com.google.common.collect.FluentIterable;
+import java.util.Arrays;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,8 +44,9 @@ public class FormattingLogger {
 
   private void log(Level level, @Nullable Throwable cause, String msg) {
     StackTraceElement callerFrame =
-        FluentIterable.from(new Exception().getStackTrace())
-            .firstMatch(frame -> !frame.getClassName().equals(FormattingLogger.class.getName()))
+        Arrays.stream(new Exception().getStackTrace())
+            .filter(frame -> !frame.getClassName().equals(FormattingLogger.class.getName()))
+            .findFirst()
             .get();
     if (cause == null) {
       logger.logp(level, callerFrame.getClassName(), callerFrame.getMethodName(), msg);

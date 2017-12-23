@@ -14,16 +14,17 @@
 
 package google.registry.model.ofy;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.DeleteType;
 import com.googlecode.objectify.cmd.Deleter;
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 /**
  * A Deleter that forwards to {@code ofy().delete()}, but can be augmented via subclassing to
@@ -35,21 +36,25 @@ abstract class AugmentedDeleter implements Deleter {
   /** Extension method to allow this Deleter to do extra work prior to the actual delete. */
   protected abstract void handleDeletion(Iterable<Key<?>> keys);
 
+  private void handleDeletionStream(Stream<?> entityStream) {
+    handleDeletion(entityStream.map(Key::create).collect(toImmutableList()));
+  }
+
   @Override
   public Result<Void> entities(Iterable<?> entities) {
-    handleDeletion(Iterables.transform(entities, Key::create));
+    handleDeletionStream(Streams.stream(entities));
     return delegate.entities(entities);
   }
 
   @Override
   public Result<Void> entities(Object... entities) {
-    handleDeletion(FluentIterable.from(entities).transform(Key::create));
+    handleDeletionStream(Arrays.stream(entities));
     return delegate.entities(entities);
   }
 
   @Override
   public Result<Void> entity(Object entity) {
-    handleDeletion(Arrays.asList(Key.create(entity)));
+    handleDeletionStream(Stream.of(entity));
     return delegate.entity(entity);
   }
 

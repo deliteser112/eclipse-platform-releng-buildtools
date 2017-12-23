@@ -16,6 +16,7 @@ package google.registry.model.smd;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.isEmpty;
 import static google.registry.model.CacheUtils.memoizeWithShortExpiration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
@@ -26,7 +27,6 @@ import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
@@ -164,15 +164,17 @@ public class SignedMarkRevocationList extends ImmutableObject {
               ofy()
                   .saveWithoutBackup()
                   .entities(
-                      FluentIterable.from(CollectionUtils.partitionMap(revokes, SHARD_SIZE))
-                          .transform(
-                              (ImmutableMap<String, DateTime> shardRevokes) -> {
+                      CollectionUtils.partitionMap(revokes, SHARD_SIZE)
+                          .stream()
+                          .map(
+                              shardRevokes -> {
                                 SignedMarkRevocationList shard = create(creationTime, shardRevokes);
                                 shard.id = allocateId();
                                 shard.isShard =
                                     true; // Avoid the exception in disallowUnshardedSaves().
                                 return shard;
-                              }));
+                              })
+                          .collect(toImmutableList()));
             });
     return this;
   }

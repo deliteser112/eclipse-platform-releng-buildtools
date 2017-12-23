@@ -16,6 +16,7 @@ package google.registry.rde;
 
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistEppResource;
@@ -26,7 +27,6 @@ import static google.registry.xjc.rgp.XjcRgpStatusValueType.TRANSFER_PERIOD;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.money.CurrencyUnit.USD;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
@@ -106,9 +106,9 @@ public class DomainResourceToXjcConverterTest {
     assertThat(bean.getClID()).isEqualTo("GetTheeBack");
 
     assertThat(
-            FluentIterable.from(bean.getContacts())
-                .transform(
-                    input -> String.format("%s %s", input.getType().toString(), input.getValue())))
+            bean.getContacts()
+                .stream()
+                .map(input -> String.format("%s %s", input.getType().toString(), input.getValue())))
         .containsExactly("ADMIN 5372808-IRL", "TECH 5372808-TRL");
 
     assertThat(bean.getCrDate()).isEqualTo(DateTime.parse("1900-01-01T00:00:00Z"));
@@ -144,7 +144,7 @@ public class DomainResourceToXjcConverterTest {
     //    "pendingDelete" sub-statuses, including "redemptionPeriod",
     //    "pendingRestore", and "pendingDelete", that a domain name can be
     //    in as a result of grace period processing as specified in [RFC3915].
-    assertThat(FluentIterable.from(bean.getRgpStatuses()).transform(XjcRgpStatusType::getS))
+    assertThat(bean.getRgpStatuses().stream().map(XjcRgpStatusType::getS))
         .containsExactly(TRANSFER_PERIOD, RENEW_PERIOD);
 
     assertThat(bean.getSecDNS()).named("secdns").isNotNull();
@@ -159,7 +159,7 @@ public class DomainResourceToXjcConverterTest {
 
     assertThat(bean.getRoid()).isEqualTo("2-Q9JYB4C");
 
-    assertThat(FluentIterable.from(bean.getStatuses()).transform(XjcDomainStatusType::getS))
+    assertThat(bean.getStatuses().stream().map(XjcDomainStatusType::getS))
         .containsExactly(
             XjcDomainStatusValueType.CLIENT_DELETE_PROHIBITED,
             XjcDomainStatusValueType.CLIENT_RENEW_PROHIBITED,

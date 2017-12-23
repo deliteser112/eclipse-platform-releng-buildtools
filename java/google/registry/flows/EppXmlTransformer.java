@@ -21,7 +21,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
@@ -40,6 +39,7 @@ import google.registry.xml.XmlException;
 import google.registry.xml.XmlTransformer;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.List;
 
 /** {@link XmlTransformer} for marshalling to and from the Epp model classes.  */
 public class EppXmlTransformer  {
@@ -87,17 +87,17 @@ public class EppXmlTransformer  {
       return INPUT_TRANSFORMER.unmarshal(clazz, new ByteArrayInputStream(bytes));
     } catch (XmlException e) {
       // If this XmlException is wrapping a known type find it. If not, it's a syntax error.
-      FluentIterable<Throwable> causalChain = FluentIterable.from(Throwables.getCausalChain(e));
-      if (!(causalChain.filter(IpVersionMismatchException.class).isEmpty())) {
+      List<Throwable> causalChain = Throwables.getCausalChain(e);
+      if (causalChain.stream().anyMatch(IpVersionMismatchException.class::isInstance)) {
         throw new IpAddressVersionMismatchException();
       }
-      if (!(causalChain.filter(WrongProtocolVersionException.class).isEmpty())) {
+      if (causalChain.stream().anyMatch(WrongProtocolVersionException.class::isInstance)) {
         throw new UnimplementedProtocolVersionException();
       }
-      if (!(causalChain.filter(InvalidRepoIdException.class).isEmpty())) {
+      if (causalChain.stream().anyMatch(InvalidRepoIdException.class::isInstance)) {
         throw new InvalidRepoIdEppException();
       }
-      if (!(causalChain.filter(UnknownCurrencyException.class).isEmpty())) {
+      if (causalChain.stream().anyMatch(UnknownCurrencyException.class::isInstance)) {
         throw new UnknownCurrencyEppException();
       }
       throw new GenericSyntaxErrorException(e.getMessage());

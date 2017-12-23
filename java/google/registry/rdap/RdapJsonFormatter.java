@@ -15,18 +15,19 @@
 package google.registry.rdap;
 
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static google.registry.model.EppResourceUtils.isLinked;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.union;
 import static google.registry.util.DomainNameUtils.ACE_PREFIX;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Streams;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import google.registry.config.RdapNoticeDescriptor;
@@ -522,23 +523,24 @@ public class RdapJsonFormatter {
       if (displayContacts) {
         Map<Key<ContactResource>, ContactResource> loadedContacts =
             ofy().load().keys(domainResource.getReferencedContacts());
-        ImmutableList.Builder<Object> entitiesBuilder = new ImmutableList.Builder<>();
-        for (DesignatedContact designatedContact :
-            FluentIterable.from(domainResource.getContacts())
-                .append(DesignatedContact.create(Type.REGISTRANT, domainResource.getRegistrant()))
-                .toSortedList(DESIGNATED_CONTACT_ORDERING)) {
-          ContactResource loadedContact = loadedContacts.get(designatedContact.getContactKey());
-          entitiesBuilder.add(makeRdapJsonForContact(
-              loadedContact,
-              false,
-              Optional.of(designatedContact.getType()),
-              linkBase,
-              null,
-              now,
-              outputDataType,
-              authorization));
-        }
-        ImmutableList<Object> entities = entitiesBuilder.build();
+        ImmutableList<ImmutableMap<String, Object>> entities =
+            Streams.concat(
+                    domainResource.getContacts().stream(),
+                    Stream.of(
+                        DesignatedContact.create(Type.REGISTRANT, domainResource.getRegistrant())))
+                .sorted(DESIGNATED_CONTACT_ORDERING)
+                .map(
+                    designatedContact ->
+                        makeRdapJsonForContact(
+                            loadedContacts.get(designatedContact.getContactKey()),
+                            false,
+                            Optional.of(designatedContact.getType()),
+                            linkBase,
+                            null,
+                            now,
+                            outputDataType,
+                            authorization))
+                .collect(toImmutableList());
         if (!entities.isEmpty()) {
           jsonBuilder.put("entities", entities);
         }
@@ -845,14 +847,13 @@ public class RdapJsonFormatter {
         jsonBuilder.put("events", events);
       }
       // include the registrar contacts as subentities
-      ImmutableList.Builder<Map<String, Object>> registrarContactsBuilder =
-          new ImmutableList.Builder<>();
-      for (RegistrarContact registrarContact : registrar.getContacts()) {
-        if (isVisible(registrarContact)) {
-          registrarContactsBuilder.add(makeRdapJsonForRegistrarContact(registrarContact, null));
-        }
-      }
-      ImmutableList<Map<String, Object>> registrarContacts = registrarContactsBuilder.build();
+      ImmutableList<ImmutableMap<String, Object>> registrarContacts =
+          registrar
+              .getContacts()
+              .stream()
+              .filter(RdapJsonFormatter::isVisible)
+              .map(registrarContact -> makeRdapJsonForRegistrarContact(registrarContact, null))
+              .collect(toImmutableList());
       if (!registrarContacts.isEmpty()) {
         jsonBuilder.put("entities", registrarContacts);
       }
@@ -1096,7 +1097,7 @@ public class RdapJsonFormatter {
             .map(status -> statusToRdapStatusMap.getOrDefault(status, RdapStatus.OBSCURED));
     if (isDeleted) {
       stream =
-          Stream.concat(
+          Streams.concat(
               stream.filter(rdapStatus -> !Objects.equals(rdapStatus, RdapStatus.ACTIVE)),
               Stream.of(RdapStatus.REMOVED));
     }

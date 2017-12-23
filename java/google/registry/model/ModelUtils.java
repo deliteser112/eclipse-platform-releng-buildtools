@@ -22,16 +22,13 @@ import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Ordering;
 import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Id;
@@ -44,6 +41,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.AbstractList;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedHashMap;
@@ -52,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /** A collection of static methods that deal with reflection on model classes. */
@@ -94,17 +93,19 @@ public class ModelUtils {
   /** Return a string representing the persisted schema of a type or enum. */
   static String getSchema(Class<?> clazz) {
     StringBuilder stringBuilder = new StringBuilder();
-    Iterable<?> body;
+    Stream<?> body;
     if (clazz.isEnum()) {
       stringBuilder.append("enum ");
-      body = FluentIterable.from(clazz.getEnumConstants());
+      body = Arrays.stream(clazz.getEnumConstants());
     } else {
       stringBuilder.append("class ");
       body =
-          FluentIterable.from(getAllFields(clazz).values())
-              .filter((Field field) -> !field.isAnnotationPresent(Ignore.class))
-              .transform(
-                  (Field field) -> {
+          getAllFields(clazz)
+              .values()
+              .stream()
+              .filter(field -> !field.isAnnotationPresent(Ignore.class))
+              .map(
+                  field -> {
                     String annotation =
                         field.isAnnotationPresent(Id.class)
                             ? "@Id "
@@ -117,8 +118,9 @@ public class ModelUtils {
                   });
     }
     return stringBuilder
-        .append(clazz.getName()).append(" {\n  ")
-        .append(Joiner.on(";\n  ").join(Ordering.usingToString().sortedCopy(body)))
+        .append(clazz.getName())
+        .append(" {\n  ")
+        .append(body.map(Object::toString).sorted().collect(Collectors.joining(";\n  ")))
         .append(";\n}")
         .toString();
   }
