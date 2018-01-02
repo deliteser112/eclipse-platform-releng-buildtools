@@ -93,13 +93,11 @@
                 {call .postalInfo data="all"}
                   {param localized: index($pi) == 1 /}
                   {param item: $pi/}
-                  {param itemPrefix: 'contact:' /}
                   {param namePrefix: 'contact:postalInfo[' + index($pi) + '].contact:' /}
                 {/call}
               {/foreach}
             {else}
               {call .postalInfo data="all"}
-                {param prefix: 'contact:' /}
                 {param namePrefix: 'contact:postalInfo[0].contact:' /}
               {/call}
             {/if}
