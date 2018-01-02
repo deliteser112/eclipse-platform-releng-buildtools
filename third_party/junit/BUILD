@@ -10,7 +10,6 @@ java_library(
     name = "junit",
     srcs = glob(["**/*.java"]),
     visibility = [
-        "//javatests/google/registry/monitoring/metrics:__subpackages__",
         "//javatests/google/registry/testing:__pkg__",
     ],
 )
