@@ -14,8 +14,8 @@
 
 package google.registry.proxy.metric;
 
-import static google.registry.monitoring.metrics.contrib.DistributionMetricSubject.assertThat;
-import static google.registry.monitoring.metrics.contrib.LongMetricSubject.assertThat;
+import static com.google.monitoring.metrics.contrib.DistributionMetricSubject.assertThat;
+import static com.google.monitoring.metrics.contrib.LongMetricSubject.assertThat;
 import static google.registry.proxy.TestUtils.makeHttpPostRequest;
 import static google.registry.proxy.TestUtils.makeHttpResponse;
 

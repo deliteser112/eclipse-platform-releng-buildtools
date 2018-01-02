@@ -15,19 +15,19 @@
 package google.registry.flows.async;
 
 import static com.google.appengine.api.taskqueue.QueueConstants.maxLeaseCount;
+import static com.google.monitoring.metrics.EventMetric.DEFAULT_FITTER;
 import static google.registry.flows.async.AsyncFlowMetrics.OperationType.CONTACT_AND_HOST_DELETE;
 import static google.registry.flows.async.AsyncFlowMetrics.OperationType.DNS_REFRESH;
-import static google.registry.monitoring.metrics.EventMetric.DEFAULT_FITTER;
 import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import google.registry.monitoring.metrics.DistributionFitter;
-import google.registry.monitoring.metrics.EventMetric;
-import google.registry.monitoring.metrics.FibonacciFitter;
-import google.registry.monitoring.metrics.IncrementableMetric;
-import google.registry.monitoring.metrics.LabelDescriptor;
-import google.registry.monitoring.metrics.MetricRegistryImpl;
+import com.google.monitoring.metrics.DistributionFitter;
+import com.google.monitoring.metrics.EventMetric;
+import com.google.monitoring.metrics.FibonacciFitter;
+import com.google.monitoring.metrics.IncrementableMetric;
+import com.google.monitoring.metrics.LabelDescriptor;
+import com.google.monitoring.metrics.MetricRegistryImpl;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;

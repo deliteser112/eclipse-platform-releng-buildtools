@@ -14,6 +14,7 @@
 
 package google.registry.module.frontend;
 
+import com.google.monitoring.metrics.MetricReporter;
 import dagger.Component;
 import dagger.Lazy;
 import google.registry.braintree.BraintreeModule;
@@ -23,7 +24,6 @@ import google.registry.flows.custom.CustomLogicFactoryModule;
 import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.kms.KmsModule;
 import google.registry.module.frontend.FrontendRequestComponent.FrontendRequestComponentModule;
-import google.registry.monitoring.metrics.MetricReporter;
 import google.registry.monitoring.whitebox.StackdriverModule;
 import google.registry.request.Modules.AppIdentityCredentialModule;
 import google.registry.request.Modules.GoogleCredentialModule;

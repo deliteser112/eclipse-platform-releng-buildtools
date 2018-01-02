@@ -15,13 +15,13 @@
 package google.registry.model.server;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.monitoring.metrics.DistributionFitter;
+import com.google.monitoring.metrics.EventMetric;
+import com.google.monitoring.metrics.ExponentialFitter;
+import com.google.monitoring.metrics.IncrementableMetric;
+import com.google.monitoring.metrics.LabelDescriptor;
+import com.google.monitoring.metrics.MetricRegistryImpl;
 import google.registry.model.server.Lock.LockState;
-import google.registry.monitoring.metrics.DistributionFitter;
-import google.registry.monitoring.metrics.EventMetric;
-import google.registry.monitoring.metrics.ExponentialFitter;
-import google.registry.monitoring.metrics.IncrementableMetric;
-import google.registry.monitoring.metrics.LabelDescriptor;
-import google.registry.monitoring.metrics.MetricRegistryImpl;
 import javax.annotation.Nullable;
 import org.joda.time.Duration;
 

@@ -19,7 +19,7 @@ import static google.registry.proxy.handler.RelayHandler.RELAY_CHANNEL_KEY;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import google.registry.monitoring.metrics.MetricReporter;
+import com.google.monitoring.metrics.MetricReporter;
 import google.registry.proxy.Protocol.BackendProtocol;
 import google.registry.proxy.Protocol.FrontendProtocol;
 import google.registry.proxy.ProxyModule.ProxyComponent;

@@ -14,6 +14,7 @@
 
 package google.registry.module.backend;
 
+import com.google.monitoring.metrics.MetricReporter;
 import dagger.Component;
 import dagger.Lazy;
 import google.registry.bigquery.BigqueryModule;
@@ -27,7 +28,6 @@ import google.registry.groups.GroupssettingsModule;
 import google.registry.keyring.api.KeyModule;
 import google.registry.keyring.kms.KmsModule;
 import google.registry.module.backend.BackendRequestComponent.BackendRequestComponentModule;
-import google.registry.monitoring.metrics.MetricReporter;
 import google.registry.monitoring.whitebox.StackdriverModule;
 import google.registry.rde.JSchModule;
 import google.registry.request.Modules.AppIdentityCredentialModule;

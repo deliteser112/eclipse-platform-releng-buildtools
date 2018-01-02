@@ -15,14 +15,14 @@
 package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkState;
-import static google.registry.monitoring.metrics.EventMetric.DEFAULT_FITTER;
+import static com.google.monitoring.metrics.EventMetric.DEFAULT_FITTER;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
-import google.registry.monitoring.metrics.EventMetric;
-import google.registry.monitoring.metrics.IncrementableMetric;
-import google.registry.monitoring.metrics.LabelDescriptor;
-import google.registry.monitoring.metrics.MetricRegistryImpl;
+import com.google.monitoring.metrics.EventMetric;
+import com.google.monitoring.metrics.IncrementableMetric;
+import com.google.monitoring.metrics.LabelDescriptor;
+import com.google.monitoring.metrics.MetricRegistryImpl;
 import google.registry.util.Clock;
 import java.util.Optional;
 import javax.inject.Inject;

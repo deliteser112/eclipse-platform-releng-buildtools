@@ -17,10 +17,10 @@ package google.registry.model.registry.label;
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import google.registry.monitoring.metrics.EventMetric;
-import google.registry.monitoring.metrics.IncrementableMetric;
-import google.registry.monitoring.metrics.LabelDescriptor;
-import google.registry.monitoring.metrics.MetricRegistryImpl;
+import com.google.monitoring.metrics.EventMetric;
+import com.google.monitoring.metrics.IncrementableMetric;
+import com.google.monitoring.metrics.LabelDescriptor;
+import com.google.monitoring.metrics.MetricRegistryImpl;
 
 /** Instrumentation for reserved lists. */
 class DomainLabelMetrics {

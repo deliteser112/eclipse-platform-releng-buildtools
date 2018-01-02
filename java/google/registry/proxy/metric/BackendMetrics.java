@@ -15,13 +15,13 @@
 package google.registry.proxy.metric;
 
 import com.google.common.collect.ImmutableSet;
-import google.registry.monitoring.metrics.CustomFitter;
-import google.registry.monitoring.metrics.EventMetric;
-import google.registry.monitoring.metrics.ExponentialFitter;
-import google.registry.monitoring.metrics.FibonacciFitter;
-import google.registry.monitoring.metrics.IncrementableMetric;
-import google.registry.monitoring.metrics.LabelDescriptor;
-import google.registry.monitoring.metrics.MetricRegistryImpl;
+import com.google.monitoring.metrics.CustomFitter;
+import com.google.monitoring.metrics.EventMetric;
+import com.google.monitoring.metrics.ExponentialFitter;
+import com.google.monitoring.metrics.FibonacciFitter;
+import com.google.monitoring.metrics.IncrementableMetric;
+import com.google.monitoring.metrics.LabelDescriptor;
+import com.google.monitoring.metrics.MetricRegistryImpl;
 import google.registry.util.NonFinalForTesting;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;

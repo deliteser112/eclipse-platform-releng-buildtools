@@ -17,8 +17,6 @@ java_library(
     ]),
     deps = [
         "//java/google/registry/config",
-        "//java/google/registry/monitoring/metrics",
-        "//java/google/registry/monitoring/metrics/stackdriver",
         "//java/google/registry/util",
         "@com_beust_jcommander",
         "@com_google_api_client",
@@ -28,6 +26,8 @@ java_library(
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_guava",
+        "@com_google_monitoring_client_metrics",
+        "@com_google_monitoring_client_stackdriver",
         "@io_netty_buffer",
         "@io_netty_codec",
         "@io_netty_codec_http",

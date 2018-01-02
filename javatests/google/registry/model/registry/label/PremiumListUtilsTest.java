@@ -16,6 +16,8 @@ package google.registry.model.registry.label;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static com.google.monitoring.metrics.contrib.DistributionMetricSubject.assertThat;
+import static com.google.monitoring.metrics.contrib.LongMetricSubject.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.BLOOM_FILTER_NEGATIVE;
 import static google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome.CACHED_NEGATIVE;
@@ -28,8 +30,6 @@ import static google.registry.model.registry.label.PremiumListUtils.deletePremiu
 import static google.registry.model.registry.label.PremiumListUtils.doesPremiumListExist;
 import static google.registry.model.registry.label.PremiumListUtils.getPremiumPrice;
 import static google.registry.model.registry.label.PremiumListUtils.savePremiumListAndEntries;
-import static google.registry.monitoring.metrics.contrib.DistributionMetricSubject.assertThat;
-import static google.registry.monitoring.metrics.contrib.LongMetricSubject.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadPremiumListEntries;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;

@@ -15,8 +15,8 @@
 package google.registry.module.frontend;
 
 import com.google.appengine.api.LifecycleManager;
+import com.google.monitoring.metrics.MetricReporter;
 import dagger.Lazy;
-import google.registry.monitoring.metrics.MetricReporter;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.security.Security;

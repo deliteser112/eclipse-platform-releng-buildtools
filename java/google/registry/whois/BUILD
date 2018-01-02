@@ -10,7 +10,6 @@ java_library(
     deps = [
         "//java/google/registry/config",
         "//java/google/registry/model",
-        "//java/google/registry/monitoring/metrics",
         "//java/google/registry/request",
         "//java/google/registry/request/auth",
         "//java/google/registry/util",
@@ -21,6 +20,7 @@ java_library(
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_guava",
+        "@com_google_monitoring_client_metrics",
         "@javax_servlet_api",
         "@joda_time",
     ],

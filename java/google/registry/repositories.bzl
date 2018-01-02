@@ -74,6 +74,9 @@ def domain_registry_repositories(
     omit_com_google_http_client=False,
     omit_com_google_http_client_appengine=False,
     omit_com_google_http_client_jackson2=False,
+    omit_com_google_monitoring_client_metrics=False,
+    omit_com_google_monitoring_client_stackdriver=False,
+    omit_com_google_monitoring_client_contrib=False,
     omit_com_google_oauth_client=False,
     omit_com_google_oauth_client_appengine=False,
     omit_com_google_oauth_client_java6=False,
@@ -256,6 +259,12 @@ def domain_registry_repositories(
     com_google_http_client_appengine()
   if not omit_com_google_http_client_jackson2:
     com_google_http_client_jackson2()
+  if not omit_com_google_monitoring_client_metrics:
+    com_google_monitoring_client_metrics()
+  if not omit_com_google_monitoring_client_stackdriver:
+    com_google_monitoring_client_stackdriver()
+  if not omit_com_google_monitoring_client_contrib:
+    com_google_monitoring_client_contrib()
   if not omit_com_google_oauth_client:
     com_google_oauth_client()
   if not omit_com_google_oauth_client_appengine:
@@ -517,6 +526,56 @@ def com_google_api_client_jackson2():
           "@com_google_http_client_jackson2",
       ],
 )
+
+def com_google_monitoring_client_metrics():
+  java_import_external(
+      name = "com_google_monitoring_client_metrics",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "955fdd758b13f00aad48675a10060cad868b96c83c3a42e7a204c102d6d97cbf",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/monitoring-client/metrics/1.0.3/metrics-1.0.3.jar",
+          "http://repo1.maven.org/maven2/com/google/monitoring-client/metrics/1.0.3/metrics-1.0.3.jar",
+      ],
+      deps = [
+          "@com_google_guava",
+          "@com_google_auto_value",
+          "@com_google_errorprone_error_prone_annotations",
+          "@joda_time",
+          "@com_google_re2j",
+      ],
+  )
+
+def com_google_monitoring_client_stackdriver():
+  java_import_external(
+      name = "com_google_monitoring_client_stackdriver",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "89e90fc245249b6e480167033573ceaa5397b6648844331f72f68c5938789c80",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/com/google/monitoring-client/stackdriver/1.0.3/stackdriver-1.0.3.jar",
+          "http://maven.ibiblio.org/maven2/com/google/monitoring-client/stackdriver/1.0.3/stackdriver-1.0.3.jar",
+      ],
+      deps = [
+          "@com_google_guava",
+          "@com_google_apis_google_api_services_monitoring",
+          "@com_google_monitoring_client_metrics",
+      ],
+  )
+
+def com_google_monitoring_client_contrib():
+  java_import_external(
+      name = "com_google_monitoring_client_contrib",
+      licenses = ["notice"],  # The Apache Software License, Version 2.0
+      jar_sha256 = "b61f4a2738cc687ea6680488db51ee2409066e2aa59caf9b547fc3e19efe6e43",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/com/google/monitoring-client/contrib/1.0.3/contrib-1.0.3.jar",
+          "http://repo1.maven.org/maven2/com/google/monitoring-client/contrib/1.0.3/contrib-1.0.3.jar",
+      ],
+      testonly_ = True,
+      deps = [
+          "@com_google_truth",
+          "@com_google_monitoring_client_metrics",
+      ],
+  )
 
 def com_google_api_client_java6():
   java_import_external(

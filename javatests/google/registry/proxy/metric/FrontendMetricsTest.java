@@ -15,7 +15,7 @@
 package google.registry.proxy.metric;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.monitoring.metrics.contrib.LongMetricSubject.assertThat;
+import static com.google.monitoring.metrics.contrib.LongMetricSubject.assertThat;
 
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.DefaultChannelId;

@@ -14,8 +14,8 @@
 
 package google.registry.rdap;
 
-import static google.registry.monitoring.metrics.contrib.DistributionMetricSubject.assertThat;
-import static google.registry.monitoring.metrics.contrib.LongMetricSubject.assertThat;
+import static com.google.monitoring.metrics.contrib.DistributionMetricSubject.assertThat;
+import static com.google.monitoring.metrics.contrib.LongMetricSubject.assertThat;
 
 import com.google.common.collect.ImmutableSet;
 import google.registry.rdap.RdapMetrics.EndpointType;

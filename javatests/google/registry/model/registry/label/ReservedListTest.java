@@ -16,6 +16,8 @@ package google.registry.model.registry.label;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
+import static com.google.monitoring.metrics.contrib.DistributionMetricSubject.assertThat;
+import static com.google.monitoring.metrics.contrib.LongMetricSubject.assertThat;
 import static google.registry.model.registry.label.DomainLabelMetrics.reservedListChecks;
 import static google.registry.model.registry.label.DomainLabelMetrics.reservedListHits;
 import static google.registry.model.registry.label.DomainLabelMetrics.reservedListProcessingTime;
@@ -28,8 +30,6 @@ import static google.registry.model.registry.label.ReservationType.RESERVED_FOR_
 import static google.registry.model.registry.label.ReservedList.getAllowedNameservers;
 import static google.registry.model.registry.label.ReservedList.getReservationTypes;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
-import static google.registry.monitoring.metrics.contrib.DistributionMetricSubject.assertThat;
-import static google.registry.monitoring.metrics.contrib.LongMetricSubject.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;

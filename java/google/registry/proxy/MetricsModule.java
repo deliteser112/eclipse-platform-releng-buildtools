@@ -20,12 +20,12 @@ import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.monitoring.metrics.MetricReporter;
+import com.google.monitoring.metrics.MetricWriter;
+import com.google.monitoring.metrics.stackdriver.StackdriverWriter;
 import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.monitoring.metrics.MetricReporter;
-import google.registry.monitoring.metrics.MetricWriter;
-import google.registry.monitoring.metrics.stackdriver.StackdriverWriter;
 import javax.inject.Singleton;
 
 /** Module that provides necessary bindings to instantiate a {@link MetricReporter} */

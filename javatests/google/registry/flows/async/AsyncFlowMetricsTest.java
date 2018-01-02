@@ -20,8 +20,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-import google.registry.monitoring.metrics.EventMetric;
-import google.registry.monitoring.metrics.IncrementableMetric;
+import com.google.monitoring.metrics.EventMetric;
+import com.google.monitoring.metrics.IncrementableMetric;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import google.registry.testing.ShardableTestCase;
