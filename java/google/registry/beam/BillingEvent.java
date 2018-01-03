@@ -37,10 +37,10 @@ import org.apache.beam.sdk.io.gcp.bigquery.SchemaAndRecord;
 /**
  * A POJO representing a single billable event, parsed from a {@code SchemaAndRecord}.
  *
- * <p>This is a trivially serializable class that allows Beam to transform the results of a
- * Bigquery query into a standard Java representation, giving us the type guarantees and ease of
- * manipulation Bigquery lacks, while localizing any Bigquery-side failures to the
- * {@link #parseFromRecord} function.
+ * <p>This is a trivially serializable class that allows Beam to transform the results of a Bigquery
+ * query into a standard Java representation, giving us the type guarantees and ease of manipulation
+ * Bigquery lacks, while localizing any Bigquery-side failures to the {@link #parseFromRecord}
+ * function.
  */
 @AutoValue
 public abstract class BillingEvent implements Serializable {
@@ -49,6 +49,7 @@ public abstract class BillingEvent implements Serializable {
 
   private static final DateTimeFormatter DATE_TIME_FORMATTER =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss zzz");
+
 
   private static final ImmutableList<String> FIELD_NAMES =
       ImmutableList.of(
