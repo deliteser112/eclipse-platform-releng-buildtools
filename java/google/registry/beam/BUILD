@@ -9,6 +9,7 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["sql/*"]),
     deps = [
+        "//java/google/registry/billing",
         "//java/google/registry/config",
         "//java/google/registry/util",
         "@com_google_apis_google_api_services_bigquery",

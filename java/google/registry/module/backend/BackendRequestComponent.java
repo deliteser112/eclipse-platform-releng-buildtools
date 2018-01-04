@@ -29,6 +29,7 @@ import google.registry.batch.RefreshDnsOnHostRenameAction;
 import google.registry.batch.ResaveAllEppResourcesAction;
 import google.registry.batch.VerifyEntityIntegrityAction;
 import google.registry.billing.BillingModule;
+import google.registry.billing.CopyDetailReportsAction;
 import google.registry.billing.GenerateInvoicesAction;
 import google.registry.billing.PublishInvoicesAction;
 import google.registry.cron.CommitLogFanoutAction;
@@ -112,6 +113,7 @@ interface BackendRequestComponent {
   CheckSnapshotAction checkSnapshotAction();
   CommitLogCheckpointAction commitLogCheckpointAction();
   CommitLogFanoutAction commitLogFanoutAction();
+  CopyDetailReportsAction copyDetailReportAction();
   DeleteContactsAndHostsAction deleteContactsAndHostsAction();
   DeleteOldCommitLogsAction deleteOldCommitLogsAction();
   DeleteProberDataAction deleteProberDataAction();

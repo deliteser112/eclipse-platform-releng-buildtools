@@ -33,16 +33,31 @@ import javax.servlet.http.HttpServletRequest;
 @Module
 public final class BillingModule {
 
+  public static final String DETAIL_REPORT_PREFIX = "invoice_details";
+  public static final String OVERALL_INVOICE_PREFIX = "CRR-INV";
+
+  static final String PARAM_JOB_ID = "jobId";
+  static final String PARAM_DIRECTORY_PREFIX = "directoryPrefix";
+  static final String BILLING_QUEUE = "billing";
+  static final String CRON_QUEUE = "retryable-cron-tasks";
+  // TODO(larryruili): Replace with invoices/yyyy-MM after verifying 2017-12 invoice.
+  static final String RESULTS_DIRECTORY_PREFIX = "results/";
+
   private static final String CLOUD_PLATFORM_SCOPE =
       "https://www.googleapis.com/auth/cloud-platform";
-  static final String BILLING_QUEUE = "billing";
-  static final String PARAM_JOB_ID = "jobId";
 
   /** Provides the invoicing Dataflow jobId enqueued by {@link GenerateInvoicesAction}. */
   @Provides
   @Parameter(PARAM_JOB_ID)
   static String provideJobId(HttpServletRequest req) {
     return extractRequiredParameter(req, PARAM_JOB_ID);
+  }
+
+  /** Provides the subdirectory under a GCS bucket that we copy detail reports from. */
+  @Provides
+  @Parameter(PARAM_DIRECTORY_PREFIX)
+  static String provideDirectoryPrefix(HttpServletRequest req) {
+    return extractRequiredParameter(req, PARAM_DIRECTORY_PREFIX);
   }
 
   /** Constructs a {@link Dataflow} API client with default settings. */

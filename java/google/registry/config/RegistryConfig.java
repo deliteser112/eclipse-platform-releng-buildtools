@@ -509,27 +509,15 @@ public final class RegistryConfig {
     }
 
     /**
-     * Returns the email address from which we send ICANN reporting email summaries from.
+     * Returns the list of addresses that receive monthly invoicing emails.
      *
-     * @see google.registry.reporting.ReportingEmailUtils
+     * @see google.registry.billing.BillingEmailUtils
      */
     @Provides
-    @Config("icannReportingSenderEmailAddress")
-    public static String provideIcannReportingEmailSenderAddress(
-        @Config("projectId") String projectId, RegistryConfigSettings config) {
-      return String.format(
-          "%s@%s", projectId, config.icannReporting.icannReportingEmailSenderDomain);
-    }
-
-    /**
-     * Returns the email address from which we send ICANN reporting email summaries to.
-     *
-     * @see google.registry.reporting.ReportingEmailUtils
-     */
-    @Provides
-    @Config("icannReportingRecipientEmailAddress")
-    public static String provideIcannReportingEmailRecipientAddress(RegistryConfigSettings config) {
-      return config.icannReporting.icannReportingEmailRecipient;
+    @Config("invoiceEmailRecipients")
+    public static ImmutableList<String> provideInvoiceEmailRecipients(
+        RegistryConfigSettings config) {
+      return ImmutableList.copyOf(config.billing.invoiceEmailRecipients);
     }
 
     /**
@@ -710,6 +698,35 @@ public final class RegistryConfig {
     @Config("sheetRegistrarId")
     public static Optional<String> provideSheetRegistrarId(RegistryConfigSettings config) {
       return Optional.ofNullable(config.misc.sheetExportId);
+    }
+
+    /**
+     * Returns the email address we send various alert e-mails to.
+     *
+     * <p>This allows us to easily verify the success or failure of periodic tasks by passively
+     * checking e-mail.
+     *
+     * @see google.registry.reporting.ReportingEmailUtils
+     * @see google.registry.billing.BillingEmailUtils
+     */
+    @Provides
+    @Config("alertRecipientEmailAddress")
+    public static String provideAlertRecipientEmailAddress(RegistryConfigSettings config) {
+      return config.misc.alertRecipientEmailAddress;
+    }
+
+    /**
+     * Returns the email address we send emails from.
+     *
+     * @see google.registry.reporting.ReportingEmailUtils
+     * @see google.registry.billing.BillingEmailUtils
+     */
+
+    @Provides
+    @Config("alertSenderEmailAddress")
+    public static String provideAlertSenderEmailAddress(
+        @Config("projectId") String projectId, RegistryConfigSettings config) {
+      return String.format("%s@%s", projectId, config.misc.alertEmailSenderDomain);
     }
 
     /**

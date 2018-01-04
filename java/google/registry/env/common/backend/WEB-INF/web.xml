@@ -77,6 +77,14 @@
     <url-pattern>/_dr/task/publishInvoices</url-pattern>
   </servlet-mapping>
 
+  <!--
+    Copies invoice detail reports from GCS to the associated registrar's Drive folder.
+  -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/copyDetailReports</url-pattern>
+  </servlet-mapping>
+
   <!-- ICANN Monthly Reporting -->
 
   <!--

@@ -49,22 +49,27 @@ public class GenerateInvoicesAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @Inject
-  @Config("projectId")
-  String projectId;
-
-  @Inject
-  @Config("apacheBeamBucketUrl")
-  String beamBucketUrl;
-
-  @Inject YearMonth yearMonth;
-  @Inject Dataflow dataflow;
-  @Inject Response response;
-
-  @Inject
-  GenerateInvoicesAction() {}
-
   static final String PATH = "/_dr/task/generateInvoices";
+
+  private final String projectId;
+  private final String beamBucketUrl;
+  private final YearMonth yearMonth;
+  private final Dataflow dataflow;
+  private final Response response;
+
+  @Inject
+  GenerateInvoicesAction(
+      @Config("projectId") String projectId,
+      @Config("apacheBeamBucketUrl") String beamBucketUrl,
+      YearMonth yearMonth,
+      Dataflow dataflow,
+      Response response) {
+    this.projectId = projectId;
+    this.beamBucketUrl = beamBucketUrl;
+    this.yearMonth = yearMonth;
+    this.dataflow = dataflow;
+    this.response = response;
+  }
 
   @Override
   public void run() {
@@ -87,13 +92,7 @@ public class GenerateInvoicesAction implements Runnable {
               .execute();
       logger.infofmt("Got response: %s", launchResponse.getJob().toPrettyString());
       String jobId = launchResponse.getJob().getId();
-      TaskOptions uploadTask =
-          TaskOptions.Builder.withUrl(PublishInvoicesAction.PATH)
-              .method(TaskOptions.Method.POST)
-              // Dataflow jobs tend to take about 10 minutes to complete.
-              .countdownMillis(Duration.standardMinutes(10).getMillis())
-              .param(BillingModule.PARAM_JOB_ID, jobId);
-      QueueFactory.getQueue(BillingModule.BILLING_QUEUE).add(uploadTask);
+      enqueuePublishTask(jobId);
     } catch (IOException e) {
       logger.warningfmt("Template Launch failed due to: %s", e.getMessage());
       response.setStatus(SC_INTERNAL_SERVER_ERROR);
@@ -104,5 +103,15 @@ public class GenerateInvoicesAction implements Runnable {
     response.setStatus(SC_OK);
     response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
     response.setPayload("Launched dataflow template.");
+  }
+
+  private void enqueuePublishTask(String jobId) {
+    TaskOptions publishTask =
+        TaskOptions.Builder.withUrl(PublishInvoicesAction.PATH)
+            .method(TaskOptions.Method.POST)
+            // Dataflow jobs tend to take about 10 minutes to complete.
+            .countdownMillis(Duration.standardMinutes(10).getMillis())
+            .param(BillingModule.PARAM_JOB_ID, jobId);
+    QueueFactory.getQueue(BillingModule.BILLING_QUEUE).add(publishTask);
   }
 }

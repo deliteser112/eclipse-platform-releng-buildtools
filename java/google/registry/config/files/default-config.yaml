@@ -160,11 +160,8 @@ icannReporting:
   # URL we PUT monthly ICANN activity reports to.
   icannActivityReportingUploadUrl: https://ry-api.icann.org/report/registry-functions-activity
 
-  # Domain for the email address we send reporting pipeline summary emails from.
-  icannReportingEmailSenderDomain: appspotmail.com
-
-  # Address we send reporting pipeline summary emails to.
-  icannReportingEmailRecipient: email@example.com
+billing:
+  invoiceEmailRecipients: []
 
 rde:
   # URL prefix of ICANN's server to upload RDE reports to. Nomulus adds /TLD/ID
@@ -214,6 +211,12 @@ misc:
   # The ID of the Google Sheet (as found in the URL) to export registrar details
   # to. Leave this null to disable syncing.
   sheetExportId: null
+
+  # Address we send alert summary emails to.
+  alertRecipientEmailAddress: email@example.com
+
+  # Domain for the email address we send alert summary emails from.
+  alertEmailSenderDomain: appspotmail.com
 
 # Braintree is a credit card payment processor that is used on the registrar
 # console to allow registrars to pay their invoices.

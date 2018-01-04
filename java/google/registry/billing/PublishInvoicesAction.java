@@ -22,6 +22,8 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.api.services.dataflow.Dataflow;
 import com.google.api.services.dataflow.model.Job;
+import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
@@ -48,31 +50,45 @@ public class PublishInvoicesAction implements Runnable {
   private static final String JOB_DONE = "JOB_STATE_DONE";
   private static final String JOB_FAILED = "JOB_STATE_FAILED";
 
-  @Inject @Config("projectId") String projectId;
-  @Inject @Parameter(BillingModule.PARAM_JOB_ID) String jobId;
-  @Inject Dataflow dataflow;
-  @Inject Response response;
-  @Inject PublishInvoicesAction() {}
+  private final String projectId;
+  private final String jobId;
+  private final BillingEmailUtils emailUtils;
+  private final Dataflow dataflow;
+  private final Response response;
+
+  @Inject
+  PublishInvoicesAction(
+      @Config("projectId") String projectId,
+      @Parameter(BillingModule.PARAM_JOB_ID) String jobId,
+      BillingEmailUtils emailUtils,
+      Dataflow dataflow,
+      Response response) {
+    this.projectId = projectId;
+    this.jobId = jobId;
+    this.emailUtils = emailUtils;
+    this.dataflow = dataflow;
+    this.response = response;
+  }
 
   static final String PATH = "/_dr/task/publishInvoices";
 
   @Override
   public void run() {
-    logger.info("Starting publish job.");
     try {
+      logger.info("Starting publish job.");
       Job job = dataflow.projects().jobs().get(projectId, jobId).execute();
       String state = job.getCurrentState();
       switch (state) {
         case JOB_DONE:
-          logger.infofmt("Dataflow job %s finished successfully.", jobId);
+          logger.infofmt("Dataflow job %s finished successfully, publishing results.", jobId);
           response.setStatus(SC_OK);
-          // TODO(larryruili): Implement upload logic.
+          enqueueCopyDetailReportsTask();
+          emailUtils.emailInvoiceLink();
           break;
         case JOB_FAILED:
           logger.severefmt("Dataflow job %s finished unsuccessfully.", jobId);
-          // Return a 'success' code to stop task queue retry.
           response.setStatus(SC_NO_CONTENT);
-          // TODO(larryruili): Implement failure response.
+          // TODO(larryruili): Email failure message
           break;
         default:
           logger.infofmt("Job in non-terminal state %s, retrying:", state);
@@ -80,10 +96,18 @@ public class PublishInvoicesAction implements Runnable {
           break;
       }
     } catch (IOException e) {
-      logger.warningfmt("Template Launch failed due to: %s", e.getMessage());
       response.setStatus(SC_INTERNAL_SERVER_ERROR);
       response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
       response.setPayload(String.format("Template launch failed: %s", e.getMessage()));
     }
+  }
+
+  private static void enqueueCopyDetailReportsTask() {
+    TaskOptions copyDetailTask =
+        TaskOptions.Builder.withUrl(CopyDetailReportsAction.PATH)
+            .method(TaskOptions.Method.POST)
+            .param(
+                BillingModule.PARAM_DIRECTORY_PREFIX, BillingModule.RESULTS_DIRECTORY_PREFIX);
+    QueueFactory.getQueue(BillingModule.CRON_QUEUE).add(copyDetailTask);
   }
 }

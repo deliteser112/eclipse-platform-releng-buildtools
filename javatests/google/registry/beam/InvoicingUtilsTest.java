@@ -58,7 +58,7 @@ public class InvoicingUtilsTest {
         .isEqualTo(
             new Params()
                 .withBaseFilename(
-                    FileBasedSink.convertToFileResourceIfPossible("my/directory/failed")));
+                    FileBasedSink.convertToFileResourceIfPossible("my/directory/FAILURES")));
   }
 
   /** Asserts that the instantiated sql template matches a golden expected file. */

@@ -45,33 +45,35 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class GenerateInvoicesActionTest {
 
-  Dataflow dataflow = mock(Dataflow.class);
-  Projects projects = mock(Projects.class);
-  Templates templates = mock(Templates.class);
-  Launch launch = mock(Launch.class);
-  GenerateInvoicesAction action;
-  FakeResponse response = new FakeResponse();
-
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder().withTaskQueue().build();
 
+  private Dataflow dataflow;
+  private Projects projects;
+  private Templates templates;
+  private Launch launch;
+  private FakeResponse response;
+  private GenerateInvoicesAction action;
+
   @Before
-  public void initializeObjects() throws Exception {
+  public void setUp() throws IOException {
+    dataflow = mock(Dataflow.class);
+    projects = mock(Projects.class);
+    templates = mock(Templates.class);
+    launch = mock(Launch.class);
     when(dataflow.projects()).thenReturn(projects);
     when(projects.templates()).thenReturn(templates);
     when(templates.launch(any(String.class), any(LaunchTemplateParameters.class)))
         .thenReturn(launch);
     when(launch.setGcsPath(any(String.class))).thenReturn(launch);
+
+    response = new FakeResponse();
     Job job = new Job();
     job.setId("12345");
     when(launch.execute()).thenReturn(new LaunchTemplateResponse().setJob(job));
 
-    action = new GenerateInvoicesAction();
-    action.dataflow = dataflow;
-    action.response = response;
-    action.projectId = "test-project";
-    action.beamBucketUrl = "gs://test-project-beam";
-    action.yearMonth = new YearMonth(2017, 10);
+    action = new GenerateInvoicesAction(
+        "test-project", "gs://test-project-beam", new YearMonth(2017, 10), dataflow, response);
   }
 
   @Test
@@ -99,7 +101,7 @@ public class GenerateInvoicesActionTest {
   }
 
   @Test
-  public void testCaughtIOException() throws Exception {
+  public void testCaughtIOException() throws IOException {
     when(launch.execute()).thenThrow(new IOException("expected"));
     action.run();
     assertThat(response.getStatus()).isEqualTo(500);

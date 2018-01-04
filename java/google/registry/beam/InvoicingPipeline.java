@@ -16,6 +16,7 @@ package google.registry.beam;
 
 import google.registry.beam.BillingEvent.InvoiceGroupingKey;
 import google.registry.beam.BillingEvent.InvoiceGroupingKey.InvoiceGroupingKeyCoder;
+import google.registry.billing.BillingModule;
 import google.registry.config.RegistryConfig.Config;
 import java.io.Serializable;
 import javax.inject.Inject;
@@ -130,7 +131,11 @@ public class InvoicingPipeline implements Serializable {
         .to(
             NestedValueProvider.of(
                 yearMonthProvider,
-                yearMonth -> String.format("%s/results/CRR-INV-%s", beamBucket, yearMonth)))
+                // TODO(larryruili): Replace with billing bucket after verifying 2017-12 output.
+                yearMonth ->
+                    String.format(
+                        "%s/results/%s-%s",
+                        beamBucket, BillingModule.OVERALL_INVOICE_PREFIX, yearMonth)))
         .withHeader(InvoiceGroupingKey.invoiceHeader())
         .withoutSharding()
         .withSuffix(".csv");
@@ -140,6 +145,7 @@ public class InvoicingPipeline implements Serializable {
   private TextIO.TypedWrite<BillingEvent, Params> writeDetailReports(
       ValueProvider<String> yearMonthProvider) {
     return TextIO.<BillingEvent>writeCustomType()
+        // TODO(larryruili): Replace with billing bucket/yyyy-MM after verifying 2017-12 output.
         .to(
             InvoicingUtils.makeDestinationFunction(beamBucket + "/results", yearMonthProvider),
             InvoicingUtils.makeEmptyDestinationParams(beamBucket + "/results"))

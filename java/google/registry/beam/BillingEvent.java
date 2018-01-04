@@ -18,6 +18,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import google.registry.billing.BillingModule;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.io.InputStream;
@@ -173,7 +174,8 @@ public abstract class BillingEvent implements Serializable {
    * filepath with the arguments, such as "../sensitive_info".
    */
   String toFilename(String yearMonth) {
-    return String.format("invoice_details_%s_%s_%s", yearMonth, registrarId(), tld());
+    return String.format(
+        "%s_%s_%s_%s", BillingModule.DETAIL_REPORT_PREFIX, yearMonth, registrarId(), tld());
   }
 
   /** Generates a CSV representation of this {@code BillingEvent}. */

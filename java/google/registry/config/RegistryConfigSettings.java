@@ -28,6 +28,7 @@ public class RegistryConfigSettings {
   public CloudDns cloudDns;
   public Caching caching;
   public IcannReporting icannReporting;
+  public Billing billing;
   public Rde rde;
   public RegistrarConsole registrarConsole;
   public Monitoring monitoring;
@@ -114,8 +115,11 @@ public class RegistryConfigSettings {
   public static class IcannReporting {
     public String icannTransactionsReportingUploadUrl;
     public String icannActivityReportingUploadUrl;
-    public String icannReportingEmailSenderDomain;
-    public String icannReportingEmailRecipient;
+  }
+
+  /** Configuration for monthly invoices. */
+  public static class Billing {
+    public List<String> invoiceEmailRecipients;
   }
 
   /** Configuration for Registry Data Escrow (RDE). */
@@ -145,6 +149,8 @@ public class RegistryConfigSettings {
   /** Miscellaneous configuration that doesn't quite fit in anywhere else. */
   public static class Misc {
     public String sheetExportId;
+    public String alertRecipientEmailAddress;
+    public String alertEmailSenderDomain;
   }
 
   /** Configuration for Braintree credit card payment processing. */

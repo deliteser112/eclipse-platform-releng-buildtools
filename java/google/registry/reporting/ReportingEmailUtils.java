@@ -25,8 +25,8 @@ import javax.mail.internet.InternetAddress;
 /** Static utils for emailing reporting results. */
 public class ReportingEmailUtils {
 
-  @Inject @Config("icannReportingSenderEmailAddress") String sender;
-  @Inject @Config("icannReportingRecipientEmailAddress") String recipient;
+  @Inject @Config("alertSenderEmailAddress") String sender;
+  @Inject @Config("alertRecipientEmailAddress") String recipient;
   @Inject SendEmailService emailService;
   @Inject ReportingEmailUtils() {}
 

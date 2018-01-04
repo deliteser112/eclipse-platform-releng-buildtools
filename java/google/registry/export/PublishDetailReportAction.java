@@ -37,12 +37,19 @@ import java.io.InputStream;
 import java.util.Map;
 import javax.inject.Inject;
 
-/** Publish a single registrar detail report from GCS to Drive. */
+/**
+ * Publish a single registrar detail report from GCS to Drive.
+ *
+ * <p>This is now DEPRECATED, and will be removed upon completion of the billing migration. If you
+ * wish to use the functionality, use {@link google.registry.billing.CopyDetailReportsAction}
+ * instead.
+ */
 @Action(
   path = PublishDetailReportAction.PATH,
   method = Action.Method.POST,
   auth = Auth.AUTH_INTERNAL_OR_ADMIN
 )
+@Deprecated
 public final class PublishDetailReportAction implements Runnable, JsonAction {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

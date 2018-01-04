@@ -68,7 +68,7 @@ public class InvoicingUtils {
     return new Params()
         .withBaseFilename(
             FileBasedSink.convertToFileResourceIfPossible(
-                String.format("%s/%s", outputBucket, "failed")));
+                String.format("%s/%s", outputBucket, "FAILURES")));
   }
 
   /**
