@@ -10,6 +10,9 @@ closure_js_template_library(
     name = "soy",
     srcs = glob(["*.soy"]),
     globals = "//java/google/registry/ui:globals.txt",
+    # TODO: remove this when upgrading rules closure.  This is only necessary because
+    # our version of soy is newer than what rules closure expects
+    should_generate_js_doc = False,
 )
 
 closure_java_template_library(

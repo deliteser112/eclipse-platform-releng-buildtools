@@ -28,11 +28,11 @@
       <host:update
        xmlns:host="urn:ietf:params:xml:ns:host-1.0">
         <host:name>{$name}</host:name>
-        {foreach $ip in $ipAddresses}
+        {for $ip in $ipAddresses}
           <host:rem>
             <host:addr ip="{$ip['type']}">{$ip['address']}</host:addr>
           </host:rem>
-        {/foreach}
+        {/for}
       </host:update>
     </update>
     <extension>

@@ -39,15 +39,15 @@
         <domain:period unit="y">{$period}</domain:period>
         {if isNonnull($nameservers) and length($nameservers) > 0}
         <domain:ns>
-          {foreach $nameserver in $nameservers}
+          {for $nameserver in $nameservers}
           <domain:hostObj>{$nameserver}</domain:hostObj>
-          {/foreach}
+          {/for}
         </domain:ns>
         {/if}
         <domain:registrant>{$registrant}</domain:registrant>
-        {foreach $type in keys($contacts)}
+        {for $type in keys($contacts)}
         <domain:contact type="{$type}">{$contacts[$type]}</domain:contact>
-        {/foreach}
+        {/for}
         <domain:authInfo>
           <domain:pw>{$authInfo}</domain:pw>
         </domain:authInfo>
@@ -70,14 +70,14 @@
       </allocate:create>
       {if isNonnull($dsRecords) and length($dsRecords) > 0}
       <secDNS:create xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1">
-        {foreach $dsRecord in $dsRecords}
+        {for $dsRecord in $dsRecords}
         <secDNS:dsData>
           <secDNS:keyTag>{$dsRecord['keyTag']}</secDNS:keyTag>
           <secDNS:alg>{$dsRecord['algorithm']}</secDNS:alg>
           <secDNS:digestType>{$dsRecord['digestType']}</secDNS:digestType>
           <secDNS:digest>{$dsRecord['digest']}</secDNS:digest>
         </secDNS:dsData>
-        {/foreach}
+        {/for}
       </secDNS:create>
       {/if}
     </extension>

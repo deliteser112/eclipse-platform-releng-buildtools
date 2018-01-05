@@ -149,13 +149,13 @@
   {@param? state: string}
   {@param? zip: string}
   {@param countryCode: string}
-  {foreach $line in $street}
+  {for $line in $street}
     <input type="hidden"
            name="{$id}.street[{index($line)}]"
            id="{$id}.street[{index($line)}]"
            value="{$street[index($line)]}">
     <div class="{css('contact-address-street')}">{$street[index($line)]}</div>
-  {/foreach}
+  {/for}
   <input type="hidden" name="{$id}.city" id="{$id}.city" value="{$city}">
   <input type="hidden" name="{$id}.state" id="{$id}.state" value="{$state}">
   <input type="hidden" name="{$id}.zip" id="{$id}.zip" value="{$zip}">

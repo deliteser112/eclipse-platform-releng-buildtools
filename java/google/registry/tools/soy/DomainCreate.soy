@@ -36,18 +36,18 @@
           {/if}
           {if length($nameservers) > 0}
             <domain:ns>
-              {foreach $s in $nameservers}
+              {for $s in $nameservers}
                 <domain:hostObj>{$s}</domain:hostObj>
-              {/foreach}
+              {/for}
             </domain:ns>
           {/if}
           <domain:registrant>{$registrant}</domain:registrant>
-          {foreach $admin in $admins}
+          {for $admin in $admins}
             <domain:contact type="admin">{$admin}</domain:contact>
-          {/foreach}
-          {foreach $tech in $techs}
+          {/for}
+          {for $tech in $techs}
             <domain:contact type="tech">{$tech}</domain:contact>
-          {/foreach}
+          {/for}
           <domain:authInfo>
             <domain:pw>{$password}</domain:pw>
           </domain:authInfo>

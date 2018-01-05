@@ -47,12 +47,12 @@
         <td class="{css('setting')}">
           <div class="{css('info')} {css('summary')}">
             <div id="ips">
-              {foreach $ip in $ipAddressWhitelist}
+              {for $ip in $ipAddressWhitelist}
                 {call .ip}
                   {param name: 'ipAddressWhitelist[' + index($ip) + ']' /}
                   {param ip: $ip /}
                 {/call}
-              {/foreach}
+              {/for}
             </div>
             <div class="{css('hidden')}">
               <input id="newIp" value="" placeholder="Enter IP address..."/>

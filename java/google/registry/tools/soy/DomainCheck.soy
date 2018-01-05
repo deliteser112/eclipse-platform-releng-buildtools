@@ -24,9 +24,9 @@
   <command>
     <check>
       <domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-      {foreach $d in $domainNames}
+      {for $d in $domainNames}
         <domain:name>{$d}</domain:name>
-      {/foreach}
+      {/for}
       </domain:check>
     </check>
     <clTRID>RegistryTool</clTRID>

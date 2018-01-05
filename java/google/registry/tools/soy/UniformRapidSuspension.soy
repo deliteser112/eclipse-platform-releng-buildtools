@@ -34,26 +34,26 @@
         <domain:add>
         {if length($hostsToAdd) > 0}
           <domain:ns>
-          {foreach $ha in $hostsToAdd}
+          {for $ha in $hostsToAdd}
             <domain:hostObj>{$ha}</domain:hostObj>
-          {/foreach}
+          {/for}
           </domain:ns>
         {/if}
-        {foreach $la in $locksToApply}
+        {for $la in $locksToApply}
           <domain:status s="{$la}" />
-        {/foreach}
+        {/for}
         </domain:add>
         <domain:rem>
         {if length($hostsToRemove) > 0}
           <domain:ns>
-          {foreach $hr in $hostsToRemove}
+          {for $hr in $hostsToRemove}
             <domain:hostObj>{$hr}</domain:hostObj>
-          {/foreach}
+          {/for}
           </domain:ns>
         {/if}
-        {foreach $lr in $locksToRemove}
+        {for $lr in $locksToRemove}
           <domain:status s="{$lr}" />
-        {/foreach}
+        {/for}
         </domain:rem>
       </domain:update>
     </update>
@@ -64,14 +64,14 @@
         </secDNS:rem>
         {if length($newDsData) > 0}
         <secDNS:add>
-          {foreach $ds in $newDsData}
+          {for $ds in $newDsData}
           <secDNS:dsData>
             <secDNS:keyTag>{$ds.keyTag}</secDNS:keyTag>
             <secDNS:alg>{$ds.alg}</secDNS:alg>
             <secDNS:digestType>{$ds.digestType}</secDNS:digestType>
             <secDNS:digest>{$ds.digest}</secDNS:digest>
           </secDNS:dsData>
-          {/foreach}
+          {/for}
         </secDNS:add>
         {/if}
       </secDNS:update>
