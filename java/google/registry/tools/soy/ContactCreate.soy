@@ -48,9 +48,9 @@
             {/if}
             <contact:addr>
               {if $street}
-                {for $s in $street}
+                {foreach $s in $street}
                   <contact:street>{$s}</contact:street>
-                {/for}
+                {/foreach}
               {/if}
               {if $city}
                 <contact:city>{$city}</contact:city>

@@ -1458,10 +1458,10 @@ def com_google_re2j():
 def com_google_template_soy():
   java_import_external(
       name = "com_google_template_soy",
-      jar_sha256 = "2952b430323a01070d73c7767e34c4030355b9e60c14b5165bebf69b2f6ad927",
+      jar_sha256 = "3c4e61234e9ee9f79411da997e23b201bcf281255469c76d162dac07a67dbb78",
       jar_urls = [
-          "http://repo1.maven.org/maven2/com/google/template/soy/2018-01-03/soy-2018-01-03.jar",
-          "http://central.maven.org/maven2/com/google/template/soy/2018-01-03/soy-2018-01-03.jar",
+          "http://repo1.maven.org/maven2/com/google/template/soy/2017-06-22/soy-2017-06-22.jar",
+          "http://central.maven.org/maven2/com/google/template/soy/2017-06-22/soy-2017-06-22.jar",
       ],
       deps = [
           "@args4j",

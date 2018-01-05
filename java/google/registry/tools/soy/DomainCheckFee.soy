@@ -24,20 +24,20 @@
   <command>
     <check>
       <domain:check xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-      {for $d in $domainNames}
+      {foreach $d in $domainNames}
         <domain:name>{$d}</domain:name>
-      {/for}
+      {/foreach}
       </domain:check>
     </check>
     <extension>
       <fee:check xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
-      {for $d in $domainNames}
+      {foreach $d in $domainNames}
         <fee:domain>
           <fee:name>{$d}</fee:name>
           <fee:command>create</fee:command>
           <fee:period unit="y">1</fee:period>
         </fee:domain>
-      {/for}
+      {/foreach}
       </fee:check>
     </extension>
     <clTRID>RegistryTool</clTRID>

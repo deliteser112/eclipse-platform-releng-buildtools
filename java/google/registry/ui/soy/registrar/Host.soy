@@ -59,7 +59,7 @@
         </th>
       </tr>
       {if isNonnull($item['host:addr'])}
-        {for $addr in $item['host:addr']}
+        {foreach $addr in $item['host:addr']}
           {if not $readonly}
             <input type="hidden"
                    name="host:oldAddr[{index($addr)}].value"
@@ -70,7 +70,7 @@
             {param name: 'host:addr[' + index($addr) + '].value' /}
             {param value: $item['host:addr'][index($addr)] /}
           {/call}
-        {/for}
+        {/foreach}
       {/if}
       <tr id="domain-host-addrs-footer"></tr>
     </table>

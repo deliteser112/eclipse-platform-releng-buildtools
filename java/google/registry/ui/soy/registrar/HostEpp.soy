@@ -27,10 +27,10 @@
       <host:create xmlns:host="urn:ietf:params:xml:ns:host-1.0">
         <host:name>{$item['host:name']}</host:name>
         {if isNonnull($item['host:addr'])}
-          {for $addr in $item['host:addr']}
+          {foreach $addr in $item['host:addr']}
             {let $type: strContains($addr['value'], ':') ? 'v6' : 'v4' /}
             <host:addr ip="{$type}">{$addr['value']}</host:addr>
-          {/for}
+          {/foreach}
         {/if}
       </host:create>
     </create>
@@ -101,10 +101,10 @@
   {let $tagName: $isAdd ? 'host:add' : 'host:rem' /}
   {if length($addrs) > 0}
     <{$tagName}>
-      {for $addr in $addrs}
+      {foreach $addr in $addrs}
         {let $type: strContains($addr, ':') ? 'v6' : 'v4' /}
         <host:addr ip="{$type}">{$addr}</host:addr>
-      {/for}
+      {/foreach}
     </{$tagName}>
   {/if}
 {/template}

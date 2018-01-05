@@ -113,7 +113,7 @@
         </th>
       </tr>
       {if isNonnull($item['domain:ns'] and isNonnull($item['domain:ns']['domain:hostObj']))}
-        {for $hostObj in $item['domain:ns']['domain:hostObj']}
+        {foreach $hostObj in $item['domain:ns']['domain:hostObj']}
           {let $hostIdx: index($hostObj) /}
           {call registry.soy.forms.inputFieldRowWithValue data="all"}
             {param label: 'Host ' + $hostIdx /}
@@ -121,7 +121,7 @@
             {param value: $hostObj /}
             {param clazz kind="text"}{css('domain-hostObj')}{/param}
           {/call}
-        {/for}
+        {/foreach}
       {/if}
       <tr id="domain-hosts-footer"></tr>
 
@@ -165,7 +165,7 @@
 {template .showContact_ visibility="private"}
   {@param contacts: list<map<string, ?>>} /** List of EPP domain:contacts. */
   {@param type: string} /** Type of contact (e.g. admin, tech) */
-  {for $contact in $contacts}
+  {foreach $contact in $contacts}
     {if $type == $contact['@type']}
       {call registry.soy.forms.inputFieldRowWithValue data="all"}
         {param label: $contact['@type'] + ' contact' /}
@@ -177,7 +177,7 @@
              type="hidden"
              value="{$contact['@type']}">
     {/if}
-  {/for}
+  {/foreach}
 {/template}
 
 

@@ -42,40 +42,40 @@
             <domain:add>
               {if length($addNameservers) > 0}
                 <domain:ns>
-                  {for $s in $addNameservers}
+                  {foreach $s in $addNameservers}
                     <domain:hostObj>{$s}</domain:hostObj>
-                  {/for}
+                  {/foreach}
                 </domain:ns>
               {/if}
-              {for $admin in $addAdmins}
+              {foreach $admin in $addAdmins}
                 <domain:contact type="admin">{$admin}</domain:contact>
-              {/for}
-              {for $tech in $addTechs}
+              {/foreach}
+              {foreach $tech in $addTechs}
                 <domain:contact type="tech">{$tech}</domain:contact>
-              {/for}
-              {for $status in $addStatuses}
+              {/foreach}
+              {foreach $status in $addStatuses}
                 <domain:status s="{$status}"/>
-              {/for}
+              {/foreach}
             </domain:add>
           {/if}
           {if $remove}
             <domain:rem>
               {if length($removeNameservers) > 0}
                 <domain:ns>
-                  {for $s in $removeNameservers}
+                  {foreach $s in $removeNameservers}
                     <domain:hostObj>{$s}</domain:hostObj>
-                  {/for}
+                  {/foreach}
                 </domain:ns>
               {/if}
-              {for $admin in $removeAdmins}
+              {foreach $admin in $removeAdmins}
                 <domain:contact type="admin">{$admin}</domain:contact>
-              {/for}
-              {for $tech in $removeTechs}
+              {/foreach}
+              {foreach $tech in $removeTechs}
                 <domain:contact type="tech">{$tech}</domain:contact>
-              {/for}
-              {for $status in $removeStatuses}
+              {/foreach}
+              {foreach $status in $removeStatuses}
                 <domain:status s="{$status}"/>
-              {/for}
+              {/foreach}
             </domain:rem>
           {/if}
           {if $change}

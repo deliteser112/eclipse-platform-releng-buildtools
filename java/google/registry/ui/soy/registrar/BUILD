@@ -11,9 +11,6 @@ closure_js_template_library(
     srcs = glob(["*.soy"]),
     data = ["//java/google/registry/ui/css:registrar_raw"],
     globals = "//java/google/registry/ui:globals.txt",
-    # TODO: remove this when upgrading rules closure.  This is only necessary because
-    # our version of soy is newer than what rules closure expects
-    should_generate_js_doc = False,
     deps = ["//java/google/registry/ui/soy"],
 )
 

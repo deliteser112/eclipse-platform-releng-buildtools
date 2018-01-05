@@ -31,14 +31,14 @@
        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
         <domain:name>{$domainName}</domain:name>
         <domain:add>
-        {for $a in $locksToApply}
+        {foreach $a in $locksToApply}
           <domain:status s="{$a}" lang="en"></domain:status>
-        {/for}
+        {/foreach}
         </domain:add>
         <domain:rem>
-        {for $r in $locksToRemove}
+        {foreach $r in $locksToRemove}
           <domain:status s="{$r}" lang="en"></domain:status>
-        {/for}
+        {/foreach}
         </domain:rem>
       </domain:update>
     </update>

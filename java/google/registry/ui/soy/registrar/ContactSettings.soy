@@ -30,7 +30,7 @@
   <div class="{css('set')}">
   <h1>Contact settings</h1>
   <table>
-    {for $type in $possibleTypesLookup}
+    {foreach $type in $possibleTypesLookup}
       {if isNonnull($contactsByType[$type[0]])}
         <tr class="{css('kd-settings-pane-section')}">
           <td>
@@ -40,7 +40,7 @@
           </td>
           <td id="{$type[0]}-contacts"
               class="{css('info')} {css('summary')} {css('domain-registrar-contacts')}">
-            {for $c in $contactsByType[$type[0]]}
+            {foreach $c in $contactsByType[$type[0]]}
               {call .contactInfoCompact}
                 {param namePrefix: 'contacts[' + index($c) + '].' /}
                 {param name: $c['name'] /}
@@ -53,10 +53,10 @@
                 {param faxNumber: $c['faxNumber'] /}
               {/call}
               {if (index($c) + 1) % 3 == 0}<br>{/if}
-            {/for}
+            {/foreach}
           </td>
       {/if}
-    {/for}
+    {/foreach}
   </table>
   </div>
 {/template}
@@ -185,11 +185,11 @@
       <label class="{css('setting-label')}">Contact type</label>
     <td class="{css('setting')}">
       <div class="{css('setting-item-list')}">
-        {for $type in $possibleTypesLookup}
+        {foreach $type in $possibleTypesLookup}
           {if $actualTypesLookup[$type[0]]}
             <div>{$type[1]} contact</div>
           {/if}
-        {/for}
+        {/foreach}
       </div>
     </td>
   <tr><td colspan="2"><hr></tr>
@@ -301,7 +301,7 @@
   {@param namePrefix: string}
   {@param actualTypesLookup: map<string, bool>}
   {@param possibleTypesLookup: list<list<string>>}
-  {for $type in $possibleTypesLookup}
+  {foreach $type in $possibleTypesLookup}
     {let $name: $namePrefix + 'type.' + $type[0] /}
     {let $checked: $actualTypesLookup[$type[0]] /}
     <div class="{css('checkbox-with-label')}">
@@ -314,7 +314,7 @@
         <span class="{css('description')}">{$type[2]}</span>
       </label>
     </div>
-  {/for}
+  {/foreach}
 {/template}
 
 

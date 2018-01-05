@@ -244,11 +244,11 @@
               name="{$name}"
               class="{css('kd-button')} {css('reg-select')}"
               {if $readonly}disabled{/if}>
-        {for $option in $options}
+        {foreach $option in $options}
           <option value="{$option}" {if $selected == $option}selected{/if}>
             {$option}
           </option>
-        {/for}
+        {/foreach}
       </select>
     </td>
   </tr>
@@ -263,12 +263,12 @@
 {template .inputRadioWithValue}
 <tr>
   <td colspan="2">
-    {for $value in $values}
+    {foreach $value in $values}
     <input type="radio"
            name="{$name}"
            value="{$value}"
            {if $checkedValue == $value}checked{/if}>
-    {/for}
+    {/foreach}
   </td>
 </tr>
 {/template}
@@ -309,13 +309,13 @@
     </span>
     <span class="{css('kd-disclosureindicator')}"></span>
     <ul class="{css('kd-menulist')}">
-      {for $item in $items}
+      {foreach $item in $items}
         <li class="{css('kd-menulistitem')}
                    {if $item == $selected}
                      {sp}{css('selected')}
                    {/if}">
           {$item}
-      {/for}
+      {/foreach}
     </ul>
   </div>
 {/template}
