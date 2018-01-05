@@ -61,11 +61,27 @@ public final class CloudDnsWriterModule {
     return writer;
   }
 
+  // TODO(b/71607306): Remove once large zone resigning is tested
+  @Provides
+  @IntoMap
+  @StringKey(MultiplyingCloudDnsWriter.NAME)
+  static DnsWriter provideMultiplyingWriter(MultiplyingCloudDnsWriter writer) {
+    return writer;
+  }
+
   @Provides
   @IntoSet
   @Named("dnsWriterNames")
   static String provideWriterName() {
     return CloudDnsWriter.NAME;
+  }
+
+  // TODO(b/71607306): Remove once large zone resigning is tested
+  @Provides
+  @IntoSet
+  @Named("dnsWriterNames")
+  static String provideMultiplyingWriterName() {
+    return MultiplyingCloudDnsWriter.NAME;
   }
 
   @Provides
