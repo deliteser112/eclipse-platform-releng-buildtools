@@ -23,6 +23,7 @@ import google.registry.model.common.Cursor;
 import google.registry.model.common.EntityGroupRoot;
 import google.registry.model.common.GaeUserIdConverter;
 import google.registry.model.contact.ContactResource;
+import google.registry.model.domain.AllocationToken;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainBase;
 import google.registry.model.domain.DomainResource;
@@ -62,6 +63,7 @@ public final class EntityClasses {
   @SuppressWarnings("unchecked") // varargs
   public static final ImmutableSet<Class<? extends ImmutableObject>> ALL_CLASSES =
       ImmutableSet.of(
+          AllocationToken.class,
           BillingEvent.Cancellation.class,
           BillingEvent.Modification.class,
           BillingEvent.OneTime.class,
