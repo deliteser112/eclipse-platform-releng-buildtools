@@ -49,6 +49,7 @@ import google.registry.model.domain.fee.FeeCheckCommandExtension;
 import google.registry.model.domain.fee.FeeCheckCommandExtensionItem;
 import google.registry.model.domain.fee.FeeCheckResponseExtensionItem;
 import google.registry.model.domain.launch.LaunchCheckExtension;
+import google.registry.model.domain.token.AllocationTokenExtension;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CheckData.DomainCheck;
@@ -118,7 +119,8 @@ public final class DomainCheckFlow implements Flow {
 
   @Override
   public EppResponse run() throws EppException {
-    extensionManager.register(FeeCheckCommandExtension.class, LaunchCheckExtension.class);
+    extensionManager.register(
+        FeeCheckCommandExtension.class, LaunchCheckExtension.class, AllocationTokenExtension.class);
     customLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);

@@ -381,6 +381,14 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
+  public void testSuccess_allocationToken_isIgnored() throws Exception {
+    // TODO(b/70628322): Change this test to fail on invalid allocationToken.
+    setEppInput("domain_create_allocationtoken.xml");
+    persistContactsAndHosts();
+    doSuccessfulTest();
+  }
+
+  @Test
   public void testSuccess_multipartTld() throws Exception {
     createTld("foo.tld");
     setEppInput("domain_create_with_tld.xml", ImmutableMap.of("TLD", "foo.tld"));

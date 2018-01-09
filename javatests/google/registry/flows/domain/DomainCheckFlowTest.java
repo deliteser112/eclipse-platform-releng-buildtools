@@ -112,6 +112,17 @@ public class DomainCheckFlowTest
   }
 
   @Test
+  public void testSuccess_oneExists_allocationTokenDoesNothing() throws Exception {
+    // TODO(b/70628322): Change this test to fail on invalid allocationToken.
+    setEppInput("domain_check_allocationtoken.xml");
+    persistActiveDomain("example1.tld");
+    doCheckTest(
+        create(false, "example1.tld", "In use"),
+        create(true, "example2.tld", null),
+        create(true, "example3.tld", null));
+  }
+
+  @Test
   public void testSuccess_oneReserved() throws Exception {
     setEppInput("domain_check_one_tld_reserved.xml");
     doCheckTest(

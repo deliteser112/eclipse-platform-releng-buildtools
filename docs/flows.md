@@ -602,6 +602,8 @@ An EPP flow that deletes a domain.
 
 *   2002
     *   Command is not allowed in the current registry phase.
+*   2103
+    *   Specified extension is not implemented.
 *   2201
     *   The specified resource belongs to another client.
     *   Only a tool can pass a metadata extension.

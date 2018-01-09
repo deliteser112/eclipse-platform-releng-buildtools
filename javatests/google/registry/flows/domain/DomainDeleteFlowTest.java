@@ -54,6 +54,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
+import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
@@ -1076,5 +1077,12 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     runFlowAssertResponse(
         CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
     assertThat(reloadResourceByForeignKey()).isNull();
+  }
+
+  @Test
+  public void testFailure_allocationTokenNotSupportedOnDelete() throws Exception {
+    setEppInput("domain_delete_allocationtoken.xml");
+    EppException thrown = expectThrows(UnimplementedExtensionException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 }

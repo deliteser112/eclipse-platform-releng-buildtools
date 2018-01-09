@@ -51,6 +51,7 @@ import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.domain.secdns.SecDnsUpdateExtension;
 import google.registry.model.domain.superuser.DomainDeleteSuperuserExtension;
 import google.registry.model.domain.superuser.DomainTransferRequestSuperuserExtension;
+import google.registry.model.domain.token.AllocationTokenExtension;
 import google.registry.model.eppinput.ResourceCommand.ResourceCheck;
 import google.registry.model.eppinput.ResourceCommand.SingleResourceCommand;
 import google.registry.model.host.HostCommand;
@@ -329,6 +330,8 @@ public class EppInput extends ImmutableObject {
     @XmlElementRefs({
         // allocate create extension
         @XmlElementRef(type = AllocateCreateExtension.class),
+        // allocation token extension
+        @XmlElementRef(type = AllocationTokenExtension.class),
         // fee extension version 0.6
         @XmlElementRef(type = FeeCheckCommandExtensionV06.class),
         @XmlElementRef(type = FeeInfoCommandExtensionV06.class),

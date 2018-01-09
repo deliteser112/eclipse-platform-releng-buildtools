@@ -100,6 +100,7 @@ import org.joda.time.Duration;
 /**
  * An EPP flow that deletes a domain.
  *
+ * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException}
  * @error {@link google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException}
  * @error {@link google.registry.flows.exceptions.OnlyToolCanPassMetadataException}

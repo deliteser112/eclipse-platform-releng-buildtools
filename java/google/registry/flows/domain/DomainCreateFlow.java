@@ -85,6 +85,7 @@ import google.registry.model.domain.launch.LaunchCreateExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.SecDnsCreateExtension;
+import google.registry.model.domain.token.AllocationTokenExtension;
 import google.registry.model.eppcommon.AuthInfo;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
@@ -194,7 +195,8 @@ public class DomainCreateFlow implements TransactionalFlow {
         FeeCreateCommandExtension.class,
         SecDnsCreateExtension.class,
         MetadataExtension.class,
-        LaunchCreateExtension.class);
+        LaunchCreateExtension.class,
+        AllocationTokenExtension.class);
     customLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
