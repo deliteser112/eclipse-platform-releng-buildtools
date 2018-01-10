@@ -15,6 +15,7 @@
 package google.registry.model.domain;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.googlecode.objectify.Key;
@@ -22,8 +23,11 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import google.registry.model.BackupGroupRoot;
 import google.registry.model.Buildable;
+import google.registry.model.CreateAutoTimestamp;
 import google.registry.model.annotations.ReportedOn;
 import google.registry.model.reporting.HistoryEntry;
+import java.util.Optional;
+import org.joda.time.DateTime;
 
 /** An entity representing an allocation token. */
 @ReportedOn
@@ -36,6 +40,9 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
   /** The key of the history entry for which the token was used. Null if not yet used. */
   Key<HistoryEntry> redemptionHistoryEntry;
 
+  /** When this token was created. */
+  CreateAutoTimestamp creationTime = CreateAutoTimestamp.create(null);
+
   public String getToken() {
     return token;
   }
@@ -46,6 +53,10 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
 
   public boolean isRedeemed() {
     return redemptionHistoryEntry != null;
+  }
+
+  public Optional<DateTime> getCreationTime() {
+    return Optional.ofNullable(creationTime.getTimestamp());
   }
 
   @Override
@@ -71,6 +82,13 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
     public Builder setRedemptionHistoryEntry(Key<HistoryEntry> redemptionHistoryEntry) {
       getInstance().redemptionHistoryEntry =
           checkArgumentNotNull(redemptionHistoryEntry, "redemptionHistoryEntry must not be null");
+      return this;
+    }
+
+    public Builder setCreationTime(DateTime creationTime) {
+      checkState(
+          getInstance().creationTime.getTimestamp() == null, "creationTime can only be set once");
+      getInstance().creationTime = CreateAutoTimestamp.create(creationTime);
       return this;
     }
   }

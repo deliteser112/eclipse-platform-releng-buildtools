@@ -15,12 +15,15 @@
 package google.registry.model.domain;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
 import google.registry.model.reporting.HistoryEntry;
+import org.joda.time.DateTime;
 import org.junit.Test;
 
 /** Unit tests for {@link AllocationToken}. */
@@ -33,12 +36,40 @@ public class AllocationTokenTest extends EntityTestCase {
             new AllocationToken.Builder()
                 .setToken("abc123")
                 .setRedemptionHistoryEntry(Key.create(HistoryEntry.class, 1L))
+                .setCreationTime(DateTime.parse("2010-11-12T05:00:00Z"))
                 .build());
     assertThat(ofy().load().entity(token).now()).isEqualTo(token);
   }
 
   @Test
   public void testIndexing() throws Exception {
-    verifyIndexing(new AllocationToken.Builder().setToken("abc123").build(), "token");
+    verifyIndexing(
+        new AllocationToken.Builder()
+            .setToken("abc123")
+            .setCreationTime(DateTime.parse("2010-11-12T05:00:00Z"))
+            .build(),
+        "token");
+  }
+
+  @Test
+  public void testCreationTime_autoPopulates() throws Exception {
+    AllocationToken tokenBeforePersisting =
+        new AllocationToken.Builder().setToken("abc123").build();
+    assertThat(tokenBeforePersisting.getCreationTime()).isEmpty();
+    AllocationToken tokenAfterPersisting = persistResource(tokenBeforePersisting);
+    assertThat(tokenAfterPersisting.getCreationTime()).hasValue(clock.nowUtc());
+  }
+
+  @Test
+  public void testSetCreationTime_cantCallMoreThanOnce() throws Exception {
+    AllocationToken.Builder builder =
+        new AllocationToken.Builder()
+            .setToken("foobar")
+            .setCreationTime(DateTime.parse("2010-11-12T05:00:00Z"));
+    IllegalStateException thrown =
+        expectThrows(
+            IllegalStateException.class,
+            () -> builder.setCreationTime(DateTime.parse("2010-11-13T05:00:00Z")));
+    assertThat(thrown).hasMessageThat().isEqualTo("creationTime can only be set once");
   }
 }

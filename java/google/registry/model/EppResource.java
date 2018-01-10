@@ -202,7 +202,8 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
      * normal EPP flows.
      */
     public B setCreationTime(DateTime creationTime) {
-      checkState(getInstance().creationTime.timestamp == null,
+      checkState(
+          getInstance().creationTime.getTimestamp() == null,
           "creationTime can only be set once for EppResource.");
       getInstance().creationTime = CreateAutoTimestamp.create(creationTime);
       return thisCastToDerived();

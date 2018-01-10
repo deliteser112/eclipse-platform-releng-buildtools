@@ -15,6 +15,7 @@
 package google.registry.model;
 
 import google.registry.model.translators.CreateAutoTimestampTranslatorFactory;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 /**
@@ -27,11 +28,12 @@ public class CreateAutoTimestamp extends ImmutableObject {
   DateTime timestamp;
 
   /** Returns the timestamp. */
+  @Nullable
   public DateTime getTimestamp() {
     return timestamp;
   }
 
-  public static CreateAutoTimestamp create(DateTime timestamp) {
+  public static CreateAutoTimestamp create(@Nullable DateTime timestamp) {
     CreateAutoTimestamp instance = new CreateAutoTimestamp();
     instance.timestamp = timestamp;
     return instance;
