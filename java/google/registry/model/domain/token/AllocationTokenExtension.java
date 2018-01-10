@@ -16,8 +16,10 @@ package google.registry.model.domain.token;
 
 import google.registry.model.ImmutableObject;
 import google.registry.model.eppinput.EppInput.CommandExtension;
+import google.registry.xml.TrimWhitespaceAdapter;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  * An allocation token extension that may be present on EPP domain commands.
@@ -30,6 +32,7 @@ public class AllocationTokenExtension extends ImmutableObject implements Command
 
   /** The allocation token for the command. */
   @XmlValue
+  @XmlJavaTypeAdapter(TrimWhitespaceAdapter.class)
   String allocationToken;
 
   public String getAllocationToken() {

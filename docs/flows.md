@@ -535,6 +535,7 @@ An EPP flow that creates a new domain resource.
     *   The checksum in the specified TCNID does not validate.
     *   Domain name is under tld which doesn't exist.
 *   2005
+    *   The allocation token is invalid.
     *   Domain name must have exactly one part above the TLD.
     *   Domain name must not equal an existing multi-part TLD.
     *   The requested fee is expressed in a scale that is invalid for the given
@@ -557,6 +558,7 @@ An EPP flow that creates a new domain resource.
 *   2303
     *   Resource linked to this domain does not exist.
 *   2304
+    *   There is an open application for this domain.
     *   The claims period for this TLD has ended.
     *   Requested domain does not have nameserver-restricted reservation for a
         TLD that requires such a reservation to create domains.
@@ -572,7 +574,8 @@ An EPP flow that creates a new domain resource.
         registrar has blocked premium registrations.
     *   Registrant is not whitelisted for this TLD.
     *   Requested domain does not require a claims notice.
-    *   There is an open application for this domain.
+*   2305
+    *   The allocation token was already redeemed.
 *   2306
     *   Domain names can only contain a-z, 0-9, '.' and '-'.
     *   Periods for domain registrations must be specified in years.

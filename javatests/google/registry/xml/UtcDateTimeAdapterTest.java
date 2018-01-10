@@ -27,6 +27,7 @@ import org.junit.runners.JUnit4;
 /** Unit tests for {@link UtcDateTimeAdapter}. */
 @RunWith(JUnit4.class)
 public class UtcDateTimeAdapterTest {
+
   @Test
   public void testMarshal() {
     assertThat(new UtcDateTimeAdapter().marshal(new DateTime(2010, 10, 17, 4, 20, 0, UTC)))

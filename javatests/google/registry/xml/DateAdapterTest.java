@@ -25,6 +25,7 @@ import org.junit.runners.JUnit4;
 /** Unit tests for {@link DateAdapter}. */
 @RunWith(JUnit4.class)
 public class DateAdapterTest {
+
   @Test
   public void testMarshal() {
     assertThat(new DateAdapter().marshal(

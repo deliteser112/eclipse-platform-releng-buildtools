@@ -72,4 +72,12 @@ public class AllocationTokenTest extends EntityTestCase {
             () -> builder.setCreationTime(DateTime.parse("2010-11-13T05:00:00Z")));
     assertThat(thrown).hasMessageThat().isEqualTo("creationTime can only be set once");
   }
+
+  @Test
+  public void testSetToken_cantCallMoreThanOnce() throws Exception {
+    AllocationToken.Builder builder = new AllocationToken.Builder().setToken("foobar");
+    IllegalStateException thrown =
+        expectThrows(IllegalStateException.class, () -> builder.setToken("barfoo"));
+    assertThat(thrown).hasMessageThat().isEqualTo("token can only be set once");
+  }
 }

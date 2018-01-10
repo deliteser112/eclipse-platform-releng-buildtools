@@ -73,6 +73,7 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
     }
 
     public Builder setToken(String token) {
+      checkState(getInstance().token == null, "token can only be set once");
       checkArgumentNotNull(token, "token must not be null");
       checkArgument(!token.isEmpty(), "token must not be blank");
       getInstance().token = token;

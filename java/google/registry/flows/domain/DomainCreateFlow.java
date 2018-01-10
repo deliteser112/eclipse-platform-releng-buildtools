@@ -17,6 +17,8 @@ package google.registry.flows.domain;
 import static google.registry.flows.FlowUtils.persistEntityChanges;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
+import static google.registry.flows.domain.AllocationTokenFlowUtils.redeemToken;
+import static google.registry.flows.domain.AllocationTokenFlowUtils.verifyToken;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
@@ -65,15 +67,13 @@ import google.registry.flows.custom.DomainCreateFlowCustomLogic;
 import google.registry.flows.custom.DomainCreateFlowCustomLogic.BeforeResponseParameters;
 import google.registry.flows.custom.DomainCreateFlowCustomLogic.BeforeResponseReturnData;
 import google.registry.flows.custom.EntityChanges;
-import google.registry.flows.domain.DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException;
-import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForNameserverRestrictedDomainException;
-import google.registry.flows.domain.DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.billing.BillingEvent.Recurring;
+import google.registry.model.domain.AllocationToken;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainResource;
@@ -116,7 +116,11 @@ import org.joda.time.Duration;
  * @error {@link google.registry.flows.exceptions.ResourceAlreadyExistsException}
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException}
- * @error {@link google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException}
+ * @error {@link AllocationTokenFlowUtils.AlreadyRedeemedAllocationTokenException}
+ * @error {@link AllocationTokenFlowUtils.InvalidAllocationTokenException}
+ * @error {@link DomainCreateFlow.DomainHasOpenApplicationsException}
+ * @error {@link DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException}
+ * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.AcceptedTooLongAgoException}
  * @error {@link DomainFlowUtils.BadDomainNameCharacterException}
  * @error {@link DomainFlowUtils.BadDomainNamePartsCountException}
@@ -127,7 +131,7 @@ import org.joda.time.Duration;
  * @error {@link DomainFlowUtils.CurrencyValueScaleException}
  * @error {@link DomainFlowUtils.DashesInThirdAndFourthException}
  * @error {@link DomainFlowUtils.DomainLabelTooLongException}
- * @error {@link DomainNotAllowedForTldWithCreateRestrictionException}
+ * @error {@link DomainFlowUtils.DomainNotAllowedForTldWithCreateRestrictionException}
  * @error {@link DomainFlowUtils.DomainReservedException}
  * @error {@link DomainFlowUtils.DuplicateContactForRoleException}
  * @error {@link DomainFlowUtils.EmptyDomainNamePartException}
@@ -153,8 +157,8 @@ import org.joda.time.Duration;
  * @error {@link DomainFlowUtils.MissingTechnicalContactException}
  * @error {@link DomainFlowUtils.NameserversNotAllowedForDomainException}
  * @error {@link DomainFlowUtils.NameserversNotAllowedForTldException}
- * @error {@link NameserversNotSpecifiedForNameserverRestrictedDomainException}
- * @error {@link NameserversNotSpecifiedForTldWithNameserverWhitelistException}
+ * @error {@link DomainFlowUtils.NameserversNotSpecifiedForNameserverRestrictedDomainException}
+ * @error {@link DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
  * @error {@link DomainFlowUtils.RegistrarMustBeActiveToCreateDomainsException}
@@ -165,8 +169,6 @@ import org.joda.time.Duration;
  * @error {@link DomainFlowUtils.UnexpectedClaimsNoticeException}
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  * @error {@link DomainFlowUtils.UnsupportedMarkTypeException}
- * @error {@link DomainCreateFlow.DomainHasOpenApplicationsException}
- * @error {@link DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException}
  */
 @ReportingSpec(ActivityReportField.DOMAIN_CREATE)
 public class DomainCreateFlow implements TransactionalFlow {
@@ -247,12 +249,15 @@ public class DomainCreateFlow implements TransactionalFlow {
       verifyPremiumNameIsNotBlocked(targetId, now, clientId);
       verifyNoOpenApplications(now);
       verifyIsGaOrIsSpecialCase(tldState, isAnchorTenant);
-      signedMarkId = hasSignedMarks
+      if (hasSignedMarks) {
         // If a signed mark was provided, then it must match the desired domain label. Get the mark
         // at this point so that we can verify it before the "after validation" extension point.
-        ? tmchUtils.verifySignedMarks(launchCreate.getSignedMarks(), domainLabel, now).getId()
-        : null;
+        signedMarkId =
+            tmchUtils.verifySignedMarks(launchCreate.getSignedMarks(), domainLabel, now).getId();
+      }
     }
+    Optional<AllocationToken> allocationToken =
+        verifyAllocationTokenIfPresent(domainName, registry, clientId);
     customLogic.afterValidation(
         DomainCreateFlowCustomLogic.AfterValidationParameters.newBuilder()
             .setDomainName(domainName)
@@ -316,6 +321,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         ForeignKeyIndex.create(newDomain, newDomain.getDeletionTime()),
         EppResourceIndex.create(Key.create(newDomain)));
 
+    allocationToken.ifPresent(t -> entitiesToSave.add(redeemToken(t, Key.create(historyEntry))));
     // Anchor tenant registrations override LRP, and landrush applications can skip it.
     // If a token is passed in outside of an LRP phase, it is simply ignored (i.e. never redeemed).
     if (isLrpCreate(registry, isAnchorTenant, now)) {
@@ -362,12 +368,23 @@ public class DomainCreateFlow implements TransactionalFlow {
     }
   }
 
-  /** Prohibit registrations for non-qlp and non-superuser outside of GA. **/
+  /** Prohibit registrations for non-QLP and non-superuser outside of General Availability. **/
   private void verifyIsGaOrIsSpecialCase(TldState tldState, boolean isAnchorTenant)
       throws NoGeneralRegistrationsInCurrentPhaseException {
     if (!isAnchorTenant && tldState != TldState.GENERAL_AVAILABILITY) {
       throw new NoGeneralRegistrationsInCurrentPhaseException();
     }
+  }
+
+  /** Verifies and returns the allocation token if one is specified, otherwise does nothing. */
+  private Optional<AllocationToken> verifyAllocationTokenIfPresent(
+      InternetDomainName domainName, Registry registry, String clientId)
+      throws EppException {
+    AllocationTokenExtension ext = eppInput.getSingleExtension(AllocationTokenExtension.class);
+    return Optional.ofNullable(
+        (ext == null)
+            ? null
+            : verifyToken(domainName, ext.getAllocationToken(), registry, clientId));
   }
 
   private HistoryEntry buildHistoryEntry(

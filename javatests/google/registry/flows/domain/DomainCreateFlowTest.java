@@ -59,11 +59,14 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException;
 import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.domain.AllocationTokenFlowUtils.AlreadyRedeemedAllocationTokenException;
+import google.registry.flows.domain.AllocationTokenFlowUtils.InvalidAllocationTokenException;
 import google.registry.flows.domain.DomainCreateFlow.DomainHasOpenApplicationsException;
 import google.registry.flows.domain.DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException;
 import google.registry.flows.domain.DomainFlowUtils.AcceptedTooLongAgoException;
@@ -120,6 +123,7 @@ import google.registry.flows.exceptions.ResourceAlreadyExistsException;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
+import google.registry.model.domain.AllocationToken;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.LrpTokenEntity;
@@ -381,11 +385,40 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testSuccess_allocationToken_isIgnored() throws Exception {
-    // TODO(b/70628322): Change this test to fail on invalid allocationToken.
+  public void testFailure_invalidAllocationToken() throws Exception {
     setEppInput("domain_create_allocationtoken.xml");
     persistContactsAndHosts();
+    EppException thrown = expectThrows(InvalidAllocationTokenException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_alreadyRedemeedAllocationToken() throws Exception {
+    setEppInput("domain_create_allocationtoken.xml");
+    persistContactsAndHosts();
+    persistResource(
+        new AllocationToken.Builder()
+            .setToken("abc123")
+            .setRedemptionHistoryEntry(Key.create(HistoryEntry.class, 505L))
+            .build());
+    clock.advanceOneMilli();
+    EppException thrown =
+        expectThrows(AlreadyRedeemedAllocationTokenException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testSuccess_validAllocationToken_isRedeemed() throws Exception {
+    setEppInput("domain_create_allocationtoken.xml");
+    persistContactsAndHosts();
+    AllocationToken token =
+        persistResource(new AllocationToken.Builder().setToken("abc123").build());
+    clock.advanceOneMilli();
     doSuccessfulTest();
+    HistoryEntry historyEntry =
+        ofy().load().type(HistoryEntry.class).ancestor(reloadResourceByForeignKey()).first().now();
+    assertThat(ofy().load().entity(token).now().getRedemptionHistoryEntry())
+        .isEqualTo(Key.create(historyEntry));
   }
 
   @Test
