@@ -61,6 +61,7 @@ public final class RegistryTool {
           .put("domain_check_fee", DomainCheckFeeCommand.class)
           .put("encrypt_escrow_deposit", EncryptEscrowDepositCommand.class)
           .put("execute_epp", ExecuteEppCommand.class)
+          .put("generate_allocation_tokens", GenerateAllocationTokensCommand.class)
           .put("generate_applications_report", GenerateApplicationsReportCommand.class)
           .put("generate_auction_data", GenerateAuctionDataCommand.class)
           .put("generate_dns_report", GenerateDnsReportCommand.class)

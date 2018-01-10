@@ -73,13 +73,13 @@ public class DeterministicStringGenerator extends StringGenerator {
     }
   }
 
-  public DeterministicStringGenerator(@Named("alphabet") String alphabet, Rule rule) {
+  public DeterministicStringGenerator(@Named("alphabetBase64") String alphabet, Rule rule) {
     super(alphabet);
     iterator = Iterators.cycle(charactersOf(alphabet));
     this.rule = rule;
   }
 
-  public DeterministicStringGenerator(@Named("alphabet") String alphabet) {
+  public DeterministicStringGenerator(@Named("alphabetBase64") String alphabet) {
     this(alphabet, Rule.DEFAULT);
   }
 }

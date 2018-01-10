@@ -57,7 +57,6 @@ import google.registry.xjc.secdns.XjcSecdnsDsDataType;
 import java.security.NoSuchAlgorithmException;
 import java.security.ProviderException;
 import java.security.SecureRandom;
-import java.util.Random;
 import java.util.function.Function;
 import org.joda.time.DateTime;
 
@@ -65,10 +64,10 @@ import org.joda.time.DateTime;
 final class XjcToDomainResourceConverter extends XjcToEppResourceConverter {
 
   @NonFinalForTesting
-  static StringGenerator stringGenerator = new RandomStringGenerator(
-      StringGenerator.Alphabets.BASE_64, getRandom());
+  static StringGenerator stringGenerator =
+      new RandomStringGenerator(StringGenerator.Alphabets.BASE_64, getRandom());
 
-  static Random getRandom() {
+  static SecureRandom getRandom() {
     try {
       return SecureRandom.getInstance("NativePRNG");
     } catch (NoSuchAlgorithmException e) {

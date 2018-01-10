@@ -19,10 +19,10 @@ import dagger.Module;
 import dagger.Provides;
 import google.registry.util.RandomStringGenerator;
 import google.registry.util.StringGenerator;
+import google.registry.util.StringGenerator.Alphabets;
 import java.security.NoSuchAlgorithmException;
 import java.security.ProviderException;
 import java.security.SecureRandom;
-import java.util.Random;
 import javax.inject.Named;
 
 /** Dagger module for Registry Tool. */
@@ -38,7 +38,7 @@ abstract class RegistryToolModule {
   abstract StringGenerator provideStringGenerator(RandomStringGenerator stringGenerator);
 
   @Provides
-  static Random provideRandom() {
+  static SecureRandom provideSecureRandom() {
     try {
       return SecureRandom.getInstance("NativePRNG");
     } catch (NoSuchAlgorithmException e) {
@@ -47,8 +47,21 @@ abstract class RegistryToolModule {
   }
 
   @Provides
-  @Named("alphabet")
-  static String provideAlphabet() {
-    return StringGenerator.Alphabets.BASE_64;
+  @Named("alphabetBase64")
+  static String provideAlphabetBase64() {
+    return Alphabets.BASE_64;
+  }
+
+  @Provides
+  @Named("alphabetBase58")
+  static String provideAlphabetBase58() {
+    return Alphabets.BASE_58;
+  }
+
+  @Provides
+  @Named("base58StringGenerator")
+  static StringGenerator provideBase58StringGenerator(
+      @Named("alphabetBase58") String alphabet, SecureRandom random) {
+    return new RandomStringGenerator(alphabet, random);
   }
 }
