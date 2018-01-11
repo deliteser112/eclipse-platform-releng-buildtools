@@ -341,6 +341,14 @@ formatted version can be requested by adding an extra parameter:
 The result is still valid JSON, but with extra whitespace added to align the
 data on the page.
 
+### `subtype` parameter <a id="subtype_parameter"></a>
+
+The subtype parameter is used only for entity searches, to select whether the
+results should include contacts, registrars or both. If specified, the subtype
+should be 'all', 'contacts' or 'registrars'. Setting the subtype to 'all'
+duplicates the normal behavior of returning both. Setting it to 'contacts' or
+'registrars' causes an entity search to return only contacts or only registrars.
+
 ### Next page links <a id="next_page_links"></a>
 
 The number of results returned in a domain, nameserver or entity search is

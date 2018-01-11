@@ -26,6 +26,7 @@ import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeAndPersistDeletedContactResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
+import static google.registry.testing.FullFieldsTestEntityHelper.makeHistoryEntry;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.testing.TestDataHelper.loadFile;
@@ -40,6 +41,7 @@ import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
+import google.registry.model.reporting.HistoryEntry;
 import google.registry.rdap.RdapMetrics.EndpointType;
 import google.registry.rdap.RdapMetrics.SearchType;
 import google.registry.rdap.RdapSearchResults.IncompletenessWarningType;
@@ -192,6 +194,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
     action.rdapWhoisServer = null;
     action.fnParam = Optional.empty();
     action.handleParam = Optional.empty();
+    action.subtypeParam = Optional.empty();
     action.registrarParam = Optional.empty();
     action.includeDeletedParam = Optional.empty();
     action.formatOutputParam = Optional.empty();
@@ -281,16 +284,20 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
               .asBuilder()
               .setRepoId(String.format("%04d-ROID", i))
               .build();
+      resourcesBuilder.add(makeHistoryEntry(
+          contact, HistoryEntry.Type.CONTACT_CREATE, null, "created", clock.nowUtc()));
       resourcesBuilder.add(contact);
     }
     persistResources(resourcesBuilder.build());
     for (int i = 1; i <= numRegistrars; i++) {
-      resourcesBuilder.add(
+      Registrar registrar =
           makeRegistrar(
               String.format("registrar%d", i),
               String.format("Entity %d", i + numContacts),
               Registrar.State.ACTIVE,
-              300L + i));
+              300L + i);
+      resourcesBuilder.add(registrar);
+      resourcesBuilder.addAll(makeRegistrarContacts(registrar));
     }
     persistResources(resourcesBuilder.build());
   }
@@ -538,10 +545,47 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
   }
 
   @Test
+  public void testInvalidSubtype_rejected() throws Exception {
+    action.subtypeParam = Optional.of("Space Aliens");
+    assertThat(generateActualJsonWithFullName("Blinky (赤ベイ)"))
+        .isEqualTo(
+            generateExpectedJson(
+                "Subtype parameter must specify contacts, registrars or all",
+                "rdap_error_400.json"));
+    assertThat(response.getStatus()).isEqualTo(400);
+    metricSearchType = SearchType.NONE; // Error occurs before search type is set.
+    verifyErrorMetrics(Optional.empty(), 400);
+  }
+
+  @Test
   public void testNameMatchContact_found() throws Exception {
     login("2-RegistrarTest");
     runSuccessfulNameTestWithBlinky("Blinky (赤ベイ)", "rdap_contact.json");
     verifyMetrics(1);
+  }
+
+  @Test
+  public void testNameMatchContact_found_subtypeAll() throws Exception {
+    login("2-RegistrarTest");
+    action.subtypeParam = Optional.of("aLl");
+    runSuccessfulNameTestWithBlinky("Blinky (赤ベイ)", "rdap_contact.json");
+    verifyMetrics(1);
+  }
+
+  @Test
+  public void testNameMatchContact_found_subtypeContacts() throws Exception {
+    login("2-RegistrarTest");
+    action.subtypeParam = Optional.of("cONTACTS");
+    runSuccessfulNameTestWithBlinky("Blinky (赤ベイ)", "rdap_contact.json");
+    verifyMetrics(1);
+  }
+
+  @Test
+  public void testNameMatchContact_notFound_subtypeRegistrars() throws Exception {
+    login("2-RegistrarTest");
+    action.subtypeParam = Optional.of("Registrars");
+    runNotFoundNameTest("Blinky (赤ベイ)");
+    verifyErrorMetrics(0);
   }
 
   @Test
@@ -651,6 +695,32 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
     runSuccessfulNameTest(
         "Yes Virginia <script>", "20", "Yes Virginia <script>", "rdap_registrar.json");
     verifyMetrics(0);
+  }
+
+  @Test
+  public void testNameMatchRegistrar_found_subtypeAll() throws Exception {
+    login("2-RegistrarTest");
+    action.subtypeParam = Optional.of("all");
+    runSuccessfulNameTest(
+        "Yes Virginia <script>", "20", "Yes Virginia <script>", "rdap_registrar.json");
+    verifyMetrics(0);
+  }
+
+  @Test
+  public void testNameMatchRegistrar_found_subtypeRegistrars() throws Exception {
+    login("2-RegistrarTest");
+    action.subtypeParam = Optional.of("REGISTRARS");
+    runSuccessfulNameTest(
+        "Yes Virginia <script>", "20", "Yes Virginia <script>", "rdap_registrar.json");
+    verifyMetrics(0);
+  }
+
+  @Test
+  public void testNameMatchRegistrar_notFound_subtypeContacts() throws Exception {
+    login("2-RegistrarTest");
+    action.subtypeParam = Optional.of("contacts");
+    runNotFoundNameTest("Yes Virginia <script>");
+    verifyErrorMetrics(0);
   }
 
   @Test
@@ -811,6 +881,28 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
   }
 
   @Test
+  public void testNameMatchMix_subtypeContacts() throws Exception {
+    login("2-RegistrarTest");
+    action.subtypeParam = Optional.of("contacts");
+    createManyContactsAndRegistrars(4, 4, registrarTest);
+    rememberWildcardType("Entity *");
+    assertThat(generateActualJsonWithFullName("Entity *"))
+        .isEqualTo(generateExpectedJson("rdap_nontruncated_contacts.json"));
+    assertThat(response.getStatus()).isEqualTo(200);
+    verifyMetrics(4);
+  }
+
+  @Test
+  public void testNameMatchMix_subtypeRegistrars() throws Exception {
+    login("2-RegistrarTest");
+    action.subtypeParam = Optional.of("registrars");
+    createManyContactsAndRegistrars(1, 1, registrarTest);
+    runSuccessfulNameTest(
+        "Entity *", "301", "Entity 2", "rdap_registrar.json");
+    verifyMetrics(0);
+  }
+
+  @Test
   public void testNameMatchRegistrar_notFound_inactive() throws Exception {
     runNotFoundNameTest("No Way");
     verifyErrorMetrics(0);
@@ -877,6 +969,30 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
     login("2-RegistrarTest");
     runSuccessfulHandleTestWithBlinky("2-ROID", "rdap_contact.json");
     verifyMetrics(1);
+  }
+
+  @Test
+  public void testHandleMatchContact_found_subtypeAll() throws Exception {
+    login("2-RegistrarTest");
+    action.subtypeParam = Optional.of("all");
+    runSuccessfulHandleTestWithBlinky("2-ROID", "rdap_contact.json");
+    verifyMetrics(1);
+  }
+
+  @Test
+  public void testHandleMatchContact_found_subtypeContacts() throws Exception {
+    login("2-RegistrarTest");
+    action.subtypeParam = Optional.of("contacts");
+    runSuccessfulHandleTestWithBlinky("2-ROID", "rdap_contact.json");
+    verifyMetrics(1);
+  }
+
+  @Test
+  public void testHandleMatchContact_notFound_subtypeRegistrars() throws Exception {
+    login("2-RegistrarTest");
+    action.subtypeParam = Optional.of("reGistrars");
+    runNotFoundHandleTest("2-ROID");
+    verifyErrorMetrics(0);
   }
 
   @Test
@@ -990,6 +1106,27 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
   public void testHandleMatchRegistrar_found() throws Exception {
     runSuccessfulHandleTest("20", "20", "Yes Virginia <script>", "rdap_registrar.json");
     verifyMetrics(0);
+  }
+
+  @Test
+  public void testHandleMatchRegistrar_found_subtypeAll() throws Exception {
+    action.subtypeParam = Optional.of("all");
+    runSuccessfulHandleTest("20", "20", "Yes Virginia <script>", "rdap_registrar.json");
+    verifyMetrics(0);
+  }
+
+  @Test
+  public void testHandleMatchRegistrar_found_subtypeRegistrars() throws Exception {
+    action.subtypeParam = Optional.of("registrars");
+    runSuccessfulHandleTest("20", "20", "Yes Virginia <script>", "rdap_registrar.json");
+    verifyMetrics(0);
+  }
+
+  @Test
+  public void testHandleMatchRegistrar_notFound_subtypeContacts() throws Exception {
+    action.subtypeParam = Optional.of("contacts");
+    runNotFoundHandleTest("20");
+    verifyErrorMetrics(0);
   }
 
   @Test

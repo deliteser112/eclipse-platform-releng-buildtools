@@ -68,6 +68,12 @@ public final class RdapModule {
   }
 
   @Provides
+  @Parameter("subtype")
+  static Optional<String> provideSubtype(HttpServletRequest req) {
+    return RequestParameters.extractOptionalParameter(req, "subtype");
+  }
+
+  @Provides
   @Parameter("includeDeleted")
   static Optional<Boolean> provideIncludeDeleted(HttpServletRequest req) {
     return RequestParameters.extractOptionalBooleanParameter(req, "includeDeleted");
