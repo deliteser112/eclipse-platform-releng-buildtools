@@ -495,6 +495,7 @@ An EPP flow that checks whether domain labels are trademarked.
 *   2002
     *   Command is not allowed in the current registry phase.
     *   Claims checks are not allowed during sunrise.
+    *   Claims checks are not allowed with allocation tokens.
 *   2004
     *   Domain name is under tld which doesn't exist.
 *   2201

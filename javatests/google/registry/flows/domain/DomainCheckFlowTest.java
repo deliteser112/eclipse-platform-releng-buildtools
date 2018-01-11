@@ -34,6 +34,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
+import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceCheckFlowTestCase;
 import google.registry.flows.domain.DomainCheckFlow.OnlyCheckedNamesCanBeFeeCheckedException;
@@ -57,12 +58,14 @@ import google.registry.flows.domain.DomainFlowUtils.TrailingDashException;
 import google.registry.flows.domain.DomainFlowUtils.TransfersAreAlwaysForOneYearException;
 import google.registry.flows.domain.DomainFlowUtils.UnknownFeeCommandException;
 import google.registry.flows.exceptions.TooManyResourceChecksException;
+import google.registry.model.domain.AllocationToken;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.model.domain.launch.LaunchPhase;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservedList;
+import google.registry.model.reporting.HistoryEntry;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -112,14 +115,52 @@ public class DomainCheckFlowTest
   }
 
   @Test
-  public void testSuccess_oneExists_allocationTokenDoesNothing() throws Exception {
-    // TODO(b/70628322): Change this test to fail on invalid allocationToken.
+  public void testSuccess_oneExists_allocationTokenIsInvalid() throws Exception {
     setEppInput("domain_check_allocationtoken.xml");
     persistActiveDomain("example1.tld");
     doCheckTest(
         create(false, "example1.tld", "In use"),
+        create(false, "example2.tld", "The allocation token is invalid"),
+        create(false, "reserved.tld", "Reserved"));
+  }
+
+  @Test
+  public void testSuccess_oneExists_allocationTokenIsValid() throws Exception {
+    setEppInput("domain_check_allocationtoken.xml");
+    persistActiveDomain("example1.tld");
+    persistResource(new AllocationToken.Builder().setToken("abc123").build());
+    doCheckTest(
+        create(false, "example1.tld", "In use"),
         create(true, "example2.tld", null),
-        create(true, "example3.tld", null));
+        create(false, "reserved.tld", "Reserved"));
+  }
+
+  @Test
+  public void testSuccess_oneExists_allocationTokenIsRedeemed() throws Exception {
+    setEppInput("domain_check_allocationtoken.xml");
+    persistActiveDomain("example1.tld");
+    persistResource(
+        new AllocationToken.Builder()
+            .setToken("abc123")
+            .setRedemptionHistoryEntry(Key.create(HistoryEntry.class, 1L))
+            .build());
+    doCheckTest(
+        create(false, "example1.tld", "In use"),
+        create(false, "example2.tld", "Alloc token was already redeemed"),
+        create(false, "reserved.tld", "Reserved"));
+  }
+
+  @Test
+  public void testSuccess_nothingExists_reservationsOverrideInvalidAllocationTokens()
+      throws Exception {
+    setEppInput("domain_check_reserved_allocationtoken.xml");
+    // Fill out these reasons
+    doCheckTest(
+        create(false, "collision.tld", "Cannot be delegated"),
+        create(false, "reserved.tld", "Reserved"),
+        create(false, "anchor.tld", "Reserved"),
+        create(false, "allowedinsunrise.tld", "Reserved for non-sunrise"),
+        create(false, "premiumcollision.tld", "Cannot be delegated"));
   }
 
   @Test
@@ -199,6 +240,12 @@ public class DomainCheckFlowTest
   public void testSuccess_50IdsAllowed() throws Exception {
     // Make sure we don't have a regression that reduces the number of allowed checks.
     setEppInput("domain_check_50.xml");
+    runFlow();
+  }
+
+  @Test
+  public void testSuccess_50IdsAllowed_withAllocationToken() throws Exception {
+    setEppInput("domain_check_50_allocationtoken.xml");
     runFlow();
   }
 

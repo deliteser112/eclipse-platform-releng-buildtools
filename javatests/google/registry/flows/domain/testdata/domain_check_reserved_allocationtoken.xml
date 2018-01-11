@@ -2,10 +2,12 @@
   <command>
     <check>
       <domain:check
-          xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-        <domain:name>example1.tld</domain:name>
-        <domain:name>example2.tld</domain:name>
+        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>collision.tld</domain:name>
         <domain:name>reserved.tld</domain:name>
+        <domain:name>anchor.tld</domain:name>
+        <domain:name>allowedinsunrise.tld</domain:name>
+        <domain:name>premiumcollision.tld</domain:name>
       </domain:check>
     </check>
     <extension>

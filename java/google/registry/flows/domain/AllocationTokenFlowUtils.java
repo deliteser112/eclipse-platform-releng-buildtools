@@ -16,6 +16,7 @@ package google.registry.flows.domain;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
@@ -24,6 +25,8 @@ import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.model.domain.AllocationToken;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
+import java.util.List;
+import java.util.function.Function;
 
 /** Static utility functions for dealing with {@link AllocationToken}s in domain flows. */
 public class AllocationTokenFlowUtils {
@@ -47,6 +50,31 @@ public class AllocationTokenFlowUtils {
     return tokenEntity;
   }
 
+  /**
+   * Checks if the allocation token applies to the given domain names, used for domain checks.
+   *
+   * @return A map of domain names to domain check error response messages. If a message is present
+   *     for a a given domain then it does not validate with this allocation token; domains that do
+   *     validate are not present in the map.
+   */
+  static ImmutableMap<String, String> checkDomainsWithToken(
+      List<String> domainNames, String token, String clientId) {
+    AllocationToken tokenEntity = ofy().load().key(Key.create(AllocationToken.class, token)).now();
+    String result;
+    if (tokenEntity == null) {
+      result = new InvalidAllocationTokenException().getMessage();
+    } else if (tokenEntity.isRedeemed()) {
+      result = AlreadyRedeemedAllocationTokenException.ERROR_MSG_SHORT;
+    } else {
+      return ImmutableMap.of();
+    }
+    // TODO(b/70628322): For now all checks yield the same result, but custom logic will soon allow
+    // them to differ, e.g. if tokens can only be used on certain TLDs.
+    return domainNames
+        .stream()
+        .collect(ImmutableMap.toImmutableMap(Function.identity(), domainName -> result));
+  }
+
   /** Redeems an {@link AllocationToken}, returning the redeemed copy. */
   static AllocationToken redeemToken(
       AllocationToken token, Key<HistoryEntry> redemptionHistoryEntry) {
@@ -56,8 +84,14 @@ public class AllocationTokenFlowUtils {
   /** The allocation token was already redeemed. */
   static class AlreadyRedeemedAllocationTokenException
       extends AssociationProhibitsOperationException {
+
+    public static final String ERROR_MSG_LONG = "The allocation token was already redeemed";
+
+    /** A short error message fitting within 32 characters for use in domain check responses. */
+    public static final String ERROR_MSG_SHORT = "Alloc token was already redeemed";
+
     public AlreadyRedeemedAllocationTokenException() {
-      super("The allocation token was already redeemed");
+      super(ERROR_MSG_LONG);
     }
   }
 

@@ -16,6 +16,7 @@ package google.registry.flows.domain;
 
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
@@ -26,6 +27,7 @@ import com.google.common.collect.ImmutableSet;
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.domain.DomainClaimsCheckFlow.DomainClaimsCheckNotAllowedInSunrise;
+import google.registry.flows.domain.DomainClaimsCheckFlow.DomainClaimsCheckNotAllowedWithAllocationTokens;
 import google.registry.flows.domain.DomainFlowUtils.BadCommandForRegistryPhaseException;
 import google.registry.flows.domain.DomainFlowUtils.ClaimsPeriodEndedException;
 import google.registry.flows.domain.DomainFlowUtils.NotAuthorizedForTldException;
@@ -48,7 +50,6 @@ public class DomainClaimsCheckFlowTest
   @Before
   public void initCheckTest() {
     createTld("tld");
-    persistResource(Registry.get("tld").asBuilder().build());
   }
 
   protected void doSuccessfulTest(String expectedXmlFilename) throws Exception {
@@ -66,14 +67,12 @@ public class DomainClaimsCheckFlowTest
   @Test
   public void testSuccess_sunrush() throws Exception {
     createTld("tld", TldState.SUNRUSH);
-    persistResource(Registry.get("tld").asBuilder().build());
     doSuccessfulTest("domain_check_claims_response_none.xml");
   }
 
   @Test
   public void testSuccess_quietPeriod() throws Exception {
     createTld("tld", TldState.QUIET_PERIOD);
-    persistResource(Registry.get("tld").asBuilder().build());
     doSuccessfulTest("domain_check_claims_response_none.xml");
   }
 
@@ -139,7 +138,6 @@ public class DomainClaimsCheckFlowTest
   @Test
   public void testFailure_predelgation() throws Exception {
     createTld("tld", TldState.PREDELEGATION);
-    persistResource(Registry.get("tld").asBuilder().build());
     setEppInput("domain_check_claims.xml");
     EppException thrown = expectThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -148,16 +146,23 @@ public class DomainClaimsCheckFlowTest
   @Test
   public void testFailure_sunrise() throws Exception {
     createTld("tld", TldState.SUNRISE);
-    persistResource(Registry.get("tld").asBuilder().build());
     setEppInput("domain_check_claims.xml");
     EppException thrown = expectThrows(DomainClaimsCheckNotAllowedInSunrise.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
+  public void testFailure_allocationToken() throws Exception {
+    createTld("tld", TldState.SUNRISE);
+    setEppInput("domain_check_claims_allocationtoken.xml");
+    EppException thrown =
+        expectThrows(DomainClaimsCheckNotAllowedWithAllocationTokens.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
   public void testFailure_multipleTlds_oneHasEndedClaims() throws Exception {
-    createTld("tld1");
-    createTld("tld2");
+    createTlds("tld1", "tld2");
     persistResource(
         Registry.get("tld2").asBuilder().setClaimsPeriodEnd(clock.nowUtc().minusMillis(1)).build());
     setEppInput("domain_check_claims_multiple_tlds.xml");

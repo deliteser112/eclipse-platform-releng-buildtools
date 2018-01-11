@@ -16,6 +16,7 @@ package google.registry.flows.domain;
 
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyTargetIdCount;
+import static google.registry.flows.domain.AllocationTokenFlowUtils.checkDomainsWithToken;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationTypes;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
@@ -146,13 +147,21 @@ public final class DomainCheckFlow implements Flow {
     customLogic.afterValidation(
         DomainCheckFlowCustomLogic.AfterValidationParameters.newBuilder()
             .setDomainNames(domainNames)
-            // TODO: Use as of date from fee extension v0.12 instead of now, if specificed.
+            // TODO: Use as of date from fee extension v0.12 instead of now, if specified.
             .setAsOfDate(now)
             .build());
     Set<String> existingIds = checkResourcesExist(DomainResource.class, targetIds, now);
+    AllocationTokenExtension allocationTokenExtension =
+        eppInput.getSingleExtension(AllocationTokenExtension.class);
+    ImmutableMap<String, String> tokenCheckResults =
+        (allocationTokenExtension == null)
+            ? ImmutableMap.of()
+            : checkDomainsWithToken(
+                targetIds, allocationTokenExtension.getAllocationToken(), clientId);
     ImmutableList.Builder<DomainCheck> checks = new ImmutableList.Builder<>();
     for (String targetId : targetIds) {
-      Optional<String> message = getMessageForCheck(domainNames.get(targetId), existingIds, now);
+      Optional<String> message =
+          getMessageForCheck(domainNames.get(targetId), existingIds, tokenCheckResults, now);
       checks.add(DomainCheck.create(!message.isPresent(), targetId, message.orElse(null)));
     }
     BeforeResponseReturnData responseData =
@@ -169,7 +178,10 @@ public final class DomainCheckFlow implements Flow {
   }
 
   private Optional<String> getMessageForCheck(
-      InternetDomainName domainName, Set<String> existingIds, DateTime now) {
+      InternetDomainName domainName,
+      Set<String> existingIds,
+      ImmutableMap<String, String> tokenCheckResults,
+      DateTime now) {
     if (existingIds.contains(domainName.toString())) {
       return Optional.of("In use");
     }
@@ -187,10 +199,12 @@ public final class DomainCheckFlow implements Flow {
         && eppInput.getSingleExtension(FeeCheckCommandExtension.class) == null) {
       return Optional.of("Premium names require EPP ext.");
     }
-
-    return reservationTypes.isEmpty()
-        ? Optional.empty()
-        : Optional.of(getTypeOfHighestSeverity(reservationTypes).getMessageForCheck());
+    if (!reservationTypes.isEmpty()) {
+      return Optional.of(getTypeOfHighestSeverity(reservationTypes).getMessageForCheck());
+    }
+    return tokenCheckResults.containsKey(domainName.toString())
+        ? Optional.of(tokenCheckResults.get(domainName.toString()))
+        : Optional.empty();
   }
 
   /** Handle the fee check extension. */

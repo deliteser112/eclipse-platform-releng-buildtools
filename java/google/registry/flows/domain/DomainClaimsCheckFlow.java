@@ -39,6 +39,8 @@ import google.registry.model.domain.launch.LaunchCheckExtension;
 import google.registry.model.domain.launch.LaunchCheckResponseExtension;
 import google.registry.model.domain.launch.LaunchCheckResponseExtension.LaunchCheck;
 import google.registry.model.domain.launch.LaunchCheckResponseExtension.LaunchCheckName;
+import google.registry.model.domain.token.AllocationTokenExtension;
+import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.registry.Registry;
@@ -61,11 +63,13 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.TldDoesNotExistException}
  * @error {@link DomainClaimsCheckNotAllowedInSunrise}
+ * @error {@link DomainClaimsCheckNotAllowedWithAllocationTokens}
  */
 @ReportingSpec(ActivityReportField.DOMAIN_CHECK)  // Claims check is a special domain check.
 public final class DomainClaimsCheckFlow implements Flow {
 
   @Inject ExtensionManager extensionManager;
+  @Inject EppInput eppInput;
   @Inject ResourceCommand resourceCommand;
   @Inject @ClientId String clientId;
   @Inject @Superuser boolean isSuperuser;
@@ -78,9 +82,12 @@ public final class DomainClaimsCheckFlow implements Flow {
 
   @Override
   public EppResponse run() throws EppException {
-    extensionManager.register(LaunchCheckExtension.class);
+    extensionManager.register(LaunchCheckExtension.class, AllocationTokenExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
+    if (eppInput.getSingleExtension(AllocationTokenExtension.class) != null) {
+      throw new DomainClaimsCheckNotAllowedWithAllocationTokens();
+    }
     List<String> targetIds = ((Check) resourceCommand).getTargetIds();
     verifyTargetIdCount(targetIds, maxChecks);
     Set<String> seenTlds = new HashSet<>();
@@ -116,6 +123,13 @@ public final class DomainClaimsCheckFlow implements Flow {
   static class DomainClaimsCheckNotAllowedInSunrise extends CommandUseErrorException {
     public DomainClaimsCheckNotAllowedInSunrise() {
       super("Claims checks are not allowed during sunrise");
+    }
+  }
+
+  /** Claims checks are not allowed with allocation tokens. */
+  static class DomainClaimsCheckNotAllowedWithAllocationTokens extends CommandUseErrorException {
+    public DomainClaimsCheckNotAllowedWithAllocationTokens() {
+      super("Claims checks are not allowed with allocation tokens");
     }
   }
 }
