@@ -1498,10 +1498,10 @@ def com_google_template_soy():
 def com_google_truth():
   java_import_external(
       name = "com_google_truth",
-      jar_sha256 = "aa19c5987eb52a9d7fb954823e8ea70d36308a5bde309c2020abe5e329c17527",
+      jar_sha256 = "25ce04464511d4a7c05e1034477900a897228cba2f86110d2ed49c956d9a82af",
       jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/truth/truth/0.36/truth-0.36.jar",
-          "http://repo1.maven.org/maven2/com/google/truth/truth/0.36/truth-0.36.jar",
+          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/truth/truth/0.39/truth-0.39.jar",
+          "http://repo1.maven.org/maven2/com/google/truth/truth/0.39/truth-0.39.jar",
       ],
       licenses = ["notice"],  # The Apache Software License, Version 2.0
       testonly_ = True,
@@ -1516,10 +1516,10 @@ def com_google_truth():
 def com_google_truth_extensions_truth_java8_extension():
   java_import_external(
       name = "com_google_truth_extensions_truth_java8_extension",
-      jar_sha256 = "44566c46783296856c80b14fc3b324d0616c192fa0090214b0eaf1b0b5697266",
+      jar_sha256 = "47d3a91a3accbe062fbae59f95cc0e02f0483c60d1340ff82c89bc6ab82fa10a",
       jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/central.maven.org/maven2/com/google/truth/extensions/truth-java8-extension/0.36/truth-java8-extension-0.36.jar",
-          "http://central.maven.org/maven2/com/google/truth/extensions/truth-java8-extension/0.36/truth-java8-extension-0.36.jar",
+          "http://domain-registry-maven.storage.googleapis.com/central.maven.org/maven2/com/google/truth/extensions/truth-java8-extension/0.39/truth-java8-extension-0.39.jar",
+          "http://central.maven.org/maven2/com/google/truth/extensions/truth-java8-extension/0.39/truth-java8-extension-0.39.jar",
       ],
       licenses = ["notice"],  # The Apache Software License, Version 2.0
       testonly_ = True,
