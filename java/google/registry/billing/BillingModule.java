@@ -15,6 +15,7 @@
 package google.registry.billing;
 
 import static google.registry.request.RequestParameters.extractRequiredParameter;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import com.google.api.client.googleapis.extensions.appengine.auth.oauth2.AppIdentityCredential;
 import com.google.api.client.http.HttpTransport;
@@ -25,9 +26,13 @@ import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Parameter;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
 import java.util.Set;
 import java.util.function.Function;
+import javax.inject.Qualifier;
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.YearMonth;
 
 /** Module for dependencies required by monthly billing actions. */
 @Module
@@ -35,13 +40,12 @@ public final class BillingModule {
 
   public static final String DETAIL_REPORT_PREFIX = "invoice_details";
   public static final String OVERALL_INVOICE_PREFIX = "CRR-INV";
+  public static final String INVOICES_DIRECTORY = "invoices";
 
   static final String PARAM_JOB_ID = "jobId";
-  static final String PARAM_DIRECTORY_PREFIX = "directoryPrefix";
+  static final String PARAM_YEAR_MONTH = "yearMonth";
   static final String BILLING_QUEUE = "billing";
   static final String CRON_QUEUE = "retryable-cron-tasks";
-  // TODO(larryruili): Replace with invoices/yyyy-MM after verifying 2017-12 invoice.
-  static final String RESULTS_DIRECTORY_PREFIX = "results/";
 
   private static final String CLOUD_PLATFORM_SCOPE =
       "https://www.googleapis.com/auth/cloud-platform";
@@ -53,11 +57,10 @@ public final class BillingModule {
     return extractRequiredParameter(req, PARAM_JOB_ID);
   }
 
-  /** Provides the subdirectory under a GCS bucket that we copy detail reports from. */
   @Provides
-  @Parameter(PARAM_DIRECTORY_PREFIX)
-  static String provideDirectoryPrefix(HttpServletRequest req) {
-    return extractRequiredParameter(req, PARAM_DIRECTORY_PREFIX);
+  @InvoiceDirectoryPrefix
+  static String provideDirectoryPrefix(YearMonth yearMonth) {
+    return String.format("%s/%s/", INVOICES_DIRECTORY, yearMonth.toString());
   }
 
   /** Constructs a {@link Dataflow} API client with default settings. */
@@ -75,4 +78,10 @@ public final class BillingModule {
         .setApplicationName(String.format("%s billing", projectId))
         .build();
   }
+
+  /** Dagger qualifier for the subdirectory we stage to/upload from. */
+  @Qualifier
+  @Documented
+  @Retention(RUNTIME)
+  @interface InvoiceDirectoryPrefix{}
 }

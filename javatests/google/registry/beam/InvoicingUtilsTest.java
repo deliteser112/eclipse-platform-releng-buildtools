@@ -49,7 +49,7 @@ public class InvoicingUtilsTest {
                 .withSuffix(".csv")
                 .withBaseFilename(
                     FileBasedSink.convertToFileResourceIfPossible(
-                        "my/directory/invoice_details_2017-10_registrar_tld")));
+                        "my/directory/2017-10/invoice_details_2017-10_registrar_tld")));
   }
 
   @Test

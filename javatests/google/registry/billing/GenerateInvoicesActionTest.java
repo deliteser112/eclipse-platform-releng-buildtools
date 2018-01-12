@@ -53,6 +53,7 @@ public class GenerateInvoicesActionTest {
   private Templates templates;
   private Launch launch;
   private FakeResponse response;
+  private BillingEmailUtils emailUtils;
   private GenerateInvoicesAction action;
 
   @Before
@@ -61,6 +62,7 @@ public class GenerateInvoicesActionTest {
     projects = mock(Projects.class);
     templates = mock(Templates.class);
     launch = mock(Launch.class);
+    emailUtils = mock(BillingEmailUtils.class);
     when(dataflow.projects()).thenReturn(projects);
     when(projects.templates()).thenReturn(templates);
     when(templates.launch(any(String.class), any(LaunchTemplateParameters.class)))
@@ -72,8 +74,15 @@ public class GenerateInvoicesActionTest {
     job.setId("12345");
     when(launch.execute()).thenReturn(new LaunchTemplateResponse().setJob(job));
 
-    action = new GenerateInvoicesAction(
-        "test-project", "gs://test-project-beam", new YearMonth(2017, 10), dataflow, response);
+    action =
+        new GenerateInvoicesAction(
+            "test-project",
+            "gs://test-project-beam",
+            "gs://test-project-beam/templates/invoicing",
+            new YearMonth(2017, 10),
+            dataflow,
+            response,
+            emailUtils);
   }
 
   @Test
@@ -96,7 +105,8 @@ public class GenerateInvoicesActionTest {
         new TaskMatcher()
             .url("/_dr/task/publishInvoices")
             .method("POST")
-            .param("jobId", "12345");
+            .param("jobId", "12345")
+            .param("yearMonth", "2017-10");
     assertTasksEnqueued("billing", matcher);
   }
 
@@ -106,5 +116,6 @@ public class GenerateInvoicesActionTest {
     action.run();
     assertThat(response.getStatus()).isEqualTo(500);
     assertThat(response.getPayload()).isEqualTo("Template launch failed: expected");
+    verify(emailUtils).sendAlertEmail("Template Launch failed due to expected");
   }
 }

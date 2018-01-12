@@ -15,6 +15,7 @@
 package google.registry.billing;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.GcsTestingUtils.writeGcsFile;
@@ -61,6 +62,7 @@ public class CopyDetailReportsActionTest {
 
   private FakeResponse response;
   private DriveConnection driveConnection;
+  private BillingEmailUtils emailUtils;
   private CopyDetailReportsAction action;
 
   @Before
@@ -68,14 +70,16 @@ public class CopyDetailReportsActionTest {
     persistResource(loadRegistrar("TheRegistrar").asBuilder().setDriveFolderId("0B-12345").build());
     response = new FakeResponse();
     driveConnection = mock(DriveConnection.class);
+    emailUtils = mock(BillingEmailUtils.class);
     action =
         new CopyDetailReportsAction(
-            "gs://test-bucket",
+            "test-bucket",
             "results/",
             driveConnection,
             gcsUtils,
             new Retrier(new FakeSleeper(new FakeClock()), 3),
-            response);
+            response,
+            emailUtils);
   }
 
   @Test
@@ -154,6 +158,31 @@ public class CopyDetailReportsActionTest {
     assertThat(response.getStatus()).isEqualTo(SC_OK);
     assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).isEqualTo("Copied detail reports.");
+  }
+
+  @Test
+  public void testFail_tooManyFailures_sendsAlertEmail() throws IOException {
+    writeGcsFile(
+        gcsService,
+        new GcsFilename("test-bucket", "results/invoice_details_2017-10_TheRegistrar_hello.csv"),
+        "hola,mundo\n3,4".getBytes(UTF_8));
+    when(driveConnection.createFile(any(), any(), any(), any()))
+        .thenThrow(new IOException("expected"));
+
+    try {
+      action.run();
+      assertWithMessage("Expected a runtime exception to be thrown!").fail();
+    } catch (RuntimeException e) {
+      assertThat(e).hasMessageThat().isEqualTo("java.io.IOException: expected");
+    }
+    verify(driveConnection, times(3))
+        .createFile(
+            "invoice_details_2017-10_TheRegistrar_hello.csv",
+            MediaType.CSV_UTF_8,
+            "0B-12345",
+            "hola,mundo\n3,4".getBytes(UTF_8));
+    verify(emailUtils).sendAlertEmail("Warning: CopyDetailReportsAction failed.\nEncountered: "
+        + "expected on file: invoice_details_2017-10_TheRegistrar_hello.csv");
   }
 
   @Test

@@ -108,16 +108,6 @@ public class Retrier implements Serializable {
     }
   }
 
-  private static final FailureReporter LOGGING_FAILURE_REPORTER = new FailureReporter() {
-    @Override
-    public void beforeRetry(Throwable thrown, int failures, int maxAttempts) {
-      logger.infofmt(thrown, "Retrying transient error, attempt %d", failures);
-    }
-
-    @Override
-    public void afterFinalFailure(Throwable thrown, int failures) {}
-  };
-
   /**
    * Retries a unit of work in the face of transient errors and returns the result.
    *
@@ -136,23 +126,20 @@ public class Retrier implements Serializable {
       Callable<V> callable,
       Class<? extends Throwable> retryableError,
       Class<? extends Throwable>... moreRetryableErrors) {
-    return callWithRetry(
-        callable,
-        LOGGING_FAILURE_REPORTER,
-        retryableError,
-        moreRetryableErrors);
+    return callWithRetry(callable, LOGGING_FAILURE_REPORTER, retryableError, moreRetryableErrors);
   }
 
-  /** Retries a unit of work in the face of transient errors. */
+  /**
+   * Retries a unit of work in the face of transient errors, without returning a value.
+   *
+   * @see #callWithRetry(Callable, Class, Class[])
+   */
   @SafeVarargs
   public final void callWithRetry(
       VoidCallable callable,
       Class<? extends Throwable> retryableError,
       Class<? extends Throwable>... moreRetryableErrors) {
-    callWithRetry(
-        callable.asCallable(),
-        retryableError,
-        moreRetryableErrors);
+    callWithRetry(callable.asCallable(), retryableError, moreRetryableErrors);
   }
 
   /**
@@ -177,4 +164,29 @@ public class Retrier implements Serializable {
     return callWithRetry(
         callable, failureReporter, e -> retryables.stream().anyMatch(supertypeOf(e.getClass())));
   }
+
+  /**
+   * Retries a unit of work in the face of transient errors, without returning a value.
+   *
+   * @see #callWithRetry(Callable, FailureReporter, Class, Class[])
+   */
+  @SafeVarargs
+  public final void callWithRetry(
+      VoidCallable callable,
+      FailureReporter failureReporter,
+      Class<? extends Throwable> retryableError,
+      Class<? extends Throwable>... moreRetryableErrors) {
+    callWithRetry(callable.asCallable(), failureReporter, retryableError, moreRetryableErrors);
+  }
+
+  private static final FailureReporter LOGGING_FAILURE_REPORTER =
+      new FailureReporter() {
+        @Override
+        public void beforeRetry(Throwable thrown, int failures, int maxAttempts) {
+          logger.infofmt(thrown, "Retrying transient error, attempt %d", failures);
+        }
+
+        @Override
+        public void afterFinalFailure(Throwable thrown, int failures) {}
+      };
 }

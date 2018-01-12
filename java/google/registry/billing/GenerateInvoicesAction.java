@@ -53,22 +53,28 @@ public class GenerateInvoicesAction implements Runnable {
 
   private final String projectId;
   private final String beamBucketUrl;
+  private final String invoiceTemplateUrl;
   private final YearMonth yearMonth;
   private final Dataflow dataflow;
   private final Response response;
+  private final BillingEmailUtils emailUtils;
 
   @Inject
   GenerateInvoicesAction(
       @Config("projectId") String projectId,
       @Config("apacheBeamBucketUrl") String beamBucketUrl,
+      @Config("invoiceTemplateUrl") String invoiceTemplateUrl,
       YearMonth yearMonth,
       Dataflow dataflow,
-      Response response) {
+      Response response,
+      BillingEmailUtils emailUtils) {
     this.projectId = projectId;
     this.beamBucketUrl = beamBucketUrl;
+    this.invoiceTemplateUrl = invoiceTemplateUrl;
     this.yearMonth = yearMonth;
     this.dataflow = dataflow;
     this.response = response;
+    this.emailUtils = emailUtils;
   }
 
   @Override
@@ -88,13 +94,14 @@ public class GenerateInvoicesAction implements Runnable {
               .projects()
               .templates()
               .launch(projectId, params)
-              .setGcsPath(beamBucketUrl + "/templates/invoicing")
+              .setGcsPath(invoiceTemplateUrl)
               .execute();
       logger.infofmt("Got response: %s", launchResponse.getJob().toPrettyString());
       String jobId = launchResponse.getJob().getId();
       enqueuePublishTask(jobId);
     } catch (IOException e) {
       logger.warningfmt("Template Launch failed due to: %s", e.getMessage());
+      emailUtils.sendAlertEmail(String.format("Template Launch failed due to %s", e.getMessage()));
       response.setStatus(SC_INTERNAL_SERVER_ERROR);
       response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
       response.setPayload(String.format("Template launch failed: %s", e.getMessage()));
@@ -111,7 +118,9 @@ public class GenerateInvoicesAction implements Runnable {
             .method(TaskOptions.Method.POST)
             // Dataflow jobs tend to take about 10 minutes to complete.
             .countdownMillis(Duration.standardMinutes(10).getMillis())
-            .param(BillingModule.PARAM_JOB_ID, jobId);
+            .param(BillingModule.PARAM_JOB_ID, jobId)
+            // Need to pass this through to ensure transitive yearMonth dependencies are satisfied.
+            .param(BillingModule.PARAM_YEAR_MONTH, yearMonth.toString());
     QueueFactory.getQueue(BillingModule.BILLING_QUEUE).add(publishTask);
   }
 }

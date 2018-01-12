@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.util.ResourceUtils;
 import java.io.File;
+import java.io.IOException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Map.Entry;
@@ -56,10 +57,15 @@ public class InvoicingPipelineTest {
   private InvoicingPipeline invoicingPipeline;
 
   @Before
-  public void initializePipeline() {
+  public void initializePipeline() throws IOException {
     invoicingPipeline = new InvoicingPipeline();
     invoicingPipeline.projectId = "test-project";
-    invoicingPipeline.beamBucket = tempFolder.getRoot().getAbsolutePath();
+    File beamTempFolder = tempFolder.newFolder();
+    invoicingPipeline.beamBucketUrl = beamTempFolder.getAbsolutePath();
+    invoicingPipeline.invoiceStagingUrl = beamTempFolder.getAbsolutePath() + "/staging";
+    invoicingPipeline.invoiceTemplateUrl =
+        beamTempFolder.getAbsolutePath() + "/templates/invoicing";
+    invoicingPipeline.billingBucketUrl = tempFolder.getRoot().getAbsolutePath();
   }
 
   private ImmutableList<BillingEvent> getInputEvents() {
@@ -180,7 +186,9 @@ public class InvoicingPipelineTest {
   /** Returns the text contents of a file under the beamBucket/results directory. */
   private ImmutableList<String> resultFileContents(String filename) throws Exception {
     File resultFile =
-        new File(String.format("%s/results/%s", tempFolder.getRoot().getAbsolutePath(), filename));
+        new File(
+            String.format(
+                "%s/invoices/2017-10/%s", tempFolder.getRoot().getAbsolutePath(), filename));
     return ImmutableList.copyOf(
         ResourceUtils.readResourceUtf8(resultFile.toURI().toURL()).split("\n"));
   }

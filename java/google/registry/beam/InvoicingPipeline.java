@@ -54,16 +54,40 @@ import org.apache.beam.sdk.values.TypeDescriptors;
  */
 public class InvoicingPipeline implements Serializable {
 
-  @Inject @Config("projectId") String projectId;
-  @Inject @Config("apacheBeamBucketUrl") String beamBucket;
-  @Inject InvoicingPipeline() {}
+  @Inject
+  @Config("projectId")
+  String projectId;
+
+  @Inject
+  @Config("apacheBeamBucketUrl")
+  String beamBucketUrl;
+
+  @Inject
+  @Config("invoiceTemplateUrl")
+  String invoiceTemplateUrl;
+
+  @Inject
+  @Config("invoiceStagingUrl")
+  String invoiceStagingUrl;
+
+  @Inject
+  @Config("billingBucketUrl")
+  String billingBucketUrl;
+
+  @Inject
+  InvoicingPipeline() {}
 
   /** Custom options for running the invoicing pipeline. */
   interface InvoicingPipelineOptions extends DataflowPipelineOptions {
     /** Returns the yearMonth we're generating invoices for, in yyyy-MM format. */
     @Description("The yearMonth we generate invoices for, in yyyy-MM format.")
     ValueProvider<String> getYearMonth();
-    /** Sets the yearMonth we generate invoices for. */
+    /**
+     * Sets the yearMonth we generate invoices for.
+     *
+     * <p>This is implicitly set when executing the Dataflow template, by specifying the 'yearMonth
+     * parameter.
+     */
     void setYearMonth(ValueProvider<String> value);
   }
 
@@ -73,8 +97,9 @@ public class InvoicingPipeline implements Serializable {
     InvoicingPipelineOptions options = PipelineOptionsFactory.as(InvoicingPipelineOptions.class);
     options.setProject(projectId);
     options.setRunner(DataflowRunner.class);
-    options.setStagingLocation(beamBucket + "/staging");
-    options.setTemplateLocation(beamBucket + "/templates/invoicing");
+    // This causes p.run() to stage the pipeline as a template on GCS, as opposed to running it.
+    options.setTemplateLocation(invoiceTemplateUrl);
+    options.setStagingLocation(invoiceStagingUrl);
     Pipeline p = Pipeline.create(options);
 
     PCollection<BillingEvent> billingEvents =
@@ -97,13 +122,13 @@ public class InvoicingPipeline implements Serializable {
    */
   void applyTerminalTransforms(
       PCollection<BillingEvent> billingEvents, ValueProvider<String> yearMonthProvider) {
-    billingEvents.apply(
-        "Write events to separate CSVs keyed by registrarId_tld pair",
-        writeDetailReports(yearMonthProvider));
-
     billingEvents
         .apply("Generate overall invoice rows", new GenerateInvoiceRows())
         .apply("Write overall invoice to CSV", writeInvoice(yearMonthProvider));
+
+    billingEvents.apply(
+        "Write detail reports to separate CSVs keyed by registrarId_tld pair",
+        writeDetailReports(yearMonthProvider));
   }
 
   /** Transform that converts a {@code BillingEvent} into an invoice CSV row. */
@@ -131,11 +156,14 @@ public class InvoicingPipeline implements Serializable {
         .to(
             NestedValueProvider.of(
                 yearMonthProvider,
-                // TODO(larryruili): Replace with billing bucket after verifying 2017-12 output.
                 yearMonth ->
                     String.format(
-                        "%s/results/%s-%s",
-                        beamBucket, BillingModule.OVERALL_INVOICE_PREFIX, yearMonth)))
+                        "%s/%s/%s/%s-%s",
+                        billingBucketUrl,
+                        BillingModule.INVOICES_DIRECTORY,
+                        yearMonth,
+                        BillingModule.OVERALL_INVOICE_PREFIX,
+                        yearMonth)))
         .withHeader(InvoiceGroupingKey.invoiceHeader())
         .withoutSharding()
         .withSuffix(".csv");
@@ -145,13 +173,15 @@ public class InvoicingPipeline implements Serializable {
   private TextIO.TypedWrite<BillingEvent, Params> writeDetailReports(
       ValueProvider<String> yearMonthProvider) {
     return TextIO.<BillingEvent>writeCustomType()
-        // TODO(larryruili): Replace with billing bucket/yyyy-MM after verifying 2017-12 output.
         .to(
-            InvoicingUtils.makeDestinationFunction(beamBucket + "/results", yearMonthProvider),
-            InvoicingUtils.makeEmptyDestinationParams(beamBucket + "/results"))
+            InvoicingUtils.makeDestinationFunction(
+                String.format("%s/%s", billingBucketUrl, BillingModule.INVOICES_DIRECTORY),
+                yearMonthProvider),
+            InvoicingUtils.makeEmptyDestinationParams(billingBucketUrl + "/errors"))
         .withFormatFunction(BillingEvent::toCsv)
         .withoutSharding()
-        .withTempDirectory(FileBasedSink.convertToFileResourceIfPossible(beamBucket + "/temporary"))
+        .withTempDirectory(
+            FileBasedSink.convertToFileResourceIfPossible(beamBucketUrl + "/temporary"))
         .withHeader(BillingEvent.getHeader())
         .withSuffix(".csv");
   }

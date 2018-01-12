@@ -34,6 +34,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.io.IOException;
+import org.joda.time.YearMonth;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,7 +71,8 @@ public class PublishInvoicesActionTest {
     emailUtils = mock(BillingEmailUtils.class);
     response = new FakeResponse();
     uploadAction =
-        new PublishInvoicesAction("test-project", "12345", emailUtils, dataflow, response);
+        new PublishInvoicesAction(
+            "test-project", "12345", emailUtils, dataflow, response, new YearMonth(2017, 10));
   }
 
   @Test
@@ -78,12 +80,12 @@ public class PublishInvoicesActionTest {
     expectedJob.setCurrentState("JOB_STATE_DONE");
     uploadAction.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    verify(emailUtils).emailInvoiceLink();
+    verify(emailUtils).emailOverallInvoice();
     TaskMatcher matcher =
         new TaskMatcher()
             .url("/_dr/task/copyDetailReports")
             .method("POST")
-            .param("directoryPrefix", "results/");
+            .param("yearMonth", "2017-10");
     assertTasksEnqueued("retryable-cron-tasks", matcher);
   }
 
@@ -92,6 +94,7 @@ public class PublishInvoicesActionTest {
     expectedJob.setCurrentState("JOB_STATE_FAILED");
     uploadAction.run();
     assertThat(response.getStatus()).isEqualTo(SC_NO_CONTENT);
+    verify(emailUtils).sendAlertEmail("Dataflow job 12345 ended in status failure.");
   }
 
   @Test
@@ -108,5 +111,6 @@ public class PublishInvoicesActionTest {
     assertThat(response.getStatus()).isEqualTo(SC_INTERNAL_SERVER_ERROR);
     assertThat(response.getContentType()).isEqualTo(MediaType.PLAIN_TEXT_UTF_8);
     assertThat(response.getPayload()).isEqualTo("Template launch failed: expected");
+    verify(emailUtils).sendAlertEmail("Publish action failed due to expected");
   }
 }

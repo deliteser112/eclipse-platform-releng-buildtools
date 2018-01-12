@@ -33,6 +33,7 @@ import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import javax.inject.Inject;
+import org.joda.time.YearMonth;
 
 /**
  * Uploads the results of the {@link google.registry.beam.InvoicingPipeline}.
@@ -55,6 +56,7 @@ public class PublishInvoicesAction implements Runnable {
   private final BillingEmailUtils emailUtils;
   private final Dataflow dataflow;
   private final Response response;
+  private final YearMonth yearMonth;
 
   @Inject
   PublishInvoicesAction(
@@ -62,12 +64,14 @@ public class PublishInvoicesAction implements Runnable {
       @Parameter(BillingModule.PARAM_JOB_ID) String jobId,
       BillingEmailUtils emailUtils,
       Dataflow dataflow,
-      Response response) {
+      Response response,
+      YearMonth yearMonth) {
     this.projectId = projectId;
     this.jobId = jobId;
     this.emailUtils = emailUtils;
     this.dataflow = dataflow;
     this.response = response;
+    this.yearMonth = yearMonth;
   }
 
   static final String PATH = "/_dr/task/publishInvoices";
@@ -83,12 +87,13 @@ public class PublishInvoicesAction implements Runnable {
           logger.infofmt("Dataflow job %s finished successfully, publishing results.", jobId);
           response.setStatus(SC_OK);
           enqueueCopyDetailReportsTask();
-          emailUtils.emailInvoiceLink();
+          emailUtils.emailOverallInvoice();
           break;
         case JOB_FAILED:
           logger.severefmt("Dataflow job %s finished unsuccessfully.", jobId);
           response.setStatus(SC_NO_CONTENT);
-          // TODO(larryruili): Email failure message
+          emailUtils.sendAlertEmail(
+              String.format("Dataflow job %s ended in status failure.", jobId));
           break;
         default:
           logger.infofmt("Job in non-terminal state %s, retrying:", state);
@@ -96,18 +101,18 @@ public class PublishInvoicesAction implements Runnable {
           break;
       }
     } catch (IOException e) {
+      emailUtils.sendAlertEmail(String.format("Publish action failed due to %s", e.getMessage()));
       response.setStatus(SC_INTERNAL_SERVER_ERROR);
       response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
       response.setPayload(String.format("Template launch failed: %s", e.getMessage()));
     }
   }
 
-  private static void enqueueCopyDetailReportsTask() {
+  private void enqueueCopyDetailReportsTask() {
     TaskOptions copyDetailTask =
         TaskOptions.Builder.withUrl(CopyDetailReportsAction.PATH)
             .method(TaskOptions.Method.POST)
-            .param(
-                BillingModule.PARAM_DIRECTORY_PREFIX, BillingModule.RESULTS_DIRECTORY_PREFIX);
+            .param(BillingModule.PARAM_YEAR_MONTH, yearMonth.toString());
     QueueFactory.getQueue(BillingModule.CRON_QUEUE).add(copyDetailTask);
   }
 }

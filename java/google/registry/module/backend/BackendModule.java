@@ -42,7 +42,7 @@ import org.joda.time.format.DateTimeFormatter;
 @Module
 public class BackendModule {
 
-  public static final String PARAM_YEAR_MONTH = "yearMonth";
+  private static final String PARAM_YEAR_MONTH = "yearMonth";
 
   @Provides
   @Parameter(RequestParameters.PARAM_TLD)

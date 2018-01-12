@@ -464,14 +464,50 @@ public final class RegistryConfig {
     }
 
     /**
-     * Returns the Google Cloud Storage bucket for storing Beam templates and results.
+     * Returns the name of the GCS bucket for storing Beam templates and results.
+     *
+     * @see google.registry.billing.GenerateInvoicesAction
+     */
+    @Provides
+    @Config("apacheBeamBucket")
+    public static String provideApacheBeamBucket(@Config("projectId") String projectId) {
+      return projectId + "-beam";
+    }
+
+    /**
+     * Returns the URL of the GCS location for storing Apache Beam related objects.
      *
      * @see google.registry.billing.GenerateInvoicesAction
      */
     @Provides
     @Config("apacheBeamBucketUrl")
-    public static String provideApacheBeamBucketUrl(@Config("projectId") String projectId) {
-      return String.format("gs://%s-beam", projectId);
+    public static String provideApacheBeamBucketUrl(@Config("apacheBeamBucket") String beamBucket) {
+      return "gs://" + beamBucket;
+    }
+
+    /**
+     * Returns the URL of the GCS location for storing the monthly invoicing Beam template.
+     *
+     * @see google.registry.billing.GenerateInvoicesAction
+     * @see google.registry.beam.InvoicingPipeline
+     */
+    @Provides
+    @Config("invoiceTemplateUrl")
+    public static String provideInvoiceTemplateUrl(
+        @Config("apacheBeamBucketUrl") String beamBucketUrl) {
+      return beamBucketUrl + "/templates/invoicing";
+    }
+
+    /**
+     * Returns the URL of the GCS location we store jar dependencies for the invoicing pipeline.
+     *
+     * @see google.registry.beam.InvoicingPipeline
+     */
+    @Provides
+    @Config("invoiceStagingUrl")
+    public static String provideInvoiceStagingUrl(
+        @Config("apacheBeamBucketUrl") String beamBucketUrl) {
+      return beamBucketUrl + "/staging";
     }
 
     /**
@@ -506,6 +542,28 @@ public final class RegistryConfig {
     @Config("icannActivityReportingUploadUrl")
     public static String provideIcannActivityReportingUploadUrl(RegistryConfigSettings config) {
       return config.icannReporting.icannActivityReportingUploadUrl;
+    }
+
+    /**
+     * Returns name of the GCS bucket we store invoices and detail reports in.
+     *
+     * @see google.registry.billing
+     */
+    @Provides
+    @Config("billingBucket")
+    public static String provideBillingBucket(@Config("projectId") String projectId) {
+      return projectId + "-billing";
+    }
+
+    /**
+     * Returns the URL of the GCS bucket we store invoices and detail reports in.
+     *
+     * @see google.registry.billing
+     */
+    @Provides
+    @Config("billingBucketUrl")
+    public static String provideBillingBucketUrl(@Config("billingBucket") String billingBucket) {
+      return "gs://" + billingBucket;
     }
 
     /**

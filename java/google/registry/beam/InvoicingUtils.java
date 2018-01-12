@@ -55,7 +55,8 @@ public class InvoicingUtils {
                     yearMonth ->
                         FileBasedSink.convertToFileResourceIfPossible(
                             String.format(
-                                "%s/%s", outputBucket, billingEvent.toFilename(yearMonth)))));
+                                "%s/%s/%s",
+                                outputBucket, yearMonth, billingEvent.toFilename(yearMonth)))));
   }
 
   /**

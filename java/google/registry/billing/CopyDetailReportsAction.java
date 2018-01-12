@@ -22,11 +22,11 @@ import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
 import com.google.common.net.MediaType;
+import google.registry.billing.BillingModule.InvoiceDirectoryPrefix;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Action;
-import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.storage.drive.DriveConnection;
@@ -45,39 +45,39 @@ public final class CopyDetailReportsAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  // TODO(larryruili): Replace this bucket with the billing bucket after verifying 2017-12 output.
-  private final String beamBucketUrl;
-  private final String folderPrefix;
+  private final String billingBucket;
+  private final String invoiceDirectoryPrefix;
   private final DriveConnection driveConnection;
   private final GcsUtils gcsUtils;
   private final Retrier retrier;
   private final Response response;
+  private final BillingEmailUtils emailUtils;
 
   @Inject
   CopyDetailReportsAction(
-      @Config("apacheBeamBucketUrl") String beamBucketUrl,
-      @Parameter(BillingModule.PARAM_DIRECTORY_PREFIX) String folderPrefix,
+      @Config("billingBucket") String billingBucket,
+      @InvoiceDirectoryPrefix String invoiceDirectoryPrefix,
       DriveConnection driveConnection,
       GcsUtils gcsUtils,
       Retrier retrier,
-      Response response) {
-    this.beamBucketUrl = beamBucketUrl;
-    this.folderPrefix = folderPrefix;
+      Response response,
+      BillingEmailUtils emailUtils) {
+    this.billingBucket = billingBucket;
+    this.invoiceDirectoryPrefix = invoiceDirectoryPrefix;
     this.driveConnection = driveConnection;
     this.gcsUtils = gcsUtils;
     this.retrier = retrier;
     this.response = response;
+    this.emailUtils = emailUtils;
   }
 
   @Override
   public void run() {
-    // Strip the URL prefix from the beam bucket
-    String beamBucket = beamBucketUrl.replace("gs://", "");
     ImmutableList<String> detailReportObjectNames;
     try {
       detailReportObjectNames =
           gcsUtils
-              .listFolderObjects(beamBucket, folderPrefix)
+              .listFolderObjects(billingBucket, invoiceDirectoryPrefix)
               .stream()
               .filter(objectName -> objectName.startsWith(BillingModule.DETAIL_REPORT_PREFIX))
               .collect(ImmutableList.toImmutableList());
@@ -93,7 +93,6 @@ public final class CopyDetailReportsAction implements Runnable {
       // TODO(larryruili): Determine a safer way of enforcing this.
       String registrarId = detailReportName.split("_")[3];
       Optional<Registrar> registrar = Registrar.loadByClientId(registrarId);
-      // TODO(larryruili): Send an email alert if any report fails to be copied for any reason.
       if (!registrar.isPresent()) {
         logger.warningfmt(
             "Registrar %s not found in database for file %s", registrar, detailReportName);
@@ -109,7 +108,7 @@ public final class CopyDetailReportsAction implements Runnable {
           () -> {
             try (InputStream input =
                 gcsUtils.openInputStream(
-                    new GcsFilename(beamBucket, folderPrefix + detailReportName))) {
+                    new GcsFilename(billingBucket, invoiceDirectoryPrefix + detailReportName))) {
               driveConnection.createFile(
                   detailReportName,
                   MediaType.CSV_UTF_8,
@@ -117,7 +116,19 @@ public final class CopyDetailReportsAction implements Runnable {
                   ByteStreams.toByteArray(input));
               logger.infofmt(
                   "Published detail report for %s to folder %s using GCS file gs://%s/%s.",
-                  registrarId, driveFolderId, beamBucket, detailReportName);
+                  registrarId, driveFolderId, billingBucket, detailReportName);
+            }
+          },
+          new Retrier.FailureReporter() {
+            @Override
+            public void beforeRetry(Throwable thrown, int failures, int maxAttempts) {}
+
+            @Override
+            public void afterFinalFailure(Throwable thrown, int failures) {
+              emailUtils.sendAlertEmail(
+                  String.format(
+                      "Warning: CopyDetailReportsAction failed.\nEncountered: %s on file: %s",
+                      thrown.getMessage(), detailReportName));
             }
           },
           IOException.class);
