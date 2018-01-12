@@ -151,13 +151,13 @@ public final class DomainCheckFlow implements Flow {
             .setAsOfDate(now)
             .build());
     Set<String> existingIds = checkResourcesExist(DomainResource.class, targetIds, now);
-    AllocationTokenExtension allocationTokenExtension =
+    Optional<AllocationTokenExtension> allocationTokenExtension =
         eppInput.getSingleExtension(AllocationTokenExtension.class);
     ImmutableMap<String, String> tokenCheckResults =
-        (allocationTokenExtension == null)
-            ? ImmutableMap.of()
-            : checkDomainsWithToken(
-                targetIds, allocationTokenExtension.getAllocationToken(), clientId);
+        allocationTokenExtension.isPresent()
+            ? checkDomainsWithToken(
+                targetIds, allocationTokenExtension.get().getAllocationToken(), clientId)
+            : ImmutableMap.of();
     ImmutableList.Builder<DomainCheck> checks = new ImmutableList.Builder<>();
     for (String targetId : targetIds) {
       Optional<String> message =
@@ -196,7 +196,7 @@ public final class DomainCheckFlow implements Flow {
     if (reservationTypes.isEmpty()
         && isDomainPremium(domainName.toString(), now)
         && registry.getPremiumPriceAckRequired()
-        && eppInput.getSingleExtension(FeeCheckCommandExtension.class) == null) {
+        && !eppInput.getSingleExtension(FeeCheckCommandExtension.class).isPresent()) {
       return Optional.of("Premium names require EPP ext.");
     }
     if (!reservationTypes.isEmpty()) {
@@ -210,11 +210,12 @@ public final class DomainCheckFlow implements Flow {
   /** Handle the fee check extension. */
   private ImmutableList<? extends ResponseExtension> getResponseExtensions(
       ImmutableMap<String, InternetDomainName> domainNames, DateTime now) throws EppException {
-    FeeCheckCommandExtension<?, ?> feeCheck =
+    Optional<FeeCheckCommandExtension> feeCheckOpt =
         eppInput.getSingleExtension(FeeCheckCommandExtension.class);
-    if (feeCheck == null) {
+    if (!feeCheckOpt.isPresent()) {
       return ImmutableList.of();  // No fee checks were requested.
     }
+    FeeCheckCommandExtension<?, ?> feeCheck = feeCheckOpt.get();
     ImmutableList.Builder<FeeCheckResponseExtensionItem> responseItems =
         new ImmutableList.Builder<>();
     for (FeeCheckCommandExtensionItem feeCheckItem : feeCheck.getItems()) {

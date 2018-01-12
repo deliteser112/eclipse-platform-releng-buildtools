@@ -189,12 +189,12 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
     Registry registry = Registry.get(tld);
     FeesAndCredits feesAndCredits =
         pricingLogic.getApplicationUpdatePrice(registry, existingApplication, now);
-    FeeUpdateCommandExtension feeUpdate =
+    Optional<FeeUpdateCommandExtension> feeUpdate =
         eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
     // If the fee extension is present, validate it (even if the cost is zero, to check for price
     // mismatches). Don't rely on the the validateFeeChallenge check for feeUpdate nullness, because
     // it throws an error if the name is premium, and we don't want to do that here.
-    if (feeUpdate != null) {
+    if (feeUpdate.isPresent()) {
       validateFeeChallenge(targetId, tld, now, feeUpdate, feesAndCredits);
     } else if (!feesAndCredits.getTotalCost().isZero()) {
       // If it's not present but the cost is not zero, throw an exception.
@@ -231,11 +231,12 @@ public class DomainApplicationUpdateFlow implements TransactionalFlow {
     checkSameValuesNotAddedAndRemoved(add.getContacts(), remove.getContacts());
     checkSameValuesNotAddedAndRemoved(add.getStatusValues(), remove.getStatusValues());
     Change change = command.getInnerChange();
-    SecDnsUpdateExtension secDnsUpdate = eppInput.getSingleExtension(SecDnsUpdateExtension.class);
+    Optional<SecDnsUpdateExtension> secDnsUpdate =
+        eppInput.getSingleExtension(SecDnsUpdateExtension.class);
     return application.asBuilder()
         // Handle the secDNS extension.
-        .setDsData(secDnsUpdate != null
-            ? updateDsData(application.getDsData(), secDnsUpdate)
+        .setDsData(secDnsUpdate.isPresent()
+            ? updateDsData(application.getDsData(), secDnsUpdate.get())
             : application.getDsData())
         .setLastEppUpdateTime(now)
         .setLastEppUpdateClientId(clientId)

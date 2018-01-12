@@ -85,6 +85,7 @@ import google.registry.model.eppinput.EppInput.Transfer.TransferOp;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.host.HostCommand;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /** Class that picks a flow to handle a given EPP command. */
@@ -163,12 +164,13 @@ public class FlowPicker {
       if (!(resourceCommand instanceof DomainCommand.Update)) {
         return null;
       }
-      RgpUpdateExtension rgpUpdateExtension = eppInput.getSingleExtension(RgpUpdateExtension.class);
-      if (rgpUpdateExtension == null) {
+      Optional<RgpUpdateExtension> rgpUpdateExtension =
+          eppInput.getSingleExtension(RgpUpdateExtension.class);
+      if (!rgpUpdateExtension.isPresent()) {
         return null;
       }
       // Restore command with an op of "report" is not currently supported.
-      return (rgpUpdateExtension.getRestoreCommand().getRestoreOp() == RestoreOp.REQUEST)
+      return (rgpUpdateExtension.get().getRestoreCommand().getRestoreOp() == RestoreOp.REQUEST)
           ? DomainRestoreRequestFlow.class
           : UnimplementedFlow.class;
     }};
@@ -177,24 +179,29 @@ public class FlowPicker {
    * The claims check flow is keyed on the type of the {@link ResourceCommand} and on having the
    * correct extension with a specific phase value.
    */
-  private static final FlowProvider DOMAIN_CHECK_FLOW_PROVIDER = new FlowProvider() {
-    @Override
-    Class<? extends Flow> get(
-        EppInput eppInput, InnerCommand innerCommand, ResourceCommand resourceCommand) {
-      if (!(resourceCommand instanceof DomainCommand.Check)) {
-        return null;
-      }
-      LaunchCheckExtension extension = eppInput.getSingleExtension(LaunchCheckExtension.class);
-      if (extension == null || CheckType.AVAILABILITY.equals(extension.getCheckType())) {
-        // We don't distinguish between registry phases for "avail", so don't bother checking phase.
-        return DomainCheckFlow.class;
-      }
-      if (CheckType.CLAIMS.equals(extension.getCheckType())
-          && LaunchPhase.CLAIMS.equals(extension.getPhase())) {
-        return DomainClaimsCheckFlow.class;
-      }
-      return null;
-    }};
+  private static final FlowProvider DOMAIN_CHECK_FLOW_PROVIDER =
+      new FlowProvider() {
+        @Override
+        Class<? extends Flow> get(
+            EppInput eppInput, InnerCommand innerCommand, ResourceCommand resourceCommand) {
+          if (!(resourceCommand instanceof DomainCommand.Check)) {
+            return null;
+          }
+          Optional<LaunchCheckExtension> launchCheck =
+              eppInput.getSingleExtension(LaunchCheckExtension.class);
+          if (!launchCheck.isPresent()
+              || CheckType.AVAILABILITY.equals(launchCheck.get().getCheckType())) {
+            // We don't distinguish between registry phases for "avail", so don't bother checking
+            // phase.
+            return DomainCheckFlow.class;
+          }
+          if (CheckType.CLAIMS.equals(launchCheck.get().getCheckType())
+              && LaunchPhase.CLAIMS.equals(launchCheck.get().getPhase())) {
+            return DomainClaimsCheckFlow.class;
+          }
+          return null;
+        }
+      };
 
   /** General resource CRUD flows are keyed on the type of their {@link ResourceCommand}. */
   private static final FlowProvider RESOURCE_CRUD_FLOW_PROVIDER = new FlowProvider() {
@@ -224,50 +231,57 @@ public class FlowPicker {
     }};
 
   /** The domain allocate flow has a specific extension. */
-  private static final FlowProvider ALLOCATE_FLOW_PROVIDER = new FlowProvider() {
-    @Override
-    Class<? extends Flow> get(
-        EppInput eppInput, InnerCommand innerCommand, ResourceCommand resourceCommand) {
-      return (resourceCommand instanceof DomainCommand.Create
-          && eppInput.getSingleExtension(AllocateCreateExtension.class) != null)
-        ? DomainAllocateFlow.class : null;
-    }};
+  private static final FlowProvider ALLOCATE_FLOW_PROVIDER =
+      new FlowProvider() {
+        @Override
+        Class<? extends Flow> get(
+            EppInput eppInput, InnerCommand innerCommand, ResourceCommand resourceCommand) {
+          return (resourceCommand instanceof DomainCommand.Create
+                  && eppInput.getSingleExtension(AllocateCreateExtension.class).isPresent())
+              ? DomainAllocateFlow.class
+              : null;
+        }
+      };
 
   /**
-   * Application CRUD flows have an extension and are keyed on the type of their
-   * {@link ResourceCommand}.
+   * Application CRUD flows have an extension and are keyed on the type of their {@link
+   * ResourceCommand}.
    */
-  private static final FlowProvider APPLICATION_CRUD_FLOW_PROVIDER = new FlowProvider() {
+  private static final FlowProvider APPLICATION_CRUD_FLOW_PROVIDER =
+      new FlowProvider() {
 
-    private final Map<Class<? extends ResourceCommand>, Class<? extends Flow>> applicationFlows =
-        ImmutableMap.of(
-            DomainCommand.Create.class, DomainApplicationCreateFlow.class,
-            DomainCommand.Delete.class, DomainApplicationDeleteFlow.class,
-            DomainCommand.Info.class, DomainApplicationInfoFlow.class,
-            DomainCommand.Update.class, DomainApplicationUpdateFlow.class);
+        private final Map<Class<? extends ResourceCommand>, Class<? extends Flow>>
+            applicationFlows =
+                ImmutableMap.of(
+                    DomainCommand.Create.class, DomainApplicationCreateFlow.class,
+                    DomainCommand.Delete.class, DomainApplicationDeleteFlow.class,
+                    DomainCommand.Info.class, DomainApplicationInfoFlow.class,
+                    DomainCommand.Update.class, DomainApplicationUpdateFlow.class);
 
-    private final Set<LaunchPhase> launchPhases = ImmutableSet.of(
-        LaunchPhase.SUNRISE, LaunchPhase.SUNRUSH, LaunchPhase.LANDRUSH);
+        private final Set<LaunchPhase> launchPhases =
+            ImmutableSet.of(LaunchPhase.SUNRISE, LaunchPhase.SUNRUSH, LaunchPhase.LANDRUSH);
 
-    @Override
-    Class<? extends Flow> get(
-        EppInput eppInput, InnerCommand innerCommand, ResourceCommand resourceCommand) {
-      if (eppInput.getSingleExtension(ApplicationIdTargetExtension.class) != null) {
-        return applicationFlows.get(resourceCommand.getClass());
-      }
-      LaunchCreateExtension createExtension =
-          eppInput.getSingleExtension(LaunchCreateExtension.class);
-      // Return a flow if the type is APPLICATION, or if it's null and we are in a launch phase.
-      // If the type is specified as REGISTRATION, return null.
-      if (createExtension != null) {
-        LaunchPhase launchPhase = createExtension.getPhase();
-        if (APPLICATION.equals(createExtension.getCreateType())
-            || (createExtension.getCreateType() == null && launchPhases.contains(launchPhase))) {
-          return applicationFlows.get(resourceCommand.getClass());
+        @Override
+        Class<? extends Flow> get(
+            EppInput eppInput, InnerCommand innerCommand, ResourceCommand resourceCommand) {
+          if (eppInput.getSingleExtension(ApplicationIdTargetExtension.class).isPresent()) {
+            return applicationFlows.get(resourceCommand.getClass());
+          }
+          Optional<LaunchCreateExtension> createExtension =
+              eppInput.getSingleExtension(LaunchCreateExtension.class);
+          // Return a flow if the type is APPLICATION, or if it's null and we are in a launch phase.
+          // If the type is specified as REGISTRATION, return null.
+          if (createExtension.isPresent()) {
+            LaunchPhase launchPhase = createExtension.get().getPhase();
+            if (APPLICATION.equals(createExtension.get().getCreateType())
+                || (createExtension.get().getCreateType() == null
+                    && launchPhases.contains(launchPhase))) {
+              return applicationFlows.get(resourceCommand.getClass());
+            }
+          }
+          return null;
         }
-      }
-      return null;
-    }};
+      };
 
   /** Transfer flows have an {@link InnerCommand} of type {@link Transfer}. */
   private static final FlowProvider TRANSFER_FLOW_PROVIDER = new FlowProvider() {

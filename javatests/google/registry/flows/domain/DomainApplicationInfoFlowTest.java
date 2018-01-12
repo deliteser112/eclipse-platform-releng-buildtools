@@ -122,6 +122,7 @@ public class DomainApplicationInfoFlowTest
                                 new EppLoader(this, "domain_create_sunrise_encoded_signed_mark.xml")
                                     .getEpp()
                                     .getSingleExtension(LaunchCreateExtension.class)
+                                    .get()
                                     .getSignedMarks()
                                     .get(0))
                         : null)

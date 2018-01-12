@@ -617,20 +617,20 @@ public class DomainFlowUtils {
       String domainName,
       String tld,
       DateTime priceTime,
-      final FeeTransformCommandExtension feeCommand,
+      final Optional<? extends FeeTransformCommandExtension> feeCommand,
       FeesAndCredits feesAndCredits)
       throws EppException {
     Registry registry = Registry.get(tld);
     if (registry.getPremiumPriceAckRequired()
         && isDomainPremium(domainName, priceTime)
-        && feeCommand == null) {
+        && !feeCommand.isPresent()) {
       throw new FeesRequiredForPremiumNameException();
     }
 
     // Check for the case where a fee command extension was required but not provided.
     // This only happens when the total fees are non-zero and include custom fees requiring the
     // extension.
-    if (feeCommand == null) {
+    if (!feeCommand.isPresent()) {
       if (!feesAndCredits.getEapCost().isZero()) {
         throw new FeesRequiredDuringEarlyAccessProgramException(feesAndCredits.getEapCost());
       }
@@ -640,7 +640,7 @@ public class DomainFlowUtils {
       throw new FeesRequiredForNonFreeOperationException(feesAndCredits.getTotalCost());
     }
 
-    List<Fee> fees = feeCommand.getFees();
+    List<Fee> fees = feeCommand.get().getFees();
     // The schema guarantees that at least one fee will be present.
     checkState(!fees.isEmpty());
     BigDecimal total = BigDecimal.ZERO;
@@ -650,7 +650,7 @@ public class DomainFlowUtils {
       }
       total = total.add(fee.getCost());
     }
-    for (Credit credit : feeCommand.getCredits()) {
+    for (Credit credit : feeCommand.get().getCredits()) {
       if (!credit.hasDefaultAttributes()) {
         throw new UnsupportedFeeAttributeException();
       }
@@ -659,7 +659,7 @@ public class DomainFlowUtils {
 
     Money feeTotal = null;
     try {
-      feeTotal = Money.of(feeCommand.getCurrency(), total);
+      feeTotal = Money.of(feeCommand.get().getCurrency(), total);
     } catch (ArithmeticException e) {
       throw new CurrencyValueScaleException();
     }
@@ -801,18 +801,18 @@ public class DomainFlowUtils {
   }
 
   /** Validate the secDNS extension, if present. */
-  static SecDnsCreateExtension validateSecDnsExtension(SecDnsCreateExtension secDnsCreate)
-      throws EppException {
-    if (secDnsCreate == null) {
-      return null;
+  static Optional<SecDnsCreateExtension> validateSecDnsExtension(
+      Optional<SecDnsCreateExtension> secDnsCreate) throws EppException {
+    if (!secDnsCreate.isPresent()) {
+      return Optional.empty();
     }
-    if (secDnsCreate.getDsData() == null) {
+    if (secDnsCreate.get().getDsData() == null) {
       throw new DsDataRequiredException();
     }
-    if (secDnsCreate.getMaxSigLife() != null) {
+    if (secDnsCreate.get().getMaxSigLife() != null) {
       throw new MaxSigLifeNotSupportedException();
     }
-    validateDsData(secDnsCreate.getDsData());
+    validateDsData(secDnsCreate.get().getDsData());
     return secDnsCreate;
   }
 

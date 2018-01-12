@@ -151,15 +151,15 @@ public class EppInput extends ImmutableObject {
   }
 
   /** Get the extension based on type, or null. If there are multiple, it chooses the first. */
-  @Nullable
-  public <E extends CommandExtension> E getSingleExtension(Class<E> clazz) {
-    return getCommandWrapper()
-        .getExtensions()
-        .stream()
-        .filter(clazz::isInstance)
-        .map(clazz::cast)
-        .findFirst()
-        .orElse(null);
+  public <E extends CommandExtension> Optional<E> getSingleExtension(Class<E> clazz) {
+    return Optional.ofNullable(
+        getCommandWrapper()
+            .getExtensions()
+            .stream()
+            .filter(clazz::isInstance)
+            .map(clazz::cast)
+            .findFirst()
+            .orElse(null));
   }
 
   /** A tag that goes inside of an EPP {@literal <command>}. */

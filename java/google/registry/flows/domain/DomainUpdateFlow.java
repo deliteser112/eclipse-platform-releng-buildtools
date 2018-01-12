@@ -68,7 +68,6 @@ import google.registry.model.domain.DomainCommand.Update.AddRemove;
 import google.registry.model.domain.DomainCommand.Update.Change;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.fee.FeeTransformCommandExtension;
 import google.registry.model.domain.fee.FeeUpdateCommandExtension;
 import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.rgp.GracePeriodStatus;
@@ -222,13 +221,13 @@ public final class DomainUpdateFlow implements TransactionalFlow {
       checkAllowedAccessToTld(clientId, tld);
     }
     Registry registry = Registry.get(tld);
-    FeeTransformCommandExtension feeUpdate =
+    Optional<FeeUpdateCommandExtension> feeUpdate =
         eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
     // If the fee extension is present, validate it (even if the cost is zero, to check for price
     // mismatches). Don't rely on the the validateFeeChallenge check for feeUpdate nullness, because
     // it throws an error if the name is premium, and we don't want to do that here.
     FeesAndCredits feesAndCredits = pricingLogic.getUpdatePrice(registry, targetId, now);
-    if (feeUpdate != null) {
+    if (feeUpdate.isPresent()) {
       validateFeeChallenge(targetId, existingDomain.getTld(), now, feeUpdate, feesAndCredits);
     } else if (!feesAndCredits.getTotalCost().isZero()) {
       // If it's not present but the cost is not zero, throw an exception.
@@ -268,14 +267,15 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     checkSameValuesNotAddedAndRemoved(add.getContacts(), remove.getContacts());
     checkSameValuesNotAddedAndRemoved(add.getStatusValues(), remove.getStatusValues());
     Change change = command.getInnerChange();
-    SecDnsUpdateExtension secDnsUpdate = eppInput.getSingleExtension(SecDnsUpdateExtension.class);
+    Optional<SecDnsUpdateExtension> secDnsUpdate =
+        eppInput.getSingleExtension(SecDnsUpdateExtension.class);
     DomainResource.Builder domainBuilder =
         domain
             .asBuilder()
             // Handle the secDNS extension.
             .setDsData(
-                secDnsUpdate != null
-                    ? updateDsData(domain.getDsData(), secDnsUpdate)
+                secDnsUpdate.isPresent()
+                    ? updateDsData(domain.getDsData(), secDnsUpdate.get())
                     : domain.getDsData())
             .setLastEppUpdateTime(now)
             .setLastEppUpdateClientId(clientId)
@@ -355,8 +355,9 @@ public final class DomainUpdateFlow implements TransactionalFlow {
       DomainResource newDomain,
       HistoryEntry historyEntry,
       DateTime now) {
-    MetadataExtension metadataExtension = eppInput.getSingleExtension(MetadataExtension.class);
-    if (metadataExtension != null && metadataExtension.getRequestedByRegistrar()) {
+    Optional<MetadataExtension> metadataExtension =
+        eppInput.getSingleExtension(MetadataExtension.class);
+    if (metadataExtension.isPresent() && metadataExtension.get().getRequestedByRegistrar()) {
       for (StatusValue statusValue
           : symmetricDifference(existingDomain.getStatusValues(), newDomain.getStatusValues())) {
         if (statusValue.isChargedStatus()) {

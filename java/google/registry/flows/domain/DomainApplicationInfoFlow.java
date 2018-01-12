@@ -98,7 +98,7 @@ public final class DomainApplicationInfoFlow implements Flow {
             : null);
     verifyApplicationDomainMatchesTargetId(application, targetId);
     verifyOptionalAuthInfo(authInfo, application);
-    LaunchInfoExtension launchInfo = eppInput.getSingleExtension(LaunchInfoExtension.class);
+    LaunchInfoExtension launchInfo = eppInput.getSingleExtension(LaunchInfoExtension.class).get();
     if (!application.getPhase().equals(launchInfo.getPhase())) {
       throw new ApplicationLaunchPhaseMismatchException();
     }

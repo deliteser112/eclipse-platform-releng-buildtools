@@ -142,7 +142,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
     DateTime newExpirationTime =
         leapSafeAddYears(existingDomain.getRegistrationExpirationTime(), years);  // Uncapped
     validateRegistrationPeriod(now, newExpirationTime);
-    FeeRenewCommandExtension feeRenew =
+    Optional<FeeRenewCommandExtension> feeRenew =
         eppInput.getSingleExtension(FeeRenewCommandExtension.class);
     FeesAndCredits feesAndCredits =
         pricingLogic.getRenewPrice(Registry.get(existingDomain.getTld()), targetId, now, years);
@@ -261,13 +261,16 @@ public final class DomainRenewFlow implements TransactionalFlow {
   }
 
   private ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
-      Money renewCost, FeeRenewCommandExtension feeRenew) {
-    return (feeRenew == null)
-        ? ImmutableList.of()
-        : ImmutableList.of(feeRenew.createResponseBuilder()
-            .setCurrency(renewCost.getCurrencyUnit())
-            .setFees(ImmutableList.of(Fee.create(renewCost.getAmount(), FeeType.RENEW)))
-            .build());
+      Money renewCost, Optional<FeeRenewCommandExtension> feeRenew) {
+    return feeRenew.isPresent()
+        ? ImmutableList.of(
+            feeRenew
+                .get()
+                .createResponseBuilder()
+                .setCurrency(renewCost.getCurrencyUnit())
+                .setFees(ImmutableList.of(Fee.create(renewCost.getAmount(), FeeType.RENEW)))
+                .build())
+        : ImmutableList.of();
   }
 
   /** The current expiration date is incorrect. */

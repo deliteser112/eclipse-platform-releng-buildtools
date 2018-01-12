@@ -105,20 +105,20 @@ public class VerifyOteAction implements Runnable, JsonAction {
 
   private static final Predicate<EppInput> HAS_CLAIMS_NOTICE =
       eppInput -> {
-        LaunchCreateExtension launchCreate =
+        Optional<LaunchCreateExtension> launchCreate =
             eppInput.getSingleExtension(LaunchCreateExtension.class);
-        return launchCreate != null && launchCreate.getNotice() != null;
+        return launchCreate.isPresent() && launchCreate.get().getNotice() != null;
       };
 
   private static final Predicate<EppInput> HAS_SEC_DNS =
       eppInput ->
-          (eppInput.getSingleExtension(SecDnsCreateExtension.class) != null)
-              || (eppInput.getSingleExtension(SecDnsUpdateExtension.class) != null);
+          (eppInput.getSingleExtension(SecDnsCreateExtension.class).isPresent())
+              || (eppInput.getSingleExtension(SecDnsUpdateExtension.class).isPresent());
   private static final Predicate<EppInput> IS_SUNRISE =
       eppInput -> {
-        LaunchCreateExtension launchCreate =
+        Optional<LaunchCreateExtension> launchCreate =
             eppInput.getSingleExtension(LaunchCreateExtension.class);
-        return launchCreate != null && !isNullOrEmpty(launchCreate.getSignedMarks());
+        return launchCreate.isPresent() && !isNullOrEmpty(launchCreate.get().getSignedMarks());
       };
 
   private static final Predicate<EppInput> IS_IDN =
@@ -158,7 +158,7 @@ public class VerifyOteAction implements Runnable, JsonAction {
     DOMAIN_CREATES_WITH_FEE(
         1,
         equalTo(Type.DOMAIN_CREATE),
-        eppInput -> eppInput.getSingleExtension(FeeCreateCommandExtension.class) != null),
+        eppInput -> eppInput.getSingleExtension(FeeCreateCommandExtension.class).isPresent()),
     DOMAIN_CREATES_WITH_SEC_DNS(1, equalTo(Type.DOMAIN_CREATE), HAS_SEC_DNS),
     DOMAIN_CREATES_WITHOUT_SEC_DNS(0, equalTo(Type.DOMAIN_CREATE), HAS_SEC_DNS.negate()),
     DOMAIN_DELETES(2, equalTo(Type.DOMAIN_DELETE)),

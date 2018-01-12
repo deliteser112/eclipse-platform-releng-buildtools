@@ -85,7 +85,7 @@ public final class DomainClaimsCheckFlow implements Flow {
     extensionManager.register(LaunchCheckExtension.class, AllocationTokenExtension.class);
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
-    if (eppInput.getSingleExtension(AllocationTokenExtension.class) != null) {
+    if (eppInput.getSingleExtension(AllocationTokenExtension.class).isPresent()) {
       throw new DomainClaimsCheckNotAllowedWithAllocationTokens();
     }
     List<String> targetIds = ((Check) resourceCommand).getTargetIds();

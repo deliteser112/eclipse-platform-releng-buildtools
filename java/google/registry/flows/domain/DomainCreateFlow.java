@@ -220,12 +220,14 @@ public class DomainCreateFlow implements TransactionalFlow {
     }
     TldState tldState = registry.getTldState(now);
     boolean isAnchorTenant = isAnchorTenant(domainName);
-    LaunchCreateExtension launchCreate = eppInput.getSingleExtension(LaunchCreateExtension.class);
-    boolean hasSignedMarks = launchCreate != null && !launchCreate.getSignedMarks().isEmpty();
-    boolean hasClaimsNotice = launchCreate != null && launchCreate.getNotice() != null;
-    if (launchCreate != null) {
-      verifyNoCodeMarks(launchCreate);
-      validateLaunchCreateNotice(launchCreate.getNotice(), domainLabel, isSuperuser, now);
+    Optional<LaunchCreateExtension> launchCreate =
+        eppInput.getSingleExtension(LaunchCreateExtension.class);
+    boolean hasSignedMarks =
+        launchCreate.isPresent() && !launchCreate.get().getSignedMarks().isEmpty();
+    boolean hasClaimsNotice = launchCreate.isPresent() && launchCreate.get().getNotice() != null;
+    if (launchCreate.isPresent()) {
+      verifyNoCodeMarks(launchCreate.get());
+      validateLaunchCreateNotice(launchCreate.get().getNotice(), domainLabel, isSuperuser, now);
     }
     boolean isSunriseCreate = hasSignedMarks && SUNRISE_STATES.contains(tldState);
     String signedMarkId = null;
@@ -234,8 +236,8 @@ public class DomainCreateFlow implements TransactionalFlow {
     // registering premium domains.
     if (!isSuperuser) {
       checkAllowedAccessToTld(clientId, registry.getTldStr());
-      if (launchCreate != null) {
-        verifyLaunchPhaseMatchesRegistryPhase(registry, launchCreate, now);
+      if (launchCreate.isPresent()) {
+        verifyLaunchPhaseMatchesRegistryPhase(registry, launchCreate.get(), now);
       }
       if (!isAnchorTenant) {
         verifyNotReserved(domainName, isSunriseCreate);
@@ -253,7 +255,9 @@ public class DomainCreateFlow implements TransactionalFlow {
         // If a signed mark was provided, then it must match the desired domain label. Get the mark
         // at this point so that we can verify it before the "after validation" extension point.
         signedMarkId =
-            tmchUtils.verifySignedMarks(launchCreate.getSignedMarks(), domainLabel, now).getId();
+            tmchUtils
+                .verifySignedMarks(launchCreate.get().getSignedMarks(), domainLabel, now)
+                .getId();
       }
     }
     Optional<AllocationToken> allocationToken =
@@ -264,11 +268,11 @@ public class DomainCreateFlow implements TransactionalFlow {
             .setYears(years)
             .setSignedMarkId(Optional.ofNullable(signedMarkId))
             .build());
-    FeeCreateCommandExtension feeCreate =
+    Optional<FeeCreateCommandExtension> feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);
     FeesAndCredits feesAndCredits = pricingLogic.getCreatePrice(registry, targetId, now, years);
     validateFeeChallenge(targetId, registry.getTldStr(), now, feeCreate, feesAndCredits);
-    SecDnsCreateExtension secDnsCreate =
+    Optional<SecDnsCreateExtension> secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
     String repoId = createDomainRepoId(ObjectifyService.allocateId(), registry.getTldStr());
     DateTime registrationExpirationTime = leapSafeAddYears(now, years);
@@ -302,9 +306,9 @@ public class DomainCreateFlow implements TransactionalFlow {
             .setRegistrationExpirationTime(registrationExpirationTime)
             .setAutorenewBillingEvent(Key.create(autorenewBillingEvent))
             .setAutorenewPollMessage(Key.create(autorenewPollMessage))
-            .setLaunchNotice(hasClaimsNotice ? launchCreate.getNotice() : null)
+            .setLaunchNotice(hasClaimsNotice ? launchCreate.get().getNotice() : null)
             .setSmdId(signedMarkId)
-            .setDsData(secDnsCreate == null ? null : secDnsCreate.getDsData())
+            .setDsData(secDnsCreate.isPresent() ? secDnsCreate.get().getDsData() : null)
             .setRegistrant(command.getRegistrant())
             .setAuthInfo(command.getAuthInfo())
             .setFullyQualifiedDomainName(targetId)
@@ -354,9 +358,10 @@ public class DomainCreateFlow implements TransactionalFlow {
   }
 
   private boolean isAnchorTenant(InternetDomainName domainName) {
-    MetadataExtension metadataExtension = eppInput.getSingleExtension(MetadataExtension.class);
+    Optional<MetadataExtension> metadataExtension =
+        eppInput.getSingleExtension(MetadataExtension.class);
     return matchesAnchorTenantReservation(domainName, authInfo.getPw().getValue())
-        || (metadataExtension != null && metadataExtension.getIsAnchorTenant());
+        || (metadataExtension.isPresent() && metadataExtension.get().getIsAnchorTenant());
   }
 
   /** Prohibit creating a domain if there is an open application for the same name. */
@@ -380,11 +385,12 @@ public class DomainCreateFlow implements TransactionalFlow {
   private Optional<AllocationToken> verifyAllocationTokenIfPresent(
       InternetDomainName domainName, Registry registry, String clientId)
       throws EppException {
-    AllocationTokenExtension ext = eppInput.getSingleExtension(AllocationTokenExtension.class);
+    Optional<AllocationTokenExtension> extension =
+        eppInput.getSingleExtension(AllocationTokenExtension.class);
     return Optional.ofNullable(
-        (ext == null)
-            ? null
-            : verifyToken(domainName, ext.getAllocationToken(), registry, clientId));
+        extension.isPresent()
+            ? verifyToken(domainName, extension.get().getAllocationToken(), registry, clientId)
+            : null);
   }
 
   private HistoryEntry buildHistoryEntry(
@@ -488,10 +494,10 @@ public class DomainCreateFlow implements TransactionalFlow {
   }
 
   private static ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
-      FeeCreateCommandExtension feeCreate, FeesAndCredits feesAndCredits) {
-    return (feeCreate == null)
-        ? ImmutableList.of()
-        : ImmutableList.of(createFeeCreateResponse(feeCreate, feesAndCredits));
+      Optional<FeeCreateCommandExtension> feeCreate, FeesAndCredits feesAndCredits) {
+    return feeCreate.isPresent()
+        ? ImmutableList.of(createFeeCreateResponse(feeCreate.get(), feesAndCredits))
+        : ImmutableList.of();
   }
 
   /** There is an open application for this domain. */

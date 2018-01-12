@@ -93,7 +93,7 @@ public final class DomainApplicationDeleteFlow implements TransactionalFlow {
       Registry registry = Registry.get(tld);
       verifyRegistryStateAllowsLaunchFlows(registry, now);
       verifyLaunchPhaseMatchesRegistryPhase(
-          registry, eppInput.getSingleExtension(LaunchDeleteExtension.class), now);
+          registry, eppInput.getSingleExtension(LaunchDeleteExtension.class).get(), now);
       verifyResourceOwnership(clientId, existingApplication);
       // Don't allow deleting a sunrise application during landrush.
       if (existingApplication.getPhase().equals(LaunchPhase.SUNRISE)

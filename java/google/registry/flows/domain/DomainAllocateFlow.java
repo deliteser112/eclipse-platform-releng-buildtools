@@ -90,6 +90,7 @@ import google.registry.model.reporting.DomainTransactionRecord.TransactionReport
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.tmch.LordnTask;
+import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -150,11 +151,11 @@ public class DomainAllocateFlow implements TransactionalFlow {
     int years = period.getValue();
     validateRegistrationPeriod(years);
     validateCreateCommandContactsAndNameservers(command, registry, domainName);
-    SecDnsCreateExtension secDnsCreate =
+    Optional<SecDnsCreateExtension> secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
     boolean isSunrushAddGracePeriod = isNullOrEmpty(command.getNameservers());
     AllocateCreateExtension allocateCreate =
-        eppInput.getSingleExtension(AllocateCreateExtension.class);
+        eppInput.getSingleExtension(AllocateCreateExtension.class).get();
     DomainApplication application =
         loadAndValidateApplication(allocateCreate.getApplicationRoid(), now);
     String repoId = createDomainRepoId(ObjectifyService.allocateId(), registry.getTldStr());
@@ -166,31 +167,37 @@ public class DomainAllocateFlow implements TransactionalFlow {
         domainName, application, historyEntry, isSunrushAddGracePeriod, registry, now, years);
     entitiesToSave.addAll(billsAndPolls);
     DateTime registrationExpirationTime = leapSafeAddYears(now, years);
-    DomainResource newDomain = new DomainResource.Builder()
-        .setCreationClientId(clientId)
-        .setPersistedCurrentSponsorClientId(clientId)
-        .setRepoId(repoId)
-        .setIdnTableName(validateDomainNameWithIdnTables(domainName))
-        .setRegistrationExpirationTime(registrationExpirationTime)
-        .setAutorenewBillingEvent(Key.create(getOnly(billsAndPolls, BillingEvent.Recurring.class)))
-        .setAutorenewPollMessage(Key.create(getOnly(billsAndPolls, PollMessage.Autorenew.class)))
-        .setApplicationTime(allocateCreate.getApplicationTime())
-        .setApplication(Key.create(application))
-        .setSmdId(allocateCreate.getSmdId())
-        .setLaunchNotice(allocateCreate.getNotice())
-        .setDsData(secDnsCreate == null ? application.getDsData() : secDnsCreate.getDsData())
-        .addGracePeriod(createGracePeriod(
-            isSunrushAddGracePeriod, getOnly(billsAndPolls, BillingEvent.OneTime.class)))
-        // Names on the collision list will not be delegated. Set server hold.
-        .setStatusValues(getReservationTypes(domainName).contains(ReservationType.NAME_COLLISION)
-            ? ImmutableSet.of(StatusValue.SERVER_HOLD)
-            : ImmutableSet.of())
-        .setRegistrant(command.getRegistrant())
-        .setAuthInfo(command.getAuthInfo())
-        .setFullyQualifiedDomainName(targetId)
-        .setNameservers(command.getNameservers())
-        .setContacts(command.getContacts())
-        .build();
+    DomainResource newDomain =
+        new DomainResource.Builder()
+            .setCreationClientId(clientId)
+            .setPersistedCurrentSponsorClientId(clientId)
+            .setRepoId(repoId)
+            .setIdnTableName(validateDomainNameWithIdnTables(domainName))
+            .setRegistrationExpirationTime(registrationExpirationTime)
+            .setAutorenewBillingEvent(
+                Key.create(getOnly(billsAndPolls, BillingEvent.Recurring.class)))
+            .setAutorenewPollMessage(
+                Key.create(getOnly(billsAndPolls, PollMessage.Autorenew.class)))
+            .setApplicationTime(allocateCreate.getApplicationTime())
+            .setApplication(Key.create(application))
+            .setSmdId(allocateCreate.getSmdId())
+            .setLaunchNotice(allocateCreate.getNotice())
+            .setDsData(
+                secDnsCreate.isPresent() ? secDnsCreate.get().getDsData() : application.getDsData())
+            .addGracePeriod(
+                createGracePeriod(
+                    isSunrushAddGracePeriod, getOnly(billsAndPolls, BillingEvent.OneTime.class)))
+            // Names on the collision list will not be delegated. Set server hold.
+            .setStatusValues(
+                getReservationTypes(domainName).contains(ReservationType.NAME_COLLISION)
+                    ? ImmutableSet.of(StatusValue.SERVER_HOLD)
+                    : ImmutableSet.of())
+            .setRegistrant(command.getRegistrant())
+            .setAuthInfo(command.getAuthInfo())
+            .setFullyQualifiedDomainName(targetId)
+            .setNameservers(command.getNameservers())
+            .setContacts(command.getContacts())
+            .build();
     entitiesToSave.add(
         newDomain,
         buildApplicationHistory(application, now),
@@ -402,11 +409,11 @@ public class DomainAllocateFlow implements TransactionalFlow {
   private ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
       DateTime now, Registry registry, int years) throws EppException {
     FeesAndCredits feesAndCredits = pricingLogic.getCreatePrice(registry, targetId, now, years);
-    FeeCreateCommandExtension feeCreate =
+    Optional<FeeCreateCommandExtension> feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);
-    return (feeCreate == null)
-        ? ImmutableList.of()
-        : ImmutableList.of(createFeeCreateResponse(feeCreate, feesAndCredits));
+    return feeCreate.isPresent()
+        ? ImmutableList.of(createFeeCreateResponse(feeCreate.get(), feesAndCredits))
+        : ImmutableList.of();
   }
 
   /** Domain application with specific ROID does not exist. */

@@ -155,13 +155,14 @@ public final class DomainDeleteFlow implements TransactionalFlow {
     }
     Duration redemptionGracePeriodLength = registry.getRedemptionGracePeriodLength();
     Duration pendingDeleteLength = registry.getPendingDeleteLength();
-    DomainDeleteSuperuserExtension domainDeleteSuperuserExtension =
+    Optional<DomainDeleteSuperuserExtension> domainDeleteSuperuserExtension =
         eppInput.getSingleExtension(DomainDeleteSuperuserExtension.class);
-    if (domainDeleteSuperuserExtension != null) {
+    if (domainDeleteSuperuserExtension.isPresent()) {
       redemptionGracePeriodLength =
-          Duration.standardDays(domainDeleteSuperuserExtension.getRedemptionGracePeriodDays());
+          Duration.standardDays(
+              domainDeleteSuperuserExtension.get().getRedemptionGracePeriodDays());
       pendingDeleteLength =
-          Duration.standardDays(domainDeleteSuperuserExtension.getPendingDeleteDays());
+          Duration.standardDays(domainDeleteSuperuserExtension.get().getPendingDeleteDays());
     }
     boolean inAddGracePeriod =
         existingDomain.getGracePeriodStatuses().contains(GracePeriodStatus.ADD);

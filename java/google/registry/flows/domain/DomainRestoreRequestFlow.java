@@ -134,7 +134,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     FeesAndCredits feesAndCredits =
         pricingLogic.getRestorePrice(Registry.get(existingDomain.getTld()), targetId, now);
-    FeeUpdateCommandExtension feeUpdate =
+    Optional<FeeUpdateCommandExtension> feeUpdate =
         eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
     verifyRestoreAllowed(command, existingDomain, feeUpdate, feesAndCredits, now);
     HistoryEntry historyEntry = buildHistoryEntry(existingDomain, now);
@@ -186,7 +186,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
   private void verifyRestoreAllowed(
       Update command,
       DomainResource existingDomain,
-      FeeUpdateCommandExtension feeUpdate,
+      Optional<FeeUpdateCommandExtension> feeUpdate,
       FeesAndCredits feesAndCredits,
       DateTime now) throws EppException {
     verifyOptionalAuthInfo(authInfo, existingDomain);
@@ -261,15 +261,19 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
   }
 
   private static ImmutableList<FeeTransformResponseExtension> createResponseExtensions(
-      Money restoreCost, Money renewCost, FeeUpdateCommandExtension feeUpdate) {
-    return (feeUpdate == null)
-        ? ImmutableList.of()
-        : ImmutableList.of(feeUpdate.createResponseBuilder()
-            .setCurrency(restoreCost.getCurrencyUnit())
-            .setFees(ImmutableList.of(
-                Fee.create(restoreCost.getAmount(), FeeType.RESTORE),
-                Fee.create(renewCost.getAmount(), FeeType.RENEW)))
-            .build());
+      Money restoreCost, Money renewCost, Optional<FeeUpdateCommandExtension> feeUpdate) {
+    return feeUpdate.isPresent()
+        ? ImmutableList.of(
+            feeUpdate
+                .get()
+                .createResponseBuilder()
+                .setCurrency(restoreCost.getCurrencyUnit())
+                .setFees(
+                    ImmutableList.of(
+                        Fee.create(restoreCost.getAmount(), FeeType.RESTORE),
+                        Fee.create(renewCost.getAmount(), FeeType.RENEW)))
+                .build())
+        : ImmutableList.of();
   }
 
   /** Restore command cannot have other changes specified. */

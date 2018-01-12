@@ -151,12 +151,12 @@ public final class DomainInfoFlow implements Flow {
     if (!gracePeriodStatuses.isEmpty()) {
       extensions.add(RgpInfoExtension.create(gracePeriodStatuses));
     }
-    FeeInfoCommandExtensionV06 feeInfo =
+    Optional<FeeInfoCommandExtensionV06> feeInfo =
         eppInput.getSingleExtension(FeeInfoCommandExtensionV06.class);
-    if (feeInfo != null) { // Fee check was requested.
+    if (feeInfo.isPresent()) { // Fee check was requested.
       FeeInfoResponseExtensionV06.Builder builder = new FeeInfoResponseExtensionV06.Builder();
       handleFeeRequest(
-          feeInfo,
+          feeInfo.get(),
           builder,
           InternetDomainName.from(targetId),
           null,

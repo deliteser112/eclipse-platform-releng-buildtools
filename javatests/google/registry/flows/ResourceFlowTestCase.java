@@ -43,6 +43,7 @@ import google.registry.model.tmch.ClaimsListShard.ClaimsListRevision;
 import google.registry.model.tmch.ClaimsListShard.ClaimsListSingleton;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.TypeUtils.TypeInstantiator;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.joda.time.DateTime;
@@ -106,9 +107,11 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
    * the test code rather than the production code.
    */
   protected String getUniqueIdFromCommand() throws Exception {
-    ApplicationIdTargetExtension extension =
+    Optional<ApplicationIdTargetExtension> extension =
         eppLoader.getEpp().getSingleExtension(ApplicationIdTargetExtension.class);
-    return extension == null ? getResourceCommand().getTargetId() : extension.getApplicationId();
+    return extension.isPresent()
+        ? extension.get().getApplicationId()
+        : getResourceCommand().getTargetId();
   }
 
   protected Class<R> getResourceClass() {

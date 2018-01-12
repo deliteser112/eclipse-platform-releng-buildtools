@@ -209,8 +209,12 @@ public class FlowModule {
   @ApplicationId
   static String provideApplicationId(EppInput eppInput) {
     // Treat a missing application id as empty so we can always inject a non-null value.
-    return nullToEmpty(
-        eppInput.getSingleExtension(ApplicationIdTargetExtension.class).getApplicationId());
+    Optional<ApplicationIdTargetExtension> extension =
+        eppInput.getSingleExtension(ApplicationIdTargetExtension.class);
+    checkState(
+        extension.isPresent(),
+        "ApplicationIdTargetExtension must be used to provide the application ID");
+    return nullToEmpty(extension.get().getApplicationId());
   }
 
   @Provides
@@ -233,16 +237,18 @@ public class FlowModule {
       @Superuser boolean isSuperuser,
       @ClientId String clientId,
       EppInput eppInput) {
-    HistoryEntry.Builder historyBuilder = new HistoryEntry.Builder()
-        .setTrid(trid)
-        .setXmlBytes(inputXmlBytes)
-        .setBySuperuser(isSuperuser)
-        .setClientId(clientId);
-    MetadataExtension metadataExtension = eppInput.getSingleExtension(MetadataExtension.class);
-    if (metadataExtension != null) {
+    HistoryEntry.Builder historyBuilder =
+        new HistoryEntry.Builder()
+            .setTrid(trid)
+            .setXmlBytes(inputXmlBytes)
+            .setBySuperuser(isSuperuser)
+            .setClientId(clientId);
+    Optional<MetadataExtension> metadataExtension =
+        eppInput.getSingleExtension(MetadataExtension.class);
+    if (metadataExtension.isPresent()) {
       historyBuilder
-          .setReason(metadataExtension.getReason())
-          .setRequestedByRegistrar(metadataExtension.getRequestedByRegistrar());
+          .setReason(metadataExtension.get().getReason())
+          .setRequestedByRegistrar(metadataExtension.get().getRequestedByRegistrar());
     }
     return historyBuilder;
   }

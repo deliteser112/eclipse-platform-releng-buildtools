@@ -94,6 +94,7 @@ import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.model.smd.EncodedSignedMark;
+import java.util.Optional;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -216,10 +217,9 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     int years = command.getPeriod().getValue();
     validateRegistrationPeriod(years);
     validateCreateCommandContactsAndNameservers(command, registry, domainName);
-    LaunchCreateExtension launchCreate = eppInput.getSingleExtension(LaunchCreateExtension.class);
-    if (launchCreate != null) {
-      validateLaunchCreateExtension(launchCreate, registry, domainName, now);
-    }
+    LaunchCreateExtension launchCreate =
+        eppInput.getSingleExtension(LaunchCreateExtension.class).get();
+    validateLaunchCreateExtension(launchCreate, registry, domainName, now);
     boolean isAnchorTenant =
         matchesAnchorTenantReservation(domainName, authInfo.getPw().getValue());
     // Superusers can create reserved domains, force creations on domains that require a claims
@@ -232,10 +232,10 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
         verifyNotReserved(domainName, isSunriseApplication);
       }
     }
-    FeeCreateCommandExtension feeCreate =
+    Optional<FeeCreateCommandExtension> feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);
     validateFeeChallenge(targetId, tld, now, feeCreate, feesAndCredits);
-    SecDnsCreateExtension secDnsCreate =
+    Optional<SecDnsCreateExtension> secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
     customLogic.afterValidation(
         AfterValidationParameters.newBuilder()
@@ -254,7 +254,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
             .setPeriod(command.getPeriod())
             .setApplicationStatus(ApplicationStatus.VALIDATED)
             .addStatusValue(StatusValue.PENDING_CREATE)
-            .setDsData(secDnsCreate == null ? null : secDnsCreate.getDsData())
+            .setDsData(secDnsCreate.isPresent() ? secDnsCreate.get().getDsData() : null)
             .setRegistrant(command.getRegistrant())
             .setAuthInfo(command.getAuthInfo())
             .setFullyQualifiedDomainName(targetId)
@@ -377,7 +377,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
   private static ImmutableList<ResponseExtension> createResponseExtensions(
       String applicationId,
       LaunchPhase launchPhase,
-      FeeTransformCommandExtension feeCreate,
+      Optional<? extends FeeTransformCommandExtension> feeCreate,
       FeesAndCredits feesAndCredits) {
     ImmutableList.Builder<ResponseExtension> responseExtensionsBuilder =
         new ImmutableList.Builder<>();
@@ -385,8 +385,8 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
         .setPhase(launchPhase)
         .setApplicationId(applicationId)
         .build());
-    if (feeCreate != null) {
-      responseExtensionsBuilder.add(createFeeCreateResponse(feeCreate, feesAndCredits));
+    if (feeCreate.isPresent()) {
+      responseExtensionsBuilder.add(createFeeCreateResponse(feeCreate.get(), feesAndCredits));
     }
     return responseExtensionsBuilder.build();
   }
