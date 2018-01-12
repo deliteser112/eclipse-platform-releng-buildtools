@@ -29,8 +29,13 @@ import org.joda.time.DateTime;
 /** Utilities for extracting parameters from HTTP requests. */
 public final class RequestParameters {
 
-  /** The standardized request parameter name used by any servlet that takes a tld parameter. */
+  /** The standardized request parameter name used by any action that takes a tld parameter. */
   public static final String PARAM_TLD = "tld";
+
+  /**
+   * The standardized request parameter name used by any action that takes a year/month parameter.
+   */
+  public static final String PARAM_YEAR_MONTH = "yearMonth";
 
   /**
    * Returns first GET or POST parameter associated with {@code name}.

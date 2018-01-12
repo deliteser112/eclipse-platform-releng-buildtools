@@ -16,6 +16,7 @@ package google.registry.module.backend;
 
 import static google.registry.model.registry.Registries.assertTldExists;
 import static google.registry.model.registry.Registries.assertTldsExist;
+import static google.registry.request.RequestParameters.PARAM_YEAR_MONTH;
 import static google.registry.request.RequestParameters.extractOptionalDatetimeParameter;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
@@ -41,8 +42,6 @@ import org.joda.time.format.DateTimeFormatter;
  */
 @Module
 public class BackendModule {
-
-  private static final String PARAM_YEAR_MONTH = "yearMonth";
 
   @Provides
   @Parameter(RequestParameters.PARAM_TLD)

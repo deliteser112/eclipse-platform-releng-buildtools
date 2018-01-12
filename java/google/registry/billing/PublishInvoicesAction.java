@@ -15,6 +15,7 @@
 package google.registry.billing;
 
 import static google.registry.request.Action.Method.POST;
+import static google.registry.request.RequestParameters.PARAM_YEAR_MONTH;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_MODIFIED;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
@@ -112,7 +113,7 @@ public class PublishInvoicesAction implements Runnable {
     TaskOptions copyDetailTask =
         TaskOptions.Builder.withUrl(CopyDetailReportsAction.PATH)
             .method(TaskOptions.Method.POST)
-            .param(BillingModule.PARAM_YEAR_MONTH, yearMonth.toString());
+            .param(PARAM_YEAR_MONTH, yearMonth.toString());
     QueueFactory.getQueue(BillingModule.CRON_QUEUE).add(copyDetailTask);
   }
 }

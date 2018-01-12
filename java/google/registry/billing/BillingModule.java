@@ -43,7 +43,6 @@ public final class BillingModule {
   public static final String INVOICES_DIRECTORY = "invoices";
 
   static final String PARAM_JOB_ID = "jobId";
-  static final String PARAM_YEAR_MONTH = "yearMonth";
   static final String BILLING_QUEUE = "billing";
   static final String CRON_QUEUE = "retryable-cron-tasks";
 
