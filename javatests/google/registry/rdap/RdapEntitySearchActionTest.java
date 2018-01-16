@@ -852,6 +852,32 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
   }
 
   @Test
+  public void testNameMatchRegistrars_cursorNavigationThroughAll() throws Exception {
+    createManyContactsAndRegistrars(0, 13, registrarTest);
+    action.subtypeParam = Optional.of("registrars");
+    checkCursorNavigation(
+        QueryType.FULL_NAME,
+        "*",
+        ImmutableList.of(
+            "Entity 1",
+            "Entity 10",
+            "Entity 11",
+            "Entity 12",
+            "Entity 13",
+            "Entity 2",
+            "Entity 3",
+            "Entity 4",
+            "Entity 5",
+            "Entity 6",
+            "Entity 7",
+            "Entity 8",
+            "Entity 9",
+            "New Registrar",
+            "The Registrar",
+            "Yes Virginia <script>"));
+  }
+
+  @Test
   public void testNameMatchMix_truncated() throws Exception {
     login("2-RegistrarTest");
     createManyContactsAndRegistrars(3, 3, registrarTest);
@@ -1239,6 +1265,32 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
   public void testHandleMatchRegistrar_notFound_wildcard() throws Exception {
     runNotFoundHandleTest("3test*");
     verifyErrorMetrics(0);
+  }
+
+  @Test
+  public void testHandleMatchRegistrars_cursorNavigationThroughAll() throws Exception {
+    createManyContactsAndRegistrars(0, 13, registrarTest);
+    action.subtypeParam = Optional.of("registrars");
+    checkCursorNavigation(
+        QueryType.HANDLE,
+        "*",
+        ImmutableList.of(
+            "Entity 1",
+            "Entity 10",
+            "Entity 11",
+            "Entity 12",
+            "Entity 13",
+            "Entity 2",
+            "Entity 3",
+            "Entity 4",
+            "Entity 5",
+            "Entity 6",
+            "Entity 7",
+            "Entity 8",
+            "Entity 9",
+            "New Registrar",
+            "The Registrar",
+            "Yes Virginia <script>"));
   }
 
   @Test

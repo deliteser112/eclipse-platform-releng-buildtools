@@ -41,6 +41,7 @@ import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -194,6 +195,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
       results =
           searchByHandle(
               recordWildcardType(RdapSearchPattern.create(handleParam.get(), false)),
+              cursorType,
               cursorQueryString,
               subtype,
               now);
@@ -244,14 +246,17 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
       Optional<String> cursorQueryString,
       Subtype subtype,
       DateTime now) {
-    // For wildcard searches, make sure the initial string is long enough, and don't allow suffixes.
+    // Don't allow wildcard suffixes when searching for entities.
     if (partialStringQuery.getHasWildcard() && (partialStringQuery.getSuffix() != null)) {
       throw new UnprocessableEntityException(
           partialStringQuery.getHasWildcard()
               ? "Suffixes not allowed in wildcard entity name searches"
               : "Suffixes not allowed when searching for deleted entities");
     }
+    // For wildcards, make sure the initial string is long enough, except in the special case of
+    // searching for all registrars, where we aren't worried about inefficient searches.
     if (partialStringQuery.getHasWildcard()
+        && (subtype != Subtype.REGISTRARS)
         && (partialStringQuery.getInitialString().length()
             < RdapSearchPattern.MIN_INITIAL_STRING_LENGTH)) {
       throw new UnprocessableEntityException(
@@ -267,6 +272,8 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
     } else {
       registrars =
           Streams.stream(Registrar.loadAllCached())
+              .sorted(
+                  Comparator.comparing(Registrar::getRegistrarName, String.CASE_INSENSITIVE_ORDER))
               .filter(
                   registrar ->
                       partialStringQuery.matches(registrar.getRegistrarName())
@@ -320,6 +327,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
    */
   private RdapSearchResults searchByHandle(
       final RdapSearchPattern partialStringQuery,
+      CursorType cursorType,
       Optional<String> cursorQueryString,
       Subtype subtype,
       DateTime now) {
@@ -358,13 +366,34 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
           now);
     // Handle queries with a wildcard (or including deleted), but no suffix. Because the handle
     // for registrars is the IANA identifier number, don't allow wildcard searches for registrars,
-    // by simply not searching for registrars if a wildcard is present. Fetch an extra contact to
-    // detect result set truncation.
+    // by simply not searching for registrars if a wildcard is present (unless the request is for
+    // all registrars, in which case we know what to do). Fetch an extra contact to detect result
+    // set truncation.
     } else {
-      ImmutableList<Registrar> registrars =
-          ((subtype == Subtype.CONTACTS) || partialStringQuery.getHasWildcard())
-              ? ImmutableList.of()
-              : getMatchingRegistrars(partialStringQuery.getInitialString());
+      ImmutableList<Registrar> registrars;
+      if ((subtype == Subtype.REGISTRARS)
+          && partialStringQuery.getHasWildcard()
+          && partialStringQuery.getInitialString().isEmpty()) {
+        // Even though we are searching by IANA identifier, we should still sort by name, because
+        // the IANA identifier can by missing, and sorting on that would screw up our cursors.
+        registrars =
+            Streams.stream(Registrar.loadAllCached())
+                .sorted(
+                    Comparator.comparing(
+                        Registrar::getRegistrarName, String.CASE_INSENSITIVE_ORDER))
+                .filter(
+                    registrar ->
+                        ((cursorType != CursorType.REGISTRAR)
+                                || (registrar.getRegistrarName().compareTo(cursorQueryString.get())
+                                    > 0))
+                            && shouldBeVisible(registrar))
+                .limit(rdapResultSetMaxSize + 1)
+                .collect(toImmutableList());
+      } else if ((subtype == Subtype.CONTACTS) || partialStringQuery.getHasWildcard()) {
+        registrars = ImmutableList.of();
+      } else {
+        registrars = getMatchingRegistrars(partialStringQuery.getInitialString());
+      }
       // Get the contact matches and return the results, fetching an additional contact to detect
       // truncation. If we are including deleted entries, we must fetch more entries, in case some
       // get excluded due to permissioning. Any cursor present must be a contact cursor, because we
@@ -500,12 +529,7 @@ public class RdapEntitySearchAction extends RdapSearchActionBase {
       }
       jsonOutputList.add(rdapJsonFormatter.makeRdapJsonForRegistrar(
           registrar, false, fullServletPath, rdapWhoisServer, now, outputDataType));
-      newCursor =
-          Optional.of(
-              REGISTRAR_CURSOR_PREFIX
-                  + ((queryType == QueryType.FULL_NAME)
-                      ? registrar.getRegistrarName()
-                      : registrar.getIanaIdentifier()));
+      newCursor = Optional.of(REGISTRAR_CURSOR_PREFIX + registrar.getRegistrarName());
     }
     return RdapSearchResults.create(
         ImmutableList.copyOf(jsonOutputList),
