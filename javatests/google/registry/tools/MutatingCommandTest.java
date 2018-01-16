@@ -15,7 +15,6 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteResource;
@@ -273,18 +272,14 @@ public class MutatingCommandTest {
             + "\n"
             + "Update Registrar@Registrar2\n"
             + "blockPremiumNames: false -> true\n");
-    try {
-      command.execute();
-      assertWithMessage("Expected transaction to fail with IllegalStateException").fail();
-    } catch (IllegalStateException e) {
-      assertThat(e.getMessage()).contains("Entity changed since init() was called.");
-      assertThat(ofy().load().entity(host1).now()).isNull();
-      assertThat(ofy().load().entity(host2).now()).isEqualTo(newHost2);
 
-      // These two shouldn't've changed.
-      assertThat(ofy().load().entity(registrar1).now()).isEqualTo(registrar1);
-      assertThat(ofy().load().entity(registrar2).now()).isEqualTo(registrar2);
-    }
+    IllegalStateException thrown = expectThrows(IllegalStateException.class, command::execute);
+    assertThat(thrown).hasMessageThat().contains("Entity changed since init() was called.");
+    assertThat(ofy().load().entity(host1).now()).isNull();
+    assertThat(ofy().load().entity(host2).now()).isEqualTo(newHost2);
+    // These two shouldn't've changed.
+    assertThat(ofy().load().entity(registrar1).now()).isEqualTo(registrar1);
+    assertThat(ofy().load().entity(registrar2).now()).isEqualTo(registrar2);
   }
 
   @Test

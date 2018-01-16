@@ -64,8 +64,8 @@ public final class CommitLogManifestInputTest {
       reader.beginSlice();
       seen.add(reader.next());
       try {
-        reader.next();
-        assert_().fail("Unexpected element");
+        Key<CommitLogManifest> key = reader.next();
+        assert_().fail("Unexpected element: " + key);
       } catch (NoSuchElementException expected) {
       }
     }
@@ -88,10 +88,12 @@ public final class CommitLogManifestInputTest {
       reader.beginShard();
       reader.beginSlice();
       try {
+        Key<CommitLogManifest> key = null;
         for (int i = 0; i < 10; i++) {
-          seen.add(reader.next());
+          key = reader.next();
+          seen.add(key);
         }
-        assert_().fail("Unexpected element");
+        assert_().fail("Unexpected element: " + key);
       } catch (NoSuchElementException expected) {
       }
     }
@@ -114,10 +116,12 @@ public final class CommitLogManifestInputTest {
       reader.beginShard();
       reader.beginSlice();
       try {
+        Key<CommitLogManifest> key = null;
         for (int i = 0; i < 10; i++) {
-          seen.add(reader.next());
+          key = reader.next();
+          seen.add(key);
         }
-        assert_().fail("Unexpected element");
+        assert_().fail("Unexpected element: " + key);
       } catch (NoSuchElementException expected) {
       }
     }

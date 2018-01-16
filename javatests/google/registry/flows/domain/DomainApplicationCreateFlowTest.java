@@ -17,7 +17,6 @@ package google.registry.flows.domain;
 import static com.google.common.collect.Iterables.getLast;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
@@ -1603,21 +1602,14 @@ public class DomainApplicationCreateFlowTest
     persistContactsAndHosts();
     clock.advanceOneMilli();
     persistActiveDomain(getUniqueIdFromCommand());
-    try {
-      runFlow();
-      assert_()
-          .fail(
-              "Expected to throw ResourceAlreadyExistsException with message "
-                  + "Object with given ID (%s) already exists",
-              getUniqueIdFromCommand());
-    } catch (ResourceAlreadyExistsException e) {
-      assertAboutEppExceptions()
-          .that(e)
-          .marshalsToXml()
-          .and()
-          .hasMessage(
-              String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
-    }
+    ResourceAlreadyExistsException thrown =
+        expectThrows(ResourceAlreadyExistsException.class, this::runFlow);
+    assertAboutEppExceptions()
+        .that(thrown)
+        .marshalsToXml()
+        .and()
+        .hasMessage(
+            String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
   }
 
   @Test
@@ -1631,7 +1623,7 @@ public class DomainApplicationCreateFlowTest
             .build());
     RegistrantNotAllowedException thrown =
         expectThrows(RegistrantNotAllowedException.class, this::runFlow);
-    assertThat(thrown).hasMessageThat().contains("jd1234");
+    assertAboutEppExceptions().that(thrown).marshalsToXml().and().hasMessageThatContains("jd1234");
   }
 
   @Test
@@ -1644,7 +1636,11 @@ public class DomainApplicationCreateFlowTest
             .build());
     NameserversNotAllowedForTldException thrown =
         expectThrows(NameserversNotAllowedForTldException.class, this::runFlow);
-    assertThat(thrown).hasMessageThat().contains("ns1.example.net");
+    assertAboutEppExceptions()
+        .that(thrown)
+        .marshalsToXml()
+        .and()
+        .hasMessageThatContains("ns1.example.net");
   }
 
   @Test

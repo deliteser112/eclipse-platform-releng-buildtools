@@ -140,8 +140,8 @@ public class EppResourceInputsTest {
       reader.beginSlice();
       seen.add(reader.next());
       try {
-        reader.next();
-        assert_().fail("Unexpected element");
+        Key<DomainBase> key = reader.next();
+        assert_().fail("Unexpected element: " + key);
       } catch (NoSuchElementException expected) {
       }
     }
@@ -165,8 +165,8 @@ public class EppResourceInputsTest {
       reader.beginSlice();
       seen.add(reader.next());
       try {
-        reader.next();
-        assert_().fail("Unexpected element");
+        DomainResource domain = reader.next();
+        assert_().fail("Unexpected element: " + domain);
       } catch (NoSuchElementException expected) {
       }
     }

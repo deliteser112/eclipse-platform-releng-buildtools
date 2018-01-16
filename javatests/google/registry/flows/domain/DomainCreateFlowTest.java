@@ -16,7 +16,6 @@ package google.registry.flows.domain;
 
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
 import static google.registry.model.eppcommon.StatusValue.OK;
@@ -998,21 +997,14 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testFailure_alreadyExists() throws Exception {
     persistContactsAndHosts();
     persistActiveDomain(getUniqueIdFromCommand());
-    try {
-      runFlow();
-      assert_()
-          .fail(
-              "Expected to throw ResourceAlreadyExistsException with message "
-                  + "Object with given ID (%s) already exists",
-              getUniqueIdFromCommand());
-    } catch (ResourceAlreadyExistsException e) {
-      assertAboutEppExceptions()
-          .that(e)
-          .marshalsToXml()
-          .and()
-          .hasMessage(
-              String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
-    }
+    ResourceAlreadyExistsException thrown =
+        expectThrows(ResourceAlreadyExistsException.class, this::runFlow);
+    assertAboutEppExceptions()
+        .that(thrown)
+        .marshalsToXml()
+        .and()
+        .hasMessage(
+            String.format("Object with given ID (%s) already exists", getUniqueIdFromCommand()));
   }
 
   @Test

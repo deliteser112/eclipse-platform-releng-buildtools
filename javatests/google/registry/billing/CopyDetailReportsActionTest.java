@@ -15,10 +15,10 @@
 package google.registry.billing;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.GcsTestingUtils.writeGcsFile;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.mockito.Matchers.any;
@@ -169,12 +169,8 @@ public class CopyDetailReportsActionTest {
     when(driveConnection.createFile(any(), any(), any(), any()))
         .thenThrow(new IOException("expected"));
 
-    try {
-      action.run();
-      assertWithMessage("Expected a runtime exception to be thrown!").fail();
-    } catch (RuntimeException e) {
-      assertThat(e).hasMessageThat().isEqualTo("java.io.IOException: expected");
-    }
+    RuntimeException thrown = expectThrows(RuntimeException.class, action::run);
+    assertThat(thrown).hasMessageThat().isEqualTo("java.io.IOException: expected");
     verify(driveConnection, times(3))
         .createFile(
             "invoice_details_2017-10_TheRegistrar_hello.csv",

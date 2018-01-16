@@ -16,7 +16,6 @@ package google.registry.whois;
 
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
@@ -25,6 +24,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResou
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.whois.WhoisTestData.loadFile;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
@@ -379,12 +379,8 @@ public class WhoisHttpServerTest {
         .thenThrow(new IOException("missing cat interface"));
     server.whoisMetrics = mock(WhoisMetrics.class);
 
-    try {
-      server.run();
-      assert_().fail("Should have thrown RuntimeException");
-    } catch (RuntimeException e) {
-      assertThat(e.getCause().getMessage()).isEqualTo("missing cat interface");
-    }
+    RuntimeException thrown = expectThrows(RuntimeException.class, server::run);
+    assertThat(thrown).hasCauseThat().hasMessageThat().isEqualTo("missing cat interface");
     WhoisMetric expected =
         WhoisMetric.builderForRequest(clock)
             .setNumResults(0)

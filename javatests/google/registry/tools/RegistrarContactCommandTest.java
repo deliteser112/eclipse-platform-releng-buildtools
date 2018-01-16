@@ -23,6 +23,7 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
@@ -191,17 +192,18 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
             .setGaeUserId("11111")
             .setVisibleInDomainWhoisAsAbuse(true)
             .build());
-    try {
-      runCommandForced(
-          "--mode=UPDATE",
-          "--email=john.doe@example.com",
-          "--visible_in_domain_whois_as_abuse=false",
-          "NewRegistrar");
-      throw new Exception(
-          "Expected IllegalArgumentException: Cannot clear visible_in_domain_whois_as_abuse flag");
-    } catch (IllegalArgumentException e) {
-      assertThat(e).hasMessageThat().contains("Cannot clear visible_in_domain_whois_as_abuse flag");
-    }
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--mode=UPDATE",
+                    "--email=john.doe@example.com",
+                    "--visible_in_domain_whois_as_abuse=false",
+                    "NewRegistrar"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("Cannot clear visible_in_domain_whois_as_abuse flag");
     RegistrarContact registrarContact = loadRegistrar("NewRegistrar").getContacts().asList().get(1);
     assertThat(registrarContact.getVisibleInDomainWhoisAsAbuse()).isTrue();
   }
@@ -323,16 +325,13 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
     RegistrarContact registrarContact = loadRegistrar("NewRegistrar").getContacts().asList().get(0);
     persistSimpleResource(
         registrarContact.asBuilder().setVisibleInDomainWhoisAsAbuse(true).build());
-    try {
-      runCommandForced(
-          "--mode=DELETE",
-          "--email=janedoe@theregistrar.com",
-          "NewRegistrar");
-      throw new Exception(
-          "Expected IllegalArgumentException: Cannot delete the domain WHOIS abuse contact");
-    } catch (IllegalArgumentException e) {
-      assertThat(e).hasMessageThat().contains("Cannot delete the domain WHOIS abuse contact");
-    }
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--mode=DELETE", "--email=janedoe@theregistrar.com", "NewRegistrar"));
+    assertThat(thrown).hasMessageThat().contains("Cannot delete the domain WHOIS abuse contact");
     assertThat(loadRegistrar("NewRegistrar").getContacts()).isNotEmpty();
   }
 

@@ -15,7 +15,7 @@
 package google.registry.reporting;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Mockito.mock;
@@ -135,13 +135,9 @@ public class IcannReportingStagingActionTest {
         createAction(ImmutableList.of(ReportType.ACTIVITY));
     when(stager.stageReports(ReportType.ACTIVITY))
         .thenThrow(new BigqueryJobFailureException("Expected failure", null, null, null));
-    try {
-      action.run();
-      assertWithMessage("Expected to encounter a BigqueryJobFailureException").fail();
-    } catch (BigqueryJobFailureException expected) {
-      // Expect the exception.
-      assertThat(expected).hasMessageThat().isEqualTo("Expected failure");
-    }
+    BigqueryJobFailureException thrown =
+        expectThrows(BigqueryJobFailureException.class, action::run);
+    assertThat(thrown).hasMessageThat().isEqualTo("Expected failure");
     verify(stager, times(3)).stageReports(ReportType.ACTIVITY);
     verify(emailUtils)
         .emailResults(

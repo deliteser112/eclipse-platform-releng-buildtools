@@ -41,6 +41,11 @@ public class EppExceptionSubject extends Subject<EppExceptionSubject, EppExcepti
     return new And<>(this);
   }
 
+  public And<EppExceptionSubject> hasMessageThatContains(String expected) {
+    assertThat(actual()).hasMessageThat().contains(expected);
+    return new And<>(this);
+  }
+
   public And<EppExceptionSubject> marshalsToXml() {
     // Attempt to marshal the exception to EPP. If it doesn't work, this will throw.
     try {

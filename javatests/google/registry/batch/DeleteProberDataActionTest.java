@@ -15,7 +15,6 @@
 package google.registry.batch;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
@@ -26,6 +25,7 @@ import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistDomainAsDeleted;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -207,13 +207,8 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
             .setCreationTimeForTest(DateTime.now(UTC).minusYears(1))
             .build());
     action.registryAdminClientId = null;
-    try {
-      runMapreduce();
-    } catch (IllegalStateException e) {
-      assertThat(e).hasMessageThat().contains("Registry admin client ID must be configured");
-      return;
-    }
-    assert_().fail("Expected IllegalStateException");
+    IllegalStateException thrown = expectThrows(IllegalStateException.class, this::runMapreduce);
+    assertThat(thrown).hasMessageThat().contains("Registry admin client ID must be configured");
   }
 
   /**

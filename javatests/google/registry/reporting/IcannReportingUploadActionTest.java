@@ -15,8 +15,8 @@
 package google.registry.reporting;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.testing.GcsTestingUtils.writeGcsFile;
+import static google.registry.testing.JUnitBackports.expectThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -144,14 +144,10 @@ public class IcannReportingUploadActionTest {
   public void testFail_FileNotFound() throws Exception {
     IcannReportingUploadAction action = createAction();
     action.subdir = "somewhere/else";
-    try {
-      action.run();
-      assertWithMessage("Expected IllegalStateException to be thrown").fail();
-    } catch (IllegalArgumentException expected) {
-      assertThat(expected)
-          .hasMessageThat()
-          .isEqualTo("Object MANIFEST.txt in bucket basin/somewhere/else not found");
-    }
+    IllegalArgumentException thrown = expectThrows(IllegalArgumentException.class, action::run);
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Object MANIFEST.txt in bucket basin/somewhere/else not found");
   }
 }
 
