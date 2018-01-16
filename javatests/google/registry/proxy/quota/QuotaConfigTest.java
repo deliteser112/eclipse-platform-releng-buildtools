@@ -34,13 +34,16 @@ public class QuotaConfigTest {
   private static QuotaConfig loadQuotaConfig(String filename) {
     return new QuotaConfig(
         new Yaml()
-            .loadAs(readResourceUtf8(QuotaConfigTest.class, "testdata/" + filename), Quota.class));
+            .loadAs(readResourceUtf8(QuotaConfigTest.class, "testdata/" + filename), Quota.class),
+        "theProtocol");
   }
 
   private void validateQuota(String userId, int tokenAmount, int refillSeconds) {
+    assertThat(quotaConfig.hasUnlimitedTokens(userId)).isFalse();
     assertThat(quotaConfig.getTokenAmount(userId)).isEqualTo(tokenAmount);
     assertThat(quotaConfig.getRefillPeriod(userId))
         .isEqualTo(Duration.standardSeconds(refillSeconds));
+    assertThat(quotaConfig.getProtocolName()).isEqualTo("theProtocol");
   }
 
   @Test
@@ -59,6 +62,24 @@ public class QuotaConfigTest {
     validateQuota("abc", 100, 60);
     validateQuota("987lol", 100, 60);
     validateQuota("no_match", 100, 60);
+  }
+
+  @Test
+  public void testSuccess_noRefresh_noRefill() {
+    quotaConfig = loadQuotaConfig("quota_config_no_refresh_no_refill.yaml");
+    assertThat(quotaConfig.getRefreshPeriod()).isEqualTo(Duration.ZERO);
+    assertThat(quotaConfig.getRefillPeriod("no_match")).isEqualTo(Duration.ZERO);
+  }
+
+  @Test
+  public void testFailure_getTokenAmount_throwsOnUnlimitedTokens() {
+    quotaConfig = loadQuotaConfig("quota_config_unlimited_tokens.yaml");
+    assertThat(quotaConfig.hasUnlimitedTokens("some_user")).isTrue();
+    IllegalStateException e =
+        expectThrows(IllegalStateException.class, () -> quotaConfig.getTokenAmount("some_user"));
+    assertThat(e)
+        .hasMessageThat()
+        .contains("User ID some_user is provisioned with unlimited tokens");
   }
 
   @Test

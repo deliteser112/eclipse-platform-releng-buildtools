@@ -1,0 +1,8 @@
+refreshSeconds: 0
+
+defaultQuota:
+  userId: []
+  tokenAmount: 100
+  refillSeconds: 0
+
+customQuota: []
