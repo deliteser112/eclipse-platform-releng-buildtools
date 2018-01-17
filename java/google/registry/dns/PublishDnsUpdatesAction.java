@@ -162,6 +162,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
     } finally {
       Duration duration = new Duration(timeAtStart, clock.nowUtc());
       dnsMetrics.recordCommit(
+          dnsWriter,
           commitStatus,
           duration,
           domainsPublished,

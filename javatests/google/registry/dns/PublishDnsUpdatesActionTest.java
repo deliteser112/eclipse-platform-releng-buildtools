@@ -110,7 +110,7 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
     verify(dnsMetrics).incrementPublishHostRequests(1, PublishStatus.ACCEPTED);
     verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.REJECTED);
-    verify(dnsMetrics).recordCommit(CommitStatus.SUCCESS, Duration.ZERO, 0, 1);
+    verify(dnsMetrics).recordCommit("correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 0, 1);
     verifyNoMoreInteractions(dnsMetrics);
 
     verifyNoMoreInteractions(dnsQueue);
@@ -130,7 +130,7 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
     verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.ACCEPTED);
     verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.REJECTED);
-    verify(dnsMetrics).recordCommit(CommitStatus.SUCCESS, Duration.ZERO, 1, 0);
+    verify(dnsMetrics).recordCommit("correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 1, 0);
     verifyNoMoreInteractions(dnsMetrics);
 
     verifyNoMoreInteractions(dnsQueue);
@@ -156,7 +156,7 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
     verify(dnsMetrics).incrementPublishHostRequests(3, PublishStatus.ACCEPTED);
     verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.REJECTED);
-    verify(dnsMetrics).recordCommit(CommitStatus.SUCCESS, Duration.ZERO, 2, 3);
+    verify(dnsMetrics).recordCommit("correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 2, 3);
     verifyNoMoreInteractions(dnsMetrics);
 
     verifyNoMoreInteractions(dnsQueue);
@@ -176,7 +176,7 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsMetrics).incrementPublishDomainRequests(2, PublishStatus.REJECTED);
     verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.ACCEPTED);
     verify(dnsMetrics).incrementPublishHostRequests(3, PublishStatus.REJECTED);
-    verify(dnsMetrics).recordCommit(CommitStatus.SUCCESS, Duration.ZERO, 0, 0);
+    verify(dnsMetrics).recordCommit("correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 0, 0);
     verifyNoMoreInteractions(dnsMetrics);
 
     verifyNoMoreInteractions(dnsQueue);

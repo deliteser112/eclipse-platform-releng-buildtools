@@ -49,8 +49,8 @@ public class DnsMetrics {
   private static final ImmutableSet<LabelDescriptor> LABEL_DESCRIPTORS_FOR_COMMIT =
       ImmutableSet.of(
           LabelDescriptor.create("tld", "TLD"),
-          LabelDescriptor.create(
-              "status", "Whether writer.commit() succeeded or failed."));
+          LabelDescriptor.create("status", "Whether writer.commit() succeeded or failed."),
+          LabelDescriptor.create("dnsWriter", "The DnsWriter used."));
 
   // Finer-grained fitter than the DEFAULT_FITTER, allows values between 1. and 2^20, which gives
   // over 15 minutes.
@@ -191,6 +191,7 @@ public class DnsMetrics {
    * This is to be used for load testing the system, and will not measure anything in prod.
    */
   void recordCommit(
+      String dnsWriter,
       CommitStatus status,
       Duration processingDuration,
       int numberOfDomains,
@@ -201,26 +202,27 @@ public class DnsMetrics {
     }
     int batchSize = numberOfDomains + numberOfHosts;
 
-    processingTimePerCommitDist.record(processingDuration.getMillis(), tld, status.name());
+    processingTimePerCommitDist.record(
+        processingDuration.getMillis(), tld, status.name(), dnsWriter);
     processingTimePerItemDist.record(
-        processingDuration.getMillis(), batchSize, tld, status.name());
+        processingDuration.getMillis(), batchSize, tld, status.name(), dnsWriter);
 
     if (batchSize > 0) {
       normalizedProcessingTimePerCommitDist.record(
           (double) processingDuration.getMillis() / batchSize,
-          tld, status.name());
+          tld, status.name(), dnsWriter);
       normalizedProcessingTimePerItemDist.record(
           (double) processingDuration.getMillis() / batchSize,
           batchSize,
-          tld, status.name());
+          tld, status.name(), dnsWriter);
     }
 
-    totalBatchSizePerCommitDist.record(batchSize, tld, status.name());
+    totalBatchSizePerCommitDist.record(batchSize, tld, status.name(), dnsWriter);
 
-    totalBatchSizePerItemDist.record(batchSize, batchSize, tld, status.name());
+    totalBatchSizePerItemDist.record(batchSize, batchSize, tld, status.name(), dnsWriter);
 
-    commitCount.increment(tld, status.name());
-    domainsCommittedCount.incrementBy(numberOfDomains, tld, status.name());
-    hostsCommittedCount.incrementBy(numberOfHosts, tld, status.name());
+    commitCount.increment(tld, status.name(), dnsWriter);
+    domainsCommittedCount.incrementBy(numberOfDomains, tld, status.name(), dnsWriter);
+    hostsCommittedCount.incrementBy(numberOfHosts, tld, status.name(), dnsWriter);
   }
 }
