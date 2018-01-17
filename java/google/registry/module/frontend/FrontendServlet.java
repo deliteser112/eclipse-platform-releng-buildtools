@@ -62,6 +62,7 @@ public final class FrontendServlet extends HttpServlet {
 
   @Override
   public void service(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+    logger.info("Received frontend request");
     requestHandler.handleRequest(req, rsp);
   }
 }

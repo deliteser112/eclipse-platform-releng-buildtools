@@ -14,6 +14,7 @@
 
 package google.registry.module.tools;
 
+import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.security.Security;
 import javax.servlet.http.HttpServlet;
@@ -26,6 +27,7 @@ public final class ToolsServlet extends HttpServlet {
 
   private static final ToolsComponent component = DaggerToolsComponent.create();
   private static final ToolsRequestHandler requestHandler = component.requestHandler();
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Override
   public void init() {
@@ -34,6 +36,7 @@ public final class ToolsServlet extends HttpServlet {
 
   @Override
   public void service(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+    logger.info("Received tools request");
     requestHandler.handleRequest(req, rsp);
   }
 }

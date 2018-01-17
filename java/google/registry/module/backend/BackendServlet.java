@@ -62,6 +62,7 @@ public final class BackendServlet extends HttpServlet {
 
   @Override
   public void service(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+    logger.info("Received backend request");
     requestHandler.handleRequest(req, rsp);
   }
 }
