@@ -274,14 +274,18 @@ public final class RegistryConfig {
     @Config("dnsWriteLockTimeout")
     public static Duration provideDnsWriteLockTimeout() {
       /*
-       * Optimally, we would set this to a little less than the length of the DNS refresh cycle,
-       * since otherwise, a new PublishDnsUpdatesAction could get kicked off before the current one
-       * has finished, which will try and fail to acquire the lock. However, it is more important
-       * that it be greater than the DNS write timeout, so that if that timeout occurs, it will be
-       * cleaned up gracefully, rather than having the lock time out. So we have to live with the
-       * possible lock failures.
+       * This is the maximum lock duration for publishing the DNS updates, meaning it should allow
+       * the various DnsWriters to publish and commit an entire batch (with a maximum number of
+       * items set by provideDnsTldUpdateBatchSize).
+       *
+       * Any update that takes longer than this timeout will be killed and retried from scratch.
+       * Hence, a timeout that's too short can result in batches that retry over and over again,
+       * failing forever.
+       *
+       * If there are lock contention issues, they should be solved by changing the batch sizes
+       * or the cron job rate, NOT by making this value smaller.
        */
-      return Duration.standardSeconds(75);
+      return Duration.standardMinutes(3);
     }
 
     /**
