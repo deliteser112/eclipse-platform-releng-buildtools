@@ -62,13 +62,13 @@ public final class CommitLogCheckpointAction implements Runnable {
   @Override
   public void run() {
     final CommitLogCheckpoint checkpoint = strategy.computeCheckpoint();
-    logger.info("Generated candidate checkpoint for time " + checkpoint.getCheckpointTime());
+    logger.infofmt("Generated candidate checkpoint for time: %s", checkpoint.getCheckpointTime());
     ofy()
         .transact(
             () -> {
               DateTime lastWrittenTime = CommitLogCheckpointRoot.loadRoot().getLastWrittenTime();
               if (isBeforeOrAt(checkpoint.getCheckpointTime(), lastWrittenTime)) {
-                logger.info("Newer checkpoint already written at time: " + lastWrittenTime);
+                logger.infofmt("Newer checkpoint already written at time: %s", lastWrittenTime);
                 return;
               }
               ofy()

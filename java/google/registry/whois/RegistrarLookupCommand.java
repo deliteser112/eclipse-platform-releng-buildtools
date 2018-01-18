@@ -56,9 +56,9 @@ final class RegistrarLookupCommand implements WhoisCommand {
               }
               String normalized = normalizeRegistrarName(registrar.getRegistrarName());
               if (map.put(normalized, registrar) != null) {
-                logger.warning(
-                    normalized
-                        + " appeared as a normalized registrar name for more than one registrar");
+                logger.warningfmt(
+                    "%s appeared as a normalized registrar name for more than one registrar.",
+                    normalized);
               }
             }
             // Use the normalized registrar name without its last word as a key, assuming there are

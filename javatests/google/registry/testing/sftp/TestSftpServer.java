@@ -16,6 +16,7 @@ package google.registry.testing.sftp;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import google.registry.util.FormattingLogger;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -23,8 +24,6 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 import java.security.Security;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.ftplet.FtpException;
@@ -48,7 +47,7 @@ import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 /** In-process SFTP server using Apache SSHD. */
 public class TestSftpServer implements FtpServer {
 
-  private static final Logger logger = Logger.getLogger(TestSftpServer.class.getName());
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   private static SingletonRandomFactory secureRandomFactory;
 
@@ -94,10 +93,10 @@ public class TestSftpServer implements FtpServer {
     try (PEMParser pemParser = new PEMParser(new StringReader(key))) {
       PEMKeyPair pemPair = (PEMKeyPair) pemParser.readObject();
       KeyPair result = new JcaPEMKeyConverter().setProvider("BC").getKeyPair(pemPair);
-      logger.info("Read key pair " + result);
+      logger.infofmt("Read key pair %s", result);
       return result;
     } catch (IOException e) {
-      logger.log(Level.SEVERE, "Couldn't read key pair from string(!)", e);
+      logger.severe(e, "Couldn't read key pair from string.");
       return null;
     }
   }
@@ -190,7 +189,7 @@ public class TestSftpServer implements FtpServer {
       server.stop(true);
       stopped = true;
     } catch (IOException e) {
-      logger.log(Level.WARNING, "Error shutting down server", e);
+      logger.warning(e, "Error shutting down server");
     }
   }
 
@@ -201,7 +200,6 @@ public class TestSftpServer implements FtpServer {
       server.start();
       stopped = false;
     } catch (IOException e) {
-      logger.log(Level.WARNING, "Couldn't start server", e);
       throw new FtpException("Couldn't start server", e);
     }
   }

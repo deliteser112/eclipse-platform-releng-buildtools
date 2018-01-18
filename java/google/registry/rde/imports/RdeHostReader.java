@@ -65,7 +65,7 @@ public class RdeHostReader extends InputReader<JaxbFragment<XjcRdeHostElement>>
       parser.skipHosts(offset + count);
       return parser;
     } catch (Exception e) {
-      logger.severefmt(e, "Error opening rde file %s/%s", importBucketName, importFileName);
+      logger.severefmt(e, "Error opening RDE file %s/%s", importBucketName, importFileName);
       throw new RuntimeException(e);
     }
   }

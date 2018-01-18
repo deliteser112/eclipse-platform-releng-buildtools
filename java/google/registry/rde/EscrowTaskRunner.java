@@ -87,14 +87,14 @@ class EscrowTaskRunner {
       final Duration interval) {
     Callable<Void> lockRunner =
         () -> {
-          logger.info("tld=" + registry.getTld());
+          logger.infofmt("TLD: %s", registry.getTld());
           DateTime startOfToday = clock.nowUtc().withTimeAtStartOfDay();
           Cursor cursor = ofy().load().key(Cursor.createKey(cursorType, registry)).now();
           final DateTime nextRequiredRun = (cursor == null ? startOfToday : cursor.getCursorTime());
           if (nextRequiredRun.isAfter(startOfToday)) {
             throw new NoContentException("Already completed");
           }
-          logger.info("cursor=" + nextRequiredRun);
+          logger.infofmt("Cursor: %s", nextRequiredRun);
           task.runWithLock(nextRequiredRun);
           ofy()
               .transact(

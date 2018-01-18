@@ -195,6 +195,10 @@ public abstract class HttpException extends RuntimeException {
       super(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message, null);
     }
 
+    public InternalServerErrorException(String message, Throwable cause) {
+      super(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, message, cause);
+    }
+
     @Override
     public String getResponseCodeString() {
       return "Internal Server Error";

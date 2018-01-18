@@ -56,7 +56,8 @@ public final class TmchSmdrlAction implements Runnable {
     }
     SignedMarkRevocationList smdrl = SmdrlCsvParser.parse(lines);
     smdrl.save();
-    logger.infofmt("Inserted %,d smd revocations into Datastore, created at %s",
+    logger.infofmt(
+        "Inserted %,d smd revocations into Datastore, created at %s",
         smdrl.size(), smdrl.getCreationTime());
   }
 }

@@ -121,10 +121,9 @@ public final class PublishDetailReportAction implements Runnable, JsonAction {
         throw new IllegalArgumentException(e.getMessage(), e);
       }
     } catch (Throwable e) {
-      logger.severe(e, e.toString());
       String message = firstNonNull(e.getMessage(), e.toString());
       throw e instanceof IllegalArgumentException
-          ? new BadRequestException(message) : new InternalServerErrorException(message);
+          ? new BadRequestException(message, e) : new InternalServerErrorException(message, e);
     }
   }
 

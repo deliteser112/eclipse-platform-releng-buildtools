@@ -101,7 +101,7 @@ public class GenerateInvoicesAction implements Runnable {
       String jobId = launchResponse.getJob().getId();
       enqueuePublishTask(jobId);
     } catch (IOException e) {
-      logger.warningfmt("Template Launch failed due to: %s", e.getMessage());
+      logger.warning(e, "Template Launch failed");
       emailUtils.sendAlertEmail(String.format("Template Launch failed due to %s", e.getMessage()));
       response.setStatus(SC_INTERNAL_SERVER_ERROR);
       response.setContentType(MediaType.PLAIN_TEXT_UTF_8);

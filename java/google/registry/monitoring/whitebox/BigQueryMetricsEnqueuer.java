@@ -58,7 +58,7 @@ public class BigQueryMetricsEnqueuer {
       queue.add(opts);
     } catch (TransientFailureException e) {
       // Log and swallow. We may drop some metrics here but this should be rare.
-      logger.info(e, e.getMessage());
+      logger.info(e, "Transient error occurred while recording metric; metric dropped.");
     }
   }
 }

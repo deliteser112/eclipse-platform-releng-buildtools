@@ -124,7 +124,7 @@ public final class ComparatorKeyring extends ComparingInvocationHandler<Keyring>
       return Arrays.equals(a.getFingerprint(), b.getFingerprint())
           && Arrays.equals(a.getEncoded(), b.getEncoded());
     } catch (IOException e) {
-      logger.severefmt("ComparatorKeyring error: PGPPublicKey.getEncoded failed: %s", e);
+      logger.severe(e, "ComparatorKeyring error: PGPPublicKey.getEncoded failed.");
       return false;
     }
   }
@@ -147,7 +147,7 @@ public final class ComparatorKeyring extends ComparingInvocationHandler<Keyring>
     try {
       return Arrays.equals(a.getEncoded(), b.getEncoded());
     } catch (IOException e) {
-      logger.severefmt("ComparatorKeyring error: PublicKeyPacket.getEncoded failed: %s", e);
+      logger.severe(e, "ComparatorKeyring error: PublicKeyPacket.getEncoded failed.");
       return false;
     }
   }

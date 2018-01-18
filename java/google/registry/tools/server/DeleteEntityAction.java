@@ -112,8 +112,8 @@ public class DeleteEntityAction implements Runnable {
     try {
       return Optional.ofNullable(getDatastoreService().get(rawKey));
     } catch (EntityNotFoundException e) {
-      logger.warningfmt(e, "Could not load entity from Datastore service with key %s",
-          rawKey.toString());
+      logger.warningfmt(
+          e, "Could not load entity from Datastore service with key %s", rawKey.toString());
       return Optional.empty();
     }
   }

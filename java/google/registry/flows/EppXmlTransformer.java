@@ -130,7 +130,8 @@ public class EppXmlTransformer  {
       try {
         byte[] lenient = EppXmlTransformer.marshal(eppOutput, LENIENT);
         // Marshaling worked even though the results didn't validate against the schema.
-        logger.severe(e, "Result marshaled but did not validate: " + new String(lenient, UTF_8));
+        logger.severefmt(
+            e, "Result marshaled but did not validate: %s", new String(lenient, UTF_8));
         return lenient;
       } catch (XmlException e2) {
         throw new RuntimeException(e2);  // Failing to marshal at all is not recoverable.

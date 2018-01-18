@@ -51,12 +51,12 @@ public final class FrontendServlet extends HttpServlet {
                 try {
                   metricReporter.get().stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
                   logger.info("Shut down MetricReporter");
-                } catch (TimeoutException timeoutException) {
-                  logger.severefmt("Failed to stop MetricReporter: %s", timeoutException);
+                } catch (TimeoutException e) {
+                  logger.severe(e, "Failed to stop MetricReporter.");
                 }
               });
     } catch (Exception e) {
-      logger.severefmt(e, "Failed to initialize MetricReporter: %s");
+      logger.severe(e, "Failed to initialize MetricReporter.");
     }
   }
 

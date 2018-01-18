@@ -31,6 +31,7 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
 import google.registry.util.FormattingLogger;
 import java.util.Optional;
+import java.util.logging.Level;
 import javax.inject.Inject;
 import org.json.simple.JSONValue;
 
@@ -64,37 +65,44 @@ public class FlowReporter {
   public void recordToLogs() {
     // WARNING: These log statements are parsed by reporting pipelines - be careful when changing.
     // It should be safe to add new keys, but be very cautious in changing existing keys.
-    logger.infofmt(
-        "%s: %s",
-        EPPINPUT_LOG_SIGNATURE,
-        JSONValue.toJSONString(
-            ImmutableMap.<String, Object>of(
-                "xml", prettyPrint(inputXmlBytes),
-                "xmlBytes", base64().encode(inputXmlBytes))));
+    if (logger.isLoggable(Level.INFO)) {
+      logger.infofmt(
+          "%s: %s",
+          EPPINPUT_LOG_SIGNATURE,
+          JSONValue.toJSONString(
+              ImmutableMap.<String, Object>of(
+                  "xml", prettyPrint(inputXmlBytes),
+                  "xmlBytes", base64().encode(inputXmlBytes))));
+    }
     // Explicitly log flow metadata separately from the EPP XML itself so that it stays compact
     // enough to be sure to fit in a single log entry (the XML part in rare cases could be long
     // enough to overflow into multiple log entries, breaking routine parsing of the JSON format).
     String singleTargetId = eppInput.getSingleTargetId().orElse("");
     ImmutableList<String> targetIds = eppInput.getTargetIds();
-    logger.infofmt(
-        "%s: %s",
-        METADATA_LOG_SIGNATURE,
-        JSONValue.toJSONString(
-            new ImmutableMap.Builder<String, Object>()
-                .put("serverTrid", trid.getServerTransactionId())
-                .put("clientId", clientId)
-                .put("commandType", eppInput.getCommandType())
-                .put("resourceType", eppInput.getResourceType().orElse(""))
-                .put("flowClassName", flowClass.getSimpleName())
-                .put("targetId", singleTargetId)
-                .put("targetIds", targetIds)
-                .put(
-                    "tld", eppInput.isDomainResourceType() ? extractTld(singleTargetId).orElse("") : "")
-                .put(
-                    "tlds",
-                    eppInput.isDomainResourceType() ? extractTlds(targetIds).asList() : EMPTY_LIST)
-                .put("icannActivityReportField", extractActivityReportField(flowClass))
-                .build()));
+    if (logger.isLoggable(Level.INFO)) {
+      logger.infofmt(
+          "%s: %s",
+          METADATA_LOG_SIGNATURE,
+          JSONValue.toJSONString(
+              new ImmutableMap.Builder<String, Object>()
+                  .put("serverTrid", trid.getServerTransactionId())
+                  .put("clientId", clientId)
+                  .put("commandType", eppInput.getCommandType())
+                  .put("resourceType", eppInput.getResourceType().orElse(""))
+                  .put("flowClassName", flowClass.getSimpleName())
+                  .put("targetId", singleTargetId)
+                  .put("targetIds", targetIds)
+                  .put(
+                      "tld",
+                      eppInput.isDomainResourceType() ? extractTld(singleTargetId).orElse("") : "")
+                  .put(
+                      "tlds",
+                      eppInput.isDomainResourceType()
+                          ? extractTlds(targetIds).asList()
+                          : EMPTY_LIST)
+                  .put("icannActivityReportField", extractActivityReportField(flowClass))
+                  .build()));
+    }
   }
 
   /**

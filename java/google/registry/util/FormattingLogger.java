@@ -119,6 +119,10 @@ public class FormattingLogger {
     log(Level.SEVERE, cause, String.format(fmt, args));
   }
 
+  public boolean isLoggable(Level level) {
+    return logger.isLoggable(level);
+  }
+
   public void addHandler(Handler handler) {
     logger.addHandler(handler);
   }

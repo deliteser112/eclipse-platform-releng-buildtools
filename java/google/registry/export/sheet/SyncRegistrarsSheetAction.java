@@ -74,12 +74,12 @@ public class SyncRegistrarsSheetAction implements Runnable {
     MISSINGNO(SC_BAD_REQUEST, "No sheet ID specified or configured; dropping task.") {
       @Override
       protected void log(Exception cause) {
-        logger.warningfmt(cause, "%s", message);
+        logger.warning(cause, message);
       }},
     FAILED(SC_INTERNAL_SERVER_ERROR, "Spreadsheet synchronization failed") {
       @Override
       protected void log(Exception cause) {
-        logger.severefmt(cause, "%s", message);
+        logger.severe(cause, message);
       }};
 
     private final int statusCode;
@@ -92,7 +92,7 @@ public class SyncRegistrarsSheetAction implements Runnable {
 
     /** Log an error message. Results that use log levels other than info should override this. */
     protected void log(@Nullable Exception cause) {
-      logger.infofmt(cause, "%s", message);
+      logger.info(cause, message);
     }
 
     private void send(Response response, @Nullable Exception cause) {

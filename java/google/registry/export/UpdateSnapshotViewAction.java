@@ -135,9 +135,8 @@ public class UpdateSnapshotViewAction implements Runnable {
                             .build())));
 
     logger.infofmt(
-        "Updated view %s to point at snapshot table %s.",
-        String.format("[%s:%s.%s]", projectId, viewDataset, kindName),
-        String.format("[%s:%s.%s]", projectId, sourceDatasetId, sourceTableId));
+        "Updated view [%s:%s.%s] to point at snapshot table [%s:%s.%s].",
+        projectId, viewDataset, kindName, projectId, sourceDatasetId, sourceTableId);
   }
 
   private static void updateTable(Bigquery bigquery, Table table) throws IOException {
@@ -151,7 +150,8 @@ public class UpdateSnapshotViewAction implements Runnable {
       if (e.getDetails().getCode() == 404) {
         bigquery.tables().insert(ref.getProjectId(), ref.getDatasetId(), table).execute();
       } else {
-        logger.warningfmt("UpdateSnapshotViewAction failed, caught exception %s", e.getDetails());
+        logger.warningfmt(
+            e, "UpdateSnapshotViewAction failed, caught exception %s", e.getDetails());
       }
     }
   }

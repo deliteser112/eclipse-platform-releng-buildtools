@@ -223,9 +223,7 @@ public final class RdeStagingAction implements Runnable {
       response.setPayload(message);
       return;
     }
-    for (PendingDeposit pending : pendings.values()) {
-      logger.infofmt("%s", pending);
-    }
+    pendings.values().stream().map(Object::toString).forEach(logger::info);
     RdeStagingMapper mapper = new RdeStagingMapper(lenient ? LENIENT : STRICT, pendings);
 
     response.sendJavaScriptRedirect(createJobPath(mrRunner

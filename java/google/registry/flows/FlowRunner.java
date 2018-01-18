@@ -28,6 +28,7 @@ import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.util.FormattingLogger;
+import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
@@ -62,16 +63,18 @@ public class FlowRunner {
     // New data to be logged should be added only to the JSON log statement below.
     // TODO(b/20725722): remove this log statement entirely once we've transitioned to using the
     //   log line below instead, or change this one to be for human consumption only.
-    logger.infofmt(
-        COMMAND_LOG_FORMAT,
-        trid.getServerTransactionId(),
-        clientId,
-        sessionMetadata,
-        prettyXml.replaceAll("\n", "\n\t"),
-        credentials,
-        eppRequestSource,
-        isDryRun ? "DRY_RUN" : "LIVE",
-        isSuperuser ? "SUPERUSER" : "NORMAL");
+    if (logger.isLoggable(Level.INFO)) {
+      logger.infofmt(
+          COMMAND_LOG_FORMAT,
+          trid.getServerTransactionId(),
+          clientId,
+          sessionMetadata,
+          prettyXml.replace("\n", "\n\t"),
+          credentials,
+          eppRequestSource,
+          isDryRun ? "DRY_RUN" : "LIVE",
+          isSuperuser ? "SUPERUSER" : "NORMAL");
+    }
     // Record flow info to the GAE request logs for reporting purposes if it's not a dry run.
     if (!isDryRun) {
       flowReporter.recordToLogs();

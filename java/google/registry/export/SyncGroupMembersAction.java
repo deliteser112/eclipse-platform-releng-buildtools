@@ -66,7 +66,7 @@ public final class SyncGroupMembersAction implements Runnable {
     FAILED(SC_INTERNAL_SERVER_ERROR, "Error occurred while updating registrar contacts.") {
       @Override
       protected void log(Throwable cause) {
-        logger.severefmt(cause, "%s", message);
+        logger.severe(cause, message);
       }};
 
     final int statusCode;
@@ -79,7 +79,7 @@ public final class SyncGroupMembersAction implements Runnable {
 
     /** Log an error message. Results that use log levels other than info should override this. */
     void log(@Nullable Throwable cause) {
-      logger.infofmt(cause, "%s", message);
+      logger.info(cause, message);
     }
   }
 
@@ -90,9 +90,7 @@ public final class SyncGroupMembersAction implements Runnable {
   @Inject SyncGroupMembersAction() {}
 
   private void sendResponse(Result result, @Nullable List<Throwable> causes) {
-    for (Throwable cause : nullToEmpty(causes)) {
-      result.log(cause);
-    }
+    nullToEmpty(causes).forEach(result::log);
     response.setStatus(result.statusCode);
     response.setPayload(String.format("%s %s\n", result.name(), result.message));
   }

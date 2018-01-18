@@ -121,13 +121,13 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
           "lines", lines,
           "status", "success"));
     } catch (IllegalArgumentException e) {
-      String message = firstNonNull(e.getMessage(), e.getClass().getName());
-      logger.warning(e, message);
+      logger.warning(e, "Error while listing objects.");
       // Don't return a non-200 response, since that will cause RegistryTool to barf instead of
       // letting ListObjectsCommand parse the JSON response and return a clean error.
-      response.setPayload(ImmutableMap.of(
-          "error", message,
-          "status", "error"));
+      response.setPayload(
+          ImmutableMap.of(
+              "error", firstNonNull(e.getMessage(), e.getClass().getName()),
+              "status", "error"));
     }
   }
 

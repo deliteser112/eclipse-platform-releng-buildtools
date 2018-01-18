@@ -136,7 +136,7 @@ public class BouncyCastleTest {
       }
       data = output.toByteArray();
     }
-    logger.info("Compressed data: " + dumpHex(data));
+    logger.infofmt("Compressed data: %s", dumpHex(data));
 
     // Decompress the data.
     try (ByteArrayInputStream input = new ByteArrayInputStream(data)) {
@@ -167,7 +167,7 @@ public class BouncyCastleTest {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
     signer.generate().encode(output);
     byte[] signatureFileData = output.toByteArray();
-    logger.info(".sig file data: " + dumpHex(signatureFileData));
+    logger.infofmt(".sig file data: %s", dumpHex(signatureFileData));
 
     // Load algorithm information and signature data from "signatureFileData".
     PGPSignature sig;
@@ -207,7 +207,7 @@ public class BouncyCastleTest {
     signer.update(FALL_OF_HYPERION_A_DREAM.getBytes(UTF_8));
     signer.generate().encode(output);
     byte[] signatureFileData = output.toByteArray();
-    logger.info(".sig file data: " + dumpHex(signatureFileData));
+    logger.infofmt(".sig file data: %s", dumpHex(signatureFileData));
 
     // Load algorithm information and signature data from "signatureFileData".
     PGPSignature sig;
@@ -252,7 +252,7 @@ public class BouncyCastleTest {
       }
       encryptedData = output.toByteArray();
     }
-    logger.info("Encrypted data: " + dumpHex(encryptedData));
+    logger.infofmt("Encrypted data: %s", dumpHex(encryptedData));
 
     // Bob loads his "privateKey" into memory.
     PGPSecretKeyRing privateKeyRing = new BcPGPSecretKeyRing(PRIVATE_KEY);
@@ -296,7 +296,7 @@ public class BouncyCastleTest {
       }
       encryptedData = output.toByteArray();
     }
-    logger.info("Encrypted data: " + dumpHex(encryptedData));
+    logger.infofmt("Encrypted data: %s", dumpHex(encryptedData));
 
     // Bob loads his chain of private keys into memory.
     PGPSecretKeyRingCollection privateKeyRings = new BcPGPSecretKeyRingCollection(
@@ -344,7 +344,7 @@ public class BouncyCastleTest {
       }
       encryptedData = output.toByteArray();
     }
-    logger.info("Encrypted data: " + dumpHex(encryptedData));
+    logger.infofmt("Encrypted data: %s", dumpHex(encryptedData));
 
     // Bob loads his chain of private keys into memory.
     PGPSecretKeyRingCollection privateKeyRings = new BcPGPSecretKeyRingCollection(

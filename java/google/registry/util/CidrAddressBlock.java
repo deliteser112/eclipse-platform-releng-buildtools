@@ -23,7 +23,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
 /**
@@ -41,8 +40,7 @@ import javax.annotation.Nullable;
 // TODO(b/21870796): Migrate to Guava version when this is open-sourced.
 public class CidrAddressBlock implements Iterable<InetAddress>, Serializable {
 
-  private static final Logger logger =
-      Logger.getLogger(CidrAddressBlock.class.getName());
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   private final InetAddress ip;
 
@@ -338,13 +336,13 @@ public class CidrAddressBlock implements Iterable<InetAddress>, Serializable {
 
     try {
       return ip.equals(applyNetmask(ipAddr, netmask));
-    } catch (IllegalArgumentException iae) {
+    } catch (IllegalArgumentException e) {
 
       // Something has gone very wrong. This CidrAddressBlock should
       // not have been created with an invalid netmask and a valid
       // netmask should have been successfully applied to "ipAddr" as long
       // as it represents an address of the same family as "this.ip".
-      logger.warning(iae.getMessage());
+      logger.warning(e, "Error while applying netmask.");
       return false;
     }
   }

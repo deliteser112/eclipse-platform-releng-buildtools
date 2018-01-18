@@ -97,7 +97,7 @@ public class MetricsExportAction implements Runnable {
                 .collect(joining("\n")));
       }
     } catch (Throwable e) {
-      logger.warningfmt("Caught Unknown Exception: %s", e);
+      logger.warning(e, "Unknown error while exporting metrics to BigQuery.");
     }
   }
 }

@@ -14,10 +14,9 @@
 
 package google.registry.dns.writer;
 
-import com.google.common.base.Joiner;
+import google.registry.util.FormattingLogger;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Logger;
 import javax.inject.Inject;
 
 /**
@@ -33,7 +32,7 @@ public final class VoidDnsWriter extends BaseDnsWriter {
    */
   public static final String NAME = "VoidDnsWriter";
 
-  private static final Logger logger = Logger.getLogger(VoidDnsWriter.class.getName());
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   private final Set<String> names = new HashSet<>();
 
@@ -52,7 +51,7 @@ public final class VoidDnsWriter extends BaseDnsWriter {
 
   @Override
   protected void commitUnchecked() {
-    logger.warning("Ignoring DNS zone updates! No DnsWriterFactory implementation specified!\n"
-        + Joiner.on('\n').join(names));
+    logger.warningfmt(
+        "No DnsWriterFactory implementation specified; ignoring names to commit: %s", names);
   }
 }

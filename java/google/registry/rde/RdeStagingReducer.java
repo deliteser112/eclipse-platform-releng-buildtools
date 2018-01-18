@@ -167,7 +167,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
         }
         if (!fragment.error().isEmpty()) {
           failed = true;
-          logger.severe(fragment.error());
+          logger.severefmt("Fragment error: %s", fragment.error());
         }
       }
       for (IdnTableEnum idn : IdnTableEnum.values()) {

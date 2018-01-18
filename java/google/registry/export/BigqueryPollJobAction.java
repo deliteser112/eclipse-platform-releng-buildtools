@@ -82,7 +82,6 @@ public class BigqueryPollJobAction implements Runnable {
     try {
       task = (TaskOptions) new ObjectInputStream(new ByteArrayInputStream(payload)).readObject();
     } catch (ClassNotFoundException | IOException e) {
-      logger.severe(e, e.toString());
       throw new BadRequestException("Cannot deserialize task from payload", e);
     }
     String taskName = enqueuer.enqueue(getQueue(chainedQueueName.get()), task).getName();
@@ -107,7 +106,7 @@ public class BigqueryPollJobAction implements Runnable {
       job = bigquery.jobs().get(projectId, jobId).execute();
     } catch (IOException e) {
       // We will throw a new exception because done==false, but first log this exception.
-      logger.warning(e, e.getMessage());
+      logger.warningfmt(e, "Error checking outcome of BigQuery job %s.", jobId);
     }
     // If job is not yet done, then throw an exception so that we'll return a failing HTTP status
     // code and the task will be retried.

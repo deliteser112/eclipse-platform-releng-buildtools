@@ -68,13 +68,13 @@ class GcsDiffFileLister {
         metadata = Futures.getUnchecked(upperBoundTimesToMetadata.get(checkpointTime));
       } else {
         String filename = DIFF_FILE_PREFIX + checkpointTime;
-        logger.info("Patching GCS list; discovered file " + filename);
+        logger.infofmt("Patching GCS list; discovered file: %s", filename);
         metadata = getMetadata(filename);
 
         // If we hit a gap, quit.
         if (metadata == null) {
           logger.infofmt(
-              "Gap discovered in sequence terminating at %s, missing file %s",
+              "Gap discovered in sequence terminating at %s, missing file: %s",
               sequence.lastKey(),
               filename);
           logger.infofmt("Found sequence from %s to %s", checkpointTime, lastTime);
@@ -89,9 +89,9 @@ class GcsDiffFileLister {
   }
 
   ImmutableList<GcsFileMetadata> listDiffFiles(DateTime fromTime, @Nullable DateTime toTime) {
-    logger.info("Requested restore from time: " + fromTime);
+    logger.infofmt("Requested restore from time: %s", fromTime);
     if (toTime != null) {
-      logger.info("  Until time: " + toTime);
+      logger.infofmt("  Until time: %s", toTime);
     }
     // List all of the diff files on GCS and build a map from each file's upper checkpoint time
     // (extracted from the filename) to its asynchronously-loaded metadata, keeping only files with
@@ -130,7 +130,7 @@ class GcsDiffFileLister {
     // last file and work backwards we can verify that we have no holes in our chain (although we
     // may be missing files at the end).
     TreeMap<DateTime, GcsFileMetadata> sequence = new TreeMap<>();
-    logger.info("Restoring until: " + lastUpperBoundTime);
+    logger.infofmt("Restoring until: %s", lastUpperBoundTime);
     boolean inconsistentFileSet = !constructDiffSequence(
         upperBoundTimesToMetadata, fromTime, lastUpperBoundTime, sequence);
 
@@ -157,7 +157,8 @@ class GcsDiffFileLister {
         "Unable to compute commit diff history, there are either gaps or forks in the history "
         + "file set.  Check log for details.");
 
-    logger.info("Actual restore from time: " + getLowerBoundTime(sequence.firstEntry().getValue()));
+    logger.infofmt(
+        "Actual restore from time: %s", getLowerBoundTime(sequence.firstEntry().getValue()));
     logger.infofmt("Found %d files to restore", sequence.size());
     return ImmutableList.copyOf(sequence.values());
   }

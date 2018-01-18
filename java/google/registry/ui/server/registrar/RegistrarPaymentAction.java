@@ -177,7 +177,7 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
         throw new FormFieldException(CURRENCY_FIELD.name(), "Unsupported currency.");
       }
     } catch (FormFieldException e) {
-      logger.warning(e.toString());
+      logger.warning(e, "Form field error in RegistrarPaymentAction.");
       return JsonResponseHelper.createFormFieldError(e.getMessage(), e.getFieldName());
     }
     Result<Transaction> result =

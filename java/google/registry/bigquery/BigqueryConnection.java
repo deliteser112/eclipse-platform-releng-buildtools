@@ -645,7 +645,7 @@ public class BigqueryConnection implements AutoCloseable {
       logger.info(summarizeCompletedJob(job));
       if (jobStatus.getErrors() != null) {
         for (ErrorProto error : jobStatus.getErrors()) {
-          logger.warning(String.format("%s: %s", error.getReason(), error.getMessage()));
+          logger.warningfmt("%s: %s", error.getReason(), error.getMessage());
         }
       }
       return job;

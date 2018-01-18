@@ -95,7 +95,7 @@ public final class IcannReportingUploadAction implements Runnable {
                 },
                 IOException.class);
       } catch (RuntimeException e) {
-        logger.warningfmt("Upload to %s failed due to %s", gcsFilename.toString(), e.toString());
+        logger.warningfmt(e, "Upload to %s failed.", gcsFilename.toString());
       }
       reportSummaryBuilder.put(reportFilename, success);
     }

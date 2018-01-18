@@ -167,15 +167,16 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
           duration,
           domainsPublished,
           hostsPublished);
-      logger.info(
-          "writer.commit() statistics"
-          + "\nTLD: " + tld
-          + "\ncommitStatus: " + commitStatus
-          + "\nduration: " + duration
-          + "\ndomainsPublished: " + domainsPublished
-          + "\ndomainsRejected: " + domainsRejected
-          + "\nhostsPublished: " + hostsPublished
-          + "\nhostsRejected: " + hostsRejected);
+      logger.infofmt(
+          "writer.commit() statistics:: TLD: %s, commitStatus: %s, duration: %s, "
+              + "domainsPublished: %d, domainsRejected: %d, hostsPublished: %d, hostsRejected: %d",
+          tld,
+          commitStatus,
+          duration,
+          domainsPublished,
+          domainsRejected,
+          hostsPublished,
+          hostsRejected);
     }
   }
 }

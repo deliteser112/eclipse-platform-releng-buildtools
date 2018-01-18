@@ -203,7 +203,7 @@ public class GcsDiffFileListerTest {
 
     assertThrows(IllegalStateException.class, () -> listDiffFiles(now.minusMinutes(9), null));
     assertLogContains(String.format(
-        "Gap discovered in sequence terminating at %s, missing file commit_diff_until_%s",
+        "Gap discovered in sequence terminating at %s, missing file: commit_diff_until_%s",
         now, now.minusMinutes(5)));
     assertLogContains(String.format(
         "Found sequence from %s to %s", now.minusMinutes(9), now.minusMinutes(6)));

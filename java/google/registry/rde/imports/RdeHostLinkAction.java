@@ -149,9 +149,7 @@ public class RdeHostLinkAction implements Runnable {
           case HOST_NOT_FOUND:
             getContext().incrementCounter("hosts not found");
             logger.severefmt(
-                "Host with name %s and repoid %s not found",
-                xjcHost.getName(),
-                xjcHost.getRoid());
+                "Host with name %s and repoid %s not found", xjcHost.getName(), xjcHost.getRoid());
             break;
           case SUPERORDINATE_DOMAIN_IN_PENDING_DELETE:
             getContext()

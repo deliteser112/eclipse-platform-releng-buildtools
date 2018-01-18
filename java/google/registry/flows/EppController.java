@@ -35,6 +35,7 @@ import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.util.FormattingLogger;
 import java.util.Optional;
+import java.util.logging.Level;
 import javax.inject.Inject;
 import org.json.simple.JSONValue;
 
@@ -70,19 +71,25 @@ public final class EppController {
         eppInput = unmarshal(EppInput.class, inputXmlBytes);
       } catch (EppException e) {
         // Log the unmarshalling error, with the raw bytes (in base64) to help with debugging.
-        logger.infofmt(
-            e,
-            "EPP request XML unmarshalling failed - \"%s\":\n%s\n%s\n%s\n%s",
-            e.getMessage(),
-            JSONValue.toJSONString(
-                ImmutableMap.<String, Object>of(
-                    "clientId", nullToEmpty(sessionMetadata.getClientId()),
-                    "resultCode", e.getResult().getCode().code,
-                    "resultMessage", e.getResult().getCode().msg,
-                    "xmlBytes", base64().encode(inputXmlBytes))),
-            Strings.repeat("=", 40),
-            new String(inputXmlBytes, UTF_8).trim(), // Charset decoding failures are swallowed.
-            Strings.repeat("=", 40));
+        if (logger.isLoggable(Level.INFO)) {
+          logger.infofmt(
+              e,
+              "EPP request XML unmarshalling failed - \"%s\":\n%s\n%s\n%s\n%s",
+              e.getMessage(),
+              JSONValue.toJSONString(
+                  ImmutableMap.<String, Object>of(
+                      "clientId",
+                      nullToEmpty(sessionMetadata.getClientId()),
+                      "resultCode",
+                      e.getResult().getCode().code,
+                      "resultMessage",
+                      e.getResult().getCode().msg,
+                      "xmlBytes",
+                      base64().encode(inputXmlBytes))),
+              Strings.repeat("=", 40),
+              new String(inputXmlBytes, UTF_8).trim(), // Charset decoding failures are swallowed.
+              Strings.repeat("=", 40));
+        }
         // Return early by sending an error message, with no clTRID since we couldn't unmarshal it.
         eppMetricBuilder.setStatus(e.getResult().getCode());
         return getErrorResponse(

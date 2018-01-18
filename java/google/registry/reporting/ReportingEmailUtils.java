@@ -42,7 +42,7 @@ public class ReportingEmailUtils {
       msg.setText(body);
       emailService.sendMessage(msg);
     } catch (Exception e) {
-      logger.warningfmt("E-mail service failed due to %s", e.toString());
+      logger.warning(e, "E-mail service failed.");
     }
   }
 }

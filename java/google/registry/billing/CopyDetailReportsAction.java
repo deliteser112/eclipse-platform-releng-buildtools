@@ -82,7 +82,7 @@ public final class CopyDetailReportsAction implements Runnable {
               .filter(objectName -> objectName.startsWith(BillingModule.DETAIL_REPORT_PREFIX))
               .collect(ImmutableList.toImmutableList());
     } catch (IOException e) {
-      logger.severefmt("Copy failed due to %s", e.getMessage());
+      logger.severe(e, "Copying registrar detail report failed");
       response.setStatus(SC_INTERNAL_SERVER_ERROR);
       response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
       response.setPayload(String.format("Failure, encountered %s", e.getMessage()));

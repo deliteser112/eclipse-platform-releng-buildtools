@@ -136,8 +136,8 @@ public final class NordnVerifyAction implements Runnable {
           logger.warning(result.toString());
           break;
         default:
-          logger.warningfmt("LORDN verify task %s: Unexpected outcome: %s",
-              actionLogId, result.toString());
+          logger.warningfmt(
+              "LORDN verify task %s: Unexpected outcome: %s", actionLogId, result.toString());
           break;
       }
     }

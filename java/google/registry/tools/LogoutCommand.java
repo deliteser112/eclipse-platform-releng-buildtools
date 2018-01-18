@@ -32,6 +32,6 @@ class LogoutCommand implements Command {
   @Override
   public void run() throws IOException {
     StoredCredential.getDefaultDataStore(dataStoreFactory).clear();
-    logger.infofmt("Logged out - credentials have been removed.");
+    logger.info("Logged out - credentials have been removed.");
   }
 }

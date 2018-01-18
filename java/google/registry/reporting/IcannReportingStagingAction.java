@@ -111,7 +111,7 @@ public final class IcannReportingStagingAction implements Runnable {
                 "ICANN Monthly report staging summary [FAILURE]",
                 String.format(
                     "Staging failed due to %s, check logs for more details.", thrown.toString()));
-            logger.severefmt("Staging action failed due to %s", thrown.toString());
+            logger.severe(thrown, "Staging action failed.");
             response.setStatus(SC_INTERNAL_SERVER_ERROR);
             response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
             response.setPayload(String.format("Staging failed due to %s", thrown.toString()));

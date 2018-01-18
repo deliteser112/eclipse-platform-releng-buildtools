@@ -110,7 +110,7 @@ public class CreateGroupsAction implements Runnable {
     } else {
       response.setStatus(SC_OK);
       response.setPayload("Success!");
-      logger.info("Successfully created groups for registrar: " + registrar.getRegistrarName());
+      logger.infofmt("Successfully created groups for registrar: %s", registrar.getRegistrarName());
     }
   }
 
