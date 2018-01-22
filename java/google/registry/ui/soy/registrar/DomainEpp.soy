@@ -32,18 +32,18 @@
         {/if}
         {if isNonnull($item['domain:ns'])}
         <domain:ns>
-          {foreach $hostObj in $item['domain:ns']['domain:hostObj']}
+          {for $hostObj in $item['domain:ns']['domain:hostObj']}
           <domain:hostObj>{$hostObj.value}</domain:hostObj>
-          {/foreach}
+          {/for}
         </domain:ns>
         {/if}
         {if isNonnull($item['domain:registrant'])}
         <domain:registrant>{$item['domain:registrant']}</domain:registrant>
         {/if}
         {if isNonnull($item['domain:contact'])}
-          {foreach $contact in $item['domain:contact']}
+          {for $contact in $item['domain:contact']}
         <domain:contact type="{$contact['@type']}">{$contact.value}</domain:contact>
-          {/foreach}
+          {/for}
         {/if}
         <domain:authInfo>
           <domain:pw>{$item['domain:authInfo']['domain:pw']}</domain:pw>
@@ -128,15 +128,15 @@
 <{$tagName}>
   {if isNonnull($hosts)}
   <domain:ns>
-    {foreach $host in $hosts}
+    {for $host in $hosts}
     <domain:hostObj>{$host.value}</domain:hostObj>
-    {/foreach}
+    {/for}
   </domain:ns>
   {/if}
   {if isNonnull($contacts)}
-    {foreach $contact in $contacts}
+    {for $contact in $contacts}
   <domain:contact type="{$contact['@type']}">{$contact.value}</domain:contact>
-    {/foreach}
+    {/for}
   {/if}
 </{$tagName}>
 {/template}

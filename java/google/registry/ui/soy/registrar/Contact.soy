@@ -89,13 +89,13 @@
         <td colspan="2">
           <div id="contact-postalInfo">
             {if isNonnull($item['contact:postalInfo'])}
-              {foreach $pi in $item['contact:postalInfo']}
+              {for $pi in $item['contact:postalInfo']}
                 {call .postalInfo data="all"}
                   {param localized: index($pi) == 1 /}
                   {param item: $pi/}
                   {param namePrefix: 'contact:postalInfo[' + index($pi) + '].contact:' /}
                 {/call}
-              {/foreach}
+              {/for}
             {else}
               {call .postalInfo data="all"}
                 {param namePrefix: 'contact:postalInfo[0].contact:' /}

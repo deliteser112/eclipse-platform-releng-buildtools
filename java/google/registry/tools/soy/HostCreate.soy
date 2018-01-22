@@ -28,14 +28,14 @@
         <host:create xmlns:host="urn:ietf:params:xml:ns:host-1.0">
           <host:name>{$hostname}</host:name>
           {if $ipv4addresses}
-            {foreach $ipv4 in $ipv4addresses}
+            {for $ipv4 in $ipv4addresses}
               <host:addr ip="v4">{$ipv4}</host:addr>
-            {/foreach}
+            {/for}
           {/if}
           {if $ipv6addresses}
-            {foreach $ipv6 in $ipv6addresses}
+            {for $ipv6 in $ipv6addresses}
               <host:addr ip="v6">{$ipv6}</host:addr>
-            {/foreach}
+            {/for}
           {/if}
         </host:create>
       </create>

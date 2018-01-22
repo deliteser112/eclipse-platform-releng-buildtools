@@ -866,7 +866,7 @@ def com_google_appengine_tools_appengine_mapreduce():
           "@com_google_appengine_tools_appengine_pipeline",
           "@com_googlecode_charts4j",
           "@org_json",
-          "@com_google_protobuf_java",
+          "@com_google_protobuf_java//:protobuf_java",
           "@com_google_guava",
           "@joda_time",
           "@it_unimi_dsi_fastutil",

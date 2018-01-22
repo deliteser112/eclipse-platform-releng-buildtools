@@ -28,7 +28,7 @@
     <create>
       <contact:create xmlns:contact="urn:ietf:params:xml:ns:contact-1.0">
         <contact:id>{$item['contact:id']}</contact:id>
-        {foreach $pi in $item['contact:postalInfo']}
+        {for $pi in $item['contact:postalInfo']}
           <contact:postalInfo type="{if index($pi) == 0}int{else}loc{/if}">
             <contact:name>{$pi['contact:name']}</contact:name>
             <contact:org>{$pi['contact:org']}</contact:org>
@@ -41,7 +41,7 @@
               <contact:cc>{$addr['contact:cc']}</contact:cc>
             </contact:addr>
           </contact:postalInfo>
-        {/foreach}
+        {/for}
         <contact:voice>{$item['contact:voice']}</contact:voice>
         <contact:fax>{$item['contact:fax']}</contact:fax>
         <contact:email>{$item['contact:email']}</contact:email>
@@ -70,7 +70,7 @@
       <contact:update xmlns:contact="urn:ietf:params:xml:ns:contact-1.0">
         <contact:id>{$item['contact:id']}</contact:id>
         <contact:chg>
-          {foreach $pi in $item['contact:postalInfo']}
+          {for $pi in $item['contact:postalInfo']}
             <contact:postalInfo type="{if index($pi) == 0}int{else}loc{/if}">
               <contact:name>{$pi['contact:name']}</contact:name>
               <contact:org>{$pi['contact:org']}</contact:org>
@@ -83,7 +83,7 @@
                 <contact:cc>{$addr['contact:cc']}</contact:cc>
               </contact:addr>
             </contact:postalInfo>
-          {/foreach}
+          {/for}
           <contact:voice>{$item['contact:voice']}</contact:voice>
           <contact:fax>{$item['contact:fax']}</contact:fax>
           <contact:email>{$item['contact:email']}</contact:email>
