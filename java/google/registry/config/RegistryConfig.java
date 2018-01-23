@@ -1047,6 +1047,12 @@ public final class RegistryConfig {
       return config.registryPolicy.whoisCommandFactoryClass;
     }
 
+    @Provides
+    @Config("allocationTokenCustomLogicClass")
+    public static String provideAllocationTokenCustomLogicClass(RegistryConfigSettings config) {
+      return config.registryPolicy.allocationTokenCustomLogicClass;
+    }
+
     /**
      * Returns the header text at the top of the reserved terms exported list.
      *

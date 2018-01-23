@@ -17,8 +17,6 @@ package google.registry.flows.domain;
 import static google.registry.flows.FlowUtils.persistEntityChanges;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
-import static google.registry.flows.domain.AllocationTokenFlowUtils.redeemToken;
-import static google.registry.flows.domain.AllocationTokenFlowUtils.verifyToken;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
@@ -67,6 +65,7 @@ import google.registry.flows.custom.DomainCreateFlowCustomLogic;
 import google.registry.flows.custom.DomainCreateFlowCustomLogic.BeforeResponseParameters;
 import google.registry.flows.custom.DomainCreateFlowCustomLogic.BeforeResponseReturnData;
 import google.registry.flows.custom.EntityChanges;
+import google.registry.flows.domain.token.AllocationTokenFlowUtils;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
@@ -112,12 +111,12 @@ import org.joda.time.Duration;
 /**
  * An EPP flow that creates a new domain resource.
  *
+ * @error {@link google.registry.flows.domain.token.AllocationTokenFlowUtils.AlreadyRedeemedAllocationTokenException}
+ * @error {@link google.registry.flows.domain.token.AllocationTokenFlowUtils.InvalidAllocationTokenException}
  * @error {@link google.registry.flows.exceptions.OnlyToolCanPassMetadataException}
  * @error {@link google.registry.flows.exceptions.ResourceAlreadyExistsException}
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException}
- * @error {@link AllocationTokenFlowUtils.AlreadyRedeemedAllocationTokenException}
- * @error {@link AllocationTokenFlowUtils.InvalidAllocationTokenException}
  * @error {@link DomainCreateFlow.DomainHasOpenApplicationsException}
  * @error {@link DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
@@ -185,7 +184,8 @@ public class DomainCreateFlow implements TransactionalFlow {
   @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject EppResponse.Builder responseBuilder;
-  @Inject DomainCreateFlowCustomLogic customLogic;
+  @Inject AllocationTokenFlowUtils allocationTokenFlowUtils;
+  @Inject DomainCreateFlowCustomLogic flowCustomLogic;
   @Inject DomainFlowTmchUtils tmchUtils;
   @Inject DomainPricingLogic pricingLogic;
   @Inject DnsQueue dnsQueue;
@@ -199,7 +199,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         MetadataExtension.class,
         LaunchCreateExtension.class,
         AllocationTokenExtension.class);
-    customLogic.beforeValidation();
+    flowCustomLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     verifyRegistrarIsActive(clientId);
@@ -262,7 +262,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     }
     Optional<AllocationToken> allocationToken =
         verifyAllocationTokenIfPresent(domainName, registry, clientId);
-    customLogic.afterValidation(
+    flowCustomLogic.afterValidation(
         DomainCreateFlowCustomLogic.AfterValidationParameters.newBuilder()
             .setDomainName(domainName)
             .setYears(years)
@@ -325,7 +325,8 @@ public class DomainCreateFlow implements TransactionalFlow {
         ForeignKeyIndex.create(newDomain, newDomain.getDeletionTime()),
         EppResourceIndex.create(Key.create(newDomain)));
 
-    allocationToken.ifPresent(t -> entitiesToSave.add(redeemToken(t, Key.create(historyEntry))));
+    allocationToken.ifPresent(
+        t -> entitiesToSave.add(allocationTokenFlowUtils.redeemToken(t, Key.create(historyEntry))));
     // Anchor tenant registrations override LRP, and landrush applications can skip it.
     // If a token is passed in outside of an LRP phase, it is simply ignored (i.e. never redeemed).
     if (isLrpCreate(registry, isAnchorTenant, now)) {
@@ -335,7 +336,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     enqueueTasks(isSunriseCreate, hasClaimsNotice, newDomain);
 
     EntityChanges entityChanges =
-        customLogic.beforeSave(
+        flowCustomLogic.beforeSave(
             DomainCreateFlowCustomLogic.BeforeSaveParameters.newBuilder()
                 .setNewDomain(newDomain)
                 .setHistoryEntry(historyEntry)
@@ -346,7 +347,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     persistEntityChanges(entityChanges);
 
     BeforeResponseReturnData responseData =
-        customLogic.beforeResponse(
+        flowCustomLogic.beforeResponse(
             BeforeResponseParameters.newBuilder()
                 .setResData(DomainCreateData.create(targetId, now, registrationExpirationTime))
                 .setResponseExtensions(createResponseExtensions(feeCreate, feesAndCredits))
@@ -389,7 +390,8 @@ public class DomainCreateFlow implements TransactionalFlow {
         eppInput.getSingleExtension(AllocationTokenExtension.class);
     return Optional.ofNullable(
         extension.isPresent()
-            ? verifyToken(domainName, extension.get().getAllocationToken(), registry, clientId)
+            ? allocationTokenFlowUtils.verifyToken(
+                domainName, extension.get().getAllocationToken(), registry, clientId)
             : null);
   }
 

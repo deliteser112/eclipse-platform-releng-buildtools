@@ -180,7 +180,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject Trid trid;
   @Inject EppResponse.Builder responseBuilder;
-  @Inject DomainApplicationCreateFlowCustomLogic customLogic;
+  @Inject DomainApplicationCreateFlowCustomLogic flowCustomLogic;
   @Inject DomainFlowTmchUtils tmchUtils;
   @Inject DomainPricingLogic pricingLogic;
   @Inject DomainApplicationCreateFlow() {}
@@ -192,7 +192,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
         SecDnsCreateExtension.class,
         MetadataExtension.class,
         LaunchCreateExtension.class);
-    customLogic.beforeValidation();
+    flowCustomLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     verifyRegistrarIsActive(clientId);
@@ -237,7 +237,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     validateFeeChallenge(targetId, tld, now, feeCreate, feesAndCredits);
     Optional<SecDnsCreateExtension> secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
-    customLogic.afterValidation(
+    flowCustomLogic.afterValidation(
         AfterValidationParameters.newBuilder()
             .setDomainName(domainName)
             .setYears(years)
@@ -282,7 +282,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
           prepareMarkedLrpTokenEntity(authInfo.getPw().getValue(), domainName, historyEntry));
     }
     EntityChanges entityChanges =
-        customLogic.beforeSave(
+        flowCustomLogic.beforeSave(
             DomainApplicationCreateFlowCustomLogic.BeforeSaveParameters.newBuilder()
                 .setNewApplication(newApplication)
                 .setHistoryEntry(historyEntry)
@@ -292,7 +292,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
                 .build());
     persistEntityChanges(entityChanges);
     BeforeResponseReturnData responseData =
-        customLogic.beforeResponse(
+        flowCustomLogic.beforeResponse(
             BeforeResponseParameters.newBuilder()
                 .setResData(DomainCreateData.create(targetId, now, null))
                 .setResponseExtensions(

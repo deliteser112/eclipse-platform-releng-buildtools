@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package google.registry.flows.domain;
+package google.registry.flows.domain.token;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
@@ -27,9 +27,18 @@ import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.List;
 import java.util.function.Function;
+import javax.inject.Inject;
 
-/** Static utility functions for dealing with {@link AllocationToken}s in domain flows. */
+/** Utility functions for dealing with {@link AllocationToken}s in domain flows. */
+// TODO: Add a test class.
 public class AllocationTokenFlowUtils {
+
+  final AllocationTokenCustomLogic tokenCustomLogic;
+
+  @Inject
+  AllocationTokenFlowUtils(AllocationTokenCustomLogic tokenCustomLogic) {
+    this.tokenCustomLogic = tokenCustomLogic;
+  }
 
   /**
    * Verifies that a given allocation token string is valid.
@@ -37,7 +46,7 @@ public class AllocationTokenFlowUtils {
    * @return the loaded {@link AllocationToken} for that string.
    * @throws InvalidAllocationTokenException if the token doesn't exist.
    */
-  static AllocationToken verifyToken(
+  public AllocationToken verifyToken(
       InternetDomainName domainName, String token, Registry registry, String clientId)
       throws EppException {
     AllocationToken tokenEntity = ofy().load().key(Key.create(AllocationToken.class, token)).now();
@@ -47,7 +56,7 @@ public class AllocationTokenFlowUtils {
     if (tokenEntity.isRedeemed()) {
       throw new AlreadyRedeemedAllocationTokenException();
     }
-    return tokenEntity;
+    return tokenCustomLogic.verifyToken(domainName, tokenEntity, registry, clientId);
   }
 
   /**
@@ -55,9 +64,9 @@ public class AllocationTokenFlowUtils {
    *
    * @return A map of domain names to domain check error response messages. If a message is present
    *     for a a given domain then it does not validate with this allocation token; domains that do
-   *     validate are not present in the map.
+   *     validate have blank messages (i.e. no error).
    */
-  static ImmutableMap<String, String> checkDomainsWithToken(
+  public ImmutableMap<String, String> checkDomainsWithToken(
       List<String> domainNames, String token, String clientId) {
     AllocationToken tokenEntity = ofy().load().key(Key.create(AllocationToken.class, token)).now();
     String result;
@@ -66,23 +75,23 @@ public class AllocationTokenFlowUtils {
     } else if (tokenEntity.isRedeemed()) {
       result = AlreadyRedeemedAllocationTokenException.ERROR_MSG_SHORT;
     } else {
-      return ImmutableMap.of();
+      result = "";
     }
-    // TODO(b/70628322): For now all checks yield the same result, but custom logic will soon allow
-    // them to differ, e.g. if tokens can only be used on certain TLDs.
-    return domainNames
-        .stream()
-        .collect(ImmutableMap.toImmutableMap(Function.identity(), domainName -> result));
+    ImmutableMap<String, String> checkResults =
+        domainNames
+            .stream()
+            .collect(ImmutableMap.toImmutableMap(Function.identity(), domainName -> result));
+    return tokenCustomLogic.checkDomainsWithToken(checkResults, tokenEntity, clientId);
   }
 
   /** Redeems an {@link AllocationToken}, returning the redeemed copy. */
-  static AllocationToken redeemToken(
+  public AllocationToken redeemToken(
       AllocationToken token, Key<HistoryEntry> redemptionHistoryEntry) {
     return token.asBuilder().setRedemptionHistoryEntry(redemptionHistoryEntry).build();
   }
 
   /** The allocation token was already redeemed. */
-  static class AlreadyRedeemedAllocationTokenException
+  public static class AlreadyRedeemedAllocationTokenException
       extends AssociationProhibitsOperationException {
 
     public static final String ERROR_MSG_LONG = "The allocation token was already redeemed";
@@ -96,7 +105,7 @@ public class AllocationTokenFlowUtils {
   }
 
   /** The allocation token is invalid. */
-  static class InvalidAllocationTokenException extends ParameterValueSyntaxErrorException {
+  public static class InvalidAllocationTokenException extends ParameterValueSyntaxErrorException {
     public InvalidAllocationTokenException() {
       super("The allocation token is invalid");
     }

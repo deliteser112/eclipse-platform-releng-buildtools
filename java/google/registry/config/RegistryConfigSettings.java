@@ -70,6 +70,7 @@ public class RegistryConfigSettings {
     public String productName;
     public String customLogicFactoryClass;
     public String whoisCommandFactoryClass;
+    public String allocationTokenCustomLogicClass;
     public int contactAutomaticTransferDays;
     public String greetingServerId;
     public List<String> registrarChangesNotificationEmailAddresses;

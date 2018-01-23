@@ -71,7 +71,7 @@ GenTestRules(
     shard_count = 4,
     test_files = glob([
         "*Test.java",
-        "*/*Test.java",
+        "**/*Test.java",
     ]),
     deps = [":flows"],
 )

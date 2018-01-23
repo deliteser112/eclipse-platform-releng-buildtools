@@ -82,7 +82,7 @@ public final class DomainInfoFlow implements Flow {
   @Inject @TargetId String targetId;
   @Inject Clock clock;
   @Inject EppResponse.Builder responseBuilder;
-  @Inject DomainInfoFlowCustomLogic customLogic;
+  @Inject DomainInfoFlowCustomLogic flowCustomLogic;
   @Inject DomainPricingLogic pricingLogic;
 
   @Inject
@@ -91,14 +91,15 @@ public final class DomainInfoFlow implements Flow {
   @Override
   public final EppResponse run() throws EppException {
     extensionManager.register(FeeInfoCommandExtensionV06.class);
-    customLogic.beforeValidation();
+    flowCustomLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = clock.nowUtc();
     DomainResource domain = verifyExistence(
         DomainResource.class, targetId, loadByForeignKey(DomainResource.class, targetId, now));
     verifyOptionalAuthInfo(authInfo, domain);
-    customLogic.afterValidation(AfterValidationParameters.newBuilder().setDomain(domain).build());
+    flowCustomLogic.afterValidation(
+        AfterValidationParameters.newBuilder().setDomain(domain).build());
     // Prefetch all referenced resources. Calling values() blocks until loading is done.
     ofy().load()
         .values(union(domain.getNameservers(), domain.getReferencedContacts())).values();
@@ -131,7 +132,7 @@ public final class DomainInfoFlow implements Flow {
           .setAuthInfo(domain.getAuthInfo());
     }
     BeforeResponseReturnData responseData =
-        customLogic.beforeResponse(
+        flowCustomLogic.beforeResponse(
             BeforeResponseParameters.newBuilder()
                 .setDomain(domain)
                 .setResData(infoBuilder.build())

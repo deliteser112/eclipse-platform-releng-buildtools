@@ -155,7 +155,7 @@ public final class DomainUpdateFlow implements TransactionalFlow {
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject DnsQueue dnsQueue;
   @Inject EppResponse.Builder responseBuilder;
-  @Inject DomainUpdateFlowCustomLogic customLogic;
+  @Inject DomainUpdateFlowCustomLogic flowCustomLogic;
   @Inject DomainPricingLogic pricingLogic;
   @Inject DomainUpdateFlow() {}
 
@@ -165,14 +165,14 @@ public final class DomainUpdateFlow implements TransactionalFlow {
         FeeUpdateCommandExtension.class,
         MetadataExtension.class,
         SecDnsUpdateExtension.class);
-    customLogic.beforeValidation();
+    flowCustomLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
     Update command = cloneAndLinkReferences((Update) resourceCommand, now);
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     verifyUpdateAllowed(command, existingDomain, now);
-    customLogic.afterValidation(
+    flowCustomLogic.afterValidation(
         AfterValidationParameters.newBuilder().setExistingDomain(existingDomain).build());
     HistoryEntry historyEntry = buildHistoryEntry(existingDomain, now);
     DomainResource newDomain = performUpdate(command, existingDomain, now);
@@ -194,7 +194,7 @@ public final class DomainUpdateFlow implements TransactionalFlow {
         createBillingEventForStatusUpdates(existingDomain, newDomain, historyEntry, now);
     statusUpdateBillingEvent.ifPresent(entitiesToSave::add);
     EntityChanges entityChanges =
-        customLogic.beforeSave(
+        flowCustomLogic.beforeSave(
             BeforeSaveParameters.newBuilder()
                 .setHistoryEntry(historyEntry)
                 .setNewDomain(newDomain)

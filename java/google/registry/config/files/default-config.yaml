@@ -41,6 +41,10 @@ registryPolicy:
   # See whois/WhoisCommandFactory.java
   whoisCommandFactoryClass: google.registry.whois.WhoisCommandFactory
 
+  # Custom logic class for handling allocation tokens.
+  # See flows/domain/token/AllocationTokenCustomLogic.java
+  allocationTokenCustomLogicClass: google.registry.flows.domain.token.AllocationTokenCustomLogic
+
   # Length of time after which contact transfers automatically conclude.
   contactAutomaticTransferDays: 5
 

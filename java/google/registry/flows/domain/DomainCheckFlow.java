@@ -14,9 +14,9 @@
 
 package google.registry.flows.domain;
 
+import static com.google.common.base.Strings.emptyToNull;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyTargetIdCount;
-import static google.registry.flows.domain.AllocationTokenFlowUtils.checkDomainsWithToken;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationTypes;
 import static google.registry.flows.domain.DomainFlowUtils.handleFeeRequest;
@@ -44,6 +44,7 @@ import google.registry.flows.annotations.ReportingSpec;
 import google.registry.flows.custom.DomainCheckFlowCustomLogic;
 import google.registry.flows.custom.DomainCheckFlowCustomLogic.BeforeResponseParameters;
 import google.registry.flows.custom.DomainCheckFlowCustomLogic.BeforeResponseReturnData;
+import google.registry.flows.domain.token.AllocationTokenFlowUtils;
 import google.registry.model.domain.DomainCommand.Check;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.fee.FeeCheckCommandExtension;
@@ -114,7 +115,8 @@ public final class DomainCheckFlow implements Flow {
   @Inject @Superuser boolean isSuperuser;
   @Inject Clock clock;
   @Inject EppResponse.Builder responseBuilder;
-  @Inject DomainCheckFlowCustomLogic customLogic;
+  @Inject AllocationTokenFlowUtils allocationTokenFlowUtils;
+  @Inject DomainCheckFlowCustomLogic flowCustomLogic;
   @Inject DomainPricingLogic pricingLogic;
   @Inject DomainCheckFlow() {}
 
@@ -122,7 +124,7 @@ public final class DomainCheckFlow implements Flow {
   public EppResponse run() throws EppException {
     extensionManager.register(
         FeeCheckCommandExtension.class, LaunchCheckExtension.class, AllocationTokenExtension.class);
-    customLogic.beforeValidation();
+    flowCustomLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     List<String> targetIds = ((Check) resourceCommand).getTargetIds();
@@ -144,7 +146,7 @@ public final class DomainCheckFlow implements Flow {
       }
     }
     ImmutableMap<String, InternetDomainName> domainNames = domains.build();
-    customLogic.afterValidation(
+    flowCustomLogic.afterValidation(
         DomainCheckFlowCustomLogic.AfterValidationParameters.newBuilder()
             .setDomainNames(domainNames)
             // TODO: Use as of date from fee extension v0.12 instead of now, if specified.
@@ -155,7 +157,7 @@ public final class DomainCheckFlow implements Flow {
         eppInput.getSingleExtension(AllocationTokenExtension.class);
     ImmutableMap<String, String> tokenCheckResults =
         allocationTokenExtension.isPresent()
-            ? checkDomainsWithToken(
+            ? allocationTokenFlowUtils.checkDomainsWithToken(
                 targetIds, allocationTokenExtension.get().getAllocationToken(), clientId)
             : ImmutableMap.of();
     ImmutableList.Builder<DomainCheck> checks = new ImmutableList.Builder<>();
@@ -165,7 +167,7 @@ public final class DomainCheckFlow implements Flow {
       checks.add(DomainCheck.create(!message.isPresent(), targetId, message.orElse(null)));
     }
     BeforeResponseReturnData responseData =
-        customLogic.beforeResponse(
+        flowCustomLogic.beforeResponse(
             BeforeResponseParameters.newBuilder()
                 .setDomainChecks(checks.build())
                 .setResponseExtensions(getResponseExtensions(domainNames, now))
@@ -202,9 +204,7 @@ public final class DomainCheckFlow implements Flow {
     if (!reservationTypes.isEmpty()) {
       return Optional.of(getTypeOfHighestSeverity(reservationTypes).getMessageForCheck());
     }
-    return tokenCheckResults.containsKey(domainName.toString())
-        ? Optional.of(tokenCheckResults.get(domainName.toString()))
-        : Optional.empty();
+    return Optional.ofNullable(emptyToNull(tokenCheckResults.get(domainName.toString())));
   }
 
   /** Handle the fee check extension. */

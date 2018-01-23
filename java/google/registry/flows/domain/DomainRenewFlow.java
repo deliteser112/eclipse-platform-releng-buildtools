@@ -123,14 +123,14 @@ public final class DomainRenewFlow implements TransactionalFlow {
   @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject EppResponse.Builder responseBuilder;
-  @Inject DomainRenewFlowCustomLogic customLogic;
+  @Inject DomainRenewFlowCustomLogic flowCustomLogic;
   @Inject DomainPricingLogic pricingLogic;
   @Inject DomainRenewFlow() {}
 
   @Override
   public final EppResponse run() throws EppException {
     extensionManager.register(FeeRenewCommandExtension.class, MetadataExtension.class);
-    customLogic.beforeValidation();
+    flowCustomLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
@@ -147,7 +147,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
     FeesAndCredits feesAndCredits =
         pricingLogic.getRenewPrice(Registry.get(existingDomain.getTld()), targetId, now, years);
     validateFeeChallenge(targetId, existingDomain.getTld(), now, feeRenew, feesAndCredits);
-    customLogic.afterValidation(
+    flowCustomLogic.afterValidation(
         AfterValidationParameters.newBuilder()
             .setExistingDomain(existingDomain)
             .setNow(now)
@@ -178,7 +178,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
         .addGracePeriod(GracePeriod.forBillingEvent(GracePeriodStatus.RENEW, explicitRenewEvent))
         .build();
     EntityChanges entityChanges =
-        customLogic.beforeSave(
+        flowCustomLogic.beforeSave(
             BeforeSaveParameters.newBuilder()
                 .setExistingDomain(existingDomain)
                 .setNewDomain(newDomain)
@@ -198,7 +198,7 @@ public final class DomainRenewFlow implements TransactionalFlow {
                 .build());
     persistEntityChanges(entityChanges);
     BeforeResponseReturnData responseData =
-        customLogic.beforeResponse(
+        flowCustomLogic.beforeResponse(
             BeforeResponseParameters.newBuilder()
                 .setDomain(newDomain)
                 .setResData(DomainRenewData.create(targetId, newExpirationTime))

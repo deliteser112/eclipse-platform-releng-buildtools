@@ -128,14 +128,14 @@ public final class DomainDeleteFlow implements TransactionalFlow {
   @Inject DnsQueue dnsQueue;
   @Inject Trid trid;
   @Inject EppResponse.Builder responseBuilder;
-  @Inject DomainDeleteFlowCustomLogic customLogic;
+  @Inject DomainDeleteFlowCustomLogic flowCustomLogic;
   @Inject DomainDeleteFlow() {}
 
   @Override
   public final EppResponse run() throws EppException {
     extensionManager.register(
         MetadataExtension.class, SecDnsCreateExtension.class, DomainDeleteSuperuserExtension.class);
-    customLogic.beforeValidation();
+    flowCustomLogic.beforeValidation();
     extensionManager.validate();
     validateClientIsLoggedIn(clientId);
     DateTime now = ofy().getTransactionTime();
@@ -143,7 +143,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
     DomainResource existingDomain = loadAndVerifyExistence(DomainResource.class, targetId, now);
     Registry registry = Registry.get(existingDomain.getTld());
     verifyDeleteAllowed(existingDomain, registry, now);
-    customLogic.afterValidation(
+    flowCustomLogic.afterValidation(
         AfterValidationParameters.newBuilder().setExistingDomain(existingDomain).build());
     ImmutableSet.Builder<ImmutableObject> entitiesToSave = new ImmutableSet.Builder<>();
     Builder builder;
@@ -214,7 +214,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
       }
     }
     entitiesToSave.add(newDomain, historyEntry);
-    EntityChanges entityChanges = customLogic.beforeSave(
+    EntityChanges entityChanges = flowCustomLogic.beforeSave(
         BeforeSaveParameters.newBuilder()
             .setExistingDomain(existingDomain)
             .setNewDomain(newDomain)
@@ -223,7 +223,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
             .build());
     persistEntityChanges(entityChanges);
     BeforeResponseReturnData responseData =
-        customLogic.beforeResponse(
+        flowCustomLogic.beforeResponse(
             BeforeResponseParameters.newBuilder()
                 .setResultCode(
                     newDomain.getDeletionTime().isAfter(now)
