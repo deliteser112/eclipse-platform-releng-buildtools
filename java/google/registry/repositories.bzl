@@ -95,6 +95,7 @@ def domain_registry_repositories(
     omit_com_squareup_javawriter=False,
     omit_com_sun_xml_bind_jaxb_core=False,
     omit_com_sun_xml_bind_jaxb_impl=False,
+    omit_com_sun_xml_bind_jaxb_jxc=False,
     omit_com_sun_xml_bind_jaxb_xjc=False,
     omit_com_thoughtworks_paranamer=False,
     omit_commons_codec=False,
@@ -303,6 +304,8 @@ def domain_registry_repositories(
     com_sun_xml_bind_jaxb_impl()
   if not omit_com_sun_xml_bind_jaxb_xjc:
     com_sun_xml_bind_jaxb_xjc()
+  if not omit_com_sun_xml_bind_jaxb_jxc:
+    com_sun_xml_bind_jaxb_jxc()
   if not omit_com_thoughtworks_paranamer:
     com_thoughtworks_paranamer()
   if not omit_commons_codec:
@@ -1615,6 +1618,17 @@ def com_sun_xml_bind_jaxb_impl():
           "http://repo1.maven.org/maven2/com/sun/xml/bind/jaxb-impl/2.2.11/jaxb-impl-2.2.11.jar",
       ],
       licenses = ["reciprocal"],  # CDDL 1.1 or GPLv2 (We choo-choo-choose the CDDL)
+  )
+
+def com_sun_xml_bind_jaxb_jxc():
+  java_import_external(
+      name = "com_sun_xml_bind_jaxb_jxc",
+      licenses = ["restricted"],  # CDDL+GPL License
+      jar_sha256 = "25cbca594ec0682a1d0287c4a2fcb5f6a2a9718229d54a0ad09daf5cff180b4e",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/com/sun/xml/bind/jaxb-jxc/2.2.11/jaxb-jxc-2.2.11.jar",
+          "http://maven.ibiblio.org/maven2/com/sun/xml/bind/jaxb-jxc/2.2.11/jaxb-jxc-2.2.11.jar",
+      ],
   )
 
 def com_sun_xml_bind_jaxb_xjc():

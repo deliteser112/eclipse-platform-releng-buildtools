@@ -12,6 +12,7 @@ java_library(
     visibility = ["//visibility:public"],
     deps = [
         "//java/google/registry/xml",
+        "//third_party/jaxb",
         "@com_google_code_findbugs_jsr305",
         "@com_google_guava",
         "@joda_time",

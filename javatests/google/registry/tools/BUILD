@@ -36,6 +36,7 @@ java_library(
         "//javatests/google/registry/testing",
         "//javatests/google/registry/tools/server",
         "//javatests/google/registry/xml",
+        "//third_party/jaxb",
         "//third_party/objectify:objectify-v4_1",
         "@com_beust_jcommander",
         "@com_google_api_client",
