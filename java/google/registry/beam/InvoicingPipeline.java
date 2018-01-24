@@ -16,8 +16,9 @@ package google.registry.beam;
 
 import google.registry.beam.BillingEvent.InvoiceGroupingKey;
 import google.registry.beam.BillingEvent.InvoiceGroupingKey.InvoiceGroupingKeyCoder;
-import google.registry.billing.BillingModule;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.reporting.billing.BillingModule;
+import google.registry.reporting.billing.GenerateInvoicesAction;
 import java.io.Serializable;
 import javax.inject.Inject;
 import org.apache.beam.runners.dataflow.DataflowRunner;
@@ -47,8 +48,7 @@ import org.apache.beam.sdk.values.TypeDescriptors;
  * google.registry.tools.DeployInvoicingPipelineCommand} Nomulus command.
  *
  * <p>Then, you can run the staged template via the API client library, gCloud or a raw REST call.
- * For an example using the API client library, see {@link
- * google.registry.billing.GenerateInvoicesAction}.
+ * For an example using the API client library, see {@link GenerateInvoicesAction}.
  *
  * @see <a href="https://cloud.google.com/dataflow/docs/templates/overview">Dataflow Templates</a>
  */

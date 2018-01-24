@@ -28,10 +28,6 @@ import google.registry.batch.MapreduceEntityCleanupAction;
 import google.registry.batch.RefreshDnsOnHostRenameAction;
 import google.registry.batch.ResaveAllEppResourcesAction;
 import google.registry.batch.VerifyEntityIntegrityAction;
-import google.registry.billing.BillingModule;
-import google.registry.billing.CopyDetailReportsAction;
-import google.registry.billing.GenerateInvoicesAction;
-import google.registry.billing.PublishInvoicesAction;
 import google.registry.cron.CommitLogFanoutAction;
 import google.registry.cron.CronModule;
 import google.registry.cron.TldFanoutAction;
@@ -69,9 +65,14 @@ import google.registry.rde.imports.RdeDomainImportAction;
 import google.registry.rde.imports.RdeHostImportAction;
 import google.registry.rde.imports.RdeHostLinkAction;
 import google.registry.rde.imports.RdeImportsModule;
-import google.registry.reporting.IcannReportingModule;
-import google.registry.reporting.IcannReportingStagingAction;
-import google.registry.reporting.IcannReportingUploadAction;
+import google.registry.reporting.ReportingModule;
+import google.registry.reporting.billing.BillingModule;
+import google.registry.reporting.billing.CopyDetailReportsAction;
+import google.registry.reporting.billing.GenerateInvoicesAction;
+import google.registry.reporting.billing.PublishInvoicesAction;
+import google.registry.reporting.icann.IcannReportingModule;
+import google.registry.reporting.icann.IcannReportingStagingAction;
+import google.registry.reporting.icann.IcannReportingUploadAction;
 import google.registry.request.RequestComponentBuilder;
 import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
@@ -101,6 +102,7 @@ import google.registry.tmch.TmchSmdrlAction;
         MapreduceModule.class,
         RdeModule.class,
         RdeImportsModule.class,
+        ReportingModule.class,
         RequestModule.class,
         SheetModule.class,
         TmchModule.class,

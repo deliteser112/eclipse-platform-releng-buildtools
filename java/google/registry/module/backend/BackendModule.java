@@ -16,9 +16,7 @@ package google.registry.module.backend;
 
 import static google.registry.model.registry.Registries.assertTldExists;
 import static google.registry.model.registry.Registries.assertTldsExist;
-import static google.registry.request.RequestParameters.PARAM_YEAR_MONTH;
 import static google.registry.request.RequestParameters.extractOptionalDatetimeParameter;
-import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 import static google.registry.request.RequestParameters.extractSetOfParameters;
 
@@ -26,16 +24,11 @@ import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.batch.ExpandRecurringBillingEventsAction;
-import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
-import google.registry.util.Clock;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
-import org.joda.time.YearMonth;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 /**
  * Dagger module for injecting common settings for all Backend tasks.
@@ -62,31 +55,5 @@ public class BackendModule {
   static Optional<DateTime> provideCursorTime(HttpServletRequest req) {
     return extractOptionalDatetimeParameter(
         req, ExpandRecurringBillingEventsAction.PARAM_CURSOR_TIME);
-  }
-
-  /** Extracts an optional YearMonth in yyyy-MM format from the request. */
-  @Provides
-  @Parameter(PARAM_YEAR_MONTH)
-  static Optional<YearMonth> provideYearMonthOptional(HttpServletRequest req) {
-    DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM");
-    Optional<String> optionalYearMonthStr = extractOptionalParameter(req, PARAM_YEAR_MONTH);
-    try {
-      return optionalYearMonthStr.map(s -> YearMonth.parse(s, formatter));
-    } catch (IllegalArgumentException e) {
-      throw new BadRequestException(
-          String.format(
-              "yearMonth must be in yyyy-MM format, got %s instead",
-              optionalYearMonthStr.orElse("UNSPECIFIED YEARMONTH")));
-    }
-  }
-
-  /**
-   * Provides the yearMonth in yyyy-MM format, if not specified in the request, defaults to one
-   * month prior to run time.
-   */
-  @Provides
-  static YearMonth provideYearMonth(
-      @Parameter(PARAM_YEAR_MONTH) Optional<YearMonth> yearMonthOptional, Clock clock) {
-    return yearMonthOptional.orElseGet(() -> new YearMonth(clock.nowUtc().minusMonths(1)));
   }
 }

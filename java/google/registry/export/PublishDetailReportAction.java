@@ -41,8 +41,8 @@ import javax.inject.Inject;
  * Publish a single registrar detail report from GCS to Drive.
  *
  * <p>This is now DEPRECATED, and will be removed upon completion of the billing migration. If you
- * wish to use the functionality, use {@link google.registry.billing.CopyDetailReportsAction}
- * instead.
+ * wish to use the functionality, use {@link
+ * google.registry.reporting.billing.CopyDetailReportsAction} instead.
  */
 @Action(
   path = PublishDetailReportAction.PATH,

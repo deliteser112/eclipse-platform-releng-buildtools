@@ -470,7 +470,7 @@ public final class RegistryConfig {
     /**
      * Returns the name of the GCS bucket for storing Beam templates and results.
      *
-     * @see google.registry.billing.GenerateInvoicesAction
+     * @see google.registry.reporting.billing.GenerateInvoicesAction
      */
     @Provides
     @Config("apacheBeamBucket")
@@ -481,7 +481,7 @@ public final class RegistryConfig {
     /**
      * Returns the URL of the GCS location for storing Apache Beam related objects.
      *
-     * @see google.registry.billing.GenerateInvoicesAction
+     * @see google.registry.reporting.billing.GenerateInvoicesAction
      */
     @Provides
     @Config("apacheBeamBucketUrl")
@@ -492,7 +492,7 @@ public final class RegistryConfig {
     /**
      * Returns the URL of the GCS location for storing the monthly invoicing Beam template.
      *
-     * @see google.registry.billing.GenerateInvoicesAction
+     * @see google.registry.reporting.billing.GenerateInvoicesAction
      * @see google.registry.beam.InvoicingPipeline
      */
     @Provides
@@ -518,7 +518,7 @@ public final class RegistryConfig {
      * Returns the Google Cloud Storage bucket for ICANN transaction and activity reports to
      * be uploaded.
      *
-     * @see google.registry.reporting.IcannReportingUploadAction
+     * @see google.registry.reporting.icann.IcannReportingUploadAction
      */
     @Provides
     @Config("icannReportingBucket")
@@ -529,7 +529,7 @@ public final class RegistryConfig {
     /**
      * Returns the URL we send HTTP PUT requests for ICANN monthly transactions reports.
      *
-     * @see google.registry.reporting.IcannHttpReporter
+     * @see google.registry.reporting.icann.IcannHttpReporter
      */
     @Provides
     @Config("icannTransactionsReportingUploadUrl")
@@ -540,7 +540,7 @@ public final class RegistryConfig {
     /**
      * Returns the URL we send HTTP PUT requests for ICANN monthly activity reports.
      *
-     * @see google.registry.reporting.IcannHttpReporter
+     * @see google.registry.reporting.icann.IcannHttpReporter
      */
     @Provides
     @Config("icannActivityReportingUploadUrl")
@@ -768,7 +768,7 @@ public final class RegistryConfig {
      * <p>This allows us to easily verify the success or failure of periodic tasks by passively
      * checking e-mail.
      *
-     * @see google.registry.reporting.ReportingEmailUtils
+     * @see google.registry.reporting.icann.ReportingEmailUtils
      * @see google.registry.billing.BillingEmailUtils
      */
     @Provides
@@ -780,7 +780,7 @@ public final class RegistryConfig {
     /**
      * Returns the email address we send emails from.
      *
-     * @see google.registry.reporting.ReportingEmailUtils
+     * @see google.registry.reporting.icann.ReportingEmailUtils
      * @see google.registry.billing.BillingEmailUtils
      */
 

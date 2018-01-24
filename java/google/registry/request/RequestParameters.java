@@ -33,11 +33,6 @@ public final class RequestParameters {
   public static final String PARAM_TLD = "tld";
 
   /**
-   * The standardized request parameter name used by any action that takes a year/month parameter.
-   */
-  public static final String PARAM_YEAR_MONTH = "yearMonth";
-
-  /**
    * Returns first GET or POST parameter associated with {@code name}.
    *
    * <p>For example, assume {@code name} is "bar". The following request URIs would cause this

@@ -18,7 +18,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import google.registry.billing.BillingModule;
+import google.registry.reporting.billing.BillingModule;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.io.InputStream;
