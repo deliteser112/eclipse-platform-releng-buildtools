@@ -125,7 +125,6 @@
     <target>backend</target>
   </cron>
 
-
   <cron>
     <url><![CDATA[/_dr/cron/commitLogCheckpoint]]></url>
     <description>

@@ -1,6 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cronentries>
 
+  <!--
+    /cron/fanout params:
+        queue=<QUEUE_NAME>
+        endpoint=<ENDPOINT_NAME>    // URL Path of servlet, which may contain placeholders:
+                                    //   :tld       - Replaced with the TLD, e.g. foo, soy
+                                    //   :registrar - Replaced with registrar clientId
+        runInEmpty                  // Run in the empty namespace
+        forEachRealTld              // Run for tlds with getTldType() == TldType.REAL
+        forEachTestTld              // Run for tlds with getTldType() == TldType.TEST
+        exclude=TLD1[&exclude=TLD2] // exclude something otherwise included
+   -->
+
+  <cron>
+    <url>/_dr/task/rdeStaging</url>
+    <description>
+      This job generates a full RDE escrow deposit as a single gigantic XML document
+      and streams it to cloud storage. When this job has finished successfully, it'll
+      launch a separate task that uploads the deposit file to Iron Mountain via SFTP.
+    </description>
+    <!--
+      This only needs to run once per day, but we launch additional jobs in case the
+      cursor is lagging behind, so it'll catch up to the current date as quickly as
+      possible. The only job that'll run under normal circumstances is the one that's
+      close to midnight, since if the cursor is up-to-date, the task is a no-op.
+
+      We want it to be close to midnight because that reduces the chance that the
+      point-in-time code won't have to go to the extra trouble of fetching old
+      versions of objects from Datastore. However, we don't want it to run too
+      close to midnight, because there's always a chance that a change which was
+      timestamped before midnight hasn't fully been committed to Datastore. So
+      we add a 4+ minute grace period to ensure the transactions cool down, since
+      our queries are not transactional.
+    -->
+    <schedule>every 4 hours from 00:07 to 20:00</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/cron/fanout?queue=rde-upload&endpoint=/_dr/task/rdeUpload&forEachRealTld]]></url>
+    <description>
+      This job is a no-op unless RdeUploadCursor falls behind for some reason.
+    </description>
+    <schedule>every 4 hours synchronized</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/cron/fanout?queue=rde-report&endpoint=/_dr/task/rdeReport&forEachRealTld]]></url>
+    <description>
+      This job is a no-op unless RdeReportCursor falls behind for some reason.
+    </description>
+    <schedule>every 4 hours synchronized</schedule>
+    <target>backend</target>
+  </cron>
+
   <cron>
     <url><![CDATA[/_dr/cron/fanout?queue=marksdb&endpoint=/_dr/task/tmchDnl&runInEmpty]]></url>
     <description>
@@ -37,6 +92,54 @@
       Syncs RegistrarContact changes in the past hour to Google Groups.
     </description>
     <schedule>every 1 hours synchronized</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/cron/fanout?queue=sheet&endpoint=/_dr/task/syncRegistrarsSheet&runInEmpty]]></url>
+    <description>
+      Synchronize Registrar entities to Google Spreadsheets.
+    </description>
+    <schedule>every 1 hours synchronized</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/task/resaveAllEppResources]]></url>
+    <description>
+      This job resaves all our resources, projected in time to "now".
+      It is needed for "deleteOldCommitLogs" to work correctly.
+    </description>
+    <schedule>1st monday of month 09:00</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/task/deleteOldCommitLogs]]></url>
+    <description>
+      This job deletes unreferenced commit logs from Datastore that are older than thirty days.
+      Since references are only updated on save, if we want to delete "unneeded" commit logs, we
+      also need "resaveAllEppResources" to run periodically.
+    </description>
+    <schedule>3rd monday of month 09:00</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/cron/commitLogCheckpoint]]></url>
+    <description>
+      This job checkpoints the commit log buckets and exports the diff since last checkpoint to GCS.
+    </description>
+    <schedule>every 1 minutes synchronized</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/exportDomainLists&runInEmpty]]></url>
+    <description>
+      This job exports lists of all active domain names to Google Cloud Storage.
+    </description>
+    <schedule>every 12 hours synchronized</schedule>
     <target>backend</target>
   </cron>
 
@@ -85,34 +188,6 @@
     <target>backend</target>
   </cron>
 
-  <cron>
-    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/exportReservedTerms&forEachRealTld]]></url>
-    <description>
-      Reserved terms export to Google Drive job for creating once-daily exports.
-    </description>
-    <schedule>every day 05:30</schedule>
-    <target>backend</target>
-  </cron>
-
-  <cron>
-    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/exportDomainLists&runInEmpty]]></url>
-    <description>
-      This job exports lists of all active domain names to Google Cloud Storage.
-    </description>
-    <schedule>every 12 hours synchronized</schedule>
-    <target>backend</target>
-  </cron>
-
-  <cron>
-    <url><![CDATA[/_dr/cron/readDnsQueue?jitterSeconds=45]]></url>
-    <description>
-      Lease all tasks from the dns-pull queue, group by TLD, and invoke PublishDnsUpdates for each
-      group.
-    </description>
-    <schedule>every 1 minutes synchronized</schedule>
-    <target>backend</target>
-  </cron>
-
   <!--
     Removed for the duration of load testing
     TODO(b/67947699): Restore after loadtesting is done
@@ -128,42 +203,21 @@
   -->
 
   <cron>
-    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/verifyEntityIntegrity&runInEmpty]]></url>
+    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/exportReservedTerms&forEachRealTld]]></url>
     <description>
-      This job verifies entity integrity and runs once daily.
+      Reserved terms export to Google Drive job for creating once-daily exports.
     </description>
-    <schedule>every day 06:30</schedule>
-    <timezone>UTC</timezone>
+    <schedule>every day 05:30</schedule>
     <target>backend</target>
   </cron>
 
   <cron>
-    <url><![CDATA[/_dr/cron/fanout?queue=sheet&endpoint=/_dr/task/syncRegistrarsSheet&runInEmpty]]></url>
+    <url><![CDATA[/_dr/cron/readDnsQueue?jitterSeconds=45]]></url>
     <description>
-      Synchronize Registrar entities to Google Spreadsheets.
+      Lease all tasks from the dns-pull queue, group by TLD, and invoke PublishDnsUpdates for each
+      group.
     </description>
-    <schedule>every 1 hours synchronized</schedule>
-    <target>backend</target>
-  </cron>
-
-  <cron>
-    <url><![CDATA[/_dr/task/resaveAllEppResources]]></url>
-    <description>
-      This job resaves all our resources, projected in time to "now".
-      It is needed for "deleteOldCommitLogs" to work correctly.
-    </description>
-    <schedule>1st monday of month 09:00</schedule>
-    <target>backend</target>
-  </cron>
-
-  <cron>
-    <url><![CDATA[/_dr/task/deleteOldCommitLogs]]></url>
-    <description>
-      This job deletes unreferenced commit logs from Datastore that are older than thirty days.
-      Since references are only updated on save, if we want to delete "unneeded" commit logs, we
-      also need "resaveAllEppResources" to run periodically.
-    </description>
-    <schedule>3rd monday of month 09:00</schedule>
+    <schedule>every 1 minutes synchronized</schedule>
     <target>backend</target>
   </cron>
 
@@ -173,6 +227,16 @@
       Delete up to 100 expired _ah_SESSION entities from Datastore.
     </description>
     <schedule>every 15 minutes</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
+    <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/verifyEntityIntegrity&runInEmpty]]></url>
+    <description>
+      This job verifies entity integrity and runs once daily.
+    </description>
+    <schedule>every day 06:30</schedule>
+    <timezone>UTC</timezone>
     <target>backend</target>
   </cron>
 
