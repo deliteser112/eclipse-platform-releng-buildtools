@@ -110,12 +110,14 @@ def domain_registry_repositories(
     omit_io_netty_tcnative=False,
     omit_io_netty_transport=False,
     omit_it_unimi_dsi_fastutil=False,
-    omit_javax_activation=False,
+    omit_com_sun_activation_javax_activation=False,
     omit_javax_annotation_jsr250_api=False,
     omit_javax_inject=False,
     omit_javax_mail=False,
     omit_javax_servlet_api=False,
     omit_javax_xml_bind_jaxb_api=False,
+    omit_javax_xml_soap_api=False,
+    omit_javax_xml_ws_jaxws_api=False,
     omit_joda_time=False,
     omit_junit=False,
     omit_org_apache_avro=False,
@@ -332,8 +334,8 @@ def domain_registry_repositories(
     io_netty_transport()
   if not omit_it_unimi_dsi_fastutil:
     it_unimi_dsi_fastutil()
-  if not omit_javax_activation:
-    javax_activation()
+  if not omit_com_sun_activation_javax_activation:
+    com_sun_activation_javax_activation()
   if not omit_javax_annotation_jsr250_api:
     javax_annotation_jsr250_api()
   if not omit_javax_inject:
@@ -344,6 +346,10 @@ def domain_registry_repositories(
     javax_servlet_api()
   if not omit_javax_xml_bind_jaxb_api:
     javax_xml_bind_jaxb_api()
+  if not omit_javax_xml_soap_api:
+    javax_xml_soap_api()
+  if not omit_javax_xml_ws_jaxws_api:
+    javax_xml_ws_jaxws_api()
   if not omit_joda_time:
     joda_time()
   if not omit_junit:
@@ -1806,15 +1812,15 @@ def it_unimi_dsi_fastutil():
       licenses = ["notice"],  # Apache License, Version 2.0
   )
 
-def javax_activation():
+def com_sun_activation_javax_activation():
   java_import_external(
-      name = "javax_activation",
-      jar_sha256 = "2881c79c9d6ef01c58e62beea13e9d1ac8b8baa16f2fc198ad6e6776defdcdd3",
+      name = "com_sun_activation_javax_activation",
+      licenses = ["restricted"],  # CDDL/GPLv2+CE
+      jar_sha256 = "993302b16cd7056f21e779cc577d175a810bb4900ef73cd8fbf2b50f928ba9ce",
       jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/javax/activation/activation/1.1/activation-1.1.jar",
-          "http://repo1.maven.org/maven2/javax/activation/activation/1.1/activation-1.1.jar",
+          "http://maven.ibiblio.org/maven2/com/sun/activation/javax.activation/1.2.0/javax.activation-1.2.0.jar",
+          "http://repo1.maven.org/maven2/com/sun/activation/javax.activation/1.2.0/javax.activation-1.2.0.jar",
       ],
-      licenses = ["reciprocal"],  # Common Development and Distribution License (CDDL) v1.0
   )
 
 def javax_annotation_jsr250_api():
@@ -1848,7 +1854,7 @@ def javax_mail():
           "http://repo1.maven.org/maven2/javax/mail/mail/1.4/mail-1.4.jar",
       ],
       licenses = ["reciprocal"],  # Common Development and Distribution License (CDDL) v1.0
-      deps = ["@javax_activation"],
+      deps = ["@com_sun_activation_javax_activation"],
   )
 
 def javax_servlet_api():
@@ -1873,6 +1879,32 @@ def javax_xml_bind_jaxb_api():
       # CDDL 1.1 or GPLv2 w/ CPE (We choo-choo-choose the CDDL)
       # https://glassfish.java.net/public/CDDL+GPL_1_1.html
       licenses = ["reciprocal"],
+  )
+
+def javax_xml_soap_api():
+  java_import_external(
+      name = "javax_xml_soap_api",
+      licenses = ["restricted"],  # CDDL + GPLv2 with classpath exception
+      jar_sha256 = "141374e33be99768611a2d42b9d33571a0c5b9763beca9c2dc90900d8cc8f767",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/javax/xml/soap/javax.xml.soap-api/1.4.0/javax.xml.soap-api-1.4.0.jar",
+          "http://maven.ibiblio.org/maven2/javax/xml/soap/javax.xml.soap-api/1.4.0/javax.xml.soap-api-1.4.0.jar",
+      ],
+  )
+
+def javax_xml_ws_jaxws_api():
+  java_import_external(
+      name = "javax_xml_ws_jaxws_api",
+      licenses = ["restricted"],  # CDDL + GPLv2 with classpath exception
+      jar_sha256 = "c261f75c1a25ecb17d1936efe34a34236b5d0e79415b34ffb9324359a30a8c08",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/javax/xml/ws/jaxws-api/2.3.0/jaxws-api-2.3.0.jar",
+          "http://repo1.maven.org/maven2/javax/xml/ws/jaxws-api/2.3.0/jaxws-api-2.3.0.jar",
+      ],
+      deps = [
+          "@javax_xml_bind_jaxb_api",
+          "@javax_xml_soap_api",
+      ],
   )
 
 def joda_time():
