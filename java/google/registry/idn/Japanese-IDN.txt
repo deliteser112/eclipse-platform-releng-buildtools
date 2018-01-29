@@ -1,6 +1,6 @@
 # Registry: Charleston Road Registry Inc.
 #
-# Script: Japanese
+# Script: Jpan
 #
 # Version: 1.0
 #

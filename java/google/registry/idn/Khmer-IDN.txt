@@ -1,5 +1,5 @@
 # Registry: Charleston Road Registry Inc.
-# Script: Khmer
+# Script: Khmr
 # Version: 1.0
 # Effective Date: 04-12-2012
 # Contact: tas-contact.google.com
@@ -117,4 +117,3 @@ U+17E6  # KHMER DIGIT SIX
 U+17E7  # KHMER DIGIT SEVEN
 U+17E8  # KHMER DIGIT EIGHT
 U+17E9  # KHMER DIGIT NINE
-

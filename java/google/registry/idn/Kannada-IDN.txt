@@ -1,5 +1,5 @@
 # Registry: Charleston Road Registry Inc.
-# Script: Kannada
+# Script: Knda
 # Version: 1.0
 # Effective Date: 04-12-2012
 # Contact: tas-contact.google.com
