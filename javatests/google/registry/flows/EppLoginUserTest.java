@@ -19,6 +19,7 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 
 import com.google.appengine.api.users.User;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.testing.AppEngineRule;
@@ -60,7 +61,13 @@ public class EppLoginUserTest extends EppTestCase {
 
   @Test
   public void testNonAuthedLogin_fails() throws Exception {
-    assertCommandAndResponse("login2_valid.xml", "login_response_unauthorized_role.xml");
+    assertCommandAndResponse(
+        "login2_valid.xml",
+        ImmutableMap.of(),
+        "response_error.xml",
+        ImmutableMap.of(
+            "MSG", "User id is not allowed to login as requested registrar: person@example.com",
+            "CODE", "2200"));
   }
 
   @Test
@@ -69,7 +76,13 @@ public class EppLoginUserTest extends EppTestCase {
     assertCommandAndResponse("logout.xml", "logout_response.xml");
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
     assertCommandAndResponse("logout.xml", "logout_response.xml");
-    assertCommandAndResponse("login2_valid.xml", "login_response_unauthorized_role.xml");
+    assertCommandAndResponse(
+        "login2_valid.xml",
+        ImmutableMap.of(),
+        "response_error.xml",
+        ImmutableMap.of(
+            "MSG", "User id is not allowed to login as requested registrar: person@example.com",
+            "CODE", "2200"));
   }
 
   @Test

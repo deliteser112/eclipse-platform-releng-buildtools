@@ -87,7 +87,11 @@ public class EppLifecycleDomainApplicationTest extends EppTestCase {
         DateTime.parse("2014-01-01T00:00:00Z"));
     assertCommandAndResponse(
         "domain_info_testvalidate.xml",
-        "domain_info_response_testvalidate_doesnt_exist.xml",
+        ImmutableMap.of(),
+        "response_error.xml",
+        ImmutableMap.of(
+            "MSG", "The domain with given ID (test-validate.example) doesn't exist.",
+            "CODE", "2303"),
         DateTime.parse("2014-01-01T00:01:00Z"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
@@ -102,11 +106,17 @@ public class EppLifecycleDomainApplicationTest extends EppTestCase {
         DateTime.parse("2014-01-01T00:00:00Z"));
     assertCommandAndResponse(
         "domain_info_testvalidate.xml",
-        "domain_info_response_testvalidate_doesnt_exist.xml",
+        ImmutableMap.of(),
+        "response_error.xml",
+        ImmutableMap.of(
+            "MSG", "The domain with given ID (test-validate.example) doesn't exist.",
+            "CODE", "2303"),
         DateTime.parse("2014-01-01T00:01:00Z"));
     assertCommandAndResponse(
         "domain_allocate_testvalidate.xml",
-        "domain_allocate_response_testvalidate_only_superuser.xml",
+        ImmutableMap.of(),
+        "response_error.xml",
+        ImmutableMap.of("MSG", "Only a superuser can allocate domains", "CODE", "2201"),
         START_OF_GA.plusDays(1));
     setIsSuperuser(true);
     assertCommandAndResponse(

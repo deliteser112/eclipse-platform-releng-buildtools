@@ -24,6 +24,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.standardDays;
 
+import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
 import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.model.domain.DomainResource;
@@ -125,7 +126,7 @@ public class EppCommitLogsTest extends ShardableTestCase {
 
     clock.advanceBy(standardDays(2));
     DateTime timeAtDelete = clock.nowUtc();  // before 'add' grace period ends
-    eppLoader = new EppLoader(this, "domain_delete.xml");
+    eppLoader = new EppLoader(this, "domain_delete.xml", ImmutableMap.of("NAME", "example.tld"));
     runFlow();
     ofy().clearSessionCache();
 

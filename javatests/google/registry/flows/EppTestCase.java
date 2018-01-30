@@ -73,7 +73,7 @@ public class EppTestCase extends ShardableTestCase {
   }
 
   String assertCommandAndResponse(String inputFilename, String outputFilename) throws Exception {
-    return assertCommandAndResponse(inputFilename, outputFilename, DateTime.now(UTC));
+    return assertCommandAndResponse(inputFilename, null, outputFilename, null);
   }
 
   String assertCommandAndResponse(String inputFilename, String outputFilename, DateTime now)
@@ -85,19 +85,32 @@ public class EppTestCase extends ShardableTestCase {
       String inputFilename,
       Map<String, String> inputSubstitutions,
       String outputFilename,
+      Map<String, String> outputSubstitutions)
+      throws Exception {
+    return assertCommandAndResponse(
+        inputFilename, inputSubstitutions, outputFilename, outputSubstitutions, DateTime.now(UTC));
+  }
+
+  String assertCommandAndResponse(
+      String inputFilename,
+      Map<String, String> inputSubstitutions,
+      String outputFilename,
       Map<String, String> outputSubstitutions,
-      DateTime now) throws Exception {
+      DateTime now)
+      throws Exception {
     clock.setTo(now);
     String input = loadFile(getClass(), inputFilename, inputSubstitutions);
     String expectedOutput = loadFile(getClass(), outputFilename, outputSubstitutions);
     if (sessionMetadata == null) {
-      sessionMetadata = new HttpSessionMetadata(new FakeHttpSession()) {
-        @Override
-        public void invalidate() {
-          // When a session is invalidated, reset the sessionMetadata field.
-          super.invalidate();
-          EppTestCase.this.sessionMetadata = null;
-        }};
+      sessionMetadata =
+          new HttpSessionMetadata(new FakeHttpSession()) {
+            @Override
+            public void invalidate() {
+              // When a session is invalidated, reset the sessionMetadata field.
+              super.invalidate();
+              EppTestCase.this.sessionMetadata = null;
+            }
+          };
     }
     String actualOutput = executeXmlCommand(input);
     assertXmlEqualsWithMessage(
@@ -106,7 +119,7 @@ public class EppTestCase extends ShardableTestCase {
         "Running " + inputFilename + " => " + outputFilename,
         "epp.response.resData.infData.roid",
         "epp.response.trID.svTRID");
-    ofy().clearSessionCache();  // Clear the cache like OfyFilter would.
+    ofy().clearSessionCache(); // Clear the cache like OfyFilter would.
     return actualOutput;
   }
 

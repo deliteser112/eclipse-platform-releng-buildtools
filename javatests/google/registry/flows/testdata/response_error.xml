@@ -1,7 +1,7 @@
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <response>
-    <result code="2002">
-      <msg>Command is not allowed in the current registry phase</msg>
+    <result code="%CODE%">
+      <msg>%MSG%</msg>
     </result>
     <trID>
       <clTRID>ABC-12345</clTRID>

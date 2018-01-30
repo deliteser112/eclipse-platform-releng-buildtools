@@ -14,6 +14,7 @@
 
 package google.registry.flows;
 
+import com.google.common.collect.ImmutableMap;
 import google.registry.testing.AppEngineRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,7 +38,14 @@ public class EppXxeAttackTest extends EppTestCase {
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
     assertCommandAndResponse(
         "contact_create_remote_xxe.xml",
-        "contact_create_remote_response_xxe.xml");
+        ImmutableMap.of(),
+        "response_error_no_cltrid.xml",
+        ImmutableMap.of(
+            "MSG",
+            "Syntax error at line 11, column 34: "
+                + "The entity &quot;remote&quot; was referenced, but not declared.",
+            "CODE",
+            "2001"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
 
@@ -46,7 +54,14 @@ public class EppXxeAttackTest extends EppTestCase {
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
     assertCommandAndResponse(
         "contact_create_local_xxe.xml",
-        "contact_create_local_response_xxe.xml");
+        ImmutableMap.of(),
+        "response_error_no_cltrid.xml",
+        ImmutableMap.of(
+            "MSG",
+            "Syntax error at line 11, column 31: "
+                + "The entity &quot;ent&quot; was referenced, but not declared.",
+            "CODE",
+            "2001"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
 
@@ -55,7 +70,14 @@ public class EppXxeAttackTest extends EppTestCase {
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
     assertCommandAndResponse(
         "contact_create_billion_laughs.xml",
-        "contact_create_response_billion_laughs.xml");
+        ImmutableMap.of(),
+        "response_error_no_cltrid.xml",
+        ImmutableMap.of(
+            "MSG",
+            "Syntax error at line 20, column 32: "
+                + "The entity &quot;lol9&quot; was referenced, but not declared.",
+            "CODE",
+            "2001"));
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
 }

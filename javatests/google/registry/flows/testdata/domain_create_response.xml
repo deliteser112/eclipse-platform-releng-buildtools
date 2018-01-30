@@ -6,9 +6,9 @@
     <resData>
       <domain:creData
        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-        <domain:name>example.tld</domain:name>
-        <domain:crDate>2000-06-01T00:02:00.0Z</domain:crDate>
-        <domain:exDate>2002-06-01T00:02:00.0Z</domain:exDate>
+        <domain:name>%NAME%</domain:name>
+        <domain:crDate>%CRDATE%</domain:crDate>
+        <domain:exDate>%EXDATE%</domain:exDate>
       </domain:creData>
     </resData>
     <trID>

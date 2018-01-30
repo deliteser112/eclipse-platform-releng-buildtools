@@ -47,6 +47,15 @@ public class EppLoggedOutTest extends EppTestCase {
 
   @Test
   public void testSyntaxError() throws Exception {
-    assertCommandAndResponse("syntax_error.xml", "syntax_error_response.xml");
+    assertCommandAndResponse(
+        "syntax_error.xml",
+        ImmutableMap.of(),
+        "response_error_no_cltrid.xml",
+        ImmutableMap.of(
+            "MSG",
+            "Syntax error at line 4, column 65: cvc-complex-type.3.2.2: "
+                + "Attribute 'xsi:schemaLocation' is not allowed to appear in element 'epp'.",
+            "CODE",
+            "2001"));
   }
 }

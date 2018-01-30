@@ -18,6 +18,7 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static org.joda.time.DateTimeZone.UTC;
 
+import com.google.common.collect.ImmutableMap;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.CertificateSamples;
 import java.util.Optional;
@@ -70,7 +71,10 @@ public class EppLoginTlsTest extends EppTestCase {
     setClientCertificateHash(CertificateSamples.SAMPLE_CERT_HASH);
     // For TLS login, we also check the epp xml password.
     assertCommandAndResponse(
-        "login_invalid_wrong_password.xml", "login_response_wrong_password.xml");
+        "login_invalid_wrong_password.xml",
+        ImmutableMap.of(),
+        "response_error.xml",
+        ImmutableMap.of("MSG", "Registrar password is incorrect", "CODE", "2200"));
   }
 
   @Test
@@ -80,26 +84,45 @@ public class EppLoginTlsTest extends EppTestCase {
     assertCommandAndResponse("logout.xml", "logout_response.xml");
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
     assertCommandAndResponse("logout.xml", "logout_response.xml");
-    assertCommandAndResponse("login2_valid.xml", "login_response_bad_certificate.xml");
+    assertCommandAndResponse(
+        "login2_valid.xml",
+        ImmutableMap.of(),
+        "response_error.xml",
+        ImmutableMap.of(
+            "MSG", "Registrar certificate does not match stored certificate", "CODE", "2200"));
   }
 
   @Test
   public void testNonAuthedLogin_fails() throws Exception {
     setClientCertificateHash(CertificateSamples.SAMPLE_CERT_HASH);
-    assertCommandAndResponse("login2_valid.xml", "login_response_bad_certificate.xml");
+    assertCommandAndResponse(
+        "login2_valid.xml",
+        ImmutableMap.of(),
+        "response_error.xml",
+        ImmutableMap.of(
+            "MSG", "Registrar certificate does not match stored certificate", "CODE", "2200"));
   }
 
 
   @Test
   public void testBadCertificate_failsBadCertificate2200() throws Exception {
     setClientCertificateHash("laffo");
-    assertCommandAndResponse("login_valid.xml", "login_response_bad_certificate.xml");
+    assertCommandAndResponse(
+        "login_valid.xml",
+        ImmutableMap.of(),
+        "response_error.xml",
+        ImmutableMap.of(
+            "MSG", "Registrar certificate does not match stored certificate", "CODE", "2200"));
   }
 
   @Test
   public void testGfeDidntProvideClientCertificate_failsMissingCertificate2200() throws Exception {
     setClientCertificateHash("");
-    assertCommandAndResponse("login_valid.xml", "login_response_missing_certificate.xml");
+    assertCommandAndResponse(
+        "login_valid.xml",
+        ImmutableMap.of(),
+        "response_error.xml",
+        ImmutableMap.of("MSG", "Registrar certificate not present", "CODE", "2200"));
   }
 
   @Test
