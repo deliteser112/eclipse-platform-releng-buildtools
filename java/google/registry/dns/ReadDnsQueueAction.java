@@ -61,8 +61,6 @@ import org.joda.time.Duration;
  *
  * <ul>
  * <li>{@code jitterSeconds} Randomly delay each task by up to this many seconds.
- * <li>{@code keepTasks} Do not delete any tasks from the pull queue, whether they are processed or
- *      not.
  * </ul>
  */
 @Action(
@@ -72,8 +70,6 @@ import org.joda.time.Duration;
 )
 public final class ReadDnsQueueAction implements Runnable {
 
-  public static final String PARAM_KEEP_TASKS = "keepTasks";
-
   private static final String PARAM_JITTER_SECONDS = "jitterSeconds";
   private static final Random random = new Random();
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
@@ -82,7 +78,6 @@ public final class ReadDnsQueueAction implements Runnable {
   @Inject @Config("dnsWriteLockTimeout") Duration writeLockTimeout;
   @Inject @Named(DNS_PUBLISH_PUSH_QUEUE_NAME) Queue dnsPublishPushQueue;
   @Inject @Parameter(PARAM_JITTER_SECONDS) Optional<Integer> jitterSeconds;
-  @Inject @Parameter(PARAM_KEEP_TASKS) boolean keepTasks;
   @Inject DnsQueue dnsQueue;
   @Inject TaskEnqueuer taskEnqueuer;
   @Inject ReadDnsQueueAction() {}
@@ -187,21 +182,13 @@ public final class ReadDnsQueueAction implements Runnable {
       }
     }
     Set<TaskHandle> tasksToDelete = difference(ImmutableSet.copyOf(tasks), tasksToKeep);
-    // In keepTasks mode, never delete any tasks.
-    if (keepTasks) {
-      logger.infofmt("Would have deleted %d DNS update tasks.", tasksToDelete.size());
-      for (TaskHandle task : tasks) {
-        dnsQueue.dropTaskLease(task);
-      }
-    // Otherwise, either delete or drop the lease of each task.
-    } else {
-      logger.infofmt("Deleting %d DNS update tasks.", tasksToDelete.size());
-      dnsQueue.deleteTasks(ImmutableList.copyOf(tasksToDelete));
-      logger.infofmt("Dropping %d DNS update tasks.", tasksToKeep.size());
-      for (TaskHandle task : tasksToKeep) {
-        dnsQueue.dropTaskLease(task);
-      }
-      logger.infofmt("Done processing DNS tasks.");
+    // Either delete or drop the lease of each task.
+    logger.infofmt("Deleting %d DNS update tasks.", tasksToDelete.size());
+    dnsQueue.deleteTasks(ImmutableList.copyOf(tasksToDelete));
+    logger.infofmt("Dropping %d DNS update tasks.", tasksToKeep.size());
+    for (TaskHandle task : tasksToKeep) {
+      dnsQueue.dropTaskLease(task);
     }
+    logger.infofmt("Done processing DNS tasks.");
   }
 }

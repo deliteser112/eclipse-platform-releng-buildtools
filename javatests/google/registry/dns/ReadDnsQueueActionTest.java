@@ -28,7 +28,6 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
-import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
@@ -39,7 +38,6 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
-import google.registry.testing.TaskQueueHelper;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.Retrier;
 import google.registry.util.TaskEnqueuer;
@@ -99,7 +97,7 @@ public class ReadDnsQueueActionTest {
     dnsQueue = DnsQueue.create();
   }
 
-  private void run(boolean keepTasks) throws Exception {
+  private void run() throws Exception {
     ReadDnsQueueAction action = new ReadDnsQueueAction();
     action.tldUpdateBatchSize = TEST_TLD_UPDATE_BATCH_SIZE;
     action.writeLockTimeout = Duration.standardSeconds(10);
@@ -107,7 +105,6 @@ public class ReadDnsQueueActionTest {
     action.dnsPublishPushQueue = QueueFactory.getQueue(DNS_PUBLISH_PUSH_QUEUE_NAME);
     action.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
     action.jitterSeconds = Optional.empty();
-    action.keepTasks = keepTasks;
     // Advance the time a little, to ensure that leaseTasks() returns all tasks.
     clock.setTo(DateTime.now(DateTimeZone.UTC).plusMillis(1));
     action.run();
@@ -141,7 +138,7 @@ public class ReadDnsQueueActionTest {
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.net");
     dnsQueue.addDomainRefreshTask("domain.example");
-    run(false);
+    run();
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTasksEnqueued(
         DNS_PUBLISH_PUSH_QUEUE_NAME,
@@ -155,7 +152,7 @@ public class ReadDnsQueueActionTest {
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.net");
     dnsQueue.addDomainRefreshTask("domain.example");
-    run(false);
+    run();
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTldsEnqueuedInPushQueue(
         ImmutableMultimap.of("com", "comWriter", "net", "netWriter", "example", "exampleWriter"));
@@ -169,23 +166,9 @@ public class ReadDnsQueueActionTest {
             .setDnsWriters(ImmutableSet.of("comWriter", "otherWriter"))
             .build());
     dnsQueue.addDomainRefreshTask("domain.com");
-    run(false);
+    run();
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTldsEnqueuedInPushQueue(ImmutableMultimap.of("com", "comWriter", "com", "otherWriter"));
-  }
-
-  @Test
-  public void testSuccess_allTldsKeepTasks() throws Exception {
-    dnsQueue.addDomainRefreshTask("domain.com");
-    dnsQueue.addDomainRefreshTask("domain.net");
-    dnsQueue.addDomainRefreshTask("domain.example");
-    List<TaskStateInfo> preexistingTasks =
-        TaskQueueHelper.getQueueInfo(DNS_PULL_QUEUE_NAME).getTaskInfo();
-    run(true);
-    assertTldsEnqueuedInPushQueue(
-        ImmutableMultimap.of("com", "comWriter", "net", "netWriter", "example", "exampleWriter"));
-    // Check that keepTasks was honored and the pull queue tasks are still present in the queue.
-    assertTasksEnqueued(DNS_PULL_QUEUE_NAME, preexistingTasks);
   }
 
   @Test
@@ -194,7 +177,7 @@ public class ReadDnsQueueActionTest {
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.net");
     dnsQueue.addDomainRefreshTask("domain.example");
-    run(false);
+    run();
     assertTasksEnqueued(DNS_PULL_QUEUE_NAME, new TaskMatcher());
     assertTldsEnqueuedInPushQueue(
         ImmutableMultimap.of("com", "comWriter", "example", "exampleWriter"));
@@ -205,7 +188,7 @@ public class ReadDnsQueueActionTest {
     dnsQueue.addHostRefreshTask("ns1.domain.com");
     dnsQueue.addDomainRefreshTask("domain.net");
     dnsQueue.addZoneRefreshTask("example");
-    run(false);
+    run();
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTasksEnqueued(
         DNS_PUBLISH_PUSH_QUEUE_NAME,
@@ -230,10 +213,6 @@ public class ReadDnsQueueActionTest {
             refreshItemsInTask = 0;
           }
           switch (thingType) {
-            default:
-              dnsQueue.addDomainRefreshTask(domainName);
-              task.param("domains", domainName);
-              break;
             case 1:
               getQueue(DNS_PULL_QUEUE_NAME)
                   .add(createRefreshTask("ns1." + domainName, TargetType.HOST));
@@ -243,6 +222,10 @@ public class ReadDnsQueueActionTest {
               getQueue(DNS_PULL_QUEUE_NAME)
                   .add(createRefreshTask("ns2." + domainName, TargetType.HOST));
               task.param("hosts", "ns2." + domainName);
+              break;
+            default:
+              dnsQueue.addDomainRefreshTask(domainName);
+              task.param("domains", domainName);
               break;
           }
           // If this task is now full up, wash our hands of it, so that we'll start a new one the
@@ -254,7 +237,7 @@ public class ReadDnsQueueActionTest {
         }
       }
     }
-    run(false);
+    run();
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTasksEnqueued(DNS_PUBLISH_PUSH_QUEUE_NAME, expectedTasks);
   }
