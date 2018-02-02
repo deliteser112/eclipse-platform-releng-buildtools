@@ -433,8 +433,23 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushFeeNotProvidedOnPremiumName() throws Exception {
+  public void testFailure_landrushFeeNotProvidedOnPremiumName_whenRegistryRequiresFeeAcking()
+      throws Exception {
     createTld("example", TldState.SUNRUSH);
+    setEppInput("domain_create_landrush_premium.xml");
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    EppException thrown = expectThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_landrushFeeNotProvidedOnPremiumName_whenRegistrarRequiresFeeAcking()
+      throws Exception {
+    createTld("example", TldState.SUNRUSH);
+    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
+    persistResource(
+        loadRegistrar("TheRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
     setEppInput("domain_create_landrush_premium.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();

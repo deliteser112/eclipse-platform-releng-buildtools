@@ -559,8 +559,20 @@ public class DomainRestoreRequestFlowTest
   }
 
   @Test
-  public void testFailure_feeNotProvidedOnPremiumName() throws Exception {
+  public void testFailure_premiumNotAcked_whenRegistryRequiresFeeAcking() throws Exception {
     createTld("example");
+    setEppInput("domain_update_restore_request_premium.xml");
+    persistPendingDeleteDomain();
+    EppException thrown = expectThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_premiumNotAcked_whenRegistrarRequiresFeeAcking() throws Exception {
+    createTld("example");
+    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
+    persistResource(
+        loadRegistrar("TheRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
     setEppInput("domain_update_restore_request_premium.xml");
     persistPendingDeleteDomain();
     EppException thrown = expectThrows(FeesRequiredForPremiumNameException.class, this::runFlow);

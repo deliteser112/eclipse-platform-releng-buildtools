@@ -198,64 +198,6 @@ public class DomainTransferRequestFlowTest
                 .build());
   }
 
-  /**
-   * Runs a successful test. The extraExpectedBillingEvents parameter consists of cancellation
-   * billing event builders that have had all of their attributes set except for the parent history
-   * entry, which is filled in during the execution of this method.
-   */
-  private void doSuccessfulTest(
-      String commandFilename,
-      String expectedXmlFilename,
-      DateTime expectedExpirationTime,
-      Map<String, String> substitutions,
-      Optional<Money> transferCost,
-      BillingEvent.Cancellation.Builder... extraExpectedBillingEvents)
-      throws Exception {
-    setEppInput(commandFilename, substitutions);
-    ImmutableSet<GracePeriod> originalGracePeriods = domain.getGracePeriods();
-    // Replace the ROID in the xml file with the one generated in our test.
-    eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
-    // For all of the other transfer flow tests, 'now' corresponds to day 3 of the transfer, but
-    // for the request test we want that same 'now' to be the initial request time, so we shift
-    // the transfer timeline 3 days later by adjusting the implicit transfer time here.
-    Registry registry = Registry.get(domain.getTld());
-    DateTime implicitTransferTime = clock.nowUtc().plus(registry.getAutomaticTransferLength());
-    // Setup done; run the test.
-    assertTransactionalFlow(true);
-    runFlowAssertResponse(loadFile(expectedXmlFilename, substitutions));
-    // Transfer should have been requested.
-    domain = reloadResourceByForeignKey();
-    // Verify that HistoryEntry was created.
-    assertAboutDomains()
-        .that(domain)
-        .hasOneHistoryEntryEachOfTypes(DOMAIN_CREATE, DOMAIN_TRANSFER_REQUEST);
-    final HistoryEntry historyEntryTransferRequest =
-        getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REQUEST);
-    assertAboutHistoryEntries()
-        .that(historyEntryTransferRequest)
-        .hasPeriodYears(1)
-        .and()
-        .hasOtherClientId("TheRegistrar");
-    // Verify correct fields were set.
-    assertTransferRequested(
-        domain, implicitTransferTime, Period.create(1, Unit.YEARS), expectedExpirationTime);
-
-    subordinateHost = reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc());
-    assertAboutHosts().that(subordinateHost).hasNoHistoryEntries();
-
-    assertHistoryEntriesContainBillingEventsAndGracePeriods(
-        expectedExpirationTime,
-        implicitTransferTime,
-        transferCost,
-        originalGracePeriods,
-        /* expectTransferBillingEvent = */ true,
-        extraExpectedBillingEvents);
-
-    assertPollMessagesEmitted(expectedExpirationTime, implicitTransferTime);
-    assertAboutDomainAfterAutomaticTransfer(
-        expectedExpirationTime, implicitTransferTime, Period.create(1, Unit.YEARS));
-  }
-
   /** Implements the missing Optional.stream function that is added in Java 9. */
   private static <T> Stream<T> optionalToStream(Optional<T> optional) {
     return optional.map(Stream::of).orElseGet(Stream::empty);
@@ -482,6 +424,64 @@ public class DomainTransferRequestFlowTest
                 .plus(registry.getAutomaticTransferLength())
                 .plus(registry.getTransferGracePeriodLength()));
     assertThat(afterGracePeriod.getGracePeriods()).isEmpty();
+  }
+
+  /**
+   * Runs a successful test. The extraExpectedBillingEvents parameter consists of cancellation
+   * billing event builders that have had all of their attributes set except for the parent history
+   * entry, which is filled in during the execution of this method.
+   */
+  private void doSuccessfulTest(
+      String commandFilename,
+      String expectedXmlFilename,
+      DateTime expectedExpirationTime,
+      Map<String, String> substitutions,
+      Optional<Money> transferCost,
+      BillingEvent.Cancellation.Builder... extraExpectedBillingEvents)
+      throws Exception {
+    setEppInput(commandFilename, substitutions);
+    ImmutableSet<GracePeriod> originalGracePeriods = domain.getGracePeriods();
+    // Replace the ROID in the xml file with the one generated in our test.
+    eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
+    // For all of the other transfer flow tests, 'now' corresponds to day 3 of the transfer, but
+    // for the request test we want that same 'now' to be the initial request time, so we shift
+    // the transfer timeline 3 days later by adjusting the implicit transfer time here.
+    Registry registry = Registry.get(domain.getTld());
+    DateTime implicitTransferTime = clock.nowUtc().plus(registry.getAutomaticTransferLength());
+    // Setup done; run the test.
+    assertTransactionalFlow(true);
+    runFlowAssertResponse(loadFile(expectedXmlFilename, substitutions));
+    // Transfer should have been requested.
+    domain = reloadResourceByForeignKey();
+    // Verify that HistoryEntry was created.
+    assertAboutDomains()
+        .that(domain)
+        .hasOneHistoryEntryEachOfTypes(DOMAIN_CREATE, DOMAIN_TRANSFER_REQUEST);
+    final HistoryEntry historyEntryTransferRequest =
+        getOnlyHistoryEntryOfType(domain, DOMAIN_TRANSFER_REQUEST);
+    assertAboutHistoryEntries()
+        .that(historyEntryTransferRequest)
+        .hasPeriodYears(1)
+        .and()
+        .hasOtherClientId("TheRegistrar");
+    // Verify correct fields were set.
+    assertTransferRequested(
+        domain, implicitTransferTime, Period.create(1, Unit.YEARS), expectedExpirationTime);
+
+    subordinateHost = reloadResourceAndCloneAtTime(subordinateHost, clock.nowUtc());
+    assertAboutHosts().that(subordinateHost).hasNoHistoryEntries();
+
+    assertHistoryEntriesContainBillingEventsAndGracePeriods(
+        expectedExpirationTime,
+        implicitTransferTime,
+        transferCost,
+        originalGracePeriods,
+        /* expectTransferBillingEvent = */ true,
+        extraExpectedBillingEvents);
+
+    assertPollMessagesEmitted(expectedExpirationTime, implicitTransferTime);
+    assertAboutDomainAfterAutomaticTransfer(
+        expectedExpirationTime, implicitTransferTime, Period.create(1, Unit.YEARS));
   }
 
   private void doSuccessfulTest(
@@ -1202,8 +1202,22 @@ public class DomainTransferRequestFlowTest
   }
 
   @Test
-  public void testFailure_feeNotProvidedOnPremiumName() throws Exception {
+  public void testFailure_registryRequiresAcking_feeNotProvidedOnPremiumName() throws Exception {
     setupDomain("rich", "example");
+    EppException thrown =
+        expectThrows(
+            FeesRequiredForPremiumNameException.class,
+            () -> doFailingTest("domain_transfer_request_premium.xml"));
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_registrarRequiresAcking_feeNotProvidedOnPremiumName() throws Exception {
+    setupDomain("rich", "example");
+    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
+    persistResource(
+        loadRegistrar("NewRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
+    clock.advanceOneMilli();
     EppException thrown =
         expectThrows(
             FeesRequiredForPremiumNameException.class,

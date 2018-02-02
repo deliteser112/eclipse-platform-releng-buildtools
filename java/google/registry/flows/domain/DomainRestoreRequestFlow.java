@@ -204,7 +204,8 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
     if (!existingDomain.getGracePeriodStatuses().contains(GracePeriodStatus.REDEMPTION)) {
       throw new DomainNotEligibleForRestoreException();
     }
-    validateFeeChallenge(targetId, existingDomain.getTld(), now, feeUpdate, feesAndCredits);
+    validateFeeChallenge(
+        targetId, existingDomain.getTld(), clientId, now, feeUpdate, feesAndCredits);
   }
 
   private ImmutableSet<BillingEvent.OneTime> createRestoreAndRenewBillingEvents(

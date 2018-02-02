@@ -271,7 +271,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     Optional<FeeCreateCommandExtension> feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);
     FeesAndCredits feesAndCredits = pricingLogic.getCreatePrice(registry, targetId, now, years);
-    validateFeeChallenge(targetId, registry.getTldStr(), now, feeCreate, feesAndCredits);
+    validateFeeChallenge(targetId, registry.getTldStr(), clientId, now, feeCreate, feesAndCredits);
     Optional<SecDnsCreateExtension> secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
     String repoId = createDomainRepoId(ObjectifyService.allocateId(), registry.getTldStr());

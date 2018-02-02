@@ -97,6 +97,7 @@ public class RegistrarTest extends EntityTestCase {
                 .setBillingAccountMap(
                     ImmutableMap.of(CurrencyUnit.USD, "abc123", CurrencyUnit.JPY, "789xyz"))
                 .setPhonePasscode("01234")
+                .setPremiumPriceAckRequired(true)
                 .build());
     persistResource(registrar);
     abuseAdminContact =

@@ -31,7 +31,7 @@ import static google.registry.flows.domain.DomainFlowUtils.updateDsData;
 import static google.registry.flows.domain.DomainFlowUtils.validateContactsHaveTypes;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainAllowedOnCreateRestrictedTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateDsData;
-import static google.registry.flows.domain.DomainFlowUtils.validateFeeChallenge;
+import static google.registry.flows.domain.DomainFlowUtils.validateFeesAckedIfPresent;
 import static google.registry.flows.domain.DomainFlowUtils.validateNameserversAllowedOnDomain;
 import static google.registry.flows.domain.DomainFlowUtils.validateNameserversAllowedOnTld;
 import static google.registry.flows.domain.DomainFlowUtils.validateNameserversCountForTld;
@@ -59,7 +59,6 @@ import google.registry.flows.custom.DomainUpdateFlowCustomLogic;
 import google.registry.flows.custom.DomainUpdateFlowCustomLogic.AfterValidationParameters;
 import google.registry.flows.custom.DomainUpdateFlowCustomLogic.BeforeSaveParameters;
 import google.registry.flows.custom.EntityChanges;
-import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForNonFreeOperationException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -223,16 +222,8 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     Registry registry = Registry.get(tld);
     Optional<FeeUpdateCommandExtension> feeUpdate =
         eppInput.getSingleExtension(FeeUpdateCommandExtension.class);
-    // If the fee extension is present, validate it (even if the cost is zero, to check for price
-    // mismatches). Don't rely on the the validateFeeChallenge check for feeUpdate nullness, because
-    // it throws an error if the name is premium, and we don't want to do that here.
     FeesAndCredits feesAndCredits = pricingLogic.getUpdatePrice(registry, targetId, now);
-    if (feeUpdate.isPresent()) {
-      validateFeeChallenge(targetId, existingDomain.getTld(), now, feeUpdate, feesAndCredits);
-    } else if (!feesAndCredits.getTotalCost().isZero()) {
-      // If it's not present but the cost is not zero, throw an exception.
-      throw new FeesRequiredForNonFreeOperationException(feesAndCredits.getTotalCost());
-    }
+    validateFeesAckedIfPresent(feeUpdate, feesAndCredits);
     verifyNotInPendingDelete(
         add.getContacts(),
         command.getInnerChange().getRegistrant(),

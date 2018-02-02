@@ -666,9 +666,21 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   }
 
   @Test
-  public void testFailure_feeNotProvidedOnPremiumName() throws Exception {
+  public void testFailure_registryRequiresAcking_feeNotProvidedOnPremiumName() throws Exception {
     createTld("example");
     persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(true).build());
+    setEppInput("domain_renew_premium.xml");
+    persistDomain();
+    EppException thrown = expectThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_registrarRequiresAcking_feeNotProvidedOnPremiumName() throws Exception {
+    createTld("example");
+    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
+    persistResource(
+        loadRegistrar("TheRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
     setEppInput("domain_renew_premium.xml");
     persistDomain();
     EppException thrown = expectThrows(FeesRequiredForPremiumNameException.class, this::runFlow);

@@ -314,31 +314,55 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   @Test
   public void testSuccess_blockPremiumNames() throws Exception {
     assertThat(loadRegistrar("NewRegistrar").getBlockPremiumNames()).isFalse();
-    runCommand("--block_premium=true", "--force", "NewRegistrar");
+    runCommandForced("--block_premium=true", "NewRegistrar");
     assertThat(loadRegistrar("NewRegistrar").getBlockPremiumNames()).isTrue();
   }
 
   @Test
   public void testSuccess_resetBlockPremiumNames() throws Exception {
     persistResource(loadRegistrar("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
-    runCommand("--block_premium=false", "--force", "NewRegistrar");
+    runCommandForced("--block_premium=false", "NewRegistrar");
     assertThat(loadRegistrar("NewRegistrar").getBlockPremiumNames()).isFalse();
   }
 
   @Test
-  public void testSuccess_blockPremiumNamesUnspecified() throws Exception {
-    persistResource(loadRegistrar("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
-    // Make some unrelated change where we don't specify "--block_premium".
-    runCommand("--billing_id=12345", "--force", "NewRegistrar");
-    // Make sure the field didn't get reset back to false.
-    assertThat(loadRegistrar("NewRegistrar").getBlockPremiumNames()).isTrue();
+  public void testSuccess_premiumPriceAckRequired() throws Exception {
+    assertThat(loadRegistrar("NewRegistrar").getPremiumPriceAckRequired()).isFalse();
+    runCommandForced("--premium_price_ack_required=true", "NewRegistrar");
+    assertThat(loadRegistrar("NewRegistrar").getPremiumPriceAckRequired()).isTrue();
+  }
+
+  @Test
+  public void testSuccess_resetPremiumPriceAckRequired() throws Exception {
+    persistResource(
+        loadRegistrar("NewRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
+    runCommandForced("--premium_price_ack_required=false", "NewRegistrar");
+    assertThat(loadRegistrar("NewRegistrar").getPremiumPriceAckRequired()).isFalse();
+  }
+
+  @Test
+  public void testSuccess_unspecifiedBooleansArentChanged() throws Exception {
+    persistResource(
+        loadRegistrar("NewRegistrar")
+            .asBuilder()
+            .setBlockPremiumNames(true)
+            .setPremiumPriceAckRequired(true)
+            .setContactsRequireSyncing(true)
+            .build());
+    // Make some unrelated change where we don't specify the flags for the booleans.
+    runCommandForced("--billing_id=12345", "NewRegistrar");
+    // Make sure that the boolean fields didn't get reset back to false.
+    Registrar reloadedRegistrar = loadRegistrar("NewRegistrar");
+    assertThat(reloadedRegistrar.getBlockPremiumNames()).isTrue();
+    assertThat(reloadedRegistrar.getPremiumPriceAckRequired()).isTrue();
+    assertThat(reloadedRegistrar.getContactsRequireSyncing()).isTrue();
   }
 
   @Test
   public void testSuccess_updateMultiple() throws Exception {
     assertThat(loadRegistrar("TheRegistrar").getState()).isEqualTo(State.ACTIVE);
     assertThat(loadRegistrar("NewRegistrar").getState()).isEqualTo(State.ACTIVE);
-    runCommand("--registrar_state=SUSPENDED", "--force", "TheRegistrar", "NewRegistrar");
+    runCommandForced("--registrar_state=SUSPENDED", "TheRegistrar", "NewRegistrar");
     assertThat(loadRegistrar("TheRegistrar").getState()).isEqualTo(State.SUSPENDED);
     assertThat(loadRegistrar("NewRegistrar").getState()).isEqualTo(State.SUSPENDED);
   }

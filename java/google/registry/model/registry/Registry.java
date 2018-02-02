@@ -318,7 +318,7 @@ public class Registry extends ImmutableObject implements Buildable {
   /** Whether the pull queue that writes to authoritative DNS is paused for this TLD. */
   boolean dnsPaused = DEFAULT_DNS_PAUSED;
 
-  /** Whether the price must be acknowledged to register premiun names on this TLD. */
+  /** Whether the price must be acknowledged to register premium names on this TLD. */
   boolean premiumPriceAckRequired = true;
 
   /**

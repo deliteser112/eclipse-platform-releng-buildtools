@@ -613,20 +613,44 @@ public class DomainFlowUtils {
     }
   }
 
+  /**
+   * Validates that fees are acked and match if they are required (typically for premium domains).
+   *
+   * <p>This is used by domain operations that have an implicit cost, e.g. domain create or renew
+   * (both of which add one or more years' worth of registration). Depending on registry and/or
+   * registrar settings, explicit price acking using the fee extension may be required for premium
+   * domain names.
+   */
   public static void validateFeeChallenge(
       String domainName,
       String tld,
+      String clientId,
       DateTime priceTime,
       final Optional<? extends FeeTransformCommandExtension> feeCommand,
       FeesAndCredits feesAndCredits)
       throws EppException {
+
     Registry registry = Registry.get(tld);
-    if (registry.getPremiumPriceAckRequired()
-        && isDomainPremium(domainName, priceTime)
-        && !feeCommand.isPresent()) {
+    Registrar registrar = Registrar.loadByClientIdCached(clientId).get();
+    boolean premiumAckRequired =
+        registry.getPremiumPriceAckRequired() || registrar.getPremiumPriceAckRequired();
+    if (premiumAckRequired && isDomainPremium(domainName, priceTime) && !feeCommand.isPresent()) {
       throw new FeesRequiredForPremiumNameException();
     }
+    validateFeesAckedIfPresent(feeCommand, feesAndCredits);
+  }
 
+  /**
+   * Validates that non-zero fees are acked (i.e. they are specified and the amount matches).
+   *
+   * <p>This is used directly by update operations, i.e. those that otherwise don't have implicit
+   * costs, and is also used as a helper method to validate if fees are required for operations that
+   * do have implicit costs, e.g. creates and renews.
+   */
+  public static void validateFeesAckedIfPresent(
+      final Optional<? extends FeeTransformCommandExtension> feeCommand,
+      FeesAndCredits feesAndCredits)
+      throws EppException {
     // Check for the case where a fee command extension was required but not provided.
     // This only happens when the total fees are non-zero and include custom fees requiring the
     // extension.
@@ -657,7 +681,7 @@ public class DomainFlowUtils {
       total = total.add(credit.getCost());
     }
 
-    Money feeTotal = null;
+    Money feeTotal;
     try {
       feeTotal = Money.of(feeCommand.get().getCurrency(), total);
     } catch (ArithmeticException e) {

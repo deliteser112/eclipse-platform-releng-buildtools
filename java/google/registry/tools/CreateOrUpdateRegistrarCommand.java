@@ -259,6 +259,13 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
       description = "Hostname of registrar WHOIS server. (Default: whois.nic.google)")
   String whoisServer;
 
+  @Nullable
+  @Parameter(
+      names = "--premium_price_ack_required",
+      description = "Whether operations on premium domains require explicit ack of prices",
+      arity = 1)
+  private Boolean premiumPriceAckRequired;
+
   /** Returns the existing registrar (for update) or null (for creates). */
   @Nullable
   abstract Registrar getOldRegistrar(String clientId);
@@ -389,21 +396,12 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
             .setCountryCode(countryCode)
             .build());
       }
-      if (blockPremiumNames != null) {
-        builder.setBlockPremiumNames(blockPremiumNames);
-      }
-      if (contactsRequireSyncing != null) {
-        builder.setContactsRequireSyncing(contactsRequireSyncing);
-      }
-      if (phonePasscode != null) {
-        builder.setPhonePasscode(phonePasscode);
-      }
-      if (icannReferralEmail != null) {
-        builder.setIcannReferralEmail(icannReferralEmail);
-      }
-      if (whoisServer != null) {
-        builder.setWhoisServer(whoisServer);
-      }
+      Optional.ofNullable(blockPremiumNames).ifPresent(builder::setBlockPremiumNames);
+      Optional.ofNullable(contactsRequireSyncing).ifPresent(builder::setContactsRequireSyncing);
+      Optional.ofNullable(phonePasscode).ifPresent(builder::setPhonePasscode);
+      Optional.ofNullable(icannReferralEmail).ifPresent(builder::setIcannReferralEmail);
+      Optional.ofNullable(whoisServer).ifPresent(builder::setWhoisServer);
+      Optional.ofNullable(premiumPriceAckRequired).ifPresent(builder::setPremiumPriceAckRequired);
 
       // If the registrarName is being set, verify that it is either null or it normalizes uniquely.
       String oldRegistrarName = (oldRegistrar == null) ? null : oldRegistrar.getRegistrarName();

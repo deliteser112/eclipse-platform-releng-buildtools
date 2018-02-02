@@ -1453,8 +1453,33 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testFailure_feeNotProvidedOnPremiumName() throws Exception {
+  public void testFailure_premiumNotAcked_byRegistryRequiringAcking() throws Exception {
     createTld("example");
+    assertThat(Registry.get("example").getPremiumPriceAckRequired()).isTrue();
+    setEppInput("domain_create_premium.xml");
+    persistContactsAndHosts("net");
+    EppException thrown = expectThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_premiumNotAcked_byRegistrarRequiringAcking() throws Exception {
+    createTld("example");
+    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
+    persistResource(
+        loadRegistrar("TheRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
+    setEppInput("domain_create_premium.xml");
+    persistContactsAndHosts("net");
+    EppException thrown = expectThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_premiumNotAcked_whenRegistrarAndRegistryRequireAcking() throws Exception {
+    createTld("example");
+    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(true).build());
+    persistResource(
+        loadRegistrar("TheRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
     setEppInput("domain_create_premium.xml");
     persistContactsAndHosts("net");
     EppException thrown = expectThrows(FeesRequiredForPremiumNameException.class, this::runFlow);

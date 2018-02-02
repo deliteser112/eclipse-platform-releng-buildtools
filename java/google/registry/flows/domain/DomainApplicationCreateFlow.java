@@ -234,7 +234,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     }
     Optional<FeeCreateCommandExtension> feeCreate =
         eppInput.getSingleExtension(FeeCreateCommandExtension.class);
-    validateFeeChallenge(targetId, tld, now, feeCreate, feesAndCredits);
+    validateFeeChallenge(targetId, tld, clientId, now, feeCreate, feesAndCredits);
     Optional<SecDnsCreateExtension> secDnsCreate =
         validateSecDnsExtension(eppInput.getSingleExtension(SecDnsCreateExtension.class));
     flowCustomLogic.afterValidation(

@@ -91,6 +91,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     assertThat(registrar.getCreationTime()).isIn(Range.closed(before, after));
     assertThat(registrar.getLastUpdateTime()).isEqualTo(registrar.getCreationTime());
     assertThat(registrar.getBlockPremiumNames()).isFalse();
+    assertThat(registrar.getPremiumPriceAckRequired()).isFalse();
 
     verify(connection).send(
         eq("/_dr/admin/createGroups"),
@@ -764,6 +765,28 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     Optional<Registrar> registrar = Registrar.loadByClientId("clientz");
     assertThat(registrar).isPresent();
     assertThat(registrar.get().getFaxNumber()).isEqualTo("+1.2125556342");
+  }
+
+  @Test
+  public void testSuccess_premiumPriceAckRequired() throws Exception {
+    runCommandForced(
+        "--name=blobio",
+        "--password=some_password",
+        "--registrar_type=REAL",
+        "--iana_id=8",
+        "--passcode=01234",
+        "--icann_referral_email=foo@bar.test",
+        "--street=\"123 Fake St\"",
+        "--city Fakington",
+        "--state MA",
+        "--zip 00351",
+        "--cc US",
+        "--premium_price_ack_required=true",
+        "clientz");
+
+    Optional<Registrar> registrar = Registrar.loadByClientId("clientz");
+    assertThat(registrar).isPresent();
+    assertThat(registrar.get().getPremiumPriceAckRequired()).isTrue();
   }
 
   @Test
