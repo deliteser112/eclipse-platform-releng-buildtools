@@ -24,7 +24,7 @@ goog.forwardDeclare('registry.registrar.Console');
 
 
 /**
- * The {@code Contact} class respresents a registry contact object and
+ * The `Contact` class respresents a registry contact object and
  * binds UI CRUD operations to it.
  * @param {!registry.registrar.Console} console the
  *     console singleton.

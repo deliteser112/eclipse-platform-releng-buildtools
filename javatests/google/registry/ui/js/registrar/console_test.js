@@ -86,8 +86,8 @@ function testButter() {
 
 
 /**
- * The EPP login should be triggered if the user {@code isGaeLoggedIn}
- * but not yet {@code isEppLoggedIn}.
+ * The EPP login should be triggered if the user `isGaeLoggedIn`
+ * but not yet `isEppLoggedIn`.
  */
 function testEppLogin() {
   // This is a little complex, as handleHashChange triggers an async

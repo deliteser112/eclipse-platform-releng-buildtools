@@ -41,7 +41,7 @@ registry.json.Response = function() {};
 
 
 /**
- * Request state which can be {@code SUCCESS} or {@code ERROR}.
+ * Request state which can be `SUCCESS` or `ERROR`.
  * @type {string}
  */
 registry.json.Response.prototype.status;

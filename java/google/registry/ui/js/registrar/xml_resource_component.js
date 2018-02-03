@@ -91,7 +91,7 @@ registry.registrar.XmlResourceComponent.prototype.handleFetchItem =
 
 /**
  * Sublcasses should override to populate create queryParams with form
- * fields as needed.  {@code queryParams.nextId} MUST be set to the
+ * fields as needed.  `queryParams.nextId` MUST be set to the
  * new object's ID.
  * @param {!Object} queryParams
  */

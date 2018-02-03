@@ -135,7 +135,7 @@ registry.EditItem.prototype.isEditing = function() {
 
 /**
  * Toggles the editing state of a component.  This will first hide the
- * elements of the {@code shown} class, then adds the {@code editing}
+ * elements of the `shown` class, then adds the `editing`
  * style to the component, then shows the elements that had the {@code
  * hidden} class.
  */
@@ -278,7 +278,7 @@ registry.EditItem.prototype.sendDelete = goog.abstractMethod;
 
 /**
  * Subclasses should override to populate update queryParams with form
- * fields as needed. {@code queryParams.nextId} MUST be set to the
+ * fields as needed. `queryParams.nextId` MUST be set to the
  * new object's ID.
  * @param {!Object} queryParams
  */

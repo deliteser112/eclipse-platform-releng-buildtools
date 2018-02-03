@@ -118,7 +118,7 @@ registry.Session.PARSER_BREAKER_ = ')]}\'\n';
 
 
 /**
- * Displays {@code message} to user in bloody butterbar.
+ * Displays `message` to user in bloody butterbar.
  * @param {string} message
  * @private
  */

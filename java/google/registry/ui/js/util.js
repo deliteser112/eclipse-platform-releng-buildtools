@@ -50,9 +50,9 @@ registry.util.cssShown = goog.getCssName('shown');
 
 
 /**
- * Changes element visibility by toggling CSS {@code shown} to {@code hidden}.
+ * Changes element visibility by toggling CSS `shown` to `hidden`.
  * @param {!Element|string} element Element or id attribute of element.
- * @param {boolean} visible Shows {@code element} if true, or else hides it.
+ * @param {boolean} visible Shows `element` if true, or else hides it.
  */
 registry.util.setVisible = function(element, visible) {
   goog.dom.classlist.addRemove(
@@ -117,7 +117,7 @@ registry.util.renderBeforeRow = function(id, tmpl, tmplParams) {
  * Turns an HTML form's named elements into a JSON data structure with
  * Pablo's black magick.
  * @param {string} formName the name of the form to be parsed.
- * @throws {Error} if {@code formName} couldn't be found.
+ * @throws {Error} if `formName` couldn't be found.
  * @return {!Object} the parsed form values as an object.
  */
 registry.util.parseForm = function(formName) {

@@ -173,7 +173,7 @@ function testEppMessage() {
 
 
 /**
- * Asserts {@code xml} turns into {@code json}.
+ * Asserts `xml` turns into `json`.
  * @param {!Object} json
  * @param {string} xml
  */

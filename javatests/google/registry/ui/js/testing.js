@@ -78,7 +78,7 @@ registry.testing.click = function(element) {
 
 
 /**
- * Asserts {@code element} has 'shown' class.
+ * Asserts `element` has 'shown' class.
  * @param {!Element} element
  */
 registry.testing.assertVisible = function(element) {
@@ -88,7 +88,7 @@ registry.testing.assertVisible = function(element) {
 
 
 /**
- * Asserts {@code element} has 'hidden' class.
+ * Asserts `element` has 'hidden' class.
  * @param {!Element} element
  */
 registry.testing.assertHidden = function(element) {
@@ -98,7 +98,7 @@ registry.testing.assertHidden = function(element) {
 
 
 /**
- * Like {@code assertObjectEquals} but with a better error message.
+ * Like `assertObjectEquals` but with a better error message.
  * @param {?Object} a
  * @param {?Object} b
  */
@@ -116,7 +116,7 @@ registry.testing.assertObjectEqualsPretty = function(a, b) {
 
 
 /**
- * JSON request/response simulator for {@code ResourceComponent} subclasses.
+ * JSON request/response simulator for `ResourceComponent` subclasses.
  * @param {string} xsrfToken
  * @param {string} path server resource path.
  * @param {!Object} expectReqJson assert this object was sent,

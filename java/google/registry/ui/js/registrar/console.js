@@ -103,7 +103,7 @@ goog.inherits(registry.registrar.Console, registry.Console);
  *   #type/id
  * </pre>
  *
- * <p>The {@code id} part may be appended by {@code ()} to specify the target
+ * <p>The `id` part may be appended by {@code ()} to specify the target
  * should be a resource create page.
  *
  * @override

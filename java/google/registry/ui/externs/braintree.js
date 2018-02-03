@@ -152,7 +152,7 @@ braintreepayments.ErrorField.prototype.fieldKey;
 
 
 /**
- * This will be {@code true} if the associated input is empty.
+ * This will be `true` if the associated input is empty.
  * @type {(boolean|undefined)}
  * @const
  */

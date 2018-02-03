@@ -59,15 +59,15 @@ goog.forwardDeclare('registry.registrar.Console');
  *
  * <p>We fix this problem by embedding the Braintree iframe inside another
  * sandbox iframe that's hosted from a Cloud Storage bucket. This frame is
- * defined by {@code brainframe.html}. It's basically an empty shell that sends
- * a request back to the production environment for {@code brainframe.js}.
+ * defined by `brainframe.html`. It's basically an empty shell that sends
+ * a request back to the production environment for `brainframe.js`.
  *
  * <p>The importance of the Cloud Storage bucket is that it is served from a
  * separate domain. This causes the browser to forbid the iframe from accessing
- * the contents of the parent frame. The HTML5 {@code sandbox} attribute does
+ * the contents of the parent frame. The HTML5 `sandbox` attribute does
  * this too, but we can't use it, because the Venmo functionality in the
- * Braintree JS SDK needs to be able to access {@code document.cookie}, which
- * is forbidden in a sandbox environment. This HTML5 {@code sandbox} feature is
+ * Braintree JS SDK needs to be able to access `document.cookie`, which
+ * is forbidden in a sandbox environment. This HTML5 `sandbox` feature is
  * also not available in older versions of Internet Explorer.
  *
  * <h3>Business Logic</h3>
@@ -140,7 +140,7 @@ registry.registrar.Payment = function(console, xsrfToken) {
   this.currencyMenu_ = null;
 
   /**
-   * XHR client to {@code RegistrarPaymentSetupAction}.
+   * XHR client to `RegistrarPaymentSetupAction`.
    * @private {!registry.Session.<!registry.rpc.PaymentSetup.Request,
    *                                 !registry.rpc.PaymentSetup.Response>}
    * @const
@@ -151,7 +151,7 @@ registry.registrar.Payment = function(console, xsrfToken) {
                            registry.Session.ContentType.JSON);
 
   /**
-   * XHR client to {@code RegistrarPaymentAction}.
+   * XHR client to `RegistrarPaymentAction`.
    * @private {!registry.Session.<!registry.rpc.Payment.Request,
    *                                 !registry.rpc.Payment.Response>}
    * @const
@@ -271,7 +271,7 @@ registry.registrar.Payment.prototype.onPayment_ = function(response) {
 
 
 /**
- * Handler invoked when {@code brainframe.js} sends us a message.
+ * Handler invoked when `brainframe.js` sends us a message.
  * @param {!goog.events.BrowserEvent} e
  * @private
  */
@@ -370,7 +370,7 @@ registry.registrar.Payment.prototype.setPaymentMethod_ = function(pm) {
 
 /**
  * Sends message to brainframe.
- * @param {...*} var_args Passed along to {@code goog.object.create}.
+ * @param {...*} var_args Passed along to `goog.object.create`.
  * @private
  */
 registry.registrar.Payment.prototype.send_ = function(var_args) {
@@ -402,7 +402,7 @@ registry.registrar.Payment.setEnabled_ = function(enabled) {
 
 
 /**
- * Returns {@code true} if browser has all the features we need.
+ * Returns `true` if browser has all the features we need.
  * @return {boolean}
  * @private
  * @see "http://caniuse.com/#feat=dispatchevent"

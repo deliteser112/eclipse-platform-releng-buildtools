@@ -68,8 +68,8 @@ registry.Component = function(cons) {
   this.basePath = '';
 
   /**
-   * Bean counter that's used by {@code addRemBtnHandlers},
-   * e.g. {@code typeCounts['host']++} when user adds or removes.
+   * Bean counter that's used by `addRemBtnHandlers`,
+   * e.g. `typeCounts['host']++` when user adds or removes.
    * @type {!Object.<string, number>}
    * @protected
    */

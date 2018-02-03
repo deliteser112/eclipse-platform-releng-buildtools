@@ -25,7 +25,7 @@ goog.require('registry.xml');
 
 
 /**
- * Utility method that attaches mocks to a {@code TestCase}.  This was
+ * Utility method that attaches mocks to a `TestCase`.  This was
  * originally in the ctor for ConsoleTest and should simply be
  * inherited but jstd_test breaks inheritance in test cases.
  * @param {Object} test the test case to configure.
@@ -47,7 +47,7 @@ registry.registrar.ConsoleTestUtil.setup = function(test) {
 
 /**
  * Simulates visiting a page on the console.  Sets path, then mocks
- * session and calls {@code handleHashChange_}.
+ * session and calls `handleHashChange_`.
  * @param {Object} test the test case to configure.
  * @param {Object=} opt_args may include path, isEppLoggedIn.
  * @param {Function=} opt_moar extra setup after called just before
