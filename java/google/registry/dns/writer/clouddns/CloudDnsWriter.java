@@ -67,7 +67,7 @@ import org.joda.time.Duration;
 public class CloudDnsWriter extends BaseDnsWriter {
 
   /**
-   * The name of the pricing engine, as used in {@code Registry.dnsWriter}. Remember to change
+   * The name of the dns writer, as used in {@code Registry.dnsWriter}. Remember to change
    * the value on affected Registry objects to prevent runtime failures.
    */
   public static final String NAME = "CloudDnsWriter";
@@ -307,7 +307,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
     Map<String, List<ResourceRecordSet>> domainRecords =
         getResourceRecordsForDomains(desiredRecords.keySet());
 
-    // add the records to the list of exiting records
+    // add the records to the list of existing records
     domainRecords.values().forEach(flattenedExistingRecords::addAll);
 
     // Get the glue record host names from the given records
