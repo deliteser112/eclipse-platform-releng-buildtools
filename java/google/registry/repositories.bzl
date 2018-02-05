@@ -2480,8 +2480,8 @@ def _parse_bazel_version(bazel_version):
   # Split into (release, date) parts and only return the release
   # as a tuple of integers.
   parts = version.split("-", 1)
-  # Turn "release" into a tuple of strings
+  # Turn "release" into a tuple of ints.
   version_tuple = ()
   for number in parts[0].split("."):
-    version_tuple += (str(number),)
+    version_tuple += (int(number),)
   return version_tuple
