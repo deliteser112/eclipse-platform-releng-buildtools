@@ -71,7 +71,11 @@ public class LockDomainCommand extends LockOrUnlockDomainCommand {
               "removeAdmins", ImmutableList.of(),
               "removeTechs", ImmutableList.of(),
               "removeStatuses", ImmutableList.of(),
-              "change", false));
+              "change", false,
+              "secdns", false,
+              "addDsRecords", ImmutableList.of(),
+              "removeDsRecords", ImmutableList.of(),
+              "removeAllDsRecords", false));
     }
   }
 }

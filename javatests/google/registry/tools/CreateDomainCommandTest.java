@@ -40,6 +40,8 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
         "--admins=crr-admin",
         "--techs=crr-tech",
         "--password=2fooBAR",
+        "--ds_records=1 2 3 abcd,4 5 6 EF01",
+        "--ds_records=60485 5  2  D4B7D520E7BB5F0F67674A0CCEB1E3E0614B93C4F9E99B8383F6A1E4469DA50A",
         "example.tld");
     eppVerifier.verifySent("domain_create_complete.xml");
   }
@@ -189,5 +191,101 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
                     "--period=x",
                     "--domain=example.tld"));
     assertThat(thrown).hasMessageThat().contains("--period");
+  }
+
+  @Test
+  public void testFailure_dsRecordsNot4Parts() throws Exception {
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--registrant=crr-admin",
+                "--admins=crr-admin",
+                "--techs=crr-tech",
+                "--ds_records=1 2 3 ab cd",
+                "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("should have 4 parts, but has 5");
+  }
+
+  @Test
+  public void testFailure_keyTagNotNumber() throws Exception {
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--registrant=crr-admin",
+                "--admins=crr-admin",
+                "--techs=crr-tech",
+                "--ds_records=x 2 3 abcd",
+                "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("\"x\"");
+  }
+
+  @Test
+  public void testFailure_algNotNumber() throws Exception {
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--registrant=crr-admin",
+                "--admins=crr-admin",
+                "--techs=crr-tech",
+                "--ds_records=1 x 3 abcd",
+                "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("\"x\"");
+  }
+
+  @Test
+  public void testFailure_digestTypeNotNumber() throws Exception {
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--registrant=crr-admin",
+                "--admins=crr-admin",
+                "--techs=crr-tech",
+                "--ds_records=1 2 x abcd",
+                "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("\"x\"");
+  }
+
+  @Test
+  public void testFailure_digestNotHex() throws Exception {
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--registrant=crr-admin",
+                "--admins=crr-admin",
+                "--techs=crr-tech",
+                "--ds_records=1 2 3 xbcd",
+                "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("XBCD");
+  }
+
+  @Test
+  public void testFailure_digestNotEvenLengthed() throws Exception {
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+            runCommandForced(
+                "--client=NewRegistrar",
+                "--registrant=crr-admin",
+                "--admins=crr-admin",
+                "--techs=crr-tech",
+                "--ds_records=1 2 3 abcde",
+                "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("length 5");
   }
 }

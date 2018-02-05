@@ -59,7 +59,8 @@ final class CreateDomainCommand extends CreateOrUpdateDomainCommand {
               "registrant", registrant,
               "admins", admins,
               "techs", techs,
-              "password", password));
+              "password", password,
+              "dsRecords", DsRecord.convertToSoy(dsRecords)));
     }
   }
 }

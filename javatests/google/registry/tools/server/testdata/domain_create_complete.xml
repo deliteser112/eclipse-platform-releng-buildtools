@@ -20,6 +20,28 @@
         </domain:authInfo>
       </domain:create>
     </create>
+    <extension>
+      <secDNS:create xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1">
+        <secDNS:dsData>
+          <secDNS:keyTag>1</secDNS:keyTag>
+          <secDNS:alg>2</secDNS:alg>
+          <secDNS:digestType>3</secDNS:digestType>
+          <secDNS:digest>ABCD</secDNS:digest>
+        </secDNS:dsData>
+        <secDNS:dsData>
+          <secDNS:keyTag>4</secDNS:keyTag>
+          <secDNS:alg>5</secDNS:alg>
+          <secDNS:digestType>6</secDNS:digestType>
+          <secDNS:digest>EF01</secDNS:digest>
+        </secDNS:dsData>
+        <secDNS:dsData>
+          <secDNS:keyTag>60485</secDNS:keyTag>
+          <secDNS:alg>5</secDNS:alg>
+          <secDNS:digestType>2</secDNS:digestType>
+          <secDNS:digest>D4B7D520E7BB5F0F67674A0CCEB1E3E0614B93C4F9E99B8383F6A1E4469DA50A</secDNS:digest>
+        </secDNS:dsData>
+      </secDNS:create>
+    </extension>
     <clTRID>RegistryTool</clTRID>
   </command>
 </epp>

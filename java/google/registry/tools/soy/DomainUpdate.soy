@@ -31,6 +31,10 @@
   {@param change: bool}
   {@param? registrant: string}
   {@param? password: string}
+  {@param secdns: bool}
+  {@param addDsRecords: list<[keyTag:int, alg:int, digestType:int, digest:string]>}
+  {@param removeDsRecords: list<[keyTag:int, alg:int, digestType:int, digest:string]>}
+  {@param removeAllDsRecords: bool}
 
   <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
   <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
@@ -92,6 +96,41 @@
           {/if}
         </domain:update>
       </update>
+      {if $secdns}
+        <extension>
+          <secDNS:update xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1">
+            {if $removeAllDsRecords}
+              <secDNS:rem>
+                <secDNS:all>true</secDNS:all>
+              </secDNS:rem>
+            {/if}
+            {if length($removeDsRecords) > 0}
+              <secDNS:rem>
+                {for $dsRecord in $removeDsRecords}
+                  <secDNS:dsData>
+                    <secDNS:keyTag>{$dsRecord.keyTag}</secDNS:keyTag>
+                    <secDNS:alg>{$dsRecord.alg}</secDNS:alg>
+                    <secDNS:digestType>{$dsRecord.digestType}</secDNS:digestType>
+                    <secDNS:digest>{$dsRecord.digest}</secDNS:digest>
+                  </secDNS:dsData>
+                {/for}
+              </secDNS:rem>
+            {/if}
+            {if length($addDsRecords) > 0}
+              <secDNS:add>
+                {for $dsRecord in $addDsRecords}
+                  <secDNS:dsData>
+                    <secDNS:keyTag>{$dsRecord.keyTag}</secDNS:keyTag>
+                    <secDNS:alg>{$dsRecord.alg}</secDNS:alg>
+                    <secDNS:digestType>{$dsRecord.digestType}</secDNS:digestType>
+                    <secDNS:digest>{$dsRecord.digest}</secDNS:digest>
+                  </secDNS:dsData>
+                {/for}
+              </secDNS:add>
+            {/if}
+          </secDNS:update>
+        </extension>
+      {/if}
       <clTRID>RegistryTool</clTRID>
     </command>
   </epp>

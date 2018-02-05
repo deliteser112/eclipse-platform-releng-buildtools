@@ -75,6 +75,7 @@ java_library(
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_appengine_remote_api",
         "@com_google_appengine_remote_api//:link",
+        "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_guava",

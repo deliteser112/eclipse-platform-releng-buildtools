@@ -42,10 +42,12 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
         "--add_admins=crr-admin2",
         "--add_techs=crr-tech2",
         "--add_statuses=serverDeleteProhibited",
+        "--add_ds_records=1 2 3 abcd,4 5 6 EF01",
         "--remove_nameservers=ns4.zdns.google",
         "--remove_admins=crr-admin1",
         "--remove_techs=crr-tech1",
         "--remove_statuses=serverHold",
+        "--remove_ds_records=7 8 9 12ab,6 5 4 34CD",
         "--registrant=crr-admin",
         "--password=2fooBAR",
         "example.tld");
@@ -60,10 +62,12 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
         "--add_admins=crr-admin2",
         "--add_techs=crr-tech2",
         "--add_statuses=serverDeleteProhibited",
+        "--add_ds_records=1 2 3 abcd,4 5 6 EF01",
         "--remove_nameservers=ns4.zdns.google",
         "--remove_admins=crr-admin1",
         "--remove_techs=crr-tech1",
         "--remove_statuses=serverHold",
+        "--remove_ds_records=7 8 9 12ab,6 5 4 34CD",
         "--registrant=crr-admin",
         "--password=2fooBAR",
         "example.tld",
@@ -81,6 +85,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
         "--add_admins=crr-admin2",
         "--add_techs=crr-tech2",
         "--add_statuses=serverDeleteProhibited",
+        "--add_ds_records=1 2 3 abcd,4 5 6 EF01",
         "example.tld");
     eppVerifier.verifySent("domain_update_add.xml");
   }
@@ -93,6 +98,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
         "--remove_admins=crr-admin1",
         "--remove_techs=crr-tech1",
         "--remove_statuses=serverHold",
+        "--remove_ds_records=7 8 9 12ab,6 5 4 34CD",
         "example.tld");
     eppVerifier.verifySent("domain_update_remove.xml");
   }
@@ -163,6 +169,32 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
     runCommandForced(
         "--client=NewRegistrar", "--statuses=clientRenewProhibited,serverHold", "example.tld");
     eppVerifier.verifySent("domain_update_set_statuses.xml");
+  }
+
+  @Test
+  public void testSuccess_setDsRecords() throws Exception {
+    runCommandForced(
+        "--client=NewRegistrar", "--ds_records=1 2 3 abcd,4 5 6 EF01", "example.tld");
+    eppVerifier.verifySent("domain_update_set_ds_records.xml");
+  }
+
+  @Test
+  public void testSuccess_setDsRecords_withUnneededClear() throws Exception {
+    runCommandForced(
+        "--client=NewRegistrar",
+        "--ds_records=1 2 3 abcd,4 5 6 EF01",
+        "--clear_ds_records",
+        "example.tld");
+    eppVerifier.verifySent("domain_update_set_ds_records.xml");
+  }
+
+  @Test
+  public void testSuccess_clearDsRecords() throws Exception {
+    runCommandForced(
+        "--client=NewRegistrar",
+        "--clear_ds_records",
+        "example.tld");
+    eppVerifier.verifySent("domain_update_clear_ds_records.xml");
   }
 
   @Test
@@ -384,5 +416,77 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
         .contains(
             "If you provide the statuses flag, "
                 + "you cannot use the add_statuses and remove_statuses flags.");
+  }
+
+  @Test
+  public void testFailure_provideDsRecordsAndAddDsRecords() throws Exception {
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--add_ds_records=1 2 3 abcd",
+                    "--ds_records=4 5 6 EF01",
+                    "example.tld"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "If you provide the ds_records or clear_ds_records flags, "
+                + "you cannot use the add_ds_records and remove_ds_records flags.");
+  }
+
+  @Test
+  public void testFailure_provideDsRecordsAndRemoveDsRecords() throws Exception {
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--remove_ds_records=7 8 9 12ab",
+                    "--ds_records=4 5 6 EF01",
+                    "example.tld"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "If you provide the ds_records or clear_ds_records flags, "
+                + "you cannot use the add_ds_records and remove_ds_records flags.");
+  }
+
+  @Test
+  public void testFailure_clearDsRecordsAndAddDsRecords() throws Exception {
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--add_ds_records=1 2 3 abcd",
+                    "--clear_ds_records",
+                    "example.tld"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "If you provide the ds_records or clear_ds_records flags, "
+                + "you cannot use the add_ds_records and remove_ds_records flags.");
+  }
+
+  @Test
+  public void testFailure_clearDsRecordsAndRemoveDsRecords() throws Exception {
+    IllegalArgumentException thrown =
+        expectThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--remove_ds_records=7 8 9 12ab",
+                    "--clear_ds_records",
+                    "example.tld"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "If you provide the ds_records or clear_ds_records flags, "
+                + "you cannot use the add_ds_records and remove_ds_records flags.");
   }
 }

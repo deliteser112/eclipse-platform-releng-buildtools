@@ -72,7 +72,11 @@ public class UnlockDomainCommand extends LockOrUnlockDomainCommand {
               "removeTechs", ImmutableList.of(),
               "removeStatuses",
                   statusesToRemove.stream().map(StatusValue::getXmlName).collect(toImmutableList()),
-              "change", false));
+              "change", false,
+              "secdns", false,
+              "addDsRecords", ImmutableList.of(),
+              "removeDsRecords", ImmutableList.of(),
+              "removeAllDsRecords", false));
     }
   }
 }

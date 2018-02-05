@@ -71,6 +71,13 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
   private List<String> addStatuses = new ArrayList<>();
 
   @Parameter(
+    names = "--add_ds_records",
+    description = "DS records to add. Cannot be set if --ds_records or --clear_ds_records is set.",
+    converter = DsRecordConverter.class
+  )
+  private List<DsRecord> addDsRecords = new ArrayList<>();
+
+  @Parameter(
     names = "--remove_nameservers",
     description =
         "Comma-separated list of nameservers to remove, up to 13. "
@@ -95,6 +102,21 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
     description = "Statuses to remove. Cannot be set if --statuses is set."
   )
   private List<String> removeStatuses = new ArrayList<>();
+
+  @Parameter(
+    names = "--remove_ds_records",
+    description =
+        "DS records to remove. Cannot be set if --ds_records or --clear_ds_records is set.",
+    converter = DsRecordConverter.class
+  )
+  private List<DsRecord> removeDsRecords = new ArrayList<>();
+
+  @Parameter(
+    names = "--clear_ds_records",
+    description =
+        "removes all DS records. Is implied true if --ds_records is set."
+  )
+  boolean clearDsRecords = false;
 
   @Override
   protected void initMutatingEppToolCommand() {
@@ -121,6 +143,15 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
           addStatuses.isEmpty() && removeStatuses.isEmpty(),
           "If you provide the statuses flag, "
               + "you cannot use the add_statuses and remove_statuses flags.");
+    }
+
+    if (!dsRecords.isEmpty() || clearDsRecords){
+      checkArgument(
+          addDsRecords.isEmpty() && removeDsRecords.isEmpty(),
+          "If you provide the ds_records or clear_ds_records flags, "
+              + "you cannot use the add_ds_records and remove_ds_records flags.");
+      addDsRecords = dsRecords;
+      clearDsRecords = true;
     }
 
     for (String domain : domains) {
@@ -185,7 +216,13 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
 
       boolean change = registrant != null || password != null;
 
-      if (!add && !remove && !change) {
+      boolean secdns =
+          !addDsRecords.isEmpty()
+              || !removeDsRecords.isEmpty()
+              || !dsRecords.isEmpty()
+              || clearDsRecords;
+
+      if (!add && !remove && !change && !secdns) {
         logger.infofmt("No changes need to be made to domain %s", domain);
         continue;
       }
@@ -207,7 +244,11 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
               "removeStatuses", removeStatuses,
               "change", change,
               "registrant", registrant,
-              "password", password));
+              "password", password,
+              "secdns", secdns,
+              "addDsRecords", DsRecord.convertToSoy(addDsRecords),
+              "removeDsRecords", DsRecord.convertToSoy(removeDsRecords),
+              "removeAllDsRecords", clearDsRecords));
     }
   }
 

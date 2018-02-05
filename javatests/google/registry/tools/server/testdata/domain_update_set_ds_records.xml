@@ -5,19 +5,13 @@
       <domain:update
        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
         <domain:name>example.tld</domain:name>
-        <domain:add>
-          <domain:ns>
-            <domain:hostObj>ns2.zdns.google</domain:hostObj>
-            <domain:hostObj>ns3.zdns.google</domain:hostObj>
-          </domain:ns>
-          <domain:contact type="admin">crr-admin2</domain:contact>
-          <domain:contact type="tech">crr-tech2</domain:contact>
-          <domain:status s="serverDeleteProhibited"/>
-        </domain:add>
       </domain:update>
     </update>
     <extension>
       <secDNS:update xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1">
+        <secDNS:rem>
+          <secDNS:all>true</secDNS:all>
+        </secDNS:rem>
         <secDNS:add>
           <secDNS:dsData>
             <secDNS:keyTag>1</secDNS:keyTag>

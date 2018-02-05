@@ -15,6 +15,24 @@
         </domain:rem>
       </domain:update>
     </update>
+    <extension>
+      <secDNS:update xmlns:secDNS="urn:ietf:params:xml:ns:secDNS-1.1">
+        <secDNS:rem>
+          <secDNS:dsData>
+            <secDNS:keyTag>7</secDNS:keyTag>
+            <secDNS:alg>8</secDNS:alg>
+            <secDNS:digestType>9</secDNS:digestType>
+            <secDNS:digest>12AB</secDNS:digest>
+          </secDNS:dsData>
+          <secDNS:dsData>
+            <secDNS:keyTag>6</secDNS:keyTag>
+            <secDNS:alg>5</secDNS:alg>
+            <secDNS:digestType>4</secDNS:digestType>
+            <secDNS:digest>34CD</secDNS:digest>
+          </secDNS:dsData>
+        </secDNS:rem>
+      </secDNS:update>
+    </extension>
     <clTRID>RegistryTool</clTRID>
   </command>
 </epp>
