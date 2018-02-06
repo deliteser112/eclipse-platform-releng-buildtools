@@ -69,8 +69,6 @@ public class CloudDnsWriterTest {
 
   private static final Inet4Address IPv4 = (Inet4Address) InetAddresses.forString("127.0.0.1");
   private static final Inet6Address IPv6 = (Inet6Address) InetAddresses.forString("::1");
-  private static final DelegationSignerData DS_DATA =
-      DelegationSignerData.create(12345, 3, 1, base16().decode("1234567890ABCDEF"));
   private static final Duration DEFAULT_A_TTL = Duration.standardSeconds(11);
   private static final Duration DEFAULT_NS_TTL = Duration.standardSeconds(222);
   private static final Duration DEFAULT_DS_TTL = Duration.standardSeconds(3333);
@@ -188,7 +186,7 @@ public class CloudDnsWriterTest {
               .setKind("dns#resourceRecordSet")
               .setType("NS")
               .setName(domainName + ".")
-              .setTtl((int) DEFAULT_NS_TTL.getStandardSeconds())
+              .setTtl(222)
               .setRrdatas(nameserverHostnames.build()));
 
       // Add glue for IPv4 in-bailiwick nameservers
@@ -198,8 +196,8 @@ public class CloudDnsWriterTest {
                 .setKind("dns#resourceRecordSet")
                 .setType("A")
                 .setName(i + ".ip4." + domainName + ".")
-                .setTtl((int) DEFAULT_A_TTL.getStandardSeconds())
-                .setRrdatas(ImmutableList.of(IPv4.toString())));
+                .setTtl(11)
+                .setRrdatas(ImmutableList.of("127.0.0.1")));
       }
     }
 
@@ -215,9 +213,8 @@ public class CloudDnsWriterTest {
               .setKind("dns#resourceRecordSet")
               .setType("NS")
               .setName(domainName + ".")
-              .setTtl((int) DEFAULT_NS_TTL.getStandardSeconds())
+              .setTtl(222)
               .setRrdatas(nameserverHostnames.build()));
-
       // Add glue for IPv6 in-bailiwick nameservers
       for (int i = 0; i < v6InBailiwickNameservers; i++) {
         recordSetBuilder.add(
@@ -225,8 +222,8 @@ public class CloudDnsWriterTest {
                 .setKind("dns#resourceRecordSet")
                 .setType("AAAA")
                 .setName(i + ".ip6." + domainName + ".")
-                .setTtl((int) DEFAULT_A_TTL.getStandardSeconds())
-                .setRrdatas(ImmutableList.of(IPv6.toString())));
+                .setTtl(11)
+                .setRrdatas(ImmutableList.of("0:0:0:0:0:0:0:1")));
       }
     }
 
@@ -242,7 +239,7 @@ public class CloudDnsWriterTest {
               .setKind("dns#resourceRecordSet")
               .setType("NS")
               .setName(domainName + ".")
-              .setTtl((int) DEFAULT_NS_TTL.getStandardSeconds())
+              .setTtl(222)
               .setRrdatas(nameserverHostnames.build()));
     }
 
@@ -252,16 +249,14 @@ public class CloudDnsWriterTest {
 
       for (int i = 0; i < dsRecords; i++) {
         dsRecordData.add(
-            DelegationSignerData.create(
-                    i, DS_DATA.getAlgorithm(), DS_DATA.getDigestType(), DS_DATA.getDigest())
-                .toRrData());
+            DelegationSignerData.create(i, 3, 1, base16().decode("1234567890ABCDEF")).toRrData());
       }
       recordSetBuilder.add(
           new ResourceRecordSet()
               .setKind("dns#resourceRecordSet")
               .setType("DS")
               .setName(domainName + ".")
-              .setTtl((int) DEFAULT_DS_TTL.getStandardSeconds())
+              .setTtl(3333)
               .setRrdatas(dsRecordData.build()));
     }
 
@@ -274,9 +269,7 @@ public class CloudDnsWriterTest {
     ImmutableSet.Builder<DelegationSignerData> dsDataBuilder = new ImmutableSet.Builder<>();
 
     for (int i = 0; i < numDsRecords; i++) {
-      dsDataBuilder.add(
-          DelegationSignerData.create(
-              i, DS_DATA.getAlgorithm(), DS_DATA.getDigestType(), DS_DATA.getDigest()));
+      dsDataBuilder.add(DelegationSignerData.create(i, 3, 1, base16().decode("1234567890ABCDEF")));
     }
 
     ImmutableSet.Builder<Key<HostResource>> hostResourceRefBuilder = new ImmutableSet.Builder<>();

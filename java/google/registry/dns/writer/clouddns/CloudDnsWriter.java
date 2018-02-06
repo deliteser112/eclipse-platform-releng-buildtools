@@ -207,10 +207,10 @@ public class CloudDnsWriter extends BaseDnsWriter {
     HashSet<String> aaaaRrData = new HashSet<>();
     for (InetAddress ip : host.get().getInetAddresses()) {
       if (ip instanceof Inet4Address) {
-        aRrData.add(ip.toString());
+        aRrData.add(ip.getHostAddress());
       } else {
         checkArgument(ip instanceof Inet6Address);
-        aaaaRrData.add(ip.toString());
+        aaaaRrData.add(ip.getHostAddress());
       }
     }
 
