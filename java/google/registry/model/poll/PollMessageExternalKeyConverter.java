@@ -85,11 +85,9 @@ public class PollMessageExternalKeyConverter {
    *
    * @throws PollMessageExternalKeyParseException if the external key has an invalid format.
    */
-  // TODO(b/68953444): Make the year field mandatory once sufficient time has elapsed and backwards
-  //                   compatibility is no longer necessary.
   public static Key<PollMessage> parsePollMessageExternalId(String externalKey) {
     List<String> idComponents = Splitter.on('-').splitToList(externalKey);
-    if (idComponents.size() != 5 && idComponents.size() != 6) {
+    if (idComponents.size() != 6) {
       throw new PollMessageExternalKeyParseException();
     }
     try {

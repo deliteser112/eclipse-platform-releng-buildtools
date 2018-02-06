@@ -19,6 +19,7 @@ import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.poll.PollFlowUtils.getPollMessagesQuery;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_WITH_NO_MESSAGES;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.poll.PollMessageExternalKeyConverter.makePollMessageExternalId;
 import static google.registry.model.poll.PollMessageExternalKeyConverter.parsePollMessageExternalId;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
@@ -80,14 +81,14 @@ public class PollAckFlow implements TransactionalFlow {
     final DateTime now = ofy().getTransactionTime();
 
     // Load the message to be acked. If a message is queued to be delivered in the future, we treat
-    // it as if it doesn't exist yet.
+    // it as if it doesn't exist yet. Same for if the message ID year isn't the same as the actual
+    // poll message's event time (that means they're passing in an old already-acked ID).
     PollMessage pollMessage = ofy().load().key(pollMessageKey).now();
-    if (pollMessage == null || !isBeforeOrAt(pollMessage.getEventTime(), now)) {
+    if (pollMessage == null
+        || !isBeforeOrAt(pollMessage.getEventTime(), now)
+        || !makePollMessageExternalId(pollMessage).equals(messageId)) {
       throw new MessageDoesNotExistException(messageId);
     }
-    // TODO(b/68953444): Once the year field on the external poll message ID becomes mandatory, add
-    // a check that the value of the year field is correct, by checking that
-    // makePollMessageExternalId(pollMessage) equals messageId.
 
     // Make sure this client is authorized to ack this message. It could be that the message is
     // supposed to go to a different registrar.

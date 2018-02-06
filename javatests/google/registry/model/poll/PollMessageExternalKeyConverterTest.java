@@ -122,19 +122,10 @@ public class PollMessageExternalKeyConverterTest {
   }
 
   @Test
-  // TODO(b/68953444): Remove leniency when backwards compatibility with missing field is no longer
-  //                   required.
-  public void testSuccess_stillParsesWithMissingYearField() {
-    PollMessage.OneTime pollMessage =
-        persistResource(
-            new PollMessage.OneTime.Builder()
-                .setClientId("TheRegistrar")
-                .setEventTime(clock.nowUtc())
-                .setMsg("Test poll message")
-                .setParent(historyEntry)
-                .build());
-    assertThat(makePollMessageExternalId(pollMessage)).isEqualTo("1-2-FOOBAR-4-5-2007");
-    assertThat(parsePollMessageExternalId("1-2-FOOBAR-4-5")).isEqualTo(Key.create(pollMessage));
+  public void testFailure_missingYearField() {
+    assertThrows(
+        PollMessageExternalKeyParseException.class,
+        () -> parsePollMessageExternalId("1-2-FOOBAR-4-5"));
   }
 
   @Test
