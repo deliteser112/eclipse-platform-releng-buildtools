@@ -17,7 +17,7 @@
 
 /** Registrar contacts listing for view only. */
 {template .set}
-  {@param contactsByType: map<string, ?>}
+  {@param contactsByType: legacy_object_map<string, ?>}
   {let $possibleTypesLookup: [
       ['admin', 'Primary', 'Primary contact for general issues.'],
       ['billing', 'Billing', 'Contact for financial communications & invoices.'],
@@ -102,8 +102,8 @@
 /** Registrar contact item page. */
 {template .contact}
   {@param namePrefix: string}
-  {@param item: map<string, ?>}
-  {@param actualTypesLookup: map<string, bool>}
+  {@param item: legacy_object_map<string, ?>}
+  {@param actualTypesLookup: legacy_object_map<string, bool>}
   {@param readonly: bool}
   <form name="item" class="{css('item')} {css('registrar')}">
     <h1>Contact Details</h1>
@@ -120,8 +120,8 @@
 /** Contact info for view and edit. */
 {template .contactInfo}
   {@param namePrefix: string}
-  {@param item: map<string, ?>}
-  {@param actualTypesLookup: map<string, bool>}
+  {@param item: legacy_object_map<string, ?>}
+  {@param actualTypesLookup: legacy_object_map<string, bool>}
   {@param? readonly: bool}
   {let $possibleTypesLookup: [
       ['admin', 'Primary', 'Primary contact for general issues.'],
@@ -177,9 +177,9 @@
 
 /** @private */
 {template .contactTypeSettingsView_ visibility="private"}
-  {@param item: map<string, ?>}
+  {@param item: legacy_object_map<string, ?>}
   {@param possibleTypesLookup: list<list<string>>}
-  {@param actualTypesLookup: map<string, bool>}
+  {@param actualTypesLookup: legacy_object_map<string, bool>}
   <tr class="{css('kd-settings-pane-section')}">
     <td>
       <label class="{css('setting-label')}">Contact type</label>
@@ -218,10 +218,10 @@
 
 /** @private */
 {template .contactTypeSettingsEdit_ visibility="private"}
-  {@param item: map<string, ?>}
+  {@param item: legacy_object_map<string, ?>}
   {@param namePrefix: string}
   {@param possibleTypesLookup: list<list<string>>}
-  {@param actualTypesLookup: map<string, bool>}
+  {@param actualTypesLookup: legacy_object_map<string, bool>}
   <tr class="{css('kd-settings-pane-section')}">
     <td>
       <label class="{css('setting-label')}">Contact type</label>
@@ -299,7 +299,7 @@
 /** @private */
 {template .contactCheckboxes_ visibility="private"}
   {@param namePrefix: string}
-  {@param actualTypesLookup: map<string, bool>}
+  {@param actualTypesLookup: legacy_object_map<string, bool>}
   {@param possibleTypesLookup: list<list<string>>}
   {for $type in $possibleTypesLookup}
     {let $name: $namePrefix + 'type.' + $type[0] /}
