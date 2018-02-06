@@ -67,8 +67,8 @@ import org.joda.time.Duration;
 public class CloudDnsWriter extends BaseDnsWriter {
 
   /**
-   * The name of the dns writer, as used in {@code Registry.dnsWriter}. Remember to change
-   * the value on affected Registry objects to prevent runtime failures.
+   * The name of the dns writer, as used in {@code Registry.dnsWriter}. Remember to change the value
+   * on affected Registry objects to prevent runtime failures.
    */
   public static final String NAME = "CloudDnsWriter";
 
@@ -153,16 +153,16 @@ public class CloudDnsWriter extends BaseDnsWriter {
       }
     }
 
-
     // Construct NS records (if any).
     Set<String> nameserverData = domainResource.get().loadNameserverFullyQualifiedHostNames();
+    Set<String> subordinateHosts = domainResource.get().getSubordinateHosts();
     if (!nameserverData.isEmpty()) {
       HashSet<String> nsRrData = new HashSet<>();
       for (String hostName : nameserverData) {
         nsRrData.add(getAbsoluteHostName(hostName));
 
         // Construct glue records for subordinate NS hostnames (if any)
-        if (hostName.endsWith(domainName)) {
+        if (subordinateHosts.contains(hostName)) {
           publishSubordinateHost(hostName);
         }
       }
@@ -285,19 +285,15 @@ public class CloudDnsWriter extends BaseDnsWriter {
     logger.info("Wrote to Cloud DNS");
   }
 
-  /**
-   * Returns the glue records for in-bailiwick nameservers for the given domain+records.
-   */
+  /** Returns the glue records for in-bailiwick nameservers for the given domain+records. */
   private Stream<String> filterGlueRecords(String domainName, Stream<ResourceRecordSet> records) {
     return records
         .filter(record -> record.getType().equals("NS"))
         .flatMap(record -> record.getRrdatas().stream())
-        .filter(hostName -> hostName.endsWith(domainName) && !hostName.equals(domainName));
+        .filter(hostName -> hostName.endsWith("." + domainName) && !hostName.equals(domainName));
   }
 
-  /**
-   * Mutate the zone with the provided {@code desiredRecords}.
-   */
+  /** Mutate the zone with the provided {@code desiredRecords}. */
   @VisibleForTesting
   void mutateZone(ImmutableMap<String, ImmutableSet<ResourceRecordSet>> desiredRecords) {
     // Fetch all existing records for names that this writer is trying to modify

@@ -110,7 +110,6 @@ public class CloudDnsWriterTest {
     return listResourceRecordSetsRequest;
   }
 
-
   @Before
   public void setUp() throws Exception {
     createTld("tld");
@@ -133,8 +132,7 @@ public class CloudDnsWriterTest {
     when(dnsConnection.changes()).thenReturn(changes);
     when(dnsConnection.resourceRecordSets()).thenReturn(resourceRecordSets);
     when(resourceRecordSets.list(anyString(), anyString()))
-        .thenAnswer(
-            invocationOnMock -> newListResourceRecordSetsRequestMock());
+        .thenAnswer(invocationOnMock -> newListResourceRecordSetsRequestMock());
     when(changes.create(anyString(), zoneNameCaptor.capture(), changeCaptor.capture()))
         .thenReturn(createChangeRequest);
     // Change our stub zone when a request to change the records is executed
@@ -163,6 +161,22 @@ public class CloudDnsWriterTest {
     writer.commit();
 
     assertThat(stubZone).containsExactlyElementsIn(expectedRecords);
+  }
+
+  /** Returns a a zone cut with records for a domain and given nameservers, with no glue records. */
+  private static ImmutableSet<ResourceRecordSet> fakeDomainRecords(
+      String domainName, String... nameservers) {
+    ImmutableSet.Builder<ResourceRecordSet> recordSetBuilder = new ImmutableSet.Builder<>();
+    if (nameservers.length > 0) {
+      recordSetBuilder.add(
+          new ResourceRecordSet()
+              .setKind("dns#resourceRecordSet")
+              .setType("NS")
+              .setName(domainName + ".")
+              .setTtl(222)
+              .setRrdatas(ImmutableList.copyOf(nameservers)));
+    }
+    return recordSetBuilder.build();
   }
 
   /** Returns a a zone cut with records for a domain */
@@ -337,13 +351,13 @@ public class CloudDnsWriterTest {
   @Test
   public void testLoadDomain_withInBailiwickNs_IPv4() throws Exception {
     persistResource(
-            fakeDomain(
+        fakeDomain(
                 "example.tld",
                 ImmutableSet.of(persistResource(fakeHost("0.ip4.example.tld", IPv4))),
-                0))
-        .asBuilder()
-        .addSubordinateHost("0.ip4.example.tld")
-        .build();
+                0)
+            .asBuilder()
+            .addSubordinateHost("0.ip4.example.tld")
+            .build());
     writer.publishDomain("example.tld");
 
     verifyZone(fakeDomainRecords("example.tld", 1, 0, 0, 0));
@@ -352,16 +366,28 @@ public class CloudDnsWriterTest {
   @Test
   public void testLoadDomain_withInBailiwickNs_IPv6() throws Exception {
     persistResource(
-            fakeDomain(
+        fakeDomain(
                 "example.tld",
                 ImmutableSet.of(persistResource(fakeHost("0.ip6.example.tld", IPv6))),
-                0))
-        .asBuilder()
-        .addSubordinateHost("0.ip6.example.tld")
-        .build();
+                0)
+            .asBuilder()
+            .addSubordinateHost("0.ip6.example.tld")
+            .build());
     writer.publishDomain("example.tld");
 
     verifyZone(fakeDomainRecords("example.tld", 0, 1, 0, 0));
+  }
+
+  @Test
+  public void testLoadDomain_withNameserveThatEndsWithDomainName() throws Exception {
+    persistResource(
+        fakeDomain(
+            "example.tld",
+            ImmutableSet.of(persistResource(fakeHost("ns.another-example.tld", IPv4))),
+            0));
+    writer.publishDomain("example.tld");
+
+    verifyZone(fakeDomainRecords("example.tld", "ns.another-example.tld."));
   }
 
   @Test
@@ -380,13 +406,13 @@ public class CloudDnsWriterTest {
     // Model the domain with only one NS record -- this is equivalent to creating it
     // with two NS records and then deleting one
     persistResource(
-            fakeDomain(
+        fakeDomain(
                 "example.tld",
                 ImmutableSet.of(persistResource(fakeHost("0.ip4.example.tld", IPv4))),
-                0))
-        .asBuilder()
-        .addSubordinateHost("0.ip4.example.tld")
-        .build();
+                0)
+            .asBuilder()
+            .addSubordinateHost("0.ip4.example.tld")
+            .build());
 
     // Ask the writer to delete the deleted NS record and glue
     writer.publishHost("1.ip4.example.tld");
@@ -456,13 +482,13 @@ public class CloudDnsWriterTest {
     // In publishing DNS records, we can end up publishing information on the same host twice
     // (through a domain change and a host change), so this scenario needs to work.
     persistResource(
-            fakeDomain(
+        fakeDomain(
                 "example.tld",
                 ImmutableSet.of(persistResource(fakeHost("0.ip4.example.tld", IPv4))),
-                0))
-        .asBuilder()
-        .addSubordinateHost("ns1.example.tld")
-        .build();
+                0)
+            .asBuilder()
+            .addSubordinateHost("0.ip4.example.tld")
+            .build());
     writer.publishDomain("example.tld");
     writer.publishHost("0.ip4.example.tld");
 
