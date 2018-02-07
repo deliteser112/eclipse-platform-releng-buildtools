@@ -551,7 +551,8 @@ public final class RegistryConfig {
     /**
      * Returns name of the GCS bucket we store invoices and detail reports in.
      *
-     * @see google.registry.billing
+     * @see google.registry.reporting.billing.CopyDetailReportsAction
+     * @see google.registry.reporting.billing.BillingEmailUtils
      */
     @Provides
     @Config("billingBucket")
@@ -562,7 +563,7 @@ public final class RegistryConfig {
     /**
      * Returns the URL of the GCS bucket we store invoices and detail reports in.
      *
-     * @see google.registry.billing
+     * @see google.registry.beam.InvoicingPipeline
      */
     @Provides
     @Config("billingBucketUrl")
