@@ -271,7 +271,11 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
     checkArgument(roidSuffix == null || tlds.size() == 1,
         "Can't update roid suffixes on multiple TLDs simultaneously");
     for (String tld : tlds) {
-      checkArgument(tld.equals(canonicalizeDomainName(tld)));
+      checkArgument(
+          tld.equals(canonicalizeDomainName(tld)),
+          "TLD '%s' should be given in the canonical form '%s'",
+          tld,
+          canonicalizeDomainName(tld));
       checkArgument(
           !CharMatcher.javaDigit().matches(tld.charAt(0)),
           "TLDs cannot begin with a number");
