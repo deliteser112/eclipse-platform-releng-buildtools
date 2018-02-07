@@ -573,7 +573,7 @@ public final class RegistryConfig {
     /**
      * Returns the list of addresses that receive monthly invoicing emails.
      *
-     * @see google.registry.billing.BillingEmailUtils
+     * @see google.registry.reporting.billing.BillingEmailUtils
      */
     @Provides
     @Config("invoiceEmailRecipients")
@@ -769,7 +769,7 @@ public final class RegistryConfig {
      * checking e-mail.
      *
      * @see google.registry.reporting.icann.ReportingEmailUtils
-     * @see google.registry.billing.BillingEmailUtils
+     * @see google.registry.reporting.billing.BillingEmailUtils
      */
     @Provides
     @Config("alertRecipientEmailAddress")
@@ -781,7 +781,7 @@ public final class RegistryConfig {
      * Returns the email address we send emails from.
      *
      * @see google.registry.reporting.icann.ReportingEmailUtils
-     * @see google.registry.billing.BillingEmailUtils
+     * @see google.registry.reporting.billing.BillingEmailUtils
      */
 
     @Provides
