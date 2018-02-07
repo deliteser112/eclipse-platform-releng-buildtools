@@ -188,9 +188,9 @@ public class EppLifecycleHostTest extends EppTestCase {
         "domain_create_response.xml",
         ImmutableMap.of(
             "NAME", "example.bar.foo.tld",
-            "CRDATE", "2000-06-01T00:02:00.0Z",
-            "EXDATE", "2002-06-01T00:02:00.0Z"),
-        DateTime.parse("2000-06-01T00:02:00Z"));
+            "CRDATE", "2000-06-01T00:02:00Z",
+            "EXDATE", "2002-06-01T00:02:00Z"),
+        DateTime.parse("2000-06-01T00:02:00.000Z"));
 
     // Create domain example.foo.tld
     assertCommandAndResponse(
@@ -199,9 +199,9 @@ public class EppLifecycleHostTest extends EppTestCase {
         "domain_create_response.xml",
         ImmutableMap.of(
             "NAME", "example.foo.tld",
-            "CRDATE", "2000-06-01T00:02:00.0Z",
-            "EXDATE", "2002-06-01T00:02:00.0Z"),
-        DateTime.parse("2000-06-01T00:02:00Z"));
+            "CRDATE", "2000-06-01T00:02:00Z",
+            "EXDATE", "2002-06-01T00:02:00Z"),
+        DateTime.parse("2000-06-01T00:02:00.001Z"));
 
     // Create domain example.tld
     assertCommandAndResponse(
@@ -210,9 +210,9 @@ public class EppLifecycleHostTest extends EppTestCase {
         "domain_create_response.xml",
         ImmutableMap.of(
             "NAME", "example.tld",
-            "CRDATE", "2000-06-01T00:02:00.0Z",
-            "EXDATE", "2002-06-01T00:02:00.0Z"),
-        DateTime.parse("2000-06-01T00:02:00Z"));
+            "CRDATE", "2000-06-01T00:02:00Z",
+            "EXDATE", "2002-06-01T00:02:00Z"),
+        DateTime.parse("2000-06-01T00:02:00.002Z"));
 
     // Create host ns1.example.bar.foo.tld
     assertCommandAndResponse(
@@ -235,15 +235,15 @@ public class EppLifecycleHostTest extends EppTestCase {
         "host_create_with_ips.xml",
         ImmutableMap.of("HOSTNAME", "ns1.example.tld"),
         "host_create_response.xml",
-        ImmutableMap.of("HOSTNAME", "ns1.example.tld", "CRDATE", "2000-06-01T00:04:00Z"),
-        DateTime.parse("2000-06-01T00:04:00Z"));
+        ImmutableMap.of("HOSTNAME", "ns1.example.tld", "CRDATE", "2000-06-01T00:05:00Z"),
+        DateTime.parse("2000-06-01T00:05:00Z"));
+
+    DateTime timeAfterCreates = DateTime.parse("2000-06-01T00:06:00Z");
 
     HostResource exampleBarFooTldHost =
-        loadByForeignKey(
-            HostResource.class, "ns1.example.bar.foo.tld", DateTime.parse("2000-06-01T00:05:00Z"));
+        loadByForeignKey(HostResource.class, "ns1.example.bar.foo.tld", timeAfterCreates);
     DomainResource exampleBarFooTldDomain =
-        loadByForeignKey(
-            DomainResource.class, "example.bar.foo.tld", DateTime.parse("2000-06-01T00:05:00Z"));
+        loadByForeignKey(DomainResource.class, "example.bar.foo.tld", timeAfterCreates);
     assertAboutHosts()
         .that(exampleBarFooTldHost)
         .hasSuperordinateDomain(Key.create(exampleBarFooTldDomain));
@@ -251,26 +251,20 @@ public class EppLifecycleHostTest extends EppTestCase {
         .containsExactly("ns1.example.bar.foo.tld");
 
     HostResource exampleFooTldHost =
-        loadByForeignKey(
-            HostResource.class, "ns1.example.foo.tld", DateTime.parse("2000-06-01T00:05:00Z"));
+        loadByForeignKey(HostResource.class, "ns1.example.foo.tld", timeAfterCreates);
     DomainResource exampleFooTldDomain =
-        loadByForeignKey(
-            DomainResource.class, "example.foo.tld", DateTime.parse("2000-06-01T00:05:00Z"));
+        loadByForeignKey(DomainResource.class, "example.foo.tld", timeAfterCreates);
     assertAboutHosts()
         .that(exampleFooTldHost)
         .hasSuperordinateDomain(Key.create(exampleFooTldDomain));
-    assertThat(exampleFooTldDomain.getSubordinateHosts())
-        .containsExactly("ns1.example.foo.tld");
+    assertThat(exampleFooTldDomain.getSubordinateHosts()).containsExactly("ns1.example.foo.tld");
 
     HostResource exampleTldHost =
-        loadByForeignKey(
-            HostResource.class, "ns1.example.tld", DateTime.parse("2000-06-01T00:05:00Z"));
+        loadByForeignKey(HostResource.class, "ns1.example.tld", timeAfterCreates);
     DomainResource exampleTldDomain =
-        loadByForeignKey(
-            DomainResource.class, "example.tld", DateTime.parse("2000-06-01T00:05:00Z"));
+        loadByForeignKey(DomainResource.class, "example.tld", timeAfterCreates);
     assertAboutHosts().that(exampleTldHost).hasSuperordinateDomain(Key.create(exampleTldDomain));
-    assertThat(exampleTldDomain.getSubordinateHosts())
-        .containsExactly("ns1.example.tld");
+    assertThat(exampleTldDomain.getSubordinateHosts()).containsExactly("ns1.example.tld");
 
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }

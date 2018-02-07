@@ -1014,7 +1014,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     createTlds("bar.foo.tld", "foo.tld");
 
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    createContacts(DateTime.parse("2000-06-01T00:00:00Z"));
+    createContacts(DateTime.parse("2000-06-01T00:00:00.000Z"));
 
     // Create domain example.bar.foo.tld
     assertCommandAndResponse(
@@ -1023,9 +1023,9 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "domain_create_response.xml",
         ImmutableMap.of(
             "NAME", "example.bar.foo.tld",
-            "CRDATE", "2000-06-01T00:02:00.0Z",
-            "EXDATE", "2002-06-01T00:02:00.0Z"),
-        DateTime.parse("2000-06-01T00:02:00Z"));
+            "CRDATE", "2000-06-01T00:02:00Z",
+            "EXDATE", "2002-06-01T00:02:00Z"),
+        DateTime.parse("2000-06-01T00:02:00.001Z"));
 
     // Create domain example.foo.tld
     assertCommandAndResponse(
@@ -1034,9 +1034,9 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "domain_create_response.xml",
         ImmutableMap.of(
             "NAME", "example.foo.tld",
-            "CRDATE", "2000-06-01T00:02:00.0Z",
-            "EXDATE", "2002-06-01T00:02:00.0Z"),
-        DateTime.parse("2000-06-01T00:02:00Z"));
+            "CRDATE", "2000-06-01T00:02:00Z",
+            "EXDATE", "2002-06-01T00:02:00Z"),
+        DateTime.parse("2000-06-01T00:02:00.002Z"));
 
     // Create domain example.tld
     assertCommandAndResponse(
@@ -1045,9 +1045,9 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "domain_create_response.xml",
         ImmutableMap.of(
             "NAME", "example.tld",
-            "CRDATE", "2000-06-01T00:02:00.0Z",
-            "EXDATE", "2002-06-01T00:02:00.0Z"),
-        DateTime.parse("2000-06-01T00:02:00Z"));
+            "CRDATE", "2000-06-01T00:02:00Z",
+            "EXDATE", "2002-06-01T00:02:00Z"),
+        DateTime.parse("2000-06-01T00:02:00.003Z"));
 
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
@@ -1057,7 +1057,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     createTld("tld.foo");
 
     assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    createContacts(DateTime.parse("2000-06-01T00:00:00Z"));
+    createContacts(DateTime.parse("2000-06-01T00:00:00.000Z"));
 
     // Create domain example.tld.foo
     assertCommandAndResponse(
@@ -1066,9 +1066,9 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "domain_create_response.xml",
         ImmutableMap.of(
             "NAME", "example.tld.foo",
-            "CRDATE", "2000-06-01T00:02:00.0Z",
-            "EXDATE", "2002-06-01T00:02:00.0Z"),
-        DateTime.parse("2000-06-01T00:02:00Z"));
+            "CRDATE", "2000-06-01T00:02:00Z",
+            "EXDATE", "2002-06-01T00:02:00Z"),
+        DateTime.parse("2000-06-01T00:02:00.001Z"));
 
     // Create domain example.tld
     assertCommandAndResponse(
@@ -1077,9 +1077,9 @@ public class EppLifecycleDomainTest extends EppTestCase {
         "domain_create_response.xml",
         ImmutableMap.of(
             "NAME", "example.tld",
-            "CRDATE", "2000-06-01T00:02:00.0Z",
-            "EXDATE", "2002-06-01T00:02:00.0Z"),
-        DateTime.parse("2000-06-01T00:02:00Z"));
+            "CRDATE", "2000-06-01T00:02:00Z",
+            "EXDATE", "2002-06-01T00:02:00Z"),
+        DateTime.parse("2000-06-01T00:02:00.002Z"));
 
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
