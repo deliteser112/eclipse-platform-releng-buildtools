@@ -155,10 +155,13 @@ public final class DomainCheckFlow implements Flow {
     Set<String> existingIds = checkResourcesExist(DomainResource.class, targetIds, now);
     Optional<AllocationTokenExtension> allocationTokenExtension =
         eppInput.getSingleExtension(AllocationTokenExtension.class);
-    ImmutableMap<String, String> tokenCheckResults =
+    ImmutableMap<InternetDomainName, String> tokenCheckResults =
         allocationTokenExtension.isPresent()
             ? allocationTokenFlowUtils.checkDomainsWithToken(
-                targetIds, allocationTokenExtension.get().getAllocationToken(), clientId)
+                ImmutableList.copyOf(domainNames.values()),
+                allocationTokenExtension.get().getAllocationToken(),
+                clientId,
+                now)
             : ImmutableMap.of();
     ImmutableList.Builder<DomainCheck> checks = new ImmutableList.Builder<>();
     for (String targetId : targetIds) {
@@ -182,7 +185,7 @@ public final class DomainCheckFlow implements Flow {
   private Optional<String> getMessageForCheck(
       InternetDomainName domainName,
       Set<String> existingIds,
-      ImmutableMap<String, String> tokenCheckResults,
+      ImmutableMap<InternetDomainName, String> tokenCheckResults,
       DateTime now) {
     if (existingIds.contains(domainName.toString())) {
       return Optional.of("In use");
@@ -204,7 +207,7 @@ public final class DomainCheckFlow implements Flow {
     if (!reservationTypes.isEmpty()) {
       return Optional.of(getTypeOfHighestSeverity(reservationTypes).getMessageForCheck());
     }
-    return Optional.ofNullable(emptyToNull(tokenCheckResults.get(domainName.toString())));
+    return Optional.ofNullable(emptyToNull(tokenCheckResults.get(domainName)));
   }
 
   /** Handle the fee check extension. */

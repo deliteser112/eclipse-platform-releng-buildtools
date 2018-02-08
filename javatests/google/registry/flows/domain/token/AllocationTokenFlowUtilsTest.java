@@ -19,6 +19,9 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.expectThrows;
+import static org.joda.time.DateTimeZone.UTC;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -27,10 +30,13 @@ import com.googlecode.objectify.Key;
 import google.registry.flows.EppException;
 import google.registry.flows.domain.token.AllocationTokenFlowUtils.InvalidAllocationTokenException;
 import google.registry.model.domain.AllocationToken;
+import google.registry.model.domain.DomainCommand;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.ShardableTestCase;
+import java.util.Map;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,7 +62,11 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
         new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
     assertThat(
             flowUtils.verifyToken(
-                InternetDomainName.from("blah.tld"), "tokeN", Registry.get("tld"), "TheRegistrar"))
+                createCommand("blah.tld"),
+                "tokeN",
+                Registry.get("tld"),
+                "TheRegistrar",
+                DateTime.now(UTC)))
         .isEqualTo(token);
   }
 
@@ -69,10 +79,11 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
             InvalidAllocationTokenException.class,
             () ->
                 flowUtils.verifyToken(
-                    InternetDomainName.from("blah.tld"),
+                    createCommand("blah.tld"),
                     "tokeN",
                     Registry.get("tld"),
-                    "TheRegistrar"));
+                    "TheRegistrar",
+                    DateTime.now(UTC)));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -86,10 +97,11 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
             IllegalStateException.class,
             () ->
                 flowUtils.verifyToken(
-                    InternetDomainName.from("blah.tld"),
+                    createCommand("blah.tld"),
                     "tokeN",
                     Registry.get("tld"),
-                    "TheRegistrar"));
+                    "TheRegistrar",
+                    DateTime.now(UTC)));
     assertThat(thrown).hasMessageThat().isEqualTo("failed for tests");
   }
 
@@ -99,9 +111,16 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
     assertThat(
-        flowUtils.checkDomainsWithToken(
-            ImmutableList.of("blah.tld", "blah2.tld"), "tokeN", "TheRegistrar"))
-        .containsExactlyEntriesIn(ImmutableMap.of("blah.tld", "", "blah2.tld", ""));
+            flowUtils.checkDomainsWithToken(
+                ImmutableList.of(
+                    InternetDomainName.from("blah.tld"), InternetDomainName.from("blah2.tld")),
+                "tokeN",
+                "TheRegistrar",
+                DateTime.now(UTC)))
+        .containsExactlyEntriesIn(
+            ImmutableMap.of(
+                InternetDomainName.from("blah.tld"), "", InternetDomainName.from("blah2.tld"), ""))
+        .inOrder();
   }
 
   @Test
@@ -115,13 +134,18 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
         new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
     assertThat(
             flowUtils.checkDomainsWithToken(
-                ImmutableList.of("blah.tld", "blah2.tld"), "tokeN", "TheRegistrar"))
+                ImmutableList.of(
+                    InternetDomainName.from("blah.tld"), InternetDomainName.from("blah2.tld")),
+                "tokeN",
+                "TheRegistrar",
+                DateTime.now(UTC)))
         .containsExactlyEntriesIn(
             ImmutableMap.of(
-                "blah.tld",
+                InternetDomainName.from("blah.tld"),
                 "Alloc token was already redeemed",
-                "blah2.tld",
-                "Alloc token was already redeemed"));
+                InternetDomainName.from("blah2.tld"),
+                "Alloc token was already redeemed"))
+        .inOrder();
   }
 
   @Test
@@ -134,8 +158,39 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
             IllegalStateException.class,
             () ->
                 flowUtils.checkDomainsWithToken(
-                    ImmutableList.of("blah.tld", "blah2.tld"), "tokeN", "TheRegistrar"));
+                    ImmutableList.of(
+                        InternetDomainName.from("blah.tld"), InternetDomainName.from("blah2.tld")),
+                    "tokeN",
+                    "TheRegistrar",
+                    DateTime.now(UTC)));
     assertThat(thrown).hasMessageThat().isEqualTo("failed for tests");
+  }
+
+  @Test
+  public void test_checkDomainsWithToken_resultsFromCustomLogicAreIntegrated() throws Exception {
+    persistResource(new AllocationToken.Builder().setToken("tokeN").build());
+    AllocationTokenFlowUtils flowUtils =
+        new AllocationTokenFlowUtils(new CustomResultAllocationTokenCustomLogic());
+    assertThat(
+            flowUtils.checkDomainsWithToken(
+                ImmutableList.of(
+                    InternetDomainName.from("blah.tld"), InternetDomainName.from("bunny.tld")),
+                "tokeN",
+                "TheRegistrar",
+                DateTime.now(UTC)))
+        .containsExactlyEntriesIn(
+            ImmutableMap.of(
+                InternetDomainName.from("blah.tld"),
+                "",
+                InternetDomainName.from("bunny.tld"),
+                "fufu"))
+        .inOrder();
+  }
+
+  private static DomainCommand.Create createCommand(String domainName) {
+    DomainCommand.Create command = mock(DomainCommand.Create.class);
+    when(command.getFullyQualifiedDomainName()).thenReturn(domainName);
+    return command;
   }
 
   /** An {@link AllocationTokenCustomLogic} class that throws exceptions on every method. */
@@ -143,15 +198,42 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
 
     @Override
     public AllocationToken verifyToken(
-        InternetDomainName domainName, AllocationToken token, Registry registry, String clientId)
+        DomainCommand.Create command,
+        AllocationToken token,
+        Registry registry,
+        String clientId,
+        DateTime now)
         throws EppException {
       throw new IllegalStateException("failed for tests");
     }
 
     @Override
-    public ImmutableMap<String, String> checkDomainsWithToken(
-        ImmutableMap<String, String> checkResults, AllocationToken tokenEntity, String clientId) {
+    public ImmutableMap<InternetDomainName, String> checkDomainsWithToken(
+        ImmutableMap<InternetDomainName, String> checkResults,
+        AllocationToken tokenEntity,
+        String clientId,
+        DateTime now) {
       throw new IllegalStateException("failed for tests");
+    }
+  }
+
+  /** An {@link AllocationTokenCustomLogic} class that returns custom check results for bunnies. */
+  private static class CustomResultAllocationTokenCustomLogic extends AllocationTokenCustomLogic {
+
+    @Override
+    public ImmutableMap<InternetDomainName, String> checkDomainsWithToken(
+        ImmutableMap<InternetDomainName, String> checkResults,
+        AllocationToken tokenEntity,
+        String clientId,
+        DateTime now) {
+      return checkResults
+          .entrySet()
+          .stream()
+          .collect(
+              ImmutableMap.toImmutableMap(
+                  Map.Entry::getKey,
+                  entry ->
+                      entry.getKey().toString().contains("bunny") ? "fufu" : entry.getValue()));
     }
   }
 }

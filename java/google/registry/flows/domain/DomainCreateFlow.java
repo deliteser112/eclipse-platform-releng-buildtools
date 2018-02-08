@@ -74,6 +74,7 @@ import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.billing.BillingEvent.Recurring;
 import google.registry.model.domain.AllocationToken;
 import google.registry.model.domain.DomainApplication;
+import google.registry.model.domain.DomainCommand;
 import google.registry.model.domain.DomainCommand.Create;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
@@ -204,7 +205,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     validateClientIsLoggedIn(clientId);
     verifyRegistrarIsActive(clientId);
     DateTime now = ofy().getTransactionTime();
-    Create command = cloneAndLinkReferences((Create) resourceCommand, now);
+    DomainCommand.Create command = cloneAndLinkReferences((Create) resourceCommand, now);
     Period period = command.getPeriod();
     verifyUnitIsYears(period);
     int years = period.getValue();
@@ -261,7 +262,7 @@ public class DomainCreateFlow implements TransactionalFlow {
       }
     }
     Optional<AllocationToken> allocationToken =
-        verifyAllocationTokenIfPresent(domainName, registry, clientId);
+        verifyAllocationTokenIfPresent(command, registry, clientId, now);
     flowCustomLogic.afterValidation(
         DomainCreateFlowCustomLogic.AfterValidationParameters.newBuilder()
             .setDomainName(domainName)
@@ -384,14 +385,14 @@ public class DomainCreateFlow implements TransactionalFlow {
 
   /** Verifies and returns the allocation token if one is specified, otherwise does nothing. */
   private Optional<AllocationToken> verifyAllocationTokenIfPresent(
-      InternetDomainName domainName, Registry registry, String clientId)
+      DomainCommand.Create command, Registry registry, String clientId, DateTime now)
       throws EppException {
     Optional<AllocationTokenExtension> extension =
         eppInput.getSingleExtension(AllocationTokenExtension.class);
     return Optional.ofNullable(
         extension.isPresent()
             ? allocationTokenFlowUtils.verifyToken(
-                domainName, extension.get().getAllocationToken(), registry, clientId)
+                command, extension.get().getAllocationToken(), registry, clientId, now)
             : null);
   }
 

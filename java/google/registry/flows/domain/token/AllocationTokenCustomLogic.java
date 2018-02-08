@@ -18,7 +18,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.net.InternetDomainName;
 import google.registry.flows.EppException;
 import google.registry.model.domain.AllocationToken;
+import google.registry.model.domain.DomainCommand;
 import google.registry.model.registry.Registry;
+import org.joda.time.DateTime;
 
 /**
  * A no-op base class for allocation token custom logic.
@@ -29,15 +31,22 @@ public class AllocationTokenCustomLogic {
 
   /** Performs additional custom logic for verifying a token. */
   public AllocationToken verifyToken(
-      InternetDomainName domainName, AllocationToken token, Registry registry, String clientId)
+      DomainCommand.Create command,
+      AllocationToken token,
+      Registry registry,
+      String clientId,
+      DateTime now)
       throws EppException {
     // Do nothing.
     return token;
   }
 
   /** Performs additional custom logic for performing domain checks using a token. */
-  public ImmutableMap<String, String> checkDomainsWithToken(
-      ImmutableMap<String, String> checkResults, AllocationToken tokenEntity, String clientId) {
+  public ImmutableMap<InternetDomainName, String> checkDomainsWithToken(
+      ImmutableMap<InternetDomainName, String> checkResults,
+      AllocationToken token,
+      String clientId,
+      DateTime now) {
     // Do nothing.
     return checkResults;
   }

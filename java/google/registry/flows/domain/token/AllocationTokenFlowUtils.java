@@ -23,14 +23,15 @@ import google.registry.flows.EppException;
 import google.registry.flows.EppException.AssociationProhibitsOperationException;
 import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.model.domain.AllocationToken;
+import google.registry.model.domain.DomainCommand;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.List;
 import java.util.function.Function;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 
 /** Utility functions for dealing with {@link AllocationToken}s in domain flows. */
-// TODO: Add a test class.
 public class AllocationTokenFlowUtils {
 
   final AllocationTokenCustomLogic tokenCustomLogic;
@@ -47,7 +48,7 @@ public class AllocationTokenFlowUtils {
    * @throws InvalidAllocationTokenException if the token doesn't exist.
    */
   public AllocationToken verifyToken(
-      InternetDomainName domainName, String token, Registry registry, String clientId)
+      DomainCommand.Create command, String token, Registry registry, String clientId, DateTime now)
       throws EppException {
     AllocationToken tokenEntity = ofy().load().key(Key.create(AllocationToken.class, token)).now();
     if (tokenEntity == null) {
@@ -56,7 +57,7 @@ public class AllocationTokenFlowUtils {
     if (tokenEntity.isRedeemed()) {
       throw new AlreadyRedeemedAllocationTokenException();
     }
-    return tokenCustomLogic.verifyToken(domainName, tokenEntity, registry, clientId);
+    return tokenCustomLogic.verifyToken(command, tokenEntity, registry, clientId, now);
   }
 
   /**
@@ -66,22 +67,26 @@ public class AllocationTokenFlowUtils {
    *     for a a given domain then it does not validate with this allocation token; domains that do
    *     validate have blank messages (i.e. no error).
    */
-  public ImmutableMap<String, String> checkDomainsWithToken(
-      List<String> domainNames, String token, String clientId) {
+  public ImmutableMap<InternetDomainName, String> checkDomainsWithToken(
+      List<InternetDomainName> domainNames, String token, String clientId, DateTime now) {
     AllocationToken tokenEntity = ofy().load().key(Key.create(AllocationToken.class, token)).now();
-    String result;
+    String globalResult;
     if (tokenEntity == null) {
-      result = new InvalidAllocationTokenException().getMessage();
+      globalResult = new InvalidAllocationTokenException().getMessage();
     } else if (tokenEntity.isRedeemed()) {
-      result = AlreadyRedeemedAllocationTokenException.ERROR_MSG_SHORT;
+      globalResult = AlreadyRedeemedAllocationTokenException.ERROR_MSG_SHORT;
     } else {
-      result = "";
+      globalResult = "";
     }
-    ImmutableMap<String, String> checkResults =
+    ImmutableMap<InternetDomainName, String> checkResults =
         domainNames
             .stream()
-            .collect(ImmutableMap.toImmutableMap(Function.identity(), domainName -> result));
-    return tokenCustomLogic.checkDomainsWithToken(checkResults, tokenEntity, clientId);
+            .collect(ImmutableMap.toImmutableMap(Function.identity(), domainName -> globalResult));
+    // Only call custom logic if there wasn't a global allocation token error that applies to all
+    // check results. The custom logic can only add errors, not override existing errors.
+    return globalResult.isEmpty()
+        ? tokenCustomLogic.checkDomainsWithToken(checkResults, tokenEntity, clientId, now)
+        : checkResults;
   }
 
   /** Redeems an {@link AllocationToken}, returning the redeemed copy. */
