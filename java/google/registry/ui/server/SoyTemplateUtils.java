@@ -28,7 +28,6 @@ import com.google.re2j.Matcher;
 import com.google.re2j.Pattern;
 import com.google.template.soy.SoyFileSet;
 import com.google.template.soy.SoyUtils;
-import com.google.template.soy.base.SoySyntaxException;
 import com.google.template.soy.parseinfo.SoyFileInfo;
 import com.google.template.soy.shared.SoyCssRenamingMap;
 import com.google.template.soy.tofu.SoyTofu;
@@ -55,7 +54,7 @@ public final class SoyTemplateUtils {
           Map<String, Object> globals = new HashMap<>();
           try {
             globals.putAll(SoyUtils.parseCompileTimeGlobals(asCharSource(SOY_GLOBALS, UTF_8)));
-          } catch (SoySyntaxException | IOException e) {
+          } catch (IOException e) {
             throw new RuntimeException("Failed to load soy globals", e);
           }
           globals.put("DEBUG", debugMode.ordinal());
