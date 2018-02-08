@@ -409,7 +409,7 @@ public class RdapEntityActionTest {
     runSuccessfulTest(
         deletedContact.getRepoId(),
         "",
-        "removed",
+        "inactive",
         "",
         false,
         "rdap_contact_deleted.json");
@@ -422,7 +422,7 @@ public class RdapEntityActionTest {
     runSuccessfulTest(
         deletedContact.getRepoId(),
         "",
-        "removed",
+        "inactive",
         "",
         false,
         "rdap_contact_deleted.json");
@@ -471,7 +471,7 @@ public class RdapEntityActionTest {
     login("deletedregistrar");
     action.includeDeletedParam = Optional.of(true);
     runSuccessfulTest(
-        "104", "Yes Virginia <script>", "removed", null, false, "rdap_registrar.json");
+        "104", "Yes Virginia <script>", "inactive", null, false, "rdap_registrar.json");
   }
 
   @Test
@@ -486,7 +486,7 @@ public class RdapEntityActionTest {
     loginAsAdmin();
     action.includeDeletedParam = Optional.of(true);
     runSuccessfulTest(
-        "104", "Yes Virginia <script>", "removed", null, false, "rdap_registrar.json");
+        "104", "Yes Virginia <script>", "inactive", null, false, "rdap_registrar.json");
   }
 
   @Test

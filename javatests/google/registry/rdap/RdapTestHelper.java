@@ -69,11 +69,23 @@ public class RdapTestHelper {
       case CONTACT:
         noticesBuilder.add(
             ImmutableMap.of(
-                "title", "Contact Personal Data Hidden",
+                "title", "Data Policy",
                 "description",
-                    ImmutableList.of(
-                        "Contact personal data is visible only to the owning registrar."),
-                "type", "object truncated due to unexplainable reasons"));
+                ImmutableList.of(
+                    "Some of the data in this object has been removed.",
+                    "Contact personal data is visible only to the owning registrar."),
+                "type", "object truncated due to authorization",
+                "links",
+                ImmutableList.of(
+                    ImmutableMap.of(
+                        "value",
+                        "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
+                        "rel",
+                        "alternate",
+                        "href",
+                        "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
+                        "type",
+                        "text/html"))));
         break;
       default:
         break;

@@ -133,13 +133,27 @@ public class RdapIcannStandardInformation {
           "type",
           "object truncated due to unexplainable reasons");
 
-  /** Included when requester is not logged in as the owner of the contact being returned. */
+  /**
+   * Included when requester is not logged in as the owner of the contact being returned. Format
+   * required by ICANN RDAP Pilot Profile draft section 1.4.11.
+   */
   static final ImmutableMap<String, Object> CONTACT_PERSONAL_DATA_HIDDEN_DATA_REMARK =
       ImmutableMap.of(
           "title",
-          "Contact Personal Data Hidden",
+          "Data Policy",
           "description",
-          ImmutableList.of("Contact personal data is visible only to the owning registrar."),
+          ImmutableList.of(
+              "Some of the data in this object has been removed.",
+              "Contact personal data is visible only to the owning registrar."),
           "type",
-          "object truncated due to unexplainable reasons");
+          "object truncated due to authorization",
+          "links",
+          ImmutableList.of(
+              ImmutableMap.of(
+                  "value",
+                      "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
+                  "rel", "alternate",
+                  "href",
+                      "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
+                  "type", "text/html")));
 }

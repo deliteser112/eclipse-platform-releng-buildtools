@@ -3,7 +3,7 @@
     "client delete prohibited",
     "client renew prohibited",
     "client transfer prohibited",
-    "removed",
+    "inactive",
     "server update prohibited"
   ],
   "handle": "%HANDLE%",

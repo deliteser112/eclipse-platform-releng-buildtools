@@ -946,7 +946,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
   public void testNameMatchRegistrar_found_inactiveAsSameRegistrar() throws Exception {
     action.includeDeletedParam = Optional.of(true);
     login("2-RegistrarInact");
-    runSuccessfulNameTest("No Way", "21", "No Way", "removed", null, null, "rdap_registrar.json");
+    runSuccessfulNameTest("No Way", "21", "No Way", "inactive", null, null, "rdap_registrar.json");
     verifyMetrics(0);
   }
 
@@ -954,7 +954,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
   public void testNameMatchRegistrar_found_inactiveAsAdmin() throws Exception {
     action.includeDeletedParam = Optional.of(true);
     loginAsAdmin();
-    runSuccessfulNameTest("No Way", "21", "No Way", "removed", null, null, "rdap_registrar.json");
+    runSuccessfulNameTest("No Way", "21", "No Way", "inactive", null, null, "rdap_registrar.json");
     verifyMetrics(0);
   }
 
@@ -1059,7 +1059,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
         "6-ROID",
         "6-ROID",
         "",
-        "removed",
+        "inactive",
         "",
         "",
         "rdap_contact_deleted.json");
@@ -1074,7 +1074,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
         "6-ROID",
         "6-ROID",
         "",
-        "removed",
+        "inactive",
         "",
         "",
         "rdap_contact_deleted.json");
@@ -1106,7 +1106,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
         "6-ROI*",
         "6-ROID",
         "",
-        "removed",
+        "inactive",
         "",
         "",
         "rdap_contact_deleted.json");
@@ -1121,7 +1121,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
         "6-ROI*",
         "6-ROID",
         "",
-        "removed",
+        "inactive",
         "",
         "",
         "rdap_contact_deleted.json");
@@ -1321,7 +1321,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
   public void testHandleMatchRegistrar_found_inactiveAsSameRegistrar() throws Exception {
     action.includeDeletedParam = Optional.of(true);
     login("2-RegistrarInact");
-    runSuccessfulHandleTest("21", "21", "No Way", "removed", null, null, "rdap_registrar.json");
+    runSuccessfulHandleTest("21", "21", "No Way", "inactive", null, null, "rdap_registrar.json");
     verifyMetrics(0);
   }
 
@@ -1329,7 +1329,7 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
   public void testHandleMatchRegistrar_found_inactiveAsAdmin() throws Exception {
     action.includeDeletedParam = Optional.of(true);
     loginAsAdmin();
-    runSuccessfulHandleTest("21", "21", "No Way", "removed", null, null, "rdap_registrar.json");
+    runSuccessfulHandleTest("21", "21", "No Way", "inactive", null, null, "rdap_registrar.json");
     verifyMetrics(0);
   }
 }

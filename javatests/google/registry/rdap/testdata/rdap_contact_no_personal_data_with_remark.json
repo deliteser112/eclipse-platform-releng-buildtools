@@ -1,7 +1,7 @@
 {
   "objectClassName" : "entity",
   "handle" : "%NAME%",
-  "status" : ["active"],
+  "status" : ["active", "removed"],
   "links" :
   [
     {
@@ -24,11 +24,21 @@
   ],
   "remarks": [
     {
-      "title": "Contact Personal Data Hidden",
+      "title": "Data Policy",
       "description": [
+        "Some of the data in this object has been removed.",
         "Contact personal data is visible only to the owning registrar."
       ],
-      "type": "object truncated due to unexplainable reasons"
+      "type": "object truncated due to authorization",
+      "links" :
+      [
+        {
+          "value" : "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
+          "rel" : "alternate",
+          "href" : "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
+          "type" : "text/html"
+        }
+      ]
     }
   ]
 }

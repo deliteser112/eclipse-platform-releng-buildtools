@@ -1,7 +1,7 @@
 {
   "objectClassName" : "entity",
   "handle" : "2-ROID",
-  "status" : ["active", "associated"],
+  "status" : ["active", "associated", "removed"],
   "roles" : ["registrant"],
   "links" :
   [
@@ -25,11 +25,21 @@
   ],
   "remarks": [
     {
-      "title": "Contact Personal Data Hidden",
+      "title": "Data Policy",
       "description": [
+        "Some of the data in this object has been removed.",
         "Contact personal data is visible only to the owning registrar."
       ],
-      "type": "object truncated due to unexplainable reasons"
+      "type": "object truncated due to authorization",
+      "links" :
+      [
+        {
+          "value" : "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
+          "rel" : "alternate",
+          "href" : "https://github.com/google/nomulus/blob/master/docs/rdap.md#authentication",
+          "type" : "text/html"
+        }
+      ]
     }
   ]
 }

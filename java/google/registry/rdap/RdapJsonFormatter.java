@@ -272,8 +272,8 @@ public class RdapJsonFormatter {
 
   private static final ImmutableList<String> STATUS_LIST_ACTIVE =
       ImmutableList.of(RdapStatus.ACTIVE.rfc7483String);
-  private static final ImmutableList<String> STATUS_LIST_REMOVED =
-      ImmutableList.of(RdapStatus.REMOVED.rfc7483String);
+  private static final ImmutableList<String> STATUS_LIST_INACTIVE =
+      ImmutableList.of(RdapStatus.INACTIVE.rfc7483String);
   private static final ImmutableMap<String, ImmutableList<String>> PHONE_TYPE_VOICE =
       ImmutableMap.of("type", ImmutableList.of("voice"));
   private static final ImmutableMap<String, ImmutableList<String>> PHONE_TYPE_FAX =
@@ -496,7 +496,9 @@ public class RdapJsonFormatter {
     jsonBuilder.put(
         "status",
         makeStatusValueList(
-            domainResource.getStatusValues(), domainResource.getDeletionTime().isBefore(now)));
+            domainResource.getStatusValues(),
+            false, // isRedacted
+            domainResource.getDeletionTime().isBefore(now)));
     jsonBuilder.put("links", ImmutableList.of(
         makeLink("domain", domainResource.getFullyQualifiedDomainName(), linkBase)));
     boolean displayContacts =
@@ -612,7 +614,10 @@ public class RdapJsonFormatter {
     }
     jsonBuilder.put(
         "status",
-        makeStatusValueList(statuses.build(), hostResource.getDeletionTime().isBefore(now)));
+        makeStatusValueList(
+            statuses.build(),
+            false, // isRedacted
+            hostResource.getDeletionTime().isBefore(now)));
     jsonBuilder.put("links", ImmutableList.of(
         makeLink("nameserver", hostResource.getFullyQualifiedHostName(), linkBase)));
     List<ImmutableMap<String, Object>> remarks;
@@ -691,6 +696,8 @@ public class RdapJsonFormatter {
       DateTime now,
       OutputDataType outputDataType,
       RdapAuthorization authorization) {
+    boolean isAuthorized =
+        authorization.isAuthorizedForClientId(contactResource.getCurrentSponsorClientId());
     ImmutableMap.Builder<String, Object> jsonBuilder = new ImmutableMap.Builder<>();
     ImmutableList.Builder<ImmutableMap<String, Object>> remarksBuilder
         = new ImmutableList.Builder<>();
@@ -702,13 +709,14 @@ public class RdapJsonFormatter {
             isLinked(Key.create(contactResource), now)
                 ? union(contactResource.getStatusValues(), StatusValue.LINKED)
                 : contactResource.getStatusValues(),
+            !isAuthorized,
             contactResource.getDeletionTime().isBefore(now)));
     contactType.ifPresent(
         type -> jsonBuilder.put("roles", ImmutableList.of(convertContactTypeToRdapRole(type))));
     jsonBuilder.put("links",
         ImmutableList.of(makeLink("entity", contactResource.getRepoId(), linkBase)));
     // If we are logged in as the owner of this contact, create the vCard.
-    if (authorization.isAuthorizedForClientId(contactResource.getCurrentSponsorClientId())) {
+    if (isAuthorized) {
       ImmutableList.Builder<Object> vcardBuilder = new ImmutableList.Builder<>();
       vcardBuilder.add(VCARD_ENTRY_VERSION);
       PostalInfo postalInfo = contactResource.getInternationalizedPostalInfo();
@@ -794,7 +802,7 @@ public class RdapJsonFormatter {
     jsonBuilder.put("objectClassName", "entity");
     Long ianaIdentifier = registrar.getIanaIdentifier();
     jsonBuilder.put("handle", (ianaIdentifier == null) ? "(none)" : ianaIdentifier.toString());
-    jsonBuilder.put("status", registrar.isLive() ? STATUS_LIST_ACTIVE : STATUS_LIST_REMOVED);
+    jsonBuilder.put("status", registrar.isLive() ? STATUS_LIST_ACTIVE : STATUS_LIST_INACTIVE);
     jsonBuilder.put("roles", ImmutableList.of(RdapEntityRole.REGISTRAR.rfc7483String));
     if (ianaIdentifier != null) {
       jsonBuilder.put("links",
@@ -1086,20 +1094,24 @@ public class RdapJsonFormatter {
   /**
    * Creates a string array of status values.
    *
-   * <p>The spec indicates that OK should be listed as "active". We use the "removed" status to
-   * indicate deleted objects.
+   * <p>The spec indicates that OK should be listed as "active". We use the "inactive" status to
+   * indicate deleted objects, and as directed by the profile, the "removed" status to indicate
+   * redacted objects.
    */
   private static ImmutableList<String> makeStatusValueList(
-      ImmutableSet<StatusValue> statusValues, boolean isDeleted) {
+      ImmutableSet<StatusValue> statusValues, boolean isRedacted, boolean isDeleted) {
     Stream<RdapStatus> stream =
         statusValues
             .stream()
             .map(status -> statusToRdapStatusMap.getOrDefault(status, RdapStatus.OBSCURED));
+    if (isRedacted) {
+      stream = Streams.concat(stream, Stream.of(RdapStatus.REMOVED));
+    }
     if (isDeleted) {
       stream =
           Streams.concat(
               stream.filter(rdapStatus -> !Objects.equals(rdapStatus, RdapStatus.ACTIVE)),
-              Stream.of(RdapStatus.REMOVED));
+              Stream.of(RdapStatus.INACTIVE));
     }
     return stream
         .map(RdapStatus::getDisplayName)

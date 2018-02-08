@@ -384,7 +384,7 @@ public class RdapNameserverActionTest {
                     "HANDLE", "A-ROID",
                     "ADDRESSTYPE", "v4",
                     "ADDRESS", "1.2.3.4",
-                    "STATUS", "removed"),
+                    "STATUS", "inactive"),
                 "rdap_host.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
@@ -407,7 +407,7 @@ public class RdapNameserverActionTest {
                     "HANDLE", "A-ROID",
                     "ADDRESSTYPE", "v4",
                     "ADDRESS", "1.2.3.4",
-                    "STATUS", "removed"),
+                    "STATUS", "inactive"),
                 "rdap_host.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
@@ -425,7 +425,7 @@ public class RdapNameserverActionTest {
                     "HANDLE", "A-ROID",
                     "ADDRESSTYPE", "v4",
                     "ADDRESS", "1.2.3.4",
-                    "STATUS", "removed"),
+                    "STATUS", "inactive"),
                 "rdap_host.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
