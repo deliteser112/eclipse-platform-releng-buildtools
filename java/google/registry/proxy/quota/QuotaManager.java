@@ -15,7 +15,6 @@
 package google.registry.proxy.quota;
 
 import com.google.auto.value.AutoValue;
-import google.registry.proxy.quota.QuotaManager.QuotaResponse.Status;
 import google.registry.proxy.quota.TokenStore.TimestampedInteger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -40,38 +39,36 @@ import org.joda.time.DateTime;
 @ThreadSafe
 public class QuotaManager {
 
+  /** Value class representing a quota request. */
   @AutoValue
-  abstract static class QuotaRequest {
+  public abstract static class QuotaRequest {
 
-    static QuotaRequest create(String userId) {
+    public static QuotaRequest create(String userId) {
       return new AutoValue_QuotaManager_QuotaRequest(userId);
     }
 
     abstract String userId();
   }
 
+  /** Value class representing a quota response. */
   @AutoValue
-  abstract static class QuotaResponse {
-
-    enum Status {
-      SUCCESS,
-      FAILURE,
+  public abstract static class QuotaResponse {
+    public static QuotaResponse create(
+        boolean success, String userId, DateTime grantedTokenRefillTime) {
+      return new AutoValue_QuotaManager_QuotaResponse(success, userId, grantedTokenRefillTime);
     }
 
-    static QuotaResponse create(Status status, String userId, DateTime grantedTokenRefillTime) {
-      return new AutoValue_QuotaManager_QuotaResponse(status, userId, grantedTokenRefillTime);
-    }
-
-    abstract Status status();
+    public abstract boolean success();
 
     abstract String userId();
 
     abstract DateTime grantedTokenRefillTime();
   }
 
+  /** Value class representing a quota rebate. */
   @AutoValue
-  abstract static class QuotaRebate {
-    static QuotaRebate create(QuotaResponse response) {
+  public abstract static class QuotaRebate {
+    public static QuotaRebate create(QuotaResponse response) {
       return new AutoValue_QuotaManager_QuotaRebate(
           response.userId(), response.grantedTokenRefillTime());
     }
@@ -85,25 +82,20 @@ public class QuotaManager {
 
   private final ExecutorService backgroundExecutor;
 
-  QuotaManager(TokenStore tokenStore, ExecutorService backgroundExecutor) {
+  public QuotaManager(TokenStore tokenStore, ExecutorService backgroundExecutor) {
     this.tokenStore = tokenStore;
     this.backgroundExecutor = backgroundExecutor;
     tokenStore.scheduleRefresh();
   }
 
   /** Attempts to acquire requested quota, synchronously. */
-  QuotaResponse acquireQuota(QuotaRequest request) {
+  public QuotaResponse acquireQuota(QuotaRequest request) {
     TimestampedInteger tokens = tokenStore.take(request.userId());
-    Status status = (tokens.value() == 0) ? Status.FAILURE : Status.SUCCESS;
-    return QuotaResponse.create(status, request.userId(), tokens.timestamp());
+    return QuotaResponse.create(tokens.value() != 0, request.userId(), tokens.timestamp());
   }
 
-  /**
-   * Returns granted quota to the token store, asynchronously.
-   *
-   * @return a {@link Future} representing the asynchronous task to return the quota.
-   */
-  Future<?> releaseQuota(QuotaRebate rebate) {
+  /** Returns granted quota to the token store, asynchronously. */
+  public Future<?> releaseQuota(QuotaRebate rebate) {
     return backgroundExecutor.submit(
         () -> tokenStore.put(rebate.userId(), rebate.grantedTokenRefillTime()));
   }

@@ -48,6 +48,9 @@ import io.netty.handler.ssl.SslProvider;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -253,6 +256,16 @@ public class ProxyModule {
   @Singleton
   static Clock provideClock() {
     return new SystemClock();
+  }
+
+  @Provides
+  static ExecutorService provideExecutorService() {
+    return Executors.newWorkStealingPool();
+  }
+
+  @Provides
+  static ScheduledExecutorService provideScheduledExecutorService() {
+    return Executors.newSingleThreadScheduledExecutor();
   }
 
   @Singleton

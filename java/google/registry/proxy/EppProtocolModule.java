@@ -26,9 +26,14 @@ import google.registry.proxy.Protocol.BackendProtocol;
 import google.registry.proxy.Protocol.FrontendProtocol;
 import google.registry.proxy.handler.EppServiceHandler;
 import google.registry.proxy.handler.ProxyProtocolHandler;
+import google.registry.proxy.handler.QuotaHandler.EppQuotaHandler;
 import google.registry.proxy.handler.RelayHandler.FullHttpRequestRelayHandler;
 import google.registry.proxy.handler.SslServerInitializer;
 import google.registry.proxy.metric.FrontendMetrics;
+import google.registry.proxy.quota.QuotaConfig;
+import google.registry.proxy.quota.QuotaManager;
+import google.registry.proxy.quota.TokenStore;
+import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -37,6 +42,8 @@ import io.netty.handler.codec.LengthFieldPrepender;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Qualifier;
@@ -44,13 +51,13 @@ import javax.inject.Singleton;
 
 /** A module that provides the {@link FrontendProtocol} used for epp protocol. */
 @Module
-class EppProtocolModule {
+public class EppProtocolModule {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   /** Dagger qualifier to provide epp protocol related handlers and other bindings. */
   @Qualifier
-  @interface EppProtocol {};
+  public @interface EppProtocol {};
 
   private static final String PROTOCOL_NAME = "epp";
 
@@ -79,6 +86,7 @@ class EppProtocolModule {
       Provider<LengthFieldBasedFrameDecoder> lengthFieldBasedFrameDecoderProvider,
       Provider<LengthFieldPrepender> lengthFieldPrependerProvider,
       Provider<EppServiceHandler> eppServiceHandlerProvider,
+      Provider<EppQuotaHandler> eppQuotaHandlerProvider,
       Provider<LoggingHandler> loggingHandlerProvider,
       Provider<FullHttpRequestRelayHandler> relayHandlerProvider) {
     return ImmutableList.of(
@@ -88,6 +96,7 @@ class EppProtocolModule {
         lengthFieldBasedFrameDecoderProvider,
         lengthFieldPrependerProvider,
         eppServiceHandlerProvider,
+        eppQuotaHandlerProvider,
         loggingHandlerProvider,
         relayHandlerProvider);
   }
@@ -148,5 +157,20 @@ class EppProtocolModule {
         config.epp.serverHostname,
         helloBytes,
         metrics);
+  }
+
+  @Provides
+  @EppProtocol
+  static TokenStore provideTokenStore(
+      ProxyConfig config, ScheduledExecutorService refreshExecutor, Clock clock) {
+    return new TokenStore(new QuotaConfig(config.epp.quota, PROTOCOL_NAME), refreshExecutor, clock);
+  }
+
+  @Provides
+  @Singleton
+  @EppProtocol
+  static QuotaManager provideQuotaManager(
+      @EppProtocol TokenStore tokenStore, ExecutorService executorService) {
+    return new QuotaManager(tokenStore, executorService);
   }
 }

@@ -22,13 +22,21 @@ import dagger.multibindings.IntoSet;
 import google.registry.proxy.HttpsRelayProtocolModule.HttpsRelayProtocol;
 import google.registry.proxy.Protocol.BackendProtocol;
 import google.registry.proxy.Protocol.FrontendProtocol;
+import google.registry.proxy.handler.ProxyProtocolHandler;
+import google.registry.proxy.handler.QuotaHandler.WhoisQuotaHandler;
 import google.registry.proxy.handler.RelayHandler.FullHttpRequestRelayHandler;
 import google.registry.proxy.handler.WhoisServiceHandler;
 import google.registry.proxy.metric.FrontendMetrics;
+import google.registry.proxy.quota.QuotaConfig;
+import google.registry.proxy.quota.QuotaManager;
+import google.registry.proxy.quota.TokenStore;
+import google.registry.util.Clock;
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Qualifier;
@@ -36,11 +44,11 @@ import javax.inject.Singleton;
 
 /** A module that provides the {@link FrontendProtocol} used for whois protocol. */
 @Module
-class WhoisProtocolModule {
+public class WhoisProtocolModule {
 
   /** Dagger qualifier to provide whois protocol related handlers and other bindings. */
   @Qualifier
-  @interface WhoisProtocol {};
+  public @interface WhoisProtocol {};
 
   private static final String PROTOCOL_NAME = "whois";
 
@@ -63,15 +71,19 @@ class WhoisProtocolModule {
   @Provides
   @WhoisProtocol
   static ImmutableList<Provider<? extends ChannelHandler>> provideHandlerProviders(
+      Provider<ProxyProtocolHandler> proxyProtocolHandlerProvider,
       @WhoisProtocol Provider<ReadTimeoutHandler> readTimeoutHandlerProvider,
       Provider<LineBasedFrameDecoder> lineBasedFrameDecoderProvider,
       Provider<WhoisServiceHandler> whoisServiceHandlerProvider,
+      Provider<WhoisQuotaHandler> whoisQuotaHandlerProvider,
       Provider<LoggingHandler> loggingHandlerProvider,
       Provider<FullHttpRequestRelayHandler> relayHandlerProvider) {
     return ImmutableList.of(
+        proxyProtocolHandlerProvider,
         readTimeoutHandlerProvider,
         lineBasedFrameDecoderProvider,
         whoisServiceHandlerProvider,
+        whoisQuotaHandlerProvider,
         loggingHandlerProvider,
         relayHandlerProvider);
   }
@@ -94,5 +106,21 @@ class WhoisProtocolModule {
   @WhoisProtocol
   static ReadTimeoutHandler provideReadTimeoutHandler(ProxyConfig config) {
     return new ReadTimeoutHandler(config.whois.readTimeoutSeconds);
+  }
+
+  @Provides
+  @WhoisProtocol
+  static TokenStore provideTokenStore(
+      ProxyConfig config, ScheduledExecutorService refreshExecutor, Clock clock) {
+    return new TokenStore(
+        new QuotaConfig(config.whois.quota, PROTOCOL_NAME), refreshExecutor, clock);
+  }
+
+  @Provides
+  @Singleton
+  @WhoisProtocol
+  static QuotaManager provideQuotaManager(
+      @WhoisProtocol TokenStore tokenStore, ExecutorService executorService) {
+    return new QuotaManager(tokenStore, executorService);
   }
 }

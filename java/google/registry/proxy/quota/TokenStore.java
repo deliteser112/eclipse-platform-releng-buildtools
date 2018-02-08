@@ -79,7 +79,7 @@ public class TokenStore {
   private final ScheduledExecutorService refreshExecutor;
   private final Clock clock;
 
-  TokenStore(QuotaConfig config, ScheduledExecutorService refreshExecutor, Clock clock) {
+  public TokenStore(QuotaConfig config, ScheduledExecutorService refreshExecutor, Clock clock) {
     this.config = config;
     this.refreshExecutor = refreshExecutor;
     this.clock = clock;

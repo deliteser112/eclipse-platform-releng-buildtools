@@ -15,8 +15,6 @@
 package google.registry.proxy.quota;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.proxy.quota.QuotaManager.QuotaResponse.Status.FAILURE;
-import static google.registry.proxy.quota.QuotaManager.QuotaResponse.Status.SUCCESS;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -56,7 +54,7 @@ public class QuotaManagerTest {
 
     request = QuotaRequest.create(USER_ID);
     response = quotaManager.acquireQuota(request);
-    assertThat(response.status()).isEqualTo(SUCCESS);
+    assertThat(response.success()).isTrue();
     assertThat(response.userId()).isEqualTo(USER_ID);
     assertThat(response.grantedTokenRefillTime()).isEqualTo(clock.nowUtc());
   }
@@ -67,7 +65,7 @@ public class QuotaManagerTest {
 
     request = QuotaRequest.create(USER_ID);
     response = quotaManager.acquireQuota(request);
-    assertThat(response.status()).isEqualTo(FAILURE);
+    assertThat(response.success()).isFalse();
     assertThat(response.userId()).isEqualTo(USER_ID);
     assertThat(response.grantedTokenRefillTime()).isEqualTo(clock.nowUtc());
   }
@@ -75,7 +73,7 @@ public class QuotaManagerTest {
   @Test
   public void testSuccess_rebate() throws Exception {
     DateTime grantedTokenRefillTime = clock.nowUtc();
-    response = QuotaResponse.create(SUCCESS, USER_ID, grantedTokenRefillTime);
+    response = QuotaResponse.create(true, USER_ID, grantedTokenRefillTime);
     rebate = QuotaRebate.create(response);
     Future<?> unusedFuture = quotaManager.releaseQuota(rebate);
     verify(tokenStore).scheduleRefresh();

@@ -22,6 +22,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.MoreExecutors;
 import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
@@ -31,6 +32,8 @@ import google.registry.proxy.HttpsRelayProtocolModule.HttpsRelayProtocol;
 import google.registry.proxy.WhoisProtocolModule.WhoisProtocol;
 import google.registry.proxy.handler.BackendMetricsHandler;
 import google.registry.proxy.handler.ProxyProtocolHandler;
+import google.registry.proxy.handler.QuotaHandler.EppQuotaHandler;
+import google.registry.proxy.handler.QuotaHandler.WhoisQuotaHandler;
 import google.registry.proxy.handler.RelayHandler.FullHttpRequestRelayHandler;
 import google.registry.proxy.handler.RelayHandler.FullHttpResponseRelayHandler;
 import google.registry.proxy.handler.SslClientInitializer;
@@ -47,6 +50,9 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.inject.Named;
@@ -95,6 +101,9 @@ public abstract class ProtocolModuleTest {
           LoggingHandler.class,
           // Metrics instrumentation is tested separately.
           BackendMetricsHandler.class,
+          // Quota management is tested separately.
+          WhoisQuotaHandler.class,
+          EppQuotaHandler.class,
           ReadTimeoutHandler.class);
 
   protected EmbeddedChannel channel;
@@ -264,6 +273,18 @@ public abstract class ProtocolModuleTest {
     @Provides
     Clock provideFakeClock() {
       return fakeClock;
+    }
+
+    @Singleton
+    @Provides
+    ExecutorService provideExecutorService() {
+      return MoreExecutors.newDirectExecutorService();
+    }
+
+    @Singleton
+    @Provides
+    ScheduledExecutorService provideScheduledExecutorService() {
+      return Executors.newSingleThreadScheduledExecutor();
     }
   }
 }
