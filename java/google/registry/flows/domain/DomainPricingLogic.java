@@ -55,7 +55,7 @@ public final class DomainPricingLogic {
   @Inject
   DomainPricingLogic() {}
 
-  /** Returns a new create price for the Pricer. */
+  /** Returns a new create price for the pricer. */
   public FeesAndCredits getCreatePrice(
       Registry registry, String domainName, DateTime date, int years) throws EppException {
     CurrencyUnit currency = registry.getCurrency();
@@ -83,8 +83,6 @@ public final class DomainPricingLogic {
             .build());
 
   }
-
-  // TODO: (b/33000134) clean up the rest of the pricing calls.
 
   /** Returns a new renew price for the pricer. */
   @SuppressWarnings("unused")

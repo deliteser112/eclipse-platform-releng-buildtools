@@ -730,6 +730,27 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     doSuccessfulTest("example", "domain_create_response_premium.xml");
   }
 
+  @Test
+  public void testSuccess_premiumAndEap() throws Exception {
+    createTld("example");
+    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(true).build());
+    setEppInput("domain_create_premium_eap.xml");
+    persistContactsAndHosts("net");
+    persistResource(
+        Registry.get("example")
+            .asBuilder()
+            .setEapFeeSchedule(
+                ImmutableSortedMap.of(
+                    START_OF_TIME,
+                    Money.of(USD, 0),
+                    clock.nowUtc().minusDays(1),
+                    Money.of(USD, 100),
+                    clock.nowUtc().plusDays(1),
+                    Money.of(USD, 0)))
+            .build());
+    doSuccessfulTest("example", "domain_create_response_premium_eap.xml");
+  }
+
   /**
    * Test fix for a bug where we were looking at the length of the unicode string but indexing into
    * the punycode string. In rare cases (3 and 4 letter labels) this would cause us to think there

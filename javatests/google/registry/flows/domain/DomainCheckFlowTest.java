@@ -547,6 +547,26 @@ public class DomainCheckFlowTest
   }
 
   @Test
+  public void testFeeExtension_premium_eap_v06() throws Exception {
+    createTld("example");
+    setEppInput("domain_check_fee_premium_v06.xml");
+    clock.setTo(DateTime.parse("2010-01-01T10:00:00Z"));
+    persistResource(
+        Registry.get("example")
+            .asBuilder()
+            .setEapFeeSchedule(
+                new ImmutableSortedMap.Builder<DateTime, Money>(Ordering.natural())
+                    .put(START_OF_TIME, Money.of(USD, 0))
+                    .put(clock.nowUtc().minusDays(1), Money.of(USD, 100))
+                    .put(clock.nowUtc().plusDays(1), Money.of(USD, 50))
+                    .put(clock.nowUtc().plusDays(2), Money.of(USD, 0))
+                    .build())
+            .build());
+
+    runFlowAssertResponse(loadFile("domain_check_fee_premium_eap_response_v06.xml"));
+  }
+
+  @Test
   public void testFeeExtension_premiumLabels_v11_create() throws Exception {
     createTld("example");
     setEppInput("domain_check_fee_premium_v11_create.xml");
