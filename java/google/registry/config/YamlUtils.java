@@ -92,9 +92,9 @@ public final class YamlUtils {
     Optional<Map<String, Object>> customMap = loadAsMap(yaml, customYaml);
     if (customMap.isPresent()) {
       yamlMap = mergeMaps(yamlMap, customMap.get());
-      logger.info("Successfully loaded environment configuration YAML file.");
+      logger.fine("Successfully loaded environment configuration YAML file.");
     } else {
-      logger.info("Ignoring empty environment configuration YAML file.");
+      logger.warning("Ignoring empty environment configuration YAML file.");
     }
     return yaml.dump(yamlMap);
   }
