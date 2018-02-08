@@ -163,7 +163,7 @@
 
 /** Renders an input form row for a specific type of contact. */
 {template .showContact_ visibility="private"}
-  {@param contacts: list<map<string, ?>>} /** List of EPP domain:contacts. */
+  {@param contacts: list<legacy_object_map<string, ?>>} /** List of EPP domain:contacts. */
   {@param type: string} /** Type of contact (e.g. admin, tech) */
   {for $contact in $contacts}
     {if $type == $contact['@type']}
