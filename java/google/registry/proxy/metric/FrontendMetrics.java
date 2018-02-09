@@ -31,10 +31,23 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /** Frontend metrics instrumentation. */
+@Singleton
 public class FrontendMetrics {
 
+  /**
+   * Labels to register front metrics with.
+   *
+   * <p>The client certificate hash value is only used for EPP metrics. For WHOIS metrics, it will
+   * always be {@code "none"}. In order to get the actual registrar name, one can use the {@code
+   * nomulus} tool:
+   *
+   * <pre>
+   * nomulus -e production list_registrars -f clientCertificateHash | grep $HASH
+   * </pre>
+   */
   private static final ImmutableSet<LabelDescriptor> LABELS =
       ImmutableSet.of(
           LabelDescriptor.create("protocol", "Name of the protocol."),
@@ -68,6 +81,14 @@ public class FrontendMetrics {
               "Connections",
               LABELS);
 
+  static final IncrementableMetric quotaRejectionsCounter =
+      MetricRegistryImpl.getDefault()
+          .newIncrementableMetric(
+              "/proxy/frontend/quota_rejections",
+              "Total number rejected quota request made by proxy for each connection.",
+              "Rejections",
+              LABELS);
+
   @Inject
   public FrontendMetrics() {}
 
@@ -95,5 +116,10 @@ public class FrontendMetrics {
       activeConnections.put(labels, channelGroup);
     }
     channelGroup.add(channel);
+  }
+
+  @NonFinalForTesting
+  public void registerQuotaRejection(String protocol, String certHash) {
+    quotaRejectionsCounter.increment(protocol, certHash);
   }
 }

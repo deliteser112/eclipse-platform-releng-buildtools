@@ -163,4 +163,23 @@ public class FrontendMetricsTest {
         .and()
         .hasNoOtherValues();
   }
+
+  @Test
+  public void testSuccess_registerQuotaRejections() {
+    String otherCertHash = "foobar1234X";
+    String remoteAddress = "127.0.0.1";
+    String otherProtocol = "other protocol";
+    metrics.registerQuotaRejection(PROTOCOL, CERT_HASH);
+    metrics.registerQuotaRejection(PROTOCOL, otherCertHash);
+    metrics.registerQuotaRejection(PROTOCOL, otherCertHash);
+    metrics.registerQuotaRejection(otherProtocol, remoteAddress);
+    assertThat(FrontendMetrics.quotaRejectionsCounter)
+        .hasValueForLabels(1, PROTOCOL, CERT_HASH)
+        .and()
+        .hasValueForLabels(2, PROTOCOL, otherCertHash)
+        .and()
+        .hasValueForLabels(1, otherProtocol, remoteAddress)
+        .and()
+        .hasNoOtherValues();
+  }
 }

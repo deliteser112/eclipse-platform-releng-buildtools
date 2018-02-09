@@ -15,6 +15,7 @@
 package google.registry.proxy.handler;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.proxy.Protocol.PROTOCOL_KEY;
 import static google.registry.proxy.handler.ProxyProtocolHandler.REMOTE_ADDRESS_KEY;
 import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
@@ -22,11 +23,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableList;
+import google.registry.proxy.Protocol;
 import google.registry.proxy.handler.QuotaHandler.OverQuotaException;
 import google.registry.proxy.handler.QuotaHandler.WhoisQuotaHandler;
+import google.registry.proxy.metric.FrontendMetrics;
 import google.registry.proxy.quota.QuotaManager;
 import google.registry.proxy.quota.QuotaManager.QuotaRequest;
 import google.registry.proxy.quota.QuotaManager.QuotaResponse;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.joda.time.DateTime;
@@ -42,15 +47,35 @@ import org.junit.runners.JUnit4;
 public class WhoisQuotaHandlerTest {
 
   private final QuotaManager quotaManager = mock(QuotaManager.class);
-  private final WhoisQuotaHandler handler = new WhoisQuotaHandler(quotaManager);
+  private final FrontendMetrics metrics = mock(FrontendMetrics.class);
+  private final WhoisQuotaHandler handler = new WhoisQuotaHandler(quotaManager, metrics);
   private final EmbeddedChannel channel = new EmbeddedChannel(handler);
   private final DateTime now = DateTime.now(DateTimeZone.UTC);
   private final String remoteAddress = "127.0.0.1";
   private final Object message = new Object();
 
+  private void setProtocol(Channel channel) {
+    channel
+        .attr(PROTOCOL_KEY)
+        .set(
+            Protocol.frontendBuilder()
+                .name("whois")
+                .port(12345)
+                .handlerProviders(ImmutableList.of())
+                .relayProtocol(
+                    Protocol.backendBuilder()
+                        .name("backend")
+                        .host("host.tld")
+                        .port(1234)
+                        .handlerProviders(ImmutableList.of())
+                        .build())
+                .build());
+  }
+
   @Before
   public void setUp() {
     channel.attr(REMOTE_ADDRESS_KEY).set(remoteAddress);
+    setProtocol(channel);
   }
 
   @Test
@@ -80,15 +105,18 @@ public class WhoisQuotaHandlerTest {
     OverQuotaException e =
         expectThrows(OverQuotaException.class, () -> channel.writeInbound(message));
     assertThat(e).hasMessageThat().contains("none");
+    verify(metrics).registerQuotaRejection("whois", "none");
+    verifyNoMoreInteractions(metrics);
   }
 
   @Test
   public void testSuccess_twoChannels_twoUserIds() {
     // Set up another user.
-    final WhoisQuotaHandler otherHandler = new WhoisQuotaHandler(quotaManager);
+    final WhoisQuotaHandler otherHandler = new WhoisQuotaHandler(quotaManager, metrics);
     final EmbeddedChannel otherChannel = new EmbeddedChannel(otherHandler);
     final String otherRemoteAddress = "192.168.0.1";
     otherChannel.attr(REMOTE_ADDRESS_KEY).set(otherRemoteAddress);
+    setProtocol(otherChannel);
     final DateTime later = now.plus(Duration.standardSeconds(1));
 
     when(quotaManager.acquireQuota(QuotaRequest.create(remoteAddress)))
@@ -105,18 +133,21 @@ public class WhoisQuotaHandlerTest {
     OverQuotaException e =
         expectThrows(OverQuotaException.class, () -> otherChannel.writeInbound(message));
     assertThat(e).hasMessageThat().contains("none");
+    verify(metrics).registerQuotaRejection("whois", "none");
+    verifyNoMoreInteractions(metrics);
   }
 
   @Test
   public void testSuccess_oneUser_rateLimited() {
     // Set up another channel for the same user.
-    final WhoisQuotaHandler otherHandler = new WhoisQuotaHandler(quotaManager);
+    final WhoisQuotaHandler otherHandler = new WhoisQuotaHandler(quotaManager, metrics);
     final EmbeddedChannel otherChannel = new EmbeddedChannel(otherHandler);
     otherChannel.attr(REMOTE_ADDRESS_KEY).set(remoteAddress);
+    setProtocol(otherChannel);
     final DateTime later = now.plus(Duration.standardSeconds(1));
 
     // Set up the third channel for the same user
-    final WhoisQuotaHandler thirdHandler = new WhoisQuotaHandler(quotaManager);
+    final WhoisQuotaHandler thirdHandler = new WhoisQuotaHandler(quotaManager, metrics);
     final EmbeddedChannel thirdChannel = new EmbeddedChannel(thirdHandler);
     thirdChannel.attr(REMOTE_ADDRESS_KEY).set(remoteAddress);
     final DateTime evenLater = now.plus(Duration.standardSeconds(60));
@@ -137,10 +168,12 @@ public class WhoisQuotaHandlerTest {
     OverQuotaException e =
         expectThrows(OverQuotaException.class, () -> otherChannel.writeInbound(message));
     assertThat(e).hasMessageThat().contains("none");
+    verify(metrics).registerQuotaRejection("whois", "none");
 
     // Allows the third channel.
     assertThat(thirdChannel.writeInbound(message)).isTrue();
     assertThat((Object) thirdChannel.readInbound()).isEqualTo(message);
     assertThat(thirdChannel.isActive()).isTrue();
+    verifyNoMoreInteractions(metrics);
   }
 }

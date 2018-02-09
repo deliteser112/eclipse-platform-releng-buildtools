@@ -15,11 +15,13 @@
 package google.registry.proxy.handler;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.proxy.Protocol.PROTOCOL_KEY;
 import static google.registry.proxy.handler.EppServiceHandler.CLIENT_CERTIFICATE_HASH_KEY;
 import static google.registry.proxy.handler.ProxyProtocolHandler.REMOTE_ADDRESS_KEY;
 
 import google.registry.proxy.EppProtocolModule.EppProtocol;
 import google.registry.proxy.WhoisProtocolModule.WhoisProtocol;
+import google.registry.proxy.metric.FrontendMetrics;
 import google.registry.proxy.quota.QuotaManager;
 import google.registry.proxy.quota.QuotaManager.QuotaRebate;
 import google.registry.proxy.quota.QuotaManager.QuotaRequest;
@@ -40,9 +42,11 @@ public abstract class QuotaHandler extends ChannelInboundHandlerAdapter {
 
   protected final QuotaManager quotaManager;
   protected QuotaResponse quotaResponse;
+  protected final FrontendMetrics metrics;
 
-  protected QuotaHandler(QuotaManager quotaManager) {
+  protected QuotaHandler(QuotaManager quotaManager, FrontendMetrics metrics) {
     this.quotaManager = quotaManager;
+    this.metrics = metrics;
   }
 
   abstract String getUserId(ChannelHandlerContext ctx);
@@ -57,7 +61,9 @@ public abstract class QuotaHandler extends ChannelInboundHandlerAdapter {
       checkNotNull(userId, "Cannot obtain User ID");
       quotaResponse = quotaManager.acquireQuota(QuotaRequest.create(userId));
       if (!quotaResponse.success()) {
-        throw new OverQuotaException(isUserIdPii() ? "none" : userId);
+        String protocolName = ctx.channel().attr(PROTOCOL_KEY).get().name();
+        metrics.registerQuotaRejection(protocolName, isUserIdPii() ? "none" : userId);
+        throw new OverQuotaException(protocolName, isUserIdPii() ? "none" : userId);
       }
     }
     ctx.fireChannelRead(msg);
@@ -72,8 +78,11 @@ public abstract class QuotaHandler extends ChannelInboundHandlerAdapter {
   public abstract void channelInactive(ChannelHandlerContext ctx);
 
   static class OverQuotaException extends Exception {
-    OverQuotaException(String userId) {
-      super(String.format("USER ID: %s\nQuota exceeded, terminating connection.", userId));
+    OverQuotaException(String protocol, String userId) {
+      super(
+          String.format(
+              "\nPROTOCOL: %s\nUSER ID: %s\nQuota exceeded, terminating connection.",
+              protocol, userId));
     }
   }
 
@@ -81,8 +90,8 @@ public abstract class QuotaHandler extends ChannelInboundHandlerAdapter {
   public static class WhoisQuotaHandler extends QuotaHandler {
 
     @Inject
-    WhoisQuotaHandler(@WhoisProtocol QuotaManager quotaManager) {
-      super(quotaManager);
+    WhoisQuotaHandler(@WhoisProtocol QuotaManager quotaManager, FrontendMetrics metrics) {
+      super(quotaManager, metrics);
     }
 
     /**
@@ -117,8 +126,8 @@ public abstract class QuotaHandler extends ChannelInboundHandlerAdapter {
   public static class EppQuotaHandler extends QuotaHandler {
 
     @Inject
-    EppQuotaHandler(@EppProtocol QuotaManager quotaManager) {
-      super(quotaManager);
+    EppQuotaHandler(@EppProtocol QuotaManager quotaManager, FrontendMetrics metrics) {
+      super(quotaManager, metrics);
     }
 
     /**

@@ -15,6 +15,7 @@
 package google.registry.proxy.handler;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.proxy.Protocol.PROTOCOL_KEY;
 import static google.registry.proxy.handler.EppServiceHandler.CLIENT_CERTIFICATE_HASH_KEY;
 import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
@@ -22,12 +23,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableList;
+import google.registry.proxy.Protocol;
 import google.registry.proxy.handler.QuotaHandler.EppQuotaHandler;
 import google.registry.proxy.handler.QuotaHandler.OverQuotaException;
+import google.registry.proxy.metric.FrontendMetrics;
 import google.registry.proxy.quota.QuotaManager;
 import google.registry.proxy.quota.QuotaManager.QuotaRebate;
 import google.registry.proxy.quota.QuotaManager.QuotaRequest;
 import google.registry.proxy.quota.QuotaManager.QuotaResponse;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.joda.time.DateTime;
@@ -43,15 +48,35 @@ import org.junit.runners.JUnit4;
 public class EppQuotaHandlerTest {
 
   private final QuotaManager quotaManager = mock(QuotaManager.class);
-  private final EppQuotaHandler handler = new EppQuotaHandler(quotaManager);
+  private final FrontendMetrics metrics = mock(FrontendMetrics.class);
+  private final EppQuotaHandler handler = new EppQuotaHandler(quotaManager, metrics);
   private final EmbeddedChannel channel = new EmbeddedChannel(handler);
   private final String clientCertHash = "blah/123!";
   private final DateTime now = DateTime.now(DateTimeZone.UTC);
   private final Object message = new Object();
 
+  private void setProtocol(Channel channel) {
+    channel
+        .attr(PROTOCOL_KEY)
+        .set(
+            Protocol.frontendBuilder()
+                .name("epp")
+                .port(12345)
+                .handlerProviders(ImmutableList.of())
+                .relayProtocol(
+                    Protocol.backendBuilder()
+                        .name("backend")
+                        .host("host.tld")
+                        .port(1234)
+                        .handlerProviders(ImmutableList.of())
+                        .build())
+                .build());
+  }
+
   @Before
   public void setUp() {
     channel.attr(CLIENT_CERTIFICATE_HASH_KEY).set(clientCertHash);
+    setProtocol(channel);
   }
 
   @Test
@@ -85,15 +110,18 @@ public class EppQuotaHandlerTest {
     OverQuotaException e =
         expectThrows(OverQuotaException.class, () -> channel.writeInbound(message));
     assertThat(e).hasMessageThat().contains(clientCertHash);
+    verify(metrics).registerQuotaRejection("epp", clientCertHash);
+    verifyNoMoreInteractions(metrics);
   }
 
   @Test
   public void testSuccess_twoChannels_twoUserIds() {
     // Set up another user.
-    final EppQuotaHandler otherHandler = new EppQuotaHandler(quotaManager);
+    final EppQuotaHandler otherHandler = new EppQuotaHandler(quotaManager, metrics);
     final EmbeddedChannel otherChannel = new EmbeddedChannel(otherHandler);
     final String otherClientCertHash = "hola@9x";
     otherChannel.attr(CLIENT_CERTIFICATE_HASH_KEY).set(otherClientCertHash);
+    setProtocol(otherChannel);
     final DateTime later = now.plus(Duration.standardSeconds(1));
 
     when(quotaManager.acquireQuota(QuotaRequest.create(clientCertHash)))
@@ -110,14 +138,17 @@ public class EppQuotaHandlerTest {
     OverQuotaException e =
         expectThrows(OverQuotaException.class, () -> otherChannel.writeInbound(message));
     assertThat(e).hasMessageThat().contains(otherClientCertHash);
+    verify(metrics).registerQuotaRejection("epp", otherClientCertHash);
+    verifyNoMoreInteractions(metrics);
   }
 
   @Test
   public void testSuccess_twoChannels_sameUserIds() {
     // Set up another channel for the same user.
-    final EppQuotaHandler otherHandler = new EppQuotaHandler(quotaManager);
+    final EppQuotaHandler otherHandler = new EppQuotaHandler(quotaManager, metrics);
     final EmbeddedChannel otherChannel = new EmbeddedChannel(otherHandler);
     otherChannel.attr(CLIENT_CERTIFICATE_HASH_KEY).set(clientCertHash);
+    setProtocol(otherChannel);
     final DateTime later = now.plus(Duration.standardSeconds(1));
 
     when(quotaManager.acquireQuota(QuotaRequest.create(clientCertHash)))
@@ -133,5 +164,7 @@ public class EppQuotaHandlerTest {
     OverQuotaException e =
         expectThrows(OverQuotaException.class, () -> otherChannel.writeInbound(message));
     assertThat(e).hasMessageThat().contains(clientCertHash);
+    verify(metrics).registerQuotaRejection("epp", clientCertHash);
+    verifyNoMoreInteractions(metrics);
   }
 }

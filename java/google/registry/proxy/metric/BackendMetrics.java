@@ -26,8 +26,10 @@ import google.registry.util.NonFinalForTesting;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /** Backend metrics instrumentation. */
+@Singleton
 public class BackendMetrics {
 
   // Maximum request size is defined in the config file, this is not realistic and we'd be out of
