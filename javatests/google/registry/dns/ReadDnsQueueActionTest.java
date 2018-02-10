@@ -15,15 +15,20 @@
 package google.registry.dns;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Lists.transform;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.dns.DnsConstants.DNS_PUBLISH_PUSH_QUEUE_NAME;
 import static google.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
 import static google.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
 import static google.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
+import static google.registry.request.RequestParameters.PARAM_TLD;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.getQueuedParams;
 
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
@@ -45,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.stream.IntStream;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
@@ -100,7 +106,8 @@ public class ReadDnsQueueActionTest {
   private void run() throws Exception {
     ReadDnsQueueAction action = new ReadDnsQueueAction();
     action.tldUpdateBatchSize = TEST_TLD_UPDATE_BATCH_SIZE;
-    action.writeLockTimeout = Duration.standardSeconds(10);
+    action.requestedMaximumDuration = Duration.standardSeconds(10);
+    action.clock = clock;
     action.dnsQueue = dnsQueue;
     action.dnsPublishPushQueue = QueueFactory.getQueue(DNS_PUBLISH_PUSH_QUEUE_NAME);
     action.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
@@ -117,6 +124,12 @@ public class ReadDnsQueueActionTest {
         .param(DNS_TARGET_NAME_PARAM, name);
     String tld = InternetDomainName.from(name).parts().reverse().get(0);
     return options.param("tld", tld);
+  }
+
+  private static TaskMatcher createDomainRefreshTaskMatcher(String name) {
+    return new TaskMatcher()
+        .param(DNS_TARGET_NAME_PARAM, name)
+        .param(DNS_TARGET_TYPE_PARAM, TargetType.DOMAIN.toString());
   }
 
   private void assertTldsEnqueuedInPushQueue(ImmutableMultimap<String, String> tldsToDnsWriters)
@@ -159,6 +172,30 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
+  public void testSuccess_moreUpdatesThanQueueBatchSize() throws Exception {
+    // The task queue has a batch size of 1000 (that's the maximum number of items you can lease at
+    // once).
+    ImmutableList<String> domains =
+        IntStream.range(0, 1500)
+            .mapToObj(i -> String.format("domain_%04d.com", i))
+            .collect(toImmutableList());
+    domains.forEach(dnsQueue::addDomainRefreshTask);
+    run();
+    assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
+    ImmutableList<ImmutableMultimap<String, String>> queuedParams =
+        getQueuedParams(DNS_PUBLISH_PUSH_QUEUE_NAME);
+    // ReadDnsQueueAction batches items per TLD in batches of size 100.
+    // So for 1500 items in the DNS queue, we expect 15 items in the push queue
+    assertThat(queuedParams).hasSize(15);
+    // Check all the expected domains are indeed enqueued
+    assertThat(
+            queuedParams
+                .stream()
+                .flatMap(params -> params.get("domains").stream()))
+        .containsExactlyElementsIn(domains);
+  }
+
+  @Test
   public void testSuccess_twoDnsWriters() throws Exception {
     persistResource(
         Registry.get("com")
@@ -172,13 +209,117 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_oneTldPaused() throws Exception {
+  public void testSuccess_oneTldPaused_returnedToQueue() throws Exception {
     persistResource(Registry.get("net").asBuilder().setDnsPaused(true).build());
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.net");
     dnsQueue.addDomainRefreshTask("domain.example");
     run();
-    assertTasksEnqueued(DNS_PULL_QUEUE_NAME, new TaskMatcher());
+    assertTasksEnqueued(DNS_PULL_QUEUE_NAME, createDomainRefreshTaskMatcher("domain.net"));
+    assertTldsEnqueuedInPushQueue(
+        ImmutableMultimap.of("com", "comWriter", "example", "exampleWriter"));
+  }
+
+  @Test
+  public void testSuccess_oneTldUnknown_returnedToQueue() throws Exception {
+    dnsQueue.addDomainRefreshTask("domain.com");
+    dnsQueue.addDomainRefreshTask("domain.example");
+    QueueFactory.getQueue(DNS_PULL_QUEUE_NAME)
+        .add(
+            TaskOptions.Builder.withDefaults()
+                .method(Method.PULL)
+                .param(DNS_TARGET_TYPE_PARAM, TargetType.DOMAIN.toString())
+                .param(DNS_TARGET_NAME_PARAM, "domain.unknown")
+                .param(PARAM_TLD, "unknown"));
+    run();
+    assertTasksEnqueued(DNS_PULL_QUEUE_NAME, createDomainRefreshTaskMatcher("domain.unknown"));
+    assertTldsEnqueuedInPushQueue(
+        ImmutableMultimap.of("com", "comWriter", "example", "exampleWriter"));
+  }
+
+  @Test
+  public void testSuccess_corruptTaskTldMismatch_published() throws Exception {
+    // TODO(mcilwain): what's the correct action to take in this case?
+    dnsQueue.addDomainRefreshTask("domain.com");
+    dnsQueue.addDomainRefreshTask("domain.example");
+    QueueFactory.getQueue(DNS_PULL_QUEUE_NAME)
+        .add(
+            TaskOptions.Builder.withDefaults()
+                .method(Method.PULL)
+                .param(DNS_TARGET_TYPE_PARAM, TargetType.DOMAIN.toString())
+                .param(DNS_TARGET_NAME_PARAM, "domain.wrongtld")
+                .param(PARAM_TLD, "net"));
+    run();
+    assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
+    assertTldsEnqueuedInPushQueue(
+        ImmutableMultimap.of("com", "comWriter", "example", "exampleWriter", "net", "netWriter"));
+  }
+
+  @Test
+  public void testSuccess_corruptTaskNoTld_discarded() throws Exception {
+    dnsQueue.addDomainRefreshTask("domain.com");
+    dnsQueue.addDomainRefreshTask("domain.example");
+    QueueFactory.getQueue(DNS_PULL_QUEUE_NAME)
+        .add(
+            TaskOptions.Builder.withDefaults()
+                .method(Method.PULL)
+                .param(DNS_TARGET_TYPE_PARAM, TargetType.DOMAIN.toString())
+                .param(DNS_TARGET_NAME_PARAM, "domain.net"));
+    run();
+    // The corrupt task isn't in the pull queue, but also isn't in the push queue
+    assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
+    assertTldsEnqueuedInPushQueue(
+        ImmutableMultimap.of("com", "comWriter", "example", "exampleWriter"));
+  }
+
+  @Test
+  public void testSuccess_corruptTaskNoName_discarded() throws Exception {
+    dnsQueue.addDomainRefreshTask("domain.com");
+    dnsQueue.addDomainRefreshTask("domain.example");
+    QueueFactory.getQueue(DNS_PULL_QUEUE_NAME)
+        .add(
+            TaskOptions.Builder.withDefaults()
+                .method(Method.PULL)
+                .param(DNS_TARGET_TYPE_PARAM, TargetType.DOMAIN.toString())
+                .param(PARAM_TLD, "net"));
+    run();
+    // The corrupt task isn't in the pull queue, but also isn't in the push queue
+    assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
+    assertTldsEnqueuedInPushQueue(
+        ImmutableMultimap.of("com", "comWriter", "example", "exampleWriter"));
+  }
+
+  @Test
+  public void testSuccess_corruptTaskNoType_discarded() throws Exception {
+    dnsQueue.addDomainRefreshTask("domain.com");
+    dnsQueue.addDomainRefreshTask("domain.example");
+    QueueFactory.getQueue(DNS_PULL_QUEUE_NAME)
+        .add(
+            TaskOptions.Builder.withDefaults()
+                .method(Method.PULL)
+                .param(DNS_TARGET_NAME_PARAM, "domain.net")
+                .param(PARAM_TLD, "net"));
+    run();
+    // The corrupt task isn't in the pull queue, but also isn't in the push queue
+    assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
+    assertTldsEnqueuedInPushQueue(
+        ImmutableMultimap.of("com", "comWriter", "example", "exampleWriter"));
+  }
+
+  @Test
+  public void testSuccess_corruptTaskWrongType_discarded() throws Exception {
+    dnsQueue.addDomainRefreshTask("domain.com");
+    dnsQueue.addDomainRefreshTask("domain.example");
+    QueueFactory.getQueue(DNS_PULL_QUEUE_NAME)
+        .add(
+            TaskOptions.Builder.withDefaults()
+                .method(Method.PULL)
+                .param(DNS_TARGET_TYPE_PARAM, "Wrong type")
+                .param(DNS_TARGET_NAME_PARAM, "domain.net")
+                .param(PARAM_TLD, "net"));
+    run();
+    // The corrupt task isn't in the pull queue, but also isn't in the push queue
+    assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTldsEnqueuedInPushQueue(
         ImmutableMultimap.of("com", "comWriter", "example", "exampleWriter"));
   }

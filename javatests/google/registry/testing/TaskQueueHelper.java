@@ -18,6 +18,7 @@ import static com.google.appengine.tools.development.testing.LocalTaskQueueTestC
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Multisets.containsOccurrences;
 import static com.google.common.truth.Truth.assertThat;
@@ -256,6 +257,15 @@ public class TaskQueueHelper {
                     .collect(joining("\n")));
       }
     }
+  }
+
+  public static ImmutableList<ImmutableMultimap<String, String>> getQueuedParams(String queueName) {
+    return getQueueInfo(queueName)
+        .getTaskInfo()
+        .stream()
+        .map(MatchableTaskInfo::new)
+        .map(taskInfo -> ImmutableMultimap.copyOf(taskInfo.params))
+        .collect(toImmutableList());
   }
 
   /** Empties the task queue. */

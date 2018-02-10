@@ -265,27 +265,46 @@ public final class RegistryConfig {
     }
 
     /**
-     * The maximum interval (seconds) to lease tasks from the dns-pull queue.
+     * The maximum time we allow publishDnsUpdates to run.
      *
-     * @see google.registry.dns.ReadDnsQueueAction
+     * <p>This is the maximum lock duration for publishing the DNS updates, meaning it should allow
+     * the various DnsWriters to publish and commit an entire batch (with a maximum number of items
+     * set by provideDnsTldUpdateBatchSize).
+     *
+     * <p>Any update that takes longer than this timeout will be killed and retried from scratch.
+     * Hence, a timeout that's too short can result in batches that retry over and over again,
+     * failing forever.
+     *
+     * <p>If there are lock contention issues, they should be solved by changing the batch sizes or
+     * the cron job rate, NOT by making this value smaller.
+     *
      * @see google.registry.dns.PublishDnsUpdatesAction
      */
     @Provides
-    @Config("dnsWriteLockTimeout")
-    public static Duration provideDnsWriteLockTimeout() {
-      /*
-       * This is the maximum lock duration for publishing the DNS updates, meaning it should allow
-       * the various DnsWriters to publish and commit an entire batch (with a maximum number of
-       * items set by provideDnsTldUpdateBatchSize).
-       *
-       * Any update that takes longer than this timeout will be killed and retried from scratch.
-       * Hence, a timeout that's too short can result in batches that retry over and over again,
-       * failing forever.
-       *
-       * If there are lock contention issues, they should be solved by changing the batch sizes
-       * or the cron job rate, NOT by making this value smaller.
-       */
+    @Config("publishDnsUpdatesLockDuration")
+    public static Duration providePublishDnsUpdatesLockDuration() {
       return Duration.standardMinutes(3);
+    }
+
+    /**
+     * The requested maximum duration for ReadDnsQueueAction.
+     *
+     * <p>ReadDnsQueueAction reads update tasks from the dns-pull queue. It will continue reading
+     * tasks until either the queue is empty, or this duration has passed.
+     *
+     * <p>This time is the maximum duration between the first and last attempt to lease tasks from
+     * the dns-pull queue. The actual running time might be slightly longer, as we process the
+     * tasks.
+     *
+     * <p>This value should be less than the cron-job repeat rate for ReadDnsQueueAction, to make
+     * sure we don't have multiple ReadDnsActions leasing tasks simultaneously.
+     *
+     * @see google.registry.dns.ReadDnsQueueAction
+     */
+    @Provides
+    @Config("readDnsQueueActionRuntime")
+    public static Duration provideReadDnsQueueRuntime() {
+      return Duration.standardSeconds(45);
     }
 
     /**

@@ -58,7 +58,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
   @Inject DnsQueue dnsQueue;
   @Inject DnsWriterProxy dnsWriterProxy;
   @Inject DnsMetrics dnsMetrics;
-  @Inject @Config("dnsWriteLockTimeout") Duration timeout;
+  @Inject @Config("publishDnsUpdatesLockDuration") Duration timeout;
 
   /**
    * The DNS writer to use for this batch.

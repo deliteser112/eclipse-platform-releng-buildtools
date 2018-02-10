@@ -34,24 +34,43 @@ import com.google.apphosting.api.DeadlineExceededException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
+import com.google.common.util.concurrent.RateLimiter;
 import google.registry.dns.DnsConstants.TargetType;
 import google.registry.model.registry.Registries;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.joda.time.Duration;
 
-/** Methods for manipulating the queue used for DNS write tasks. */
+/**
+ * Methods for manipulating the queue used for DNS write tasks.
+ *
+ * <p>This includes a {@link RateLimiter} to limit the {@link Queue#leaseTasks} call rate to 9 QPS,
+ * to stay under the 10 QPS limit for this function.
+ *
+ * <p>Note that overlapping calls to {@link ReadDnsQueueAction} (the only place where
+ * {@link DnsQueue#leaseTasks} is used) will have different rate limiters, so they could exceed the
+ * allowed rate. This should be rare though - because {@link DnsQueue#leaseTasks} is only used in
+ * {@link ReadDnsQueueAction}, which is run as a cron job with running time shorter than the cron
+ * repeat time - meaning there should never be two instances running at once.
+ *
+ * @see google.registry.config.RegistryConfig#provideReadDnsQueueRuntime
+ */
 public class DnsQueue {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   private final Queue queue;
+
+  // Queue.leaseTasks is limited to 10 requests per second as per
+  // https://cloud.google.com/appengine/docs/standard/java/javadoc/com/google/appengine/api/taskqueue/Queue.html
+  // "If you generate more than 10 LeaseTasks requests per second, only the first 10 requests will
+  // return results. The others will return no results."
+  private static final RateLimiter rateLimiter = RateLimiter.create(9);
 
   @Inject
   public DnsQueue(@Named(DNS_PULL_QUEUE_NAME) Queue queue) {
@@ -112,9 +131,21 @@ public class DnsQueue {
     return addToQueue(TargetType.ZONE, fullyQualifiedZoneName, fullyQualifiedZoneName);
   }
 
+  /**
+   * Returns the maximum number of tasks that can be leased with {@link #leaseTasks}.
+   *
+   * <p>If this many tasks are returned, then there might be more tasks still waiting in the queue.
+   *
+   * <p>If less than this number of tasks are returned, then there are no more items in the queue.
+   */
+  public long getLeaseTasksBatchSize() {
+    return leaseTasksBatchSize;
+  }
+
   /** Returns handles for a batch of tasks, leased for the specified duration. */
   public List<TaskHandle> leaseTasks(Duration leaseDuration) {
     try {
+      rateLimiter.acquire();
       int numTasks = queue.fetchStatistics().getNumTasks();
       logger.logfmt(
           (numTasks >= leaseTasksBatchSize) ? Level.WARNING : Level.INFO,
@@ -125,17 +156,6 @@ public class DnsQueue {
     } catch (TransientFailureException | DeadlineExceededException e) {
       logger.severe(e, "Failed leasing tasks too fast");
       return ImmutableList.of();
-    }
-  }
-
-  /** Reduce the task lease time to zero, making it immediately available to be leased again. */
-  public void dropTaskLease(TaskHandle task) {
-    try {
-      queue.modifyTaskLease(task, 0, TimeUnit.SECONDS);
-    } catch (IllegalStateException e) {
-      logger.warningfmt(e, "Failed dropping expired lease: %s", task.getName());
-    } catch (TransientFailureException | DeadlineExceededException e) {
-      logger.severe(e, "Failed dropping task leases too fast");
     }
   }
 

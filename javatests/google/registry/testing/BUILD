@@ -22,6 +22,7 @@ java_library(
     exports = ["//third_party/junit"],
     deps = [
         "//java/google/registry/config",
+        "//java/google/registry/dns",
         "//java/google/registry/dns:constants",
         "//java/google/registry/dns/writer",
         "//java/google/registry/flows",
