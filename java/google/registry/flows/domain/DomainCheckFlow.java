@@ -105,7 +105,8 @@ public final class DomainCheckFlow implements Flow {
    * unavailable.
    */
   private static final ImmutableSet<TldState> PENDING_ALLOCATION_TLD_STATES =
-      Sets.immutableEnumSet(TldState.GENERAL_AVAILABILITY, TldState.QUIET_PERIOD);
+      Sets.immutableEnumSet(
+          TldState.GENERAL_AVAILABILITY, TldState.START_DATE_SUNRISE, TldState.QUIET_PERIOD);
 
   @Inject ResourceCommand resourceCommand;
   @Inject ExtensionManager extensionManager;

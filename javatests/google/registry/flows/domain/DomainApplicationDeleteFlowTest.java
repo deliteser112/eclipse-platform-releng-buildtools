@@ -283,6 +283,14 @@ public class DomainApplicationDeleteFlowTest
   }
 
   @Test
+  public void testFailure_startDateSunrise() throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    EppException thrown = expectThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
   public void testSuccess_superuserQuietPeriod() throws Exception {
     createTld("tld", TldState.QUIET_PERIOD);
     persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
@@ -303,6 +311,15 @@ public class DomainApplicationDeleteFlowTest
   @Test
   public void testSuccess_superuserGeneralAvailability() throws Exception {
     createTld("tld", TldState.GENERAL_AVAILABILITY);
+    persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
+    clock.advanceOneMilli();
+    runFlowAssertResponse(
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
+  }
+
+  @Test
+  public void testSuccess_superuserStartDateSunrise() throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
     persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     clock.advanceOneMilli();
     runFlowAssertResponse(

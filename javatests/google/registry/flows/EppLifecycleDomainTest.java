@@ -1083,4 +1083,95 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
+
+  /**
+   * Test a full launch of start-date sunrise.
+   *
+   * We show that we can't create during pre-delegation, can only create with an encoded mark during
+   * start-date sunrise - which we can then delete "as normal" (no need for a signed mark or
+   * anything for delete), and then use "regular" create during general-availability.
+   */
+  @Test
+  public void testDomainCreation_startDateSunriseFull() throws Exception {
+    // The signed mark is valid between 2013 and 2017
+    DateTime sunriseDate = DateTime.parse("2014-09-08T09:09:09Z");
+    DateTime gaDate = sunriseDate.plusDays(30);
+    createTld(
+        "example",
+        ImmutableSortedMap.of(
+            START_OF_TIME, TldState.PREDELEGATION,
+            sunriseDate, TldState.START_DATE_SUNRISE,
+            gaDate, TldState.GENERAL_AVAILABILITY));
+
+    assertCommandAndResponse("login_valid.xml", "login_response.xml", sunriseDate.minusDays(3));
+
+    createContactsAndHosts();
+
+    // During pre-delegation, any create should fail both with and without mark
+    assertCommandAndResponse(
+        "domain_create_start_date_sunrise_encoded_mark.xml",
+        ImmutableMap.of(),
+        "response_error.xml",
+        ImmutableMap.of(
+            "MSG", "Declared launch extension phase does not match the current registry phase",
+            "CODE", "2306"),
+        sunriseDate.minusDays(2));
+
+    assertCommandAndResponse(
+        "domain_create_wildcard.xml",
+        ImmutableMap.of("HOSTNAME", "general.example"),
+        "response_error.xml",
+        ImmutableMap.of(
+            "MSG", "The current registry phase does not allow for general registrations",
+            "CODE", "2002"),
+        sunriseDate.minusDays(1));
+
+    // During start-date sunrise, create with mark will succeed but without will fail.
+    // We also test we can delete without a mark.
+    assertCommandAndResponse(
+        "domain_create_start_date_sunrise_encoded_mark.xml",
+        ImmutableMap.of(),
+        "domain_create_response.xml",
+        ImmutableMap.of(
+            "NAME", "test-validate.example",
+            "CRDATE", "2014-09-09T09:09:09Z",
+            "EXDATE", "2015-09-09T09:09:09Z"),
+        sunriseDate.plusDays(1));
+
+    assertCommandAndResponse(
+        "domain_delete.xml", ImmutableMap.of("NAME", "test-validate.example"),
+        "generic_success_response.xml", ImmutableMap.of(),
+        sunriseDate.plusDays(1).plusMinutes(1));
+
+    assertCommandAndResponse(
+        "domain_create_wildcard.xml",
+        ImmutableMap.of("HOSTNAME", "general.example"),
+        "response_error.xml",
+        ImmutableMap.of(
+            "MSG", "The current registry phase requires a signed mark for registrations",
+            "CODE", "2002"),
+        sunriseDate.plusDays(2));
+
+    // During general availability, sunrise creates will fail but regular creates succeed
+    assertCommandAndResponse(
+        "domain_create_start_date_sunrise_encoded_mark.xml",
+        ImmutableMap.of(),
+        "response_error.xml",
+        ImmutableMap.of(
+            "MSG", "Declared launch extension phase does not match the current registry phase",
+            "CODE", "2306"),
+        gaDate.plusDays(1));
+
+    assertCommandAndResponse(
+        "domain_create_wildcard.xml",
+        ImmutableMap.of("HOSTNAME", "general.example"),
+        "domain_create_response.xml",
+        ImmutableMap.of(
+            "NAME", "general.example",
+            "CRDATE", "2014-10-10T09:09:09Z",
+            "EXDATE", "2016-10-10T09:09:09Z"),
+        gaDate.plusDays(2));
+
+    assertCommandAndResponse("logout.xml", "logout_response.xml");
+  }
 }

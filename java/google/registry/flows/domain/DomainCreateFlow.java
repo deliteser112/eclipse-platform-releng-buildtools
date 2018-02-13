@@ -42,6 +42,8 @@ import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIB
 import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
+import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
@@ -119,7 +121,9 @@ import org.joda.time.Duration;
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException}
  * @error {@link DomainCreateFlow.DomainHasOpenApplicationsException}
+ * @error {@link DomainCreateFlow.MustHaveSignedMarksInCurrentPhaseException}
  * @error {@link DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException}
+ * @error {@link DomainFlowTmchUtils.NoMarksFoundMatchingDomainException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.AcceptedTooLongAgoException}
  * @error {@link DomainFlowUtils.BadDomainNameCharacterException}
@@ -251,7 +255,7 @@ public class DomainCreateFlow implements TransactionalFlow {
       }
       verifyPremiumNameIsNotBlocked(targetId, now, clientId);
       verifyNoOpenApplications(now);
-      verifyIsGaOrIsSpecialCase(tldState, isAnchorTenant);
+      verifyIsGaOrIsSpecialCase(tldState, isAnchorTenant, hasSignedMarks);
       if (hasSignedMarks) {
         // If a signed mark was provided, then it must match the desired domain label. Get the mark
         // at this point so that we can verify it before the "after validation" extension point.
@@ -375,12 +379,38 @@ public class DomainCreateFlow implements TransactionalFlow {
     }
   }
 
-  /** Prohibit registrations for non-QLP and non-superuser outside of General Availability. **/
-  private void verifyIsGaOrIsSpecialCase(TldState tldState, boolean isAnchorTenant)
-      throws NoGeneralRegistrationsInCurrentPhaseException {
-    if (!isAnchorTenant && tldState != TldState.GENERAL_AVAILABILITY) {
-      throw new NoGeneralRegistrationsInCurrentPhaseException();
+  /**
+   * Prohibit registrations unless QLP, General Availability or Start Date Sunrise.
+   *
+   * <p>During Start-Date Sunrise, we need a signed mark for registrations.
+   *
+   * <p>Note that "superuser" status isn't tested here - this should only be called for
+   * non-superusers.
+   */
+  private void verifyIsGaOrIsSpecialCase(
+      TldState tldState, boolean isAnchorTenant, boolean hasSignedMarks)
+      throws NoGeneralRegistrationsInCurrentPhaseException,
+          MustHaveSignedMarksInCurrentPhaseException {
+    // Anchor Tenant overrides any other consideration to allow registration.
+    if (isAnchorTenant) {
+      return;
     }
+
+    // We allow general registration during GA.
+    if (GENERAL_AVAILABILITY.equals(tldState)) {
+      return;
+    }
+
+    // During START_DATE_SUNRISE, only allow registration with a signed marks.
+    if (START_DATE_SUNRISE.equals(tldState)) {
+      if (!hasSignedMarks) {
+        throw new MustHaveSignedMarksInCurrentPhaseException();
+      }
+      return;
+    }
+
+    // All other phases do not allow registration
+    throw new NoGeneralRegistrationsInCurrentPhaseException();
   }
 
   /** Verifies and returns the allocation token if one is specified, otherwise does nothing. */
@@ -514,6 +544,13 @@ public class DomainCreateFlow implements TransactionalFlow {
   static class NoGeneralRegistrationsInCurrentPhaseException extends CommandUseErrorException {
     public NoGeneralRegistrationsInCurrentPhaseException() {
       super("The current registry phase does not allow for general registrations");
+    }
+  }
+
+  /** The current registry phase allows registrations only with signed marks. */
+  static class MustHaveSignedMarksInCurrentPhaseException extends CommandUseErrorException {
+    public MustHaveSignedMarksInCurrentPhaseException() {
+      super("The current registry phase requires a signed mark for registrations");
     }
   }
 }

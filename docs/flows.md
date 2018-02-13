@@ -516,8 +516,10 @@ An EPP flow that creates a new domain resource.
 
 *   2002
     *   Service extension(s) must be declared at login.
+    *   The current registry phase allows registrations only with signed marks.
     *   The current registry phase does not allow for general registrations.
 *   2003
+    *   The provided mark does not match the desired domain label.
     *   Fees must be explicitly acknowledged when creating domains during the
         Early Access Program.
     *   Fees must be explicitly acknowledged when performing any operations on a

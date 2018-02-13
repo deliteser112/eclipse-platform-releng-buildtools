@@ -65,7 +65,9 @@ import google.registry.flows.EppRequestSource;
 import google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.domain.DomainCreateFlow.DomainHasOpenApplicationsException;
+import google.registry.flows.domain.DomainCreateFlow.MustHaveSignedMarksInCurrentPhaseException;
 import google.registry.flows.domain.DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException;
+import google.registry.flows.domain.DomainFlowTmchUtils.NoMarksFoundMatchingDomainException;
 import google.registry.flows.domain.DomainFlowUtils.AcceptedTooLongAgoException;
 import google.registry.flows.domain.DomainFlowUtils.BadDomainNameCharacterException;
 import google.registry.flows.domain.DomainFlowUtils.BadDomainNamePartsCountException;
@@ -1259,6 +1261,15 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
+  public void testFailure_startDateSunrise_missingLaunchExtension() throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
+    persistContactsAndHosts();
+    EppException thrown =
+        expectThrows(MustHaveSignedMarksInCurrentPhaseException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
   public void testFailure_quietPeriod() throws Exception {
     createTld("tld", TldState.QUIET_PERIOD);
     persistContactsAndHosts();
@@ -1277,6 +1288,13 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testSuccess_superuserSunrush() throws Exception {
     createTld("tld", TldState.SUNRUSH);
+    persistContactsAndHosts();
+    doSuccessfulTest("tld", "domain_create_response.xml", UserPrivileges.SUPERUSER);
+  }
+
+  @Test
+  public void testSuccess_superuserStartDateSunrise_isSuperuser() throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
     persistContactsAndHosts();
     doSuccessfulTest("tld", "domain_create_response.xml", UserPrivileges.SUPERUSER);
   }
@@ -1708,6 +1726,68 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
     assertSuccessfulCreate("tld", true);
     assertClaimsLordn();
+  }
+
+  @Test
+  public void testFailure_startDateSunriseRegistration_missingSignedMark() throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
+    setEppInput("domain_create_registration_start_date_sunrise.xml");
+    persistContactsAndHosts();
+    EppException thrown =
+        expectThrows(MustHaveSignedMarksInCurrentPhaseException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testSuccess_superuserStartDateSunriseRegistration_isSuperuser() throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
+    setEppInput("domain_create_registration_start_date_sunrise.xml");
+    persistContactsAndHosts();
+    doSuccessfulTest("tld", "domain_create_response.xml", UserPrivileges.SUPERUSER);
+  }
+
+  @Test
+  public void testSuccess_qlpRegistrationSunriseRegistration() throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
+    setEppInput("domain_create_registration_qlp_start_date_sunrise.xml");
+    eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
+    persistContactsAndHosts();
+    runFlowAssertResponse(loadFile("domain_create_response.xml"));
+    assertSuccessfulCreate("tld", true);
+    assertNoLordn();
+  }
+
+  @Test
+  public void testSuccess_startDateSunriseRegistration_withEncodedSignedMark() throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
+    clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
+    setEppInput("domain_create_registration_start_date_sunrise_encoded_signed_mark.xml");
+    persistContactsAndHosts();
+    runFlowAssertResponse(loadFile("domain_create_response_encoded_signed_mark_name.xml"));
+    assertSuccessfulCreate("tld", false);
+    assertNoLordn("0000001761376042759136-65535", null);
+  }
+
+  @Test
+  public void testFail_startDateSunriseRegistration_wrongEncodedSignedMark() throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
+    clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
+    setEppInput("domain_create_registration_start_date_sunrise_wrong_encoded_signed_mark.xml");
+    persistContactsAndHosts();
+    EppException thrown =
+        expectThrows(NoMarksFoundMatchingDomainException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_startDateSunriseRegistration_withClaimsNotice() throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
+    clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
+    setEppInput("domain_create_registration_start_date_sunrise_claims_notice.xml");
+    persistContactsAndHosts();
+    EppException thrown =
+        expectThrows(MustHaveSignedMarksInCurrentPhaseException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test

@@ -155,6 +155,12 @@ public class Registry extends ImmutableObject implements Buildable {
     LANDRUSH,
 
     /**
+     * The state in which only trademark holders can submit a "create" request. It is identical to
+     * {@link #GENERAL_AVAILABILITY} in all other respects.
+     */
+    START_DATE_SUNRISE,
+
+    /**
      * A state in which no domain operations are permitted. Generally used after sunrise or landrush
      * to allocate uncontended applications and send contended applications to auction. This state
      * is special in that it has no ordering constraints and can appear after any phase.

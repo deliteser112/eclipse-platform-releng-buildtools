@@ -1193,6 +1193,15 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
+  public void testFailure_startDateSunrise() throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    EppException thrown = expectThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
   public void testFailure_wrongDeclaredPhase() throws Exception {
     setEppInput("domain_create_landrush_signed_mark.xml");
     persistContactsAndHosts();
@@ -1237,6 +1246,14 @@ public class DomainApplicationCreateFlowTest
   @Test
   public void testSuccess_superuserGeneralAvailability() throws Exception {
     createTld("tld", TldState.GENERAL_AVAILABILITY);
+    persistContactsAndHosts();
+    clock.advanceOneMilli();
+    runSuperuserFlow("domain_create_sunrush_response.xml");
+  }
+
+  @Test
+  public void testSuccess_superuserStartDateSunrise() throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
     persistContactsAndHosts();
     clock.advanceOneMilli();
     runSuperuserFlow("domain_create_sunrush_response.xml");

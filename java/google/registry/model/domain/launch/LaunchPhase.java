@@ -32,6 +32,25 @@ import javax.xml.bind.annotation.XmlValue;
  *
  * <p>The launch phase refers to the various stages that a TLD goes through before entering general
  * availability. The various phases are described below (in order that they usually occur).
+ *
+ * <p>Each phase is connected to the TldState in which it can be used (see DomainFlowUtils). Sending
+ * an EPP with the wrong launch phase for the current TldState will result in an error. However, we
+ * don't actually check the launch phase *exists*.
+ *
+ * <p>We usually check for the information *inside* a launch phase (e.g. the signed mark for the
+ * domain) and return an error if that is missing - which would also check that the phase exists.
+ * But if we bypass the need for that information (e.g., an Anchor Tenant doesn't need a signed
+ * mark), then we never actually test the phase exists.
+ *
+ * <p>This means an Anchor Tenant has some weird peculiarities: It doesn't need to specify the
+ * phase. It *can* specify the phase, but not give any of the phase's information (e.g. - signed
+ * marks), in which case we accept even a wrong phase. But if it *does* give a signed mark as well -
+ * we will return an error if it's the wrong phase (or if the marks are invalid) even though we
+ * didn't require them.
+ *
+ * <p>This is OK (?) because the Anchor Tenants field is set internally and manually.. The person
+ * who sets it is the one that needs to make sure the domain isn't a trademark and that the fields
+ * are correct.
  */
 @Embed
 public class LaunchPhase extends ImmutableObject {
@@ -56,6 +75,12 @@ public class LaunchPhase extends ImmutableObject {
    * Notice must be displayed to a prospective registrant of a domain name that matches trademarks.
    */
   public static final LaunchPhase CLAIMS = create("claims", null);
+
+  /**
+   * An alternative launch phase which allows only trademark owners to create domains. It is used
+   * instead of the previous phases.
+   */
+  public static final LaunchPhase START_DATE_SUNRISE = create("sunrise", "start-date");
 
   /** A post-launch phase that is also referred to as "steady state". */
   public static final LaunchPhase OPEN = create("open", null);

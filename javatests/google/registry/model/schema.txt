@@ -718,6 +718,7 @@ enum google.registry.model.registry.Registry$TldState {
   PDT;
   PREDELEGATION;
   QUIET_PERIOD;
+  START_DATE_SUNRISE;
   SUNRISE;
   SUNRUSH;
 }
