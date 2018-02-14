@@ -35,7 +35,7 @@ public class HistoryEntrySubject extends Subject<HistoryEntrySubject, HistoryEnt
   }
 
   @Override
-  public String actualCustomStringRepresentation() {
+  protected String actualCustomStringRepresentation() {
     return Optional.ofNullable(customDisplaySubject).orElse(String.valueOf(actual()));
   }
 

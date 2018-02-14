@@ -53,7 +53,7 @@ abstract class AbstractEppResourceSubject
   }
 
   @Override
-  public String actualCustomStringRepresentation() {
+  protected String actualCustomStringRepresentation() {
     return String.format(
         "%s with foreign key '%s'",
         actual().getClass().getSimpleName(),
