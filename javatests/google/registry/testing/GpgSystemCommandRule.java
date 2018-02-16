@@ -84,7 +84,9 @@ public final class GpgSystemCommandRule extends ExternalResource {
   @Override
   protected void before() throws IOException, InterruptedException {
     checkState(Objects.equals(cwd, DEV_NULL));
-    cwd = File.createTempFile(TEMP_FILE_PREFIX, "", null);
+    File tmpRoot = null;
+    tmpRoot = new File(System.getenv("TMPDIR"));
+    cwd = File.createTempFile(TEMP_FILE_PREFIX, "", tmpRoot);
     cwd.delete();
     cwd.mkdir();
     conf = new File(cwd, ".gnupg");

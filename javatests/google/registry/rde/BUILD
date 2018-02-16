@@ -51,10 +51,6 @@ java_library(
 GenTestRules(
     name = "GeneratedTestRules",
     default_test_size = "large",
-    # TODO (b/63619837): stop using hardcoded /tmp once
-    # https://github.com/bazelbuild/bazel/issues/3215 is resolved.
-    # If /tmp is not accessible, try changing it to one that is.
-    jvm_flags = ["-Djava.io.tmpdir=/tmp"],
     test_files = glob(
         ["*Test.java"],
         exclude = ["RdeUploadActionTest.java"],
