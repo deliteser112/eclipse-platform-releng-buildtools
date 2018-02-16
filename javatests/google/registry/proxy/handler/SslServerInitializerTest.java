@@ -278,7 +278,7 @@ public class SslServerInitializerTest {
         .hasCauseThat()
         .hasCauseThat()
         .isInstanceOf(SSLHandshakeException.class);
-    //assertThat(channel.isActive()).isFalse();
+    assertThat(channel.isActive()).isFalse();
 
     Future<?> unusedFuture = eventLoopGroup.shutdownGracefully().syncUninterruptibly();
   }
@@ -340,7 +340,7 @@ public class SslServerInitializerTest {
         .contains(SSL_HOST);
     assertThat(serverException).hasCauseThat().isInstanceOf(DecoderException.class);
     assertThat(serverException).hasCauseThat().hasCauseThat().isInstanceOf(SSLException.class);
-    //assertThat(channel.isActive()).isFalse();
+    assertThat(channel.isActive()).isFalse();
 
     Future<?> unusedFuture = eventLoopGroup.shutdownGracefully().syncUninterruptibly();
   }
