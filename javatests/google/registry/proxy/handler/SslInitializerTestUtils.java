@@ -73,7 +73,7 @@ public class SslInitializerTestUtils {
     // Only use one thread in the event loop group. The same event loop group will be used to
     // register client channels during setUpClient as well. This ensures that all I/O activities
     // in both channels happen in the same thread, making debugging easier (i. e. no need to jump
-    // between threads when debugging, everything happens synchronously within the only I/O
+    // between threads when debugging, everything happens synchronously within the only I/O thread
     // effectively). Note that the main thread is still separate from the I/O thread and
     // synchronization (using the lock field) is still needed when the main thread needs to verify
     // properties calculated by the I/O thread.
@@ -143,9 +143,9 @@ public class SslInitializerTestUtils {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
       serverException.initCause(cause);
-      // If an exception is caught, we should also release the lock so that the main thread knows
-      // there is an exception to inspect now.
-      lock.unlock();
+      // If an exception is caught, we should also release the lock after the channel is closed
+      // so that the main thread knows there is an exception to inspect now.
+      ctx.channel().closeFuture().addListener(f -> lock.unlock());
     }
   }
 
@@ -153,9 +153,9 @@ public class SslInitializerTestUtils {
   static class DumpHandler extends ChannelInboundHandlerAdapter {
 
     /**
-     * A lock that synchronizes server I/O activity with the main thread. Acquired by the server I/O
-     * thread when the handler is constructed, released when the server echoes back, or when an
-     * exception is caught (during SSH handshake for example).
+     * A lock that synchronizes client I/O activity with the main thread. Acquired by the client I/O
+     * thread when the handler is constructed, released when the client receives an response, or
+     * when an exception is caught (during SSH handshake for example).
      */
     private final Lock lock;
 
@@ -197,9 +197,9 @@ public class SslInitializerTestUtils {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
       clientException.initCause(cause);
       // If an exception is caught here, the main thread must be waiting to acquire the lock from
-      // the I/O thread in order to verify it. Releasing the lock to notify the main thread it can
-      // continue now that the exception has been written.
-      lock.unlock();
+      // the I/O thread in order to verify it. Releasing the lock after the channel is closed to
+      // notify the main thread it can continue now that the exception has been written.
+      ctx.channel().closeFuture().addListener(f -> lock.unlock());
     }
   }
 
