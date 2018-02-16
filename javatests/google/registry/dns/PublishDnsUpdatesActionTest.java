@@ -20,12 +20,14 @@ import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.expectThrows;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import google.registry.dns.DnsMetrics.ActionStatus;
 import google.registry.dns.DnsMetrics.CommitStatus;
 import google.registry.dns.DnsMetrics.PublishStatus;
 import google.registry.dns.writer.DnsWriter;
@@ -37,6 +39,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeLockHandler;
 import google.registry.testing.InjectRule;
+import java.util.Optional;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Before;
@@ -87,6 +90,8 @@ public class PublishDnsUpdatesActionTest {
     action.tld = tld;
     action.hosts = ImmutableSet.of();
     action.domains = ImmutableSet.of();
+    action.itemsCreateTime = Optional.of(clock.nowUtc().minusHours(2));
+    action.enqueuedTime = Optional.of(clock.nowUtc().minusHours(1));
     action.dnsWriter = "correctWriter";
     action.dnsWriterProxy = new DnsWriterProxy(ImmutableMap.of("correctWriter", dnsWriter));
     action.dnsMetrics = dnsMetrics;
@@ -111,6 +116,13 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsMetrics).incrementPublishHostRequests(1, PublishStatus.ACCEPTED);
     verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.REJECTED);
     verify(dnsMetrics).recordCommit("correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 0, 1);
+    verify(dnsMetrics)
+        .recordActionResult(
+            "correctWriter",
+            ActionStatus.SUCCESS,
+            1,
+            Duration.standardHours(2),
+            Duration.standardHours(1));
     verifyNoMoreInteractions(dnsMetrics);
 
     verifyNoMoreInteractions(dnsQueue);
@@ -131,6 +143,40 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.ACCEPTED);
     verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.REJECTED);
     verify(dnsMetrics).recordCommit("correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 1, 0);
+    verify(dnsMetrics)
+        .recordActionResult(
+            "correctWriter",
+            ActionStatus.SUCCESS,
+            1,
+            Duration.standardHours(2),
+            Duration.standardHours(1));
+    verifyNoMoreInteractions(dnsMetrics);
+
+    verifyNoMoreInteractions(dnsQueue);
+  }
+
+  @Test
+  public void testPublish_commitFails() throws Exception {
+    action = createAction("xn--q9jyb4c");
+    action.domains = ImmutableSet.of("example.xn--q9jyb4c", "example2.xn--q9jyb4c");
+    action.hosts =
+        ImmutableSet.of(
+            "ns1.example.xn--q9jyb4c", "ns2.example.xn--q9jyb4c", "ns1.example2.xn--q9jyb4c");
+    doThrow(new RuntimeException()).when(dnsWriter).commit();
+    expectThrows(RuntimeException.class, action::run);
+
+    verify(dnsMetrics).incrementPublishDomainRequests(2, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
+    verify(dnsMetrics).incrementPublishHostRequests(3, PublishStatus.ACCEPTED);
+    verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.REJECTED);
+    verify(dnsMetrics).recordCommit("correctWriter", CommitStatus.FAILURE, Duration.ZERO, 2, 3);
+    verify(dnsMetrics)
+        .recordActionResult(
+            "correctWriter",
+            ActionStatus.COMMIT_FAILURE,
+            5,
+            Duration.standardHours(2),
+            Duration.standardHours(1));
     verifyNoMoreInteractions(dnsMetrics);
 
     verifyNoMoreInteractions(dnsQueue);
@@ -157,6 +203,13 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsMetrics).incrementPublishHostRequests(3, PublishStatus.ACCEPTED);
     verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.REJECTED);
     verify(dnsMetrics).recordCommit("correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 2, 3);
+    verify(dnsMetrics)
+        .recordActionResult(
+            "correctWriter",
+            ActionStatus.SUCCESS,
+            5,
+            Duration.standardHours(2),
+            Duration.standardHours(1));
     verifyNoMoreInteractions(dnsMetrics);
 
     verifyNoMoreInteractions(dnsQueue);
@@ -177,6 +230,13 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.ACCEPTED);
     verify(dnsMetrics).incrementPublishHostRequests(3, PublishStatus.REJECTED);
     verify(dnsMetrics).recordCommit("correctWriter", CommitStatus.SUCCESS, Duration.ZERO, 0, 0);
+    verify(dnsMetrics)
+        .recordActionResult(
+            "correctWriter",
+            ActionStatus.SUCCESS,
+            5,
+            Duration.standardHours(2),
+            Duration.standardHours(1));
     verifyNoMoreInteractions(dnsMetrics);
 
     verifyNoMoreInteractions(dnsQueue);
@@ -184,24 +244,26 @@ public class PublishDnsUpdatesActionTest {
 
   @Test
   public void testLockIsntAvailable() throws Exception {
+    action = createAction("xn--q9jyb4c");
+    action.domains = ImmutableSet.of("example.com", "example2.com");
+    action.hosts = ImmutableSet.of("ns1.example.com", "ns2.example.com", "ns1.example2.com");
+    action.lockHandler = new FakeLockHandler(false);
     ServiceUnavailableException thrown =
-        expectThrows(
-            ServiceUnavailableException.class,
-            () -> {
-              action = createAction("xn--q9jyb4c");
-              action.domains = ImmutableSet.of("example.com", "example2.com");
-              action.hosts =
-                  ImmutableSet.of("ns1.example.com", "ns2.example.com", "ns1.example2.com");
-              action.lockHandler = new FakeLockHandler(false);
-              action.run();
-
-              verifyNoMoreInteractions(dnsWriter);
-
-              verifyNoMoreInteractions(dnsMetrics);
-
-              verifyNoMoreInteractions(dnsQueue);
-            });
+        expectThrows(ServiceUnavailableException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Lock failure");
+
+    verifyNoMoreInteractions(dnsWriter);
+
+    verify(dnsMetrics)
+        .recordActionResult(
+            "correctWriter",
+            ActionStatus.LOCK_FAILURE,
+            5,
+            Duration.standardHours(2),
+            Duration.standardHours(1));
+    verifyNoMoreInteractions(dnsMetrics);
+
+    verifyNoMoreInteractions(dnsQueue);
   }
 
   @Test
@@ -214,6 +276,13 @@ public class PublishDnsUpdatesActionTest {
 
     verifyNoMoreInteractions(dnsWriter);
 
+    verify(dnsMetrics)
+        .recordActionResult(
+            "wrongWriter",
+            ActionStatus.BAD_WRITER,
+            5,
+            Duration.standardHours(2),
+            Duration.standardHours(1));
     verifyNoMoreInteractions(dnsMetrics);
 
     verify(dnsQueue).addDomainRefreshTask("example.com");

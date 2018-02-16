@@ -17,6 +17,7 @@ package google.registry.dns;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.dns.DnsConstants.DNS_PUBLISH_PUSH_QUEUE_NAME;
+import static google.registry.dns.DnsConstants.DNS_TARGET_CREATE_TIME_PARAM;
 import static google.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
 import static google.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -44,6 +45,7 @@ import google.registry.util.FormattingLogger;
 import google.registry.util.TaskEnqueuer;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -99,19 +101,22 @@ public final class ReadDnsQueueAction implements Runnable {
   /** Container for items we pull out of the DNS pull queue and process for fanout. */
   @AutoValue
   abstract static class RefreshItem implements Comparable<RefreshItem> {
-    static RefreshItem create(TargetType type, String name) {
-      return new AutoValue_ReadDnsQueueAction_RefreshItem(type, name);
+    static RefreshItem create(TargetType type, String name, DateTime creationTime) {
+      return new AutoValue_ReadDnsQueueAction_RefreshItem(type, name, creationTime);
     }
 
     abstract TargetType type();
 
     abstract String name();
 
+    abstract DateTime creationTime();
+
     @Override
     public int compareTo(RefreshItem other) {
       return ComparisonChain.start()
           .compare(this.type(), other.type())
           .compare(this.name(), other.name())
+          .compare(this.creationTime(), other.creationTime())
           .result();
     }
   }
@@ -207,7 +212,7 @@ public final class ReadDnsQueueAction implements Runnable {
    * tasks for paused TLDs or tasks for TLDs not part of {@link Registries#getTlds()}.
    */
   private void dispatchTasks(ImmutableSet<TaskHandle> tasks, ImmutableSet<String> tlds) {
-    ClassifiedTasks classifiedTasks = classifyTasks(tasks, tlds);
+    ClassifiedTasks classifiedTasks = classifyTasks(tasks, tlds, clock.nowUtc());
     if (!classifiedTasks.pausedTlds().isEmpty()) {
       logger.infofmt("The dns-pull queue is paused for TLDs: %s.", classifiedTasks.pausedTlds());
     }
@@ -244,7 +249,7 @@ public final class ReadDnsQueueAction implements Runnable {
    * taken on them) or in no category (if no action is to be taken on them)
    */
   private static ClassifiedTasks classifyTasks(
-      ImmutableSet<TaskHandle> tasks, ImmutableSet<String> tlds) {
+      ImmutableSet<TaskHandle> tasks, ImmutableSet<String> tlds, DateTime now) {
 
     ClassifiedTasks.Builder classifiedTasksBuilder = ClassifiedTasks.builder();
 
@@ -252,6 +257,14 @@ public final class ReadDnsQueueAction implements Runnable {
     for (TaskHandle task : tasks) {
       try {
         Map<String, String> params = ImmutableMap.copyOf(task.extractParams());
+        // We allow 'null' create-time for the transition period - and during that time we set the
+        // create-time to "now".
+        //
+        // TODO(b/73343464):remove support for null create-time once transition is over.
+        DateTime creationTime =
+            Optional.ofNullable(params.get(DNS_TARGET_CREATE_TIME_PARAM))
+                .map(DateTime::parse)
+                .orElse(now);
         String tld = params.get(RequestParameters.PARAM_TLD);
         if (tld == null) {
           logger.severefmt("Discarding invalid DNS refresh request %s; no TLD specified.", task);
@@ -270,7 +283,7 @@ public final class ReadDnsQueueAction implements Runnable {
             case HOST:
               classifiedTasksBuilder
                   .refreshItemsByTldBuilder()
-                  .put(tld, RefreshItem.create(type, name));
+                  .put(tld, RefreshItem.create(type, name, creationTime));
               break;
             default:
               logger.severefmt("Discarding DNS refresh request %s of type %s.", task, typeString);
@@ -292,13 +305,23 @@ public final class ReadDnsQueueAction implements Runnable {
       String tld = tldRefreshItemsEntry.getKey();
       for (List<RefreshItem> chunk :
           Iterables.partition(tldRefreshItemsEntry.getValue(), tldUpdateBatchSize)) {
+        DateTime earliestCreateTime =
+            chunk.stream().map(RefreshItem::creationTime).min(Comparator.naturalOrder()).get();
         for (String dnsWriter : Registry.get(tld).getDnsWriters()) {
-          TaskOptions options = withUrl(PublishDnsUpdatesAction.PATH)
-              .countdownMillis(jitterSeconds.isPresent()
-                  ? random.nextInt((int) SECONDS.toMillis(jitterSeconds.get()))
-                  : 0)
-              .param(RequestParameters.PARAM_TLD, tld)
-              .param(PublishDnsUpdatesAction.PARAM_DNS_WRITER, dnsWriter);
+          TaskOptions options =
+              withUrl(PublishDnsUpdatesAction.PATH)
+                  .countdownMillis(
+                      jitterSeconds.isPresent()
+                          ? random.nextInt((int) SECONDS.toMillis(jitterSeconds.get()))
+                          : 0)
+                  .param(RequestParameters.PARAM_TLD, tld)
+                  .param(PublishDnsUpdatesAction.PARAM_DNS_WRITER, dnsWriter)
+                  .param(
+                      PublishDnsUpdatesAction.PARAM_PUBLISH_TASK_ENQUEUED,
+                      clock.nowUtc().toString())
+                  .param(
+                      PublishDnsUpdatesAction.PARAM_REFRESH_REQUEST_CREATED,
+                      earliestCreateTime.toString());
           for (RefreshItem refreshItem : chunk) {
             options.param(
                 (refreshItem.type() == TargetType.HOST)

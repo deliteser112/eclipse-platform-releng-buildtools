@@ -40,6 +40,9 @@ public class DnsMetrics {
   /** Disposition of writer.commit(). */
   public enum CommitStatus { SUCCESS, FAILURE }
 
+  /** Disposition of the publish action. */
+  public enum ActionStatus { SUCCESS, COMMIT_FAILURE, LOCK_FAILURE, BAD_WRITER }
+
   private static final ImmutableSet<LabelDescriptor> LABEL_DESCRIPTORS_FOR_PUBLISH_REQUESTS =
       ImmutableSet.of(
           LabelDescriptor.create("tld", "TLD"),
@@ -52,10 +55,16 @@ public class DnsMetrics {
           LabelDescriptor.create("status", "Whether writer.commit() succeeded or failed."),
           LabelDescriptor.create("dnsWriter", "The DnsWriter used."));
 
-  // Finer-grained fitter than the DEFAULT_FITTER, allows values between 1. and 2^20, which gives
-  // over 15 minutes.
+  private static final ImmutableSet<LabelDescriptor> LABEL_DESCRIPTORS_FOR_LATENCY =
+      ImmutableSet.of(
+          LabelDescriptor.create("tld", "TLD"),
+          LabelDescriptor.create("status", "Whether the publish succeeded, or why it failed."),
+          LabelDescriptor.create("dnsWriter", "The DnsWriter used."));
+
+  // Finer-grained fitter than the DEFAULT_FITTER, allows values between 100 ms and just over 29
+  // hours.
   private static final DistributionFitter EXPONENTIAL_FITTER =
-      ExponentialFitter.create(20, 2.0, 1.0);
+      ExponentialFitter.create(20, 2.0, 100.0);
 
   // Fibonacci fitter more suitible for integer-type values. Allows values between 0 and 10946,
   // which is the 21th Fibonacci number.
@@ -156,6 +165,24 @@ public class DnsMetrics {
               LABEL_DESCRIPTORS_FOR_COMMIT,
               FIBONACCI_FITTER);
 
+  private static final EventMetric updateRequestLatency =
+      MetricRegistryImpl.getDefault()
+          .newEventMetric(
+              "/dns/update_latency",
+              "Time elapsed since refresh request was created until it was published",
+              "milliseconds",
+              LABEL_DESCRIPTORS_FOR_LATENCY,
+              EXPONENTIAL_FITTER);
+
+  private static final EventMetric publishQueueDelay =
+      MetricRegistryImpl.getDefault()
+          .newEventMetric(
+              "/dns/publish_queue_delay",
+              "Time elapsed since the publishDnsUpdates action was created until it was executed",
+              "milliseconds",
+              LABEL_DESCRIPTORS_FOR_LATENCY,
+              EXPONENTIAL_FITTER);
+
   @Inject RegistryEnvironment registryEnvironment;
   @Inject @Parameter(PARAM_TLD) String tld;
 
@@ -224,5 +251,16 @@ public class DnsMetrics {
     commitCount.increment(tld, status.name(), dnsWriter);
     domainsCommittedCount.incrementBy(numberOfDomains, tld, status.name(), dnsWriter);
     hostsCommittedCount.incrementBy(numberOfHosts, tld, status.name(), dnsWriter);
+  }
+
+  void recordActionResult(
+      String dnsWriter,
+      ActionStatus status,
+      int numberOfItems,
+      Duration timeSinceUpdateRequest,
+      Duration timeSinceActionEnqueued) {
+    updateRequestLatency.record(
+        timeSinceUpdateRequest.getMillis(), numberOfItems, tld, status.name(), dnsWriter);
+    publishQueueDelay.record(timeSinceActionEnqueued.getMillis(), tld, status.name(), dnsWriter);
   }
 }

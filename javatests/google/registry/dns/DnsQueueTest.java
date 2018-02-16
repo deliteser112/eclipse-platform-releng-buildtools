@@ -21,7 +21,9 @@ import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,10 +40,11 @@ public class DnsQueueTest {
       .withTaskQueue()
       .build();
   private DnsQueue dnsQueue;
+  private final FakeClock clock = new FakeClock(DateTime.parse("2010-01-01T10:00:00Z"));
 
   @Before
   public void init() {
-    dnsQueue = DnsQueue.create();
+    dnsQueue = DnsQueue.createForTesting(clock);
     dnsQueue.leaseTasksBatchSize = 10;
   }
 
@@ -54,6 +57,7 @@ public class DnsQueueTest {
         new TaskMatcher()
             .param("Target-Type", "HOST")
             .param("Target-Name", "octopus.tld")
+            .param("Create-Time", "2010-01-01T10:00:00.000Z")
             .param("tld", "tld"));
   }
 
@@ -83,6 +87,7 @@ public class DnsQueueTest {
         new TaskMatcher()
             .param("Target-Type", "DOMAIN")
             .param("Target-Name", "octopus.tld")
+            .param("Create-Time", "2010-01-01T10:00:00.000Z")
             .param("tld", "tld"));
   }
 
@@ -101,4 +106,3 @@ public class DnsQueueTest {
     assertThat(thrown).hasMessageThat().contains("TLD notatld does not exist");
   }
 }
-

@@ -20,6 +20,7 @@ import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.net.InternetDomainName;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.dns.DnsMetrics.ActionStatus;
 import google.registry.dns.DnsMetrics.CommitStatus;
 import google.registry.dns.DnsMetrics.PublishStatus;
 import google.registry.dns.writer.DnsWriter;
@@ -32,6 +33,7 @@ import google.registry.request.lock.LockHandler;
 import google.registry.util.Clock;
 import google.registry.util.DomainNameUtils;
 import google.registry.util.FormattingLogger;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
@@ -51,6 +53,8 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
   public static final String PARAM_DNS_WRITER = "dnsWriter";
   public static final String PARAM_DOMAINS = "domains";
   public static final String PARAM_HOSTS = "hosts";
+  public static final String PARAM_PUBLISH_TASK_ENQUEUED = "enqueued";
+  public static final String PARAM_REFRESH_REQUEST_CREATED = "itemsCreated";
   public static final String LOCK_NAME = "DNS updates";
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
@@ -69,6 +73,10 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
    * out (and not necessarily currently).
    */
   @Inject @Parameter(PARAM_DNS_WRITER) String dnsWriter;
+  // TODO(b/73343464): make not-optional once transition has ended
+  @Inject @Parameter(PARAM_PUBLISH_TASK_ENQUEUED) Optional<DateTime> enqueuedTime;
+  // TODO(b/73343464): make not-optional once transition has ended
+  @Inject @Parameter(PARAM_REFRESH_REQUEST_CREATED) Optional<DateTime> itemsCreateTime;
 
   @Inject @Parameter(PARAM_DOMAINS) Set<String> domains;
   @Inject @Parameter(PARAM_HOSTS) Set<String> hosts;
@@ -76,6 +84,26 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
   @Inject LockHandler lockHandler;
   @Inject Clock clock;
   @Inject PublishDnsUpdatesAction() {}
+
+  private void recordActionResult(ActionStatus status) {
+    DateTime now = clock.nowUtc();
+
+    dnsMetrics.recordActionResult(
+        dnsWriter,
+        status,
+        nullToEmpty(domains).size() + nullToEmpty(hosts).size(),
+        new Duration(itemsCreateTime.orElse(now), now),
+        new Duration(enqueuedTime.orElse(now), now));
+    logger.infofmt(
+        "publishDnsWriter latency statistics: TLD: %s, dnsWriter: %s, actionStatus: %s, "
+            + "numItems: %s, timeSinceCreation: %s, timeInQueue: %s",
+        tld,
+        dnsWriter,
+        status,
+        nullToEmpty(domains).size() + nullToEmpty(hosts).size(),
+        new Duration(itemsCreateTime.orElse(now), now),
+        new Duration(enqueuedTime.orElse(now), now));
+  }
 
   /** Runs the task. */
   @Override
@@ -85,6 +113,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
     // in the update task being dequeued and dropped. A message will already have been logged
     // to indicate the problem.
     if (!lockHandler.executeWithLocks(this, tld, timeout, LOCK_NAME)) {
+      recordActionResult(ActionStatus.LOCK_FAILURE);
       throw new ServiceUnavailableException("Lock failure");
     }
   }
@@ -116,6 +145,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
       logger.warningfmt(
           "Couldn't get writer %s for TLD %s, pushing domains back to the queue for retry",
           dnsWriter, tld);
+      recordActionResult(ActionStatus.BAD_WRITER);
       requeueBatch();
       return;
     }
@@ -155,11 +185,14 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
     // If we got here it means we managed to stage the entire batch without any errors.
     // Next we will commit the batch.
     CommitStatus commitStatus = CommitStatus.FAILURE;
+    ActionStatus actionStatus = ActionStatus.COMMIT_FAILURE;
     try {
       writer.commit();
       // No error was thrown
       commitStatus = CommitStatus.SUCCESS;
+      actionStatus = ActionStatus.SUCCESS;
     } finally {
+      recordActionResult(actionStatus);
       Duration duration = new Duration(timeAtStart, clock.nowUtc());
       dnsMetrics.recordCommit(
           dnsWriter,
@@ -168,9 +201,10 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
           domainsPublished,
           hostsPublished);
       logger.infofmt(
-          "writer.commit() statistics:: TLD: %s, commitStatus: %s, duration: %s, "
+          "writer.commit() statistics: TLD: %s, dnsWriter: %s, commitStatus: %s, duration: %s, "
               + "domainsPublished: %d, domainsRejected: %d, hostsPublished: %d, hostsRejected: %d",
           tld,
+          dnsWriter,
           commitStatus,
           duration,
           domainsPublished,

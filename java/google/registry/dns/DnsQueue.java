@@ -17,6 +17,7 @@ package google.registry.dns;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
+import static google.registry.dns.DnsConstants.DNS_TARGET_CREATE_TIME_PARAM;
 import static google.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
 import static google.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
 import static google.registry.model.registry.Registries.assertTldExists;
@@ -37,8 +38,10 @@ import com.google.common.net.InternetDomainName;
 import com.google.common.util.concurrent.RateLimiter;
 import google.registry.dns.DnsConstants.TargetType;
 import google.registry.model.registry.Registries;
+import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
+import google.registry.util.SystemClock;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -66,6 +69,8 @@ public class DnsQueue {
 
   private final Queue queue;
 
+  final Clock clock;
+
   // Queue.leaseTasks is limited to 10 requests per second as per
   // https://cloud.google.com/appengine/docs/standard/java/javadoc/com/google/appengine/api/taskqueue/Queue.html
   // "If you generate more than 10 LeaseTasks requests per second, only the first 10 requests will
@@ -73,8 +78,9 @@ public class DnsQueue {
   private static final RateLimiter rateLimiter = RateLimiter.create(9);
 
   @Inject
-  public DnsQueue(@Named(DNS_PULL_QUEUE_NAME) Queue queue) {
+  public DnsQueue(@Named(DNS_PULL_QUEUE_NAME) Queue queue, Clock clock) {
     this.queue = queue;
+    this.clock = clock;
   }
 
   /**
@@ -85,7 +91,12 @@ public class DnsQueue {
    * reducer classes in mapreduces that need to be Serializable.
    */
   public static DnsQueue create() {
-    return new DnsQueue(getQueue(DNS_PULL_QUEUE_NAME));
+    return new DnsQueue(getQueue(DNS_PULL_QUEUE_NAME), new SystemClock());
+  }
+
+  @VisibleForTesting
+  public static DnsQueue createForTesting(Clock clock) {
+    return new DnsQueue(getQueue(DNS_PULL_QUEUE_NAME), clock);
   }
 
   @NonFinalForTesting
@@ -99,12 +110,13 @@ public class DnsQueue {
     logger.infofmt(
         "Adding task type=%s, target=%s, tld=%s to pull queue %s (%d tasks currently on queue)",
         targetType, targetName, tld, DNS_PULL_QUEUE_NAME, queue.fetchStatistics().getNumTasks());
-    return queue.add(TaskOptions.Builder
-        .withDefaults()
-        .method(Method.PULL)
-        .param(DNS_TARGET_TYPE_PARAM, targetType.toString())
-        .param(DNS_TARGET_NAME_PARAM, targetName)
-        .param(PARAM_TLD, tld));
+    return queue.add(
+        TaskOptions.Builder.withDefaults()
+            .method(Method.PULL)
+            .param(DNS_TARGET_TYPE_PARAM, targetType.toString())
+            .param(DNS_TARGET_NAME_PARAM, targetName)
+            .param(DNS_TARGET_CREATE_TIME_PARAM, clock.nowUtc().toString())
+            .param(PARAM_TLD, tld));
   }
 
   /**

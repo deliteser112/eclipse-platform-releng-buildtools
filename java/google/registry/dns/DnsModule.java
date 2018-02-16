@@ -19,7 +19,10 @@ import static google.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
 import static google.registry.dns.PublishDnsUpdatesAction.PARAM_DNS_WRITER;
 import static google.registry.dns.PublishDnsUpdatesAction.PARAM_DOMAINS;
 import static google.registry.dns.PublishDnsUpdatesAction.PARAM_HOSTS;
+import static google.registry.dns.PublishDnsUpdatesAction.PARAM_PUBLISH_TASK_ENQUEUED;
+import static google.registry.dns.PublishDnsUpdatesAction.PARAM_REFRESH_REQUEST_CREATED;
 import static google.registry.request.RequestParameters.extractEnumParameter;
+import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 import static google.registry.request.RequestParameters.extractSetOfParameters;
 
@@ -32,9 +35,11 @@ import google.registry.dns.DnsConstants.TargetType;
 import google.registry.dns.writer.DnsWriterZone;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
+import java.util.Optional;
 import java.util.Set;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.DateTime;
 
 /** Dagger module for the dns package. */
 @Module
@@ -54,6 +59,20 @@ public abstract class DnsModule {
   @Named(DNS_PUBLISH_PUSH_QUEUE_NAME)
   static Queue provideDnsUpdatePushQueue() {
     return QueueFactory.getQueue(DNS_PUBLISH_PUSH_QUEUE_NAME);
+  }
+
+  @Provides
+  @Parameter(PARAM_PUBLISH_TASK_ENQUEUED)
+  // TODO(b/73343464): make the param required once the transition has finished
+  static Optional<DateTime> provideCreateTime(HttpServletRequest req) {
+    return extractOptionalParameter(req, PARAM_PUBLISH_TASK_ENQUEUED).map(DateTime::parse);
+  }
+
+  @Provides
+  @Parameter(PARAM_REFRESH_REQUEST_CREATED)
+  // TODO(b/73343464): make the param required once the transition has finished
+  static Optional<DateTime> provideItemsCreateTime(HttpServletRequest req) {
+    return extractOptionalParameter(req, PARAM_REFRESH_REQUEST_CREATED).map(DateTime::parse);
   }
 
   @Provides

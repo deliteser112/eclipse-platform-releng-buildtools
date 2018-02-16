@@ -30,6 +30,9 @@ public class DnsConstants {
   /** The parameter to use for storing the target name (domain or host name) with the task. */
   public static final String DNS_TARGET_NAME_PARAM = "Target-Name";
 
-  /** The possible values of the {@code DNS_TARGET_NAME_PARAM} parameter. */
+  /** The parameter to use for storing the creation time with the task. */
+  public static final String DNS_TARGET_CREATE_TIME_PARAM = "Create-Time";
+
+  /** The possible values of the {@code DNS_TARGET_TYPE_PARAM} parameter. */
   public enum TargetType { DOMAIN, HOST, ZONE }
 }

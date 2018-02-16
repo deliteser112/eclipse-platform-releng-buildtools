@@ -21,6 +21,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.dns.DnsConstants.DNS_PUBLISH_PUSH_QUEUE_NAME;
 import static google.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
+import static google.registry.dns.DnsConstants.DNS_TARGET_CREATE_TIME_PARAM;
 import static google.registry.dns.DnsConstants.DNS_TARGET_NAME_PARAM;
 import static google.registry.dns.DnsConstants.DNS_TARGET_TYPE_PARAM;
 import static google.registry.request.RequestParameters.PARAM_TLD;
@@ -52,7 +53,6 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.stream.IntStream;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
@@ -66,7 +66,7 @@ public class ReadDnsQueueActionTest {
 
   private static final int TEST_TLD_UPDATE_BATCH_SIZE = 100;
   private DnsQueue dnsQueue;
-  private FakeClock clock = new FakeClock(DateTime.now(DateTimeZone.UTC));
+  private FakeClock clock = new FakeClock(DateTime.parse("3000-01-01TZ"));
 
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
@@ -88,7 +88,9 @@ public class ReadDnsQueueActionTest {
 
   @Before
   public void before() throws Exception {
-    clock.setTo(DateTime.now(DateTimeZone.UTC));
+    // Because of b/73372999 - the FakeClock can't be in the past, or the TaskQueues stop working.
+    // To make sure it's never in the past, we set the date far-far into the future
+    clock.setTo(DateTime.parse("3000-01-01TZ"));
     createTlds("com", "net", "example");
     persistResource(
         Registry.get("com").asBuilder().setDnsWriters(ImmutableSet.of("comWriter")).build());
@@ -100,7 +102,7 @@ public class ReadDnsQueueActionTest {
             .setTldType(TldType.TEST)
             .setDnsWriters(ImmutableSet.of("exampleWriter"))
             .build());
-    dnsQueue = DnsQueue.create();
+    dnsQueue = DnsQueue.createForTesting(clock);
   }
 
   private void run() throws Exception {
@@ -113,7 +115,7 @@ public class ReadDnsQueueActionTest {
     action.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
     action.jitterSeconds = Optional.empty();
     // Advance the time a little, to ensure that leaseTasks() returns all tasks.
-    clock.setTo(DateTime.now(DateTimeZone.UTC).plusMillis(1));
+    clock.advanceBy(Duration.standardHours(1));
     action.run();
   }
 
@@ -134,6 +136,8 @@ public class ReadDnsQueueActionTest {
 
   private void assertTldsEnqueuedInPushQueue(ImmutableMultimap<String, String> tldsToDnsWriters)
       throws Exception {
+    // By default, the publishDnsUpdates tasks will be enqueued one hour after the update items were
+    // created in the pull queue. This is because of the clock.advanceBy in run()
     assertTasksEnqueued(
         DNS_PUBLISH_PUSH_QUEUE_NAME,
         transform(
@@ -143,6 +147,8 @@ public class ReadDnsQueueActionTest {
                     .url(PublishDnsUpdatesAction.PATH)
                     .param("tld", tldToDnsWriter.getKey())
                     .param("dnsWriter", tldToDnsWriter.getValue())
+                    .param("itemsCreated", "3000-01-01T00:00:00.000Z")
+                    .param("enqueued", "3000-01-01T01:00:00.000Z")
                     .header("content-type", "application/x-www-form-urlencoded")));
   }
 
@@ -209,6 +215,29 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
+  public void testSuccess_differentUpdateTimes_usesMinimum() throws Exception {
+    clock.setTo(DateTime.parse("3000-02-03TZ"));
+    dnsQueue.addDomainRefreshTask("domain1.com");
+    clock.setTo(DateTime.parse("3000-02-04TZ"));
+    dnsQueue.addDomainRefreshTask("domain2.com");
+    clock.setTo(DateTime.parse("3000-02-05TZ"));
+    dnsQueue.addDomainRefreshTask("domain3.com");
+    run();
+    assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
+    assertThat(getQueuedParams(DNS_PUBLISH_PUSH_QUEUE_NAME))
+        .containsExactly(
+            new ImmutableMultimap.Builder<String, String>()
+                .put("enqueued", "3000-02-05T01:00:00.000Z")
+                .put("itemsCreated", "3000-02-03T00:00:00.000Z")
+                .put("tld", "com")
+                .put("dnsWriter", "comWriter")
+                .put("domains", "domain1.com")
+                .put("domains", "domain2.com")
+                .put("domains", "domain3.com")
+                .build());
+  }
+
+  @Test
   public void testSuccess_oneTldPaused_returnedToQueue() throws Exception {
     persistResource(Registry.get("net").asBuilder().setDnsPaused(true).build());
     dnsQueue.addDomainRefreshTask("domain.com");
@@ -248,6 +277,7 @@ public class ReadDnsQueueActionTest {
                 .method(Method.PULL)
                 .param(DNS_TARGET_TYPE_PARAM, TargetType.DOMAIN.toString())
                 .param(DNS_TARGET_NAME_PARAM, "domain.wrongtld")
+                .param(DNS_TARGET_CREATE_TIME_PARAM, "3000-01-01TZ")
                 .param(PARAM_TLD, "net"));
     run();
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
