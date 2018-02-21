@@ -84,6 +84,8 @@ import google.registry.flows.domain.DomainFlowUtils.DuplicateContactForRoleExcep
 import google.registry.flows.domain.DomainFlowUtils.EmptyDomainNamePartException;
 import google.registry.flows.domain.DomainFlowUtils.ExceedsMaxRegistrationYearsException;
 import google.registry.flows.domain.DomainFlowUtils.ExpiredClaimException;
+import google.registry.flows.domain.DomainFlowUtils.FeeDescriptionMultipleMatchesException;
+import google.registry.flows.domain.DomainFlowUtils.FeeDescriptionParseException;
 import google.registry.flows.domain.DomainFlowUtils.FeesMismatchException;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredDuringEarlyAccessProgramException;
 import google.registry.flows.domain.DomainFlowUtils.FeesRequiredForPremiumNameException;
@@ -1774,8 +1776,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput("domain_create_registration_start_date_sunrise_wrong_encoded_signed_mark.xml");
     persistContactsAndHosts();
-    EppException thrown =
-        expectThrows(NoMarksFoundMatchingDomainException.class, this::runFlow);
+    EppException thrown = expectThrows(NoMarksFoundMatchingDomainException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -2154,8 +2155,89 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
+  public void testFailure_eapFee_combined() throws Exception {
+    setEppInput("domain_create_eap_combined_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+    persistContactsAndHosts();
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setEapFeeSchedule(
+                ImmutableSortedMap.of(
+                    START_OF_TIME,
+                    Money.of(USD, 0),
+                    clock.nowUtc().minusDays(1),
+                    Money.of(USD, 100),
+                    clock.nowUtc().plusDays(1),
+                    Money.of(USD, 0)))
+            .build());
+    EppException thrown = expectThrows(FeeDescriptionParseException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_eapFee_description_swapped() throws Exception {
+    setEppInput(
+        "domain_create_eap_fee.xml",
+        ImmutableMap.of(
+            "FEE_VERSION",
+            "0.6",
+            "DESCRIPTION_1",
+            "Early Access Period",
+            "DESCRIPTION_2",
+            "create"));
+    persistContactsAndHosts();
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setEapFeeSchedule(
+                ImmutableSortedMap.of(
+                    START_OF_TIME,
+                    Money.of(USD, 0),
+                    clock.nowUtc().minusDays(1),
+                    Money.of(USD, 100),
+                    clock.nowUtc().plusDays(1),
+                    Money.of(USD, 0)))
+            .build());
+    EppException thrown = expectThrows(FeesMismatchException.class, this::runFlow);
+    assertThat(thrown).hasMessageThat().contains("CREATE");
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_eapFee_description_multipleMatch() throws Exception {
+    setEppInput(
+        "domain_create_eap_fee.xml",
+        ImmutableMap.of(
+            "FEE_VERSION", "0.6", "DESCRIPTION_1", "Early Access Period", "DESCRIPTION_2", "ea"));
+    persistContactsAndHosts();
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setEapFeeSchedule(
+                ImmutableSortedMap.of(
+                    START_OF_TIME,
+                    Money.of(USD, 0),
+                    clock.nowUtc().minusDays(1),
+                    Money.of(USD, 100),
+                    clock.nowUtc().plusDays(1),
+                    Money.of(USD, 0)))
+            .build());
+    EppException thrown = expectThrows(FeeDescriptionMultipleMatchesException.class, this::runFlow);
+    assertThat(thrown).hasMessageThat().contains("ea");
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
   public void testSuccess_eapFeeApplied_v06() throws Exception {
-    setEppInput("domain_create_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+    setEppInput(
+        "domain_create_eap_fee.xml",
+        ImmutableMap.of(
+            "FEE_VERSION",
+            "0.6",
+            "DESCRIPTION_1",
+            "create",
+            "DESCRIPTION_2",
+            "Early Access Period"));
     persistContactsAndHosts();
     persistResource(
         Registry.get("tld")
@@ -2175,7 +2257,15 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_eapFeeApplied_v11() throws Exception {
-    setEppInput("domain_create_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
+    setEppInput(
+        "domain_create_eap_fee.xml",
+        ImmutableMap.of(
+            "FEE_VERSION",
+            "0.11",
+            "DESCRIPTION_1",
+            "create",
+            "DESCRIPTION_2",
+            "Early Access Period"));
     persistContactsAndHosts();
     persistResource(
         Registry.get("tld")
@@ -2195,7 +2285,15 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_eapFeeApplied_v12() throws Exception {
-    setEppInput("domain_create_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
+    setEppInput(
+        "domain_create_eap_fee.xml",
+        ImmutableMap.of(
+            "FEE_VERSION",
+            "0.12",
+            "DESCRIPTION_1",
+            "create",
+            "DESCRIPTION_2",
+            "Early Access Period"));
     persistContactsAndHosts();
     persistResource(
         Registry.get("tld")

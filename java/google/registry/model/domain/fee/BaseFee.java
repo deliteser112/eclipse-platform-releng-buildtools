@@ -16,11 +16,15 @@ package google.registry.model.domain.fee;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
+import com.google.common.base.Ascii;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Range;
 import google.registry.model.ImmutableObject;
 import google.registry.xml.PeriodAdapter;
 import java.math.BigDecimal;
+import java.util.stream.Stream;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlTransient;
@@ -68,29 +72,27 @@ public abstract class BaseFee extends ImmutableObject {
     String renderDescription(Object... args) {
       return String.format(formatString, args);
     }
+
+    boolean matchFormatString(String description) {
+      return Ascii.toLowerCase(formatString).contains(Ascii.toLowerCase(description));
+    }
   }
 
-  @XmlAttribute
-  String description;
+  @XmlAttribute String description;
 
-  @XmlAttribute
-  AppliedType applied;
+  @XmlAttribute AppliedType applied;
 
   @XmlAttribute(name = "grace-period")
   @XmlJavaTypeAdapter(PeriodAdapter.class)
   Period gracePeriod;
 
-  @XmlAttribute
-  Boolean refundable;
+  @XmlAttribute Boolean refundable;
 
-  @XmlValue
-  BigDecimal cost;
+  @XmlValue BigDecimal cost;
 
-  @XmlTransient
-  FeeType type;
+  @XmlTransient FeeType type;
 
-  @XmlTransient
-  Range<DateTime> validDateRange;
+  @XmlTransient Range<DateTime> validDateRange;
 
   public String getDescription() {
     return description;
@@ -113,8 +115,8 @@ public abstract class BaseFee extends ImmutableObject {
    * must always be negative. Essentially, they are the same thing, just with different sign.
    * However, we need them to be separate classes for proper JAXB handling.
    *
-   * @see <a href="https://tools.ietf.org/html/draft-brown-epp-fees-03#section-2.4">
-   *     Registry Fee Extension for EPP - Fees and Credits</a>
+   * @see <a href="https://tools.ietf.org/html/draft-brown-epp-fees-03#section-2.4">Registry Fee
+   *     Extension for EPP - Fees and Credits</a>
    */
   public BigDecimal getCost() {
     return cost;
@@ -141,5 +143,20 @@ public abstract class BaseFee extends ImmutableObject {
     return getGracePeriod().equals(Period.ZERO)
         && getApplied().equals(AppliedType.IMMEDIATE)
         && getRefundable();
+  }
+
+  /**
+   * Parses the description field and returns {@link FeeType}s that match the description.
+   *
+   * <p>A {@link FeeType} is a match when its {@code formatString} contains the description, case
+   * insensitively.
+   */
+  public ImmutableList<FeeType> parseDescriptionForTypes() {
+    if (description == null) {
+      return ImmutableList.of();
+    }
+    return Stream.of(FeeType.values())
+        .filter(feeType -> feeType.matchFormatString(description))
+        .collect(toImmutableList());
   }
 }

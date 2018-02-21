@@ -588,6 +588,9 @@ An EPP flow that creates a new domain resource.
     *   Domain labels cannot be longer than 63 characters.
     *   More than one contact for a given role is not allowed.
     *   No part of a domain name can be empty.
+    *   The fee description passed in the transform command matches multiple fee
+        types.
+    *   The fee description passed in the transform command cannot be parsed.
     *   Domain name starts with xn-- but is not a valid IDN.
     *   The specified trademark validator is not supported.
     *   Domain labels cannot begin with a dash.

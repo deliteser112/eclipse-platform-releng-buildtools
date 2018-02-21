@@ -935,7 +935,7 @@ public class DomainTransferRequestFlowTest
     setupDomain("expensive-domain", "foo");
     clock.advanceOneMilli();
     doSuccessfulTest(
-        "domain_transfer_request_fee.xml",
+        "domain_transfer_request_separate_fees.xml",
         "domain_transfer_request_response_fees.xml",
         domain.getRegistrationExpirationTime().plusYears(1),
         new ImmutableMap.Builder<String, String>()

@@ -17,6 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.equalTo;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.intersection;
@@ -43,6 +44,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
@@ -78,6 +80,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.ForeignKeyedDesignatedContact;
 import google.registry.model.domain.LrpTokenEntity;
 import google.registry.model.domain.Period;
+import google.registry.model.domain.fee.BaseFee.FeeType;
 import google.registry.model.domain.fee.Credit;
 import google.registry.model.domain.fee.Fee;
 import google.registry.model.domain.fee.FeeQueryCommandExtensionItem;
@@ -111,8 +114,10 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.tmch.ClaimsListShard;
 import google.registry.util.Idn;
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -172,8 +177,7 @@ public class DomainFlowUtils {
    *
    * @see #validateDomainNameWithIdnTables(InternetDomainName)
    */
-  public static InternetDomainName validateDomainName(String name)
-      throws EppException {
+  public static InternetDomainName validateDomainName(String name) throws EppException {
     if (!ALLOWED_CHARS.matchesAllOf(name)) {
       throw new BadDomainNameCharacterException();
     }
@@ -237,8 +241,7 @@ public class DomainFlowUtils {
   }
 
   /** Check if the registrar running the flow has access to the TLD in question. */
-  public static void checkAllowedAccessToTld(String clientId, String tld)
-      throws EppException {
+  public static void checkAllowedAccessToTld(String clientId, String tld) throws EppException {
     if (!Registrar.loadByClientIdCached(clientId).get().getAllowedTlds().contains(tld)) {
       throw new DomainFlowUtils.NotAuthorizedForTldException(tld);
     }
@@ -247,8 +250,9 @@ public class DomainFlowUtils {
   /** Check that the DS data that will be set on a domain is valid. */
   static void validateDsData(Set<DelegationSignerData> dsData) throws EppException {
     if (dsData != null && dsData.size() > MAX_DS_RECORDS_PER_DOMAIN) {
-      throw new TooManyDsRecordsException(String.format(
-          "A maximum of %s DS records are allowed per domain.", MAX_DS_RECORDS_PER_DOMAIN));
+      throw new TooManyDsRecordsException(
+          String.format(
+              "A maximum of %s DS records are allowed per domain.", MAX_DS_RECORDS_PER_DOMAIN));
     }
   }
 
@@ -264,7 +268,8 @@ public class DomainFlowUtils {
   static void verifyNotInPendingDelete(
       Set<DesignatedContact> contacts,
       Key<ContactResource> registrant,
-      Set<Key<HostResource>> nameservers) throws EppException {
+      Set<Key<HostResource>> nameservers)
+      throws EppException {
     for (DesignatedContact contact : nullToEmpty(contacts)) {
       verifyNotInPendingDelete(contact.getContactKey());
     }
@@ -276,8 +281,8 @@ public class DomainFlowUtils {
     }
   }
 
-  private static void verifyNotInPendingDelete(
-      Key<? extends EppResource> resourceKey) throws EppException {
+  private static void verifyNotInPendingDelete(Key<? extends EppResource> resourceKey)
+      throws EppException {
     EppResource resource = ofy().load().key(resourceKey).now();
     if (resource.getStatusValues().contains(StatusValue.PENDING_DELETE)) {
       throw new LinkedResourceInPendingDeleteProhibitsOperationException(resource.getForeignKey());
@@ -309,8 +314,8 @@ public class DomainFlowUtils {
           domainName.toString());
     }
     if (count > MAX_NAMESERVERS_PER_DOMAIN) {
-      throw new TooManyNameserversException(String.format(
-          "Only %d nameservers are allowed per domain", MAX_NAMESERVERS_PER_DOMAIN));
+      throw new TooManyNameserversException(
+          String.format("Only %d nameservers are allowed per domain", MAX_NAMESERVERS_PER_DOMAIN));
     }
   }
 
@@ -326,7 +331,7 @@ public class DomainFlowUtils {
 
   static void validateRequiredContactsPresent(
       Key<ContactResource> registrant, Set<DesignatedContact> contacts)
-          throws RequiredParameterMissingException {
+      throws RequiredParameterMissingException {
     if (registrant == null) {
       throw new MissingRegistrantException();
     }
@@ -347,7 +352,8 @@ public class DomainFlowUtils {
       throws RegistrantNotAllowedException {
     ImmutableSet<String> whitelist = Registry.get(tld).getAllowedRegistrantContactIds();
     // Empty whitelist or null registrantContactId are ignored.
-    if (registrantContactId != null && !whitelist.isEmpty()
+    if (registrantContactId != null
+        && !whitelist.isEmpty()
         && !whitelist.contains(registrantContactId)) {
       throw new RegistrantNotAllowedException(registrantContactId);
     }
@@ -418,16 +424,15 @@ public class DomainFlowUtils {
   static void verifyLaunchPhaseMatchesRegistryPhase(
       Registry registry, LaunchExtension launchExtension, DateTime now) throws EppException {
     if (!Objects.equals(
-        registry.getTldState(now),
-        LAUNCH_PHASE_TO_TLD_STATE.get(launchExtension.getPhase()))) {
+        registry.getTldState(now), LAUNCH_PHASE_TO_TLD_STATE.get(launchExtension.getPhase()))) {
       // No launch operations are allowed during the quiet period or predelegation.
       throw new LaunchPhaseMismatchException();
     }
   }
 
   /** Verifies that an application's domain name matches the target id (from a command). */
-  static void verifyApplicationDomainMatchesTargetId(
-      DomainApplication application, String targetId) throws EppException {
+  static void verifyApplicationDomainMatchesTargetId(DomainApplication application, String targetId)
+      throws EppException {
     if (!application.getFullyQualifiedDomainName().equals(targetId)) {
       throw new ApplicationDomainNameMismatchException();
     }
@@ -438,8 +443,8 @@ public class DomainFlowUtils {
    * where it would not be allowed is if domain name is premium, and premium names are blocked by
    * this registrar.
    */
-  static void verifyPremiumNameIsNotBlocked(
-      String domainName, DateTime priceTime, String clientId) throws EppException {
+  static void verifyPremiumNameIsNotBlocked(String domainName, DateTime priceTime, String clientId)
+      throws EppException {
     if (isDomainPremium(domainName, priceTime)) {
       if (Registrar.loadByClientIdCached(clientId).get().getBlockPremiumNames()) {
         throw new PremiumNameBlockedException();
@@ -501,13 +506,14 @@ public class DomainFlowUtils {
     // message to be deleted), and then subsequently the transfer was canceled, rejected, or deleted
     // (which would cause the poll message to be recreated here).
     Key<PollMessage.Autorenew> existingAutorenewKey = domain.getAutorenewPollMessage();
-    PollMessage.Autorenew updatedAutorenewPollMessage = autorenewPollMessage.isPresent()
-        ? autorenewPollMessage.get().asBuilder().setAutorenewEndTime(newEndTime).build()
-        : newAutorenewPollMessage(domain)
-            .setId(existingAutorenewKey.getId())
-            .setAutorenewEndTime(newEndTime)
-            .setParentKey(existingAutorenewKey.getParent())
-            .build();
+    PollMessage.Autorenew updatedAutorenewPollMessage =
+        autorenewPollMessage.isPresent()
+            ? autorenewPollMessage.get().asBuilder().setAutorenewEndTime(newEndTime).build()
+            : newAutorenewPollMessage(domain)
+                .setId(existingAutorenewKey.getId())
+                .setAutorenewEndTime(newEndTime)
+                .setParentKey(existingAutorenewKey.getParent())
+                .build();
 
     // If the resultant autorenew poll message would have no poll messages to deliver, then just
     // delete it. Otherwise save it with the new end time.
@@ -697,6 +703,49 @@ public class DomainFlowUtils {
     if (!feeTotal.equals(feesAndCredits.getTotalCost())) {
       throw new FeesMismatchException(feesAndCredits.getTotalCost());
     }
+    // If more than one fees are required, always validate individual fees.
+    ImmutableMap<FeeType, Money> expectedFeeMap =
+        buildFeeMap(feesAndCredits.getFees(), feesAndCredits.getCurrency());
+    if (expectedFeeMap.size() > 1) {
+      ImmutableMap<FeeType, Money> providedFeeMap =
+          buildFeeMap(feeCommand.get().getFees(), feeCommand.get().getCurrency());
+      for (FeeType type : expectedFeeMap.keySet()) {
+        Money providedCost = providedFeeMap.get(type);
+        Money expectedCost = expectedFeeMap.get(type);
+        if (!providedCost.isEqual(expectedCost)) {
+          throw new FeesMismatchException(type, expectedCost);
+        }
+      }
+    }
+  }
+
+  private static FeeType getOrParseType(Fee fee) throws ParameterValuePolicyErrorException {
+    if (fee.getType() != null) {
+      return fee.getType();
+    }
+    ImmutableList<FeeType> types = fee.parseDescriptionForTypes();
+    if (types.size() == 0) {
+      throw new FeeDescriptionParseException(fee.getDescription());
+    } else if (types.size() > 1) {
+      throw new FeeDescriptionMultipleMatchesException(fee.getDescription());
+    } else {
+      return types.get(0);
+    }
+  }
+
+  private static ImmutableMap<FeeType, Money> buildFeeMap(List<Fee> fees, CurrencyUnit currency)
+      throws ParameterValuePolicyErrorException {
+    ImmutableMultimap.Builder<FeeType, Money> mapBuilder =
+        new ImmutableMultimap.Builder<FeeType, Money>().orderKeysBy(Comparator.naturalOrder());
+    for (Fee fee : fees) {
+      mapBuilder.put(getOrParseType(fee), Money.of(currency, fee.getCost()));
+    }
+    return mapBuilder
+        .build()
+        .asMap()
+        .entrySet()
+        .stream()
+        .collect(toImmutableMap(Entry::getKey, entry -> Money.total(entry.getValue())));
   }
 
   /**
@@ -714,8 +763,8 @@ public class DomainFlowUtils {
 
   /**
    * Check whether a new registration period (via a create, allocate, or application create) does
-   * not extend beyond a maximum number of years (e.g.
-   * {@link DomainResource#MAX_REGISTRATION_YEARS}).
+   * not extend beyond a maximum number of years (e.g. {@link
+   * DomainResource#MAX_REGISTRATION_YEARS}).
    *
    * @throws ExceedsMaxRegistrationYearsException if the new registration period is too long
    */
@@ -743,9 +792,9 @@ public class DomainFlowUtils {
   /** Update {@link DelegationSignerData} based on an update extension command. */
   static ImmutableSet<DelegationSignerData> updateDsData(
       ImmutableSet<DelegationSignerData> oldDsData, SecDnsUpdateExtension secDnsUpdate)
-          throws EppException {
+      throws EppException {
     // We don't support 'urgent' because we do everything as fast as we can anyways.
-    if (Boolean.TRUE.equals(secDnsUpdate.getUrgent())) {  // We allow both false and null.
+    if (Boolean.TRUE.equals(secDnsUpdate.getUrgent())) { // We allow both false and null.
       throw new UrgentAttributeNotSupportedException();
     }
     // There must be at least one of add/rem/chg, and chg isn't actually supported.
@@ -759,14 +808,13 @@ public class DomainFlowUtils {
       throw new EmptySecDnsUpdateException();
     }
     if (remove != null && Boolean.FALSE.equals(remove.getAll())) {
-      throw new SecDnsAllUsageException();  // Explicit all=false is meaningless.
+      throw new SecDnsAllUsageException(); // Explicit all=false is meaningless.
     }
-    Set<DelegationSignerData> toAdd = (add == null)
-        ? ImmutableSet.of()
-        : add.getDsData();
-    Set<DelegationSignerData> toRemove = (remove == null)
-        ? ImmutableSet.of()
-        : (remove.getAll() == null) ? remove.getDsData() : oldDsData;
+    Set<DelegationSignerData> toAdd = (add == null) ? ImmutableSet.of() : add.getDsData();
+    Set<DelegationSignerData> toRemove =
+        (remove == null)
+            ? ImmutableSet.of()
+            : (remove.getAll() == null) ? remove.getDsData() : oldDsData;
     // RFC 5910 specifies that removes are processed before adds.
     return ImmutableSet.copyOf(union(difference(oldDsData, toRemove), toAdd));
   }
@@ -775,7 +823,9 @@ public class DomainFlowUtils {
   static void verifyClientUpdateNotProhibited(Update command, DomainBase existingResource)
       throws ResourceHasClientUpdateProhibitedException {
     if (existingResource.getStatusValues().contains(StatusValue.CLIENT_UPDATE_PROHIBITED)
-        && !command.getInnerRemove().getStatusValues()
+        && !command
+            .getInnerRemove()
+            .getStatusValues()
             .contains(StatusValue.CLIENT_UPDATE_PROHIBITED)) {
       throw new ResourceHasClientUpdateProhibitedException();
     }
@@ -845,10 +895,8 @@ public class DomainFlowUtils {
 
   /** Validate the notice from a launch create extension, allowing null as a valid notice. */
   static void validateLaunchCreateNotice(
-      @Nullable LaunchNotice notice,
-      String domainLabel,
-      boolean isSuperuser,
-      DateTime now) throws EppException {
+      @Nullable LaunchNotice notice, String domainLabel, boolean isSuperuser, DateTime now)
+      throws EppException {
     if (notice == null) {
       return;
     }
@@ -887,9 +935,8 @@ public class DomainFlowUtils {
    * not on the claims list and is a sunrise application.
    */
   static void verifyClaimsNoticeIfAndOnlyIfNeeded(
-      InternetDomainName domainName,
-      boolean hasSignedMarks,
-      boolean hasClaimsNotice) throws EppException {
+      InternetDomainName domainName, boolean hasSignedMarks, boolean hasClaimsNotice)
+      throws EppException {
     boolean isInClaimsList = ClaimsListShard.get().getClaimKey(domainName.parts().get(0)) != null;
     if (hasClaimsNotice && !isInClaimsList) {
       throw new UnexpectedClaimsNoticeException(domainName.toString());
@@ -902,14 +949,12 @@ public class DomainFlowUtils {
   /** Create a {@link LrpTokenEntity} object that records this LRP registration. */
   static LrpTokenEntity prepareMarkedLrpTokenEntity(
       String lrpTokenString, InternetDomainName domainName, HistoryEntry historyEntry)
-          throws InvalidLrpTokenException {
+      throws InvalidLrpTokenException {
     Optional<LrpTokenEntity> lrpToken = getMatchingLrpToken(lrpTokenString, domainName);
     if (!lrpToken.isPresent()) {
       throw new InvalidLrpTokenException();
     }
-    return lrpToken.get().asBuilder()
-        .setRedemptionHistoryEntry(Key.create(historyEntry))
-        .build();
+    return lrpToken.get().asBuilder().setRedemptionHistoryEntry(Key.create(historyEntry)).build();
   }
 
   /** Check that there are no code marks, which is a type of mark we don't support. */
@@ -935,9 +980,9 @@ public class DomainFlowUtils {
       ImmutableSet<DesignatedContact> contacts) {
     ImmutableSet.Builder<ForeignKeyedDesignatedContact> builder = new ImmutableSet.Builder<>();
     for (DesignatedContact contact : contacts) {
-      builder.add(ForeignKeyedDesignatedContact.create(
-          contact.getType(),
-          ofy().load().key(contact.getContactKey()).now().getContactId()));
+      builder.add(
+          ForeignKeyedDesignatedContact.create(
+              contact.getType(), ofy().load().key(contact.getContactKey()).now().getContactId()));
     }
     return builder.build();
   }
@@ -960,12 +1005,14 @@ public class DomainFlowUtils {
       Duration maxSearchPeriod,
       final ImmutableSet<TransactionReportField> cancelableFields) {
 
-    List<HistoryEntry> recentHistoryEntries =  ofy().load()
-        .type(HistoryEntry.class)
-        .ancestor(domainResource)
-        .filter("modificationTime >=", now.minus(maxSearchPeriod))
-        .order("modificationTime")
-        .list();
+    List<HistoryEntry> recentHistoryEntries =
+        ofy()
+            .load()
+            .type(HistoryEntry.class)
+            .ancestor(domainResource)
+            .filter("modificationTime >=", now.minus(maxSearchPeriod))
+            .order("modificationTime")
+            .list();
     Optional<HistoryEntry> entryToCancel =
         Streams.findLast(
             recentHistoryEntries
@@ -1006,9 +1053,7 @@ public class DomainFlowUtils {
   static class LinkedResourceInPendingDeleteProhibitsOperationException
       extends StatusProhibitsOperationException {
     public LinkedResourceInPendingDeleteProhibitsOperationException(String resourceId) {
-      super(String.format(
-          "Linked resource in pending delete prohibits operation: %s",
-          resourceId));
+      super(String.format("Linked resource in pending delete prohibits operation: %s", resourceId));
     }
   }
 
@@ -1190,8 +1235,9 @@ public class DomainFlowUtils {
   /** Fees must be explicitly acknowledged when performing any operations on a premium name. */
   static class FeesRequiredForPremiumNameException extends RequiredParameterMissingException {
     FeesRequiredForPremiumNameException() {
-      super("Fees must be explicitly acknowledged when performing any operations on a premium"
-          + " name");
+      super(
+          "Fees must be explicitly acknowledged when performing any operations on a premium"
+              + " name");
     }
   }
 
@@ -1221,8 +1267,9 @@ public class DomainFlowUtils {
   /** The 'grace-period', 'applied' and 'refundable' fields are disallowed by server policy. */
   static class UnsupportedFeeAttributeException extends UnimplementedOptionException {
     UnsupportedFeeAttributeException() {
-      super("The 'grace-period', 'refundable' and 'applied' attributes are disallowed by server "
-          + "policy");
+      super(
+          "The 'grace-period', 'refundable' and 'applied' attributes are disallowed by server "
+              + "policy");
     }
   }
 
@@ -1268,8 +1315,9 @@ public class DomainFlowUtils {
    */
   static class PremiumNameBlockedException extends StatusProhibitsOperationException {
     public PremiumNameBlockedException() {
-      super("The requested domain name is on the premium price list, "
-          + "and this registrar has blocked premium registrations");
+      super(
+          "The requested domain name is on the premium price list, "
+              + "and this registrar has blocked premium registrations");
     }
   }
 
@@ -1280,9 +1328,39 @@ public class DomainFlowUtils {
     }
 
     public FeesMismatchException(Money correctFee) {
-      super(String.format(
-          "The fees passed in the transform command do not match the expected total of %s",
-          correctFee));
+      super(
+          String.format(
+              "The fees passed in the transform command do not match the expected total of %s",
+              correctFee));
+    }
+
+    public FeesMismatchException(FeeType type, Money correctFee) {
+      super(
+          String.format(
+              "The fees passed in the transform command for type \"%s\" do not match the expected "
+                  + "fee of %s",
+              type, correctFee));
+    }
+  }
+
+  /** The fee description passed in the transform command cannot be parsed. */
+  public static class FeeDescriptionParseException extends ParameterValuePolicyErrorException {
+    public FeeDescriptionParseException(String description) {
+      super(
+          String.format(
+              "The fee description \"%s\" passed in the transform command cannot be parsed",
+              description == null ? "" : description));
+    }
+  }
+
+  /** The fee description passed in the transform command matches multiple fee types. */
+  public static class FeeDescriptionMultipleMatchesException
+      extends ParameterValuePolicyErrorException {
+    public FeeDescriptionMultipleMatchesException(String description) {
+      super(
+          String.format(
+              "The fee description \"%s\" passed in the transform matches multiple fee types",
+              description));
     }
   }
 
@@ -1304,9 +1382,10 @@ public class DomainFlowUtils {
   public static class NameserversNotAllowedForTldException
       extends StatusProhibitsOperationException {
     public NameserversNotAllowedForTldException(Set<String> fullyQualifiedHostNames) {
-      super(String.format(
-          "Nameservers '%s' are not whitelisted for this TLD",
-          Joiner.on(',').join(fullyQualifiedHostNames)));
+      super(
+          String.format(
+              "Nameservers '%s' are not whitelisted for this TLD",
+              Joiner.on(',').join(fullyQualifiedHostNames)));
     }
   }
 
@@ -1451,8 +1530,7 @@ public class DomainFlowUtils {
   }
 
   /** Invalid limited registration period token. */
-  static class InvalidLrpTokenException
-      extends InvalidAuthorizationInformationErrorException {
+  static class InvalidLrpTokenException extends InvalidAuthorizationInformationErrorException {
     public InvalidLrpTokenException() {
       super("Invalid limited registration period token");
     }
@@ -1468,9 +1546,10 @@ public class DomainFlowUtils {
   /** New registration period exceeds maximum number of years. */
   static class ExceedsMaxRegistrationYearsException extends ParameterValueRangeErrorException {
     public ExceedsMaxRegistrationYearsException() {
-      super(String.format(
-          "New registration period exceeds maximum number of years (%d)",
-          MAX_REGISTRATION_YEARS));
+      super(
+          String.format(
+              "New registration period exceeds maximum number of years (%d)",
+              MAX_REGISTRATION_YEARS));
     }
   }
 
@@ -1480,5 +1559,4 @@ public class DomainFlowUtils {
       super("Registrar must be active in order to create domains or applications");
     }
   }
-
 }

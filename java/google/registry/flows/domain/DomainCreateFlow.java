@@ -141,6 +141,8 @@ import org.joda.time.Duration;
  * @error {@link DomainFlowUtils.EmptyDomainNamePartException}
  * @error {@link DomainFlowUtils.ExceedsMaxRegistrationYearsException}
  * @error {@link DomainFlowUtils.ExpiredClaimException}
+ * @error {@link DomainFlowUtils.FeeDescriptionMultipleMatchesException}
+ * @error {@link DomainFlowUtils.FeeDescriptionParseException}
  * @error {@link DomainFlowUtils.FeesMismatchException}
  * @error {@link DomainFlowUtils.FeesRequiredDuringEarlyAccessProgramException}
  * @error {@link DomainFlowUtils.FeesRequiredForPremiumNameException}
