@@ -17,6 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.equalTo;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.Iterables.any;
 import static com.google.common.collect.Sets.difference;
@@ -270,22 +271,25 @@ public class DomainFlowUtils {
       Key<ContactResource> registrant,
       Set<Key<HostResource>> nameservers)
       throws EppException {
-    for (DesignatedContact contact : nullToEmpty(contacts)) {
-      verifyNotInPendingDelete(contact.getContactKey());
-    }
-    if (registrant != null) {
-      verifyNotInPendingDelete(registrant);
-    }
-    for (Key<HostResource> host : nullToEmpty(nameservers)) {
-      verifyNotInPendingDelete(host);
-    }
+    ImmutableList.Builder<Key<? extends EppResource>> keysToLoad = new ImmutableList.Builder<>();
+    nullToEmpty(contacts).stream().map(DesignatedContact::getContactKey).forEach(keysToLoad::add);
+    Optional.ofNullable(registrant).ifPresent(keysToLoad::add);
+    keysToLoad.addAll(nullToEmpty(nameservers));
+    // This cast is safe because, in Objectify, Key<? extends EppResource> can also be
+    // treated as a Key<EppResource>.
+    @SuppressWarnings("unchecked")
+    ImmutableList<Key<EppResource>> typedKeys =
+        keysToLoad.build().stream().map(key -> (Key<EppResource>) key).collect(toImmutableList());
+    verifyNotInPendingDelete(ofy().load().keys(typedKeys).values());
   }
 
-  private static void verifyNotInPendingDelete(Key<? extends EppResource> resourceKey)
+  private static void verifyNotInPendingDelete(Iterable<EppResource> resources)
       throws EppException {
-    EppResource resource = ofy().load().key(resourceKey).now();
-    if (resource.getStatusValues().contains(StatusValue.PENDING_DELETE)) {
-      throw new LinkedResourceInPendingDeleteProhibitsOperationException(resource.getForeignKey());
+    for (EppResource resource : resources) {
+      if (resource.getStatusValues().contains(StatusValue.PENDING_DELETE)) {
+        throw new LinkedResourceInPendingDeleteProhibitsOperationException(
+            resource.getForeignKey());
+      }
     }
   }
 
