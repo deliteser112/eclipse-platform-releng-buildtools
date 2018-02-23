@@ -41,7 +41,7 @@ registry.testing.addToDocument = function(html) {
 
 
 /**
- * Extracts XML document from inside an {@code <iframe>}.
+ * Extracts XML document from inside an `<iframe>`.
  * @param {string} xmlText
  * @return {!Document}
  */
@@ -56,7 +56,7 @@ registry.testing.loadXml = function(xmlText) {
 
 
 /**
- * Extracts plain text string from inside an {@code <iframe>}.
+ * Extracts plain text string from inside an `<iframe>`.
  * @param {string|!Document|!Element} want
  * @param {string|!Document|!Element} got
  */

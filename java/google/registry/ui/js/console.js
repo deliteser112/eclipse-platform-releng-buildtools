@@ -77,7 +77,7 @@ registry.Console.prototype.bindToDom = function() {
 
 /**
  * Subclasses should override to visit the hash token given by
- * {@code goog.History.getToken()}.
+ * `goog.History.getToken()`.
  */
 registry.Console.prototype.handleHashChange = goog.abstractMethod;
 

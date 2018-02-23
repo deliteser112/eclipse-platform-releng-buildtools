@@ -94,8 +94,8 @@ registry.EditItem.prototype.setupAppbar = function() {
 
 
 /**
- * Retrieve item from server.  Overrides should callback to {@code
- * #handleFetchItem(string, !Object)}.
+ * Retrieve item from server.  Overrides should callback to
+ * `#handleFetchItem(string, !Object)`.
  * @param {string} id item id.
  */
 registry.EditItem.prototype.fetchItem = goog.abstractMethod;
@@ -136,8 +136,8 @@ registry.EditItem.prototype.isEditing = function() {
 /**
  * Toggles the editing state of a component.  This will first hide the
  * elements of the `shown` class, then adds the `editing`
- * style to the component, then shows the elements that had the {@code
- * hidden} class.
+ * style to the component, then shows the elements that had the `hidden`
+ * class.
  */
 registry.EditItem.prototype.toggleEdit = function() {
   // Toggle appbar buttons.

@@ -51,7 +51,7 @@ registry.registrar.ConsoleTestUtil.setup = function(test) {
  * @param {Object} test the test case to configure.
  * @param {Object=} opt_args may include path, isEppLoggedIn.
  * @param {Function=} opt_moar extra setup after called just before
- *     {@code $replayAll}.  See memegen/3437690.
+ *     `$replayAll`.  See memegen/3437690.
  */
 registry.registrar.ConsoleTestUtil.visit = function(
     test, opt_args, opt_moar) {

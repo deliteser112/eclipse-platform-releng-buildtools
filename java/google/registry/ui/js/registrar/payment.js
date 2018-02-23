@@ -334,7 +334,7 @@ registry.registrar.Payment.prototype.onMessage_ = function(e) {
  *
  * <p>This approach is also advantageous for screenshot testing. We do not want
  * our continuous integration testing system to talk to Braintree's servers. So
- * we mock out the brainframe with {@code integration-test-brainframe.html}
+ * we mock out the brainframe with `integration-test-brainframe.html`
  * which <i>only</i> sends us a METHOD message, which we then render ourselves.
  *
  * @param {!braintreepayments.PaymentMethod} pm

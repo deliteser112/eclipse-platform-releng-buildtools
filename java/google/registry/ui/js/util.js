@@ -20,7 +20,7 @@ goog.require('goog.soy');
 
 
 /**
- * Logging function that delegates to {@code console.log()}.
+ * Logging function that delegates to `console.log()`.
  * @param {...*} var_args
  */
 registry.util.log = function(var_args) {
