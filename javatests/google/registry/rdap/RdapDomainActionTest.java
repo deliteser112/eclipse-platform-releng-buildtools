@@ -298,7 +298,8 @@ public class RdapDomainActionTest {
       String punycodeName,
       String handle,
       String expectedOutputFile) {
-    return generateExpectedJson(name, punycodeName, handle, null, null, null, expectedOutputFile);
+    return generateExpectedJson(
+        name, punycodeName, handle, null, null, null, null, expectedOutputFile);
   }
 
   private Object generateExpectedJson(
@@ -308,6 +309,7 @@ public class RdapDomainActionTest {
       @Nullable List<String> contactRoids,
       @Nullable List<String> nameserverRoids,
       @Nullable List<String> nameserverNames,
+      @Nullable String registrarName,
       String expectedOutputFile) {
     ImmutableMap.Builder<String, String> substitutionsBuilder = new ImmutableMap.Builder<>();
     substitutionsBuilder.put("NAME", name);
@@ -316,6 +318,9 @@ public class RdapDomainActionTest {
     substitutionsBuilder.put("TYPE", "domain name");
     substitutionsBuilder.put("NAMESERVER1ADDRESS", "1.2.3.4");
     substitutionsBuilder.put("NAMESERVER2ADDRESS", "bad:f00d:cafe::15:beef");
+    if (registrarName != null) {
+      substitutionsBuilder.put("REGISTRARNAME", registrarName);
+    }
     if (contactRoids != null) {
       for (int i = 0; i < contactRoids.size(); i++) {
         substitutionsBuilder.put("CONTACT" + (i + 1) + "ROID", contactRoids.get(i));
@@ -350,9 +355,17 @@ public class RdapDomainActionTest {
       String handle,
       @Nullable List<String> contactRoids,
       @Nullable List<String> nameserverRoids,
+      @Nullable String registrarName,
       String expectedOutputFile) {
     return generateExpectedJsonWithTopLevelEntries(
-        name, punycodeName, handle, contactRoids, nameserverRoids, null, expectedOutputFile);
+        name,
+        punycodeName,
+        handle,
+        contactRoids,
+        nameserverRoids,
+        null,
+        registrarName,
+        expectedOutputFile);
   }
   private Object generateExpectedJsonWithTopLevelEntries(
       String name,
@@ -361,6 +374,7 @@ public class RdapDomainActionTest {
       @Nullable List<String> contactRoids,
       @Nullable List<String> nameserverRoids,
       @Nullable List<String> nameserverNames,
+      @Nullable String registrarName,
       String expectedOutputFile) {
     Object obj =
         generateExpectedJson(
@@ -370,6 +384,7 @@ public class RdapDomainActionTest {
             contactRoids,
             nameserverRoids,
             nameserverNames,
+            registrarName,
             expectedOutputFile);
     if (obj instanceof Map) {
       @SuppressWarnings("unchecked")
@@ -412,6 +427,7 @@ public class RdapDomainActionTest {
                 ? ImmutableList.of("4-ROID", "6-ROID", "2-ROID")
                 : null,
             ImmutableList.of("8-ROID", "A-ROID"),
+            "Yes Virginia <script>",
             expectedOutputFile));
     assertThat(response.getStatus()).isEqualTo(200);
   }
@@ -505,6 +521,7 @@ public class RdapDomainActionTest {
             "1D-Q9JYB4C",
             ImmutableList.of("19-ROID", "1B-ROID", "17-ROID"),
             ImmutableList.of("8-ROID", "A-ROID"),
+            "IDN Registrar",
             "rdap_domain_unicode.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
@@ -520,6 +537,7 @@ public class RdapDomainActionTest {
             "1D-Q9JYB4C",
             ImmutableList.of("19-ROID", "1B-ROID", "17-ROID"),
             ImmutableList.of("8-ROID", "A-ROID"),
+            "IDN Registrar",
             "rdap_domain_unicode.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
@@ -535,6 +553,7 @@ public class RdapDomainActionTest {
             "1D-Q9JYB4C",
             ImmutableList.of("19-ROID", "1B-ROID", "17-ROID"),
             ImmutableList.of("8-ROID", "A-ROID"),
+            "IDN Registrar",
             "rdap_domain_unicode.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
@@ -550,6 +569,7 @@ public class RdapDomainActionTest {
             "25-1_TLD",
             ImmutableList.of("21-ROID", "23-ROID", "1F-ROID"),
             ImmutableList.of("8-ROID", "A-ROID"),
+            "Multilevel Registrar",
             "rdap_domain.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
@@ -606,6 +626,7 @@ public class RdapDomainActionTest {
             ImmutableList.of("11-ROID", "13-ROID", "F-ROID"),
             ImmutableList.of("8-ROID", "D-ROID"),
             ImmutableList.of("ns1.cat.lol", "ns2.dodo.lol"),
+            "Yes Virginia <script>",
             "rdap_domain_deleted.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
@@ -623,6 +644,7 @@ public class RdapDomainActionTest {
             ImmutableList.of("11-ROID", "13-ROID", "F-ROID"),
             ImmutableList.of("8-ROID", "D-ROID"),
             ImmutableList.of("ns1.cat.lol", "ns2.dodo.lol"),
+            "Yes Virginia <script>",
             "rdap_domain_deleted.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }

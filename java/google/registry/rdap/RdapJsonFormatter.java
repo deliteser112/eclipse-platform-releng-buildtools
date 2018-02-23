@@ -543,6 +543,14 @@ public class RdapJsonFormatter {
                             outputDataType,
                             authorization))
                 .collect(toImmutableList());
+        entities =
+            addRegistrarEntity(
+                entities,
+                domainResource.getCurrentSponsorClientId(),
+                linkBase,
+                whoisServer,
+                now,
+                outputDataType);
         if (!entities.isEmpty()) {
           jsonBuilder.put("entities", entities);
         }
@@ -572,6 +580,38 @@ public class RdapJsonFormatter {
       jsonBuilder.put(REMARKS, remarks);
     }
     return jsonBuilder.build();
+  }
+
+  /**
+   * Adds a JSON object for the desired registrar to an existing array of JSON objects.
+   *
+   * @param clientId the registrar client ID
+   * @param linkBase the URL base to be used when creating links
+   * @param whoisServer the fully-qualified domain name of the WHOIS server to be listed in the
+   *        port43 field; if null, port43 is not added to the object
+   * @param now the as-date
+   * @param outputDataType whether to generate full or summary data
+   */
+  ImmutableList<ImmutableMap<String, Object>> addRegistrarEntity(
+      ImmutableList<ImmutableMap<String, Object>> entities,
+      @Nullable String clientId,
+      @Nullable String linkBase,
+      @Nullable String whoisServer,
+      DateTime now,
+      OutputDataType outputDataType) {
+    if (clientId == null) {
+      return entities;
+    }
+    Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
+    if (!registrar.isPresent()) {
+      return entities;
+    }
+    ImmutableList.Builder<ImmutableMap<String, Object>> builder = new ImmutableList.Builder<>();
+    builder.addAll(entities);
+    builder.add(
+        makeRdapJsonForRegistrar(
+            registrar.get(), false /* isTopLevel */, linkBase, whoisServer, now, outputDataType));
+    return builder.build();
   }
 
   /**

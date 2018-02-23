@@ -500,7 +500,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
   }
 
   private Object generateExpectedJson(String name, String expectedOutputFile) {
-    return generateExpectedJson(name, null, null, null, null, expectedOutputFile);
+    return generateExpectedJson(name, null, null, null, null, null, expectedOutputFile);
   }
 
   private Object generateExpectedJson(
@@ -509,6 +509,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
       String handle,
       @Nullable List<String> contactRoids,
       @Nullable List<String> nameservers,
+      @Nullable String registrarName,
       String expectedOutputFile) {
     ImmutableMap.Builder<String, String> substitutionsBuilder = new ImmutableMap.Builder<>();
     substitutionsBuilder.put("NAME", name);
@@ -532,6 +533,9 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
             InetAddresses.toAddrString(host.getInetAddresses().asList().get(0)));
       }
     }
+    if (registrarName != null) {
+      substitutionsBuilder.put("REGISTRARNAME", registrarName);
+    }
     return JSONValue.parse(
         loadFile(this.getClass(), expectedOutputFile, substitutionsBuilder.build()));
   }
@@ -542,10 +546,17 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
       String handle,
       @Nullable List<String> contactRoids,
       @Nullable List<String> nameservers,
+      @Nullable String registrarName,
       String expectedOutputFile) {
     Object obj =
         generateExpectedJson(
-            name, punycodeName, handle, contactRoids, nameservers, expectedOutputFile);
+            name,
+            punycodeName,
+            handle,
+            contactRoids,
+            nameservers,
+            registrarName,
+            expectedOutputFile);
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("domainSearchResults", ImmutableList.of(obj));
     builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
@@ -681,6 +692,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "C-LOL",
         ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
         ImmutableList.of("ns1.cat.lol", "ns2.cat.lol"),
+        "Yes Virginia <script>",
         fileName);
   }
 
@@ -694,6 +706,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "17-LOL",
         ImmutableList.of("F-ROID", "11-ROID", "D-ROID"),
         ImmutableList.of("ns1.cat.example", "ns2.dog.lol"),
+        "Yes Virginia <script>",
         fileName);
   }
 
@@ -705,12 +718,13 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
       String handle,
       @Nullable List<String> contactRoids,
       @Nullable List<String> nameservers,
+      @Nullable String registrarName,
       String fileName) {
     rememberWildcardType(queryString);
     assertThat(generateActualJson(requestType, queryString))
         .isEqualTo(
             generateExpectedJsonForDomain(
-                name, punycodeName, handle, contactRoids, nameservers, fileName));
+                name, punycodeName, handle, contactRoids, nameservers, registrarName, fileName));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
@@ -1008,6 +1022,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "21-EXAMPLE",
         null,
         ImmutableList.of("ns1.cat.lol", "ns2.external.tld"),
+        "Yes Virginia <script>",
         "rdap_domain_no_contacts_with_remark.json");
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(1L));
   }
@@ -1022,6 +1037,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "2D-Q9JYB4C",
         null,
         ImmutableList.of("ns1.cat.xn--q9jyb4c", "ns2.cat.xn--q9jyb4c"),
+        "Yes Virginia <script>",
         "rdap_domain_unicode_no_contacts_with_remark.json");
     // The unicode gets translated to ASCII before getting parsed into a search pattern.
     metricPrefixLength = 15;
@@ -1038,6 +1054,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "2D-Q9JYB4C",
         null,
         ImmutableList.of("ns1.cat.xn--q9jyb4c", "ns2.cat.xn--q9jyb4c"),
+        "Yes Virginia <script>",
         "rdap_domain_unicode_no_contacts_with_remark.json");
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(1L));
   }
@@ -1052,6 +1069,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "39-1_TEST",
         ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
         ImmutableList.of("ns1.cat.1.test", "ns2.cat.2.test"),
+        "Yes Virginia <script>",
         "rdap_domain_no_contacts_with_remark.json");
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(1L));
   }
@@ -1066,6 +1084,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "39-1_TEST",
         ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
         ImmutableList.of("ns1.cat.1.test", "ns2.cat.2.test"),
+        "Yes Virginia <script>",
         "rdap_domain_no_contacts_with_remark.json");
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(1L));
   }
@@ -1592,6 +1611,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "2D-Q9JYB4C",
         null,
         ImmutableList.of("ns1.cat.xn--q9jyb4c", "ns2.cat.xn--q9jyb4c"),
+        "Yes Virginia <script>",
         "rdap_domain_unicode_no_contacts_with_remark.json");
     verifyMetrics(SearchType.BY_NAMESERVER_NAME, 1, 1);
   }
@@ -1606,6 +1626,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "39-1_TEST",
         ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
         ImmutableList.of("ns1.cat.1.test", "ns2.cat.2.test"),
+        "Yes Virginia <script>",
         "rdap_domain_no_contacts_with_remark.json");
     verifyMetrics(SearchType.BY_NAMESERVER_NAME, 1, 1);
   }
@@ -1620,6 +1641,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "39-1_TEST",
         ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
         ImmutableList.of("ns1.cat.1.test", "ns2.cat.2.test"),
+        "Yes Virginia <script>",
         "rdap_domain_no_contacts_with_remark.json");
     verifyMetrics(SearchType.BY_NAMESERVER_NAME, 1, 1);
   }
@@ -1983,6 +2005,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
                 "C-LOL",
                 ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
                 ImmutableList.of("ns1.cat.lol", "ns2.cat.lol"),
+                "Yes Virginia <script>",
                 "rdap_domain.json"));
     assertThat(response.getStatus()).isEqualTo(200);
     verifyMetrics(SearchType.BY_NAMESERVER_ADDRESS, 1, 1);

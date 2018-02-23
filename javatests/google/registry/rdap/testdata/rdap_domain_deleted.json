@@ -383,6 +383,93 @@
           ]
         ]
       ]
+    },
+    {
+      "objectClassName": "entity",
+      "status": [ "active" ],
+      "handle": "1",
+      "roles": [ "registrar" ],
+      "links": [
+        {
+          "href": "https://example.com/rdap/entity/1",
+          "type": "application/rdap+json",
+          "rel": "self",
+          "value": "https://example.com/rdap/entity/1"
+        }
+      ],
+      "events": [
+        {
+          "eventAction": "registration",
+          "eventActor": "1",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        },
+        {
+          "eventAction": "last update of RDAP database",
+          "eventDate": "2000-01-01T00:00:00.000Z"
+        }
+      ],
+      "vcardArray" : [
+        "vcard",
+        [
+          ["version", {}, "text", "4.0"],
+          ["fn", {}, "text", "%REGISTRARNAME%"],
+          [
+            "adr",
+            {},
+            "text",
+            [
+              "",
+              "",
+              "123 Example Boulevard <script>",
+              "Williamsburg <script>",
+              "NY",
+              "11211",
+              "United States"
+            ]
+          ],
+          ["tel", {"type":["voice"]}, "uri", "tel:+1.2125551212"],
+          ["tel", {"type":["fax"]}, "uri", "tel:+1.2125551213"],
+          ["email", {}, "text", "contact-us@example.com"]
+        ]
+      ],
+      "publicIds" : [
+        {
+          "type": "IANA Registrar ID",
+          "identifier":"1"
+        }
+      ],
+      "entities" : [
+        {
+          "status" : ["active"],
+          "vcardArray" : [
+            "vcard",
+            [
+              ["version", {}, "text", "4.0"],
+              ["fn", {}, "text", "Jane Doe"],
+              ["tel", {"type":["voice"]}, "uri", "tel:+1.2125551215"],
+              ["tel", {"type":["fax"]}, "uri","tel:+1.2125551216"],
+              ["email", {}, "text", "janedoe@example.com"]
+            ]
+          ],
+          "roles" : ["administrative"],
+          "objectClassName" : "entity"
+        },
+        {
+          "status" : ["active"],
+          "vcardArray" : [
+            "vcard",
+            [
+              ["version", {}, "text", "4.0"],
+              ["fn", {}, "text", "John Doe"],
+              ["tel", {"type":["voice"]}, "uri", "tel:+1.2125551213"],
+              ["tel", {"type":["fax"]}, "uri", "tel:+1.2125551213"],
+              ["email", {}, "text", "johndoe@example.com"]
+            ]
+          ],
+          "roles" : ["technical"],
+          "objectClassName" : "entity"
+        }
+      ]
     }
   ],
   "objectClassName": "domain"
