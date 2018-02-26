@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.collect.Maps.transformValues;
 import static com.google.common.collect.Sets.difference;
-import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.difference;
 import static google.registry.util.CollectionUtils.forceEmptyToNull;
 import static google.registry.util.CollectionUtils.nullSafeImmutableCopy;
@@ -391,7 +390,7 @@ public class DomainCommand {
         clone.registrant = clone.registrantContactId == null
             ? null
             : getOnlyElement(
-                loadByForeignKey(
+                loadByForeignKeys(
                     ImmutableSet.of(clone.registrantContactId), ContactResource.class, now)
                         .values());
         return clone;
@@ -420,7 +419,7 @@ public class DomainCommand {
       return null;
     }
     return ImmutableSet.copyOf(
-        loadByForeignKey(fullyQualifiedHostNames, HostResource.class, now).values());
+        loadByForeignKeys(fullyQualifiedHostNames, HostResource.class, now).values());
   }
 
   private static Set<DesignatedContact> linkContacts(
@@ -433,7 +432,7 @@ public class DomainCommand {
       foreignKeys.add(contact.contactId);
     }
     ImmutableMap<String, Key<ContactResource>> loadedContacts =
-        loadByForeignKey(foreignKeys.build(), ContactResource.class, now);
+        loadByForeignKeys(foreignKeys.build(), ContactResource.class, now);
     ImmutableSet.Builder<DesignatedContact> linkedContacts = new ImmutableSet.Builder<>();
     for (ForeignKeyedDesignatedContact contact : contacts) {
       linkedContacts.add(DesignatedContact.create(
@@ -442,12 +441,11 @@ public class DomainCommand {
     return linkedContacts.build();
   }
 
-  /** Load keys to resources by their foreign keys. */
-  private static <T extends EppResource> ImmutableMap<String, Key<T>> loadByForeignKey(
+  /** Loads keys to EPP resources by their foreign keys. */
+  private static <T extends EppResource> ImmutableMap<String, Key<T>> loadByForeignKeys(
       final Set<String> foreignKeys, final Class<T> clazz, final DateTime now)
       throws InvalidReferencesException {
-    Map<String, ForeignKeyIndex<T>> fkis =
-        ofy().doTransactionless(() -> ForeignKeyIndex.load(clazz, foreignKeys, now));
+    Map<String, ForeignKeyIndex<T>> fkis = ForeignKeyIndex.loadCached(clazz, foreignKeys, now);
     if (!fkis.keySet().equals(foreignKeys)) {
       throw new InvalidReferencesException(
           clazz, ImmutableSet.copyOf(difference(foreignKeys, fkis.keySet())));

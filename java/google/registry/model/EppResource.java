@@ -16,23 +16,39 @@ package google.registry.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Sets.difference;
 import static com.google.common.collect.Sets.union;
+import static google.registry.config.RegistryConfig.getEppResourceCachingDuration;
+import static google.registry.config.RegistryConfig.getEppResourceMaxCachedEntries;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
+import google.registry.config.RegistryConfig;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.ofy.CommitLogManifest;
 import google.registry.model.transfer.TransferData;
+import google.registry.util.NonFinalForTesting;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import org.joda.time.DateTime;
 
 /** An EPP entity object (i.e. a domain, application, contact, or host). */
@@ -299,6 +315,73 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
       // If there is no deletion time, set it to END_OF_TIME.
       setDeletionTime(Optional.ofNullable(getInstance().deletionTime).orElse(END_OF_TIME));
       return ImmutableObject.cloneEmptyToNull(super.build());
+    }
+  }
+
+  static final CacheLoader<Key<? extends EppResource>, EppResource> CACHE_LOADER =
+      new CacheLoader<Key<? extends EppResource>, EppResource>() {
+
+        @Override
+        public EppResource load(Key<? extends EppResource> key) {
+          return ofy().doTransactionless(() -> ofy().load().key(key).now());
+        }
+
+        @Override
+        public Map<Key<? extends EppResource>, EppResource> loadAll(
+            Iterable<? extends Key<? extends EppResource>> keys) {
+          return ofy().doTransactionless(() -> loadMultiple(keys));
+        }
+      };
+
+  /**
+   * A limited size, limited time cache for EPP resource entities.
+   *
+   * <p>This is only used to cache contacts and hosts for the purposes of checking whether they are
+   * deleted or in pending delete during a few domain flows. Any operations on contacts and hosts
+   * directly should of course never use the cache.
+   */
+  @NonFinalForTesting
+  static LoadingCache<Key<? extends EppResource>, EppResource> cacheEppResources =
+      CacheBuilder.newBuilder()
+          .expireAfterWrite(getEppResourceCachingDuration().getMillis(), MILLISECONDS)
+          .maximumSize(getEppResourceMaxCachedEntries())
+          .build(CACHE_LOADER);
+
+  private static ImmutableMap<Key<? extends EppResource>, EppResource> loadMultiple(
+      Iterable<? extends Key<? extends EppResource>> keys) {
+    // This cast is safe because, in Objectify, Key<? extends EppResource> can also be
+    // treated as a Key<EppResource>.
+    @SuppressWarnings("unchecked")
+    ImmutableList<Key<EppResource>> typedKeys =
+        Streams.stream(keys).map(key -> (Key<EppResource>) key).collect(toImmutableList());
+
+    // Typing shenanigans are required to return the map with the correct required generic type.
+    return ofy()
+        .load()
+        .keys(typedKeys)
+        .entrySet()
+        .stream()
+        .collect(
+            ImmutableMap
+                .<Map.Entry<Key<EppResource>, EppResource>, Key<? extends EppResource>, EppResource>
+                    toImmutableMap(Entry::getKey, Entry::getValue));
+  }
+
+  /**
+   * Loads a given EppResource by its key using the cache (if enabled).
+   *
+   * <p>Don't use this unless you really need it for performance reasons, and be sure that you are
+   * OK with the trade-offs in loss of transactional consistency.
+   */
+  public static ImmutableMap<Key<? extends EppResource>, EppResource> loadCached(
+      Iterable<Key<? extends EppResource>> keys) {
+    if (!RegistryConfig.isEppResourceCachingEnabled()) {
+      return loadMultiple(keys);
+    }
+    try {
+      return cacheEppResources.getAll(keys);
+    } catch (ExecutionException e) {
+      throw new RuntimeException("Error loading cached EppResources", e.getCause());
     }
   }
 }

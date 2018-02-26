@@ -1,0 +1,70 @@
+// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package google.registry.model;
+
+import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.EppResource.CACHE_LOADER;
+import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistActiveHost;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static java.util.concurrent.TimeUnit.DAYS;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableList;
+import com.googlecode.objectify.Key;
+import google.registry.model.contact.ContactResource;
+import google.registry.model.host.HostResource;
+import org.junit.Test;
+
+/** Unit tests for {@link EppResource}. */
+public class EppResourceTest extends EntityTestCase {
+
+  @Test
+  public void test_loadCached_ignoresContactChange() {
+    setNonZeroCachingInterval();
+    ContactResource originalContact = persistActiveContact("contact123");
+    assertThat(EppResource.loadCached(ImmutableList.of(Key.create(originalContact))))
+        .containsExactly(Key.create(originalContact), originalContact);
+    ContactResource modifiedContact =
+        persistResource(originalContact.asBuilder().setEmailAddress("different@fake.lol").build());
+    assertThat(EppResource.loadCached(ImmutableList.of(Key.create(originalContact))))
+        .containsExactly(Key.create(originalContact), originalContact);
+    assertThat(
+            EppResourceUtils.loadByForeignKey(ContactResource.class, "contact123", clock.nowUtc()))
+        .isEqualTo(modifiedContact);
+  }
+
+  @Test
+  public void test_loadCached_ignoresHostChange() {
+    setNonZeroCachingInterval();
+    HostResource originalHost = persistActiveHost("ns1.example.com");
+    assertThat(EppResource.loadCached(ImmutableList.of(Key.create(originalHost))))
+        .containsExactly(Key.create(originalHost), originalHost);
+    HostResource modifiedHost =
+        persistResource(
+            originalHost.asBuilder().setLastTransferTime(clock.nowUtc().minusDays(60)).build());
+    assertThat(EppResource.loadCached(ImmutableList.of(Key.create(originalHost))))
+        .containsExactly(Key.create(originalHost), originalHost);
+    assertThat(
+            EppResourceUtils.loadByForeignKey(
+                HostResource.class, "ns1.example.com", clock.nowUtc()))
+        .isEqualTo(modifiedHost);
+  }
+
+  private static void setNonZeroCachingInterval() {
+    EppResource.cacheEppResources =
+        CacheBuilder.newBuilder().expireAfterWrite(1L, DAYS).build(CACHE_LOADER);
+  }
+}

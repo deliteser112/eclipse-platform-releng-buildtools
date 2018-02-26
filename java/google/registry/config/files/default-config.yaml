@@ -141,6 +141,28 @@ caching:
   # premium price entries that exist.
   staticPremiumListMaxCachedEntries: 200000
 
+  # Whether to enable caching of EPP resource entities and keys. Enabling this
+  # caching allows for much higher domain create/update throughput when hosts
+  # and/or contacts are being frequently used (which is commonly the case).
+  # However, this may introduce transactional inconsistencies, such as allowing
+  # hosts or contacts to be used that are actually deleted (though in practice
+  # this will only happen for non-widely-used entities). Only set this to true
+  # if you need the performance, i.e. if you need >10 domain mutations per
+  # frequently used contact or host. This situation is typically caused by
+  # registrars reusing the same contact/host across many operations, e.g. a
+  # privacy/proxy contact or a common host pointing to a registrar-run
+  # nameserver.
+  eppResourceCachingEnabled: false
+
+  # Length of time that EPP resource entities and keys are cached in memory
+  # before expiring.
+  eppResourceCachingSeconds: 60
+
+  # The maximum number of EPP resource entities and keys to cache in memory.
+  # LoadingCache evicts rarely-used keys first, so in practice this does not
+  # have to be very large to achieve the vast majority of possible gains.
+  eppResourceMaxCachedEntries: 500
+
 oAuth:
   # OAuth scopes to detect on access tokens. Superset of requiredOauthScopes.
   availableOauthScopes:

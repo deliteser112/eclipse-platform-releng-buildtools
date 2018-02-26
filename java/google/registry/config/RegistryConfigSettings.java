@@ -110,6 +110,9 @@ public class RegistryConfigSettings {
     public int domainLabelCachingSeconds;
     public int singletonCachePersistSeconds;
     public int staticPremiumListMaxCachedEntries;
+    public boolean eppResourceCachingEnabled;
+    public int eppResourceCachingSeconds;
+    public int eppResourceMaxCachedEntries;
   }
 
   /** Configuration for ICANN monthly reporting. */

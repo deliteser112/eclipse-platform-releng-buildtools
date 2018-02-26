@@ -59,6 +59,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.googlecode.objectify.Key;
+import google.registry.config.RegistryConfig;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppRequestSource;
@@ -383,6 +384,13 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_neverExisted() throws Exception {
+    persistContactsAndHosts();
+    doSuccessfulTest();
+  }
+
+  @Test
+  public void testSuccess_cachingDisabled() throws Exception {
+    RegistryConfig.overrideIsEppResourceCachingEnabledForTesting(false);
     persistContactsAndHosts();
     doSuccessfulTest();
   }

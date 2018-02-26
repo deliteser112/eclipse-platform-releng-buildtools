@@ -14,23 +14,37 @@
 
 package google.registry.model.index;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Maps.filterValues;
+import static google.registry.config.RegistryConfig.getEppResourceCachingDuration;
+import static google.registry.config.RegistryConfig.getEppResourceMaxCachedEntries;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.TypeUtils.instantiate;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
+import google.registry.config.RegistryConfig;
 import google.registry.model.BackupGroupRoot;
 import google.registry.model.EppResource;
 import google.registry.model.annotations.ReportedOn;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
+import google.registry.util.NonFinalForTesting;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
@@ -95,7 +109,6 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
   public Key<E> getResourceKey() {
     return topReference;
   }
-
 
   @SuppressWarnings("unchecked")
   public static <T extends EppResource> Class<ForeignKeyIndex<T>> mapToFkiClass(
@@ -166,5 +179,88 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
     return filterValues(
         ofy().load().type(mapToFkiClass(clazz)).ids(foreignKeys),
         (ForeignKeyIndex<?> fki) -> now.isBefore(fki.deletionTime));
+  }
+
+  static final CacheLoader<Key<ForeignKeyIndex<?>>, Optional<ForeignKeyIndex<?>>> CACHE_LOADER =
+      new CacheLoader<Key<ForeignKeyIndex<?>>, Optional<ForeignKeyIndex<?>>>() {
+
+        @Override
+        public Optional<ForeignKeyIndex<?>> load(Key<ForeignKeyIndex<?>> key) {
+          return Optional.ofNullable(ofy().doTransactionless(() -> ofy().load().key(key).now()));
+        }
+
+        @Override
+        public Map<Key<ForeignKeyIndex<?>>, Optional<ForeignKeyIndex<?>>> loadAll(
+            Iterable<? extends Key<ForeignKeyIndex<?>>> keys) {
+          ImmutableSet<Key<ForeignKeyIndex<?>>> typedKeys = ImmutableSet.copyOf(keys);
+          Map<Key<ForeignKeyIndex<?>>, ForeignKeyIndex<?>> existingFkis =
+              ofy().doTransactionless(() -> ofy().load().keys(typedKeys));
+          // ofy() omits keys that don't have values in Datastore, so re-add them in
+          // here with Optional.empty() values.
+          return Maps.asMap(
+              typedKeys,
+              (Key<ForeignKeyIndex<?>> key) ->
+                  Optional.ofNullable(existingFkis.getOrDefault(key, null)));
+        }
+      };
+
+  /**
+   * A limited size, limited time cache for foreign key entities.
+   *
+   * <p>This is only used to cache foreign key entities for the purposes of checking whether they
+   * exist (and if so, what entity they point to) during a few domain flows. Any other operations on
+   * foreign keys should not use this cache.
+   *
+   * <p>Note that the value type of this cache is Optional because the foreign keys in question are
+   * coming from external commands, and thus don't necessarily represent entities in our system that
+   * actually exist. So we cache the fact that they *don't* exist by using Optional.empty(), and
+   * then several layers up the EPP command will fail with an error message like "The contact with
+   * given IDs (blah) don't exist."
+   */
+  @NonFinalForTesting
+  static LoadingCache<Key<ForeignKeyIndex<?>>, Optional<ForeignKeyIndex<?>>>
+      cacheForeignKeyIndexes =
+          CacheBuilder.newBuilder()
+              .expireAfterWrite(getEppResourceCachingDuration().getMillis(), MILLISECONDS)
+              .maximumSize(getEppResourceMaxCachedEntries())
+              .build(CACHE_LOADER);
+
+  /**
+   * Load a list of {@link ForeignKeyIndex} instances by class and id strings that are active at or
+   * after the specified moment in time, using the cache if enabled.
+   *
+   * <p>The returned map will omit any keys for which the {@link ForeignKeyIndex} doesn't exist or
+   * has been soft deleted.
+   *
+   * <p>Don't use the cached version of this method unless you really need it for performance
+   * reasons, and are OK with the trade-offs in loss of transactional consistency.
+   */
+  public static <E extends EppResource> Map<String, ForeignKeyIndex<E>> loadCached(
+      Class<E> clazz, Iterable<String> foreignKeys, final DateTime now) {
+    if (!RegistryConfig.isEppResourceCachingEnabled()) {
+      return ofy().doTransactionless(() -> load(clazz, foreignKeys, now));
+    }
+    ImmutableList<Key<ForeignKeyIndex<?>>> fkiKeys =
+        Streams.stream(foreignKeys)
+            .map(fk -> Key.<ForeignKeyIndex<?>>create(mapToFkiClass(clazz), fk))
+            .collect(toImmutableList());
+    try {
+      // This cast is safe because when we loaded ForeignKeyIndexes above we used type clazz, which
+      // is scoped to E.
+      @SuppressWarnings("unchecked")
+      Map<String, ForeignKeyIndex<E>> fkisFromCache = cacheForeignKeyIndexes
+          .getAll(fkiKeys)
+          .entrySet()
+          .stream()
+          .filter(entry -> entry.getValue().isPresent())
+          .filter(entry -> now.isBefore(entry.getValue().get().getDeletionTime()))
+          .collect(
+              ImmutableMap.toImmutableMap(
+                  entry -> entry.getKey().getName(),
+                  entry -> (ForeignKeyIndex<E>) entry.getValue().get()));
+      return fkisFromCache;
+    } catch (ExecutionException e) {
+      throw new RuntimeException("Error loading cached ForeignKeyIndexes", e.getCause());
+    }
   }
 }

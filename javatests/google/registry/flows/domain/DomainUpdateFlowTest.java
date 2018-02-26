@@ -44,6 +44,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.config.RegistryConfig;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppRequestSource;
@@ -171,6 +172,14 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
 
   @Test
   public void testSuccess() throws Exception {
+    persistReferencedEntities();
+    persistDomain();
+    doSuccessfulTest();
+  }
+
+  @Test
+  public void testSuccess_cachingDisabled() throws Exception {
+    RegistryConfig.overrideIsEppResourceCachingEnabledForTesting(false);
     persistReferencedEntities();
     persistDomain();
     doSuccessfulTest();

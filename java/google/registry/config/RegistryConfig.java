@@ -1018,6 +1018,10 @@ public final class RegistryConfig {
      * asynchronously fails the delete). Without this delay, the mapreduce might have started before
      * the domain flow committed, and could potentially miss the reference.
      *
+     * <p>If you are using EPP resource caching (eppResourceCachingEnabled in YAML), then this
+     * duration should also be longer than that cache duration (eppResourceCachingSeconds).
+     *
+     * @see google.registry.config.RegistryConfigSettings.Caching
      * @see google.registry.flows.async.AsyncFlowEnqueuer
      */
     @Provides
@@ -1322,6 +1326,27 @@ public final class RegistryConfig {
    */
   public static int getStaticPremiumListMaxCachedEntries() {
     return CONFIG_SETTINGS.get().caching.staticPremiumListMaxCachedEntries;
+  }
+
+  public static boolean isEppResourceCachingEnabled() {
+    return CONFIG_SETTINGS.get().caching.eppResourceCachingEnabled;
+  }
+
+  @VisibleForTesting
+  public static void overrideIsEppResourceCachingEnabledForTesting(boolean enabled) {
+    CONFIG_SETTINGS.get().caching.eppResourceCachingEnabled = enabled;
+  }
+
+  /**
+   * Returns the amount of time an EPP resource or key should be cached in memory before expiring.
+   */
+  public static Duration getEppResourceCachingDuration() {
+    return Duration.standardSeconds(CONFIG_SETTINGS.get().caching.eppResourceCachingSeconds);
+  }
+
+  /** Returns the maximum number of EPP resources and keys to keep in in-memory cache. */
+  public static int getEppResourceMaxCachedEntries() {
+    return CONFIG_SETTINGS.get().caching.eppResourceMaxCachedEntries;
   }
 
   /** Returns the email address that outgoing emails from the app are sent from. */

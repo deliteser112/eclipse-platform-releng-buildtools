@@ -39,6 +39,7 @@ import org.junit.Test;
 
 /** Unit tests for {@link HostResource}. */
 public class HostResourceTest extends EntityTestCase {
+
   final DateTime day3 = clock.nowUtc();
   final DateTime day2 = day3.minusDays(1);
   final DateTime day1 = day2.minusDays(1);
