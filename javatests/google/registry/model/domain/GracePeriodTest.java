@@ -15,7 +15,7 @@
 package google.registry.model.domain;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.googlecode.objectify.Key;
@@ -93,7 +93,7 @@ public class GracePeriodTest {
   @Test
   public void testFailure_forBillingEvent_autoRenew() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> GracePeriod.forBillingEvent(GracePeriodStatus.AUTO_RENEW, onetime));
     assertThat(thrown).hasMessageThat().contains("autorenew");
@@ -102,7 +102,7 @@ public class GracePeriodTest {
   @Test
   public void testFailure_createForRecurring_notAutoRenew() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 GracePeriod.createForRecurring(

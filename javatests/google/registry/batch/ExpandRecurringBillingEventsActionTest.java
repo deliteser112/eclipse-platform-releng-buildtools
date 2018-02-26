@@ -28,7 +28,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
@@ -646,7 +646,7 @@ public class ExpandRecurringBillingEventsActionTest
   public void testFailure_cursorAfterExecutionTime() throws Exception {
     action.cursorTimeParam = Optional.of(clock.nowUtc().plusYears(1));
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, this::runMapreduce);
+        assertThrows(IllegalArgumentException.class, this::runMapreduce);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Cursor time must be earlier than execution time.");
@@ -657,7 +657,7 @@ public class ExpandRecurringBillingEventsActionTest
     // The clock advances one milli on runMapreduce.
     action.cursorTimeParam = Optional.of(clock.nowUtc().plusMillis(1));
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, this::runMapreduce);
+        assertThrows(IllegalArgumentException.class, this::runMapreduce);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Cursor time must be earlier than execution time.");

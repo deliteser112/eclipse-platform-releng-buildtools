@@ -15,7 +15,7 @@
 package google.registry.reporting.icann;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.reporting.icann.IcannReportingModule.ReportType;
 import google.registry.request.HttpException.BadRequestException;
@@ -45,7 +45,7 @@ public class IcannReportingModuleTest {
   @Test
   public void testInvalidSubdir_throwsException() {
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class,
             () ->
                 IcannReportingModule.provideSubdir(Optional.of("/whoops"), new YearMonth(2017, 6)));

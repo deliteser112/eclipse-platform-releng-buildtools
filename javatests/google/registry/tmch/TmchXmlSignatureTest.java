@@ -16,7 +16,6 @@ package google.registry.tmch;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.tmch.TmchTestData.loadSmd;
 
 import google.registry.config.RegistryConfig.ConfigModule.TmchCaMode;
@@ -86,7 +85,7 @@ public class TmchXmlSignatureTest {
     tmchXmlSignature = new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PRODUCTION));
     smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
     CertificateSignatureException e =
-        expectThrows(CertificateSignatureException.class, () -> tmchXmlSignature.verify(smdData));
+        assertThrows(CertificateSignatureException.class, () -> tmchXmlSignature.verify(smdData));
     assertThat(e).hasMessageThat().contains("Signature does not match");
   }
 
@@ -318,7 +317,7 @@ public class TmchXmlSignatureTest {
   public void testRevokedTmvTmvrevokedCourtAgentFrenchActive() throws Exception {
     smdData = loadSmd("revoked/tmv/TMVRevoked-Court-Agent-French-Active.smd");
     CertificateRevokedException e =
-        expectThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
+        assertThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
     assertThat(e).hasMessageThat().contains("KEY_COMPROMISE");
   }
 
@@ -326,7 +325,7 @@ public class TmchXmlSignatureTest {
   public void testRevokedTmvTmvrevokedTrademarkAgentEnglishActive() throws Exception {
     smdData = loadSmd("revoked/tmv/TMVRevoked-Trademark-Agent-English-Active.smd");
     CertificateRevokedException e =
-        expectThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
+        assertThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
     assertThat(e).hasMessageThat().contains("KEY_COMPROMISE");
   }
 
@@ -334,7 +333,7 @@ public class TmchXmlSignatureTest {
   public void testRevokedTmvTmvrevokedTrademarkAgentRussianActive() throws Exception {
     smdData = loadSmd("revoked/tmv/TMVRevoked-Trademark-Agent-Russian-Active.smd");
     CertificateRevokedException e =
-        expectThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
+        assertThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
     assertThat(e).hasMessageThat().contains("KEY_COMPROMISE");
   }
 
@@ -342,7 +341,7 @@ public class TmchXmlSignatureTest {
   public void testRevokedTmvTmvrevokedTreatystatuteAgentChineseActive() throws Exception {
     smdData = loadSmd("revoked/tmv/TMVRevoked-TreatyStatute-Agent-Chinese-Active.smd");
     CertificateRevokedException e =
-        expectThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
+        assertThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
     assertThat(e).hasMessageThat().contains("KEY_COMPROMISE");
   }
 
@@ -350,7 +349,7 @@ public class TmchXmlSignatureTest {
   public void testRevokedTmvTmvrevokedTreatystatuteAgentEnglishActive() throws Throwable {
     smdData = loadSmd("revoked/tmv/TMVRevoked-TreatyStatute-Agent-English-Active.smd");
     CertificateRevokedException e =
-        expectThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
+        assertThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
     assertThat(e).hasMessageThat().contains("KEY_COMPROMISE");
   }
 }

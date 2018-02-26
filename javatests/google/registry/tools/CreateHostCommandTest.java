@@ -17,7 +17,6 @@ package google.registry.tools;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import org.junit.Test;
@@ -53,7 +52,7 @@ public class CreateHostCommandTest extends EppToolCommandTestCase<CreateHostComm
   public void testFailure_invalidIpAddress() throws Exception {
     createTld("tld");
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(

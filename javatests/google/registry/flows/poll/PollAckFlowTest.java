@@ -21,7 +21,6 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableMap;
@@ -174,7 +173,7 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
   @Test
   public void testFailure_noSuchMessage() throws Exception {
     assertTransactionalFlow(true);
-    Exception e = expectThrows(MessageDoesNotExistException.class, this::runFlow);
+    Exception e = assertThrows(MessageDoesNotExistException.class, this::runFlow);
     assertThat(e)
         .hasMessageThat()
         .containsMatch(String.format("(1-3-EXAMPLE-4-%d-2011)", MESSAGE_ID));
@@ -255,7 +254,7 @@ public class PollAckFlowTest extends FlowTestCase<PollAckFlow> {
             .setParent(createHistoryEntryForEppResource(domain))
             .build());
     assertTransactionalFlow(true);
-    Exception e = expectThrows(MessageDoesNotExistException.class, this::runFlow);
+    Exception e = assertThrows(MessageDoesNotExistException.class, this::runFlow);
     assertThat(e)
         .hasMessageThat()
         .containsMatch(String.format("(1-3-EXAMPLE-4-%d-2011)", MESSAGE_ID));

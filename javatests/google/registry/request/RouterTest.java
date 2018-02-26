@@ -17,7 +17,7 @@ package google.registry.request;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.request.auth.Auth.AUTH_INTERNAL_ONLY;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -37,7 +37,7 @@ public final class RouterTest {
   @Test
   public void testRoute_noRoutes_throws() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> Router.create(Empty.class));
+        assertThrows(IllegalArgumentException.class, () -> Router.create(Empty.class));
     assertThat(thrown)
         .hasMessageThat()
         .contains("No routes found for class: google.registry.request.RouterTest.Empty");
@@ -143,7 +143,7 @@ public final class RouterTest {
   @Test
   public void testRoute_methodsInComponentAreIgnored_throws() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class, () -> Router.create(WeirdMethodsComponent.class));
     assertThat(thrown)
         .hasMessageThat()
@@ -173,7 +173,7 @@ public final class RouterTest {
   @Test
   public void testCreate_twoTasksWithSameMethodAndPath_resultsInError() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> Router.create(DuplicateComponent.class));
+        assertThrows(IllegalArgumentException.class, () -> Router.create(DuplicateComponent.class));
     assertThat(thrown).hasMessageThat().contains("Multiple entries with same key");
   }
 }

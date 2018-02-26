@@ -15,7 +15,7 @@
 package google.registry.tmch;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.ResourceUtils.readResourceBytes;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -61,7 +61,7 @@ public class TmchCrlActionTest extends TmchActionTestCase {
     // doesn't matter that the wrong CRT would be used to verify it because that check happens after
     // the age check.
     TmchCrlAction action = newTmchCrlAction(TmchCaMode.PRODUCTION);
-    Exception e = expectThrows(Exception.class, action::run);
+    Exception e = assertThrows(Exception.class, action::run);
     assertThat(e).hasCauseThat().isInstanceOf(CRLException.class);
     assertThat(e)
         .hasCauseThat()
@@ -74,7 +74,7 @@ public class TmchCrlActionTest extends TmchActionTestCase {
     clock.setTo(DateTime.parse("2013-07-24TZ"));
     when(httpResponse.getContent())
         .thenReturn(readResourceBytes(TmchCertificateAuthority.class, "icann-tmch.crl").read());
-    Exception e = expectThrows(Exception.class, newTmchCrlAction(TmchCaMode.PILOT)::run);
+    Exception e = assertThrows(Exception.class, newTmchCrlAction(TmchCaMode.PILOT)::run);
     assertThat(e).hasCauseThat().isInstanceOf(SignatureException.class);
     assertThat(e).hasCauseThat().hasMessageThat().isEqualTo("Signature does not match.");
   }
@@ -84,7 +84,7 @@ public class TmchCrlActionTest extends TmchActionTestCase {
     clock.setTo(DateTime.parse("1984-01-01TZ"));
     when(httpResponse.getContent()).thenReturn(
         readResourceBytes(TmchCertificateAuthority.class, "icann-tmch-pilot.crl").read());
-    Exception e = expectThrows(Exception.class, newTmchCrlAction(TmchCaMode.PILOT)::run);
+    Exception e = assertThrows(Exception.class, newTmchCrlAction(TmchCaMode.PILOT)::run);
     assertThat(e).hasCauseThat().isInstanceOf(CertificateNotYetValidException.class);
   }
 }

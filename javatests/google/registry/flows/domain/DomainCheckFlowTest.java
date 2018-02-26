@@ -25,7 +25,7 @@ import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -330,14 +330,14 @@ public class DomainCheckFlowTest
   @Test
   public void testFailure_tooManyIds() throws Exception {
     setEppInput("domain_check_51.xml");
-    EppException thrown = expectThrows(TooManyResourceChecksException.class, this::runFlow);
+    EppException thrown = assertThrows(TooManyResourceChecksException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_wrongTld() throws Exception {
     setEppInput("domain_check.xml");
-    EppException thrown = expectThrows(TldDoesNotExistException.class, this::runFlow);
+    EppException thrown = assertThrows(TldDoesNotExistException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -345,7 +345,7 @@ public class DomainCheckFlowTest
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
-    EppException thrown = expectThrows(NotAuthorizedForTldException.class, this::runFlow);
+    EppException thrown = assertThrows(NotAuthorizedForTldException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -361,7 +361,7 @@ public class DomainCheckFlowTest
   private void doFailingBadLabelTest(String label, Class<? extends EppException> expectedException)
       throws Exception {
     setEppInput("domain_check_template.xml", ImmutableMap.of("LABEL", label));
-    EppException thrown = expectThrows(expectedException, this::runFlow);
+    EppException thrown = assertThrows(expectedException, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -446,7 +446,7 @@ public class DomainCheckFlowTest
   @Test
   public void testFailure_predelegation() throws Exception {
     createTld("tld", TldState.PREDELEGATION);
-    EppException thrown = expectThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
+    EppException thrown = assertThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -780,84 +780,84 @@ public class DomainCheckFlowTest
   @Test
   public void testFeeExtension_wrongCurrency_v06() throws Exception {
     setEppInput("domain_check_fee_euro_v06.xml");
-    EppException thrown = expectThrows(CurrencyUnitMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_wrongCurrency_v11() throws Exception {
     setEppInput("domain_check_fee_euro_v11.xml");
-    EppException thrown = expectThrows(CurrencyUnitMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_wrongCurrency_v12() throws Exception {
     setEppInput("domain_check_fee_euro_v12.xml");
-    EppException thrown = expectThrows(CurrencyUnitMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_periodNotInYears_v06() throws Exception {
     setEppInput("domain_check_fee_bad_period_v06.xml");
-    EppException thrown = expectThrows(BadPeriodUnitException.class, this::runFlow);
+    EppException thrown = assertThrows(BadPeriodUnitException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_periodNotInYears_v11() throws Exception {
     setEppInput("domain_check_fee_bad_period_v11.xml");
-    EppException thrown = expectThrows(BadPeriodUnitException.class, this::runFlow);
+    EppException thrown = assertThrows(BadPeriodUnitException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_periodNotInYears_v12() throws Exception {
     setEppInput("domain_check_fee_bad_period_v12.xml");
-    EppException thrown = expectThrows(BadPeriodUnitException.class, this::runFlow);
+    EppException thrown = assertThrows(BadPeriodUnitException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_commandWithPhase_v06() throws Exception {
     setEppInput("domain_check_fee_command_phase_v06.xml");
-    EppException thrown = expectThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
+    EppException thrown = assertThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_commandWithPhase_v11() throws Exception {
     setEppInput("domain_check_fee_command_phase_v11.xml");
-    EppException thrown = expectThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
+    EppException thrown = assertThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_commandWithPhase_v12() throws Exception {
     setEppInput("domain_check_fee_command_phase_v12.xml");
-    EppException thrown = expectThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
+    EppException thrown = assertThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_commandSubphase_v06() throws Exception {
     setEppInput("domain_check_fee_command_subphase_v06.xml");
-    EppException thrown = expectThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
+    EppException thrown = assertThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_commandSubphase_v11() throws Exception {
     setEppInput("domain_check_fee_command_subphase_v11.xml");
-    EppException thrown = expectThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
+    EppException thrown = assertThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_commandSubphase_v12() throws Exception {
     setEppInput("domain_check_fee_command_subphase_v12.xml");
-    EppException thrown = expectThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
+    EppException thrown = assertThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -866,91 +866,91 @@ public class DomainCheckFlowTest
   public void testFeeExtension_feeCheckNotInAvailabilityCheck() throws Exception {
     setEppInput("domain_check_fee_not_in_avail.xml");
     EppException thrown =
-        expectThrows(OnlyCheckedNamesCanBeFeeCheckedException.class, this::runFlow);
+        assertThrows(OnlyCheckedNamesCanBeFeeCheckedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_multiyearRestore_v06() throws Exception {
     setEppInput("domain_check_fee_multiyear_restore_v06.xml");
-    EppException thrown = expectThrows(RestoresAreAlwaysForOneYearException.class, this::runFlow);
+    EppException thrown = assertThrows(RestoresAreAlwaysForOneYearException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_multiyearRestore_v11() throws Exception {
     setEppInput("domain_check_fee_multiyear_restore_v11.xml");
-    EppException thrown = expectThrows(RestoresAreAlwaysForOneYearException.class, this::runFlow);
+    EppException thrown = assertThrows(RestoresAreAlwaysForOneYearException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_multiyearRestore_v12() throws Exception {
     setEppInput("domain_check_fee_multiyear_restore_v12.xml");
-    EppException thrown = expectThrows(RestoresAreAlwaysForOneYearException.class, this::runFlow);
+    EppException thrown = assertThrows(RestoresAreAlwaysForOneYearException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_multiyearTransfer_v06() throws Exception {
     setEppInput("domain_check_fee_multiyear_transfer_v06.xml");
-    EppException thrown = expectThrows(TransfersAreAlwaysForOneYearException.class, this::runFlow);
+    EppException thrown = assertThrows(TransfersAreAlwaysForOneYearException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_multiyearTransfer_v11() throws Exception {
     setEppInput("domain_check_fee_multiyear_transfer_v11.xml");
-    EppException thrown = expectThrows(TransfersAreAlwaysForOneYearException.class, this::runFlow);
+    EppException thrown = assertThrows(TransfersAreAlwaysForOneYearException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_multiyearTransfer_v12() throws Exception {
     setEppInput("domain_check_fee_multiyear_transfer_v12.xml");
-    EppException thrown = expectThrows(TransfersAreAlwaysForOneYearException.class, this::runFlow);
+    EppException thrown = assertThrows(TransfersAreAlwaysForOneYearException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_unknownCommand_v06() throws Exception {
     setEppInput("domain_check_fee_unknown_command_v06.xml");
-    EppException thrown = expectThrows(UnknownFeeCommandException.class, this::runFlow);
+    EppException thrown = assertThrows(UnknownFeeCommandException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_unknownCommand_v11() throws Exception {
     setEppInput("domain_check_fee_unknown_command_v11.xml");
-    EppException thrown = expectThrows(UnknownFeeCommandException.class, this::runFlow);
+    EppException thrown = assertThrows(UnknownFeeCommandException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_unknownCommand_v12() throws Exception {
     setEppInput("domain_check_fee_unknown_command_v12.xml");
-    EppException thrown = expectThrows(UnknownFeeCommandException.class, this::runFlow);
+    EppException thrown = assertThrows(UnknownFeeCommandException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_invalidCommand_v06() throws Exception {
     setEppInput("domain_check_fee_invalid_command_v06.xml");
-    EppException thrown = expectThrows(UnknownFeeCommandException.class, this::runFlow);
+    EppException thrown = assertThrows(UnknownFeeCommandException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_invalidCommand_v11() throws Exception {
     setEppInput("domain_check_fee_invalid_command_v11.xml");
-    EppException thrown = expectThrows(UnknownFeeCommandException.class, this::runFlow);
+    EppException thrown = assertThrows(UnknownFeeCommandException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFeeExtension_invalidCommand_v12() throws Exception {
     setEppInput("domain_check_fee_invalid_command_v12.xml");
-    EppException thrown = expectThrows(UnknownFeeCommandException.class, this::runFlow);
+    EppException thrown = assertThrows(UnknownFeeCommandException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

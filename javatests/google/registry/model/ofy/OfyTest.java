@@ -24,7 +24,6 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newContactResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -90,7 +89,7 @@ public class OfyTest {
     // Set the clock in Ofy to the same time as the backup group root's save time.
     Ofy ofy = new Ofy(new FakeClock(groupTimestamp));
     TimestampInversionException thrown =
-        expectThrows(TimestampInversionException.class, () -> ofy.transact(work));
+        assertThrows(TimestampInversionException.class, () -> ofy.transact(work));
     assertThat(thrown)
         .hasMessageThat()
         .contains(
@@ -121,7 +120,7 @@ public class OfyTest {
   @Test
   public void testSavingKeyTwice() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 ofy()
@@ -139,7 +138,7 @@ public class OfyTest {
   @Test
   public void testDeletingKeyTwice() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 ofy()
@@ -157,7 +156,7 @@ public class OfyTest {
   @Test
   public void testSaveDeleteKey() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 ofy()
@@ -175,7 +174,7 @@ public class OfyTest {
   @Test
   public void testDeleteSaveKey() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 ofy()
@@ -404,7 +403,7 @@ public class OfyTest {
   @Test
   public void test_getBaseEntityClassFromEntityOrKey_unregisteredEntity() {
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () -> getBaseEntityClassFromEntityOrKey(new SystemClock()));
     assertThat(thrown).hasMessageThat().contains("SystemClock");
@@ -413,7 +412,7 @@ public class OfyTest {
   @Test
   public void test_getBaseEntityClassFromEntityOrKey_unregisteredEntityKey() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 getBaseEntityClassFromEntityOrKey(

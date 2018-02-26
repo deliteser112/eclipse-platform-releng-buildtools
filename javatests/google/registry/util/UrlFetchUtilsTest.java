@@ -18,7 +18,7 @@ import static com.google.common.net.HttpHeaders.CONTENT_LENGTH;
 import static com.google.common.net.HttpHeaders.CONTENT_TYPE;
 import static com.google.common.net.MediaType.CSV_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.UrlFetchUtils.setPayloadMultipart;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.any;
@@ -95,7 +95,7 @@ public class UrlFetchUtilsTest {
     HTTPRequest request = mock(HTTPRequest.class);
     String payload = "I screamed------------------------------AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHH";
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () -> setPayloadMultipart(request, "lol", "cat", CSV_UTF_8, payload));
     assertThat(thrown)

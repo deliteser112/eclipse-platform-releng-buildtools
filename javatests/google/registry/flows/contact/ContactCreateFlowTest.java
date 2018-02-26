@@ -20,7 +20,7 @@ import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowTestCase;
@@ -71,7 +71,7 @@ public class ContactCreateFlowTest
   public void testFailure_alreadyExists() throws Exception {
     persistActiveContact(getUniqueIdFromCommand());
     ResourceAlreadyExistsException thrown =
-        expectThrows(ResourceAlreadyExistsException.class, this::runFlow);
+        assertThrows(ResourceAlreadyExistsException.class, this::runFlow);
     assertThat(thrown)
         .hasMessageThat()
         .contains(
@@ -89,7 +89,7 @@ public class ContactCreateFlowTest
   public void testFailure_nonAsciiInIntAddress() throws Exception {
     setEppInput("contact_create_hebrew_int.xml");
     EppException thrown =
-        expectThrows(BadInternationalizedPostalInfoException.class, this::runFlow);
+        assertThrows(BadInternationalizedPostalInfoException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -97,7 +97,7 @@ public class ContactCreateFlowTest
   public void testFailure_declineDisclosure() throws Exception {
     setEppInput("contact_create_decline_disclosure.xml");
     EppException thrown =
-        expectThrows(DeclineContactDisclosureFieldDisallowedPolicyException.class, this::runFlow);
+        assertThrows(DeclineContactDisclosureFieldDisallowedPolicyException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

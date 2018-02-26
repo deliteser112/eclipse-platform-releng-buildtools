@@ -21,7 +21,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -166,7 +166,7 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
   @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -175,7 +175,7 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
   public void testFailure_existedButWasDeleted() throws Exception {
     persistContactResource(false);
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }

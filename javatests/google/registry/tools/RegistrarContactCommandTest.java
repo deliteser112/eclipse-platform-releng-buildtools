@@ -23,7 +23,7 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
@@ -193,7 +193,7 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
             .setVisibleInDomainWhoisAsAbuse(true)
             .build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -326,7 +326,7 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
     persistSimpleResource(
         registrarContact.asBuilder().setVisibleInDomainWhoisAsAbuse(true).build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(

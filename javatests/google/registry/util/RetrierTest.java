@@ -15,7 +15,7 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
@@ -83,7 +83,7 @@ public class RetrierTest {
   @Test
   public void testRetryableException() throws Exception {
     CountingException thrown =
-        expectThrows(
+        assertThrows(
             CountingException.class,
             () -> retrier.callWithRetry(new CountingThrower(3), CountingException.class));
     assertThat(thrown).hasMessageThat().contains("3");
@@ -92,7 +92,7 @@ public class RetrierTest {
   @Test
   public void testUnretryableException() throws Exception {
     CountingException thrown =
-        expectThrows(
+        assertThrows(
             CountingException.class,
             () -> retrier.callWithRetry(new CountingThrower(5), IllegalArgumentException.class));
     assertThat(thrown).hasMessageThat().contains("1");
@@ -107,7 +107,7 @@ public class RetrierTest {
   @Test
   public void testRetryFailed_withReporter() throws Exception {
     CountingException thrown =
-        expectThrows(
+        assertThrows(
             CountingException.class,
             () -> {
               TestReporter reporter = new TestReporter();

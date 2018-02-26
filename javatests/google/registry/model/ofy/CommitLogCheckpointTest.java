@@ -15,7 +15,7 @@
 package google.registry.model.ofy;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -58,7 +58,7 @@ public class CommitLogCheckpointTest {
   @Test
   public void test_create_notEnoughBucketTimestamps_throws() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> CommitLogCheckpoint.create(DateTime.now(UTC), ImmutableMap.of(1, T1, 2, T2)));
     assertThat(thrown).hasMessageThat().contains("Bucket ids are incorrect");
@@ -67,7 +67,7 @@ public class CommitLogCheckpointTest {
   @Test
   public void test_create_tooManyBucketTimestamps_throws() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 CommitLogCheckpoint.create(
@@ -78,7 +78,7 @@ public class CommitLogCheckpointTest {
   @Test
   public void test_create_wrongBucketIds_throws() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 CommitLogCheckpoint.create(
@@ -89,7 +89,7 @@ public class CommitLogCheckpointTest {
   @Test
   public void test_create_wrongBucketIdOrder_throws() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 CommitLogCheckpoint.create(

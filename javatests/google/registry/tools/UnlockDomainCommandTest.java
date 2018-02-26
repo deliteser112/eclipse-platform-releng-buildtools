@@ -21,7 +21,7 @@ import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBIT
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -87,7 +87,7 @@ public class UnlockDomainCommandTest extends EppToolCommandTestCase<UnlockDomain
   @Test
   public void testFailure_domainDoesntExist() throws Exception {
     IllegalArgumentException e =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--client=NewRegistrar", "missing.tld"));
     assertThat(e).hasMessageThat().isEqualTo("Domain 'missing.tld' does not exist");
@@ -102,7 +102,7 @@ public class UnlockDomainCommandTest extends EppToolCommandTestCase<UnlockDomain
   @Test
   public void testFailure_duplicateDomainsAreSpecified() throws Exception {
     IllegalArgumentException e =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--client=NewRegistrar", "dupe.tld", "dupe.tld"));
     assertThat(e).hasMessageThat().isEqualTo("Duplicate domain arguments found: 'dupe.tld'");

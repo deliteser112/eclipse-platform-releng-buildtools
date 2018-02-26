@@ -19,7 +19,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.DateTimeZone.UTC;
@@ -178,7 +178,7 @@ public class BillingEventTest extends EntityTestCase {
   @Test
   public void testFailure_syntheticFlagWithoutCreationTime() {
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 oneTime
@@ -194,7 +194,7 @@ public class BillingEventTest extends EntityTestCase {
   @Test
   public void testFailure_syntheticCreationTimeWithoutFlag() {
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () -> oneTime.asBuilder().setSyntheticCreationTime(now.plusDays(10)).build());
     assertThat(thrown)
@@ -205,7 +205,7 @@ public class BillingEventTest extends EntityTestCase {
   @Test
   public void testFailure_syntheticFlagWithoutCancellationMatchingKey() {
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 oneTime
@@ -223,7 +223,7 @@ public class BillingEventTest extends EntityTestCase {
   @Test
   public void testFailure_cancellationMatchingKeyWithoutFlag() {
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 oneTime
@@ -266,7 +266,7 @@ public class BillingEventTest extends EntityTestCase {
   @Test
   public void testFailure_cancellation_forGracePeriodWithoutBillingEvent() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 BillingEvent.Cancellation.forGracePeriod(
@@ -280,7 +280,7 @@ public class BillingEventTest extends EntityTestCase {
   @Test
   public void testFailure_cancellationWithNoBillingEvent() {
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 cancellationOneTime
@@ -294,7 +294,7 @@ public class BillingEventTest extends EntityTestCase {
   @Test
   public void testFailure_cancellationWithBothBillingEvents() {
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 cancellationOneTime

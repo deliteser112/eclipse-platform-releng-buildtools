@@ -43,7 +43,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -674,7 +674,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   public void testFailure_predelegation() throws Exception {
     createTld("tld", TldState.PREDELEGATION);
     setUpSuccessfulTest();
-    EppException thrown = expectThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
+    EppException thrown = assertThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -690,7 +690,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -698,7 +698,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -717,7 +717,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
                 .asBuilder()
                 .addSubordinateHost(subordinateHost.getFullyQualifiedHostName())
                 .build());
-    EppException thrown = expectThrows(DomainToDeleteHasHostsException.class, this::runFlow);
+    EppException thrown = assertThrows(DomainToDeleteHasHostsException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -725,7 +725,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveDomain(getUniqueIdFromCommand());
-    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = assertThrows(ResourceNotOwnedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -743,7 +743,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setUpSuccessfulTest();
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
-    EppException thrown = expectThrows(NotAuthorizedForTldException.class, this::runFlow);
+    EppException thrown = assertThrows(NotAuthorizedForTldException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -765,7 +765,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .addStatusValue(StatusValue.CLIENT_DELETE_PROHIBITED)
             .build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
+        assertThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("clientDeleteProhibited");
   }
 
@@ -777,7 +777,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .addStatusValue(StatusValue.SERVER_DELETE_PROHIBITED)
             .build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
+        assertThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("serverDeleteProhibited");
   }
 
@@ -789,7 +789,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .addStatusValue(StatusValue.PENDING_DELETE)
             .build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
+        assertThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("pendingDelete");
   }
 
@@ -816,7 +816,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   public void testFailure_metadataNotFromTool() throws Exception {
     setEppInput("domain_delete_metadata.xml");
     persistResource(newDomainResource(getUniqueIdFromCommand()));
-    EppException thrown = expectThrows(OnlyToolCanPassMetadataException.class, this::runFlow);
+    EppException thrown = assertThrows(OnlyToolCanPassMetadataException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1082,7 +1082,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   @Test
   public void testFailure_allocationTokenNotSupportedOnDelete() throws Exception {
     setEppInput("domain_delete_allocationtoken.xml");
-    EppException thrown = expectThrows(UnimplementedExtensionException.class, this::runFlow);
+    EppException thrown = assertThrows(UnimplementedExtensionException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 }

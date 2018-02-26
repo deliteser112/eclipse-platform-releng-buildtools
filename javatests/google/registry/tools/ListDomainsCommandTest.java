@@ -15,7 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -47,7 +47,7 @@ public class ListDomainsCommandTest extends ListObjectsCommandTestCase<ListDomai
   public void test_tldsParamTooLong() throws Exception {
     String tldsParam = "--tld=foo,bar" + Strings.repeat(",baz", 300);
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> runCommand(tldsParam));
+        assertThrows(IllegalArgumentException.class, () -> runCommand(tldsParam));
     assertThat(thrown)
         .hasMessageThat()
         .contains("Total length of TLDs is too long for URL parameter");

@@ -16,7 +16,7 @@ package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -63,7 +63,7 @@ public class ExtensionManagerTest {
             .build();
     manager.register(MetadataExtension.class, LaunchCreateExtension.class);
     EppException thrown =
-        expectThrows(UnsupportedRepeatedExtensionException.class, manager::validate);
+        assertThrows(UnsupportedRepeatedExtensionException.class, manager::validate);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -99,7 +99,7 @@ public class ExtensionManagerTest {
             .build();
     manager.register(FeeInfoCommandExtensionV06.class);
     EppException thrown =
-        expectThrows(UndeclaredServiceExtensionException.class, manager::validate);
+        assertThrows(UndeclaredServiceExtensionException.class, manager::validate);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -136,7 +136,7 @@ public class ExtensionManagerTest {
             .setSuppliedExtensions(MetadataExtension.class)
             .build();
     manager.register(MetadataExtension.class);
-    EppException thrown = expectThrows(OnlyToolCanPassMetadataException.class, manager::validate);
+    EppException thrown = assertThrows(OnlyToolCanPassMetadataException.class, manager::validate);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -164,7 +164,7 @@ public class ExtensionManagerTest {
             .build();
     manager.register(DomainTransferRequestSuperuserExtension.class);
     EppException thrown =
-        expectThrows(UnauthorizedForSuperuserExtensionException.class, manager::validate);
+        assertThrows(UnauthorizedForSuperuserExtensionException.class, manager::validate);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -179,7 +179,7 @@ public class ExtensionManagerTest {
             .build();
     manager.register(DomainTransferRequestSuperuserExtension.class);
     EppException thrown =
-        expectThrows(UnauthorizedForSuperuserExtensionException.class, manager::validate);
+        assertThrows(UnauthorizedForSuperuserExtensionException.class, manager::validate);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -191,7 +191,7 @@ public class ExtensionManagerTest {
             .setDeclaredUris()
             .setSuppliedExtensions(LaunchCreateExtension.class)
             .build();
-    EppException thrown = expectThrows(UnimplementedExtensionException.class, manager::validate);
+    EppException thrown = assertThrows(UnimplementedExtensionException.class, manager::validate);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

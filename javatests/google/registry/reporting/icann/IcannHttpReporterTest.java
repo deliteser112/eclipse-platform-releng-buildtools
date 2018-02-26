@@ -18,7 +18,7 @@ import static com.google.common.net.MediaType.CSV_UTF_8;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.api.client.http.LowLevelHttpRequest;
@@ -125,7 +125,7 @@ public class IcannHttpReporterTest {
   @Test
   public void testFail_invalidFilename_nonSixDigitYearMonth() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> {
               IcannHttpReporter reporter = createReporter();
@@ -141,7 +141,7 @@ public class IcannHttpReporterTest {
   @Test
   public void testFail_invalidFilename_notActivityOrTransactions() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> {
               IcannHttpReporter reporter = createReporter();
@@ -156,7 +156,7 @@ public class IcannHttpReporterTest {
   @Test
   public void testFail_invalidFilename_invalidTldName() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> {
               IcannHttpReporter reporter = createReporter();
@@ -172,7 +172,7 @@ public class IcannHttpReporterTest {
   @Test
   public void testFail_invalidFilename_tldDoesntExist() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> {
               IcannHttpReporter reporter = createReporter();

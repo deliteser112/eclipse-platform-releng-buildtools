@@ -16,7 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.request.JsonResponse.JSON_SAFETY_PREFIX;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyMapOf;
@@ -95,14 +95,14 @@ public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
             .thenReturn(
                 JSON_SAFETY_PREFIX + "{\"status\":\"error\",\"error\":\"foo already exists\"}");
     VerifyException thrown =
-        expectThrows(
+        assertThrows(
             VerifyException.class, () -> runCommandForced("-i=" + premiumTermsPath, "-n=foo"));
     assertThat(thrown).hasMessageThat().contains("Server error:");
   }
 
   @Test
   public void testRun_noInputFileSpecified_throwsException() throws Exception  {
-    ParameterException thrown = expectThrows(ParameterException.class, this::runCommand);
+    ParameterException thrown = assertThrows(ParameterException.class, this::runCommand);
     assertThat(thrown).hasMessageThat().contains("The following option is required");
   }
 
@@ -113,7 +113,7 @@ public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
         readResourceUtf8(
             CreatePremiumListCommandTest.class, "testdata/example_invalid_premium_terms.csv"));
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("-i=" + premiumTermsPath, "-n=foo"));
     assertThat(thrown).hasMessageThat().contains("Could not parse line in premium list");

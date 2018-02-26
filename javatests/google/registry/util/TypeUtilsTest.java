@@ -15,7 +15,7 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class TypeUtilsTest {
   @Test
   public void test_getClassFromString_notAssignableFrom() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> TypeUtils.getClassFromString("java.util.ArrayList", Integer.class));
     assertThat(thrown).hasMessageThat().contains("ArrayList does not implement/extend Integer");
@@ -45,7 +45,7 @@ public class TypeUtilsTest {
   @Test
   public void test_getClassFromString_unknownClass() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> TypeUtils.getClassFromString("com.fake.company.nonexistent.Class", Object.class));
     assertThat(thrown)

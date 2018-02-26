@@ -16,7 +16,7 @@ package google.registry.flows.session;
 
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.flows.EppException;
 import google.registry.flows.FlowTestCase;
@@ -46,7 +46,7 @@ public class LogoutFlowTest extends FlowTestCase<LogoutFlow> {
   @Test
   public void testFailure() throws Exception {
     sessionMetadata.setClientId(null);  // Turn off the implicit login
-    EppException thrown = expectThrows(NotLoggedInException.class, this::runFlow);
+    EppException thrown = assertThrows(NotLoggedInException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 }

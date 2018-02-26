@@ -34,7 +34,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadPremiumListEntries;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.joda.time.Duration.standardMinutes;
 
 import com.google.common.collect.ImmutableList;
@@ -112,7 +112,7 @@ public class PremiumListUtilsTest {
       throws Exception {
     deletePremiumList(PremiumList.get("tld").get());
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class, () -> getPremiumPrice("blah", Registry.get("tld")));
     assertThat(thrown).hasMessageThat().contains("Could not load premium list 'tld'");
   }

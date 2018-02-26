@@ -20,7 +20,7 @@ import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -103,14 +103,14 @@ public class DomainClaimsCheckFlowTest
   @Test
   public void testFailure_TooManyIds() throws Exception {
     setEppInput("domain_check_claims_51.xml");
-    EppException thrown = expectThrows(TooManyResourceChecksException.class, this::runFlow);
+    EppException thrown = assertThrows(TooManyResourceChecksException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_tldDoesntExist() throws Exception {
     setEppInput("domain_check_claims_bad_tld.xml");
-    EppException thrown = expectThrows(TldDoesNotExistException.class, this::runFlow);
+    EppException thrown = assertThrows(TldDoesNotExistException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -118,7 +118,7 @@ public class DomainClaimsCheckFlowTest
   public void testFailure_notAuthorizedForTld() throws Exception {
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
-    EppException thrown = expectThrows(NotAuthorizedForTldException.class, this::runFlow);
+    EppException thrown = assertThrows(NotAuthorizedForTldException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -139,7 +139,7 @@ public class DomainClaimsCheckFlowTest
   public void testFailure_predelgation() throws Exception {
     createTld("tld", TldState.PREDELEGATION);
     setEppInput("domain_check_claims.xml");
-    EppException thrown = expectThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
+    EppException thrown = assertThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -147,7 +147,7 @@ public class DomainClaimsCheckFlowTest
   public void testFailure_sunrise() throws Exception {
     createTld("tld", TldState.SUNRISE);
     setEppInput("domain_check_claims.xml");
-    EppException thrown = expectThrows(DomainClaimsCheckNotAllowedInSunrise.class, this::runFlow);
+    EppException thrown = assertThrows(DomainClaimsCheckNotAllowedInSunrise.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -156,7 +156,7 @@ public class DomainClaimsCheckFlowTest
     createTld("tld", TldState.SUNRISE);
     setEppInput("domain_check_claims_allocationtoken.xml");
     EppException thrown =
-        expectThrows(DomainClaimsCheckNotAllowedWithAllocationTokens.class, this::runFlow);
+        assertThrows(DomainClaimsCheckNotAllowedWithAllocationTokens.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -166,7 +166,7 @@ public class DomainClaimsCheckFlowTest
     persistResource(
         Registry.get("tld2").asBuilder().setClaimsPeriodEnd(clock.nowUtc().minusMillis(1)).build());
     setEppInput("domain_check_claims_multiple_tlds.xml");
-    EppException thrown = expectThrows(ClaimsPeriodEndedException.class, this::runFlow);
+    EppException thrown = assertThrows(ClaimsPeriodEndedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

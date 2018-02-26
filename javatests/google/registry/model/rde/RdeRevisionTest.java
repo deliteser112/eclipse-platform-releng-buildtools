@@ -19,7 +19,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.rde.RdeMode.FULL;
 import static google.registry.model.rde.RdeRevision.getNextRevision;
 import static google.registry.model.rde.RdeRevision.saveRevision;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.base.VerifyException;
 import com.googlecode.objectify.VoidWork;
@@ -67,7 +67,7 @@ public class RdeRevisionTest {
   @Test
   public void testSaveRevision_objectDoesntExist_newRevisionIsOne_throwsVe() throws Exception {
     VerifyException thrown =
-        expectThrows(
+        assertThrows(
             VerifyException.class,
             () ->
                 ofy()
@@ -85,7 +85,7 @@ public class RdeRevisionTest {
   public void testSaveRevision_objectExistsAtZero_newRevisionIsZero_throwsVe() throws Exception {
     save("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 0);
     VerifyException thrown =
-        expectThrows(
+        assertThrows(
             VerifyException.class,
             () ->
                 ofy()
@@ -119,7 +119,7 @@ public class RdeRevisionTest {
   public void testSaveRevision_objectExistsAtZero_newRevisionIsTwo_throwsVe() throws Exception {
     save("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 0);
     VerifyException thrown =
-        expectThrows(
+        assertThrows(
             VerifyException.class,
             () ->
                 ofy()
@@ -136,7 +136,7 @@ public class RdeRevisionTest {
   @Test
   public void testSaveRevision_negativeRevision_throwsIae() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 ofy()
@@ -153,7 +153,7 @@ public class RdeRevisionTest {
   @Test
   public void testSaveRevision_callerNotInTransaction_throwsIse() throws Exception {
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () -> saveRevision("frenzy", DateTime.parse("1984-12-18TZ"), FULL, 1));
     assertThat(thrown).hasMessageThat().contains("transaction");

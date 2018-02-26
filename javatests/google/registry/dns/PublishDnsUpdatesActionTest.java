@@ -19,7 +19,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -163,7 +163,7 @@ public class PublishDnsUpdatesActionTest {
         ImmutableSet.of(
             "ns1.example.xn--q9jyb4c", "ns2.example.xn--q9jyb4c", "ns1.example2.xn--q9jyb4c");
     doThrow(new RuntimeException()).when(dnsWriter).commit();
-    expectThrows(RuntimeException.class, action::run);
+    assertThrows(RuntimeException.class, action::run);
 
     verify(dnsMetrics).incrementPublishDomainRequests(2, PublishStatus.ACCEPTED);
     verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
@@ -249,7 +249,7 @@ public class PublishDnsUpdatesActionTest {
     action.hosts = ImmutableSet.of("ns1.example.com", "ns2.example.com", "ns1.example2.com");
     action.lockHandler = new FakeLockHandler(false);
     ServiceUnavailableException thrown =
-        expectThrows(ServiceUnavailableException.class, action::run);
+        assertThrows(ServiceUnavailableException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Lock failure");
 
     verifyNoMoreInteractions(dnsWriter);

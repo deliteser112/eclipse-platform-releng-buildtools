@@ -16,7 +16,7 @@ package google.registry.reporting.icann;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.GcsTestingUtils.writeGcsFile;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -144,7 +144,7 @@ public class IcannReportingUploadActionTest {
   public void testFail_FileNotFound() throws Exception {
     IcannReportingUploadAction action = createAction();
     action.subdir = "somewhere/else";
-    IllegalArgumentException thrown = expectThrows(IllegalArgumentException.class, action::run);
+    IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, action::run);
     assertThat(thrown)
         .hasMessageThat()
         .isEqualTo("Object MANIFEST.txt in bucket basin/somewhere/else not found");

@@ -16,7 +16,6 @@ package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import org.joda.time.Duration;
@@ -83,7 +82,7 @@ public class DurationParameterTest {
   @Test
   public void testValidate_sillyString_throws() throws Exception {
     ParameterException thrown =
-        expectThrows(ParameterException.class, () -> instance.validate("--time", "foo"));
+        assertThrows(ParameterException.class, () -> instance.validate("--time", "foo"));
     assertThat(thrown).hasMessageThat().contains("--time=foo not an");
   }
 }

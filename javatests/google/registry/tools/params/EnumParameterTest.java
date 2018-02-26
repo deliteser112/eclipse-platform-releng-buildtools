@@ -15,7 +15,7 @@
 package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.model.registry.Registry.TldState;
 import org.junit.Test;
@@ -38,7 +38,7 @@ public class EnumParameterTest {
   @Test
   public void testFailure_badValue() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> instance.convert("GENERAL_SUNRUSH"));
+        assertThrows(IllegalArgumentException.class, () -> instance.convert("GENERAL_SUNRUSH"));
     assertThat(thrown)
         .hasMessageThat()
         .contains(

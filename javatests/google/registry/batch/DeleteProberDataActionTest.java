@@ -25,7 +25,7 @@ import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistDomainAsDeleted;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -207,7 +207,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
             .setCreationTimeForTest(DateTime.now(UTC).minusYears(1))
             .build());
     action.registryAdminClientId = null;
-    IllegalStateException thrown = expectThrows(IllegalStateException.class, this::runMapreduce);
+    IllegalStateException thrown = assertThrows(IllegalStateException.class, this::runMapreduce);
     assertThat(thrown).hasMessageThat().contains("Registry admin client ID must be configured");
   }
 

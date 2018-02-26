@@ -21,7 +21,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.net.InetAddresses;
@@ -158,7 +158,7 @@ public class HostResourceTest extends EntityTestCase {
   @Test
   public void testFailure_uppercaseHostName() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> host.asBuilder().setFullyQualifiedHostName("AAA.BBB.CCC"));
     assertThat(thrown)
@@ -169,7 +169,7 @@ public class HostResourceTest extends EntityTestCase {
   @Test
   public void testFailure_utf8HostName() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> host.asBuilder().setFullyQualifiedHostName("みんな.みんな.みんな"));
     assertThat(thrown)

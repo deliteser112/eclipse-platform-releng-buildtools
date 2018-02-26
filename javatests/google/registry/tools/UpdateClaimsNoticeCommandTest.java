@@ -21,7 +21,6 @@ import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
@@ -146,7 +145,7 @@ public class UpdateClaimsNoticeCommandTest extends CommandTestCase<UpdateClaimsN
   public void testFailure_claimsNoticeForWrongLabel() throws Exception {
     persistResource(newDomainApplication("bad-label.xn--q9jyb4c"));
     Exception e =
-        expectThrows(
+        assertThrows(
             Exception.class,
             () ->
                 runCommand(

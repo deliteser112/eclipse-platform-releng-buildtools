@@ -16,7 +16,6 @@ package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
@@ -63,7 +62,7 @@ public class TeeOutputStreamTest {
   public void testWriteInteger_failsAfterClose() throws Exception {
     OutputStream tee = new TeeOutputStream(asList(outputA));
     tee.close();
-    IllegalStateException thrown = expectThrows(IllegalStateException.class, () -> tee.write(1));
+    IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> tee.write(1));
     assertThat(thrown).hasMessageThat().contains("outputstream closed");
   }
 
@@ -72,7 +71,7 @@ public class TeeOutputStreamTest {
     OutputStream tee = new TeeOutputStream(asList(outputA));
     tee.close();
     IllegalStateException thrown =
-        expectThrows(IllegalStateException.class, () -> tee.write("hello".getBytes(UTF_8)));
+        assertThrows(IllegalStateException.class, () -> tee.write("hello".getBytes(UTF_8)));
     assertThat(thrown).hasMessageThat().contains("outputstream closed");
   }
 
@@ -81,7 +80,7 @@ public class TeeOutputStreamTest {
     OutputStream tee = new TeeOutputStream(asList(outputA));
     tee.close();
     IllegalStateException thrown =
-        expectThrows(IllegalStateException.class, () -> tee.write("hello".getBytes(UTF_8), 1, 3));
+        assertThrows(IllegalStateException.class, () -> tee.write("hello".getBytes(UTF_8), 1, 3));
     assertThat(thrown).hasMessageThat().contains("outputstream closed");
   }
 }

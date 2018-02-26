@@ -20,7 +20,7 @@ import static com.googlecode.objectify.ObjectifyService.register;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -161,7 +161,7 @@ public class OfyCommitLogTest {
     final CommitLogManifest backupsArentAllowedOnMe =
         CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.of());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> ofy().transactNew(() -> ofy().delete().entity(backupsArentAllowedOnMe)));
     assertThat(thrown).hasMessageThat().contains("Can't save/delete a @NotBackedUp");
@@ -172,7 +172,7 @@ public class OfyCommitLogTest {
     final CommitLogManifest backupsArentAllowedOnMe =
         CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.of());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> ofy().transactNew(() -> ofy().save().entity(backupsArentAllowedOnMe)));
     assertThat(thrown).hasMessageThat().contains("Can't save/delete a @NotBackedUp");
@@ -182,7 +182,7 @@ public class OfyCommitLogTest {
   public void testTransactNew_deleteVirtualEntityKey_throws() throws Exception {
     final Key<TestVirtualObject> virtualEntityKey = TestVirtualObject.createKey("virtual");
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> ofy().transactNew(() -> ofy().delete().key(virtualEntityKey)));
     assertThat(thrown).hasMessageThat().contains("Can't save/delete a @VirtualEntity");
@@ -192,7 +192,7 @@ public class OfyCommitLogTest {
   public void testTransactNew_saveVirtualEntity_throws() throws Exception {
     final TestVirtualObject virtualEntity = TestVirtualObject.create("virtual");
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> ofy().transactNew(() -> ofy().save().entity(virtualEntity)));
     assertThat(thrown).hasMessageThat().contains("Can't save/delete a @VirtualEntity");
@@ -202,7 +202,7 @@ public class OfyCommitLogTest {
   public void test_deleteWithoutBackup_withVirtualEntityKey_throws() throws Exception {
     final Key<TestVirtualObject> virtualEntityKey = TestVirtualObject.createKey("virtual");
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> ofy().deleteWithoutBackup().key(virtualEntityKey));
     assertThat(thrown).hasMessageThat().contains("Can't save/delete a @VirtualEntity");
@@ -212,7 +212,7 @@ public class OfyCommitLogTest {
   public void test_saveWithoutBackup_withVirtualEntity_throws() throws Exception {
     final TestVirtualObject virtualEntity = TestVirtualObject.create("virtual");
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class, () -> ofy().saveWithoutBackup().entity(virtualEntity));
     assertThat(thrown).hasMessageThat().contains("Can't save/delete a @VirtualEntity");
   }
@@ -220,7 +220,7 @@ public class OfyCommitLogTest {
   @Test
   public void testTransact_twoSavesOnSameKey_throws() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 ofy()
@@ -235,7 +235,7 @@ public class OfyCommitLogTest {
   @Test
   public void testTransact_saveAndDeleteSameKey_throws() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 ofy()

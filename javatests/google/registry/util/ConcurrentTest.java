@@ -15,7 +15,7 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.NullPointerTester;
@@ -51,7 +51,7 @@ public class ConcurrentTest {
   @Test
   public void testTransform_throwsException_isSinglyWrappedByUee() throws Exception {
     UncheckedExecutionException e =
-        expectThrows(
+        assertThrows(
             UncheckedExecutionException.class,
             () ->
                 Concurrent.transform(

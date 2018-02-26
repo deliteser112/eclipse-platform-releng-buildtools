@@ -15,7 +15,7 @@
 package google.registry.tools.server;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -62,7 +62,7 @@ public class CreateGroupsActionTest {
 
   @Test
   public void test_invalidRequest_missingClientId() throws Exception {
-    BadRequestException thrown = expectThrows(BadRequestException.class, () -> runAction(null));
+    BadRequestException thrown = assertThrows(BadRequestException.class, () -> runAction(null));
     assertThat(thrown)
         .hasMessageThat()
         .contains("Error creating Google Groups, missing parameter: clientId");
@@ -71,7 +71,7 @@ public class CreateGroupsActionTest {
   @Test
   public void test_invalidRequest_invalidClientId() throws Exception {
     BadRequestException thrown =
-        expectThrows(BadRequestException.class, () -> runAction("completelyMadeUpClientId"));
+        assertThrows(BadRequestException.class, () -> runAction("completelyMadeUpClientId"));
     assertThat(thrown)
         .hasMessageThat()
         .contains(
@@ -99,7 +99,7 @@ public class CreateGroupsActionTest {
         "newregistrar-technical-contacts@domain-registry.example",
         Role.MEMBER);
     InternalServerErrorException e =
-        expectThrows(InternalServerErrorException.class, () -> runAction("NewRegistrar"));
+        assertThrows(InternalServerErrorException.class, () -> runAction("NewRegistrar"));
     String responseString = e.toString();
       assertThat(responseString).contains("abuse => Success");
       assertThat(responseString).contains("billing => Success");

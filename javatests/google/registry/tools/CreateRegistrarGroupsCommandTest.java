@@ -15,7 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
@@ -57,7 +57,7 @@ public class CreateRegistrarGroupsCommandTest extends
   @Test
   public void test_throwsExceptionForNonExistentRegistrar() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("FakeRegistrarThatDefinitelyDoesNotExist"));
     assertThat(thrown)

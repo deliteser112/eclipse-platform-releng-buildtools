@@ -20,7 +20,6 @@ import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.UrlFetchUtils.getHeaderFirst;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
@@ -171,7 +170,7 @@ public class NordnVerifyActionTest {
   @Test
   public void failureVerifyNotReady() throws Exception {
     when(httpResponse.getResponseCode()).thenReturn(SC_NO_CONTENT);
-    ConflictException thrown = expectThrows(ConflictException.class, action::run);
+    ConflictException thrown = assertThrows(ConflictException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Not ready");
   }
 }

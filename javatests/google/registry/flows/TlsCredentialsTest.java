@@ -15,7 +15,7 @@
 package google.registry.flows;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -39,7 +39,7 @@ public final class TlsCredentialsTest {
   public void testProvideClientCertificateHash_missing() {
     HttpServletRequest req = mock(HttpServletRequest.class);
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class,
             () -> TlsCredentials.EppTlsModule.provideClientCertificateHash(req));
     assertThat(thrown).hasMessageThat().contains("Missing header: X-SSL-Certificate");
@@ -57,7 +57,7 @@ public final class TlsCredentialsTest {
   public void testProvideRequestedServername_missing() {
     HttpServletRequest req = mock(HttpServletRequest.class);
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class,
             () -> TlsCredentials.EppTlsModule.provideRequestedServername(req));
     assertThat(thrown).hasMessageThat().contains("Missing header: X-Requested-Servername-SNI");

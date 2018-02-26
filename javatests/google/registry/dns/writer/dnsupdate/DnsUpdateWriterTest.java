@@ -26,7 +26,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHo
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -388,7 +388,7 @@ public class DnsUpdateWriterTest {
     persistResource(domain);
     when(mockResolver.send(any(Message.class))).thenReturn(messageWithResponseCode(Rcode.SERVFAIL));
     VerifyException thrown =
-        expectThrows(
+        assertThrows(
             VerifyException.class,
             () -> {
               writer.publishDomain("example.tld");
@@ -407,7 +407,7 @@ public class DnsUpdateWriterTest {
     persistResource(host);
     when(mockResolver.send(any(Message.class))).thenReturn(messageWithResponseCode(Rcode.SERVFAIL));
     VerifyException thrown =
-        expectThrows(
+        assertThrows(
             VerifyException.class,
             () -> {
               writer.publishHost("ns1.example.tld");

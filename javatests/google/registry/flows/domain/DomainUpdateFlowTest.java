@@ -36,7 +36,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -459,7 +459,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_metadata.xml");
     persistReferencedEntities();
     persistDomain();
-    EppException thrown = expectThrows(OnlyToolCanPassMetadataException.class, this::runFlow);
+    EppException thrown = assertThrows(OnlyToolCanPassMetadataException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -792,7 +792,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput(xmlFilename);
     persistReferencedEntities();
     persistActiveDomain(getUniqueIdFromCommand());
-    EppException thrown = expectThrows(expectedException, this::runFlow);
+    EppException thrown = assertThrows(expectedException, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -828,7 +828,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_dsdata_add.xml");
     persistResource(
         newDomainResource(getUniqueIdFromCommand()).asBuilder().setDsData(builder.build()).build());
-    EppException thrown = expectThrows(TooManyDsRecordsException.class, this::runFlow);
+    EppException thrown = assertThrows(TooManyDsRecordsException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -839,7 +839,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistDomain();
     // Modify domain so it has 13 nameservers. We will then try to add one in the test.
     modifyDomainToHave13Nameservers();
-    EppException thrown = expectThrows(TooManyNameserversException.class, this::runFlow);
+    EppException thrown = assertThrows(TooManyNameserversException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -848,7 +848,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_wrong_extension.xml");
     persistReferencedEntities();
     persistDomain();
-    EppException thrown = expectThrows(UnimplementedExtensionException.class, this::runFlow);
+    EppException thrown = assertThrows(UnimplementedExtensionException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -856,7 +856,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   public void testFailure_neverExisted() throws Exception {
     persistReferencedEntities();
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -865,7 +865,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistReferencedEntities();
     persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -876,7 +876,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistActiveContact("mak21");
     persistActiveDomain(getUniqueIdFromCommand());
     LinkedResourcesDoNotExistException thrown =
-        expectThrows(LinkedResourcesDoNotExistException.class, this::runFlow);
+        assertThrows(LinkedResourcesDoNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("(ns2.example.foo)");
   }
 
@@ -887,7 +887,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistActiveContact("mak21");
     persistActiveDomain(getUniqueIdFromCommand());
     LinkedResourcesDoNotExistException thrown =
-        expectThrows(LinkedResourcesDoNotExistException.class, this::runFlow);
+        assertThrows(LinkedResourcesDoNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("(sh8013)");
   }
 
@@ -908,7 +908,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                         Key.create(
                             loadByForeignKey(ContactResource.class, "foo", clock.nowUtc())))))
             .build());
-    EppException thrown = expectThrows(DuplicateContactForRoleException.class, this::runFlow);
+    EppException thrown = assertThrows(DuplicateContactForRoleException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -917,7 +917,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_prohibited_status.xml");
     persistReferencedEntities();
     persistDomain();
-    EppException thrown = expectThrows(StatusNotClientSettableException.class, this::runFlow);
+    EppException thrown = assertThrows(StatusNotClientSettableException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -938,7 +938,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .asBuilder()
             .addStatusValue(SERVER_UPDATE_PROHIBITED)
             .build());
-    Exception e = expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
+    Exception e = assertThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(e).hasMessageThat().containsMatch("serverUpdateProhibited");
   }
 
@@ -956,7 +956,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_add_registry_lock.xml");
     persistReferencedEntities();
     persistDomain();
-    Exception e = expectThrows(StatusNotClientSettableException.class, this::runFlow);
+    Exception e = assertThrows(StatusNotClientSettableException.class, this::runFlow);
     assertThat(e).hasMessageThat().containsMatch("serverUpdateProhibited");
   }
 
@@ -980,7 +980,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setStatusValues(ImmutableSet.of(StatusValue.CLIENT_UPDATE_PROHIBITED))
             .build());
     EppException thrown =
-        expectThrows(ResourceHasClientUpdateProhibitedException.class, this::runFlow);
+        assertThrows(ResourceHasClientUpdateProhibitedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -993,7 +993,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setStatusValues(ImmutableSet.of(SERVER_UPDATE_PROHIBITED))
             .build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
+        assertThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("serverUpdateProhibited");
   }
 
@@ -1007,7 +1007,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .addStatusValue(StatusValue.PENDING_DELETE)
             .build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
+        assertThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("pendingDelete");
   }
 
@@ -1016,7 +1016,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_duplicate_contact.xml");
     persistReferencedEntities();
     persistDomain();
-    EppException thrown = expectThrows(DuplicateContactForRoleException.class, this::runFlow);
+    EppException thrown = assertThrows(DuplicateContactForRoleException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1026,7 +1026,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_missing_contact_type.xml");
     persistReferencedEntities();
     persistDomain();
-    EppException thrown = expectThrows(MissingContactTypeException.class, this::runFlow);
+    EppException thrown = assertThrows(MissingContactTypeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1035,7 +1035,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     sessionMetadata.setClientId("NewRegistrar");
     persistReferencedEntities();
     persistDomain();
-    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = assertThrows(ResourceNotOwnedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1055,7 +1055,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistReferencedEntities();
     persistDomain();
-    EppException thrown = expectThrows(NotAuthorizedForTldException.class, this::runFlow);
+    EppException thrown = assertThrows(NotAuthorizedForTldException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1082,7 +1082,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                     Key.create(
                         loadByForeignKey(HostResource.class, "ns1.example.foo", clock.nowUtc()))))
             .build());
-    EppException thrown = expectThrows(AddRemoveSameValueException.class, this::runFlow);
+    EppException thrown = assertThrows(AddRemoveSameValueException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1100,7 +1100,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                         Key.create(
                             loadByForeignKey(ContactResource.class, "sh8013", clock.nowUtc())))))
             .build());
-    EppException thrown = expectThrows(AddRemoveSameValueException.class, this::runFlow);
+    EppException thrown = assertThrows(AddRemoveSameValueException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1116,7 +1116,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                     DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
                     DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
             .build());
-    EppException thrown = expectThrows(MissingAdminContactException.class, this::runFlow);
+    EppException thrown = assertThrows(MissingAdminContactException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1132,7 +1132,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                     DesignatedContact.create(Type.ADMIN, Key.create(sh8013Contact)),
                     DesignatedContact.create(Type.TECH, Key.create(sh8013Contact))))
             .build());
-    EppException thrown = expectThrows(MissingTechnicalContactException.class, this::runFlow);
+    EppException thrown = assertThrows(MissingTechnicalContactException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1150,7 +1150,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .build());
     clock.advanceOneMilli();
     LinkedResourceInPendingDeleteProhibitsOperationException thrown =
-        expectThrows(LinkedResourceInPendingDeleteProhibitsOperationException.class, this::runFlow);
+        assertThrows(LinkedResourceInPendingDeleteProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("mak21");
   }
 
@@ -1168,7 +1168,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .build());
     clock.advanceOneMilli();
     LinkedResourceInPendingDeleteProhibitsOperationException thrown =
-        expectThrows(LinkedResourceInPendingDeleteProhibitsOperationException.class, this::runFlow);
+        assertThrows(LinkedResourceInPendingDeleteProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
   }
 
@@ -1182,7 +1182,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setAllowedRegistrantContactIds(ImmutableSet.of("contact1234"))
             .build());
     clock.advanceOneMilli();
-    EppException thrown = expectThrows(RegistrantNotAllowedException.class, this::runFlow);
+    EppException thrown = assertThrows(RegistrantNotAllowedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1196,7 +1196,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
             .build());
     clock.advanceOneMilli();
-    EppException thrown = expectThrows(NameserversNotAllowedForTldException.class, this::runFlow);
+    EppException thrown = assertThrows(NameserversNotAllowedForTldException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1292,7 +1292,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.foo"))
             .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NameserversNotSpecifiedForTldWithNameserverWhitelistException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -1323,7 +1323,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns3.example.foo"))
             .build());
     NameserversNotAllowedForDomainException thrown =
-        expectThrows(NameserversNotAllowedForDomainException.class, this::runFlow);
+        assertThrows(NameserversNotAllowedForDomainException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
   }
 
@@ -1340,7 +1340,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
             .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NameserversNotSpecifiedForNameserverRestrictedDomainException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -1387,7 +1387,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns3.example.foo"))
             .build());
     NameserversNotAllowedForDomainException thrown =
-        expectThrows(NameserversNotAllowedForDomainException.class, this::runFlow);
+        assertThrows(NameserversNotAllowedForDomainException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
   }
 
@@ -1422,7 +1422,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 persistReservedList("reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo"))
             .build());
     NameserversNotAllowedForDomainException thrown =
-        expectThrows(NameserversNotAllowedForDomainException.class, this::runFlow);
+        assertThrows(NameserversNotAllowedForDomainException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
   }
 
@@ -1440,7 +1440,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                     "reserved", "example,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
             .build());
     NameserversNotAllowedForTldException thrown =
-        expectThrows(NameserversNotAllowedForTldException.class, this::runFlow);
+        assertThrows(NameserversNotAllowedForTldException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("ns2.example.foo");
   }
 
@@ -1460,7 +1460,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                     "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
             .build());
     EppException thrown =
-        expectThrows(DomainNotAllowedForTldWithCreateRestrictionException.class, this::runFlow);
+        assertThrows(DomainNotAllowedForTldWithCreateRestrictionException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1477,7 +1477,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                     "reserved", "lol,NAMESERVER_RESTRICTED,ns1.example.foo:ns2.example.foo"))
             .build());
     EppException thrown =
-        expectThrows(DomainNotAllowedForTldWithCreateRestrictionException.class, this::runFlow);
+        assertThrows(DomainNotAllowedForTldWithCreateRestrictionException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1532,7 +1532,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput("domain_update_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistReferencedEntities();
     persistDomain();
-    EppException thrown = expectThrows(FeesMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(FeesMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1544,7 +1544,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistReferencedEntities();
     persistDomain();
     EppException thrown =
-        expectThrows(FeesRequiredForNonFreeOperationException.class, this::runFlow);
+        assertThrows(FeesRequiredForNonFreeOperationException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

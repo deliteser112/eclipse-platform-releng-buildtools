@@ -15,7 +15,7 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.SerializeUtils.deserialize;
 import static google.registry.util.SerializeUtils.serialize;
 
@@ -51,14 +51,14 @@ public class SerializeUtilsTest {
   @Test
   public void testSerialize_objectDoesntImplementSerialize_hasInformativeError() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> serialize(new Lol()));
+        assertThrows(IllegalArgumentException.class, () -> serialize(new Lol()));
     assertThat(thrown).hasMessageThat().contains("Unable to serialize: LOL_VALUE");
   }
 
   @Test
   public void testDeserialize_badValue_hasInformativeError() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> deserialize(String.class, new byte[] {(byte) 0xff}));
     assertThat(thrown).hasMessageThat().contains("Unable to deserialize: objectBytes=FF");

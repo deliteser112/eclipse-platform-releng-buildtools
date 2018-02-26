@@ -23,7 +23,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableList;
@@ -45,7 +45,7 @@ public class DomainApplicationIndexTest extends EntityTestCase {
   @Test
   public void testFailure_create_nullReferences() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> DomainApplicationIndex.createWithSpecifiedKeys("blah.com", null));
     assertThat(thrown).hasMessageThat().contains("Keys must not be null or empty.");
@@ -54,7 +54,7 @@ public class DomainApplicationIndexTest extends EntityTestCase {
   @Test
   public void testFailure_create_emptyReferences() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> createWithSpecifiedKeys("blah.com", ImmutableSet.of()));
     assertThat(thrown).hasMessageThat().contains("Keys must not be null or empty.");

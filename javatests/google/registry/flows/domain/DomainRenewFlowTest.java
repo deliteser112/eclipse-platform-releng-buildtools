@@ -28,7 +28,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.EUR;
@@ -304,7 +304,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_refundableFee_v06() throws Exception {
     setEppInput("domain_renew_fee_refundable.xml", FEE_06_MAP);
     persistDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -312,7 +312,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_refundableFee_v11() throws Exception {
     setEppInput("domain_renew_fee_refundable.xml", FEE_11_MAP);
     persistDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -320,7 +320,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_refundableFee_v12() throws Exception {
     setEppInput("domain_renew_fee_refundable.xml", FEE_12_MAP);
     persistDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -328,7 +328,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_gracePeriodFee_v06() throws Exception {
     setEppInput("domain_renew_fee_grace_period.xml", FEE_06_MAP);
     persistDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -336,7 +336,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_gracePeriodFee_v11() throws Exception {
     setEppInput("domain_renew_fee_grace_period.xml", FEE_11_MAP);
     persistDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -344,7 +344,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_gracePeriodFee_v12() throws Exception {
     setEppInput("domain_renew_fee_grace_period.xml", FEE_12_MAP);
     persistDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -352,7 +352,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_appliedFee_v06() throws Exception {
     setEppInput("domain_renew_fee_applied.xml", FEE_06_MAP);
     persistDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -360,7 +360,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_appliedFee_v11() throws Exception {
     setEppInput("domain_renew_fee_applied.xml", FEE_11_MAP);
     persistDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -368,7 +368,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_appliedFee_v12() throws Exception {
     setEppInput("domain_renew_fee_applied.xml", FEE_12_MAP);
     persistDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -429,7 +429,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -437,7 +437,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -445,7 +445,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_clientRenewProhibited() throws Exception {
     persistDomain(StatusValue.CLIENT_RENEW_PROHIBITED);
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
+        assertThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("clientRenewProhibited");
   }
 
@@ -453,7 +453,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_serverRenewProhibited() throws Exception {
     persistDomain(StatusValue.SERVER_RENEW_PROHIBITED);
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
+        assertThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("serverRenewProhibited");
   }
 
@@ -467,7 +467,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .addStatusValue(StatusValue.PENDING_DELETE)
             .build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
+        assertThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("pendingDelete");
   }
 
@@ -480,7 +480,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(USD, 20)))
             .build());
     persistDomain();
-    EppException thrown = expectThrows(FeesMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(FeesMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -493,7 +493,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(USD, 20)))
             .build());
     persistDomain();
-    EppException thrown = expectThrows(FeesMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(FeesMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -506,7 +506,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(USD, 20)))
             .build());
     persistDomain();
-    EppException thrown = expectThrows(FeesMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(FeesMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -524,7 +524,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .setServerStatusChangeBillingCost(Money.of(EUR, 19))
             .build());
     persistDomain();
-    EppException thrown = expectThrows(CurrencyUnitMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -542,7 +542,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .setServerStatusChangeBillingCost(Money.of(EUR, 19))
             .build());
     persistDomain();
-    EppException thrown = expectThrows(CurrencyUnitMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -560,7 +560,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .setServerStatusChangeBillingCost(Money.of(EUR, 19))
             .build());
     persistDomain();
-    EppException thrown = expectThrows(CurrencyUnitMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -568,7 +568,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_feeGivenInWrongScale_v06() throws Exception {
     setEppInput("domain_renew_fee_bad_scale.xml", FEE_06_MAP);
     persistDomain();
-    EppException thrown = expectThrows(CurrencyValueScaleException.class, this::runFlow);
+    EppException thrown = assertThrows(CurrencyValueScaleException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -576,7 +576,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_feeGivenInWrongScale_v11() throws Exception {
     setEppInput("domain_renew_fee_bad_scale.xml", FEE_11_MAP);
     persistDomain();
-    EppException thrown = expectThrows(CurrencyValueScaleException.class, this::runFlow);
+    EppException thrown = assertThrows(CurrencyValueScaleException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -584,7 +584,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_feeGivenInWrongScale_v12() throws Exception {
     setEppInput("domain_renew_fee_bad_scale.xml", FEE_12_MAP);
     persistDomain();
-    EppException thrown = expectThrows(CurrencyValueScaleException.class, this::runFlow);
+    EppException thrown = assertThrows(CurrencyValueScaleException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -597,7 +597,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .setRegistrationExpirationTime(DateTime.parse("2001-09-08T22:00:00.0Z"))
             .build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
+        assertThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("pendingTransfer");
   }
 
@@ -605,7 +605,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_periodInMonths() throws Exception {
     setEppInput("domain_renew_months.xml");
     persistDomain();
-    EppException thrown = expectThrows(BadPeriodUnitException.class, this::runFlow);
+    EppException thrown = assertThrows(BadPeriodUnitException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -613,7 +613,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_max10Years() throws Exception {
     setEppInput("domain_renew_11_years.xml");
     persistDomain();
-    EppException thrown = expectThrows(ExceedsMaxRegistrationYearsException.class, this::runFlow);
+    EppException thrown = assertThrows(ExceedsMaxRegistrationYearsException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -627,7 +627,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .setRegistrationExpirationTime(DateTime.parse("2000-04-04T22:00:00.0Z"))
             .build());
     EppException thrown =
-        expectThrows(IncorrectCurrentExpirationDateException.class, this::runFlow);
+        assertThrows(IncorrectCurrentExpirationDateException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -635,7 +635,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveDomain(getUniqueIdFromCommand());
-    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = assertThrows(ResourceNotOwnedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -652,7 +652,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistDomain();
-    EppException thrown = expectThrows(NotAuthorizedForTldException.class, this::runFlow);
+    EppException thrown = assertThrows(NotAuthorizedForTldException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -671,7 +671,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(true).build());
     setEppInput("domain_renew_premium.xml");
     persistDomain();
-    EppException thrown = expectThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
+    EppException thrown = assertThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -683,7 +683,7 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
         loadRegistrar("TheRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
     setEppInput("domain_renew_premium.xml");
     persistDomain();
-    EppException thrown = expectThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
+    EppException thrown = assertThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

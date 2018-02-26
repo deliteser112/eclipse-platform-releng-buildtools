@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 import static org.mockito.Mockito.mock;
@@ -96,7 +96,7 @@ public final class DnsInjectionTest {
     when(req.getParameter("type")).thenReturn("domain");
     when(req.getParameter("name")).thenReturn("example.lol");
     NotFoundException thrown =
-        expectThrows(NotFoundException.class, () -> component.refreshDns().run());
+        assertThrows(NotFoundException.class, () -> component.refreshDns().run());
     assertThat(thrown).hasMessageThat().contains("domain example.lol not found");
   }
 
@@ -114,7 +114,7 @@ public final class DnsInjectionTest {
     when(req.getParameter("type")).thenReturn("host");
     when(req.getParameter("name")).thenReturn("ns1.example.lol");
     NotFoundException thrown =
-        expectThrows(NotFoundException.class, () -> component.refreshDns().run());
+        assertThrows(NotFoundException.class, () -> component.refreshDns().run());
     assertThat(thrown).hasMessageThat().contains("host ns1.example.lol not found");
   }
 }

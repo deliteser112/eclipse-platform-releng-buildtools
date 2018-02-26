@@ -16,7 +16,7 @@ package google.registry.storage.drive;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
@@ -209,7 +209,7 @@ public class DriveConnectionTest {
       .setNextPageToken(null);
     when(childrenList.execute()).thenReturn(childList);
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 driveConnection.createOrUpdateFile(

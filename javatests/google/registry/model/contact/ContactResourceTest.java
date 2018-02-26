@@ -20,7 +20,7 @@ import static google.registry.testing.ContactResourceSubject.assertAboutContacts
 import static google.registry.testing.DatastoreHelper.cloneAndSetAutoTimestamps;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.collect.ImmutableList;
@@ -200,7 +200,7 @@ public class ContactResourceTest extends EntityTestCase {
   @Test
   public void testSetCreationTime_cantBeCalledTwice() {
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () -> contactResource.asBuilder().setCreationTime(END_OF_TIME));
     assertThat(thrown).hasMessageThat().contains("creationTime can only be set once");

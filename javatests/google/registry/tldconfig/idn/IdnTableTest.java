@@ -15,7 +15,7 @@
 package google.registry.tldconfig.idn;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import java.net.URI;
@@ -107,7 +107,7 @@ public class IdnTableTest {
   public void testMissingUrl_throwsNpe() {
     ImmutableList<String> of = ImmutableList.of("# Policy: https://love.example/policy.html");
     NullPointerException thrown =
-        expectThrows(
+        assertThrows(
             NullPointerException.class, () -> IdnTable.createFrom("sloth", of, Optional.empty()));
     assertThat(thrown).hasMessageThat().contains("sloth missing '# URL:");
   }
@@ -116,7 +116,7 @@ public class IdnTableTest {
   public void testMissingPolicy_throwsNpe() {
     ImmutableList<String> of = ImmutableList.of("# URL: https://love.example/sloth.txt");
     NullPointerException thrown =
-        expectThrows(
+        assertThrows(
             NullPointerException.class, () -> IdnTable.createFrom("sloth", of, Optional.empty()));
     assertThat(thrown).hasMessageThat().contains("sloth missing '# Policy:");
   }

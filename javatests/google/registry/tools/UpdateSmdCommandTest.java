@@ -23,7 +23,6 @@ import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -116,7 +115,7 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
   public void testFailure_invalidSmd() throws Exception {
     String smdFile = writeToTmpFile(INVALID_SMD);
     Exception e =
-        expectThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
+        assertThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
     assertThat(e).hasCauseThat().isInstanceOf(ParameterValuePolicyErrorException.class);
   }
 
@@ -127,7 +126,7 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
     SignedMarkRevocationList.create(now, ImmutableMap.of(ACTIVE_SMD_ID, now)).save();
     String smdFile = writeToTmpFile(ACTIVE_SMD);
     Exception e =
-        expectThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
+        assertThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
     assertThat(e).hasCauseThat().isInstanceOf(ParameterValuePolicyErrorException.class);
   }
 
@@ -135,7 +134,7 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
   public void testFailure_revokedTmv() throws Exception {
     String smdFile = writeToTmpFile(REVOKED_TMV_SMD);
     Exception e =
-        expectThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
+        assertThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
     assertThat(e).hasCauseThat().isInstanceOf(ParameterValuePolicyErrorException.class);
   }
 
@@ -143,7 +142,7 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
   public void testFailure_unparseableXml() throws Exception {
     String smdFile = writeToTmpFile(base64().encode("This is not XML!".getBytes(UTF_8)));
     Exception e =
-        expectThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
+        assertThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
     assertThat(e).hasCauseThat().isInstanceOf(ParameterValueSyntaxErrorException.class);
   }
 
@@ -151,7 +150,7 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
   public void testFailure_badlyEncodedData() throws Exception {
     String smdFile = writeToTmpFile("Bad base64 data ~!@#$#@%%$#^$%^&^**&^)(*)(_".getBytes(UTF_8));
     Exception e =
-        expectThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
+        assertThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
     assertThat(e).hasCauseThat().isInstanceOf(ParameterValueSyntaxErrorException.class);
   }
 
@@ -159,7 +158,7 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
   public void testFailure_wrongLabel() throws Exception {
     String smdFile = writeToTmpFile(DIFFERENT_LABEL_SMD);
     Exception e =
-        expectThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
+        assertThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
     assertThat(e).hasCauseThat().isInstanceOf(RequiredParameterMissingException.class);
   }
 

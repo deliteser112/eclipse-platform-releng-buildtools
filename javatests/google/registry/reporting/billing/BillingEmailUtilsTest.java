@@ -16,7 +16,7 @@ package google.registry.reporting.billing;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -144,7 +144,7 @@ public class BillingEmailUtilsTest {
         }
     );
     RuntimeException thrown =
-        expectThrows(RuntimeException.class, () -> emailUtils.emailOverallInvoice());
+        assertThrows(RuntimeException.class, () -> emailUtils.emailOverallInvoice());
     assertThat(thrown).hasMessageThat().isEqualTo("javax.mail.MessagingException: expected");
     // Verify we sent an e-mail alert
     verify(emailService).sendMessage(msgCaptor.capture());

@@ -17,7 +17,7 @@ package google.registry.proxy.handler;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.proxy.Protocol.PROTOCOL_KEY;
 import static google.registry.proxy.handler.EppServiceHandler.CLIENT_CERTIFICATE_HASH_KEY;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -108,7 +108,7 @@ public class EppQuotaHandlerTest {
     when(quotaManager.acquireQuota(QuotaRequest.create(clientCertHash)))
         .thenReturn(QuotaResponse.create(false, clientCertHash, now));
     OverQuotaException e =
-        expectThrows(OverQuotaException.class, () -> channel.writeInbound(message));
+        assertThrows(OverQuotaException.class, () -> channel.writeInbound(message));
     assertThat(e).hasMessageThat().contains(clientCertHash);
     verify(metrics).registerQuotaRejection("epp", clientCertHash);
     verifyNoMoreInteractions(metrics);
@@ -136,7 +136,7 @@ public class EppQuotaHandlerTest {
 
     // Blocks the second user.
     OverQuotaException e =
-        expectThrows(OverQuotaException.class, () -> otherChannel.writeInbound(message));
+        assertThrows(OverQuotaException.class, () -> otherChannel.writeInbound(message));
     assertThat(e).hasMessageThat().contains(otherClientCertHash);
     verify(metrics).registerQuotaRejection("epp", otherClientCertHash);
     verifyNoMoreInteractions(metrics);
@@ -162,7 +162,7 @@ public class EppQuotaHandlerTest {
 
     // Blocks the second channel.
     OverQuotaException e =
-        expectThrows(OverQuotaException.class, () -> otherChannel.writeInbound(message));
+        assertThrows(OverQuotaException.class, () -> otherChannel.writeInbound(message));
     assertThat(e).hasMessageThat().contains(clientCertHash);
     verify(metrics).registerQuotaRejection("epp", clientCertHash);
     verifyNoMoreInteractions(metrics);

@@ -19,7 +19,7 @@ import static google.registry.model.ofy.CommitLogBucket.getBucketKey;
 import static google.registry.model.ofy.CommitLogBucket.loadAllBuckets;
 import static google.registry.model.ofy.CommitLogBucket.loadBucket;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 
 import com.google.common.base.Suppliers;
@@ -66,14 +66,14 @@ public class CommitLogBucketTest {
   @Test
   public void test_getBucketKey_bucketNumberTooLow_throws() {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> getBucketKey(0));
+        assertThrows(IllegalArgumentException.class, () -> getBucketKey(0));
     assertThat(thrown).hasMessageThat().contains("0 not in [");
   }
 
   @Test
   public void test_getBucketKey_bucketNumberTooHigh_throws() {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> getBucketKey(11));
+        assertThrows(IllegalArgumentException.class, () -> getBucketKey(11));
     assertThat(thrown).hasMessageThat().contains("11 not in [");
   }
 

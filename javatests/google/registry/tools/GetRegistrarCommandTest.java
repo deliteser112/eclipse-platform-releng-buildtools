@@ -16,7 +16,6 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import org.junit.Test;
@@ -39,7 +38,7 @@ public class GetRegistrarCommandTest extends CommandTestCase<GetRegistrarCommand
   @Test
   public void testFailure_registrarDoesNotExist() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> runCommand("ClientZ"));
+        assertThrows(IllegalArgumentException.class, () -> runCommand("ClientZ"));
     assertThat(thrown).hasMessageThat().contains("Registrar with id ClientZ does not exist");
   }
 
@@ -51,7 +50,7 @@ public class GetRegistrarCommandTest extends CommandTestCase<GetRegistrarCommand
   @Test
   public void testFailure_oneRegistrarDoesNotExist() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> runCommand("NewRegistrar", "ClientZ"));
+        assertThrows(IllegalArgumentException.class, () -> runCommand("NewRegistrar", "ClientZ"));
     assertThat(thrown).hasMessageThat().contains("Registrar with id ClientZ does not exist");
   }
 }

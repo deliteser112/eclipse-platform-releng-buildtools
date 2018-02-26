@@ -16,7 +16,7 @@ package google.registry.dns;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 
@@ -64,7 +64,7 @@ public class DnsQueueTest {
   @Test
   public void test_addHostRefreshTask_failsOnUnknownTld() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> {
               try {
@@ -94,7 +94,7 @@ public class DnsQueueTest {
   @Test
   public void test_addDomainRefreshTask_failsOnUnknownTld() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> {
               try {

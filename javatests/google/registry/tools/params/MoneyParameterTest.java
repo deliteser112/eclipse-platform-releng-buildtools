@@ -16,7 +16,6 @@ package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import org.joda.money.Money;
@@ -72,7 +71,7 @@ public class MoneyParameterTest {
   @Test
   public void testValidate_sillyString_throws() throws Exception {
     ParameterException thrown =
-        expectThrows(ParameterException.class, () -> instance.validate("--money", "foo"));
+        assertThrows(ParameterException.class, () -> instance.validate("--money", "foo"));
     assertThat(thrown).hasMessageThat().contains("--money=foo not valid");
   }
 

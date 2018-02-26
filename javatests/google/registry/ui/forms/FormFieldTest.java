@@ -20,7 +20,6 @@ import static com.google.common.collect.Range.closed;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -75,7 +74,7 @@ public class FormFieldTest {
   @Test
   public void testEmptyToNullRequired_emptyString_throwsFfe() {
     FormFieldException thrown =
-        expectThrows(
+        assertThrows(
             FormFieldException.class,
             () -> FormField.named("lol").emptyToNull().required().build().convert(""));
     assertThat(thrown, equalTo(new FormFieldException("This field is required.").propagate("lol")));
@@ -130,7 +129,7 @@ public class FormFieldTest {
     FormField<String, String> field = FormField.named("lol")
         .in(ImmutableSet.of("foo", "bar"))
         .build();
-    FormFieldException thrown = expectThrows(FormFieldException.class, () -> field.convert("omfg"));
+    FormFieldException thrown = assertThrows(FormFieldException.class, () -> field.convert("omfg"));
     assertThat(thrown, equalTo(new FormFieldException("Unrecognized value.").propagate("lol")));
   }
 
@@ -147,7 +146,7 @@ public class FormFieldTest {
   @Test
   public void testRange_minimum_stringLengthShorterThanMinimum_throwsFfe() {
     FormFieldException thrown =
-        expectThrows(
+        assertThrows(
             FormFieldException.class,
             () -> FormField.named("lol").range(atLeast(4)).build().convert("lol"));
     assertThat(thrown).hasMessageThat().contains("Number of characters (3) not in range [4");
@@ -166,7 +165,7 @@ public class FormFieldTest {
   @Test
   public void testRange_maximum_stringLengthShorterThanMaximum_throwsFfe() {
     FormFieldException thrown =
-        expectThrows(
+        assertThrows(
             FormFieldException.class,
             () -> FormField.named("lol").range(atMost(5)).build().convert("omgomg"));
     assertThat(thrown).hasMessageThat().contains("Number of characters (6) not in range");
@@ -197,7 +196,7 @@ public class FormFieldTest {
   @Test
   public void testMatches_mismatch_throwsFfeAndShowsDefaultErrorMessageWithPattern() {
     FormFieldException thrown =
-        expectThrows(
+        assertThrows(
             FormFieldException.class,
             () ->
                 FormField.named("lol")
@@ -260,7 +259,7 @@ public class FormFieldTest {
   @Test
   public void testAsListEmptyToNullRequired_empty_throwsFfe() {
     FormFieldException thrown =
-        expectThrows(
+        assertThrows(
             FormFieldException.class,
             () ->
                 FormField.named("lol")
@@ -306,7 +305,7 @@ public class FormFieldTest {
         .asEnum(ICanHazEnum.class)
         .build();
     FormFieldException thrown =
-        expectThrows(FormFieldException.class, () -> omgField.convert("helo"));
+        assertThrows(FormFieldException.class, () -> omgField.convert("helo"));
     assertThat(
         thrown,
         equalTo(
@@ -373,7 +372,7 @@ public class FormFieldTest {
   @Test
   public void testAsListRequiredElements_nullElement_throwsFfeWithIndex() {
     FormFieldException thrown =
-        expectThrows(
+        assertThrows(
             FormFieldException.class,
             () ->
                 FormField.named("lol")
@@ -390,7 +389,7 @@ public class FormFieldTest {
   @Test
   public void testMapAsListRequiredElements_nullElement_throwsFfeWithIndexAndKey() {
     FormFieldException thrown =
-        expectThrows(
+        assertThrows(
             FormFieldException.class,
             () ->
                 FormField.mapNamed("lol")

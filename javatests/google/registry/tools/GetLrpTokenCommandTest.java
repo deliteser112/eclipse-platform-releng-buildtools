@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.DomainApplication;
@@ -82,7 +82,7 @@ public class GetLrpTokenCommandTest extends CommandTestCase<GetLrpTokenCommand> 
   @Test
   public void testFailure_noArgs() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, this::runCommand);
+        assertThrows(IllegalArgumentException.class, this::runCommand);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Exactly one of either token or assignee must be specified.");

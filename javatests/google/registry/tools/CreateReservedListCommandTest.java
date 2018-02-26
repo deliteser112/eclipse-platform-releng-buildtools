@@ -20,7 +20,7 @@ import static google.registry.model.registry.label.ReservationType.FULLY_BLOCKED
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.tools.CreateReservedListCommand.INVALID_FORMAT_ERROR_MESSAGE;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -91,7 +91,7 @@ public class CreateReservedListCommandTest extends
     ReservedList rl = persistReservedList("xn--q9jyb4c_foo", "jones,FULLY_BLOCKED");
     persistResource(Registry.get("xn--q9jyb4c").asBuilder().setReservedLists(rl).build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--name=xn--q9jyb4c_foo", "--input=" + reservedTermsPath));
     assertThat(thrown).hasMessageThat().contains("A reserved list already exists by this name");
@@ -175,7 +175,7 @@ public class CreateReservedListCommandTest extends
 
   private void runNameTestExpectedFailure(String name, String expectedErrorMsg) throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--name=" + name, "--input=" + reservedTermsPath));
     assertThat(ReservedList.get(name)).isEmpty();

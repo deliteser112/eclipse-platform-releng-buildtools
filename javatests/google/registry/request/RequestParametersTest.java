@@ -23,7 +23,7 @@ import static google.registry.request.RequestParameters.extractOptionalEnumParam
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredDatetimeParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,7 +49,7 @@ public class RequestParametersTest {
   @Test
   public void testExtractRequiredParameter_notPresent_throwsBadRequest() throws Exception {
     BadRequestException thrown =
-        expectThrows(BadRequestException.class, () -> extractRequiredParameter(req, "spin"));
+        assertThrows(BadRequestException.class, () -> extractRequiredParameter(req, "spin"));
     assertThat(thrown).hasMessageThat().contains("spin");
   }
 
@@ -57,7 +57,7 @@ public class RequestParametersTest {
   public void testExtractRequiredParameter_empty_throwsBadRequest() throws Exception {
     when(req.getParameter("spin")).thenReturn("");
     BadRequestException thrown =
-        expectThrows(BadRequestException.class, () -> extractRequiredParameter(req, "spin"));
+        assertThrows(BadRequestException.class, () -> extractRequiredParameter(req, "spin"));
     assertThat(thrown).hasMessageThat().contains("spin");
   }
 
@@ -142,7 +142,7 @@ public class RequestParametersTest {
   public void testExtractEnumValue_nonExistentValue_throwsBadRequest() throws Exception {
     when(req.getParameter("spin")).thenReturn("sing");
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class, () -> extractEnumParameter(req, Club.class, "spin"));
     assertThat(thrown).hasMessageThat().contains("spin");
   }
@@ -163,7 +163,7 @@ public class RequestParametersTest {
   public void testOptionalExtractEnumValue_nonExistentValue_throwsBadRequest() throws Exception {
     when(req.getParameter("spin")).thenReturn("sing");
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class, () -> extractOptionalEnumParameter(req, Club.class, "spin"));
     assertThat(thrown).hasMessageThat().contains("spin");
   }
@@ -179,7 +179,7 @@ public class RequestParametersTest {
   public void testExtractRequiredDatetimeParameter_badValue_throwsBadRequest() throws Exception {
     when(req.getParameter("timeParam")).thenReturn("Tuesday at three o'clock");
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class, () -> extractRequiredDatetimeParameter(req, "timeParam"));
     assertThat(thrown).hasMessageThat().contains("timeParam");
   }
@@ -195,7 +195,7 @@ public class RequestParametersTest {
   public void testExtractOptionalDatetimeParameter_badValue_throwsBadRequest() throws Exception {
     when(req.getParameter("timeParam")).thenReturn("Tuesday at three o'clock");
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class, () -> extractOptionalDatetimeParameter(req, "timeParam"));
     assertThat(thrown).hasMessageThat().contains("timeParam");
   }
@@ -209,7 +209,7 @@ public class RequestParametersTest {
   @Test
   public void testExtractRequiredDatetimeParameter_noValue_throwsBadRequest() throws Exception {
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class, () -> extractRequiredDatetimeParameter(req, "timeParam"));
     assertThat(thrown).hasMessageThat().contains("timeParam");
   }

@@ -17,7 +17,6 @@ package google.registry.groups;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.groups.DirectoryGroupsConnection.getDefaultGroupPermissions;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
@@ -122,7 +121,7 @@ public class DirectoryGroupsConnectionTest {
     when(membersInsert.execute()).thenThrow(
         makeResponseException(SC_NOT_FOUND, "Resource Not Found: memberKey"));
     RuntimeException thrown =
-        expectThrows(
+        assertThrows(
             RuntimeException.class,
             () -> connection.addMemberToGroup("spam@example.com", "jim@example.com", Role.MEMBER));
     assertThat(thrown)

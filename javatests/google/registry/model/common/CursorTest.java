@@ -21,7 +21,7 @@ import static google.registry.model.common.Cursor.CursorType.RECURRING_BILLING;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
 import google.registry.model.EntityTestCase;
@@ -71,7 +71,7 @@ public class CursorTest extends EntityTestCase {
     final DateTime time = DateTime.parse("2012-07-12T03:30:00.000Z");
     final DomainResource domain = persistActiveDomain("notaregistry.tld");
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 ofy().transact(() -> ofy().save().entity(Cursor.create(RDE_UPLOAD, time, domain))));
@@ -84,7 +84,7 @@ public class CursorTest extends EntityTestCase {
   public void testFailure_invalidScopeOnKeyCreate() throws Exception {
     createTld("tld");
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> Cursor.createKey(RDE_UPLOAD, persistActiveDomain("notaregistry.tld")));
     assertThat(thrown)
@@ -95,7 +95,7 @@ public class CursorTest extends EntityTestCase {
   @Test
   public void testFailure_createGlobalKeyForScopedCursorType() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> Cursor.createGlobalKey(RDE_UPLOAD));
+        assertThrows(IllegalArgumentException.class, () -> Cursor.createGlobalKey(RDE_UPLOAD));
     assertThat(thrown).hasMessageThat().contains("Cursor type is not a global cursor");
   }
 
@@ -103,7 +103,7 @@ public class CursorTest extends EntityTestCase {
   public void testFailure_invalidScopeOnGlobalKeyCreate() throws Exception {
     createTld("tld");
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> Cursor.createKey(RECURRING_BILLING, persistActiveDomain("notaregistry.tld")));
     assertThat(thrown)
@@ -114,7 +114,7 @@ public class CursorTest extends EntityTestCase {
   @Test
   public void testFailure_nullScope() throws Exception {
     NullPointerException thrown =
-        expectThrows(
+        assertThrows(
             NullPointerException.class,
             () -> Cursor.create(RECURRING_BILLING, START_OF_TIME, null));
     assertThat(thrown).hasMessageThat().contains("Cursor scope cannot be null");
@@ -124,7 +124,7 @@ public class CursorTest extends EntityTestCase {
   public void testFailure_nullCursorType() throws Exception {
     createTld("tld");
     NullPointerException thrown =
-        expectThrows(
+        assertThrows(
             NullPointerException.class,
             () -> Cursor.create(null, START_OF_TIME, Registry.get("tld")));
     assertThat(thrown).hasMessageThat().contains("Cursor type cannot be null");
@@ -134,7 +134,7 @@ public class CursorTest extends EntityTestCase {
   public void testFailure_nullTime() throws Exception {
     createTld("tld");
     NullPointerException thrown =
-        expectThrows(
+        assertThrows(
             NullPointerException.class, () -> Cursor.create(RDE_UPLOAD, null, Registry.get("tld")));
     assertThat(thrown).hasMessageThat().contains("Cursor time cannot be null");
   }

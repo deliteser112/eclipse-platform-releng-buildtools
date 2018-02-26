@@ -21,7 +21,6 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDomainAndEnqueueLordn;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -165,7 +164,7 @@ public class LordnTaskTest {
             .setCreationClientId("nonexistentRegistrar")
             .build();
     IllegalStateException thrown =
-        expectThrows(IllegalStateException.class, () -> persistDomainAndEnqueueLordn(domain));
+        assertThrows(IllegalStateException.class, () -> persistDomainAndEnqueueLordn(domain));
     assertThat(thrown)
         .hasMessageThat()
         .contains("No registrar found for client id: nonexistentRegistrar");
@@ -204,7 +203,7 @@ public class LordnTaskTest {
     Queue queue = mock(Queue.class);
     when(queue.leaseTasks(any(LeaseOptions.class))).thenThrow(TransientFailureException.class);
     RuntimeException thrown =
-        expectThrows(RuntimeException.class, () -> LordnTask.loadAllTasks(queue, "tld"));
+        assertThrows(RuntimeException.class, () -> LordnTask.loadAllTasks(queue, "tld"));
     assertThat(thrown).hasMessageThat().contains("Error leasing tasks");
   }
 

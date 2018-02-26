@@ -16,7 +16,7 @@ package google.registry.rde.imports;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.rde.imports.RdeImportsTestData.loadBytes;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.appengine.tools.cloudstorage.GcsService;
@@ -61,7 +61,7 @@ public class RdeHostInputTest {
   @Test
   public void testNegativeShards_throwsIllegalArgumentException() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> getInput(Optional.of(-1)));
+        assertThrows(IllegalArgumentException.class, () -> getInput(Optional.of(-1)));
     assertThat(thrown).hasMessageThat().contains("Number of shards must be greater than zero");
   }
 
@@ -69,7 +69,7 @@ public class RdeHostInputTest {
   @Test
   public void testZeroShards_throwsIllegalArgumentException() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> getInput(Optional.of(0)));
+        assertThrows(IllegalArgumentException.class, () -> getInput(Optional.of(0)));
     assertThat(thrown).hasMessageThat().contains("Number of shards must be greater than zero");
   }
 

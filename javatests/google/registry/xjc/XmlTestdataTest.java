@@ -15,7 +15,7 @@
 package google.registry.xjc;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.xjc.XjcXmlTransformer.unmarshal;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -146,7 +146,7 @@ public class XmlTestdataTest {
 
   @Theory
   public void testInvalid(Evil v) throws Exception {
-    Throwable thrown = expectThrows(Throwable.class, () -> unmarshal(XjcObject.class, v.xmlStream));
+    Throwable thrown = assertThrows(Throwable.class, () -> unmarshal(XjcObject.class, v.xmlStream));
     assertThat(thrown).hasMessageThat().contains(v.error);
   }
 }

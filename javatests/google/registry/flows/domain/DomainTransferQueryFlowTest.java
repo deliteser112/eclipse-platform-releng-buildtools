@@ -21,7 +21,7 @@ import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
@@ -170,7 +170,7 @@ public class DomainTransferQueryFlowTest
                 .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
                 .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             BadAuthInfoForResourceException.class,
             () -> doFailingTest("domain_transfer_query_contact_authinfo.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -186,7 +186,7 @@ public class DomainTransferQueryFlowTest
                 .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("badpassword")))
                 .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             BadAuthInfoForResourceException.class,
             () -> doFailingTest("domain_transfer_query_domain_authinfo.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -196,7 +196,7 @@ public class DomainTransferQueryFlowTest
   public void testFailure_neverBeenTransferred() throws Exception {
     changeTransferStatus(null);
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NoTransferHistoryToQueryException.class,
             () -> doFailingTest("domain_transfer_query.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -206,7 +206,7 @@ public class DomainTransferQueryFlowTest
   public void testFailure_unrelatedClient() throws Exception {
     setClientIdForFlow("ClientZ");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NotAuthorizedToViewTransferException.class,
             () -> doFailingTest("domain_transfer_query.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -217,7 +217,7 @@ public class DomainTransferQueryFlowTest
     domain =
         persistResource(domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     ResourceDoesNotExistException thrown =
-        expectThrows(
+        assertThrows(
             ResourceDoesNotExistException.class, () -> doFailingTest("domain_transfer_query.xml"));
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
@@ -226,7 +226,7 @@ public class DomainTransferQueryFlowTest
   public void testFailure_nonexistentDomain() throws Exception {
     deleteResource(domain);
     ResourceDoesNotExistException thrown =
-        expectThrows(
+        assertThrows(
             ResourceDoesNotExistException.class, () -> doFailingTest("domain_transfer_query.xml"));
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }

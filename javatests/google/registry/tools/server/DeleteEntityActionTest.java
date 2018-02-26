@@ -18,7 +18,7 @@ import static com.google.appengine.api.datastore.DatastoreServiceFactory.getData
 import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.Key.create;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -85,7 +85,7 @@ public class DeleteEntityActionTest {
     Entity entity = new Entity("not", "here");
     String rawKey = KeyFactory.keyToString(entity.getKey());
     action.rawKeys = rawKey;
-    BadRequestException thrown = expectThrows(BadRequestException.class, action::run);
+    BadRequestException thrown = assertThrows(BadRequestException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Could not find entity with key " + rawKey);
   }
 
@@ -97,7 +97,7 @@ public class DeleteEntityActionTest {
     Entity entity = new Entity("non", "existent");
     String rawKey = KeyFactory.keyToString(entity.getKey());
     action.rawKeys = String.format("%s,%s", ofyKey, rawKey);
-    BadRequestException thrown = expectThrows(BadRequestException.class, action::run);
+    BadRequestException thrown = assertThrows(BadRequestException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Could not find entity with key " + rawKey);
   }
 }

@@ -17,7 +17,6 @@ package google.registry.util;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -93,7 +92,7 @@ public final class TaskEnqueuerTest {
         .thenThrow(new TransientFailureException("three"))
         .thenThrow(new TransientFailureException("four"));
     TransientFailureException thrown =
-        expectThrows(TransientFailureException.class, () -> taskEnqueuer.enqueue(queue, task));
+        assertThrows(TransientFailureException.class, () -> taskEnqueuer.enqueue(queue, task));
     assertThat(thrown).hasMessageThat().contains("three");
   }
 

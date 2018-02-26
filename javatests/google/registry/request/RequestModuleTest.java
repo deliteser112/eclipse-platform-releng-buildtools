@@ -17,7 +17,6 @@ package google.registry.request;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.request.RequestModule.provideJsonPayload;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.net.MediaType;
 import google.registry.request.HttpException.BadRequestException;
@@ -44,7 +43,7 @@ public final class RequestModuleTest {
   @Test
   public void testProvideJsonPayload_malformedInput_throws500() throws Exception {
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class, () -> provideJsonPayload(MediaType.JSON_UTF_8, "{\"k\":"));
     assertThat(thrown).hasMessageThat().contains("Malformed JSON");
   }
@@ -52,7 +51,7 @@ public final class RequestModuleTest {
   @Test
   public void testProvideJsonPayload_emptyInput_throws500() throws Exception {
     BadRequestException thrown =
-        expectThrows(BadRequestException.class, () -> provideJsonPayload(MediaType.JSON_UTF_8, ""));
+        assertThrows(BadRequestException.class, () -> provideJsonPayload(MediaType.JSON_UTF_8, ""));
     assertThat(thrown).hasMessageThat().contains("Malformed JSON");
   }
 

@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -75,7 +75,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             InvalidAllocationTokenException.class,
             () ->
                 flowUtils.verifyToken(
@@ -93,7 +93,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new FailingAllocationTokenCustomLogic());
     Exception thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 flowUtils.verifyToken(
@@ -154,7 +154,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new FailingAllocationTokenCustomLogic());
     Exception thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 flowUtils.checkDomainsWithToken(

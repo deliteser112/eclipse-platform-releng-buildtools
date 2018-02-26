@@ -15,7 +15,7 @@
 package google.registry.proxy.quota;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import google.registry.proxy.ProxyConfig.Quota;
@@ -76,7 +76,7 @@ public class QuotaConfigTest {
     quotaConfig = loadQuotaConfig("quota_config_unlimited_tokens.yaml");
     assertThat(quotaConfig.hasUnlimitedTokens("some_user")).isTrue();
     IllegalStateException e =
-        expectThrows(IllegalStateException.class, () -> quotaConfig.getTokenAmount("some_user"));
+        assertThrows(IllegalStateException.class, () -> quotaConfig.getTokenAmount("some_user"));
     assertThat(e)
         .hasMessageThat()
         .contains("User ID some_user is provisioned with unlimited tokens");
@@ -85,7 +85,7 @@ public class QuotaConfigTest {
   @Test
   public void testFailure_duplicateUserId() {
     IllegalArgumentException e =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class, () -> loadQuotaConfig("quota_config_duplicate.yaml"));
     assertThat(e).hasMessageThat().contains("Multiple entries with same key");
   }

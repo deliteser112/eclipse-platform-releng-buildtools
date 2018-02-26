@@ -18,7 +18,7 @@ import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
@@ -65,7 +65,7 @@ public abstract class LoginFlowTestCase extends FlowTestCase<LoginFlow> {
   // Also called in subclasses.
   void doFailingTest(String xmlFilename, Class<? extends EppException> exception) throws Exception {
     setEppInput(xmlFilename);
-    EppException thrown = expectThrows(exception, this::runFlow);
+    EppException thrown = assertThrows(exception, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

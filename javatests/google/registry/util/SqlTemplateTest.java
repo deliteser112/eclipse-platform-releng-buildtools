@@ -15,7 +15,7 @@
 package google.registry.util;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,7 +49,7 @@ public class SqlTemplateTest {
   @Test
   public void testFillSqlTemplate_substitutionButNoVariables() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class, () -> SqlTemplate.create("").put("ONE", "1").build());
     assertThat(thrown).hasMessageThat().contains("Not found in template: ONE");
   }
@@ -57,7 +57,7 @@ public class SqlTemplateTest {
   @Test
   public void testFillSqlTemplate_substitutionButMissingVariables() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> SqlTemplate.create("%ONE%").put("ONE", "1").put("TWO", "2").build());
     assertThat(thrown).hasMessageThat().contains("Not found in template: TWO");
@@ -66,7 +66,7 @@ public class SqlTemplateTest {
   @Test
   public void testFillSqlTemplate_sameKeyTwice_failsEarly() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> SqlTemplate.create("%ONE%").put("ONE", "1").put("ONE", "2"));
     assertThat(thrown).hasMessageThat().contains("");
@@ -75,7 +75,7 @@ public class SqlTemplateTest {
   @Test
   public void testFillSqlTemplate_variablesButNotEnoughSubstitutions() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> SqlTemplate.create("%ONE% %TWO%").put("ONE", "1").build());
     assertThat(thrown).hasMessageThat().contains("%TWO% found in template but no substitution");
@@ -84,7 +84,7 @@ public class SqlTemplateTest {
   @Test
   public void testFillSqlTemplate_mismatchedVariableAndSubstitution() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> SqlTemplate.create("%TWO%").put("TOO", "2").build());
     assertThat(thrown).hasMessageThat().contains("%TWO% found in template but no substitution");
@@ -93,14 +93,14 @@ public class SqlTemplateTest {
   @Test
   public void testFillSqlTemplate_missingKeyVals_whatsThePoint() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> SqlTemplate.create("%TWO%").build());
+        assertThrows(IllegalArgumentException.class, () -> SqlTemplate.create("%TWO%").build());
     assertThat(thrown).hasMessageThat().contains("%TWO% found in template but no substitution");
   }
 
   @Test
   public void testFillSqlTemplate_lowercaseKey_notAllowed() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> SqlTemplate.create("%test%").put("test", "hello world").build());
     assertThat(thrown).hasMessageThat().contains("Bad substitution key: test");
@@ -109,7 +109,7 @@ public class SqlTemplateTest {
   @Test
   public void testFillSqlTemplate_substitution_disallowsSingleQuotes() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> SqlTemplate.create("The words are '%LOS%' and baz").put("LOS", "foo'bar"));
     assertThat(thrown).hasMessageThat().contains("Illegal characters in foo'bar");
@@ -118,7 +118,7 @@ public class SqlTemplateTest {
   @Test
   public void testFillSqlTemplate_substitution_disallowsDoubleQuotes() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> SqlTemplate.create("The words are '%LOS%' and baz").put("LOS", "foo\"bar"));
     assertThat(thrown).hasMessageThat().contains("Illegal characters in foo\"bar");
@@ -127,7 +127,7 @@ public class SqlTemplateTest {
   @Test
   public void testFillSqlTemplate_quoteMismatch_throwsError() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 SqlTemplate.create("The words are \"%LOS%' and baz").put("LOS", "foobar").build());
@@ -137,7 +137,7 @@ public class SqlTemplateTest {
   @Test
   public void testFillSqlTemplate_extendedQuote_throwsError() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 SqlTemplate.create("The words are '%LOS%-lol' and baz").put("LOS", "roid").build());

@@ -18,7 +18,7 @@ import static google.registry.model.eppoutput.CheckData.ContactCheck.create;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceCheckFlowTestCase;
@@ -79,7 +79,7 @@ public class ContactCheckFlowTest
   @Test
   public void testTooManyIds() throws Exception {
     setEppInput("contact_check_51.xml");
-    EppException thrown = expectThrows(TooManyResourceChecksException.class, this::runFlow);
+    EppException thrown = assertThrows(TooManyResourceChecksException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

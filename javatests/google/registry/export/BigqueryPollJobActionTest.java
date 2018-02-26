@@ -19,7 +19,6 @@ import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assert_;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.logging.Level.INFO;
@@ -203,7 +202,7 @@ public class BigqueryPollJobActionTest {
     when(bigqueryJobsGet.execute()).thenReturn(
         new Job().setStatus(new JobStatus().setState("DONE")));
     action.payload = "payload".getBytes(UTF_8);
-    BadRequestException thrown = expectThrows(BadRequestException.class, action::run);
+    BadRequestException thrown = assertThrows(BadRequestException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Cannot deserialize task from payload");
   }
 }

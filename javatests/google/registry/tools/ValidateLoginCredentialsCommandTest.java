@@ -20,7 +20,6 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableList;
@@ -66,7 +65,7 @@ public class ValidateLoginCredentialsCommandTest
   @Test
   public void testFailure_loginWithBadPassword() throws Exception {
     EppException thrown =
-        expectThrows(
+        assertThrows(
             BadRegistrarPasswordException.class,
             () ->
                 runCommand(
@@ -80,7 +79,7 @@ public class ValidateLoginCredentialsCommandTest
   @Test
   public void testFailure_loginWithBadCertificateHash() throws Exception {
     EppException thrown =
-        expectThrows(
+        assertThrows(
             EppException.class,
             () ->
                 runCommand(
@@ -94,7 +93,7 @@ public class ValidateLoginCredentialsCommandTest
   @Test
   public void testFailure_loginWithBadIp() throws Exception {
     EppException thrown =
-        expectThrows(
+        assertThrows(
             EppException.class,
             () ->
                 runCommand(

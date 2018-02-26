@@ -16,7 +16,6 @@ package google.registry.tools.params;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.tools.params.KeyValueMapParameter.CurrencyUnitToStringMap;
@@ -95,7 +94,7 @@ public class KeyValueMapParameterTest {
   @Test
   public void testFailure_convertCurrencyUnitToString_badType() throws Exception {
     IllegalCurrencyException thrown =
-        expectThrows(
+        assertThrows(
             IllegalCurrencyException.class,
             () -> currencyUnitToStringMap.convert("USD=123abc,XYZ=xyz789"));
     assertThat(thrown).hasMessageThat().contains("XYZ");

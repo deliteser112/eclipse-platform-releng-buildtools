@@ -21,7 +21,7 @@ import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_DA
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_KIND_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.UPDATE_SNAPSHOT_TABLE_ID_PARAM;
 import static google.registry.export.UpdateSnapshotViewAction.createViewUpdateTask;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -124,7 +124,7 @@ public class UpdateSnapshotViewActionTest {
     when(bigqueryTables.update(anyString(), anyString(), anyString(), any(Table.class)))
         .thenThrow(new IOException("I'm sorry Dave, I can't let you do that"));
     InternalServerErrorException thrown =
-        expectThrows(InternalServerErrorException.class, action::run);
+        assertThrows(InternalServerErrorException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("Error in update snapshot view action");
   }
 }

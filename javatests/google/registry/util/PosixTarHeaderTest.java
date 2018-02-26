@@ -17,7 +17,7 @@ package google.registry.util;
 import static com.google.common.io.BaseEncoding.base64;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.testing.EqualsTester;
@@ -202,7 +202,7 @@ public class PosixTarHeaderTest {
     bytes[150] = '0';
     bytes[151] = '0';
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> PosixTarHeader.from(bytes));
+        assertThrows(IllegalArgumentException.class, () -> PosixTarHeader.from(bytes));
     assertThat(thrown).hasMessageThat().contains("chksum invalid");
   }
 

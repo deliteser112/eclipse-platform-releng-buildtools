@@ -19,7 +19,7 @@ import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.joda.money.CurrencyUnit.JPY;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -77,7 +77,7 @@ public class RegistrarCreditTest extends EntityTestCase {
   @Test
   public void testFailure_missingTld() throws Exception {
     NullPointerException thrown =
-        expectThrows(
+        assertThrows(
             NullPointerException.class, () -> promoCredit.asBuilder().setTld(null).build());
     assertThat(thrown).hasMessageThat().contains("tld");
   }
@@ -85,7 +85,7 @@ public class RegistrarCreditTest extends EntityTestCase {
   @Test
   public void testFailure_NonexistentTld() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> promoCredit.asBuilder().setTld("example").build());
     assertThat(thrown).hasMessageThat().contains("example");
@@ -95,7 +95,7 @@ public class RegistrarCreditTest extends EntityTestCase {
   public void testFailure_CurrencyDoesNotMatchTldCurrency() throws Exception {
     assertThat(Registry.get("tld").getCurrency()).isEqualTo(USD);
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> promoCredit.asBuilder().setTld("tld").setCurrency(JPY).build());
     assertThat(thrown).hasMessageThat().contains("currency");

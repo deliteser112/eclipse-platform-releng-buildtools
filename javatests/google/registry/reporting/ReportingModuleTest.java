@@ -15,7 +15,7 @@
 package google.registry.reporting;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,7 +52,7 @@ public class ReportingModuleTest {
   public void testInvalidYearMonthParameter_throwsException() {
     when(req.getParameter("yearMonth")).thenReturn("201705");
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class, () -> ReportingModule.provideYearMonthOptional(req));
     assertThat(thrown)
         .hasMessageThat()

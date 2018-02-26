@@ -15,7 +15,7 @@
 package google.registry.ui.server;
 
 import static com.google.common.truth.Truth8.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -37,7 +37,7 @@ public class RegistrarFormFieldsTest {
   @Test
   public void testBadCertificate_throwsFfe() {
     FormFieldException thrown =
-        expectThrows(
+        assertThrows(
             FormFieldException.class,
             () -> RegistrarFormFields.CLIENT_CERTIFICATE_FIELD.convert("palfun"));
     assertThat(
@@ -58,7 +58,7 @@ public class RegistrarFormFieldsTest {
   @Test
   public void testBadCertificateHash_throwsFfe() {
     FormFieldException thrown =
-        expectThrows(
+        assertThrows(
             FormFieldException.class,
             () -> RegistrarFormFields.CLIENT_CERTIFICATE_HASH_FIELD.convert("~~~"));
     assertThat(

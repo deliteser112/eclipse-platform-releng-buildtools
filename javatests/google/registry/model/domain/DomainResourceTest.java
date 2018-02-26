@@ -24,7 +24,7 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.newHostResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -446,7 +446,7 @@ public class DomainResourceTest extends EntityTestCase {
   @Test
   public void testFailure_uppercaseDomainName() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> domain.asBuilder().setFullyQualifiedDomainName("AAA.BBB"));
     assertThat(thrown)
@@ -457,7 +457,7 @@ public class DomainResourceTest extends EntityTestCase {
   @Test
   public void testFailure_utf8DomainName() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> domain.asBuilder().setFullyQualifiedDomainName("みんな.みんな"));
     assertThat(thrown)

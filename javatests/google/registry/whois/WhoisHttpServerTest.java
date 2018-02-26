@@ -24,7 +24,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeDomainResou
 import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResource;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.whois.WhoisTestData.loadFile;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
@@ -379,7 +379,7 @@ public class WhoisHttpServerTest {
         .thenThrow(new IOException("missing cat interface"));
     server.whoisMetrics = mock(WhoisMetrics.class);
 
-    RuntimeException thrown = expectThrows(RuntimeException.class, server::run);
+    RuntimeException thrown = assertThrows(RuntimeException.class, server::run);
     assertThat(thrown).hasCauseThat().hasMessageThat().isEqualTo("missing cat interface");
     WhoisMetric expected =
         WhoisMetric.builderForRequest(clock)

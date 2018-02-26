@@ -33,7 +33,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -411,7 +411,7 @@ public class DomainTransferApproveFlowTest
                 .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
                 .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             BadAuthInfoForResourceException.class,
             () -> doFailingTest("domain_transfer_approve_contact_authinfo.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -426,7 +426,7 @@ public class DomainTransferApproveFlowTest
             .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("badpassword")))
             .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             BadAuthInfoForResourceException.class,
             () -> doFailingTest("domain_transfer_approve_domain_authinfo.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -436,7 +436,7 @@ public class DomainTransferApproveFlowTest
   public void testFailure_neverBeenTransferred() throws Exception {
     changeTransferStatus(null);
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -445,7 +445,7 @@ public class DomainTransferApproveFlowTest
   public void testFailure_clientApproved() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_APPROVED);
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -454,7 +454,7 @@ public class DomainTransferApproveFlowTest
   public void testFailure_clientRejected() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_REJECTED);
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -463,7 +463,7 @@ public class DomainTransferApproveFlowTest
   public void testFailure_clientCancelled() throws Exception {
     changeTransferStatus(TransferStatus.CLIENT_CANCELLED);
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -472,7 +472,7 @@ public class DomainTransferApproveFlowTest
   public void testFailure_serverApproved() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_APPROVED);
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -481,7 +481,7 @@ public class DomainTransferApproveFlowTest
   public void testFailure_serverCancelled() throws Exception {
     changeTransferStatus(TransferStatus.SERVER_CANCELLED);
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NotPendingTransferException.class, () -> doFailingTest("domain_transfer_approve.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -490,7 +490,7 @@ public class DomainTransferApproveFlowTest
   public void testFailure_gainingClient() throws Exception {
     setClientIdForFlow("NewRegistrar");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             ResourceNotOwnedException.class, () -> doFailingTest("domain_transfer_approve.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -499,7 +499,7 @@ public class DomainTransferApproveFlowTest
   public void testFailure_unrelatedClient() throws Exception {
     setClientIdForFlow("ClientZ");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             ResourceNotOwnedException.class, () -> doFailingTest("domain_transfer_approve.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -508,7 +508,7 @@ public class DomainTransferApproveFlowTest
   public void testFailure_deletedDomain() throws Exception {
     persistResource(domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     ResourceDoesNotExistException thrown =
-        expectThrows(
+        assertThrows(
             ResourceDoesNotExistException.class,
             () -> doFailingTest("domain_transfer_approve.xml"));
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
@@ -518,7 +518,7 @@ public class DomainTransferApproveFlowTest
   public void testFailure_nonexistentDomain() throws Exception {
     deleteResource(domain);
     ResourceDoesNotExistException thrown =
-        expectThrows(
+        assertThrows(
             ResourceDoesNotExistException.class,
             () -> doFailingTest("domain_transfer_approve.xml"));
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
@@ -529,7 +529,7 @@ public class DomainTransferApproveFlowTest
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NotAuthorizedForTldException.class,
             () ->
                 doSuccessfulTest(

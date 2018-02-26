@@ -20,7 +20,7 @@ import static google.registry.testing.DatastoreHelper.newContactResource;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableSet;
@@ -209,7 +209,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
             .build());
 
     Exception e =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -225,7 +225,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_duplicateDomains() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -240,7 +240,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_missingDomain() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -251,7 +251,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_missingClientId() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () -> runCommandForced("--registrant=crr-admin", "--password=2fooBAR", "example.tld"));
     assertThat(thrown).hasMessageThat().contains("--client");
@@ -260,7 +260,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_addTooManyNameServers() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -279,7 +279,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_providedNameserversAndAddNameservers() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -297,7 +297,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_providedNameserversAndRemoveNameservers() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -315,7 +315,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_providedAdminsAndAddAdmins() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -333,7 +333,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_providedAdminsAndRemoveAdmins() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -351,7 +351,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_providedTechsAndAddTechs() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -368,7 +368,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_providedTechsAndRemoveTechs() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -385,7 +385,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_providedStatusesAndAddStatuses() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -403,7 +403,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_providedStatusesAndRemoveStatuses() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -421,7 +421,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_provideDsRecordsAndAddDsRecords() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -439,7 +439,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_provideDsRecordsAndRemoveDsRecords() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -457,7 +457,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_clearDsRecordsAndAddDsRecords() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -475,7 +475,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   @Test
   public void testFailure_clearDsRecordsAndRemoveDsRecords() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(

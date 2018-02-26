@@ -31,7 +31,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
@@ -257,7 +257,7 @@ public class DomainAllocateFlowTest
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns2.example.net"))
             .build());
     NameserversNotAllowedForTldException thrown =
-        expectThrows(NameserversNotAllowedForTldException.class, this::runFlowAsSuperuser);
+        assertThrows(NameserversNotAllowedForTldException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("ns1.example.net");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -273,7 +273,7 @@ public class DomainAllocateFlowTest
                 ImmutableSet.of("ns1.example.net", "ns2.example.net"))
             .build());
     RegistrantNotAllowedException thrown =
-        expectThrows(RegistrantNotAllowedException.class, this::runFlowAsSuperuser);
+        assertThrows(RegistrantNotAllowedException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("jd1234");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -289,7 +289,7 @@ public class DomainAllocateFlowTest
             .setAllowedFullyQualifiedHostNames(ImmutableSet.of("ns1.example.net, ns2.example.net"))
             .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NameserversNotSpecifiedForTldWithNameserverWhitelistException.class,
             this::runFlowAsSuperuser);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -322,7 +322,7 @@ public class DomainAllocateFlowTest
                     "example-one,NAMESERVER_RESTRICTED," + "ns2.example.net:ns3.example.net"))
             .build());
     NameserversNotAllowedForDomainException thrown =
-        expectThrows(NameserversNotAllowedForDomainException.class, this::runFlowAsSuperuser);
+        assertThrows(NameserversNotAllowedForDomainException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("ns1.example.net");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -340,7 +340,7 @@ public class DomainAllocateFlowTest
                     "example-one,NAMESERVER_RESTRICTED," + "ns2.example.net:ns3.example.net"))
             .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NameserversNotSpecifiedForNameserverRestrictedDomainException.class,
             this::runFlowAsSuperuser);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -379,7 +379,7 @@ public class DomainAllocateFlowTest
                 ImmutableSet.of("ns1.example.net", "ns2.example.net", "ns3.example.net"))
             .build());
     NameserversNotAllowedForDomainException thrown =
-        expectThrows(NameserversNotAllowedForDomainException.class, this::runFlowAsSuperuser);
+        assertThrows(NameserversNotAllowedForDomainException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("ns1.example.net");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -399,7 +399,7 @@ public class DomainAllocateFlowTest
                 ImmutableSet.of("ns4.example.net", "ns2.example.net", "ns3.example.net"))
             .build());
     NameserversNotAllowedForTldException thrown =
-        expectThrows(NameserversNotAllowedForTldException.class, this::runFlowAsSuperuser);
+        assertThrows(NameserversNotAllowedForTldException.class, this::runFlowAsSuperuser);
     assertThat(thrown).hasMessageThat().contains("ns1.example.net");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -594,7 +594,7 @@ public class DomainAllocateFlowTest
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     persistActiveDomain(getUniqueIdFromCommand());
     EppException thrown =
-        expectThrows(ResourceAlreadyExistsException.class, this::runFlowAsSuperuser);
+        assertThrows(ResourceAlreadyExistsException.class, this::runFlowAsSuperuser);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -630,7 +630,7 @@ public class DomainAllocateFlowTest
   public void testFailure_applicationDeleted() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     persistResource(application.asBuilder().setDeletionTime(clock.nowUtc()).build());
-    EppException thrown = expectThrows(MissingApplicationException.class, this::runFlowAsSuperuser);
+    EppException thrown = assertThrows(MissingApplicationException.class, this::runFlowAsSuperuser);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -639,7 +639,7 @@ public class DomainAllocateFlowTest
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     persistResource(
         application.asBuilder().setApplicationStatus(ApplicationStatus.REJECTED).build());
-    EppException thrown = expectThrows(HasFinalStatusException.class, this::runFlowAsSuperuser);
+    EppException thrown = assertThrows(HasFinalStatusException.class, this::runFlowAsSuperuser);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -648,7 +648,7 @@ public class DomainAllocateFlowTest
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     persistResource(
         application.asBuilder().setApplicationStatus(ApplicationStatus.ALLOCATED).build());
-    EppException thrown = expectThrows(HasFinalStatusException.class, this::runFlowAsSuperuser);
+    EppException thrown = assertThrows(HasFinalStatusException.class, this::runFlowAsSuperuser);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -656,7 +656,7 @@ public class DomainAllocateFlowTest
   public void testFailure_applicationDoesNotExist() throws Exception {
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     setEppInput("domain_allocate_bad_application_roid.xml");
-    EppException thrown = expectThrows(MissingApplicationException.class, this::runFlowAsSuperuser);
+    EppException thrown = assertThrows(MissingApplicationException.class, this::runFlowAsSuperuser);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -667,7 +667,7 @@ public class DomainAllocateFlowTest
     setEppInput("domain_allocate_no_nameservers.xml");
     assertTransactionalFlow(true);
     EppException thrown =
-        expectThrows(
+        assertThrows(
             OnlySuperuserCanAllocateException.class,
             () -> runFlow(CommitMode.LIVE, UserPrivileges.NORMAL));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -678,7 +678,7 @@ public class DomainAllocateFlowTest
     setupDomainApplication("tld", TldState.QUIET_PERIOD);
     setEppInput("domain_allocate_11_years.xml");
     EppException thrown =
-        expectThrows(ExceedsMaxRegistrationYearsException.class, this::runFlowAsSuperuser);
+        assertThrows(ExceedsMaxRegistrationYearsException.class, this::runFlowAsSuperuser);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

@@ -18,7 +18,6 @@ import static com.google.common.base.Strings.repeat;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.keyring.api.PgpHelper.KeyRequirement.ENCRYPT;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
@@ -193,7 +192,7 @@ public class GhostrydeTest {
 
     ByteArrayInputStream bsIn = new ByteArrayInputStream(ciphertext);
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () -> {
               try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {
@@ -254,7 +253,7 @@ public class GhostrydeTest {
 
     ByteArrayInputStream bsIn = new ByteArrayInputStream(bsOut.toByteArray());
     PGPException thrown =
-        expectThrows(
+        assertThrows(
             PGPException.class,
             () -> {
               try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {

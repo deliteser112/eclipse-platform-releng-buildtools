@@ -20,7 +20,7 @@ import static google.registry.export.ExportReservedTermsAction.RESERVED_TERMS_FI
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -123,14 +123,14 @@ public class ExportReservedTermsActionTest {
         any(MediaType.class),
         anyString(),
         any(byte[].class))).thenThrow(new IOException("errorMessage"));
-    RuntimeException thrown = expectThrows(RuntimeException.class, () -> runAction("tld"));
+    RuntimeException thrown = assertThrows(RuntimeException.class, () -> runAction("tld"));
     verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
     assertThat(thrown).hasCauseThat().hasMessageThat().isEqualTo("errorMessage");
   }
 
   @Test
   public void test_uploadFileToDrive_failsWhenTldDoesntExist() throws Exception {
-    RuntimeException thrown = expectThrows(RuntimeException.class, () -> runAction("fakeTld"));
+    RuntimeException thrown = assertThrows(RuntimeException.class, () -> runAction("fakeTld"));
     verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
     assertThat(thrown)
         .hasCauseThat()

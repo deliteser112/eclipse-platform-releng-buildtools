@@ -22,7 +22,6 @@ import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableList;
 import google.registry.model.registry.Registry;
@@ -82,7 +81,7 @@ public class PremiumListTest {
   @Test
   public void testParse_cannotIncludeDuplicateLabels() {
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 PremiumList.get("tld")

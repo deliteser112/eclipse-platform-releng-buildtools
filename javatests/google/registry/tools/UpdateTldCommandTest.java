@@ -20,7 +20,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.JPY;
@@ -465,7 +465,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_invalidAddGracePeriod() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--add_grace_period=5m", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("Invalid format: \"5m\"");
@@ -474,7 +474,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_invalidRedemptionGracePeriod() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--redemption_grace_period=5m", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("Invalid format: \"5m\"");
@@ -483,7 +483,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_invalidPendingDeleteLength() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--pending_delete_length=5m", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("Invalid format: \"5m\"");
@@ -492,7 +492,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_invalidTldState() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -505,7 +505,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_invalidTldStateTransitionTime() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced("--tld_state_transitions=tomorrow=INVALID_STATE", "xn--q9jyb4c"));
@@ -517,7 +517,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_tldStatesOutOfOrder() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -531,7 +531,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_duplicateTldStateTransitions() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -544,7 +544,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_duplicateTldStateTransitionTimes() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -558,7 +558,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_outOfOrderTldStateTransitionTimes() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -574,7 +574,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_bothTldStateFlags() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -598,7 +598,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
                     now.minusMonths(1), TldState.GENERAL_AVAILABILITY))
             .build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--set_current_tld_state=SUNRISE", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("The TLD states are chronologically out of order");
@@ -614,7 +614,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
                     now.plusMonths(1), TldState.GENERAL_AVAILABILITY))
             .build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--set_current_tld_state=SUNRISE", "xn--q9jyb4c"));
     assertThat(thrown)
@@ -632,7 +632,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
                     now.minusMonths(1), TldState.GENERAL_AVAILABILITY))
             .build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandInEnvironment(
@@ -648,7 +648,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_invalidRenewBillingCost() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -662,7 +662,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_negativeRenewBillingCost() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -674,7 +674,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_invalidRenewCostTransitionTime() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced("--renew_billing_cost_transitions=tomorrow=USD 1", "xn--q9jyb4c"));
@@ -686,7 +686,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_duplicateRenewCostTransitionTimes() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -701,7 +701,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_outOfOrderRenewCostTransitionTimes() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -716,7 +716,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
 
   @Test
   public void testFailure_noTldName() throws Exception {
-    ParameterException thrown = expectThrows(ParameterException.class, this::runCommandForced);
+    ParameterException thrown = assertThrows(ParameterException.class, this::runCommandForced);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Main parameters are required (\"Names of the TLDs\")");
@@ -725,14 +725,14 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_oneTldDoesNotExist() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> runCommandForced("foo", "xn--q9jyb4c"));
+        assertThrows(IllegalArgumentException.class, () -> runCommandForced("foo", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("TLD foo does not exist");
   }
 
   @Test
   public void testFailure_duplicateArguments() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class, () -> runCommandForced("xn--q9jyb4c", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("Duplicate arguments found: 'xn--q9jyb4c'");
   }
@@ -740,14 +740,14 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_tldDoesNotExist() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> runCommandForced("foobarbaz"));
+        assertThrows(IllegalArgumentException.class, () -> runCommandForced("foobarbaz"));
     assertThat(thrown).hasMessageThat().contains("TLD foobarbaz does not exist");
   }
 
   @Test
   public void testFailure_specifiedDnsWriter_doesntExist() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("xn--q9jyb4c", "--dns_writers=InvalidDnsWriter"));
     assertThat(thrown)
@@ -758,7 +758,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_setNonExistentReservedLists() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--reserved_lists", "xn--q9jyb4c_ZZZ", "xn--q9jyb4c"));
     assertThat(thrown)
@@ -772,7 +772,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
         .setReservedListsByName(ImmutableSet.of("xn--q9jyb4c_r1", "xn--q9jyb4c_r2"))
         .build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--add_reserved_lists=xn--q9jyb4c_r1", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("xn--q9jyb4c_r1");
@@ -784,7 +784,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
         .setReservedListsByName(ImmutableSet.of("xn--q9jyb4c_r1", "xn--q9jyb4c_r2"))
         .build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--remove_reserved_lists=xn--q9jyb4c_Z", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("xn--q9jyb4c_Z");
@@ -793,7 +793,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_cantAddAndRemoveSameReservedListSimultaneously() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -810,7 +810,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
         .setAllowedRegistrantContactIds(ImmutableSet.of("alice", "bob"))
         .build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--add_allowed_registrants=alice", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("alice");
@@ -823,7 +823,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
         .setAllowedRegistrantContactIds(ImmutableSet.of("alice"))
         .build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--remove_allowed_registrants=bob", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("bob");
@@ -832,7 +832,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_cantAddAndRemoveSameAllowedRegistrantsSimultaneously() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -850,7 +850,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
                 ImmutableSet.of("ns1.example.com", "ns2.example.com"))
             .build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--add_allowed_nameservers=ns1.example.com", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("ns1.example.com");
@@ -864,7 +864,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
                 ImmutableSet.of("ns1.example.com"))
             .build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--remove_allowed_nameservers=ns2.example.com", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("ns2.example.com");
@@ -873,7 +873,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_cantAddAndRemoveSameAllowedNameserversSimultaneously() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -1002,7 +1002,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_setPremiumListThatDoesntExist() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--premium_list=phonies", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("The premium list 'phonies' doesn't exist");
@@ -1019,7 +1019,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_updateLrpPeriod_backwardsInterval() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -1033,7 +1033,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   @Test
   public void testFailure_updateLrpPeriod_badInterval() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class, () -> runCommandForced("--lrp_period=foobar", "xn--q9jyb4c"));
     assertThat(thrown).hasMessageThat().contains("--lrp_period=foobar not an ISO-8601 interval");
   }
@@ -1053,7 +1053,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
       String reservedLists, Class<? extends Exception> errorClass, String errorMsg)
       throws Exception {
     Exception e =
-        expectThrows(
+        assertThrows(
             errorClass, () -> runCommandForced("--reserved_lists", reservedLists, "xn--q9jyb4c"));
     assertThat(e).hasMessageThat().isEqualTo(errorMsg);
   }

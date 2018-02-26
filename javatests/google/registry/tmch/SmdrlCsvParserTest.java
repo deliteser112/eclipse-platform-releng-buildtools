@@ -15,7 +15,7 @@
 package google.registry.tmch;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static org.joda.time.Duration.millis;
 import static org.joda.time.Duration.standardDays;
@@ -107,7 +107,7 @@ public class SmdrlCsvParserTest {
   @Test
   public void testFail_badVersion() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 SmdrlCsvParser.parse(
@@ -121,7 +121,7 @@ public class SmdrlCsvParserTest {
   @Test
   public void testFail_badHeader() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 SmdrlCsvParser.parse(
@@ -135,7 +135,7 @@ public class SmdrlCsvParserTest {
   @Test
   public void testFail_tooManyColumns() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 SmdrlCsvParser.parse(

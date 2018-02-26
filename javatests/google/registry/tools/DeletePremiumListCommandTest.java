@@ -21,7 +21,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadPremiumListEntries;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.PremiumList;
@@ -49,7 +49,7 @@ public class DeletePremiumListCommandTest extends CommandTestCase<DeletePremiumL
   @Test
   public void testFailure_whenPremiumListDoesNotExist() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> runCommandForced("--name=foo"));
+        assertThrows(IllegalArgumentException.class, () -> runCommandForced("--name=foo"));
     assertThat(thrown)
         .hasMessageThat()
         .contains("Cannot delete the premium list foo because it doesn't exist.");
@@ -61,7 +61,7 @@ public class DeletePremiumListCommandTest extends CommandTestCase<DeletePremiumL
     createTld("xn--q9jyb4c");
     persistResource(Registry.get("xn--q9jyb4c").asBuilder().setPremiumList(premiumList).build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--name=" + premiumList.getName()));
     assertThat(PremiumList.get(premiumList.getName())).isPresent();

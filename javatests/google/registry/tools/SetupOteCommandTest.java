@@ -22,7 +22,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.ParameterException;
@@ -205,7 +205,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   @Test
   public void testFailure_missingIpWhitelist() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -218,7 +218,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   @Test
   public void testFailure_missingRegistrar() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -231,7 +231,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   @Test
   public void testFailure_missingCertificateFile() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -242,7 +242,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   @Test
   public void testFailure_missingDnsWriter() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -255,7 +255,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   @Test
   public void testFailure_invalidCert() throws Exception {
     CertificateParsingException thrown =
-        expectThrows(
+        assertThrows(
             CertificateParsingException.class,
             () ->
                 runCommandForced(
@@ -269,7 +269,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   @Test
   public void testFailure_invalidRegistrar() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -283,7 +283,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   @Test
   public void testFailure_invalidDnsWriter() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -299,7 +299,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   @Test
   public void testFailure_registrarTooShort() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -313,7 +313,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   @Test
   public void testFailure_registrarTooLong() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -327,7 +327,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   @Test
   public void testFailure_registrarInvalidCharacter() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -341,7 +341,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   @Test
   public void testFailure_invalidPremiumList() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -357,7 +357,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   public void testFailure_tldExists() throws Exception {
     createTld("blobio-sunrise");
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 runCommandForced(
@@ -376,7 +376,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         .build();
     persistResource(registrar);
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 runCommandForced(

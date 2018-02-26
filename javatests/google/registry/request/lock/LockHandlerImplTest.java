@@ -15,7 +15,7 @@
 package google.registry.request.lock;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -97,7 +97,7 @@ public final class LockHandlerImplTest {
     Lock lock = mock(Lock.class);
     Exception expectedException = new RuntimeException("test");
     RuntimeException exception =
-        expectThrows(
+        assertThrows(
             RuntimeException.class,
             () -> executeWithLocks(new ThrowingCallable(expectedException), lock));
     assertThat(exception).isSameAs(expectedException);
@@ -109,7 +109,7 @@ public final class LockHandlerImplTest {
     Lock lock = mock(Lock.class);
     Exception expectedException = new Exception("test");
     RuntimeException exception =
-        expectThrows(
+        assertThrows(
             RuntimeException.class,
             () -> executeWithLocks(new ThrowingCallable(expectedException), lock));
     assertThat(exception).hasCauseThat().isSameAs(expectedException);

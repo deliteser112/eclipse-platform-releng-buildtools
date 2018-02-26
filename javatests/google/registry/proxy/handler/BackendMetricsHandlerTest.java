@@ -22,7 +22,7 @@ import static google.registry.proxy.TestUtils.makeHttpPostRequest;
 import static google.registry.proxy.TestUtils.makeHttpResponse;
 import static google.registry.proxy.handler.EppServiceHandler.CLIENT_CERTIFICATE_HASH_KEY;
 import static google.registry.proxy.handler.RelayHandler.RELAY_CHANNEL_KEY;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -96,7 +96,7 @@ public class BackendMetricsHandlerTest {
   public void testFailure_outbound_wrongType() {
     Object request = new Object();
     IllegalArgumentException e =
-        expectThrows(IllegalArgumentException.class, () -> channel.writeOutbound(request));
+        assertThrows(IllegalArgumentException.class, () -> channel.writeOutbound(request));
     assertThat(e).hasMessageThat().isEqualTo("Outgoing request must be FullHttpRequest.");
   }
 
@@ -104,7 +104,7 @@ public class BackendMetricsHandlerTest {
   public void testFailure_inbound_wrongType() {
     Object response = new Object();
     IllegalArgumentException e =
-        expectThrows(IllegalArgumentException.class, () -> channel.writeInbound(response));
+        assertThrows(IllegalArgumentException.class, () -> channel.writeInbound(response));
     assertThat(e).hasMessageThat().isEqualTo("Incoming response must be FullHttpResponse.");
   }
 
@@ -159,7 +159,7 @@ public class BackendMetricsHandlerTest {
   public void testFailure_responseBeforeRequest() {
     FullHttpResponse response = makeHttpResponse("phantom response", HttpResponseStatus.OK);
     IllegalStateException e =
-        expectThrows(IllegalStateException.class, () -> channel.writeInbound(response));
+        assertThrows(IllegalStateException.class, () -> channel.writeInbound(response));
     assertThat(e).hasMessageThat().isEqualTo("Response received before request is sent.");
   }
 

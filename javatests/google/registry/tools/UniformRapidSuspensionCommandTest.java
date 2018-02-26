@@ -20,7 +20,7 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableSet;
@@ -153,7 +153,7 @@ public class UniformRapidSuspensionCommandTest
   public void testFailure_locksToPreserveWithoutUndo() throws Exception {
     persistActiveDomain("evil.tld");
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -165,7 +165,7 @@ public class UniformRapidSuspensionCommandTest
   public void testFailure_domainNameRequired() throws Exception {
     persistActiveDomain("evil.tld");
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () -> runCommandForced("--hosts=urs1.example.com,urs2.example.com"));
     assertThat(thrown).hasMessageThat().contains("--domain_name");
@@ -175,7 +175,7 @@ public class UniformRapidSuspensionCommandTest
   public void testFailure_extraFieldInDsData() throws Exception {
     persistActiveDomain("evil.tld");
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -188,7 +188,7 @@ public class UniformRapidSuspensionCommandTest
   public void testFailure_missingFieldInDsData() throws Exception {
     persistActiveDomain("evil.tld");
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -201,7 +201,7 @@ public class UniformRapidSuspensionCommandTest
   public void testFailure_malformedDsData() throws Exception {
     persistActiveDomain("evil.tld");
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--domain_name=evil.tld", "--dsdata=[1,2,3]"));
     assertThat(thrown).hasMessageThat().contains("Invalid --dsdata JSON");

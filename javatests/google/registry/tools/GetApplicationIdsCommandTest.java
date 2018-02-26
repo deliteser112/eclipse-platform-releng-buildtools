@@ -20,7 +20,6 @@ import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.ParameterException;
@@ -64,7 +63,7 @@ public class GetApplicationIdsCommandTest extends CommandTestCase<GetApplication
   @Test
   public void testFailure_tldDoesNotExist() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> runCommand("example.foo"));
+        assertThrows(IllegalArgumentException.class, () -> runCommand("example.foo"));
     assertThat(thrown).hasMessageThat().contains("Domain name is not under a recognized TLD");
   }
 

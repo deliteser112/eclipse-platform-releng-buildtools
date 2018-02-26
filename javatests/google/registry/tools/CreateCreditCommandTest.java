@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.joda.money.CurrencyUnit.USD;
 import static org.joda.time.DateTimeZone.UTC;
 
@@ -95,7 +95,7 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
   @Test
   public void testFailure_nonexistentParentRegistrar() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -110,7 +110,7 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
   @Test
   public void testFailure_nonexistentTld() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -125,7 +125,7 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
   @Test
   public void testFailure_nonexistentType() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -140,7 +140,7 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
   @Test
   public void testFailure_negativeBalance() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -155,7 +155,7 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
   @Test
   public void testFailure_noRegistrar() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -169,7 +169,7 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
   @Test
   public void testFailure_noType() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -183,7 +183,7 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
   @Test
   public void testFailure_noTld() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -197,7 +197,7 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
   @Test
   public void testFailure_noBalance() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -211,7 +211,7 @@ public class CreateCreditCommandTest extends CommandTestCase<CreateCreditCommand
   @Test
   public void testFailure_noEffectiveTime() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(

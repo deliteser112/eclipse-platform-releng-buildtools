@@ -17,7 +17,7 @@ package google.registry.tools;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Mockito.when;
 
@@ -54,7 +54,7 @@ public class GenerateEscrowDepositCommandTest
   @Test
   public void testCommand_missingTld() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommand("--watermark=2017-01-01T00:00:00Z", "--mode=thin", "-r 42", "-o test"));
@@ -64,7 +64,7 @@ public class GenerateEscrowDepositCommandTest
   @Test
   public void testCommand_emptyTld() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommand(
@@ -79,7 +79,7 @@ public class GenerateEscrowDepositCommandTest
   @Test
   public void testCommand_invalidTld() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommand(
@@ -94,7 +94,7 @@ public class GenerateEscrowDepositCommandTest
   @Test
   public void testCommand_missingWatermark() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () -> runCommand("--tld=tld", "--mode=full", "-r 42", "-o test"));
     assertThat(thrown)
@@ -105,7 +105,7 @@ public class GenerateEscrowDepositCommandTest
   @Test
   public void testCommand_emptyWatermark() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommand("--tld=tld", "--watermark=", "--mode=full", "-r 42", "-o test"));
     assertThat(thrown).hasMessageThat().contains("Invalid format: \"\"");
@@ -114,7 +114,7 @@ public class GenerateEscrowDepositCommandTest
   @Test
   public void testCommand_missingOutdir() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommand(
@@ -125,7 +125,7 @@ public class GenerateEscrowDepositCommandTest
   @Test
   public void testCommand_emptyOutdir() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommand(
@@ -140,7 +140,7 @@ public class GenerateEscrowDepositCommandTest
   @Test
   public void testCommand_invalidWatermark() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommand(
@@ -155,7 +155,7 @@ public class GenerateEscrowDepositCommandTest
   @Test
   public void testCommand_invalidMode() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommand(
@@ -172,7 +172,7 @@ public class GenerateEscrowDepositCommandTest
   @Test
   public void testCommand_invalidRevision() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommand(

@@ -16,7 +16,7 @@ package google.registry.xjc;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static google.registry.xjc.XjcXmlTransformer.unmarshal;
 import static java.nio.charset.StandardCharsets.UTF_16;
@@ -65,7 +65,7 @@ public class XjcObjectTest {
     XjcRdeDeposit deposit = unmarshalFullDeposit();
     deposit.setId("");
     Throwable thrown =
-        expectThrows(Throwable.class, () -> deposit.marshal(new ByteArrayOutputStream(), UTF_8));
+        assertThrows(Throwable.class, () -> deposit.marshal(new ByteArrayOutputStream(), UTF_8));
     assertThat(thrown).hasMessageThat().contains("pattern '\\w{1,13}' for type 'depositIdType'");
   }
 
@@ -89,7 +89,7 @@ public class XjcObjectTest {
   @Test
   public void testUnmarshalValidation() throws Exception {
     Throwable thrown =
-        expectThrows(
+        assertThrows(
             Throwable.class,
             () ->
                 unmarshal(

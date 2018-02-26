@@ -29,7 +29,6 @@ import static google.registry.testing.DatastoreHelper.persistEppResourceInFirstB
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.googlecode.objectify.Key;
@@ -81,14 +80,14 @@ public class EppResourceInputsTest {
   @Test
   public void testFailure_keyInputType_polymorphicSubclass() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> createKeyInput(DomainResource.class));
+        assertThrows(IllegalArgumentException.class, () -> createKeyInput(DomainResource.class));
     assertThat(thrown).hasMessageThat().contains("non-polymorphic");
   }
 
   @Test
   public void testFailure_keyInputType_noInheritanceBetweenTypes_eppResource() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> createKeyInput(EppResource.class, DomainBase.class));
     assertThat(thrown).hasMessageThat().contains("inheritance");
@@ -104,7 +103,7 @@ public class EppResourceInputsTest {
   @Test
   public void testFailure_entityInputType_noInheritanceBetweenTypes_eppResource() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> createEntityInput(EppResource.class, DomainResource.class));
     assertThat(thrown).hasMessageThat().contains("inheritance");
@@ -113,7 +112,7 @@ public class EppResourceInputsTest {
   @Test
   public void testFailure_entityInputType_noInheritanceBetweenTypes_subclasses() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> createEntityInput(DomainBase.class, DomainResource.class));
     assertThat(thrown).hasMessageThat().contains("inheritance");

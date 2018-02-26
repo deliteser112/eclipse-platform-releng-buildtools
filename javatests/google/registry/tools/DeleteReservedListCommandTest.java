@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservedList;
@@ -48,7 +48,7 @@ public class DeleteReservedListCommandTest extends CommandTestCase<DeleteReserve
     String expectedError =
         "Cannot delete the reserved list doesntExistReservedList because it doesn't exist.";
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--name=doesntExistReservedList"));
     assertThat(thrown).hasMessageThat().contains(expectedError);
@@ -59,7 +59,7 @@ public class DeleteReservedListCommandTest extends CommandTestCase<DeleteReserve
     createTld("xn--q9jyb4c");
     persistResource(Registry.get("xn--q9jyb4c").asBuilder().setReservedLists(reservedList).build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--name=" + reservedList.getName()));
     assertThat(ReservedList.get(reservedList.getName())).isPresent();

@@ -20,7 +20,7 @@ import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.tmch.ClaimsListShardTest.createTestClaimsListShard;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.LogsSubject.assertAboutLogs;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 
@@ -136,7 +136,7 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
   @Test
   public void testRequiresLogin() throws Exception {
     sessionMetadata.setClientId(null);
-    EppException thrown = expectThrows(NotLoggedInException.class, this::runFlow);
+    EppException thrown = assertThrows(NotLoggedInException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

@@ -19,7 +19,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.beust.jcommander.ParameterException;
 import google.registry.model.common.Cursor;
@@ -120,7 +119,7 @@ public class UpdateCursorsCommandTest extends CommandTestCase<UpdateCursorsComma
   @Test
   public void testFailure_badCursorType() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () -> runCommandForced("--type=rbda", "--timestamp=1984-12-18T00:00:00Z", "foo"));
     assertThat(thrown).hasMessageThat().contains("Invalid value for --type parameter");

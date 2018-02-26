@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.collect.ImmutableMap;
@@ -98,7 +97,7 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
   @Test
   public void testBadTimeOrdering_causesError() throws Exception {
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 new RegistrarBillingEntry.Builder()
@@ -122,7 +121,7 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
   @Test
   public void testRegistrarMismatch_causesError() throws Exception {
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 new RegistrarBillingEntry.Builder()
@@ -168,7 +167,7 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
   @Test
   public void testZeroAmount_causesError() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 new RegistrarBillingEntry.Builder()

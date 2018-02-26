@@ -27,7 +27,6 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -141,7 +140,7 @@ public class RegistrarTest extends EntityTestCase {
   @Test
   public void testFailure_passwordNull() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class, () -> new Registrar.Builder().setPassword(null));
     assertThat(thrown).hasMessageThat().contains("Password must be 6-16 characters long.");
   }
@@ -149,7 +148,7 @@ public class RegistrarTest extends EntityTestCase {
   @Test
   public void testFailure_passwordTooShort() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class, () -> new Registrar.Builder().setPassword("abcde"));
     assertThat(thrown).hasMessageThat().contains("Password must be 6-16 characters long.");
   }
@@ -157,7 +156,7 @@ public class RegistrarTest extends EntityTestCase {
   @Test
   public void testFailure_passwordTooLong() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> new Registrar.Builder().setPassword("abcdefghijklmnopq"));
     assertThat(thrown).hasMessageThat().contains("Password must be 6-16 characters long.");
@@ -320,7 +319,7 @@ public class RegistrarTest extends EntityTestCase {
   @Test
   public void testFailure_missingRegistrarType() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> new Registrar.Builder().setRegistrarName("blah").build());
     assertThat(thrown).hasMessageThat().contains("Registrar type cannot be null");
@@ -329,7 +328,7 @@ public class RegistrarTest extends EntityTestCase {
   @Test
   public void testFailure_missingRegistrarName() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 new Registrar.Builder().setClientId("blahid").setType(Registrar.Type.TEST).build());
@@ -339,7 +338,7 @@ public class RegistrarTest extends EntityTestCase {
   @Test
   public void testFailure_missingAddress() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 new Registrar.Builder()
@@ -438,28 +437,28 @@ public class RegistrarTest extends EntityTestCase {
   @Test
   public void testFailure_loadByClientId_clientIdIsNull() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> Registrar.loadByClientId(null));
+        assertThrows(IllegalArgumentException.class, () -> Registrar.loadByClientId(null));
     assertThat(thrown).hasMessageThat().contains("clientId must be specified");
   }
 
   @Test
   public void testFailure_loadByClientId_clientIdIsEmpty() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> Registrar.loadByClientId(""));
+        assertThrows(IllegalArgumentException.class, () -> Registrar.loadByClientId(""));
     assertThat(thrown).hasMessageThat().contains("clientId must be specified");
   }
 
   @Test
   public void testFailure_loadByClientIdCached_clientIdIsNull() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> Registrar.loadByClientIdCached(null));
+        assertThrows(IllegalArgumentException.class, () -> Registrar.loadByClientIdCached(null));
     assertThat(thrown).hasMessageThat().contains("clientId must be specified");
   }
 
   @Test
   public void testFailure_loadByClientIdCached_clientIdIsEmpty() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> Registrar.loadByClientIdCached(""));
+        assertThrows(IllegalArgumentException.class, () -> Registrar.loadByClientIdCached(""));
     assertThat(thrown).hasMessageThat().contains("clientId must be specified");
   }
 }

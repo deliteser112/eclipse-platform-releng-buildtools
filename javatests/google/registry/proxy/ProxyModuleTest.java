@@ -17,7 +17,7 @@ package google.registry.proxy;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.proxy.ProxyConfig.Environment.TEST;
 import static google.registry.proxy.ProxyConfig.getProxyConfig;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.junit.Assert.fail;
 
 import com.beust.jcommander.ParameterException;
@@ -94,7 +94,7 @@ public class ProxyModuleTest {
   @Test
   public void testFailure_parseArgs_wrongEnvironment() {
     ParameterException e =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () -> {
               String[] args = {"--env", "beta"};

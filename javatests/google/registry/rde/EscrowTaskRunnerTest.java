@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardSeconds;
 import static org.mockito.Mockito.mock;
@@ -97,7 +97,7 @@ public class EscrowTaskRunnerTest {
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, DateTime.parse("2006-06-07TZ"), registry));
     NoContentException thrown =
-        expectThrows(
+        assertThrows(
             NoContentException.class,
             () ->
                 runner.lockRunAndRollForward(
@@ -112,7 +112,7 @@ public class EscrowTaskRunnerTest {
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, DateTime.parse("2006-06-06TZ"), registry));
     ServiceUnavailableException thrown =
-        expectThrows(
+        assertThrows(
             ServiceUnavailableException.class,
             () -> {
               runner.lockHandler = new FakeLockHandler(false);

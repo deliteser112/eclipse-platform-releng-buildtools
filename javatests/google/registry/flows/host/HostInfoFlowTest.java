@@ -20,7 +20,7 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -150,7 +150,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -159,14 +159,14 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
     persistResource(
         persistHostResource().asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
   @Test
   public void testFailure_nonLowerCaseHostname() throws Exception {
     setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "NS1.EXAMPLE.NET"));
-    EppException thrown = expectThrows(HostNameNotLowerCaseException.class, this::runFlow);
+    EppException thrown = assertThrows(HostNameNotLowerCaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -174,14 +174,14 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   public void testFailure_nonPunyCodedHostname() throws Exception {
     setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "ns1.çauçalito.tld"));
     HostNameNotPunyCodedException thrown =
-        expectThrows(HostNameNotPunyCodedException.class, this::runFlow);
+        assertThrows(HostNameNotPunyCodedException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("expected ns1.xn--aualito-txac.tld");
   }
 
   @Test
   public void testFailure_nonCanonicalHostname() throws Exception {
     setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld."));
-    EppException thrown = expectThrows(HostNameNotNormalizedException.class, this::runFlow);
+    EppException thrown = assertThrows(HostNameNotNormalizedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

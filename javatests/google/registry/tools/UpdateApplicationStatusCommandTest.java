@@ -28,7 +28,6 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import google.registry.model.domain.DomainApplication;
@@ -256,7 +255,7 @@ public class UpdateApplicationStatusCommandTest
         .build());
 
     IllegalStateException e =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 runCommandForced(
@@ -281,7 +280,7 @@ public class UpdateApplicationStatusCommandTest
   @Test
   public void testFailure_historyClientIdDoesNotExist() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(

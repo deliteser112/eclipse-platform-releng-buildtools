@@ -23,7 +23,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -287,7 +287,7 @@ public class DomainApplicationInfoFlowTest
   @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -301,7 +301,7 @@ public class DomainApplicationInfoFlowTest
             .setRegistrant(Key.create(persistActiveContact("jd1234")))
             .build());
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -310,7 +310,7 @@ public class DomainApplicationInfoFlowTest
     persistResource(AppEngineRule.makeRegistrar1().asBuilder().setClientId("ClientZ").build());
     sessionMetadata.setClientId("ClientZ");
     persistTestEntities(HostsState.NO_HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
-    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = assertThrows(ResourceNotOwnedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -323,7 +323,7 @@ public class DomainApplicationInfoFlowTest
             .setRegistrant(Key.create(persistActiveContact("jd1234")))
             .setPhase(LaunchPhase.SUNRUSH)
             .build());
-    EppException thrown = expectThrows(ApplicationDomainNameMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(ApplicationDomainNameMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -331,7 +331,7 @@ public class DomainApplicationInfoFlowTest
   public void testFailure_noApplicationId() throws Exception {
     setEppInput("domain_info_sunrise_no_application_id.xml");
     persistTestEntities(HostsState.NO_HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
-    EppException thrown = expectThrows(MissingApplicationIdException.class, this::runFlow);
+    EppException thrown = assertThrows(MissingApplicationIdException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -340,7 +340,7 @@ public class DomainApplicationInfoFlowTest
     persistTestEntities(HostsState.NO_HOSTS_EXIST, MarksState.NO_MARKS_EXIST);
     application = persistResource(application.asBuilder().setPhase(LaunchPhase.SUNRISE).build());
     EppException thrown =
-        expectThrows(ApplicationLaunchPhaseMismatchException.class, this::runFlow);
+        assertThrows(ApplicationLaunchPhaseMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

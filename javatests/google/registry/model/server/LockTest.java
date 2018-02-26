@@ -20,7 +20,7 @@ import static google.registry.model.server.Lock.LockState.FREE;
 import static google.registry.model.server.Lock.LockState.IN_USE;
 import static google.registry.model.server.Lock.LockState.OWNER_DIED;
 import static google.registry.model.server.Lock.LockState.TIMED_OUT;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -136,7 +136,7 @@ public class LockTest {
   @Test
   public void testFailure_emptyResourceName() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> Lock.acquire("", "", TWO_MILLIS, requestStatusChecker));
     assertThat(thrown).hasMessageThat().contains("resourceName cannot be null or empty");

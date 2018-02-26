@@ -34,7 +34,7 @@ import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptio
 import static google.registry.testing.GenericEppResourceSubject.assertAboutEppResources;
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoDnsTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
@@ -416,7 +416,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     DomainResource domain = persistActiveDomain("example.tld");
     persistActiveHost(oldHostName());
     assertThat(domain.getSubordinateHosts()).isEmpty();
-    expectThrows(CannotRenameExternalHostException.class, this::runFlow);
+    assertThrows(CannotRenameExternalHostException.class, this::runFlow);
     assertNoDnsTasksEnqueued();
   }
 
@@ -448,7 +448,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testFailure_externalToExternal() throws Exception {
     setEppHostUpdateInput("ns1.example.foo", "ns2.example.tld", null, null);
     persistActiveHost(oldHostName());
-    EppException thrown = expectThrows(CannotRenameExternalHostException.class, this::runFlow);
+    EppException thrown = assertThrows(CannotRenameExternalHostException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -814,7 +814,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     createTld("tld");
     persistActiveHost(oldHostName());
     SuperordinateDomainDoesNotExistException thrown =
-        expectThrows(SuperordinateDomainDoesNotExistException.class, this::runFlow);
+        assertThrows(SuperordinateDomainDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("(example.tld)");
   }
 
@@ -837,7 +837,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     persistActiveSubordinateHost(oldHostName(), domain);
     clock.advanceOneMilli();
     SuperordinateDomainInPendingDeleteException thrown =
-        expectThrows(SuperordinateDomainInPendingDeleteException.class, this::runFlow);
+        assertThrows(SuperordinateDomainInPendingDeleteException.class, this::runFlow);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Superordinate domain for this hostname is in pending delete");
@@ -846,7 +846,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -854,7 +854,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testFailure_neverExisted_updateWithoutNameChange() throws Exception {
     setEppInput("host_update_name_unchanged.xml");
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -862,7 +862,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedHost(oldHostName(), clock.nowUtc().minusDays(1));
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -873,7 +873,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     clock.advanceOneMilli();
     setEppHostUpdateInput("ns1.example.tld", "ns1.example.tld", null, null);
     HostAlreadyExistsException thrown =
-        expectThrows(HostAlreadyExistsException.class, this::runFlow);
+        assertThrows(HostAlreadyExistsException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("ns1.example.tld");
   }
 
@@ -883,14 +883,14 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     persistActiveSubordinateHost(oldHostName(), persistActiveDomain("example.tld"));
     persistActiveHost("ns2.example.tld");
     HostAlreadyExistsException thrown =
-        expectThrows(HostAlreadyExistsException.class, this::runFlow);
+        assertThrows(HostAlreadyExistsException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("ns2.example.tld");
   }
 
   @Test
   public void testFailure_referToNonLowerCaseHostname() throws Exception {
     setEppHostUpdateInput("ns1.EXAMPLE.tld", "ns2.example.tld", null, null);
-    EppException thrown = expectThrows(HostNameNotLowerCaseException.class, this::runFlow);
+    EppException thrown = assertThrows(HostNameNotLowerCaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -898,7 +898,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testFailure_renameToNonLowerCaseHostname() throws Exception {
     persistActiveHost("ns1.example.tld");
     setEppHostUpdateInput("ns1.example.tld", "ns2.EXAMPLE.tld", null, null);
-    EppException thrown = expectThrows(HostNameNotLowerCaseException.class, this::runFlow);
+    EppException thrown = assertThrows(HostNameNotLowerCaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -906,7 +906,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testFailure_referToNonPunyCodedHostname() throws Exception {
     setEppHostUpdateInput("ns1.çauçalito.tld", "ns1.sausalito.tld", null, null);
     HostNameNotPunyCodedException thrown =
-        expectThrows(HostNameNotPunyCodedException.class, this::runFlow);
+        assertThrows(HostNameNotPunyCodedException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("expected ns1.xn--aualito-txac.tld");
   }
 
@@ -915,7 +915,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     persistActiveHost("ns1.sausalito.tld");
     setEppHostUpdateInput("ns1.sausalito.tld", "ns1.çauçalito.tld", null, null);
     HostNameNotPunyCodedException thrown =
-        expectThrows(HostNameNotPunyCodedException.class, this::runFlow);
+        assertThrows(HostNameNotPunyCodedException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("expected ns1.xn--aualito-txac.tld");
   }
 
@@ -923,7 +923,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testFailure_referToNonCanonicalHostname() throws Exception {
     persistActiveHost("ns1.example.tld.");
     setEppHostUpdateInput("ns1.example.tld.", "ns2.example.tld", null, null);
-    EppException thrown = expectThrows(HostNameNotNormalizedException.class, this::runFlow);
+    EppException thrown = assertThrows(HostNameNotNormalizedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -931,7 +931,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testFailure_renameToNonCanonicalHostname() throws Exception {
     persistActiveHost("ns1.example.tld");
     setEppHostUpdateInput("ns1.example.tld", "ns2.example.tld.", null, null);
-    EppException thrown = expectThrows(HostNameNotNormalizedException.class, this::runFlow);
+    EppException thrown = assertThrows(HostNameNotNormalizedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -945,7 +945,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     createTld("tld");
     persistActiveSubordinateHost(oldHostName(), persistActiveDomain("example.tld"));
     EppException thrown =
-        expectThrows(CannotRemoveSubordinateHostLastIpException.class, this::runFlow);
+        assertThrows(CannotRemoveSubordinateHostLastIpException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -954,7 +954,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     setEppHostUpdateInput("ns1.example.tld", "ns2.example.com", null, null);
     createTld("tld");
     persistActiveSubordinateHost(oldHostName(), persistActiveDomain("example.tld"));
-    EppException thrown = expectThrows(RenameHostToExternalRemoveIpException.class, this::runFlow);
+    EppException thrown = assertThrows(RenameHostToExternalRemoveIpException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -964,7 +964,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
         "ns1.example.tld", "ns2.example.com", "<host:addr ip=\"v4\">192.0.2.22</host:addr>", null);
     createTld("tld");
     persistActiveSubordinateHost(oldHostName(), persistActiveDomain("example.tld"));
-    EppException thrown = expectThrows(CannotAddIpToExternalHostException.class, this::runFlow);
+    EppException thrown = assertThrows(CannotAddIpToExternalHostException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -978,7 +978,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
         "<host:status s=\"clientUpdateProhibited\"/>",
         "<host:status s=\"clientUpdateProhibited\"/>");
     persistActiveSubordinateHost(oldHostName(), persistActiveDomain("example.tld"));
-    EppException thrown = expectThrows(AddRemoveSameValueException.class, this::runFlow);
+    EppException thrown = assertThrows(AddRemoveSameValueException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -991,7 +991,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
         "ns2.example.tld",
         "<host:addr ip=\"v4\">192.0.2.22</host:addr>",
         "<host:addr ip=\"v4\">192.0.2.22</host:addr>");
-    EppException thrown = expectThrows(AddRemoveSameValueException.class, this::runFlow);
+    EppException thrown = assertThrows(AddRemoveSameValueException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1020,7 +1020,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .setSuperordinateDomain(Key.create(persistActiveDomain("example.tld")))
             .build());
     EppException thrown =
-        expectThrows(ResourceHasClientUpdateProhibitedException.class, this::runFlow);
+        assertThrows(ResourceHasClientUpdateProhibitedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1034,7 +1034,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .setSuperordinateDomain(Key.create(persistActiveDomain("example.tld")))
             .build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
+        assertThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("serverUpdateProhibited");
   }
 
@@ -1048,7 +1048,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .setSuperordinateDomain(Key.create(persistActiveDomain("example.tld")))
             .build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
+        assertThrows(ResourceStatusProhibitsOperationException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("pendingDelete");
   }
 
@@ -1057,7 +1057,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     createTld("tld");
     persistActiveSubordinateHost(oldHostName(), persistActiveDomain("example.tld"));
     setEppInput("host_update_prohibited_status.xml");
-    EppException thrown = expectThrows(StatusNotClientSettableException.class, this::runFlow);
+    EppException thrown = assertThrows(StatusNotClientSettableException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1077,7 +1077,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveHost("ns1.example.tld");
-    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = assertThrows(ResourceNotOwnedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1131,7 +1131,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .setInetAddresses(ImmutableSet.of(InetAddresses.forString("127.0.0.1")))
             .build());
 
-    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = assertThrows(ResourceNotOwnedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1167,7 +1167,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .setInetAddresses(ImmutableSet.of(InetAddresses.forString("127.0.0.1")))
             .build());
 
-    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = assertThrows(ResourceNotOwnedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1187,7 +1187,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
         persistActiveSubordinateHost(oldHostName(), persistActiveDomain("example.foo"));
     assertAboutHosts().that(host).hasPersistedCurrentSponsorClientId("TheRegistrar");
 
-    EppException thrown = expectThrows(HostDomainNotOwnedException.class, this::runFlow);
+    EppException thrown = assertThrows(HostDomainNotOwnedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1205,7 +1205,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     assertAboutDomains().that(domain).hasPersistedCurrentSponsorClientId("TheRegistrar");
     assertAboutHosts().that(host).hasPersistedCurrentSponsorClientId("TheRegistrar");
 
-    EppException thrown = expectThrows(HostDomainNotOwnedException.class, this::runFlow);
+    EppException thrown = assertThrows(HostDomainNotOwnedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1244,7 +1244,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
         hostName,
         "<host:addr ip=\"v4\">192.0.2.22</host:addr>",
         "<host:addr ip=\"v6\">1080:0:0:0:8:800:200C:417A</host:addr>");
-    EppException thrown = expectThrows(exception, this::runFlow);
+    EppException thrown = assertThrows(exception, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

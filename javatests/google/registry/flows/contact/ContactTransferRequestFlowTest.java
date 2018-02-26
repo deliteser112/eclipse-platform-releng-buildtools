@@ -29,7 +29,7 @@ import static google.registry.testing.DatastoreHelper.getPollMessages;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -158,7 +158,7 @@ public class ContactTransferRequestFlowTest
   @Test
   public void testFailure_noAuthInfo() throws Exception {
     EppException thrown =
-        expectThrows(
+        assertThrows(
             MissingTransferRequestAuthInfoException.class,
             () -> doFailingTest("contact_transfer_request_no_authinfo.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -174,7 +174,7 @@ public class ContactTransferRequestFlowTest
                 .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
                 .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             BadAuthInfoForResourceException.class,
             () -> doFailingTest("contact_transfer_request.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -225,7 +225,7 @@ public class ContactTransferRequestFlowTest
                         .build())
                 .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             AlreadyPendingTransferException.class,
             () -> doFailingTest("contact_transfer_request.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -235,7 +235,7 @@ public class ContactTransferRequestFlowTest
   public void testFailure_sponsoringClient() throws Exception {
     setClientIdForFlow("TheRegistrar");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             ObjectAlreadySponsoredException.class,
             () -> doFailingTest("contact_transfer_request.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -246,7 +246,7 @@ public class ContactTransferRequestFlowTest
     contact =
         persistResource(contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     ResourceDoesNotExistException thrown =
-        expectThrows(
+        assertThrows(
             ResourceDoesNotExistException.class,
             () -> doFailingTest("contact_transfer_request.xml"));
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
@@ -257,7 +257,7 @@ public class ContactTransferRequestFlowTest
   public void testFailure_nonexistentContact() throws Exception {
     deleteResource(contact);
     ResourceDoesNotExistException thrown =
-        expectThrows(
+        assertThrows(
             ResourceDoesNotExistException.class,
             () -> doFailingTest("contact_transfer_request.xml"));
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
@@ -270,7 +270,7 @@ public class ContactTransferRequestFlowTest
         persistResource(
             contact.asBuilder().addStatusValue(StatusValue.CLIENT_TRANSFER_PROHIBITED).build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(
+        assertThrows(
             ResourceStatusProhibitsOperationException.class,
             () -> doFailingTest("contact_transfer_request.xml"));
     assertThat(thrown).hasMessageThat().contains("clientTransferProhibited");
@@ -283,7 +283,7 @@ public class ContactTransferRequestFlowTest
         persistResource(
             contact.asBuilder().addStatusValue(StatusValue.SERVER_TRANSFER_PROHIBITED).build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(
+        assertThrows(
             ResourceStatusProhibitsOperationException.class,
             () -> doFailingTest("contact_transfer_request.xml"));
     assertThat(thrown).hasMessageThat().contains("serverTransferProhibited");
@@ -295,7 +295,7 @@ public class ContactTransferRequestFlowTest
     contact =
         persistResource(contact.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(
+        assertThrows(
             ResourceStatusProhibitsOperationException.class,
             () -> doFailingTest("contact_transfer_request.xml"));
     assertThat(thrown).hasMessageThat().contains("pendingDelete");

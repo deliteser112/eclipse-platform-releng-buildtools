@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
@@ -228,7 +228,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   @Test
   public void testFailure_missingAssigneeOrFile() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> runCommand("--tlds=tld"));
+        assertThrows(IllegalArgumentException.class, () -> runCommand("--tlds=tld"));
     assertThat(thrown)
         .hasMessageThat()
         .contains("Exactly one of either assignee or filename must be specified.");
@@ -237,7 +237,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   @Test
   public void testFailure_bothAssigneeAndFile() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommand("--assignee=domain.tld", "--tlds=tld", "--input=" + assigneeFilePath));
     assertThat(thrown)
@@ -248,7 +248,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   @Test
   public void testFailure_bothMetadataAndFile() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommand("--tlds=tld", "--input=" + assigneeFilePath, "--metadata=key=foo"));
     assertThat(thrown)
@@ -259,7 +259,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   @Test
   public void testFailure_bothAssigneeAndMetadataColumns() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommand("--assignee=domain.tld", "--tlds=tld", "--metadata_columns=foo=1"));
     assertThat(thrown)
@@ -270,7 +270,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   @Test
   public void testFailure_badTld() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommand("--assignee=domain.tld", "--tlds=foo"));
     assertThat(thrown).hasMessageThat().contains("TLDs do not exist: foo");
@@ -280,7 +280,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   public void testFailure_oneAssignee_byFile_insufficientMetadata() throws Exception {
     Files.asCharSink(assigneeFile, UTF_8).write("domain.tld,foo");
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommand(

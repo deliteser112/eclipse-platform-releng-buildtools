@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.googlecode.objectify.Key;
 import google.registry.model.EntityTestCase;
@@ -67,7 +67,7 @@ public class AllocationTokenTest extends EntityTestCase {
             .setToken("foobar")
             .setCreationTime(DateTime.parse("2010-11-12T05:00:00Z"));
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () -> builder.setCreationTime(DateTime.parse("2010-11-13T05:00:00Z")));
     assertThat(thrown).hasMessageThat().isEqualTo("creationTime can only be set once");
@@ -77,7 +77,7 @@ public class AllocationTokenTest extends EntityTestCase {
   public void testSetToken_cantCallMoreThanOnce() throws Exception {
     AllocationToken.Builder builder = new AllocationToken.Builder().setToken("foobar");
     IllegalStateException thrown =
-        expectThrows(IllegalStateException.class, () -> builder.setToken("barfoo"));
+        assertThrows(IllegalStateException.class, () -> builder.setToken("barfoo"));
     assertThat(thrown).hasMessageThat().isEqualTo("token can only be set once");
   }
 }

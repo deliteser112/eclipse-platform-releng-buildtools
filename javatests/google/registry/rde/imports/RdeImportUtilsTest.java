@@ -22,7 +22,6 @@ import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -273,7 +272,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     xmlInput = DEPOSIT_BADTLD_XML.openBufferedStream();
     when(gcsUtils.openInputStream(any(GcsFilename.class))).thenReturn(xmlInput);
     Exception e =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> rdeImportUtils.validateEscrowFileForImport("invalid-deposit-badtld.xml"));
     assertThat(e).hasMessageThat().isEqualTo("TLD 'badtld' not found in the registry");
@@ -285,7 +284,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     xmlInput = DEPOSIT_GETLD_XML.openBufferedStream();
     when(gcsUtils.openInputStream(any(GcsFilename.class))).thenReturn(xmlInput);
     Exception e =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> rdeImportUtils.validateEscrowFileForImport("invalid-deposit-getld.xml"));
     assertThat(e)
@@ -299,7 +298,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
     xmlInput = DEPOSIT_BADREGISTRAR_XML.openBufferedStream();
     when(gcsUtils.openInputStream(any(GcsFilename.class))).thenReturn(xmlInput);
     Exception e =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> rdeImportUtils.validateEscrowFileForImport("invalid-deposit-badregistrar.xml"));
     assertThat(e).hasMessageThat().isEqualTo("Registrar 'RegistrarY' not found in the registry");

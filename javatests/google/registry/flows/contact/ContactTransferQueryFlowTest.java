@@ -20,7 +20,7 @@ import static google.registry.testing.DatastoreHelper.assertNoBillingEvents;
 import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.flows.EppException;
 import google.registry.flows.ResourceFlowUtils.BadAuthInfoForResourceException;
@@ -145,7 +145,7 @@ public class ContactTransferQueryFlowTest
                 .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
                 .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             BadAuthInfoForResourceException.class,
             () -> doFailingTest("contact_transfer_query_with_authinfo.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -157,7 +157,7 @@ public class ContactTransferQueryFlowTest
     // code above will write the wrong ROID into the file.
     contact = contact.asBuilder().setRepoId("DEADBEEF_TLD-ROID").build();
     EppException thrown =
-        expectThrows(
+        assertThrows(
             BadAuthInfoForResourceException.class,
             () -> doFailingTest("contact_transfer_query_with_roid.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -167,7 +167,7 @@ public class ContactTransferQueryFlowTest
   public void testFailure_neverBeenTransferred() throws Exception {
     changeTransferStatus(null);
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NoTransferHistoryToQueryException.class,
             () -> doFailingTest("contact_transfer_query.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -177,7 +177,7 @@ public class ContactTransferQueryFlowTest
   public void testFailure_unrelatedClient() throws Exception {
     setClientIdForFlow("ClientZ");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NotAuthorizedToViewTransferException.class,
             () -> doFailingTest("contact_transfer_query.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -188,7 +188,7 @@ public class ContactTransferQueryFlowTest
     contact =
         persistResource(contact.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     ResourceDoesNotExistException thrown =
-        expectThrows(
+        assertThrows(
             ResourceDoesNotExistException.class, () -> doFailingTest("contact_transfer_query.xml"));
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -198,7 +198,7 @@ public class ContactTransferQueryFlowTest
   public void testFailure_nonexistentContact() throws Exception {
     deleteResource(contact);
     ResourceDoesNotExistException thrown =
-        expectThrows(
+        assertThrows(
             ResourceDoesNotExistException.class, () -> doFailingTest("contact_transfer_query.xml"));
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
     assertAboutEppExceptions().that(thrown).marshalsToXml();

@@ -17,7 +17,7 @@ package google.registry.tmch;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.config.RegistryConfig.ConfigModule.TmchCaMode.PILOT;
 import static google.registry.config.RegistryConfig.ConfigModule.TmchCaMode.PRODUCTION;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.tmch.TmchTestData.loadFile;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static google.registry.util.X509Utils.loadCertificate;
@@ -63,7 +63,7 @@ public class TmchCertificateAuthorityTest {
     TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PRODUCTION);
     clock.setTo(DateTime.parse("2024-01-01T00:00:00Z"));
     CertificateExpiredException e =
-        expectThrows(CertificateExpiredException.class, tmchCertificateAuthority::getRoot);
+        assertThrows(CertificateExpiredException.class, tmchCertificateAuthority::getRoot);
     assertThat(e).hasMessageThat().containsMatch("NotAfter: Sun Jul 23 23:59:59 UTC 2023");
   }
 
@@ -72,7 +72,7 @@ public class TmchCertificateAuthorityTest {
     TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PRODUCTION);
     clock.setTo(DateTime.parse("2000-01-01T00:00:00Z"));
     CertificateNotYetValidException e =
-        expectThrows(CertificateNotYetValidException.class, tmchCertificateAuthority::getRoot);
+        assertThrows(CertificateNotYetValidException.class, tmchCertificateAuthority::getRoot);
     assertThat(e).hasMessageThat().containsMatch("NotBefore: Wed Jul 24 00:00:00 UTC 2013");
   }
 
@@ -83,7 +83,7 @@ public class TmchCertificateAuthorityTest {
     TmchCrl.set(
         readResourceUtf8(TmchCertificateAuthority.class, "icann-tmch.crl"), "http://cert.crl");
     SignatureException e =
-        expectThrows(
+        assertThrows(
             SignatureException.class,
             () -> tmchCertificateAuthority.verify(loadCertificate(GOOD_TEST_CERTIFICATE)));
     assertThat(e).hasMessageThat().contains("Signature does not match");
@@ -99,7 +99,7 @@ public class TmchCertificateAuthorityTest {
   public void testFailure_verifySignatureDoesntMatch() throws Exception {
     TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PRODUCTION);
     SignatureException e =
-        expectThrows(
+        assertThrows(
             SignatureException.class,
             () -> tmchCertificateAuthority.verify(loadCertificate(GOOD_TEST_CERTIFICATE)));
     assertThat(e).hasMessageThat().contains("Signature does not match");
@@ -109,7 +109,7 @@ public class TmchCertificateAuthorityTest {
   public void testFailure_verifyRevoked() throws Exception {
     TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PILOT);
     CertificateRevokedException thrown =
-        expectThrows(
+        assertThrows(
             CertificateRevokedException.class,
             () -> tmchCertificateAuthority.verify(loadCertificate(REVOKED_TEST_CERTIFICATE)));
     assertThat(thrown).hasMessageThat().contains("revoked, reason: KEY_COMPROMISE");

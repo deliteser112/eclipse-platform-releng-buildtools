@@ -24,7 +24,6 @@ import static google.registry.testing.DatastoreHelper.newRegistry;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.EUR;
@@ -196,7 +195,7 @@ public class RegistryTest extends EntityTestCase {
         "tld-reserved057",
         "lol,RESERVED_FOR_ANCHOR_TENANT,another_conflict");
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> {
               @SuppressWarnings("unused")
@@ -354,21 +353,21 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testFailure_tldNeverSet() {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> new Registry.Builder().build());
+        assertThrows(IllegalArgumentException.class, () -> new Registry.Builder().build());
     assertThat(thrown).hasMessageThat().contains("No registry TLD specified");
   }
 
   @Test
   public void testFailure_setTldStr_null() {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> new Registry.Builder().setTldStr(null));
+        assertThrows(IllegalArgumentException.class, () -> new Registry.Builder().setTldStr(null));
     assertThat(thrown).hasMessageThat().contains("TLD must not be null");
   }
 
   @Test
   public void testFailure_setTldStr_invalidTld() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class, () -> new Registry.Builder().setTldStr(".tld").build());
     assertThat(thrown)
         .hasMessageThat()
@@ -378,7 +377,7 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testFailure_setTldStr_nonCanonicalTld() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class, () -> new Registry.Builder().setTldStr("TLD").build());
     assertThat(thrown)
         .hasMessageThat()
@@ -420,7 +419,7 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testFailure_pricingEngineIsRequired() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> new Registry.Builder().setTldStr("invalid").build());
     assertThat(thrown)
@@ -431,7 +430,7 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testFailure_negativeRenewBillingCostTransitionValue() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 Registry.get("tld")
@@ -444,7 +443,7 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testFailure_negativeCreateBillingCost() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(USD, -42)));
     assertThat(thrown).hasMessageThat().contains("createBillingCost cannot be negative");
@@ -453,7 +452,7 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testFailure_negativeRestoreBillingCost() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(USD, -42)));
     assertThat(thrown).hasMessageThat().contains("restoreBillingCost cannot be negative");
@@ -462,7 +461,7 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testFailure_negativeServerStatusChangeBillingCost() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 Registry.get("tld")
@@ -474,7 +473,7 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testFailure_renewBillingCostTransitionValue_wrongCurrency() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 Registry.get("tld")
@@ -488,7 +487,7 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testFailure_createBillingCost_wrongCurrency() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> Registry.get("tld").asBuilder().setCreateBillingCost(Money.of(EUR, 42)).build());
     assertThat(thrown).hasMessageThat().contains("cost must be in the registry's currency");
@@ -497,7 +496,7 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testFailure_restoreBillingCost_wrongCurrency() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(EUR, 42)).build());
     assertThat(thrown).hasMessageThat().contains("cost must be in the registry's currency");
@@ -506,7 +505,7 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testFailure_serverStatusChangeBillingCost_wrongCurrency() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 Registry.get("tld")
@@ -544,7 +543,7 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testFailure_eapFee_wrongCurrency() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 Registry.get("tld")
@@ -557,7 +556,7 @@ public class RegistryTest extends EntityTestCase {
   @Test
   public void testFailure_roidSuffixTooLong() {
     IllegalArgumentException e =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> Registry.get("tld").asBuilder().setRoidSuffix("123456789"));
     assertThat(e).hasMessageThat().isEqualTo("ROID suffix must be in format ^[A-Z0-9_]{1,8}$");

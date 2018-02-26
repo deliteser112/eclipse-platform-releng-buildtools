@@ -18,7 +18,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.GcsTestingUtils.writeGcsFile;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.mockito.Matchers.any;
@@ -169,7 +169,7 @@ public class CopyDetailReportsActionTest {
     when(driveConnection.createFile(any(), any(), any(), any()))
         .thenThrow(new IOException("expected"));
 
-    RuntimeException thrown = expectThrows(RuntimeException.class, action::run);
+    RuntimeException thrown = assertThrows(RuntimeException.class, action::run);
     assertThat(thrown).hasMessageThat().isEqualTo("java.io.IOException: expected");
     verify(driveConnection, times(3))
         .createFile(

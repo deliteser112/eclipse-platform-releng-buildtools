@@ -21,7 +21,7 @@ import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
 
@@ -145,7 +145,7 @@ public class PricingEngineProxyTest {
             .setPremiumPricingEngine("fake")
             .build());
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () -> getDomainCreateCost("bad.example", clock.nowUtc(), 1));
     assertThat(thrown)

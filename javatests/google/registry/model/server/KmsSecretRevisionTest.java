@@ -17,7 +17,7 @@ package google.registry.model.server;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.base.Strings;
 import google.registry.testing.AppEngineRule;
@@ -47,7 +47,7 @@ public class KmsSecretRevisionTest {
   @Test
   public void test_setEncryptedValue_tooLong_throwsException() {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 secretRevision =

@@ -21,7 +21,7 @@ import static google.registry.export.PublishDetailReportAction.GCS_FOLDER_PREFIX
 import static google.registry.export.PublishDetailReportAction.REGISTRAR_ID_PARAM;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -105,7 +105,7 @@ public class PublishDetailReportActionTest {
   @Test
   public void testFailure_noRegistrarParameter() throws Exception {
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class,
             () ->
                 action.handleJsonRequest(
@@ -119,7 +119,7 @@ public class PublishDetailReportActionTest {
   @Test
   public void testFailure_noGcsBucketParameter() throws Exception {
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class,
             () ->
                 action.handleJsonRequest(
@@ -133,7 +133,7 @@ public class PublishDetailReportActionTest {
   @Test
   public void testFailure_noGcsFolderPrefixParameter() throws Exception {
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class,
             () ->
                 action.handleJsonRequest(
@@ -147,7 +147,7 @@ public class PublishDetailReportActionTest {
   @Test
   public void testFailure_noReportNameParameter() throws Exception {
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class,
             () ->
                 action.handleJsonRequest(
@@ -161,7 +161,7 @@ public class PublishDetailReportActionTest {
   @Test
   public void testFailure_registrarNotFound() throws Exception {
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class,
             () ->
                 action.handleJsonRequest(
@@ -178,7 +178,7 @@ public class PublishDetailReportActionTest {
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setDriveFolderId(null).build());
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class,
             () ->
                 action.handleJsonRequest(
@@ -193,7 +193,7 @@ public class PublishDetailReportActionTest {
   @Test
   public void testFailure_gcsBucketNotFound() throws Exception {
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class,
             () ->
                 action.handleJsonRequest(
@@ -208,7 +208,7 @@ public class PublishDetailReportActionTest {
   @Test
   public void testFailure_gcsFileNotFound() throws Exception {
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class,
             () ->
                 action.handleJsonRequest(
@@ -226,7 +226,7 @@ public class PublishDetailReportActionTest {
         anyString(), any(MediaType.class), anyString(), any(byte[].class)))
             .thenThrow(new IOException("Drive is down"));
     InternalServerErrorException thrown =
-        expectThrows(
+        assertThrows(
             InternalServerErrorException.class,
             () ->
                 action.handleJsonRequest(

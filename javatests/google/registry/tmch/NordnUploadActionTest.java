@@ -26,7 +26,6 @@ import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistDomainAndEnqueueLordn;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.util.UrlFetchUtils.getHeaderFirst;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -199,7 +198,7 @@ public class NordnUploadActionTest {
   public void testFailure_nullRegistryUser() throws Exception {
     persistClaimsModeDomain();
     persistResource(Registry.get("tld").asBuilder().setLordnUsername(null).build());
-    VerifyException thrown = expectThrows(VerifyException.class, action::run);
+    VerifyException thrown = assertThrows(VerifyException.class, action::run);
     assertThat(thrown).hasMessageThat().contains("lordnUsername is not set for tld.");
   }
 

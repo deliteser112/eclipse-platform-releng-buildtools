@@ -22,7 +22,6 @@ import static google.registry.testing.CertificateSamples.SAMPLE_CERT_HASH;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -445,7 +444,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     createTlds("foo");
 
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -702,7 +701,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   @Test
   public void testFailure_badPhoneNumber() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -725,7 +724,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   @Test
   public void testFailure_badPhoneNumber2() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -792,7 +791,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   @Test
   public void testFailure_missingRegistrarType() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -978,7 +977,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   @Test
   public void testFailure_certHashNotBase64() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -1001,7 +1000,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   @Test
   public void testFailure_certHashNotA256BitValue() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -1024,7 +1023,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   @Test
   public void testFailure_missingName() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -1045,7 +1044,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   @Test
   public void testFailure_missingPassword() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -1066,7 +1065,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   @Test
   public void testFailure_emptyPassword() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -1437,7 +1436,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   @Test
   public void testFailure_missingIcannReferralEmail() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -1561,7 +1560,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   public void testFailure_alreadyExists() throws Exception {
     persistNewRegistrar("existing", "Existing Registrar", Registrar.Type.REAL, 1L);
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 runCommandForced(
@@ -1585,7 +1584,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
     // Note that "tHeRe GiStRaR" normalizes identically to "The Registrar", which is created by
     // AppEngineRule.
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -1611,7 +1610,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   @Test
   public void testFailure_clientIdNormalizesToExisting() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -1637,7 +1636,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   @Test
   public void testFailure_clientIdIsInvalidFormat() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(

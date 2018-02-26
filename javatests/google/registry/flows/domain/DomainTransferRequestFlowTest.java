@@ -36,7 +36,6 @@ import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptio
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.EUR;
 import static org.joda.money.CurrencyUnit.USD;
@@ -671,7 +670,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_refundableFee_v06() throws Exception {
     setupDomain("example", "tld");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             UnsupportedFeeAttributeException.class,
             () -> doFailingTest("domain_transfer_request_fee_refundable.xml", FEE_06_MAP));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -681,7 +680,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_refundableFee_v11() throws Exception {
     setupDomain("example", "tld");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             UnsupportedFeeAttributeException.class,
             () -> doFailingTest("domain_transfer_request_fee_refundable.xml", FEE_11_MAP));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -691,7 +690,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_refundableFee_v12() throws Exception {
     setupDomain("example", "tld");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             UnsupportedFeeAttributeException.class,
             () -> doFailingTest("domain_transfer_request_fee_refundable.xml", FEE_12_MAP));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -701,7 +700,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_gracePeriodFee_v06() throws Exception {
     setupDomain("example", "tld");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             UnsupportedFeeAttributeException.class,
             () -> doFailingTest("domain_transfer_request_fee_grace_period.xml", FEE_06_MAP));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -711,7 +710,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_gracePeriodFee_v11() throws Exception {
     setupDomain("example", "tld");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             UnsupportedFeeAttributeException.class,
             () -> doFailingTest("domain_transfer_request_fee_grace_period.xml", FEE_11_MAP));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -721,7 +720,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_gracePeriodFee_v12() throws Exception {
     setupDomain("example", "tld");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             UnsupportedFeeAttributeException.class,
             () -> doFailingTest("domain_transfer_request_fee_grace_period.xml", FEE_12_MAP));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -731,7 +730,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_appliedFee_v06() throws Exception {
     setupDomain("example", "tld");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             UnsupportedFeeAttributeException.class,
             () -> doFailingTest("domain_transfer_request_fee_applied.xml", FEE_06_MAP));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -741,7 +740,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_appliedFee_v11() throws Exception {
     setupDomain("example", "tld");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             UnsupportedFeeAttributeException.class,
             () -> doFailingTest("domain_transfer_request_fee_applied.xml", FEE_11_MAP));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -751,7 +750,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_appliedFee_v12() throws Exception {
     setupDomain("example", "tld");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             UnsupportedFeeAttributeException.class,
             () -> doFailingTest("domain_transfer_request_fee_applied.xml", FEE_12_MAP));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -792,7 +791,7 @@ public class DomainTransferRequestFlowTest
     setupDomain("example", "tld");
     clock.advanceOneMilli();
     EppException thrown =
-        expectThrows(
+        assertThrows(
             TransferPeriodMustBeOneYearException.class,
             () -> doFailingTest("domain_transfer_request_2_years.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -955,7 +954,7 @@ public class DomainTransferRequestFlowTest
     persistResource(
         loadRegistrar("NewRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             NotAuthorizedForTldException.class,
             () ->
                 doSuccessfulTest(
@@ -1104,7 +1103,7 @@ public class DomainTransferRequestFlowTest
             .setServerStatusChangeBillingCost(Money.of(EUR, 19))
             .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             CurrencyUnitMismatchException.class,
             () -> doFailingTest("domain_transfer_request_fee.xml", substitutions));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1132,7 +1131,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_feeGivenInWrongScale_v06() throws Exception {
     setupDomain("example", "tld");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             CurrencyValueScaleException.class,
             () -> doFailingTest("domain_transfer_request_fee_bad_scale.xml", FEE_06_MAP));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1142,7 +1141,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_feeGivenInWrongScale_v11() throws Exception {
     setupDomain("example", "tld");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             CurrencyValueScaleException.class,
             () -> doFailingTest("domain_transfer_request_fee_bad_scale.xml", FEE_11_MAP));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1152,7 +1151,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_feeGivenInWrongScale_v12() throws Exception {
     setupDomain("example", "tld");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             CurrencyValueScaleException.class,
             () -> doFailingTest("domain_transfer_request_fee_bad_scale.xml", FEE_12_MAP));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1165,7 +1164,7 @@ public class DomainTransferRequestFlowTest
             .setRenewBillingCostTransitions(ImmutableSortedMap.of(START_OF_TIME, Money.of(USD, 20)))
             .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             FeesMismatchException.class,
             () -> doFailingTest("domain_transfer_request_fee.xml", substitutions));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1195,7 +1194,7 @@ public class DomainTransferRequestFlowTest
     // Modify the Registrar to block premium names.
     persistResource(loadRegistrar("NewRegistrar").asBuilder().setBlockPremiumNames(true).build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             PremiumNameBlockedException.class,
             () -> doFailingTest("domain_transfer_request_premium.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1205,7 +1204,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_registryRequiresAcking_feeNotProvidedOnPremiumName() throws Exception {
     setupDomain("rich", "example");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             FeesRequiredForPremiumNameException.class,
             () -> doFailingTest("domain_transfer_request_premium.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1219,7 +1218,7 @@ public class DomainTransferRequestFlowTest
         loadRegistrar("NewRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
     clock.advanceOneMilli();
     EppException thrown =
-        expectThrows(
+        assertThrows(
             FeesRequiredForPremiumNameException.class,
             () -> doFailingTest("domain_transfer_request_premium.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1229,7 +1228,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_noAuthInfo() throws Exception {
     setupDomain("example", "tld");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             MissingTransferRequestAuthInfoException.class,
             () -> doFailingTest("domain_transfer_request_no_authinfo.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1246,7 +1245,7 @@ public class DomainTransferRequestFlowTest
                 .setAuthInfo(ContactAuthInfo.create(PasswordAuth.create("badpassword")))
                 .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             BadAuthInfoForResourceException.class,
             () -> doFailingTest("domain_transfer_request.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1259,7 +1258,7 @@ public class DomainTransferRequestFlowTest
     // code above will write the wrong ROID into the file.
     contact = contact.asBuilder().setRepoId("DEADBEEF_TLD-ROID").build();
     EppException thrown =
-        expectThrows(
+        assertThrows(
             BadAuthInfoForResourceException.class,
             () -> doFailingTest("domain_transfer_request.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1316,7 +1315,7 @@ public class DomainTransferRequestFlowTest
                         .build())
                 .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             AlreadyPendingTransferException.class,
             () -> doFailingTest("domain_transfer_request.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1333,7 +1332,7 @@ public class DomainTransferRequestFlowTest
                 .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("badpassword")))
                 .build());
     EppException thrown =
-        expectThrows(
+        assertThrows(
             BadAuthInfoForResourceException.class,
             () -> doFailingTest("domain_transfer_request_domain_authinfo.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1344,7 +1343,7 @@ public class DomainTransferRequestFlowTest
     setupDomain("example", "tld");
     setClientIdForFlow("TheRegistrar");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             ObjectAlreadySponsoredException.class,
             () -> doFailingTest("domain_transfer_request.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1356,7 +1355,7 @@ public class DomainTransferRequestFlowTest
     domain =
         persistResource(domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
     ResourceDoesNotExistException thrown =
-        expectThrows(
+        assertThrows(
             ResourceDoesNotExistException.class,
             () -> doFailingTest("domain_transfer_request.xml"));
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
@@ -1371,7 +1370,7 @@ public class DomainTransferRequestFlowTest
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
     assertTransactionalFlow(true);
     ResourceDoesNotExistException thrown =
-        expectThrows(
+        assertThrows(
             ResourceDoesNotExistException.class,
             () -> runFlow(CommitMode.LIVE, UserPrivileges.NORMAL));
     assertThat(thrown).hasMessageThat().contains("(--invalid)");
@@ -1382,7 +1381,7 @@ public class DomainTransferRequestFlowTest
     createTld("tld");
     contact = persistActiveContact("jd1234");
     ResourceDoesNotExistException thrown =
-        expectThrows(
+        assertThrows(
             ResourceDoesNotExistException.class,
             () -> doFailingTest("domain_transfer_request.xml"));
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", "example.tld"));
@@ -1392,7 +1391,7 @@ public class DomainTransferRequestFlowTest
   public void testFailure_periodInMonths() throws Exception {
     setupDomain("example", "tld");
     EppException thrown =
-        expectThrows(
+        assertThrows(
             BadPeriodUnitException.class,
             () -> doFailingTest("domain_transfer_request_months.xml"));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1405,7 +1404,7 @@ public class DomainTransferRequestFlowTest
         persistResource(
             domain.asBuilder().addStatusValue(StatusValue.CLIENT_TRANSFER_PROHIBITED).build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(
+        assertThrows(
             ResourceStatusProhibitsOperationException.class,
             () -> doFailingTest("domain_transfer_request.xml"));
     assertThat(thrown).hasMessageThat().contains("clientTransferProhibited");
@@ -1418,7 +1417,7 @@ public class DomainTransferRequestFlowTest
         persistResource(
             domain.asBuilder().addStatusValue(StatusValue.SERVER_TRANSFER_PROHIBITED).build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(
+        assertThrows(
             ResourceStatusProhibitsOperationException.class,
             () -> doFailingTest("domain_transfer_request.xml"));
     assertThat(thrown).hasMessageThat().contains("serverTransferProhibited");
@@ -1429,7 +1428,7 @@ public class DomainTransferRequestFlowTest
     setupDomain("example", "tld");
     domain = persistResource(domain.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build());
     ResourceStatusProhibitsOperationException thrown =
-        expectThrows(
+        assertThrows(
             ResourceStatusProhibitsOperationException.class,
             () -> doFailingTest("domain_transfer_request.xml"));
     assertThat(thrown).hasMessageThat().contains("pendingDelete");

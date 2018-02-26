@@ -17,7 +17,7 @@ package google.registry.proxy.handler;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.proxy.Protocol.PROTOCOL_KEY;
 import static google.registry.proxy.handler.ProxyProtocolHandler.REMOTE_ADDRESS_KEY;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -103,7 +103,7 @@ public class WhoisQuotaHandlerTest {
     when(quotaManager.acquireQuota(QuotaRequest.create(remoteAddress)))
         .thenReturn(QuotaResponse.create(false, remoteAddress, now));
     OverQuotaException e =
-        expectThrows(OverQuotaException.class, () -> channel.writeInbound(message));
+        assertThrows(OverQuotaException.class, () -> channel.writeInbound(message));
     assertThat(e).hasMessageThat().contains("none");
     verify(metrics).registerQuotaRejection("whois", "none");
     verifyNoMoreInteractions(metrics);
@@ -131,7 +131,7 @@ public class WhoisQuotaHandlerTest {
 
     // Blocks the second user.
     OverQuotaException e =
-        expectThrows(OverQuotaException.class, () -> otherChannel.writeInbound(message));
+        assertThrows(OverQuotaException.class, () -> otherChannel.writeInbound(message));
     assertThat(e).hasMessageThat().contains("none");
     verify(metrics).registerQuotaRejection("whois", "none");
     verifyNoMoreInteractions(metrics);
@@ -166,7 +166,7 @@ public class WhoisQuotaHandlerTest {
 
     // Blocks the second channel.
     OverQuotaException e =
-        expectThrows(OverQuotaException.class, () -> otherChannel.writeInbound(message));
+        assertThrows(OverQuotaException.class, () -> otherChannel.writeInbound(message));
     assertThat(e).hasMessageThat().contains("none");
     verify(metrics).registerQuotaRejection("whois", "none");
 

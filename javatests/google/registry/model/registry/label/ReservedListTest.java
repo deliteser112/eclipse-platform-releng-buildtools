@@ -34,7 +34,6 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -266,7 +265,7 @@ public class ReservedListTest {
     assertThat(matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "bar")).isFalse();
     persistReservedList("reserved2", "lol,RESERVED_FOR_ANCHOR_TENANT,bar");
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () -> matchesAnchorTenantReservation(InternetDomainName.from("lol.tld"), "bar"));
     assertThat(thrown)
@@ -469,7 +468,7 @@ public class ReservedListTest {
   @Test
   public void testSave_badSyntax() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> persistReservedList("tld", "lol,FULLY_BLOCKED,e,e # yup"));
     assertThat(thrown).hasMessageThat().contains("Could not parse line in reserved list");
@@ -484,7 +483,7 @@ public class ReservedListTest {
   @Test
   public void testSave_additionalRestrictionWithIncompatibleReservationType() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 persistResource(
@@ -504,7 +503,7 @@ public class ReservedListTest {
   @Test
   public void testSave_badNameservers_invalidSyntax() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 persistReservedList(
@@ -517,7 +516,7 @@ public class ReservedListTest {
   @Test
   public void testSave_badNameservers_tooFewPartsForHostname() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 persistReservedList(
@@ -530,7 +529,7 @@ public class ReservedListTest {
   @Test
   public void testSave_noPasswordWithAnchorTenantReservation() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 persistResource(
@@ -548,7 +547,7 @@ public class ReservedListTest {
   @Test
   public void testSave_noNameserversWithNameserverRestrictedReservation() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 persistResource(
@@ -568,7 +567,7 @@ public class ReservedListTest {
   public void testParse_cannotIncludeDuplicateLabels() {
     ReservedList rl = new ReservedList.Builder().setName("blah").build();
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 rl.parse(

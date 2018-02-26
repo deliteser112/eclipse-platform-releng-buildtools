@@ -17,7 +17,7 @@ package google.registry.tools;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistResource;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
@@ -119,7 +119,7 @@ public class GenerateAllocationTokensCommandTest
   @Test
   public void testFailure_mustSpecifyNumberOfTokens() throws Exception {
     ParameterException thrown =
-        expectThrows(ParameterException.class, () -> runCommand("--prefix", "FEET"));
+        assertThrows(ParameterException.class, () -> runCommand("--prefix", "FEET"));
     assertThat(thrown).hasMessageThat().contains("The following option is required: -n, --number");
   }
 

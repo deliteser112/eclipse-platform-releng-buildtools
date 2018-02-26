@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistPremiumList;
 import static google.registry.testing.DatastoreHelper.persistReservedList;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.JPY;
 import static org.joda.money.CurrencyUnit.USD;
@@ -79,7 +79,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_multipleArguments() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -90,7 +90,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_multipleDuplicateArguments() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -312,7 +312,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_invalidAddGracePeriod() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -325,21 +325,22 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testFailure_invalidSunrushAddGracePeriod() throws Exception {
-    Exception e = expectThrows(
-        IllegalArgumentException.class,
-        () ->
-            runCommandForced(
-                "--sunrush_add_grace_period=5d",
-                "--roid_suffix=Q9JYB4C",
-                "--dns_writers=VoidDnsWriter",
-                "xn--q9jyb4c"));
+    Exception e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--sunrush_add_grace_period=5d",
+                    "--roid_suffix=Q9JYB4C",
+                    "--dns_writers=VoidDnsWriter",
+                    "xn--q9jyb4c"));
     assertThat(e).hasMessageThat().isEqualTo("Invalid format: \"5d\"");
   }
 
   @Test
   public void testFailure_invalidRedemptionGracePeriod() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -353,7 +354,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_invalidPendingDeleteLength() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -367,7 +368,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_invalidTldState() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -382,7 +383,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   public void testFailure_bothTldStateFlags() throws Exception {
     DateTime now = DateTime.now(UTC);
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -400,7 +401,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_negativeInitialRenewBillingCost() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -414,7 +415,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_invalidEapCurrency() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -429,7 +430,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
 
   @Test
   public void testFailure_noTldName() throws Exception {
-    ParameterException thrown = expectThrows(ParameterException.class, this::runCommandForced);
+    ParameterException thrown = assertThrows(ParameterException.class, this::runCommandForced);
     assertThat(thrown)
         .hasMessageThat()
         .contains("Main parameters are required (\"Names of the TLDs\")");
@@ -438,7 +439,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_noDnsWriter() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("xn--q9jyb4c", "--roid_suffix=Q9JYB4C"));
     assertThat(thrown).hasMessageThat().contains("At least one DNS writer must be specified");
@@ -448,7 +449,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   public void testFailure_alreadyExists() throws Exception {
     createTld("xn--q9jyb4c");
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () ->
                 runCommandForced(
@@ -459,7 +460,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_tldStartsWithDigit() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("1foo", "--roid_suffix=1FOO", "--dns_writers=VoidDnsWriter"));
     assertThat(thrown).hasMessageThat().contains("TLDs cannot begin with a number");
@@ -598,7 +599,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_setPremiumListThatDoesntExist() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -612,7 +613,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_addLrpPeriod_backwardsInterval() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -629,7 +630,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_addLrpPeriod_badInterval() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -643,7 +644,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   @Test
   public void testFailure_specifiedDnsWriters_dontExist() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -676,7 +677,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
       String reservedLists, Class<? extends Exception> errorClass, String errorMsg)
       throws Exception {
     Exception e =
-        expectThrows(
+        assertThrows(
             errorClass,
             () ->
                 runCommandForced(

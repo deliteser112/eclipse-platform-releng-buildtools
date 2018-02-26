@@ -23,7 +23,6 @@ import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedDomain;
 import static google.registry.testing.DatastoreHelper.persistDeletedHost;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.ParameterException;
@@ -72,7 +71,7 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   public void testFailure_domain_oneDoesNotExist() throws Exception {
     persistActiveDomain("example.tld");
     NullPointerException thrown =
-        expectThrows(
+        assertThrows(
             NullPointerException.class,
             () ->
                 runCommand(
@@ -121,7 +120,7 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   public void testFailure_contact_oneDoesNotExist() throws Exception {
     persistActiveContact("sh8013");
     NullPointerException thrown =
-        expectThrows(
+        assertThrows(
             NullPointerException.class,
             () ->
                 runCommand(
@@ -170,7 +169,7 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   public void testFailure_host_oneDoesNotExist() throws Exception {
     persistActiveHost("ns1.example.tld");
     NullPointerException thrown =
-        expectThrows(
+        assertThrows(
             NullPointerException.class,
             () ->
                 runCommand(
@@ -206,7 +205,7 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   @Test
   public void testFailure_keyDoesNotExist() throws Exception {
     NullPointerException thrown =
-        expectThrows(
+        assertThrows(
             NullPointerException.class,
             () -> runCommand("agR0ZXN0chULEgpEb21haW5CYXNlIgUyLVRMRAw"));
     assertThat(thrown)
@@ -217,7 +216,7 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   @Test
   public void testFailure_nonsenseKey() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class, () -> runCommand("agR0ZXN0chULEgpEb21haW5CYXN"));
     assertThat(thrown).hasMessageThat().contains("Could not parse Reference");
   }

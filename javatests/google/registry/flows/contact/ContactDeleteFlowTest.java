@@ -24,7 +24,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDeletedContact;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.EppException;
@@ -74,7 +74,7 @@ public class ContactDeleteFlowTest
   @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -83,7 +83,7 @@ public class ContactDeleteFlowTest
   public void testFailure_existedButWasDeleted() throws Exception {
     persistDeletedContact(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -112,7 +112,7 @@ public class ContactDeleteFlowTest
         newContactResource(getUniqueIdFromCommand()).asBuilder()
             .setStatusValues(ImmutableSet.of(statusValue))
             .build());
-    EppException thrown = expectThrows(exception, this::runFlow);
+    EppException thrown = assertThrows(exception, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(statusValue.getXmlName());
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
@@ -121,7 +121,7 @@ public class ContactDeleteFlowTest
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveContact(getUniqueIdFromCommand());
-    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = assertThrows(ResourceNotOwnedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -148,7 +148,7 @@ public class ContactDeleteFlowTest
     createTld("tld");
     persistResource(
         newDomainResource("example.tld", persistActiveContact(getUniqueIdFromCommand())));
-    EppException thrown = expectThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
+    EppException thrown = assertThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -157,7 +157,7 @@ public class ContactDeleteFlowTest
     createTld("tld");
     persistResource(
         newDomainResource("example.tld", persistActiveContact(getUniqueIdFromCommand())));
-    EppException thrown = expectThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
+    EppException thrown = assertThrows(ResourceToDeleteIsReferencedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

@@ -15,7 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.beust.jcommander.ParameterException;
 import google.registry.testing.DeterministicStringGenerator;
@@ -75,7 +75,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   @Test
   public void testFailure_duplicateDomains() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -91,7 +91,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   @Test
   public void testFailure_missingDomain() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -105,7 +105,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   @Test
   public void testFailure_missingClientId() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -119,7 +119,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   @Test
   public void testFailure_missingRegistrant() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -133,7 +133,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   @Test
   public void testFailure_missingAdmins() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -147,7 +147,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   @Test
   public void testFailure_missingTechs() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -161,7 +161,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   @Test
   public void testFailure_tooManyNameServers() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommandForced(
@@ -180,7 +180,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   @Test
   public void testFailure_badPeriod() throws Exception {
     ParameterException thrown =
-        expectThrows(
+        assertThrows(
             ParameterException.class,
             () ->
                 runCommandForced(
@@ -196,96 +196,96 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   @Test
   public void testFailure_dsRecordsNot4Parts() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
-            runCommandForced(
-                "--client=NewRegistrar",
-                "--registrant=crr-admin",
-                "--admins=crr-admin",
-                "--techs=crr-tech",
-                "--ds_records=1 2 3 ab cd",
-                "example.tld"));
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--admins=crr-admin",
+                    "--techs=crr-tech",
+                    "--ds_records=1 2 3 ab cd",
+                    "example.tld"));
     assertThat(thrown).hasMessageThat().contains("should have 4 parts, but has 5");
   }
 
   @Test
   public void testFailure_keyTagNotNumber() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
-            runCommandForced(
-                "--client=NewRegistrar",
-                "--registrant=crr-admin",
-                "--admins=crr-admin",
-                "--techs=crr-tech",
-                "--ds_records=x 2 3 abcd",
-                "example.tld"));
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--admins=crr-admin",
+                    "--techs=crr-tech",
+                    "--ds_records=x 2 3 abcd",
+                    "example.tld"));
     assertThat(thrown).hasMessageThat().contains("\"x\"");
   }
 
   @Test
   public void testFailure_algNotNumber() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
-            runCommandForced(
-                "--client=NewRegistrar",
-                "--registrant=crr-admin",
-                "--admins=crr-admin",
-                "--techs=crr-tech",
-                "--ds_records=1 x 3 abcd",
-                "example.tld"));
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--admins=crr-admin",
+                    "--techs=crr-tech",
+                    "--ds_records=1 x 3 abcd",
+                    "example.tld"));
     assertThat(thrown).hasMessageThat().contains("\"x\"");
   }
 
   @Test
   public void testFailure_digestTypeNotNumber() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
-            runCommandForced(
-                "--client=NewRegistrar",
-                "--registrant=crr-admin",
-                "--admins=crr-admin",
-                "--techs=crr-tech",
-                "--ds_records=1 2 x abcd",
-                "example.tld"));
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--admins=crr-admin",
+                    "--techs=crr-tech",
+                    "--ds_records=1 2 x abcd",
+                    "example.tld"));
     assertThat(thrown).hasMessageThat().contains("\"x\"");
   }
 
   @Test
   public void testFailure_digestNotHex() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
-            runCommandForced(
-                "--client=NewRegistrar",
-                "--registrant=crr-admin",
-                "--admins=crr-admin",
-                "--techs=crr-tech",
-                "--ds_records=1 2 3 xbcd",
-                "example.tld"));
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--admins=crr-admin",
+                    "--techs=crr-tech",
+                    "--ds_records=1 2 3 xbcd",
+                    "example.tld"));
     assertThat(thrown).hasMessageThat().contains("XBCD");
   }
 
   @Test
   public void testFailure_digestNotEvenLengthed() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
-            runCommandForced(
-                "--client=NewRegistrar",
-                "--registrant=crr-admin",
-                "--admins=crr-admin",
-                "--techs=crr-tech",
-                "--ds_records=1 2 3 abcde",
-                "example.tld"));
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--admins=crr-admin",
+                    "--techs=crr-tech",
+                    "--ds_records=1 2 3 abcde",
+                    "example.tld"));
     assertThat(thrown).hasMessageThat().contains("length 5");
   }
 }

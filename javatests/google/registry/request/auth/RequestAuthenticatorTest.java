@@ -17,7 +17,7 @@ package google.registry.request.auth;
 import static com.google.common.net.HttpHeaders.AUTHORIZATION;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -388,7 +388,7 @@ public class RequestAuthenticatorTest {
   @Test
   public void testCheckAuthConfig_NoMethods_failure() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> RequestAuthenticator.checkAuthConfig(AUTH_NO_METHODS));
     assertThat(thrown).hasMessageThat().contains("Must specify at least one auth method");
@@ -397,7 +397,7 @@ public class RequestAuthenticatorTest {
   @Test
   public void testCheckAuthConfig_WrongMethodOrdering_failure() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> RequestAuthenticator.checkAuthConfig(AUTH_WRONG_METHOD_ORDERING));
     assertThat(thrown)
@@ -408,7 +408,7 @@ public class RequestAuthenticatorTest {
   @Test
   public void testCheckAuthConfig_DuplicateMethods_failure() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> RequestAuthenticator.checkAuthConfig(AUTH_DUPLICATE_METHODS));
     assertThat(thrown)
@@ -419,7 +419,7 @@ public class RequestAuthenticatorTest {
   @Test
   public void testCheckAuthConfig_InternalWithUser_failure() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> RequestAuthenticator.checkAuthConfig(AUTH_INTERNAL_WITH_USER));
     assertThat(thrown)
@@ -430,7 +430,7 @@ public class RequestAuthenticatorTest {
   @Test
   public void testCheckAuthConfig_WronglyIgnoringUser_failure() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> RequestAuthenticator.checkAuthConfig(AUTH_WRONGLY_IGNORING_USER));
     assertThat(thrown)

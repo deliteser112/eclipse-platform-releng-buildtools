@@ -22,7 +22,6 @@ import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.ParameterException;
@@ -73,7 +72,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
             .setPhonePasscode(null)
             .build());
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () -> runCommand("--registrar_type=REAL", "--iana_id=1000", "--force", "NewRegistrar"));
     assertThat(thrown).hasMessageThat().contains("--passcode is required for REAL registrars.");
@@ -222,7 +221,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
     createTlds("foo");
     assertThat(loadRegistrar("NewRegistrar").getBillingAccountMap()).isEmpty();
     IllegalArgumentException thrown =
-        expectThrows(
+        assertThrows(
             IllegalArgumentException.class,
             () ->
                 runCommand(
@@ -284,7 +283,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
             .build());
     assertThat(registrar.getBillingMethod()).isEqualTo(BillingMethod.EXTERNAL);
     IllegalStateException thrown =
-        expectThrows(
+        assertThrows(
             IllegalStateException.class,
             () -> runCommand("--billing_method=braintree", "--force", "NewRegistrar"));
     assertThat(thrown)
@@ -723,7 +722,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   @Test
   public void testFailure_doesNotExist() throws Exception {
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> runCommand("--force", "ClientZ"));
+        assertThrows(IllegalArgumentException.class, () -> runCommand("--force", "ClientZ"));
     assertThat(thrown).hasMessageThat().contains("Registrar ClientZ not found");
   }
 

@@ -20,7 +20,6 @@ import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -77,7 +76,7 @@ public class RefreshDnsActionTest {
     persistActiveDomain("example.xn--q9jyb4c");
     persistActiveHost("ns1.example.xn--q9jyb4c");
     BadRequestException thrown =
-        expectThrows(
+        assertThrows(
             BadRequestException.class,
             () -> {
               try {

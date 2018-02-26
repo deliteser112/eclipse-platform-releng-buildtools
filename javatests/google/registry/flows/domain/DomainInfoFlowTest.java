@@ -24,7 +24,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
@@ -411,7 +411,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -423,7 +423,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
             .setDeletionTime(clock.nowUtc().minusDays(1))
             .build());
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -438,7 +438,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
             .build());
     sessionMetadata.setClientId("ClientZ");
     setEppInput("domain_info_with_auth.xml");
-    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -452,7 +452,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
             .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("diffpw")))
             .build());
     setEppInput("domain_info_with_auth.xml");
-    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -470,7 +470,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our registrant.
     eppLoader.replaceAll("JD1234-REP", registrant.getRepoId());
-    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -487,7 +487,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our registrant.
     eppLoader.replaceAll("JD1234-REP", registrant.getRepoId());
-    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -505,7 +505,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our contact.
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
-    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -522,7 +522,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our contact.
     eppLoader.replaceAll("JD1234-REP", contact.getRepoId());
-    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -534,7 +534,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our unrelated contact.
     eppLoader.replaceAll("JD1234-REP", unrelatedContact.getRepoId());
-    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -545,7 +545,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
     setEppInput("domain_info_with_contact_auth.xml");
     // Replace the ROID in the xml file with the one for our unrelated contact.
     eppLoader.replaceAll("JD1234-REP", unrelatedContact.getRepoId());
-    EppException thrown = expectThrows(BadAuthInfoForResourceException.class, this::runFlow);
+    EppException thrown = assertThrows(BadAuthInfoForResourceException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -625,7 +625,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_wrongCurrency() throws Exception {
     setEppInput("domain_info_fee_create_euro.xml");
     persistTestEntities(false);
-    EppException thrown = expectThrows(CurrencyUnitMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -634,7 +634,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_periodNotInYears() throws Exception {
     setEppInput("domain_info_fee_bad_period.xml");
     persistTestEntities(false);
-    EppException thrown = expectThrows(BadPeriodUnitException.class, this::runFlow);
+    EppException thrown = assertThrows(BadPeriodUnitException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -643,7 +643,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_commandPhase() throws Exception {
     setEppInput("domain_info_fee_command_phase.xml");
     persistTestEntities(false);
-    EppException thrown = expectThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
+    EppException thrown = assertThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -652,7 +652,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_commandSubphase() throws Exception {
     setEppInput("domain_info_fee_command_subphase.xml");
     persistTestEntities(false);
-    EppException thrown = expectThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
+    EppException thrown = assertThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -661,7 +661,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_multiyearRestore() throws Exception {
     setEppInput("domain_info_fee_multiyear_restore.xml");
     persistTestEntities(false);
-    EppException thrown = expectThrows(RestoresAreAlwaysForOneYearException.class, this::runFlow);
+    EppException thrown = assertThrows(RestoresAreAlwaysForOneYearException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -670,7 +670,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   public void testFeeExtension_multiyearTransfer() throws Exception {
     setEppInput("domain_info_fee_multiyear_transfer.xml");
     persistTestEntities(false);
-    EppException thrown = expectThrows(TransfersAreAlwaysForOneYearException.class, this::runFlow);
+    EppException thrown = assertThrows(TransfersAreAlwaysForOneYearException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

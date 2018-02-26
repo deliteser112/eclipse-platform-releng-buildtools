@@ -17,7 +17,6 @@ package google.registry.dns.writer.dnsupdate;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -139,7 +138,7 @@ public class DnsMessageTransportTest {
     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
     when(mockSocket.getOutputStream()).thenReturn(outputStream);
     IllegalArgumentException thrown =
-        expectThrows(IllegalArgumentException.class, () -> resolver.send(oversize));
+        assertThrows(IllegalArgumentException.class, () -> resolver.send(oversize));
     assertThat(thrown).hasMessageThat().contains("message larger than maximum");
   }
 
@@ -149,7 +148,7 @@ public class DnsMessageTransportTest {
     when(mockSocket.getInputStream())
         .thenReturn(new ByteArrayInputStream(messageToBytesWithLength(expectedResponse)));
     when(mockSocket.getOutputStream()).thenReturn(new ByteArrayOutputStream());
-    VerifyException thrown = expectThrows(VerifyException.class, () -> resolver.send(simpleQuery));
+    VerifyException thrown = assertThrows(VerifyException.class, () -> resolver.send(simpleQuery));
     assertThat(thrown)
         .hasMessageThat()
         .contains(
@@ -166,7 +165,7 @@ public class DnsMessageTransportTest {
     when(mockSocket.getInputStream())
         .thenReturn(new ByteArrayInputStream(messageToBytesWithLength(expectedResponse)));
     when(mockSocket.getOutputStream()).thenReturn(new ByteArrayOutputStream());
-    VerifyException thrown = expectThrows(VerifyException.class, () -> resolver.send(simpleQuery));
+    VerifyException thrown = assertThrows(VerifyException.class, () -> resolver.send(simpleQuery));
     assertThat(thrown)
         .hasMessageThat()
         .contains("response opcode 'STATUS' does not match query opcode 'QUERY'");

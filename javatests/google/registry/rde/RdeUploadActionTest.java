@@ -24,7 +24,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResource;
 import static google.registry.testing.GcsTestingUtils.readGcsFile;
 import static google.registry.testing.GcsTestingUtils.writeGcsFile;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.SystemInfo.hasCommand;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
@@ -309,7 +309,7 @@ public class RdeUploadActionTest {
     RdeUploadAction action = createAction(uploadUrl);
     action.lazyJsch = Lazies.of(createThrowingJSchSpy(action.lazyJsch.get(), 3));
     RuntimeException thrown =
-        expectThrows(RuntimeException.class, () -> action.runWithLock(uploadCursor));
+        assertThrows(RuntimeException.class, () -> action.runWithLock(uploadCursor));
     assertThat(thrown).hasMessageThat().contains("The crow flies in square circles.");
   }
 
@@ -384,7 +384,7 @@ public class RdeUploadActionTest {
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, stagingCursor, Registry.get("tld")));
     ServiceUnavailableException thrown =
-        expectThrows(
+        assertThrows(
             ServiceUnavailableException.class, () -> createAction(null).runWithLock(uploadCursor));
     assertThat(thrown).hasMessageThat().contains("Waiting for RdeStagingAction to complete");
   }

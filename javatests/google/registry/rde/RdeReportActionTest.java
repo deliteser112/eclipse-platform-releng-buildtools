@@ -22,7 +22,6 @@ import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.GcsTestingUtils.writeGcsFile;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.JUnitBackports.expectThrows;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.joda.time.DateTimeZone.UTC;
@@ -173,7 +172,7 @@ public class RdeReportActionTest {
     when(httpResponse.getContent()).thenReturn(IIRDEA_BAD_XML.read());
     when(urlFetchService.fetch(request.capture())).thenReturn(httpResponse);
     InternalServerErrorException thrown =
-        expectThrows(
+        assertThrows(
             InternalServerErrorException.class,
             () -> createAction().runWithLock(loadRdeReportCursor()));
     assertThat(thrown).hasMessageThat().contains("The structure of the report is invalid.");

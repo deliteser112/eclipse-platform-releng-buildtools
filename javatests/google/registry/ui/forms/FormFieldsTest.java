@@ -16,7 +16,7 @@ package google.registry.ui.forms;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -47,7 +47,7 @@ public class FormFieldsTest {
   @Test
   public void testXsNormalizedString_containsNonSpaceWhitespace_fails() {
     FormFieldException thrown =
-        expectThrows(
+        assertThrows(
             FormFieldException.class,
             () -> FormFields.XS_NORMALIZED_STRING.convert("  hello \r\n\t there\n"));
     assertThat(
@@ -71,7 +71,7 @@ public class FormFieldsTest {
   @Test
   public void testXsEppE164PhoneNumber_localizedNumber_fails() {
     FormFieldException thrown =
-        expectThrows(
+        assertThrows(
             FormFieldException.class, () -> FormFields.PHONE_NUMBER.convert("(212) 565-0000"));
     assertThat(thrown)
         .hasMessageThat()
@@ -96,7 +96,7 @@ public class FormFieldsTest {
   @Test
   public void testXsEppRoid_missingHyphen_fails() {
     FormFieldException thrown =
-        expectThrows(FormFieldException.class, () -> FormFields.ROID.convert("SH8013REP"));
+        assertThrows(FormFieldException.class, () -> FormFields.ROID.convert("SH8013REP"));
     assertThat(thrown).hasMessageThat().contains("Please enter a valid EPP ROID, e.g. SH8013-REP");
   }
 

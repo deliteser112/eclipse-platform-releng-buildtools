@@ -28,7 +28,7 @@ import static google.registry.testing.DatastoreHelper.persistReservedList;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
 import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptions;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -245,7 +245,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_refundableFee_v06() throws Exception {
     setEppInput("domain_update_restore_request_fee_refundable.xml", FEE_06_MAP);
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -253,7 +253,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_refundableFee_v11() throws Exception {
     setEppInput("domain_update_restore_request_fee_refundable.xml", FEE_11_MAP);
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -261,7 +261,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_refundableFee_v12() throws Exception {
     setEppInput("domain_update_restore_request_fee_refundable.xml", FEE_12_MAP);
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -269,7 +269,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_gracePeriodFee_v06() throws Exception {
     setEppInput("domain_update_restore_request_fee_grace_period.xml", FEE_06_MAP);
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -277,7 +277,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_gracePeriodFee_v11() throws Exception {
     setEppInput("domain_update_restore_request_fee_grace_period.xml", FEE_11_MAP);
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -285,7 +285,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_gracePeriodFee_v12() throws Exception {
     setEppInput("domain_update_restore_request_fee_grace_period.xml", FEE_12_MAP);
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -293,7 +293,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_appliedFee_v06() throws Exception {
     setEppInput("domain_update_restore_request_fee_applied.xml", FEE_06_MAP);
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -301,7 +301,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_appliedFee_v11() throws Exception {
     setEppInput("domain_update_restore_request_fee_applied.xml", FEE_11_MAP);
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -309,7 +309,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_appliedFee_v12() throws Exception {
     setEppInput("domain_update_restore_request_fee_applied.xml", FEE_12_MAP);
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(UnsupportedFeeAttributeException.class, this::runFlow);
+    EppException thrown = assertThrows(UnsupportedFeeAttributeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -349,7 +349,7 @@ public class DomainRestoreRequestFlowTest
   @Test
   public void testFailure_doesNotExist() throws Exception {
     ResourceDoesNotExistException thrown =
-        expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+        assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains(String.format("(%s)", getUniqueIdFromCommand()));
   }
 
@@ -359,7 +359,7 @@ public class DomainRestoreRequestFlowTest
     persistPendingDeleteDomain();
     persistResource(
         Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(USD, 100)).build());
-    EppException thrown = expectThrows(FeesMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(FeesMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -369,7 +369,7 @@ public class DomainRestoreRequestFlowTest
     persistPendingDeleteDomain();
     persistResource(
         Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(USD, 100)).build());
-    EppException thrown = expectThrows(FeesMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(FeesMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -379,7 +379,7 @@ public class DomainRestoreRequestFlowTest
     persistPendingDeleteDomain();
     persistResource(
         Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(USD, 100)).build());
-    EppException thrown = expectThrows(FeesMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(FeesMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -396,7 +396,7 @@ public class DomainRestoreRequestFlowTest
             .setEapFeeSchedule(ImmutableSortedMap.of(START_OF_TIME, Money.zero(EUR)))
             .setServerStatusChangeBillingCost(Money.of(EUR, 19))
             .build());
-    EppException thrown = expectThrows(CurrencyUnitMismatchException.class, this::runFlow);
+    EppException thrown = assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -419,7 +419,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_feeGivenInWrongScale_v06() throws Exception {
     setEppInput("domain_update_restore_request_fee_bad_scale.xml", FEE_06_MAP);
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(CurrencyValueScaleException.class, this::runFlow);
+    EppException thrown = assertThrows(CurrencyValueScaleException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -427,7 +427,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_feeGivenInWrongScale_v11() throws Exception {
     setEppInput("domain_update_restore_request_fee_bad_scale.xml", FEE_11_MAP);
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(CurrencyValueScaleException.class, this::runFlow);
+    EppException thrown = assertThrows(CurrencyValueScaleException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -435,7 +435,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_feeGivenInWrongScale_v12() throws Exception {
     setEppInput("domain_update_restore_request_fee_bad_scale.xml", FEE_12_MAP);
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(CurrencyValueScaleException.class, this::runFlow);
+    EppException thrown = assertThrows(CurrencyValueScaleException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -447,21 +447,21 @@ public class DomainRestoreRequestFlowTest
             .setDeletionTime(clock.nowUtc().plusDays(4))
             .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
             .build());
-    EppException thrown = expectThrows(DomainNotEligibleForRestoreException.class, this::runFlow);
+    EppException thrown = assertThrows(DomainNotEligibleForRestoreException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_notDeleted() throws Exception {
     persistActiveDomain(getUniqueIdFromCommand());
-    EppException thrown = expectThrows(DomainNotEligibleForRestoreException.class, this::runFlow);
+    EppException thrown = assertThrows(DomainNotEligibleForRestoreException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
   public void testFailure_fullyDeleted() throws Exception {
     persistDeletedDomain(getUniqueIdFromCommand(), clock.nowUtc().minusDays(1));
-    EppException thrown = expectThrows(ResourceDoesNotExistException.class, this::runFlow);
+    EppException thrown = assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -469,7 +469,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_withChange() throws Exception {
     persistPendingDeleteDomain();
     setEppInput("domain_update_restore_request_with_change.xml");
-    EppException thrown = expectThrows(RestoreCommandIncludesChangesException.class, this::runFlow);
+    EppException thrown = assertThrows(RestoreCommandIncludesChangesException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -477,7 +477,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_withAdd() throws Exception {
     persistPendingDeleteDomain();
     setEppInput("domain_update_restore_request_with_add.xml");
-    EppException thrown = expectThrows(RestoreCommandIncludesChangesException.class, this::runFlow);
+    EppException thrown = assertThrows(RestoreCommandIncludesChangesException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -485,7 +485,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_withRemove() throws Exception {
     persistPendingDeleteDomain();
     setEppInput("domain_update_restore_request_with_remove.xml");
-    EppException thrown = expectThrows(RestoreCommandIncludesChangesException.class, this::runFlow);
+    EppException thrown = assertThrows(RestoreCommandIncludesChangesException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -493,7 +493,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_withSecDnsExtension() throws Exception {
     persistPendingDeleteDomain();
     setEppInput("domain_update_restore_request_with_secdns.xml");
-    EppException thrown = expectThrows(UnimplementedExtensionException.class, this::runFlow);
+    EppException thrown = assertThrows(UnimplementedExtensionException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -501,7 +501,7 @@ public class DomainRestoreRequestFlowTest
   public void testFailure_unauthorizedClient() throws Exception {
     sessionMetadata.setClientId("NewRegistrar");
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(ResourceNotOwnedException.class, this::runFlow);
+    EppException thrown = assertThrows(ResourceNotOwnedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -510,7 +510,7 @@ public class DomainRestoreRequestFlowTest
     sessionMetadata.setClientId("NewRegistrar");
     persistPendingDeleteDomain();
     EppException thrown =
-        expectThrows(
+        assertThrows(
             ResourceNotOwnedException.class,
             () -> runFlowAssertResponse(loadFile("domain_update_response.xml")));
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -521,7 +521,7 @@ public class DomainRestoreRequestFlowTest
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(NotAuthorizedForTldException.class, this::runFlow);
+    EppException thrown = assertThrows(NotAuthorizedForTldException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -541,7 +541,7 @@ public class DomainRestoreRequestFlowTest
     persistPendingDeleteDomain();
     // Modify the Registrar to block premium names.
     persistResource(loadRegistrar("TheRegistrar").asBuilder().setBlockPremiumNames(true).build());
-    EppException thrown = expectThrows(PremiumNameBlockedException.class, this::runFlow);
+    EppException thrown = assertThrows(PremiumNameBlockedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -554,7 +554,7 @@ public class DomainRestoreRequestFlowTest
             .setReservedLists(persistReservedList("tld-reserved", "example,FULLY_BLOCKED"))
             .build());
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(DomainReservedException.class, this::runFlow);
+    EppException thrown = assertThrows(DomainReservedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -563,7 +563,7 @@ public class DomainRestoreRequestFlowTest
     createTld("example");
     setEppInput("domain_update_restore_request_premium.xml");
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
+    EppException thrown = assertThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -575,7 +575,7 @@ public class DomainRestoreRequestFlowTest
         loadRegistrar("TheRegistrar").asBuilder().setPremiumPriceAckRequired(true).build());
     setEppInput("domain_update_restore_request_premium.xml");
     persistPendingDeleteDomain();
-    EppException thrown = expectThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
+    EppException thrown = assertThrows(FeesRequiredForPremiumNameException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

@@ -15,7 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.JUnitBackports.expectThrows;
+import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.rde.RdeTestData;
 import google.registry.xml.XmlException;
@@ -102,7 +102,7 @@ public class ValidateEscrowDepositCommandTest
   @Test
   public void testRun_badXml() throws Exception {
     String file = writeToTmpFile(RdeTestData.loadFile("deposit_full.xml").substring(0, 2000));
-    XmlException thrown = expectThrows(XmlException.class, () -> runCommand("--input=" + file));
+    XmlException thrown = assertThrows(XmlException.class, () -> runCommand("--input=" + file));
     assertThat(thrown)
         .hasMessageThat()
         .contains(
