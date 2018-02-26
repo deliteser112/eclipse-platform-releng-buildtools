@@ -20,5 +20,5 @@ COPY ./proxy_server_deploy.jar /proxy/
 
 ENTRYPOINT ["java", "-jar", "proxy_server_deploy.jar"]
 
-# Ports used for health checking, EPP and WHOIS, respecitvely.
-EXPOSE 11111 22222 12345
+# Ports used for health checking, WHOIS and EPP, respecitvely.
+EXPOSE 30000 30001 30002

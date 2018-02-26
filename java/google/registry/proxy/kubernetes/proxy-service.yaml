@@ -1,0 +1,24 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: proxy-service
+spec:
+  selector:
+    app: proxy
+  ports:
+  - protocol: TCP
+    port: 30000
+    nodePort: 30000
+    targetPort: health-check
+    name: health-check
+  - protocol: TCP
+    port: 30001
+    nodePort: 30001
+    targetPort: whois
+    name: whois
+  - protocol: TCP
+    port: 30002
+    nodePort: 30002
+    targetPort: epp
+    name: epp
+  type: NodePort

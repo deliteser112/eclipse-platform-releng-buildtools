@@ -170,7 +170,7 @@ whois:
     customQuota: []
 
 healthCheck:
-  port: 11111
+  port: 30000
 
   # Health checker request message, defined in GCP load balancer backend.
   checkRequest: HEALTH_CHECK_REQUEST

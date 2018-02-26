@@ -25,6 +25,8 @@ trap cleanup EXIT
 
 PROJECT=`gcloud config list 2>&1 | grep project | awk -F'= ' '{print $2}'`;
 
+echo "PROJECT: ${PROJECT}"
+
 PACKAGE_PREFIX=""
 
 PACKAGE=${PACKAGE_PREFIX}"java/google/registry/proxy"
@@ -35,7 +37,7 @@ BUILD_TOOL=bazel
 
 WORKSPACE=`$BUILD_TOOL info workspace`
 
-WORKDIR=${WORKSPACE}/${PACKAGE}
+WORKDIR=${WORKSPACE}/${PACKAGE}/kubernetes
 
 BINDIR=${WORKSPACE}/${BUILD_TOOL}-bin/${PACKAGE}
 
