@@ -13,6 +13,7 @@ java_library(
     deps = [
         "//java/google/registry/batch",
         "//java/google/registry/bigquery",
+        "//java/google/registry/config",
         "//java/google/registry/flows",
         "//java/google/registry/mapreduce",
         "//java/google/registry/model",

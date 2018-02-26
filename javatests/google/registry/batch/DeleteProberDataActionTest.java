@@ -33,6 +33,7 @@ import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.config.RegistryEnvironment;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -68,6 +69,10 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
     createTld("example", "EXAMPLE");
     persistResource(Registry.get("example").asBuilder().setTldType(TldType.TEST).build());
 
+    // Since "not-test.test" isn't of TEST type, its entities won't be deleted even though it ends
+    // with .test.
+    createTld("not-test.test", "EXTEST");
+
     // Entities in these two should be deleted.
     createTld("ib-any.test", "IBANYT");
     persistResource(Registry.get("ib-any.test").asBuilder().setTldType(TldType.TEST).build());
@@ -82,6 +87,8 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
     action.mrRunner = makeDefaultRunner();
     action.response = new FakeResponse();
     action.isDryRun = false;
+    action.tlds = ImmutableSet.of();
+    action.registryEnvironment = RegistryEnvironment.SANDBOX;
     action.registryAdminClientId = "TheRegistrar";
   }
 
@@ -94,13 +101,62 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
   public void test_deletesAllAndOnlyProberData() throws Exception {
     Set<ImmutableObject> tldEntities = persistLotsOfDomains("tld");
     Set<ImmutableObject> exampleEntities = persistLotsOfDomains("example");
+    Set<ImmutableObject> notTestEntities = persistLotsOfDomains("not-test.test");
     Set<ImmutableObject> ibEntities = persistLotsOfDomains("ib-any.test");
     Set<ImmutableObject> oaEntities = persistLotsOfDomains("oa-canary.test");
     runMapreduce();
     assertNotDeleted(tldEntities);
     assertNotDeleted(exampleEntities);
+    assertNotDeleted(notTestEntities);
     assertDeleted(ibEntities);
     assertDeleted(oaEntities);
+  }
+
+  @Test
+  public void testSuccess_deletesAllAndOnlyGivenTlds() throws Exception {
+    Set<ImmutableObject> tldEntities = persistLotsOfDomains("tld");
+    Set<ImmutableObject> exampleEntities = persistLotsOfDomains("example");
+    Set<ImmutableObject> notTestEntities = persistLotsOfDomains("not-test.test");
+    Set<ImmutableObject> ibEntities = persistLotsOfDomains("ib-any.test");
+    Set<ImmutableObject> oaEntities = persistLotsOfDomains("oa-canary.test");
+    action.tlds = ImmutableSet.of("example", "ib-any.test");
+    runMapreduce();
+    assertNotDeleted(tldEntities);
+    assertNotDeleted(notTestEntities);
+    assertNotDeleted(oaEntities);
+    assertDeleted(exampleEntities);
+    assertDeleted(ibEntities);
+  }
+
+  @Test
+  public void testFail_givenNonTestTld() throws Exception {
+    action.tlds = ImmutableSet.of("not-test.test");
+    IllegalArgumentException thrown =
+        assertThrows(IllegalArgumentException.class, this::runMapreduce);
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("If tlds are given, they must all exist and be TEST tlds");
+  }
+
+  @Test
+  public void testFail_givenNonExistentTld() throws Exception {
+    action.tlds = ImmutableSet.of("non-existent.test");
+    IllegalArgumentException thrown =
+        assertThrows(IllegalArgumentException.class, this::runMapreduce);
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("If tlds are given, they must all exist and be TEST tlds");
+  }
+
+  @Test
+  public void testFail_givenNonDotTestTldOnProd() throws Exception {
+    action.tlds = ImmutableSet.of("example");
+    action.registryEnvironment = RegistryEnvironment.PRODUCTION;
+    IllegalArgumentException thrown =
+        assertThrows(IllegalArgumentException.class, this::runMapreduce);
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains("On production, can only work on TLDs that end with .test");
   }
 
   @Test

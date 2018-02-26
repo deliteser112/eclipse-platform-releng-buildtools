@@ -14,6 +14,7 @@
 
 package google.registry.batch;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.flows.ResourceFlowUtils.updateForeignKeyIndexDeletionTime;
@@ -22,6 +23,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.getTldsOfType;
 import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_DELETE;
 import static google.registry.request.Action.Method.POST;
+import static google.registry.request.RequestParameters.PARAM_TLD;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.tools.mapreduce.Mapper;
@@ -30,8 +32,10 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.config.RegistryEnvironment;
 import google.registry.dns.DnsQueue;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
@@ -71,9 +75,12 @@ public class DeleteProberDataAction implements Runnable {
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Inject @Parameter(PARAM_DRY_RUN) boolean isDryRun;
+  /** List of TLDs to work on. If empty - will work on all TLDs that end with .test. */
+  @Inject @Parameter(PARAM_TLD) ImmutableSet<String> tlds;
   @Inject @Config("registryAdminClientId") String registryAdminClientId;
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;
+  @Inject RegistryEnvironment registryEnvironment;
   @Inject DeleteProberDataAction() {}
 
   @Override
@@ -89,10 +96,23 @@ public class DeleteProberDataAction implements Runnable {
             ImmutableList.of(EppResourceInputs.createKeyInput(DomainBase.class)))));
   }
 
-  private static ImmutableSet<String> getProberRoidSuffixes() {
-    return getTldsOfType(TldType.TEST)
+  private ImmutableSet<String> getProberRoidSuffixes() {
+    checkArgument(
+        !RegistryEnvironment.PRODUCTION.equals(registryEnvironment)
+            || tlds.stream().allMatch(tld -> tld.endsWith(".test")),
+        "On production, can only work on TLDs that end with .test");
+    ImmutableSet<String> deletableTlds =
+        getTldsOfType(TldType.TEST)
+            .stream()
+            .filter(tld -> tlds.isEmpty() ? tld.endsWith(".test") : tlds.contains(tld))
+            .collect(toImmutableSet());
+    checkArgument(
+        tlds.isEmpty() || deletableTlds.equals(tlds),
+        "If tlds are given, they must all exist and be TEST tlds. Given: %s, not found: %s",
+        tlds,
+        Sets.difference(tlds, deletableTlds));
+    return deletableTlds
         .stream()
-        .filter(tld -> tld.endsWith(".test"))
         .map(tld -> Registry.get(tld).getRoidSuffix())
         .collect(toImmutableSet());
   }
@@ -164,7 +184,8 @@ public class DeleteProberDataAction implements Runnable {
       }
 
       DomainResource domain = (DomainResource) domainBase;
-      if (domain.getFullyQualifiedDomainName().equals("nic." + domain.getTld())) {
+      String domainName = domain.getFullyQualifiedDomainName();
+      if (domainName.equals("nic." + domain.getTld())) {
         getContext().incrementCounter("skipped, NIC domain");
         return;
       }
@@ -173,7 +194,9 @@ public class DeleteProberDataAction implements Runnable {
         return;
       }
       if (!domain.getSubordinateHosts().isEmpty()) {
-        logger.warningfmt("Cannot delete domain %s because it has subordinate hosts.", domainKey);
+        logger.warningfmt(
+            "Cannot delete domain %s (%s) because it has subordinate hosts.",
+            domainName, domainKey);
         getContext().incrementCounter("skipped, had subordinate host(s)");
         return;
       }
@@ -184,7 +207,7 @@ public class DeleteProberDataAction implements Runnable {
       // time the mapreduce is run.
       if (EppResourceUtils.isActive(domain, now)) {
         if (isDryRun) {
-          logger.infofmt("Would soft-delete the active domain: %s", domainKey);
+          logger.infofmt("Would soft-delete the active domain: %s (%s)", domainName, domainKey);
         } else {
           softDeleteDomain(domain);
         }
