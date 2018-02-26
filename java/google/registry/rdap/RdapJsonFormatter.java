@@ -522,10 +522,13 @@ public class RdapJsonFormatter {
       Map<Key<HostResource>, HostResource> loadedHosts =
           ofy().load().keys(domainResource.getNameservers());
       // Load the registrant and other contacts and add them to the data.
-      if (displayContacts) {
+      ImmutableList<ImmutableMap<String, Object>> entities;
+      if (!displayContacts) {
+        entities = ImmutableList.of();
+      } else {
         Map<Key<ContactResource>, ContactResource> loadedContacts =
             ofy().load().keys(domainResource.getReferencedContacts());
-        ImmutableList<ImmutableMap<String, Object>> entities =
+        entities =
             Streams.concat(
                     domainResource.getContacts().stream(),
                     Stream.of(
@@ -543,17 +546,17 @@ public class RdapJsonFormatter {
                             outputDataType,
                             authorization))
                 .collect(toImmutableList());
-        entities =
-            addRegistrarEntity(
-                entities,
-                domainResource.getCurrentSponsorClientId(),
-                linkBase,
-                whoisServer,
-                now,
-                outputDataType);
-        if (!entities.isEmpty()) {
-          jsonBuilder.put("entities", entities);
-        }
+      }
+      entities =
+          addRegistrarEntity(
+              entities,
+              domainResource.getCurrentSponsorClientId(),
+              linkBase,
+              whoisServer,
+              now,
+              outputDataType);
+      if (!entities.isEmpty()) {
+        jsonBuilder.put("entities", entities);
       }
       // Add the nameservers to the data; the load was kicked off above for efficiency.
       ImmutableList.Builder<Object> nsBuilder = new ImmutableList.Builder<>();

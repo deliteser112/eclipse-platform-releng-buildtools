@@ -1022,7 +1022,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "21-EXAMPLE",
         null,
         ImmutableList.of("ns1.cat.lol", "ns2.external.tld"),
-        "Yes Virginia <script>",
+        "St. John Chrysostom",
         "rdap_domain_no_contacts_with_remark.json");
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(1L));
   }
@@ -1037,7 +1037,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "2D-Q9JYB4C",
         null,
         ImmutableList.of("ns1.cat.xn--q9jyb4c", "ns2.cat.xn--q9jyb4c"),
-        "Yes Virginia <script>",
+        "みんな",
         "rdap_domain_unicode_no_contacts_with_remark.json");
     // The unicode gets translated to ASCII before getting parsed into a search pattern.
     metricPrefixLength = 15;
@@ -1054,7 +1054,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "2D-Q9JYB4C",
         null,
         ImmutableList.of("ns1.cat.xn--q9jyb4c", "ns2.cat.xn--q9jyb4c"),
-        "Yes Virginia <script>",
+        "みんな",
         "rdap_domain_unicode_no_contacts_with_remark.json");
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(1L));
   }
@@ -1069,7 +1069,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "39-1_TEST",
         ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
         ImmutableList.of("ns1.cat.1.test", "ns2.cat.2.test"),
-        "Yes Virginia <script>",
+        "1.test",
         "rdap_domain_no_contacts_with_remark.json");
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(1L));
   }
@@ -1084,7 +1084,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "39-1_TEST",
         ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
         ImmutableList.of("ns1.cat.1.test", "ns2.cat.2.test"),
-        "Yes Virginia <script>",
+        "1.test",
         "rdap_domain_no_contacts_with_remark.json");
     verifyMetrics(SearchType.BY_DOMAIN_NAME, Optional.of(1L));
   }
@@ -1611,7 +1611,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "2D-Q9JYB4C",
         null,
         ImmutableList.of("ns1.cat.xn--q9jyb4c", "ns2.cat.xn--q9jyb4c"),
-        "Yes Virginia <script>",
+        "みんな",
         "rdap_domain_unicode_no_contacts_with_remark.json");
     verifyMetrics(SearchType.BY_NAMESERVER_NAME, 1, 1);
   }
@@ -1626,7 +1626,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "39-1_TEST",
         ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
         ImmutableList.of("ns1.cat.1.test", "ns2.cat.2.test"),
-        "Yes Virginia <script>",
+        "1.test",
         "rdap_domain_no_contacts_with_remark.json");
     verifyMetrics(SearchType.BY_NAMESERVER_NAME, 1, 1);
   }
@@ -1641,7 +1641,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
         "39-1_TEST",
         ImmutableList.of("4-ROID", "6-ROID", "2-ROID"),
         ImmutableList.of("ns1.cat.1.test", "ns2.cat.2.test"),
-        "Yes Virginia <script>",
+        "1.test",
         "rdap_domain_no_contacts_with_remark.json");
     verifyMetrics(SearchType.BY_NAMESERVER_NAME, 1, 1);
   }
