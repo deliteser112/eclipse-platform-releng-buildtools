@@ -155,7 +155,8 @@ caching:
   eppResourceCachingEnabled: false
 
   # Length of time that EPP resource entities and keys are cached in memory
-  # before expiring.
+  # before expiring. This should always be shorter than asyncDeleteDelaySeconds,
+  # to prevent deleted contacts or hosts from being used on domains.
   eppResourceCachingSeconds: 60
 
   # The maximum number of EPP resource entities and keys to cache in memory.
@@ -243,6 +244,11 @@ misc:
 
   # Domain for the email address we send alert summary emails from.
   alertEmailSenderDomain: appspotmail.com
+
+  # How long to delay processing of asynchronous deletions. This should always
+  # be longer than eppResourceCachingSeconds, to prevent deleted contacts or
+  # hosts from being used on domains.
+  asyncDeleteDelaySeconds: 90
 
 # Braintree is a credit card payment processor that is used on the registrar
 # console to allow registrars to pay their invoices.

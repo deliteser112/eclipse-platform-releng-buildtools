@@ -1026,8 +1026,8 @@ public final class RegistryConfig {
      */
     @Provides
     @Config("asyncDeleteFlowMapreduceDelay")
-    public static Duration provideAsyncDeleteFlowMapreduceDelay() {
-      return Duration.standardSeconds(90);
+    public static Duration provideAsyncDeleteFlowMapreduceDelay(RegistryConfigSettings config) {
+      return Duration.standardSeconds(config.misc.asyncDeleteDelaySeconds);
     }
 
     /**

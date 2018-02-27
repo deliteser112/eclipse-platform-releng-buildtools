@@ -155,6 +155,7 @@ public class RegistryConfigSettings {
     public String sheetExportId;
     public String alertRecipientEmailAddress;
     public String alertEmailSenderDomain;
+    public int asyncDeleteDelaySeconds;
   }
 
   /** Configuration for Braintree credit card payment processing. */
