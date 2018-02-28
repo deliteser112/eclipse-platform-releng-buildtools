@@ -24,3 +24,25 @@ closure_repositories(
 load("//java/google/registry:repositories.bzl", "domain_registry_repositories")
 
 domain_registry_repositories()
+
+# Setup docker bazel rules
+git_repository(
+    name = "io_bazel_rules_docker",
+    remote = "https://github.com/bazelbuild/rules_docker.git",
+    tag = "v0.4.0",
+)
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_pull",
+    container_repositories = "repositories",
+)
+
+container_repositories()
+
+container_pull(
+  name = "java_base",
+  registry = "gcr.io",
+  repository = "distroless/java",
+  digest = "sha256:780ee786a774a25a4485f491b3e0a21f7faed01864640af7cebec63c46a0845a",
+)

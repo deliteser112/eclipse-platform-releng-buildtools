@@ -52,7 +52,7 @@ kms:
   cryptoKey: your-kms-cryptoKey
 
 epp:
-  port: 700
+  port: 30002
   relayHost: registry-project-id.appspot.com
   relayPath: /_dr/epp
 
@@ -122,7 +122,7 @@ epp:
     customQuota: []
 
 whois:
-  port: 43
+  port: 30001
   relayHost: registry-project-id.appspot.com
   relayPath: /_dr/whois
 

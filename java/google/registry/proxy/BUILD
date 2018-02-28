@@ -2,6 +2,8 @@
 #   This package contains the code for the binary that proxies TCP traffic from
 #   the GCE/GKE to AppEngine.
 
+load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_push")
+
 package(
     default_visibility = ["//java/google/registry:registry_project"],
 )
@@ -47,4 +49,29 @@ java_binary(
         ":proxy",
         "@io_netty_tcnative",
     ],
+)
+
+container_image(
+    name = "proxy_image",
+    base = "@java_base//image",
+    entrypoint = [
+        "java",
+        "-jar",
+        "proxy_server_deploy.jar",
+    ],
+    files = [":proxy_server_deploy.jar"],
+    ports = [
+        "30000",
+        "30001",
+        "30002",
+    ],
+)
+
+container_push(
+    name = "proxy_push",
+    format = "Docker",
+    image = ":proxy_image",
+    registry = "gcr.io",
+    repository = "GCP_PROJECT/IMAGE_NAME",
+    tag = "bazel",
 )
