@@ -46,6 +46,7 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Mapify;
+import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
 import google.registry.model.Buildable;
@@ -277,6 +278,41 @@ public class Registry extends ImmutableObject implements Buildable {
    * <code>@Inject Map<String, DnsWriter></code>
    */
   Set<String> dnsWriters;
+
+  /**
+   * The number of locks we allow at once for {@link google.registry.dns.PublishDnsUpdatesAction}.
+   *
+   * <p>This should always be a positive integer- use 1 for TLD-wide locks. All {@link Registry}
+   * objects have this value default to 1.
+   *
+   * <p>WARNING: changing this parameter changes the lock name for subsequent DNS updates, and thus
+   * invalidates the locking scheme for enqueued DNS publish updates. If the {@link
+   * google.registry.dns.writer.DnsWriter} you use is not parallel-write tolerant, you must follow
+   * this procedure to change this value:
+   *
+   * <ol>
+   *   <li>Pause the DNS queue via {@link google.registry.tools.UpdateTldCommand}
+   *   <li>Change this number
+   *   <li>Let the Registry caches expire (currently 5 minutes) and drain the DNS publish queue
+   *   <li>Unpause the DNS queue
+   * </ol>
+   *
+   * <p>Failure to do so can result in parallel writes to the {@link
+   * google.registry.dns.writer.DnsWriter}, which may be dangerous depending on your implementation.
+   */
+  int numDnsPublishLocks;
+
+  /**
+   * Updates an unset numDnsPublishLocks (0) to the standard default of 1.
+   *
+   * <p>TODO(b/74010245): Remove OnLoad once all Registry objects have this value set to 1.
+   */
+  @OnLoad
+  void setDefaultNumDnsPublishLocks() {
+    if (numDnsPublishLocks == 0) {
+      numDnsPublishLocks = 1;
+    }
+  }
 
   /**
    * The unicode-aware representation of the TLD associated with this {@link Registry}.
@@ -598,6 +634,11 @@ public class Registry extends ImmutableObject implements Buildable {
     return ImmutableSet.copyOf(dnsWriters);
   }
 
+  /** Returns the number of simultaneous DNS publish operations we allow at once. */
+  public int getNumDnsPublishLocks() {
+    return numDnsPublishLocks;
+  }
+
   public ImmutableSet<String> getAllowedRegistrantContactIds() {
     return nullToEmptyImmutableCopy(allowedRegistrantContactIds);
   }
@@ -683,6 +724,14 @@ public class Registry extends ImmutableObject implements Buildable {
 
     public Builder setDnsWriters(ImmutableSet<String> dnsWriters) {
       getInstance().dnsWriters = dnsWriters;
+      return this;
+    }
+
+    public Builder setNumDnsPublishLocks(int numDnsPublishLocks) {
+      checkArgument(
+          numDnsPublishLocks > 0,
+          "numDnsPublishLocks must be positive when set explicitly (use 1 for TLD-wide locks)");
+      getInstance().numDnsPublishLocks = numDnsPublishLocks;
       return this;
     }
 
@@ -947,6 +996,11 @@ public class Registry extends ImmutableObject implements Buildable {
           instance.dnsWriters != null && !instance.dnsWriters.isEmpty(),
           "At least one DNS writer must be specified."
               + " VoidDnsWriter can be used if DNS writing isn't desired");
+      // If not set explicitly, numDnsPublishLocks defaults to 1.
+      instance.setDefaultNumDnsPublishLocks();
+      checkArgument(
+          instance.numDnsPublishLocks > 0,
+          "Number of DNS publish locks must be positive. Use 1 for TLD-wide locks.");
       instance.tldStrId = tldName;
       instance.tldUnicode = Idn.toUnicode(tldName);
       return super.build();

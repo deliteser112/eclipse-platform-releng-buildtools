@@ -234,6 +234,16 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
 
   @Nullable
   @Parameter(
+    names = {"--num_dns_publish_locks"},
+    description =
+        "The number of publish locks we allow in parallel for DNS updates under this tld "
+            + "(1 for TLD-wide locks)",
+    arity = 1
+  )
+  Integer numDnsPublishShards;
+
+  @Nullable
+  @Parameter(
       names = "--lrp_period",
       description =
           "LRP period (in ISO-8601 format, e.g. 2004-06-09T12:30:00Z/2004-07-10T13:30:00Z",
@@ -347,6 +357,7 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
       Optional.ofNullable(lordnUsername).ifPresent(u -> builder.setLordnUsername(u.orElse(null)));
       Optional.ofNullable(claimsPeriodEnd).ifPresent(builder::setClaimsPeriodEnd);
       Optional.ofNullable(domainCreateRestricted).ifPresent(builder::setDomainCreateRestricted);
+      Optional.ofNullable(numDnsPublishShards).ifPresent(builder::setNumDnsPublishLocks);
       Optional.ofNullable(lrpPeriod).ifPresent(p -> builder.setLrpPeriod(p.orElse(null)));
 
       if (premiumListName != null) {
@@ -410,7 +421,7 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
           Joiner.on(", ").join(invalidNames),
           tld);
       if (overrideReservedListRules) {
-        System.err.println("Error overriden: " + errMsg);
+        System.err.println("Error overridden: " + errMsg);
       } else {
         throw new IllegalArgumentException(errMsg);
       }

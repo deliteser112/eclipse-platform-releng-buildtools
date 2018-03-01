@@ -18,7 +18,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
 import com.google.common.base.Ascii;
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
 
 /** Utility methods related to domain names. */
@@ -76,6 +78,35 @@ public final class DomainNameUtils {
     checkArgumentNotNull(domainName);
     checkArgument(domainName.hasParent(), "domainName does not have a TLD");
     return domainName.parent().toString();
+  }
+
+  /**
+   * Returns the second level domain name for a fully qualified host name under a given tld.
+   *
+   * <p>This function is merely a string parsing utility, and does not verify if the tld is operated
+   * by the registry.
+   *
+   * @throws IllegalArgumentException if either argument is null or empty, or the domain name is not
+   *     under the tld
+   */
+  public static String getSecondLevelDomain(String hostName, String tld) {
+    checkArgument(
+        !Strings.isNullOrEmpty(hostName),
+        "hostName cannot be null or empty");
+    checkArgument(!Strings.isNullOrEmpty(tld), "tld cannot be null or empty");
+    ImmutableList<String> domainParts = InternetDomainName.from(hostName).parts();
+    ImmutableList<String> tldParts = InternetDomainName.from(tld).parts();
+    checkArgument(
+        domainParts.size() > tldParts.size(),
+        "hostName must be at least one level below the tld");
+    checkArgument(
+        domainParts
+            .subList(domainParts.size() - tldParts.size(), domainParts.size())
+            .equals(tldParts),
+        "hostName must be under the tld");
+    ImmutableList<String> sldParts =
+        domainParts.subList(domainParts.size() - tldParts.size() - 1, domainParts.size());
+    return Joiner.on(".").join(sldParts);
   }
 
   private DomainNameUtils() {}

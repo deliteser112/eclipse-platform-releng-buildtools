@@ -20,10 +20,12 @@ import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistActiveSubordinateHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -35,6 +37,7 @@ import google.registry.model.domain.DomainResource;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
 import google.registry.request.HttpException.ServiceUnavailableException;
+import google.registry.request.lock.LockHandler;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeLockHandler;
@@ -96,6 +99,8 @@ public class PublishDnsUpdatesActionTest {
     action.dnsWriterProxy = new DnsWriterProxy(ImmutableMap.of("correctWriter", dnsWriter));
     action.dnsMetrics = dnsMetrics;
     action.dnsQueue = dnsQueue;
+    action.lockIndex = 1;
+    action.numPublishLocks = 1;
     action.lockHandler = lockHandler;
     action.clock = clock;
     return action;
@@ -105,12 +110,12 @@ public class PublishDnsUpdatesActionTest {
   public void testHost_published() throws Exception {
     action = createAction("xn--q9jyb4c");
     action.hosts = ImmutableSet.of("ns1.example.xn--q9jyb4c");
+
     action.run();
 
     verify(dnsWriter).publishHost("ns1.example.xn--q9jyb4c");
     verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
-
     verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.ACCEPTED);
     verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
     verify(dnsMetrics).incrementPublishHostRequests(1, PublishStatus.ACCEPTED);
@@ -124,7 +129,6 @@ public class PublishDnsUpdatesActionTest {
             Duration.standardHours(2),
             Duration.standardHours(1));
     verifyNoMoreInteractions(dnsMetrics);
-
     verifyNoMoreInteractions(dnsQueue);
   }
 
@@ -132,12 +136,12 @@ public class PublishDnsUpdatesActionTest {
   public void testDomain_published() throws Exception {
     action = createAction("xn--q9jyb4c");
     action.domains = ImmutableSet.of("example.xn--q9jyb4c");
+
     action.run();
 
     verify(dnsWriter).publishDomain("example.xn--q9jyb4c");
     verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
-
     verify(dnsMetrics).incrementPublishDomainRequests(1, PublishStatus.ACCEPTED);
     verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
     verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.ACCEPTED);
@@ -151,8 +155,25 @@ public class PublishDnsUpdatesActionTest {
             Duration.standardHours(2),
             Duration.standardHours(1));
     verifyNoMoreInteractions(dnsMetrics);
-
     verifyNoMoreInteractions(dnsQueue);
+  }
+
+  @Test
+  public void testAction_acquiresCorrectLock() throws Exception {
+    persistResource(Registry.get("xn--q9jyb4c").asBuilder().setNumDnsPublishLocks(4).build());
+    action = createAction("xn--q9jyb4c");
+    action.lockIndex = 2;
+    action.numPublishLocks = 4;
+    action.domains = ImmutableSet.of("example.xn--q9jyb4c");
+    LockHandler mockLockHandler = mock(LockHandler.class);
+    when(mockLockHandler.executeWithLocks(any(), any(), any(), any())).thenReturn(true);
+    action.lockHandler = mockLockHandler;
+
+    action.run();
+
+    verify(mockLockHandler)
+        .executeWithLocks(
+            action, "xn--q9jyb4c", Duration.standardSeconds(10), "DNS updates-lock 2 of 4");
   }
 
   @Test
@@ -163,6 +184,7 @@ public class PublishDnsUpdatesActionTest {
         ImmutableSet.of(
             "ns1.example.xn--q9jyb4c", "ns2.example.xn--q9jyb4c", "ns1.example2.xn--q9jyb4c");
     doThrow(new RuntimeException()).when(dnsWriter).commit();
+
     assertThrows(RuntimeException.class, action::run);
 
     verify(dnsMetrics).incrementPublishDomainRequests(2, PublishStatus.ACCEPTED);
@@ -178,7 +200,6 @@ public class PublishDnsUpdatesActionTest {
             Duration.standardHours(2),
             Duration.standardHours(1));
     verifyNoMoreInteractions(dnsMetrics);
-
     verifyNoMoreInteractions(dnsQueue);
   }
 
@@ -188,6 +209,7 @@ public class PublishDnsUpdatesActionTest {
     action.domains = ImmutableSet.of("example.xn--q9jyb4c", "example2.xn--q9jyb4c");
     action.hosts = ImmutableSet.of(
         "ns1.example.xn--q9jyb4c", "ns2.example.xn--q9jyb4c", "ns1.example2.xn--q9jyb4c");
+
     action.run();
 
     verify(dnsWriter).publishDomain("example.xn--q9jyb4c");
@@ -197,7 +219,6 @@ public class PublishDnsUpdatesActionTest {
     verify(dnsWriter).publishHost("ns1.example2.xn--q9jyb4c");
     verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
-
     verify(dnsMetrics).incrementPublishDomainRequests(2, PublishStatus.ACCEPTED);
     verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.REJECTED);
     verify(dnsMetrics).incrementPublishHostRequests(3, PublishStatus.ACCEPTED);
@@ -211,7 +232,6 @@ public class PublishDnsUpdatesActionTest {
             Duration.standardHours(2),
             Duration.standardHours(1));
     verifyNoMoreInteractions(dnsMetrics);
-
     verifyNoMoreInteractions(dnsQueue);
   }
 
@@ -220,11 +240,11 @@ public class PublishDnsUpdatesActionTest {
     action = createAction("xn--q9jyb4c");
     action.domains = ImmutableSet.of("example.com", "example2.com");
     action.hosts = ImmutableSet.of("ns1.example.com", "ns2.example.com", "ns1.example2.com");
+
     action.run();
 
     verify(dnsWriter).commit();
     verifyNoMoreInteractions(dnsWriter);
-
     verify(dnsMetrics).incrementPublishDomainRequests(0, PublishStatus.ACCEPTED);
     verify(dnsMetrics).incrementPublishDomainRequests(2, PublishStatus.REJECTED);
     verify(dnsMetrics).incrementPublishHostRequests(0, PublishStatus.ACCEPTED);
@@ -238,7 +258,6 @@ public class PublishDnsUpdatesActionTest {
             Duration.standardHours(2),
             Duration.standardHours(1));
     verifyNoMoreInteractions(dnsMetrics);
-
     verifyNoMoreInteractions(dnsQueue);
   }
 
@@ -248,12 +267,12 @@ public class PublishDnsUpdatesActionTest {
     action.domains = ImmutableSet.of("example.com", "example2.com");
     action.hosts = ImmutableSet.of("ns1.example.com", "ns2.example.com", "ns1.example2.com");
     action.lockHandler = new FakeLockHandler(false);
+
     ServiceUnavailableException thrown =
         assertThrows(ServiceUnavailableException.class, action::run);
+
     assertThat(thrown).hasMessageThat().contains("Lock failure");
-
     verifyNoMoreInteractions(dnsWriter);
-
     verify(dnsMetrics)
         .recordActionResult(
             "correctWriter",
@@ -262,7 +281,56 @@ public class PublishDnsUpdatesActionTest {
             Duration.standardHours(2),
             Duration.standardHours(1));
     verifyNoMoreInteractions(dnsMetrics);
+    verifyNoMoreInteractions(dnsQueue);
+  }
 
+  @Test
+  public void testParam_invalidLockIndex() throws Exception {
+    persistResource(Registry.get("xn--q9jyb4c").asBuilder().setNumDnsPublishLocks(4).build());
+    action = createAction("xn--q9jyb4c");
+    action.domains = ImmutableSet.of("example.com");
+    action.hosts = ImmutableSet.of("ns1.example.com");
+    action.lockIndex = 5;
+    action.numPublishLocks = 4;
+
+    action.run();
+
+    verifyNoMoreInteractions(dnsWriter);
+    verify(dnsMetrics)
+        .recordActionResult(
+            "correctWriter",
+            ActionStatus.BAD_LOCK_INDEX,
+            2,
+            Duration.standardHours(2),
+            Duration.standardHours(1));
+    verifyNoMoreInteractions(dnsMetrics);
+    verify(dnsQueue).addDomainRefreshTask("example.com");
+    verify(dnsQueue).addHostRefreshTask("ns1.example.com");
+    verifyNoMoreInteractions(dnsQueue);
+  }
+
+  @Test
+  public void testRegistryParam_mismatchedMaxLocks() throws Exception {
+    persistResource(Registry.get("xn--q9jyb4c").asBuilder().setNumDnsPublishLocks(4).build());
+    action = createAction("xn--q9jyb4c");
+    action.domains = ImmutableSet.of("example.com");
+    action.hosts = ImmutableSet.of("ns1.example.com");
+    action.lockIndex = 3;
+    action.numPublishLocks = 5;
+
+    action.run();
+
+    verifyNoMoreInteractions(dnsWriter);
+    verify(dnsMetrics)
+        .recordActionResult(
+            "correctWriter",
+            ActionStatus.BAD_LOCK_INDEX,
+            2,
+            Duration.standardHours(2),
+            Duration.standardHours(1));
+    verifyNoMoreInteractions(dnsMetrics);
+    verify(dnsQueue).addDomainRefreshTask("example.com");
+    verify(dnsQueue).addHostRefreshTask("ns1.example.com");
     verifyNoMoreInteractions(dnsQueue);
   }
 
@@ -272,10 +340,10 @@ public class PublishDnsUpdatesActionTest {
     action.domains = ImmutableSet.of("example.com", "example2.com");
     action.hosts = ImmutableSet.of("ns1.example.com", "ns2.example.com", "ns1.example2.com");
     action.dnsWriter = "wrongWriter";
+
     action.run();
 
     verifyNoMoreInteractions(dnsWriter);
-
     verify(dnsMetrics)
         .recordActionResult(
             "wrongWriter",
@@ -284,7 +352,6 @@ public class PublishDnsUpdatesActionTest {
             Duration.standardHours(2),
             Duration.standardHours(1));
     verifyNoMoreInteractions(dnsMetrics);
-
     verify(dnsQueue).addDomainRefreshTask("example.com");
     verify(dnsQueue).addDomainRefreshTask("example2.com");
     verify(dnsQueue).addHostRefreshTask("ns1.example.com");

@@ -38,6 +38,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.hash.Hashing;
 import com.google.common.net.InternetDomainName;
 import google.registry.dns.DnsConstants.TargetType;
 import google.registry.model.registry.Registry;
@@ -91,7 +92,7 @@ public class ReadDnsQueueActionTest {
     // Because of b/73372999 - the FakeClock can't be in the past, or the TaskQueues stop working.
     // To make sure it's never in the past, we set the date far-far into the future
     clock.setTo(DateTime.parse("3000-01-01TZ"));
-    createTlds("com", "net", "example");
+    createTlds("com", "net", "example", "multilock.uk");
     persistResource(
         Registry.get("com").asBuilder().setDnsWriters(ImmutableSet.of("comWriter")).build());
     persistResource(
@@ -101,6 +102,12 @@ public class ReadDnsQueueActionTest {
             .asBuilder()
             .setTldType(TldType.TEST)
             .setDnsWriters(ImmutableSet.of("exampleWriter"))
+            .build());
+    persistResource(
+        Registry.get("multilock.uk")
+            .asBuilder()
+            .setNumDnsPublishLocks(1000)
+            .setDnsWriters(ImmutableSet.of("multilockWriter"))
             .build());
     dnsQueue = DnsQueue.createForTesting(clock);
   }
@@ -112,10 +119,12 @@ public class ReadDnsQueueActionTest {
     action.clock = clock;
     action.dnsQueue = dnsQueue;
     action.dnsPublishPushQueue = QueueFactory.getQueue(DNS_PUBLISH_PUSH_QUEUE_NAME);
+    action.hashFunction = Hashing.murmur3_32();
     action.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
     action.jitterSeconds = Optional.empty();
     // Advance the time a little, to ensure that leaseTasks() returns all tasks.
     clock.advanceBy(Duration.standardHours(1));
+
     action.run();
   }
 
@@ -149,6 +158,9 @@ public class ReadDnsQueueActionTest {
                     .param("dnsWriter", tldToDnsWriter.getValue())
                     .param("itemsCreated", "3000-01-01T00:00:00.000Z")
                     .param("enqueued", "3000-01-01T01:00:00.000Z")
+                    // Single-lock TLDs should use lock 1 of 1 by default
+                    .param("lockIndex", "1")
+                    .param("numPublishLocks", "1")
                     .header("content-type", "application/x-www-form-urlencoded")));
   }
 
@@ -157,7 +169,9 @@ public class ReadDnsQueueActionTest {
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.net");
     dnsQueue.addDomainRefreshTask("domain.example");
+
     run();
+
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTasksEnqueued(
         DNS_PUBLISH_PUSH_QUEUE_NAME,
@@ -167,11 +181,13 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_allTlds() throws Exception {
+  public void testSuccess_allSingleLockTlds() throws Exception {
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.net");
     dnsQueue.addDomainRefreshTask("domain.example");
+
     run();
+
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTldsEnqueuedInPushQueue(
         ImmutableMultimap.of("com", "comWriter", "net", "netWriter", "example", "exampleWriter"));
@@ -186,7 +202,9 @@ public class ReadDnsQueueActionTest {
             .mapToObj(i -> String.format("domain_%04d.com", i))
             .collect(toImmutableList());
     domains.forEach(dnsQueue::addDomainRefreshTask);
+
     run();
+
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     ImmutableList<ImmutableMultimap<String, String>> queuedParams =
         getQueuedParams(DNS_PUBLISH_PUSH_QUEUE_NAME);
@@ -209,7 +227,9 @@ public class ReadDnsQueueActionTest {
             .setDnsWriters(ImmutableSet.of("comWriter", "otherWriter"))
             .build());
     dnsQueue.addDomainRefreshTask("domain.com");
+
     run();
+
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTldsEnqueuedInPushQueue(ImmutableMultimap.of("com", "comWriter", "com", "otherWriter"));
   }
@@ -222,7 +242,9 @@ public class ReadDnsQueueActionTest {
     dnsQueue.addDomainRefreshTask("domain2.com");
     clock.setTo(DateTime.parse("3000-02-05TZ"));
     dnsQueue.addDomainRefreshTask("domain3.com");
+
     run();
+
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertThat(getQueuedParams(DNS_PUBLISH_PUSH_QUEUE_NAME))
         .containsExactly(
@@ -234,6 +256,8 @@ public class ReadDnsQueueActionTest {
                 .put("domains", "domain1.com")
                 .put("domains", "domain2.com")
                 .put("domains", "domain3.com")
+                .put("lockIndex", "1")
+                .put("numPublishLocks", "1")
                 .build());
   }
 
@@ -243,7 +267,9 @@ public class ReadDnsQueueActionTest {
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.net");
     dnsQueue.addDomainRefreshTask("domain.example");
+
     run();
+
     assertTasksEnqueued(DNS_PULL_QUEUE_NAME, createDomainRefreshTaskMatcher("domain.net"));
     assertTldsEnqueuedInPushQueue(
         ImmutableMultimap.of("com", "comWriter", "example", "exampleWriter"));
@@ -260,7 +286,9 @@ public class ReadDnsQueueActionTest {
                 .param(DNS_TARGET_TYPE_PARAM, TargetType.DOMAIN.toString())
                 .param(DNS_TARGET_NAME_PARAM, "domain.unknown")
                 .param(PARAM_TLD, "unknown"));
+
     run();
+
     assertTasksEnqueued(DNS_PULL_QUEUE_NAME, createDomainRefreshTaskMatcher("domain.unknown"));
     assertTldsEnqueuedInPushQueue(
         ImmutableMultimap.of("com", "comWriter", "example", "exampleWriter"));
@@ -279,7 +307,9 @@ public class ReadDnsQueueActionTest {
                 .param(DNS_TARGET_NAME_PARAM, "domain.wrongtld")
                 .param(DNS_TARGET_CREATE_TIME_PARAM, "3000-01-01TZ")
                 .param(PARAM_TLD, "net"));
+
     run();
+
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTldsEnqueuedInPushQueue(
         ImmutableMultimap.of("com", "comWriter", "example", "exampleWriter", "net", "netWriter"));
@@ -295,7 +325,9 @@ public class ReadDnsQueueActionTest {
                 .method(Method.PULL)
                 .param(DNS_TARGET_TYPE_PARAM, TargetType.DOMAIN.toString())
                 .param(DNS_TARGET_NAME_PARAM, "domain.net"));
+
     run();
+
     // The corrupt task isn't in the pull queue, but also isn't in the push queue
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTldsEnqueuedInPushQueue(
@@ -312,7 +344,9 @@ public class ReadDnsQueueActionTest {
                 .method(Method.PULL)
                 .param(DNS_TARGET_TYPE_PARAM, TargetType.DOMAIN.toString())
                 .param(PARAM_TLD, "net"));
+
     run();
+
     // The corrupt task isn't in the pull queue, but also isn't in the push queue
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTldsEnqueuedInPushQueue(
@@ -329,7 +363,9 @@ public class ReadDnsQueueActionTest {
                 .method(Method.PULL)
                 .param(DNS_TARGET_NAME_PARAM, "domain.net")
                 .param(PARAM_TLD, "net"));
+
     run();
+
     // The corrupt task isn't in the pull queue, but also isn't in the push queue
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTldsEnqueuedInPushQueue(
@@ -347,7 +383,9 @@ public class ReadDnsQueueActionTest {
                 .param(DNS_TARGET_TYPE_PARAM, "Wrong type")
                 .param(DNS_TARGET_NAME_PARAM, "domain.net")
                 .param(PARAM_TLD, "net"));
+
     run();
+
     // The corrupt task isn't in the pull queue, but also isn't in the push queue
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTldsEnqueuedInPushQueue(
@@ -359,7 +397,9 @@ public class ReadDnsQueueActionTest {
     dnsQueue.addHostRefreshTask("ns1.domain.com");
     dnsQueue.addDomainRefreshTask("domain.net");
     dnsQueue.addZoneRefreshTask("example");
+
     run();
+
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTasksEnqueued(
         DNS_PUBLISH_PUSH_QUEUE_NAME,
@@ -408,8 +448,47 @@ public class ReadDnsQueueActionTest {
         }
       }
     }
+
     run();
+
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
     assertTasksEnqueued(DNS_PUBLISH_PUSH_QUEUE_NAME, expectedTasks);
+  }
+
+  @Test
+  public void testSuccess_lockGroupsHostBySuperordinateDomain() throws Exception {
+    dnsQueue.addDomainRefreshTask("hello.multilock.uk");
+    dnsQueue.addHostRefreshTask("ns1.abc.hello.multilock.uk");
+    dnsQueue.addHostRefreshTask("ns2.hello.multilock.uk");
+    dnsQueue.addDomainRefreshTask("another.multilock.uk");
+    dnsQueue.addHostRefreshTask("ns3.def.another.multilock.uk");
+    dnsQueue.addHostRefreshTask("ns4.another.multilock.uk");
+
+    run();
+
+    assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
+    // Expect two different groups; in-balliwick hosts are locked with their superordinate domains.
+    assertTasksEnqueued(
+        DNS_PUBLISH_PUSH_QUEUE_NAME,
+        new TaskMatcher()
+            .url(PublishDnsUpdatesAction.PATH)
+            .param("tld", "multilock.uk")
+            .param("dnsWriter", "multilockWriter")
+            .param("itemsCreated", "3000-01-01T00:00:00.000Z")
+            .param("enqueued", "3000-01-01T01:00:00.000Z")
+            .param("domains", "hello.multilock.uk")
+            .param("hosts", "ns1.abc.hello.multilock.uk")
+            .param("hosts", "ns2.hello.multilock.uk")
+            .header("content-type", "application/x-www-form-urlencoded"),
+        new TaskMatcher()
+            .url(PublishDnsUpdatesAction.PATH)
+            .param("tld", "multilock.uk")
+            .param("dnsWriter", "multilockWriter")
+            .param("itemsCreated", "3000-01-01T00:00:00.000Z")
+            .param("enqueued", "3000-01-01T01:00:00.000Z")
+            .param("domains", "another.multilock.uk")
+            .param("hosts", "ns3.def.another.multilock.uk")
+            .param("hosts", "ns4.another.multilock.uk")
+            .header("content-type", "application/x-www-form-urlencoded"));
   }
 }

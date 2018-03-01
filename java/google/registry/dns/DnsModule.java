@@ -19,15 +19,20 @@ import static google.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
 import static google.registry.dns.PublishDnsUpdatesAction.PARAM_DNS_WRITER;
 import static google.registry.dns.PublishDnsUpdatesAction.PARAM_DOMAINS;
 import static google.registry.dns.PublishDnsUpdatesAction.PARAM_HOSTS;
+import static google.registry.dns.PublishDnsUpdatesAction.PARAM_LOCK_INDEX;
+import static google.registry.dns.PublishDnsUpdatesAction.PARAM_NUM_PUBLISH_LOCKS;
 import static google.registry.dns.PublishDnsUpdatesAction.PARAM_PUBLISH_TASK_ENQUEUED;
 import static google.registry.dns.PublishDnsUpdatesAction.PARAM_REFRESH_REQUEST_CREATED;
 import static google.registry.request.RequestParameters.extractEnumParameter;
+import static google.registry.request.RequestParameters.extractOptionalIntParameter;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 import static google.registry.request.RequestParameters.extractSetOfParameters;
 
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
@@ -48,6 +53,17 @@ public abstract class DnsModule {
   @Binds
   @DnsWriterZone
   abstract String provideZoneName(@Parameter(RequestParameters.PARAM_TLD) String tld);
+
+  /**
+   * Provides a HashFunction used for generating sharded DNS publish queue tasks.
+   *
+   * <p>We use murmur3_32 because it isn't subject to change, and is fast (non-cryptographic, which
+   * would be overkill in this situation.)
+   */
+  @Provides
+  static HashFunction provideHashFunction() {
+    return Hashing.murmur3_32();
+  }
 
   @Provides
   @Named(DNS_PULL_QUEUE_NAME)
@@ -79,6 +95,20 @@ public abstract class DnsModule {
   @Parameter(PARAM_DNS_WRITER)
   static String provideDnsWriter(HttpServletRequest req) {
     return extractRequiredParameter(req, PARAM_DNS_WRITER);
+  }
+
+  @Provides
+  @Parameter(PARAM_LOCK_INDEX)
+  static int provideLockIndex(HttpServletRequest req) {
+    // TODO(b/72150053): Make non-optional once this cl has reached production for an hour
+    return extractOptionalIntParameter(req, PARAM_LOCK_INDEX).orElse(1);
+  }
+
+  @Provides
+  @Parameter(PARAM_NUM_PUBLISH_LOCKS)
+  static int provideMaxNumLocks(HttpServletRequest req) {
+    // TODO(b/72150053): Make non-optional once this cl has reached production for an hour
+    return extractOptionalIntParameter(req, PARAM_NUM_PUBLISH_LOCKS).orElse(1);
   }
 
   @Provides

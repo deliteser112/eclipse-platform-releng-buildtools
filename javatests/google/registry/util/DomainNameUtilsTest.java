@@ -17,6 +17,7 @@ package google.registry.util;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
+import static google.registry.util.DomainNameUtils.getSecondLevelDomain;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,7 +27,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class DomainNameUtilsTest {
   @Test
-  public void testCanonicalizeDomainName() throws Exception {
+  public void testCanonicalizeDomainName() {
     assertThat(canonicalizeDomainName("foo")).isEqualTo("foo");
     assertThat(canonicalizeDomainName("FOO")).isEqualTo("foo");
     assertThat(canonicalizeDomainName("foo.tld")).isEqualTo("foo.tld");
@@ -40,7 +41,33 @@ public class DomainNameUtilsTest {
   }
 
   @Test
-  public void testCanonicalizeDomainName_acePrefixUnicodeChars() throws Exception {
+  public void testCanonicalizeDomainName_acePrefixUnicodeChars() {
     assertThrows(IllegalArgumentException.class, () -> canonicalizeDomainName("xn--みんな"));
+  }
+
+  @Test
+  public void testGetSecondLevelDomain_returnsProperDomain() {
+    assertThat(getSecondLevelDomain("foo.bar", "bar")).isEqualTo("foo.bar");
+    assertThat(getSecondLevelDomain("ns1.foo.bar", "bar")).isEqualTo("foo.bar");
+    assertThat(getSecondLevelDomain("ns1.abc.foo.bar", "bar")).isEqualTo("foo.bar");
+    assertThat(getSecondLevelDomain("ns1.abc.foo.bar", "foo.bar")).isEqualTo("abc.foo.bar");
+  }
+
+  @Test
+  public void testGetSecondLevelDomain_insufficientDomainNameDepth() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class, () -> getSecondLevelDomain("bar", "bar"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("hostName must be at least one level below the tld");
+  }
+
+  @Test
+  public void testGetSecondLevelDomain_domainNotUnderTld() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class, () -> getSecondLevelDomain("foo.bar", "abc"));
+    assertThat(thrown).hasMessageThat().isEqualTo("hostName must be under the tld");
   }
 }

@@ -17,6 +17,7 @@ package google.registry.dns.writer.clouddns;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static google.registry.util.DomainNameUtils.getSecondLevelDomain;
 
 import com.google.api.client.googleapis.json.GoogleJsonError.ErrorInfo;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -24,7 +25,6 @@ import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.Change;
 import com.google.api.services.dns.model.ResourceRecordSet;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -255,17 +255,9 @@ public class CloudDnsWriter extends BaseDnsWriter {
       return;
     }
 
-    // Extract the superordinate domain name. The TLD and host may have several dots so this
-    // must calculate a sublist.
-    ImmutableList<String> hostParts = host.parts();
-    ImmutableList<String> tldParts = tld.get().parts();
-    ImmutableList<String> domainParts =
-        hostParts.subList(hostParts.size() - tldParts.size() - 1, hostParts.size());
-    String domain = Joiner.on(".").join(domainParts);
-
     // Refresh the superordinate domain, since we shouldn't be publishing glue records if we are not
     // authoritative for the superordinate domain.
-    publishDomain(domain);
+    publishDomain(getSecondLevelDomain(hostName, tld.get().toString()));
   }
 
   /**

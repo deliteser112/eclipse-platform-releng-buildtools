@@ -99,6 +99,19 @@ public class RegistryTest extends EntityTestCase {
   }
 
   @Test
+  public void testDefaultNumDnsPublishShards_equalToOne() {
+    Registry registry = Registry.get("tld").asBuilder().build();
+    assertThat(registry.getNumDnsPublishLocks()).isEqualTo(1);
+  }
+
+  @Test
+  public void testSettingNumDnsPublishShards() {
+    Registry registry =
+        Registry.get("tld").asBuilder().setNumDnsPublishLocks(2).build();
+    assertThat(registry.getNumDnsPublishLocks()).isEqualTo(2);
+  }
+
+  @Test
   public void testSetReservedList_doesntMutateExistingRegistry() {
     ReservedList rl15 = persistReservedList(
         "tld-reserved15",
@@ -456,6 +469,26 @@ public class RegistryTest extends EntityTestCase {
             IllegalArgumentException.class,
             () -> Registry.get("tld").asBuilder().setRestoreBillingCost(Money.of(USD, -42)));
     assertThat(thrown).hasMessageThat().contains("restoreBillingCost cannot be negative");
+  }
+
+  @Test
+  public void testFailure_nonPositiveNumDnsPublishLocks() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> Registry.get("tld").asBuilder().setNumDnsPublishLocks(-1));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "numDnsPublishLocks must be positive when set explicitly (use 1 for TLD-wide locks)");
+    thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> Registry.get("tld").asBuilder().setNumDnsPublishLocks(0));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "numDnsPublishLocks must be positive when set explicitly (use 1 for TLD-wide locks)");
   }
 
   @Test

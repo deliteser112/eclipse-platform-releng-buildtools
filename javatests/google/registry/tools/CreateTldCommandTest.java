@@ -540,7 +540,8 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
     System.setErr(new PrintStream(errContent));
     runReservedListsTestOverride("common_abuse,tld_banned");
     String errMsg =
-        "Error overriden: The reserved list(s) tld_banned cannot be applied to the tld xn--q9jyb4c";
+        "Error overridden: The reserved list(s) tld_banned "
+            + "cannot be applied to the tld xn--q9jyb4c";
     assertThat(errContent.toString()).contains(errMsg);
     System.setOut(null);
   }

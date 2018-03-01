@@ -51,6 +51,8 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
 
   public static final String PATH = "/_dr/task/publishDnsUpdates";
   public static final String PARAM_DNS_WRITER = "dnsWriter";
+  public static final String PARAM_LOCK_INDEX = "lockIndex";
+  public static final String PARAM_NUM_PUBLISH_LOCKS = "numPublishLocks";
   public static final String PARAM_DOMAINS = "domains";
   public static final String PARAM_HOSTS = "hosts";
   public static final String PARAM_PUBLISH_TASK_ENQUEUED = "enqueued";
@@ -78,6 +80,8 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
   // TODO(b/73343464): make not-optional once transition has ended
   @Inject @Parameter(PARAM_REFRESH_REQUEST_CREATED) Optional<DateTime> itemsCreateTime;
 
+  @Inject @Parameter(PARAM_LOCK_INDEX) int lockIndex;
+  @Inject @Parameter(PARAM_NUM_PUBLISH_LOCKS) int numPublishLocks;
   @Inject @Parameter(PARAM_DOMAINS) Set<String> domains;
   @Inject @Parameter(PARAM_HOSTS) Set<String> hosts;
   @Inject @Parameter(PARAM_TLD) String tld;
@@ -108,11 +112,20 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
   /** Runs the task. */
   @Override
   public void run() {
+    if (!validLockParams()) {
+      recordActionResult(ActionStatus.BAD_LOCK_INDEX);
+      requeueBatch();
+      return;
+    }
     // If executeWithLocks fails to get the lock, it does not throw an exception, simply returns
     // false. We need to make sure to take note of this error; otherwise, a failed lock might result
     // in the update task being dequeued and dropped. A message will already have been logged
     // to indicate the problem.
-    if (!lockHandler.executeWithLocks(this, tld, timeout, LOCK_NAME)) {
+    if (!lockHandler.executeWithLocks(
+        this,
+        tld,
+        timeout,
+        String.format("%s-lock %d of %d", LOCK_NAME, lockIndex, numPublishLocks))) {
       recordActionResult(ActionStatus.LOCK_FAILURE);
       throw new ServiceUnavailableException("Lock failure");
     }
@@ -127,12 +140,32 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
 
   /** Adds all the domains and hosts in the batch back to the queue to be processed later. */
   private void requeueBatch() {
+    logger.infofmt("Requeueing batch for retry");
     for (String domain : nullToEmpty(domains)) {
       dnsQueue.addDomainRefreshTask(domain);
     }
     for (String host : nullToEmpty(hosts)) {
       dnsQueue.addHostRefreshTask(host);
     }
+  }
+
+  /** Returns if the lock parameters are valid for this action. */
+  private boolean validLockParams() {
+    // LockIndex should always be within [1, numPublishLocks]
+    if (lockIndex > numPublishLocks || lockIndex <= 0) {
+      logger.severefmt(
+          "Lock index should be within [1,%d], got %d instead", numPublishLocks, lockIndex);
+      return false;
+    }
+    // Check if the Registry object's num locks has changed since this task was batched
+    int registryNumPublishLocks = Registry.get(tld).getNumDnsPublishLocks();
+    if (registryNumPublishLocks != numPublishLocks) {
+      logger.warningfmt(
+          "Registry numDnsPublishLocks %d out of sync with parameter %d",
+          registryNumPublishLocks, numPublishLocks);
+      return false;
+    }
+    return true;
   }
 
   /** Steps through the domain and host refreshes contained in the parameters and processes them. */
@@ -142,9 +175,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
     DnsWriter writer = dnsWriterProxy.getByClassNameForTld(dnsWriter, tld);
 
     if (writer == null) {
-      logger.warningfmt(
-          "Couldn't get writer %s for TLD %s, pushing domains back to the queue for retry",
-          dnsWriter, tld);
+      logger.warningfmt("Couldn't get writer %s for TLD %s", dnsWriter, tld);
       recordActionResult(ActionStatus.BAD_WRITER);
       requeueBatch();
       return;
