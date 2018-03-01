@@ -190,7 +190,7 @@
 
   <!--
     Removed for the duration of load testing
-    TODO(b/67947699): Restore after loadtesting is done
+    TODO(b/71607184): Restore after loadtesting is done
   <cron>
     <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/deleteProberData&runInEmpty]]></url>
     <description>

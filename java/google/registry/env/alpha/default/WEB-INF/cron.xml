@@ -179,6 +179,9 @@
     <target>backend</target>
   </cron>
 
+  <!--
+    Removed for the duration of load testing
+    TODO(b/71607184): Restore after loadtesting is done
   <cron>
     <url><![CDATA[/_dr/cron/fanout?queue=retryable-cron-tasks&endpoint=/_dr/task/deleteProberData&runInEmpty]]></url>
     <description>
@@ -188,6 +191,7 @@
     <timezone>UTC</timezone>
     <target>backend</target>
   </cron>
+  -->
 
   <!-- TODO: Add borgmon job to check that these files are created and updated successfully. -->
   <cron>
