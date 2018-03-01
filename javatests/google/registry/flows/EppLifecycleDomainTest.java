@@ -818,6 +818,21 @@ public class EppLifecycleDomainTest extends EppTestCase {
   }
 
   @Test
+  public void testRenewalFails_whenTotalTermExceeds10Years() throws Exception {
+    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    // Creates domain with 2 year expiration.
+    createFakesite();
+    // Attempt to renew for 9 years, adding up to a total greater than the allowed max of 10 years.
+    assertCommandAndResponse(
+        "domain_renew.xml",
+        ImmutableMap.of("DOMAIN", "fakesite.example", "EXPDATE", "2002-06-01", "YEARS", "9"),
+        "domain_renew_response_exceeds_max_years.xml",
+        ImmutableMap.of(),
+        DateTime.parse("2000-06-07T00:00:00Z"));
+    assertCommandAndResponse("logout.xml", "logout_response.xml");
+  }
+
+  @Test
   public void testDomainDeletionCancelsPendingTransfer() throws Exception {
     // Register the domain as the first registrar.
     assertCommandAndResponse("login_valid.xml", "login_response.xml");

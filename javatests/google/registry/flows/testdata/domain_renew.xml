@@ -4,7 +4,7 @@
       <domain:renew
        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
         <domain:name>%DOMAIN%</domain:name>
-        <domain:curExpDate>2000-04-03</domain:curExpDate>
+        <domain:curExpDate>%EXPDATE%</domain:curExpDate>
         <domain:period unit="y">%YEARS%</domain:period>
       </domain:renew>
     </renew>

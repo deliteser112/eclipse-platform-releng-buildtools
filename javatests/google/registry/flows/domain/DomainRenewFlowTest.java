@@ -83,14 +83,11 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
 
   final DateTime expirationTime = DateTime.parse("2000-04-03T22:00:00.0Z");
 
-  public DomainRenewFlowTest() {
-    clock.setTo(expirationTime.minusMillis(2));
-    setEppInput("domain_renew.xml");
-  }
-
   @Before
   public void initDomainTest() {
     createTld("tld");
+    clock.setTo(expirationTime.minusMillis(2));
+    setEppInput("domain_renew.xml", ImmutableMap.of("DOMAIN", "example.tld", "YEARS", "5"));
   }
 
   private void persistDomain(StatusValue... statusValues) throws Exception {
@@ -122,15 +119,14 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
                 .setMsg("Domain was auto-renewed.")
                 .setParent(historyEntryDomainCreate)
                 .build());
-    domain =
-        persistResource(
-            domain
-                .asBuilder()
-                .setRegistrationExpirationTime(expirationTime)
-                .setStatusValues(ImmutableSet.copyOf(statusValues))
-                .setAutorenewBillingEvent(Key.create(autorenewEvent))
-                .setAutorenewPollMessage(Key.create(autorenewPollMessage))
-                .build());
+    persistResource(
+        domain
+            .asBuilder()
+            .setRegistrationExpirationTime(expirationTime)
+            .setStatusValues(ImmutableSet.copyOf(statusValues))
+            .setAutorenewBillingEvent(Key.create(autorenewEvent))
+            .setAutorenewPollMessage(Key.create(autorenewPollMessage))
+            .build());
     clock.advanceOneMilli();
   }
 
@@ -228,13 +224,19 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
   @Test
   public void testDryRun() throws Exception {
     persistDomain();
-    dryRunFlowAssertResponse(loadFile("domain_renew_response.xml"));
+    dryRunFlowAssertResponse(
+        loadFile(
+            "domain_renew_response.xml",
+            ImmutableMap.of("DOMAIN", "example.tld", "EXDATE", "2005-04-03T22:00:00.0Z")));
   }
 
   @Test
   public void testSuccess() throws Exception {
     persistDomain();
-    doSuccessfulTest("domain_renew_response.xml", 5);
+    doSuccessfulTest(
+        "domain_renew_response.xml",
+        5,
+        ImmutableMap.of("DOMAIN", "example.tld", "EXDATE", "2005-04-03T22:00:00.0Z"));
   }
 
   @Test
@@ -380,7 +382,10 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .setRenewGracePeriodLength(Duration.standardMinutes(9))
             .build());
     persistDomain();
-    doSuccessfulTest("domain_renew_response.xml", 5);
+    doSuccessfulTest(
+        "domain_renew_response.xml",
+        5,
+        ImmutableMap.of("DOMAIN", "example.tld", "EXDATE", "2005-04-03T22:00:00.0Z"));
   }
 
   @Test
@@ -402,7 +407,10 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
             .asBuilder()
             .setEventTime(expirationTime.minusYears(1))
             .build());
-    runFlowAssertResponse(loadFile("domain_renew_response.xml"));
+    runFlowAssertResponse(
+        loadFile(
+            "domain_renew_response.xml",
+            ImmutableMap.of("DOMAIN", "example.tld", "EXDATE", "2005-04-03T22:00:00.0Z")));
     HistoryEntry historyEntryDomainRenew =
         getOnlyHistoryEntryOfType(reloadResourceByForeignKey(), HistoryEntry.Type.DOMAIN_RENEW);
     assertPollMessages(
@@ -644,7 +652,11 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
     sessionMetadata.setClientId("NewRegistrar");
     persistDomain();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_renew_response.xml"));
+        CommitMode.LIVE,
+        UserPrivileges.SUPERUSER,
+        loadFile(
+            "domain_renew_response.xml",
+            ImmutableMap.of("DOMAIN", "example.tld", "EXDATE", "2005-04-03T22:00:00.0Z")));
   }
 
   @Test
@@ -662,7 +674,11 @@ public class DomainRenewFlowTest extends ResourceFlowTestCase<DomainRenewFlow, D
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistDomain();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_renew_response.xml"));
+        CommitMode.LIVE,
+        UserPrivileges.SUPERUSER,
+        loadFile(
+            "domain_renew_response.xml",
+            ImmutableMap.of("DOMAIN", "example.tld", "EXDATE", "2005-04-03T22:00:00.0Z")));
   }
 
   @Test
