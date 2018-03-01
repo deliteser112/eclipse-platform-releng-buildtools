@@ -20,7 +20,7 @@
     </create>
     <extension>
       <launch:create xmlns:launch="urn:ietf:params:xml:ns:launch-1.0" type="registration">
-        <launch:phase name="start-date">sunrise</launch:phase>
+        <launch:phase>sunrise</launch:phase>
         <launch:notice>
           <launch:noticeID>370d0b7c9223372036854775807</launch:noticeID>
           <launch:notAfter>2010-08-16T09:00:00.0Z</launch:notAfter>

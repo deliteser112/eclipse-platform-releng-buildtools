@@ -58,6 +58,10 @@ public class LaunchPhase extends ImmutableObject {
   /**
    * The phase during which trademark holders can submit registrations or applications with
    * trademark information that can be validated by the server.
+   *
+   * This phase works for both start-date and end-data sunrise.
+   *
+   * TODO(b/74006379): maybe make this work for sunrush phase?
    */
   public static final LaunchPhase SUNRISE = create("sunrise", null);
 
@@ -75,12 +79,6 @@ public class LaunchPhase extends ImmutableObject {
    * Notice must be displayed to a prospective registrant of a domain name that matches trademarks.
    */
   public static final LaunchPhase CLAIMS = create("claims", null);
-
-  /**
-   * An alternative launch phase which allows only trademark owners to create domains. It is used
-   * instead of the previous phases.
-   */
-  public static final LaunchPhase START_DATE_SUNRISE = create("sunrise", "start-date");
 
   /** A post-launch phase that is also referred to as "steady state". */
   public static final LaunchPhase OPEN = create("open", null);

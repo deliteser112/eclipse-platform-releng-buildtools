@@ -37,7 +37,7 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyNoCodeMarks;
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotReserved;
 import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNotBlocked;
 import static google.registry.flows.domain.DomainFlowUtils.verifyRegistrarIsActive;
-import static google.registry.flows.domain.DomainFlowUtils.verifyRegistryStateAllowsLaunchFlows;
+import static google.registry.flows.domain.DomainFlowUtils.verifyRegistryStateAllowsApplicationFlows;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRepoId;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
@@ -320,7 +320,7 @@ public final class DomainApplicationCreateFlow implements TransactionalFlow {
     }
     boolean isSunriseApplication = !launchCreate.getSignedMarks().isEmpty();
     if (!isSuperuser) {  // Superusers can ignore the phase.
-      verifyRegistryStateAllowsLaunchFlows(registry, now);
+      verifyRegistryStateAllowsApplicationFlows(registry, now);
       verifyLaunchPhaseMatchesRegistryPhase(registry, launchCreate, now);
     }
     if (now.isBefore(registry.getClaimsPeriodEnd())) {

@@ -118,7 +118,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -130,14 +129,14 @@ import org.joda.time.Duration;
 /** Static utility functions for domain flows. */
 public class DomainFlowUtils {
 
-  /** Map from launch phases to the equivalent tld states. */
-  private static final ImmutableMap<LaunchPhase, TldState> LAUNCH_PHASE_TO_TLD_STATE =
-      new ImmutableMap.Builder<LaunchPhase, TldState>()
+  /** Map from launch phases to the allowed tld states. */
+  private static final ImmutableMultimap<LaunchPhase, TldState> LAUNCH_PHASE_TO_TLD_STATES =
+      new ImmutableMultimap.Builder<LaunchPhase, TldState>()
           .put(LaunchPhase.SUNRISE, TldState.SUNRISE)
           .put(LaunchPhase.SUNRUSH, TldState.SUNRUSH)
           .put(LaunchPhase.LANDRUSH, TldState.LANDRUSH)
           .put(LaunchPhase.CLAIMS, TldState.GENERAL_AVAILABILITY)
-          .put(LaunchPhase.START_DATE_SUNRISE, TldState.START_DATE_SUNRISE)
+          .put(LaunchPhase.SUNRISE, TldState.START_DATE_SUNRISE)
           .put(LaunchPhase.OPEN, TldState.GENERAL_AVAILABILITY)
           .build();
 
@@ -149,7 +148,7 @@ public class DomainFlowUtils {
           ReservationType.MISTAKEN_PREMIUM);
 
   /** Non-sunrise tld states. */
-  private static final ImmutableSet<TldState> DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS =
+  private static final ImmutableSet<TldState> DISALLOWED_TLD_STATES_FOR_APPLICATION_FLOWS =
       Sets.immutableEnumSet(
           TldState.PREDELEGATION,
           TldState.QUIET_PERIOD,
@@ -421,8 +420,8 @@ public class DomainFlowUtils {
   /** Verifies that a launch extension's specified phase matches the specified registry's phase. */
   static void verifyLaunchPhaseMatchesRegistryPhase(
       Registry registry, LaunchExtension launchExtension, DateTime now) throws EppException {
-    if (!Objects.equals(
-        registry.getTldState(now), LAUNCH_PHASE_TO_TLD_STATE.get(launchExtension.getPhase()))) {
+    if (!LAUNCH_PHASE_TO_TLD_STATES.containsEntry(
+        launchExtension.getPhase(), registry.getTldState(now))) {
       // No launch operations are allowed during the quiet period or predelegation.
       throw new LaunchPhaseMismatchException();
     }
@@ -843,9 +842,9 @@ public class DomainFlowUtils {
   }
 
   /** Check that the registry phase is not incompatible with launch extension flows. */
-  static void verifyRegistryStateAllowsLaunchFlows(Registry registry, DateTime now)
+  static void verifyRegistryStateAllowsApplicationFlows(Registry registry, DateTime now)
       throws BadCommandForRegistryPhaseException {
-    if (DISALLOWED_TLD_STATES_FOR_LAUNCH_FLOWS.contains(registry.getTldState(now))) {
+    if (DISALLOWED_TLD_STATES_FOR_APPLICATION_FLOWS.contains(registry.getTldState(now))) {
       throw new BadCommandForRegistryPhaseException();
     }
   }

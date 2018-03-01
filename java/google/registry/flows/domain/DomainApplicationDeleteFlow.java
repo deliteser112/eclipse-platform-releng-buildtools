@@ -22,7 +22,7 @@ import static google.registry.flows.ResourceFlowUtils.verifyResourceOwnership;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.verifyApplicationDomainMatchesTargetId;
 import static google.registry.flows.domain.DomainFlowUtils.verifyLaunchPhaseMatchesRegistryPhase;
-import static google.registry.flows.domain.DomainFlowUtils.verifyRegistryStateAllowsLaunchFlows;
+import static google.registry.flows.domain.DomainFlowUtils.verifyRegistryStateAllowsApplicationFlows;
 import static google.registry.model.EppResourceUtils.loadDomainApplication;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
@@ -91,7 +91,7 @@ public final class DomainApplicationDeleteFlow implements TransactionalFlow {
     if (!isSuperuser) {
       checkAllowedAccessToTld(clientId, tld);
       Registry registry = Registry.get(tld);
-      verifyRegistryStateAllowsLaunchFlows(registry, now);
+      verifyRegistryStateAllowsApplicationFlows(registry, now);
       verifyLaunchPhaseMatchesRegistryPhase(
           registry, eppInput.getSingleExtension(LaunchDeleteExtension.class).get(), now);
       verifyResourceOwnership(clientId, existingApplication);

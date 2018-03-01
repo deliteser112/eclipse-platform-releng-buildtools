@@ -1778,6 +1778,19 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     assertNoLordn("0000001761376042759136-65535", null);
   }
 
+
+  /** Tests possible confusion caused by the common start-date and end-date sunrise LaunchPhase. */
+  @Test
+  public void testFail_sunriseRegistration_withEncodedSignedMark() throws Exception {
+    createTld("tld", TldState.SUNRISE);
+    clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
+    setEppInput("domain_create_registration_start_date_sunrise_encoded_signed_mark.xml");
+    persistContactsAndHosts();
+    EppException thrown =
+        assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
   @Test
   public void testFail_startDateSunriseRegistration_wrongEncodedSignedMark() throws Exception {
     createTld("tld", TldState.START_DATE_SUNRISE);

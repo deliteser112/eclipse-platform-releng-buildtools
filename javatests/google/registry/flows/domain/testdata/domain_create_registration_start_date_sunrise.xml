@@ -22,7 +22,7 @@
       <launch:create
        xmlns:launch="urn:ietf:params:xml:ns:launch-1.0"
        type="registration">
-        <launch:phase name="start-date">sunrise</launch:phase>
+        <launch:phase>sunrise</launch:phase>
       </launch:create>
     </extension>
     <clTRID>ABC-12345</clTRID>
