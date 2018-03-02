@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
 
 import google.registry.model.tmch.ClaimsListShard;
@@ -38,11 +39,11 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
     ClaimsListShard claimsList = ClaimsListShard.get();
     assertThat(claimsList.getCreationTime()).isEqualTo(DateTime.parse("2012-08-16T00:00:00.0Z"));
     assertThat(claimsList.getClaimKey("example"))
-        .isEqualTo("2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001");
+        .hasValue("2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001");
     assertThat(claimsList.getClaimKey("another-example"))
-        .isEqualTo("2013041500/6/A/5/alJAqG2vI2BmCv5PfUvuDkf40000000002");
+        .hasValue("2013041500/6/A/5/alJAqG2vI2BmCv5PfUvuDkf40000000002");
     assertThat(claimsList.getClaimKey("anotherexample"))
-        .isEqualTo("2013041500/A/C/7/rHdC4wnrWRvPY6nneCVtQhFj0000000003");
+        .hasValue("2013041500/A/C/7/rHdC4wnrWRvPY6nneCVtQhFj0000000003");
   }
 
   @Test

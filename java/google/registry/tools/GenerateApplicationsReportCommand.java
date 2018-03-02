@@ -156,7 +156,7 @@ final class GenerateApplicationsReportCommand implements RemoteApiCommand {
         && (domainApplication.getLaunchNotice() == null
             || domainApplication.getLaunchNotice().getNoticeId() == null
             || isNullOrEmpty(domainApplication.getLaunchNotice().getNoticeId().getTcnId()))
-        && ClaimsListShard.get().getClaimKey(label) != null) {
+        && ClaimsListShard.get().getClaimKey(label).isPresent()) {
       return Optional.of(makeLine(domainApplication, "Missing claims notice"));
     }
 

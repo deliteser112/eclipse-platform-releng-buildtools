@@ -15,6 +15,7 @@
 package google.registry.model.tmch;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
@@ -90,8 +91,8 @@ public class ClaimsListShardTest {
     assertThat(ClaimsListShard.get().labelsToKeys).isEqualTo(unsharded.labelsToKeys);
     List<ClaimsListShard> shards1 = ofy().load().type(ClaimsListShard.class).list();
     assertThat(shards1).hasSize(4);
-    assertThat(ClaimsListShard.get().getClaimKey("1")).isEqualTo("1");
-    assertThat(ClaimsListShard.get().getClaimKey("a")).isNull();
+    assertThat(ClaimsListShard.get().getClaimKey("1")).hasValue("1");
+    assertThat(ClaimsListShard.get().getClaimKey("a")).isEmpty();
     assertThat(ClaimsListShard.getCurrentRevision()).isEqualTo(shards1.get(0).parent);
 
     // Create a smaller ClaimsList that will need only 2 shards to save.

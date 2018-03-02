@@ -889,6 +889,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     EppException thrown = assertThrows(MissingClaimsNoticeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
+    assertNoTasksEnqueued(QUEUE_CLAIMS, QUEUE_SUNRISE);
   }
 
   @Test

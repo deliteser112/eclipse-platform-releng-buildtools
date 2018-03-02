@@ -50,6 +50,7 @@ import google.registry.model.tmch.ClaimsListShard;
 import google.registry.util.Clock;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -109,10 +110,10 @@ public final class DomainClaimsCheckFlow implements Flow {
           verifyClaimsPeriodNotEnded(registry, now);
         }
       }
-      String claimKey = ClaimsListShard.get().getClaimKey(domainName.parts().get(0));
+      Optional<String> claimKey = ClaimsListShard.get().getClaimKey(domainName.parts().get(0));
       launchChecksBuilder.add(
           LaunchCheck.create(
-              LaunchCheckName.create(claimKey != null, targetId), claimKey));
+              LaunchCheckName.create(claimKey.isPresent(), targetId), claimKey.orElse(null)));
     }
     return responseBuilder
         .setOnlyExtension(LaunchCheckResponseExtension.create(CLAIMS, launchChecksBuilder.build()))

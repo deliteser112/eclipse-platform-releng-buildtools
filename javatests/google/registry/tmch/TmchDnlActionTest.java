@@ -15,6 +15,7 @@
 package google.registry.tmch;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -36,7 +37,7 @@ public class TmchDnlActionTest extends TmchActionTestCase {
 
   @Test
   public void testDnl() throws Exception {
-    assertThat(ClaimsListShard.get().getClaimKey("xn----7sbejwbn3axu3d")).isNull();
+    assertThat(ClaimsListShard.get().getClaimKey("xn----7sbejwbn3axu3d")).isEmpty();
     when(httpResponse.getContent())
         .thenReturn(TmchTestData.loadBytes("dnl-latest.csv").read())
         .thenReturn(TmchTestData.loadBytes("dnl-latest.sig").read());
@@ -51,7 +52,7 @@ public class TmchDnlActionTest extends TmchActionTestCase {
     ClaimsListShard claimsList = ClaimsListShard.get();
     assertThat(claimsList.getCreationTime()).isEqualTo(DateTime.parse("2013-11-24T23:15:37.4Z"));
     assertThat(claimsList.getClaimKey("xn----7sbejwbn3axu3d"))
-        .isEqualTo("2013112500/7/4/8/dIHW0DiuybvhdP8kIz");
-    assertThat(claimsList.getClaimKey("lolcat")).isNull();
+        .hasValue("2013112500/7/4/8/dIHW0DiuybvhdP8kIz");
+    assertThat(claimsList.getClaimKey("lolcat")).isEmpty();
   }
 }

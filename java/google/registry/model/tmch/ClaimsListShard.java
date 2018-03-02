@@ -45,6 +45,7 @@ import google.registry.util.SystemSleeper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -145,8 +146,9 @@ public class ClaimsListShard extends ImmutableObject {
     return creationTime;
   }
 
-  public String getClaimKey(String label) {
-    return labelsToKeys.get(label);
+  /** Returns the claim key for a given domain if there is one, empty otherwise. */
+  public Optional<String> getClaimKey(String label) {
+    return Optional.ofNullable(labelsToKeys.get(label));
   }
 
   public ImmutableMap<String, String> getLabelsToKeys() {

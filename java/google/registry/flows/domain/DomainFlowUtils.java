@@ -934,7 +934,8 @@ public class DomainFlowUtils {
   static void verifyClaimsNoticeIfAndOnlyIfNeeded(
       InternetDomainName domainName, boolean hasSignedMarks, boolean hasClaimsNotice)
       throws EppException {
-    boolean isInClaimsList = ClaimsListShard.get().getClaimKey(domainName.parts().get(0)) != null;
+    boolean isInClaimsList =
+        ClaimsListShard.get().getClaimKey(domainName.parts().get(0)).isPresent();
     if (hasClaimsNotice && !isInClaimsList) {
       throw new UnexpectedClaimsNoticeException(domainName.toString());
     }
