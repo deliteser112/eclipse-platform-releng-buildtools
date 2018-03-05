@@ -28,12 +28,15 @@ import static org.joda.time.DateTimeZone.UTC;
 import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.testing.DeterministicStringGenerator;
 import google.registry.util.CidrAddressBlock;
 import java.security.cert.CertificateParsingException;
+import org.joda.money.CurrencyUnit;
+import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Before;
@@ -42,8 +45,13 @@ import org.junit.Test;
 /** Unit tests for {@link SetupOteCommand}. */
 public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
 
-  ImmutableList<String> passwords = ImmutableList.of(
-      "abcdefghijklmnop", "qrstuvwxyzabcdef", "ghijklmnopqrstuv", "wxyzabcdefghijkl");
+  ImmutableList<String> passwords =
+      ImmutableList.of(
+          "abcdefghijklmnop",
+          "qrstuvwxyzabcdef",
+          "ghijklmnopqrstuv",
+          "wxyzabcdefghijkl",
+          "mnopqrstuvwxyzab");
   DeterministicStringGenerator passwordGenerator =
       new DeterministicStringGenerator("abcdefghijklmnopqrstuvwxyz");
 
@@ -64,7 +72,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
       String premiumList,
       Duration addGracePeriodLength,
       Duration redemptionGracePeriodLength,
-      Duration pendingDeleteLength) {
+      Duration pendingDeleteLength,
+      boolean isEarlyAccess) {
     Registry registry = Registry.get(tldName);
     assertThat(registry).isNotNull();
     assertThat(registry.getRoidSuffix()).isEqualTo(roidSuffix);
@@ -75,6 +84,21 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     assertThat(registry.getAddGracePeriodLength()).isEqualTo(addGracePeriodLength);
     assertThat(registry.getRedemptionGracePeriodLength()).isEqualTo(redemptionGracePeriodLength);
     assertThat(registry.getPendingDeleteLength()).isEqualTo(pendingDeleteLength);
+    ImmutableSortedMap<DateTime, Money> eapFeeSchedule = registry.getEapFeeScheduleAsMap();
+    if (!isEarlyAccess) {
+      assertThat(eapFeeSchedule)
+          .isEqualTo(ImmutableSortedMap.of(new DateTime(0), Money.of(CurrencyUnit.USD, 0)));
+    } else {
+      assertThat(eapFeeSchedule)
+          .isEqualTo(
+              ImmutableSortedMap.of(
+                  new DateTime(0),
+                  Money.of(CurrencyUnit.USD, 0),
+                  DateTime.parse("2018-03-01T00:00:00Z"),
+                  Money.of(CurrencyUnit.USD, 100),
+                  DateTime.parse("2022-03-01T00:00:00Z"),
+                  Money.of(CurrencyUnit.USD, 0)));
+    }
   }
 
   /** Verify TLD creation with registry default durations. */
@@ -88,7 +112,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         premiumList,
         Registry.DEFAULT_ADD_GRACE_PERIOD,
         Registry.DEFAULT_REDEMPTION_GRACE_PERIOD,
-        Registry.DEFAULT_PENDING_DELETE_LENGTH);
+        Registry.DEFAULT_PENDING_DELETE_LENGTH,
+        false);
   }
 
   private void verifyRegistrarCreation(
@@ -116,7 +141,11 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--certfile=" + getCertFilename());
 
     verifyTldCreation(
-        "blobio-sunrise", "BLOBIOS0", TldState.SUNRISE, "VoidDnsWriter", "default_sandbox_list");
+        "blobio-sunrise",
+        "BLOBIOS0",
+        TldState.START_DATE_SUNRISE,
+        "VoidDnsWriter",
+        "default_sandbox_list");
     verifyTldCreation(
         "blobio-landrush", "BLOBIOL1", TldState.LANDRUSH, "VoidDnsWriter", "default_sandbox_list");
     verifyTldCreation(
@@ -127,7 +156,18 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "default_sandbox_list",
         Duration.standardMinutes(60),
         Duration.standardMinutes(10),
-        Duration.standardMinutes(5));
+        Duration.standardMinutes(5),
+        false);
+    verifyTldCreation(
+        "blobio-eap",
+        "BLOBIOE3",
+        TldState.GENERAL_AVAILABILITY,
+        "VoidDnsWriter",
+        "default_sandbox_list",
+        Duration.standardMinutes(60),
+        Duration.standardMinutes(10),
+        Duration.standardMinutes(5),
+        true);
 
     ImmutableList<CidrAddressBlock> ipAddress = ImmutableList.of(
         CidrAddressBlock.create("1.1.1.1"));
@@ -136,6 +176,33 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     verifyRegistrarCreation("blobio-2", "blobio-landrush", passwords.get(1), ipAddress);
     verifyRegistrarCreation("blobio-3", "blobio-ga", passwords.get(2), ipAddress);
     verifyRegistrarCreation("blobio-4", "blobio-ga", passwords.get(3), ipAddress);
+    verifyRegistrarCreation("blobio-5", "blobio-eap", passwords.get(4), ipAddress);
+  }
+
+  @Test
+  public void testSuccess_eapOnly() throws Exception {
+    runCommandForced(
+        "--eap_only",
+        "--ip_whitelist=1.1.1.1",
+        "--registrar=blobio",
+        "--dns_writers=VoidDnsWriter",
+        "--certfile=" + getCertFilename());
+
+    verifyTldCreation(
+        "blobio-eap",
+        "BLOBIOE3",
+        TldState.GENERAL_AVAILABILITY,
+        "VoidDnsWriter",
+        "default_sandbox_list",
+        Duration.standardMinutes(60),
+        Duration.standardMinutes(10),
+        Duration.standardMinutes(5),
+        true);
+
+    ImmutableList<CidrAddressBlock> ipAddress = ImmutableList.of(
+        CidrAddressBlock.create("1.1.1.1"));
+
+    verifyRegistrarCreation("blobio-5", "blobio-eap", passwords.get(0), ipAddress);
   }
 
   @Test
@@ -147,7 +214,11 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--certfile=" + getCertFilename());
 
     verifyTldCreation(
-        "blobio-sunrise", "BLOBIOS0", TldState.SUNRISE, "FooDnsWriter", "default_sandbox_list");
+        "blobio-sunrise",
+        "BLOBIOS0",
+        TldState.START_DATE_SUNRISE,
+        "FooDnsWriter",
+        "default_sandbox_list");
     verifyTldCreation(
         "blobio-landrush", "BLOBIOL1", TldState.LANDRUSH, "FooDnsWriter", "default_sandbox_list");
     verifyTldCreation(
@@ -158,7 +229,18 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "default_sandbox_list",
         Duration.standardMinutes(60),
         Duration.standardMinutes(10),
-        Duration.standardMinutes(5));
+        Duration.standardMinutes(5),
+        false);
+    verifyTldCreation(
+        "blobio-eap",
+        "BLOBIOE3",
+        TldState.GENERAL_AVAILABILITY,
+        "FooDnsWriter",
+        "default_sandbox_list",
+        Duration.standardMinutes(60),
+        Duration.standardMinutes(10),
+        Duration.standardMinutes(5),
+        true);
 
     ImmutableList<CidrAddressBlock> ipAddresses = ImmutableList.of(
         CidrAddressBlock.create("1.1.1.1"),
@@ -168,6 +250,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     verifyRegistrarCreation("blobio-2", "blobio-landrush", passwords.get(1), ipAddresses);
     verifyRegistrarCreation("blobio-3", "blobio-ga", passwords.get(2), ipAddresses);
     verifyRegistrarCreation("blobio-4", "blobio-ga", passwords.get(3), ipAddresses);
+    verifyRegistrarCreation("blobio-5", "blobio-eap", passwords.get(4), ipAddresses);
   }
 
   @Test
@@ -180,7 +263,11 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "--premium_list=alternate_list");
 
     verifyTldCreation(
-        "blobio-sunrise", "BLOBIOS0", TldState.SUNRISE, "BarDnsWriter", "alternate_list");
+        "blobio-sunrise",
+        "BLOBIOS0",
+        TldState.START_DATE_SUNRISE,
+        "BarDnsWriter",
+        "alternate_list");
     verifyTldCreation(
         "blobio-landrush", "BLOBIOL1", TldState.LANDRUSH, "BarDnsWriter", "alternate_list");
     verifyTldCreation(
@@ -191,7 +278,18 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
         "alternate_list",
         Duration.standardMinutes(60),
         Duration.standardMinutes(10),
-        Duration.standardMinutes(5));
+        Duration.standardMinutes(5),
+        false);
+    verifyTldCreation(
+        "blobio-eap",
+        "BLOBIOE3",
+        TldState.GENERAL_AVAILABILITY,
+        "BarDnsWriter",
+        "alternate_list",
+        Duration.standardMinutes(60),
+        Duration.standardMinutes(10),
+        Duration.standardMinutes(5),
+        true);
 
     ImmutableList<CidrAddressBlock> ipAddress = ImmutableList.of(
         CidrAddressBlock.create("1.1.1.1"));
@@ -200,6 +298,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     verifyRegistrarCreation("blobio-2", "blobio-landrush", passwords.get(1), ipAddress);
     verifyRegistrarCreation("blobio-3", "blobio-ga", passwords.get(2), ipAddress);
     verifyRegistrarCreation("blobio-4", "blobio-ga", passwords.get(3), ipAddress);
+    verifyRegistrarCreation("blobio-5", "blobio-eap", passwords.get(4), ipAddress);
   }
 
   @Test

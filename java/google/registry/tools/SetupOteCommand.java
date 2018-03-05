@@ -21,6 +21,7 @@ import static google.registry.util.X509Utils.loadCertificate;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.re2j.Pattern;
 import google.registry.config.RegistryEnvironment;
 import google.registry.model.registrar.Registrar;
@@ -35,6 +36,9 @@ import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
+import org.joda.money.CurrencyUnit;
+import org.joda.money.Money;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 /** Composite command to set up OT&E TLDs and accounts. */
@@ -51,6 +55,15 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
   private static final Duration SHORT_ADD_GRACE_PERIOD = Duration.standardMinutes(60);
   private static final Duration SHORT_REDEMPTION_GRACE_PERIOD = Duration.standardMinutes(10);
   private static final Duration SHORT_PENDING_DELETE_LENGTH = Duration.standardMinutes(5);
+
+  private static final ImmutableSortedMap<DateTime, Money> EAP_FEE_SCHEDULE =
+      ImmutableSortedMap.of(
+          new DateTime(0),
+          Money.of(CurrencyUnit.USD, 0),
+          DateTime.parse("2018-03-01T00:00:00Z"),
+          Money.of(CurrencyUnit.USD, 100),
+          DateTime.parse("2022-03-01T00:00:00Z"),
+          Money.of(CurrencyUnit.USD, 0));
 
   private static final String DEFAULT_PREMIUM_LIST = "default_sandbox_list";
 
@@ -92,6 +105,13 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
       description = "premium list to apply to all TLDs")
   private String premiumList = DEFAULT_PREMIUM_LIST;
 
+  // TODO: (b/74079782) remove this flag once OT&E for .app is complete.
+  @Parameter(
+    names = {"--eap_only"},
+    description = "whether to only create EAP TLD and registrar"
+  )
+  private boolean eapOnly = false;
+
   @Inject
   StringGenerator passwordGenerator;
 
@@ -107,7 +127,9 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
       TldState initialTldState,
       Duration addGracePeriod,
       Duration redemptionGracePeriod,
-      Duration pendingDeleteLength) throws Exception {
+      Duration pendingDeleteLength,
+      boolean isEarlyAccess)
+      throws Exception {
     CreateTldCommand command = new CreateTldCommand();
     command.addGracePeriod = addGracePeriod;
     command.dnsWriters = dnsWriters;
@@ -120,6 +142,9 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
     command.roidSuffix = String.format(
         "%S%X", tldName.replaceAll("[^a-z0-9]", "").substring(0, 7), roidSuffixCounter++);
     command.redemptionGracePeriod = redemptionGracePeriod;
+    if (isEarlyAccess) {
+      command.eapFeeSchedule = EAP_FEE_SCHEDULE;
+    }
     command.run();
   }
 
@@ -177,42 +202,77 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
   protected String prompt() throws Exception {
     // Each underlying command will confirm its own operation as well, so just provide
     // a summary of the steps in this command.
-    return "Creating TLDs:\n"
-        + "    " + registrar + "-sunrise\n"
-        + "    " + registrar + "-landrush\n"
-        + "    " + registrar + "-ga\n"
-        + "Creating registrars:\n"
-        + "    " + registrar + "-1 (access to TLD " + registrar + "-sunrise)\n"
-        + "    " + registrar + "-2 (access to TLD " + registrar + "-landrush)\n"
-        + "    " + registrar + "-3 (access to TLD " + registrar + "-ga)\n"
-        + "    " + registrar + "-4 (access to TLD " + registrar + "-ga)";
+    if (eapOnly) {
+      return "Creating TLD:\n"
+          + "    " + registrar + "-eap\n"
+          + "Creating registrar:\n"
+          + "    " + registrar + "-5 (access to TLD " + registrar + "-eap)";
+    } else {
+      return "Creating TLDs:\n"
+          + "    " + registrar + "-sunrise\n"
+          + "    " + registrar + "-landrush\n"
+          + "    " + registrar + "-ga\n"
+          + "    " + registrar + "-eap\n"
+          + "Creating registrars:\n"
+          + "    " + registrar + "-1 (access to TLD " + registrar + "-sunrise)\n"
+          + "    " + registrar + "-2 (access to TLD " + registrar + "-landrush)\n"
+          + "    " + registrar + "-3 (access to TLD " + registrar + "-ga)\n"
+          + "    " + registrar + "-4 (access to TLD " + registrar + "-ga)\n"
+          + "    " + registrar + "-5 (access to TLD " + registrar + "-eap)";
+   }
   }
 
   @Override
   public String execute() throws Exception {
-    createTld(registrar + "-sunrise", TldState.SUNRISE, null, null, null);
-    createTld(registrar + "-landrush", TldState.LANDRUSH, null, null, null);
+    if (!eapOnly) {
+      createTld(registrar + "-sunrise", TldState.START_DATE_SUNRISE, null, null, null, false);
+      createTld(registrar + "-landrush", TldState.LANDRUSH, null, null, null, false);
+      createTld(
+          registrar + "-ga",
+          TldState.GENERAL_AVAILABILITY,
+          SHORT_ADD_GRACE_PERIOD,
+          SHORT_REDEMPTION_GRACE_PERIOD,
+          SHORT_PENDING_DELETE_LENGTH,
+          false);
+    } else {
+      // Increase ROID suffix counter to not collide with existing TLDs.
+      roidSuffixCounter = roidSuffixCounter + 3;
+    }
     createTld(
-        registrar + "-ga",
+        registrar + "-eap",
         TldState.GENERAL_AVAILABILITY,
         SHORT_ADD_GRACE_PERIOD,
         SHORT_REDEMPTION_GRACE_PERIOD,
-        SHORT_PENDING_DELETE_LENGTH);
+        SHORT_PENDING_DELETE_LENGTH,
+        true);
 
     // Storing names and credentials in a list of tuples for later play-back.
     List<List<String>> registrars = new ArrayList<>();
-    registrars.add(ImmutableList.of(
-        registrar + "-1", passwordGenerator.createString(PASSWORD_LENGTH),
-        registrar + "-sunrise"));
-    registrars.add(ImmutableList.of(
-        registrar + "-2", passwordGenerator.createString(PASSWORD_LENGTH),
-        registrar + "-landrush"));
-    registrars.add(ImmutableList.of(
-        registrar + "-3", passwordGenerator.createString(PASSWORD_LENGTH),
-        registrar + "-ga"));
-    registrars.add(ImmutableList.of(
-        registrar + "-4", passwordGenerator.createString(PASSWORD_LENGTH),
-        registrar + "-ga"));
+    if (!eapOnly) {
+      registrars.add(
+          ImmutableList.of(
+              registrar + "-1",
+              passwordGenerator.createString(PASSWORD_LENGTH),
+              registrar + "-sunrise"));
+      registrars.add(
+          ImmutableList.of(
+              registrar + "-2",
+              passwordGenerator.createString(PASSWORD_LENGTH),
+              registrar + "-landrush"));
+      registrars.add(
+          ImmutableList.of(
+              registrar + "-3",
+              passwordGenerator.createString(PASSWORD_LENGTH),
+              registrar + "-ga"));
+      registrars.add(
+          ImmutableList.of(
+              registrar + "-4",
+              passwordGenerator.createString(PASSWORD_LENGTH),
+              registrar + "-ga"));
+    }
+    registrars.add(
+        ImmutableList.of(
+            registrar + "-5", passwordGenerator.createString(PASSWORD_LENGTH), registrar + "-eap"));
 
     for (List<String> r : registrars) {
       createRegistrar(r.get(0), r.get(1), r.get(2));

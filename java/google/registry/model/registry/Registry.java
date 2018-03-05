@@ -603,7 +603,7 @@ public class Registry extends ImmutableObject implements Buildable {
 
   /** Returns the EAP fee for the registry at the given time. */
   public Fee getEapFeeFor(DateTime now) {
-    ImmutableSortedMap<DateTime, Money> valueMap = eapFeeSchedule.toValueMap();
+    ImmutableSortedMap<DateTime, Money> valueMap = getEapFeeScheduleAsMap();
     DateTime periodStart = valueMap.floorKey(now);
     DateTime periodEnd = valueMap.ceilingKey(now);
     // NOTE: assuming END_OF_TIME would never be reached...
@@ -616,6 +616,11 @@ public class Registry extends ImmutableObject implements Buildable {
         FeeType.EAP,
         validPeriod,
         validPeriod.upperEndpoint());
+  }
+
+  @VisibleForTesting
+  public ImmutableSortedMap<DateTime, Money> getEapFeeScheduleAsMap() {
+    return eapFeeSchedule.toValueMap();
   }
 
   public String getLordnUsername() {
