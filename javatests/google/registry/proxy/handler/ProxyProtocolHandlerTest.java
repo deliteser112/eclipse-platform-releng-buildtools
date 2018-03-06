@@ -50,6 +50,20 @@ public class ProxyProtocolHandlerTest {
   }
 
   @Test
+  public void testSuccess_proxyHeaderMalformed_singleFrame() {
+    header = String.format("PROXY UNKNOWN\r\n");
+    String message = "some message";
+    // Header processed, rest of the message passed along.
+    assertThat(channel.writeInbound(Unpooled.wrappedBuffer((header + message).getBytes(UTF_8))))
+        .isTrue();
+    assertThat(((ByteBuf) channel.readInbound()).toString(UTF_8)).isEqualTo(message);
+    // Header malformed.
+    assertThat(channel.attr(REMOTE_ADDRESS_KEY).get()).isNull();
+    assertThat(channel.pipeline().get(ProxyProtocolHandler.class)).isNull();
+    assertThat(channel.isActive()).isTrue();
+  }
+
+  @Test
   public void testSuccess_proxyHeaderPresent_multipleFrames() {
     header = String.format(HEADER_TEMPLATE, 4, "172.0.0.1", "255.255.255.255", "234", "123");
     String frame1 = header.substring(0, 4);
