@@ -89,7 +89,7 @@ public final class CloudDnsWriterModule {
   static RateLimiter provideRateLimiter() {
     // This is the default max QPS for Cloud DNS. It can be increased by contacting the team
     // via the Quotas page on the Cloud Console.
-    int cloudDnsMaxQps = 20;
+    int cloudDnsMaxQps = 50;
     return RateLimiter.create(cloudDnsMaxQps);
   }
 
