@@ -183,6 +183,7 @@ public class DomainRestoreRequestFlowTest
             .setTargetId("example.tld")
             .setClientId("TheRegistrar")
             .setCost(Money.of(USD, 17))
+            .setPeriodYears(1)
             .setEventTime(clock.nowUtc())
             .setBillingTime(clock.nowUtc())
             .setParent(historyEntryDomainRestore)

@@ -239,7 +239,6 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
   private OneTime createRenewBillingEvent(
       HistoryEntry historyEntry, Money renewCost, DateTime now) {
     return prepareBillingEvent(historyEntry, renewCost, now)
-        .setPeriodYears(1)
         .setReason(Reason.RENEW)
         .build();
   }
@@ -257,6 +256,7 @@ public final class DomainRestoreRequestFlow implements TransactionalFlow  {
         .setClientId(clientId)
         .setEventTime(now)
         .setBillingTime(now)
+        .setPeriodYears(1)
         .setCost(cost)
         .setParent(historyEntry);
   }
