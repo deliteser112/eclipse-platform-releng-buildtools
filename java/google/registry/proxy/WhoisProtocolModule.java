@@ -33,7 +33,6 @@ import google.registry.proxy.quota.TokenStore;
 import google.registry.util.Clock;
 import io.netty.channel.ChannelHandler;
 import io.netty.handler.codec.LineBasedFrameDecoder;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
@@ -76,7 +75,6 @@ public class WhoisProtocolModule {
       Provider<LineBasedFrameDecoder> lineBasedFrameDecoderProvider,
       Provider<WhoisServiceHandler> whoisServiceHandlerProvider,
       Provider<WhoisQuotaHandler> whoisQuotaHandlerProvider,
-      Provider<LoggingHandler> loggingHandlerProvider,
       Provider<FullHttpRequestRelayHandler> relayHandlerProvider) {
     return ImmutableList.of(
         proxyProtocolHandlerProvider,
@@ -84,7 +82,6 @@ public class WhoisProtocolModule {
         lineBasedFrameDecoderProvider,
         whoisServiceHandlerProvider,
         whoisQuotaHandlerProvider,
-        loggingHandlerProvider,
         relayHandlerProvider);
   }
 

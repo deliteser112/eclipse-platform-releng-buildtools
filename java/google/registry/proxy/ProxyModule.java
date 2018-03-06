@@ -28,9 +28,9 @@ import com.google.api.services.cloudkms.v1.CloudKMS;
 import com.google.api.services.cloudkms.v1.model.DecryptRequest;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.monitoring.metrics.MetricReporter;
 import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
@@ -42,11 +42,12 @@ import google.registry.proxy.WhoisProtocolModule.WhoisProtocol;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.SystemClock;
+import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.OpenSsl;
 import io.netty.handler.ssl.SslProvider;
 import java.io.IOException;
-import java.util.Objects;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -83,28 +84,27 @@ public class ProxyModule {
   boolean log;
 
   /**
-   * Enable FINE level logging.
+   * Configure logging parameters depending on the {@link Environment}.
    *
-   * <p>Set the loggers log level to {@code FINE}, and also add a console handler that actually
-   * output {@code FINE} level messages to stdout. The handler filters out all non FINE level log
-   * record to avoid double logging. Log records at level higher than FINE (e. g. INFO) will be
-   * handled at parent loggers. Note that {@code FINE} level corresponds to {@code DEBUG} level in
-   * Netty.
+   * <p>If not running locally, set the logging formatter to {@link GcpJsonFormatter} that formats
+   * the log in a single-line json string printed to {@code STDOUT} or {@code STDERR}, will be
+   * correctly parsed by Stackdriver logging.
+   *
+   * @see <a href="https://cloud.google.com/kubernetes-engine/docs/how-to/logging#best_practices">
+   *     Logging Best Practices</a>
    */
-  private static void enableDebugLevelLogging() {
-    ImmutableList<Logger> parentLoggers =
-        ImmutableList.of(
-            Logger.getLogger("io.netty.handler.logging.LoggingHandler"),
-            // Parent of all FormattingLoggers, so that we do not have to configure each
-            // FormattingLogger individually.
-            Logger.getLogger("google.registry.proxy"));
-    for (Logger logger : parentLoggers) {
-      logger.setLevel(Level.FINE);
-      Handler handler = new ConsoleHandler();
-      handler.setFilter(record -> Objects.equals(record.getLevel(), Level.FINE));
-      handler.setLevel(Level.FINE);
-      logger.addHandler(handler);
+  private void configureLogging() {
+    // Remove all other handlers on the root logger to avoid double logging.
+    Logger rootLogger = Logger.getLogger("");
+    Arrays.asList(rootLogger.getHandlers()).forEach(h -> rootLogger.removeHandler(h));
+
+    // If running on in a non-local environment, use GCP JSON formater.
+    Handler rootHandler = new ConsoleHandler();
+    rootHandler.setLevel(Level.FINE);
+    if (env != Environment.LOCAL) {
+      rootHandler.setFormatter(new GcpJsonFormatter());
     }
+    rootLogger.addHandler(rootHandler);
   }
 
   /**
@@ -122,10 +122,7 @@ public class ProxyModule {
       jCommander.usage();
       throw e;
     }
-    if (log) {
-      logger.info("DEBUG LOGGING: ENABLED");
-      enableDebugLevelLogging();
-    }
+    configureLogging();
     return this;
   }
 
@@ -158,11 +155,23 @@ public class ProxyModule {
     return env;
   }
 
-  /** Shared logging handler, set to default DEBUG(FINE) level. */
+  /**
+   * Provides shared logging handler.
+   *
+   * <p>The {@link LoggingHandler} records logs at {@code LogLevel.DEBUG} (internal Netty log
+   * level), which corresponds to {@code Level.FINE} (JUL log level). It uses a JUL logger called
+   * {@code io.netty.handler.logging.LoggingHandler} to actually process the logs. This logger is
+   * set to {@code Level.FINE} if {@code --log} parameter is passed, so that it does not filter out
+   * logs that the {@link LoggingHandler} captures. Otherwise the logs are silently ignored because
+   * the default logger level is {@code Level.INFO}.
+   */
   @Singleton
   @Provides
-  static LoggingHandler provideLoggingHandler() {
-    return new LoggingHandler();
+  LoggingHandler provideLoggingHandler() {
+    if (log) {
+      Logger.getLogger("io.netty.handler.logging.LoggingHandler").setLevel(Level.FINE);
+    }
+    return new LoggingHandler(LogLevel.DEBUG);
   }
 
   @Singleton
@@ -308,10 +317,14 @@ public class ProxyModule {
       HttpsRelayProtocolModule.class,
       WhoisProtocolModule.class,
       EppProtocolModule.class,
-      HealthCheckProtocolModule.class
+      HealthCheckProtocolModule.class,
+      MetricsModule.class
     }
   )
   interface ProxyComponent {
+
     ImmutableMap<Integer, FrontendProtocol> portToProtocolMap();
+
+    MetricReporter metricReporter();
   }
 }

@@ -39,7 +39,6 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -87,7 +86,6 @@ public class EppProtocolModule {
       Provider<LengthFieldPrepender> lengthFieldPrependerProvider,
       Provider<EppServiceHandler> eppServiceHandlerProvider,
       Provider<EppQuotaHandler> eppQuotaHandlerProvider,
-      Provider<LoggingHandler> loggingHandlerProvider,
       Provider<FullHttpRequestRelayHandler> relayHandlerProvider) {
     return ImmutableList.of(
         proxyProtocolHandlerProvider,
@@ -97,7 +95,6 @@ public class EppProtocolModule {
         lengthFieldPrependerProvider,
         eppServiceHandlerProvider,
         eppQuotaHandlerProvider,
-        loggingHandlerProvider,
         relayHandlerProvider);
   }
 

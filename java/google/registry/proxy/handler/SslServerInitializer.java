@@ -68,7 +68,7 @@ public class SslServerInitializer<C extends Channel> extends ChannelInitializer<
       SslProvider sslProvider,
       PrivateKey privateKey,
       @Named("eppServerCertificates") X509Certificate... certificates) {
-    logger.finefmt("Server SSL Provider: %s", sslProvider);
+    logger.infofmt("Server SSL Provider: %s", sslProvider);
     this.sslProvider = sslProvider;
     this.privateKey = privateKey;
     this.certificates = certificates;

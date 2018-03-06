@@ -51,8 +51,7 @@ import javax.inject.Provider;
 public class ProxyServer implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
-  private static final MetricReporter metricReporter =
-      DaggerMetricsModule_MetricsComponent.create().metricReporter();
+
   /** Maximum length of the queue of incoming connections. */
   private static final int MAX_SOCKET_BACKLOG = 128;
 
@@ -211,6 +210,14 @@ public class ProxyServer implements Runnable {
     // which is what google.registry.util.FormattingLog uses under the hood.
     InternalLoggerFactory.setDefaultFactory(JdkLoggerFactory.INSTANCE);
 
+    // Configure the components, this needs to run first so that the logging format is properly
+    // configured for each environment.
+    ProxyComponent proxyComponent =
+        DaggerProxyModule_ProxyComponent.builder()
+            .proxyModule(new ProxyModule().parse(args))
+            .build();
+
+    MetricReporter metricReporter = proxyComponent.metricReporter();
     try {
       metricReporter.startAsync().awaitRunning(10, TimeUnit.SECONDS);
       logger.info("Started up MetricReporter");
@@ -226,14 +233,10 @@ public class ProxyServer implements Runnable {
                     metricReporter.stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
                     logger.info("Shut down MetricReporter");
                   } catch (TimeoutException timeoutException) {
-                    logger.severefmt("Failed to stop MetricReporter: %s", timeoutException);
+                    logger.warningfmt("Failed to stop MetricReporter: %s", timeoutException);
                   }
                 }));
 
-    ProxyComponent proxyComponent =
-        DaggerProxyModule_ProxyComponent.builder()
-            .proxyModule(new ProxyModule().parse(args))
-            .build();
     new ProxyServer(proxyComponent).run();
   }
 }

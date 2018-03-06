@@ -17,7 +17,6 @@ package google.registry.proxy.handler;
 import static com.google.common.base.Preconditions.checkState;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
-import google.registry.util.FormattingLogger;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -56,8 +55,6 @@ public class ProxyProtocolHandler extends ByteToMessageDecoder {
   public static final AttributeKey<String> REMOTE_ADDRESS_KEY =
       AttributeKey.valueOf("REMOTE_ADDRESS_KEY");
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
-
   // The proxy header must start with this prefix.
   // Sample header: "PROXY TCP4 255.255.255.255 255.255.255.255 65535 65535\r\n".
   private static final byte[] HEADER_PREFIX = "PROXY".getBytes(US_ASCII);
@@ -73,8 +70,6 @@ public class ProxyProtocolHandler extends ByteToMessageDecoder {
     super.channelRead(ctx, msg);
     if (finished) {
       if (proxyHeader != null) {
-        logger.finefmt("PROXIED CONNECTION: %s", ctx.channel());
-        logger.finefmt("PROXY HEADER: %s", proxyHeader);
         ctx.channel().attr(REMOTE_ADDRESS_KEY).set(proxyHeader.split(" ")[2]);
       } else {
         SocketAddress remoteAddress = ctx.channel().remoteAddress();
@@ -82,7 +77,6 @@ public class ProxyProtocolHandler extends ByteToMessageDecoder {
           ctx.channel()
               .attr(REMOTE_ADDRESS_KEY)
               .set(((InetSocketAddress) remoteAddress).getAddress().getHostAddress());
-          logger.finefmt("REMOTE IP ADDRESS: %s", ctx.channel().attr(REMOTE_ADDRESS_KEY).get());
         }
       }
       ctx.pipeline().remove(this);

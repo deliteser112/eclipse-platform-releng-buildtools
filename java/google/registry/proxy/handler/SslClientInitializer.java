@@ -53,7 +53,7 @@ public class SslClientInitializer<C extends Channel> extends ChannelInitializer<
   SslClientInitializer(
       SslProvider sslProvider,
       @Nullable @Named("relayTrustedCertificates") X509Certificate... trustCertificates) {
-    logger.finefmt("Client SSL Provider: %s", sslProvider);
+    logger.infofmt("Client SSL Provider: %s", sslProvider);
     this.sslProvider = sslProvider;
     this.trustedCertificates = trustCertificates;
   }

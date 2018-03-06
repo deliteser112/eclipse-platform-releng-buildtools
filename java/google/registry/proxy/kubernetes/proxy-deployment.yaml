@@ -42,7 +42,7 @@ spec:
         - name: service-account
           mountPath: /var/secrets/google
         imagePullPolicy: Always
-        args: ["--log"]
+        args: ["--env", "alpha", "--log"]
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /var/secrets/google/service-account.json
