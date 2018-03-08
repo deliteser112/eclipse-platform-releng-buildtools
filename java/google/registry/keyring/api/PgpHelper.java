@@ -88,8 +88,7 @@ public final class PgpHelper {
       throw new VerifyException(String.format(
           "No public key (%s) found matching substring: %s", want, query));
     } catch (PGPException e) {
-      throw new VerifyException(String.format(
-          "Public key lookup with query %s failed: %s", query, e.getMessage()));
+      throw new VerifyException(String.format("Public key lookup failed for query: %s", query), e);
     }
   }
 
