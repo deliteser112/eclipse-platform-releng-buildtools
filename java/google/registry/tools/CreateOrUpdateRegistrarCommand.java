@@ -142,10 +142,12 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
 
   @Nullable
   @Parameter(
-      names = "--cert_hash",
-      description = "Hash of client certificate (SHA256 base64 no padding). Do not use this unless "
-          + "you want to store ONLY the hash and not the full certificate")
-  private String clientCertificateHash;
+    names = "--cert_hash",
+    description =
+        "Hash of client certificate (SHA256 base64 no padding). Do not use this unless "
+            + "you want to store ONLY the hash and not the full certificate"
+  )
+  String clientCertificateHash;
 
   @Nullable
   @Parameter(

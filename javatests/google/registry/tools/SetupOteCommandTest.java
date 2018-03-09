@@ -120,7 +120,8 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
       String registrarName,
       String allowedTld,
       String password,
-      ImmutableList<CidrAddressBlock> ipWhitelist) {
+      ImmutableList<CidrAddressBlock> ipWhitelist,
+      boolean hashOnly) {
     Registrar registrar = loadRegistrar(registrarName);
     assertThat(registrar).isNotNull();
     assertThat(registrar.getAllowedTlds()).containsExactlyElementsIn(ImmutableSet.of(allowedTld));
@@ -128,8 +129,19 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     assertThat(registrar.getState()).isEqualTo(ACTIVE);
     assertThat(registrar.testPassword(password)).isTrue();
     assertThat(registrar.getIpAddressWhitelist()).isEqualTo(ipWhitelist);
-    assertThat(registrar.getClientCertificate()).isEqualTo(SAMPLE_CERT);
     assertThat(registrar.getClientCertificateHash()).isEqualTo(SAMPLE_CERT_HASH);
+    // If certificate hash is provided, there's no certificate file stored with the registrar.
+    if (!hashOnly) {
+      assertThat(registrar.getClientCertificate()).isEqualTo(SAMPLE_CERT);
+    }
+  }
+
+  private void verifyRegistrarCreation(
+      String registrarName,
+      String allowedTld,
+      String password,
+      ImmutableList<CidrAddressBlock> ipWhitelist) {
+    verifyRegistrarCreation(registrarName, allowedTld, password, ipWhitelist, false);
   }
 
   @Test
@@ -177,6 +189,79 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
     verifyRegistrarCreation("blobio-3", "blobio-ga", passwords.get(2), ipAddress);
     verifyRegistrarCreation("blobio-4", "blobio-ga", passwords.get(3), ipAddress);
     verifyRegistrarCreation("blobio-5", "blobio-eap", passwords.get(4), ipAddress);
+  }
+
+  @Test
+  public void testSuccess_shortRegistrarName() throws Exception {
+    runCommandForced(
+        "--ip_whitelist=1.1.1.1",
+        "--registrar=abc",
+        "--dns_writers=VoidDnsWriter",
+        "--certfile=" + getCertFilename());
+
+    verifyTldCreation(
+        "abc-sunrise",
+        "ABCSUNR0",
+        TldState.START_DATE_SUNRISE,
+        "VoidDnsWriter",
+        "default_sandbox_list");
+    verifyTldCreation(
+        "abc-landrush", "ABCLAND1", TldState.LANDRUSH, "VoidDnsWriter", "default_sandbox_list");
+    verifyTldCreation(
+        "abc-ga",
+        "ABCGA2",
+        TldState.GENERAL_AVAILABILITY,
+        "VoidDnsWriter",
+        "default_sandbox_list",
+        Duration.standardMinutes(60),
+        Duration.standardMinutes(10),
+        Duration.standardMinutes(5),
+        false);
+    verifyTldCreation(
+        "abc-eap",
+        "ABCEAP3",
+        TldState.GENERAL_AVAILABILITY,
+        "VoidDnsWriter",
+        "default_sandbox_list",
+        Duration.standardMinutes(60),
+        Duration.standardMinutes(10),
+        Duration.standardMinutes(5),
+        true);
+
+    ImmutableList<CidrAddressBlock> ipAddress =
+        ImmutableList.of(CidrAddressBlock.create("1.1.1.1"));
+
+    verifyRegistrarCreation("abc-1", "abc-sunrise", passwords.get(0), ipAddress);
+    verifyRegistrarCreation("abc-2", "abc-landrush", passwords.get(1), ipAddress);
+    verifyRegistrarCreation("abc-3", "abc-ga", passwords.get(2), ipAddress);
+    verifyRegistrarCreation("abc-4", "abc-ga", passwords.get(3), ipAddress);
+    verifyRegistrarCreation("abc-5", "abc-eap", passwords.get(4), ipAddress);
+  }
+
+  @Test
+  public void testSuccess_certificateHash() throws Exception {
+    runCommandForced(
+        "--eap_only",
+        "--ip_whitelist=1.1.1.1",
+        "--registrar=blobio",
+        "--dns_writers=VoidDnsWriter",
+        "--certhash=" + SAMPLE_CERT_HASH);
+
+    verifyTldCreation(
+        "blobio-eap",
+        "BLOBIOE3",
+        TldState.GENERAL_AVAILABILITY,
+        "VoidDnsWriter",
+        "default_sandbox_list",
+        Duration.standardMinutes(60),
+        Duration.standardMinutes(10),
+        Duration.standardMinutes(5),
+        true);
+
+    ImmutableList<CidrAddressBlock> ipAddress =
+        ImmutableList.of(CidrAddressBlock.create("1.1.1.1"));
+
+    verifyRegistrarCreation("blobio-5", "blobio-eap", passwords.get(0), ipAddress, true);
   }
 
   @Test
@@ -328,14 +413,35 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_missingCertificateFile() throws Exception {
-    ParameterException thrown =
+  public void testFailure_missingCertificateFileAndCertificateHash() throws Exception {
+    IllegalArgumentException thrown =
         assertThrows(
-            ParameterException.class,
+            IllegalArgumentException.class,
             () ->
                 runCommandForced(
                     "--ip_whitelist=1.1.1.1", "--dns_writers=VoidDnsWriter", "--registrar=blobio"));
-    assertThat(thrown).hasMessageThat().contains("option is required: -c, --certfile");
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Must specify exactly one of client certificate file or client certificate hash.");
+  }
+
+  @Test
+  public void testFailure_suppliedCertificateFileAndCertificateHash() throws Exception {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--ip_whitelist=1.1.1.1",
+                    "--dns_writers=VoidDnsWriter",
+                    "--registrar=blobio",
+                    "--certfile=" + getCertFilename(),
+                    "--certhash=" + SAMPLE_CERT_HASH));
+    assertThat(thrown)
+        .hasMessageThat()
+        .contains(
+            "Must specify exactly one of client certificate file or client certificate hash.");
   }
 
   @Test

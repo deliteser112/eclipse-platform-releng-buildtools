@@ -42,9 +42,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 /** Composite command to set up OT&E TLDs and accounts. */
-@Parameters(
-    separators = " =",
-    commandDescription = "Set up OT&E TLDs and registrars")
+@Parameters(separators = " =", commandDescription = "Set up OT&E TLDs and registrars")
 final class SetupOteCommand extends ConfirmingCommand implements RemoteApiCommand {
 
   // Regex: 3-14 alphanumeric characters or hyphens, the first of which must be a letter.
@@ -72,37 +70,50 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
   Set<String> validDnsWriterNames;
 
   @Parameter(
-      names = {"-r", "--registrar"},
-      description = "must 1) consist of only lowercase letters, numbers, or hyphens, "
-          + "2) start with a letter, and 3) be between 3 and 14 characters (inclusive). "
-          + "We require 1 and 2 since the registrar name will be used to create TLDs,"
-          + "and we require 3 since we append \"-[1234]\" to the name to create client"
-          + "IDs which are required by the EPP XML schema to be between 3-16 chars.",
-      required = true)
+    names = {"-r", "--registrar"},
+    description =
+        "must 1) consist of only lowercase letters, numbers, or hyphens, "
+            + "2) start with a letter, and 3) be between 3 and 14 characters (inclusive). "
+            + "We require 1 and 2 since the registrar name will be used to create TLDs,"
+            + "and we require 3 since we append \"-[1234]\" to the name to create client"
+            + "IDs which are required by the EPP XML schema to be between 3-16 chars.",
+    required = true
+  )
   private String registrar;
 
   @Parameter(
-      names = {"-w", "--ip_whitelist"},
-      description = "comma separated list of IP addreses or CIDR ranges",
-      required = true)
+    names = {"-w", "--ip_whitelist"},
+    description = "comma separated list of IP addreses or CIDR ranges",
+    required = true
+  )
   private List<String> ipWhitelist = new ArrayList<>();
 
   @Parameter(
-      names = {"-c", "--certfile"},
-      description = "full path to cert file in PEM format (best if on local storage)",
-      required = true,
-      validateWith = PathParameter.InputFile.class)
+    names = {"-c", "--certfile"},
+    description = "full path to cert file in PEM format (best if on local storage)",
+    validateWith = PathParameter.InputFile.class
+  )
   private Path certFile;
 
   @Parameter(
-      names = {"--dns_writers"},
-      description = "comma separated list of DNS writers to use on all TLDs",
-      required = true)
+    names = {"-h", "--certhash"},
+    description =
+        "Hash of client certificate (SHA256 base64 no padding). Do not use this unless "
+            + "you want to store ONLY the hash and not the full certificate"
+  )
+  private String certHash;
+
+  @Parameter(
+    names = {"--dns_writers"},
+    description = "comma separated list of DNS writers to use on all TLDs",
+    required = true
+  )
   private List<String> dnsWriters;
 
   @Parameter(
-      names = {"--premium_list"},
-      description = "premium list to apply to all TLDs")
+    names = {"--premium_list"},
+    description = "premium list to apply to all TLDs"
+  )
   private String premiumList = DEFAULT_PREMIUM_LIST;
 
   // TODO: (b/74079782) remove this flag once OT&E for .app is complete.
@@ -112,8 +123,7 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
   )
   private boolean eapOnly = false;
 
-  @Inject
-  StringGenerator passwordGenerator;
+  @Inject StringGenerator passwordGenerator;
 
   /**
    * Long registrar names are truncated and then have an incrementing digit appended at the end so
@@ -139,8 +149,12 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
     command.mainParameters = ImmutableList.of(tldName);
     command.pendingDeleteLength = pendingDeleteLength;
     command.premiumListName = Optional.of(premiumList);
-    command.roidSuffix = String.format(
-        "%S%X", tldName.replaceAll("[^a-z0-9]", "").substring(0, 7), roidSuffixCounter++);
+    String tldNameAlphaNumerical = tldName.replaceAll("[^a-z0-9]", "");
+    command.roidSuffix =
+        String.format(
+            "%S%X",
+            tldNameAlphaNumerical.substring(0, Math.min(tldNameAlphaNumerical.length(), 7)),
+            roidSuffixCounter++);
     command.redemptionGracePeriod = redemptionGracePeriod;
     if (isEarlyAccess) {
       command.eapFeeSchedule = EAP_FEE_SCHEDULE;
@@ -158,6 +172,7 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
     command.registrarType = Registrar.Type.OTE;
     command.password = password;
     command.clientCertificateFilename = certFile;
+    command.clientCertificateHash = certHash;
     command.ipWhitelist = ipWhitelist;
     command.street = ImmutableList.of("e-street");
     command.city = "Neverland";
@@ -175,7 +190,8 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
   /** Run any pre-execute command checks */
   @Override
   protected boolean checkExecutionState() throws Exception {
-    checkArgument(REGISTRAR_PATTERN.matcher(registrar).matches(),
+    checkArgument(
+        REGISTRAR_PATTERN.matcher(registrar).matches(),
         "Registrar name is invalid (see usage text for requirements).");
 
     boolean warned = false;
@@ -193,8 +209,14 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
       return false;
     }
 
+    checkArgument(
+        certFile == null ^ certHash == null,
+        "Must specify exactly one of client certificate file or client certificate hash.");
+
     // Don't wait for create_registrar to fail if it's a bad certificate file.
-    loadCertificate(certFile.toAbsolutePath());
+    if (certFile != null) {
+      loadCertificate(certFile.toAbsolutePath());
+    }
     return true;
   }
 
@@ -219,7 +241,7 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
           + "    " + registrar + "-3 (access to TLD " + registrar + "-ga)\n"
           + "    " + registrar + "-4 (access to TLD " + registrar + "-ga)\n"
           + "    " + registrar + "-5 (access to TLD " + registrar + "-eap)";
-   }
+    }
   }
 
   @Override
