@@ -90,8 +90,8 @@ public class RegistryToolTest {
   /**
    * Gets the set of all non-abstract classes implementing the {@link Command} interface (abstract
    * class and interface subtypes of Command aren't expected to have cli commands). Note that this
-   * also filters out HelpCommand, which has special handling in {@link RegistryCli} and isn't in
-   * the command map.
+   * also filters out HelpCommand and ShellCommand, which have special handling in {@link
+   * RegistryCli} and aren't in the command map.
    *
    * @throws IOException if reading the classpath resources fails.
    */
@@ -105,7 +105,8 @@ public class RegistryToolTest {
       if (Command.class.isAssignableFrom(clazz)
           && !Modifier.isAbstract(clazz.getModifiers())
           && !Modifier.isInterface(clazz.getModifiers())
-          && !clazz.equals(HelpCommand.class)) {
+          && !clazz.equals(HelpCommand.class)
+          && !clazz.equals(ShellCommand.class)) {
         builder.add((Class<? extends Command>) clazz);
       }
     }

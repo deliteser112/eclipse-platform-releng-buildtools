@@ -35,7 +35,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /** Container class to create and run remote commands against a Datastore instance. */
 @Parameters(separators = " =", commandDescription = "Command-line interface to the registry")
-final class RegistryCli {
+final class RegistryCli implements AutoCloseable, CommandRunner {
 
   @Parameter(
       names = {"-e", "--environment"},
@@ -57,33 +57,54 @@ final class RegistryCli {
   @ParametersDelegate
   private LoggingParameters loggingParams = new LoggingParameters();
 
-  // The <? extends Class<? extends Command>> wildcard looks a little funny, but is needed so that
-  // we can accept maps with value types that are subtypes of Class<? extends Command> rather than
-  // literally that type.  For more explanation, see:
-  //   http://www.angelikalanger.com/GenericsFAQ/FAQSections/TypeArguments.html#FAQ104
-  void run(
-      String programName,
-      String[] args,
-      ImmutableMap<String, ? extends Class<? extends Command>> commands) throws Exception {
+  // These are created lazily on first use.
+  private AppEngineConnection connection;
+  private RemoteApiInstaller installer;
+
+
+  Map<String, Command> commandInstances;
+  Map<String, ? extends Class<? extends Command>> commands;
+  JCommander jcommander;
+
+  RegistryCli(
+      String programName, ImmutableMap<String, ? extends Class<? extends Command>> commands) {
+    this.commands = commands;
+
     Security.addProvider(new BouncyCastleProvider());
-    JCommander jcommander = new JCommander(this);
+    jcommander = new JCommander(this);
     jcommander.addConverterFactory(new ParameterFactory());
     jcommander.setProgramName(programName);
 
     // Store the instances of each Command class here so we can retrieve the same one for the
     // called command later on.  JCommander could have done this for us, but it doesn't.
-    Map<String, Command> commandInstances = new HashMap<>();
+    commandInstances = new HashMap<>();
 
     HelpCommand helpCommand = new HelpCommand(jcommander);
     jcommander.addCommand("help", helpCommand);
     commandInstances.put("help", helpCommand);
 
-    for (Map.Entry<String, ? extends Class<? extends Command>> entry : commands.entrySet()) {
-      Command command = entry.getValue().getDeclaredConstructor().newInstance();
-      jcommander.addCommand(entry.getKey(), command);
-      commandInstances.put(entry.getKey(), command);
-    }
+    // Add the shell command.
+    ShellCommand shellCommand = new ShellCommand(System.in, this);
+    jcommander.addCommand("shell", shellCommand);
+    commandInstances.put("shell", shellCommand);
 
+    try {
+      for (Map.Entry<String, ? extends Class<? extends Command>> entry : commands.entrySet()) {
+        Command command = entry.getValue().getDeclaredConstructor().newInstance();
+        jcommander.addCommand(entry.getKey(), command);
+        commandInstances.put(entry.getKey(), command);
+      }
+    } catch (ReflectiveOperationException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  // The <? extends Class<? extends Command>> wildcard looks a little funny, but is needed so that
+  // we can accept maps with value types that are subtypes of Class<? extends Command> rather than
+  // literally that type.  For more explanation, see:
+  //   http://www.angelikalanger.com/GenericsFAQ/FAQSections/TypeArguments.html#FAQ104
+  @Override
+  public void run(String[] args) throws Exception {
     try {
       jcommander.parse(args);
     } catch (ParameterException e) {
@@ -127,6 +148,14 @@ final class RegistryCli {
     }
   }
 
+  @Override
+  public void close() {
+    if (installer != null) {
+      installer.uninstall();
+      installer = null;
+    }
+  }
+
   private void runCommand(Command command) throws Exception {
     // Create the main component and use it to inject the command class.
     RegistryToolComponent component = DaggerRegistryToolComponent.builder()
@@ -142,31 +171,35 @@ final class RegistryCli {
     }
 
     // Get the App Engine connection, advise the user if they are not currently logged in..
-    AppEngineConnection connection = component.appEngineConnection();
+    if (connection == null) {
+      connection = component.appEngineConnection();
+    }
 
     if (command instanceof ServerSideCommand) {
       ((ServerSideCommand) command).setConnection(connection);
     }
 
     // RemoteApiCommands need to have the remote api installed to work.
-    RemoteApiInstaller installer = new RemoteApiInstaller();
-    RemoteApiOptions options = new RemoteApiOptions();
-    options.server(connection.getServer().getHost(), connection.getServer().getPort());
-    if (connection.isLocalhost()) {
-      // Use dev credentials for localhost.
-      options.useDevelopmentServerCredential();
-    } else {
-      options.useApplicationDefaultCredential();
+    if (installer == null) {
+      installer = new RemoteApiInstaller();
+      RemoteApiOptions options = new RemoteApiOptions();
+      options.server(connection.getServer().getHost(), connection.getServer().getPort());
+      if (connection.isLocalhost()) {
+        // Use dev credentials for localhost.
+        options.useDevelopmentServerCredential();
+      } else {
+        options.useApplicationDefaultCredential();
+      }
+      installer.install(options);
     }
-    installer.install(options);
 
     // Ensure that all entity classes are loaded before command code runs.
     ObjectifyService.initOfy();
 
-    try {
-      command.run();
-    } finally {
-      installer.uninstall();
-    }
+    command.run();
+  }
+
+  void setEnvironment(RegistryToolEnvironment environment) {
+    this.environment = environment;
   }
 }

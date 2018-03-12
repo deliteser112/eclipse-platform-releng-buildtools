@@ -132,6 +132,8 @@ public final class RegistryTool {
 
   public static void main(String[] args) throws Exception {
     RegistryToolEnvironment.parseFromArgs(args).setup();
-    new RegistryCli().run("nomulus", args, COMMAND_MAP);
+    try (RegistryCli cli = new RegistryCli("nomulus", COMMAND_MAP)) {
+      cli.run(args);
+    }
   }
 }
