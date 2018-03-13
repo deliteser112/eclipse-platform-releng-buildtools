@@ -19,10 +19,10 @@
  *      present, for compatibility with the server. */
 /**
  * Contact create request.
- * @param item
- * @param clTrid
  */
 {template .create stricthtml="false"}
+  {@param item: ?}
+  {@param clTrid: ?}
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <create>
@@ -60,10 +60,10 @@
  *      present, for compatibility with the server. */
 /**
  * Contact update request.
- * @param item
- * @param clTrid
  */
 {template .update stricthtml="false"}
+  {@param item: ?}
+  {@param clTrid: ?}
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <update>
@@ -101,10 +101,10 @@
 
 /**
  * Contact info request.
- * @param id
- * @param clTrid
  */
 {template .info stricthtml="false"}
+  {@param id: ?}
+  {@param clTrid: ?}
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <info>

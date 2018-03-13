@@ -17,10 +17,10 @@
 
 /**
  * Host create request.
- * @param item
- * @param clTrid
  */
 {template .create stricthtml="false"}
+  {@param item: ?}
+  {@param clTrid: ?}
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <create>
@@ -42,12 +42,12 @@
 
 /**
  * Host update request.
- * @param item
- * @param clTrid
- * @param? addAddrs list of addrs to add.
- * @param? remAddrs list of addrs to remove.
  */
 {template .update stricthtml="false"}
+  {@param item: ?}
+  {@param clTrid: ?}
+  {@param? addAddrs: ?}  /** list of addrs to add. */
+  {@param? remAddrs: ?}  /** list of addrs to remove. */
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <update>
@@ -76,10 +76,10 @@
 
 /**
  * Host info request.
- * @param clTrid
- * @param id The hostname (named "id" to preserve component API).
  */
 {template .info stricthtml="false"}
+  {@param clTrid: ?}
+  {@param id: ?}  /** The hostname (named "id" to preserve component API). */
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <info>
@@ -93,11 +93,9 @@
 {/template}
 
 
-/**
- * @param isAdd
- * @param? addrs
- */
 {template .addRem}
+  {@param isAdd: ?}
+  {@param? addrs: ?}
   {let $tagName: $isAdd ? 'host:add' : 'host:rem' /}
   {if length($addrs) > 0}
     <{$tagName}>

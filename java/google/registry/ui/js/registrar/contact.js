@@ -35,7 +35,7 @@ goog.forwardDeclare('registry.registrar.Console');
 registry.registrar.Contact = function(console) {
   registry.registrar.Contact.base(
       this, 'constructor',
-      registry.soy.registrar.contact.item,
+      /** @type {function()} */(registry.soy.registrar.contact.item),
       registry.soy.registrar.contactepp,
       console);
 };
@@ -102,7 +102,7 @@ registry.registrar.Contact.prototype.setupEditor = function(objArgs) {
         addPostalInfoBtn.setAttribute('disabled', true);
         return null;
       },
-      registry.soy.registrar.contact.postalInfo,
+       /** @type {function()} */ (registry.soy.registrar.contact.postalInfo),
       {
         item: {},
         localized: true,
@@ -116,12 +116,14 @@ registry.registrar.Contact.prototype.setupEditor = function(objArgs) {
 /** @override */
 registry.registrar.Contact.prototype.prepareCreate = function(params) {
   params.nextId = params.item['contact:id'];
-  return registry.soy.registrar.contactepp.create(params).toString();
+  return registry.soy.registrar.contactepp.create(
+      /** @type {{clTrid: ?, item: ?}} */ (params)).toString();
 };
 
 
 /** @override */
 registry.registrar.Contact.prototype.prepareUpdate = function(params) {
   params.nextId = params.item['contact:id'];
-  return registry.soy.registrar.contactepp.update(params).toString();
+  return registry.soy.registrar.contactepp.update(
+      /** @type {{clTrid: ?, item: ?}} */(params)).toString();
 };

@@ -27,11 +27,11 @@
 
 /**
  * Item view for domain.
- * @param item
- * @param? readonly passed through to field rendering.
- * @param? allowSmd optional flag to allow sunrush smd applications.
  */
 {template .item}
+  {@param item: ?}
+  {@param? readonly: ?}  /** passed through to field rendering. */
+  {@param? allowSmd: ?}  /** optional flag to allow sunrush smd applications. */
   {let $isEdit: isNonnull($item['domain:name']) /}
   <form name="item" class="{css('item')} {css('domain')}">
     <h1>
@@ -184,9 +184,9 @@
 /* XXX: Should change support for admin/tech. */
 /**
  * Update domain.  Includes sunrush applicationId if present.
- * @param? item
  */
 {template .update}
+  {@param? item: ?}
   <form name="item" class="{css('item')} {css('domain')}">
     <h1>{$item['domain:name']['keyValue']}</h1>
     <table>

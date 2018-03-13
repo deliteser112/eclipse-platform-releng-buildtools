@@ -17,12 +17,12 @@
 
 /**
  * Input field.
- * @param name Input field name.
- * @param? item This will be used to set default value with $item[$name].
- * @param? label Input field label.
- * @param? placeholder Placeholder text.
  */
 {template .inputField}
+  {@param name: ?}  /** Input field name. */
+  {@param? item: ?}  /** This will be used to set default value with $item[$name]. */
+  {@param? label: ?}  /** Input field label. */
+  {@param? placeholder: ?}  /** Placeholder text. */
   <label for="{$name}">
     {if isNonnull($label)}
       {$label}
@@ -43,16 +43,16 @@
 
 /**
  * Input field in a table row.
- * @param name Input field name.
- * @param? item This will be used to set default value with $item[$name].
- * @param? itemPrefix
- * @param? namePrefix
- * @param? label Input field label.
- * @param? description Input field description.
- * @param? placeholder Placeholder text.
- * @param? readonly
  */
 {template .inputFieldRow}
+  {@param name: ?}  /** Input field name. */
+  {@param? item: ?}  /** This will be used to set default value with $item[$name]. */
+  {@param? itemPrefix: ?}
+  {@param? namePrefix: ?}
+  {@param? label: ?}  /** Input field label. */
+  {@param? description: ?}  /** Input field description. */
+  {@param? placeholder: ?}  /** Placeholder text. */
+  {@param? readonly: ?}
   <tr class="{css('kd-settings-pane-section')}">
     <td>
       <label for="{if isNonnull($namePrefix)}{$namePrefix + $name}{else}{$name}{/if}"
@@ -149,14 +149,14 @@
 
 /**
  * Form input row for a table.
- * @param name Input field name.
- * @param? item This will be used to set default value with $item[$name].
- * @param? itemPrefix
- * @param? namePrefix
- * @param? label Input field label.
- * @param? readonly
  */
 {template .textareaFieldRow}
+  {@param name: ?}  /** Input field name. */
+  {@param? item: ?}  /** This will be used to set default value with $item[$name]. */
+  {@param? itemPrefix: ?}
+  {@param? namePrefix: ?}
+  {@param? label: ?}  /** Input field label. */
+  {@param? readonly: ?}
   <tr>
     <td>
       <label for="{if isNonnull($namePrefix)}{$namePrefix + $name}{else}{$name}{/if}">
@@ -187,13 +187,13 @@
 
 /**
  * Form input row for a table.
- * @param name Input field name.
- * @param value
- * @param? namePrefix
- * @param? label Input field label.
- * @param? readonly
  */
 {template .textareaFieldRowWithValue}
+  {@param name: ?}  /** Input field name. */
+  {@param value: ?}
+  {@param? namePrefix: ?}
+  {@param? label: ?}  /** Input field label. */
+  {@param? readonly: ?}
   <tr>
     <td>
       <label for="{if isNonnull($namePrefix)}{$namePrefix + $name}{else}{$name}{/if}">
@@ -220,14 +220,14 @@
 
 /**
  * Select control.
- * @param name Input field name.
- * @param options Items listed in the selector.
- * @param selected Name of the selected option.
- * @param? namePrefix
- * @param? label Input field label.
- * @param? readonly
  */
 {template .selectRow}
+  {@param name: ?}  /** Input field name. */
+  {@param options: ?}  /** Items listed in the selector. */
+  {@param selected: ?}  /** Name of the selected option. */
+  {@param? namePrefix: ?}
+  {@param? label: ?}  /** Input field label. */
+  {@param? readonly: ?}
   {let $forId: isNonnull($namePrefix) ? $namePrefix + $name : $name /}
   <tr>
     <td>
@@ -255,12 +255,10 @@
 {/template}
 
 
-/**
- * @param name
- * @param values
- * @param? checkedValue the default checked value.
- */
 {template .inputRadioWithValue}
+  {@param name: ?}
+  {@param values: ?}
+  {@param? checkedValue: ?}  /** the default checked value. */
 <tr>
   <td colspan="2">
     {for $value in $values}

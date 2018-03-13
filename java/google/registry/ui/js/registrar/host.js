@@ -68,7 +68,8 @@ registry.registrar.Host.prototype.setupEditor = function(objArgs) {
 /** @override */
 registry.registrar.Host.prototype.prepareCreate = function(params) {
   params.nextId = params.item['host:name'];
-  return registry.soy.registrar.hostepp.create(params).toString();
+  return registry.soy.registrar.hostepp.create(
+      /** @type {{clTrid: ?, item: ?}} */(params)).toString();
 };
 
 
@@ -101,5 +102,6 @@ registry.registrar.Host.prototype.prepareUpdate = function(params) {
   params.addAddrs = addAddrs;
   params.remAddrs = remAddrs;
   params.nextId = form['host:chgName'];
-  return registry.soy.registrar.hostepp.update(params).toString();
+  return registry.soy.registrar.hostepp.update(
+      /** @type {{clTrid: ?, item: ?}} */(params)).toString();
 };

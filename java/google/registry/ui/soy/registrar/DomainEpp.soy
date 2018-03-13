@@ -18,10 +18,10 @@
 /* General Availability.  Sunrush down below. */
 /**
  * Domain create request.
- * @param item
- * @param clTrid
  */
 {template .create stricthtml="false"}
+  {@param item: ?}
+  {@param clTrid: ?}
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <create>
@@ -58,10 +58,10 @@
 
 /**
  * Domain info request.
- * @param id
- * @param clTrid
  */
 {template .info stricthtml="false"}
+  {@param id: ?}
+  {@param clTrid: ?}
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <info>
@@ -77,14 +77,14 @@
 
 /**
  * Domain update request.
- * @param item
- * @param clTrid
- * @param? addHosts list of hostObj to add.
- * @param? remHosts list of hostObj to remove.
- * @param? addContacts list of contact to add.
- * @param? remContacts list of contact to remove.
  */
 {template .update stricthtml="false"}
+  {@param item: ?}
+  {@param clTrid: ?}
+  {@param? addHosts: ?}  /** list of hostObj to add. */
+  {@param? remHosts: ?}  /** list of hostObj to remove. */
+  {@param? addContacts: ?}  /** list of contact to add. */
+  {@param? remContacts: ?}  /** list of contact to remove. */
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <update>
@@ -118,12 +118,10 @@
 {/template}
 
 
-/**
- * @param isAdd
- * @param? hosts
- * @param? contacts
- */
 {template .addRem}
+  {@param isAdd: ?}
+  {@param? hosts: ?}
+  {@param? contacts: ?}
 {let $tagName: $isAdd ? 'domain:add' : 'domain:rem' /}
 <{$tagName}>
   {if isNonnull($hosts)}
@@ -145,10 +143,10 @@
 /* Sunrush. */
 /**
  * Domain create request for sunrush.
- * @param item
- * @param clTrid
  */
 {template .createSunrush stricthtml="false"}
+  {@param item: ?}
+  {@param clTrid: ?}
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <create>
@@ -188,11 +186,11 @@
 
 /**
  * Domain info request during sunrush.
- * @param name
- * @param applicationID
- * @param clTrid
  */
 {template .infoSunrush stricthtml="false"}
+  {@param name: ?}
+  {@param applicationID: ?}
+  {@param clTrid: ?}
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <info>
@@ -216,10 +214,10 @@
 
 /**
  * Domain update request.
- * @param item
- * @param clTrid
  */
 {template .updateSunrush stricthtml="false"}
+  {@param item: ?}
+  {@param clTrid: ?}
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <update>

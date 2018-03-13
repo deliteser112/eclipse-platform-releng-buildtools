@@ -27,10 +27,10 @@
 
 /**
  * Item view for contact.
- * @param? item
- * @param? readonly passed through to field rendering.
  */
 {template .item}
+  {@param? item: ?}
+  {@param? readonly: ?}  /** passed through to field rendering. */
   <form name="item" class="{css('item')} {css('contact')}">
     <h1>
       {if isNonnull($item['contact:id'])}
@@ -115,11 +115,11 @@
 
 /**
  * Postal info.
- * @param item
- * @param namePrefix
- * @param? localized if true, this is the second, localized postalInfo.
  */
 {template .postalInfo}
+  {@param item: ?}
+  {@param namePrefix: ?}
+  {@param? localized: ?}  /** if true, this is the second, localized postalInfo. */
   <table>
     <tr><th colspan=2>
       {if $localized}

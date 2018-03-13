@@ -35,7 +35,7 @@ goog.forwardDeclare('registry.registrar.Console');
 registry.registrar.Domain = function(console) {
   registry.registrar.Domain.base(
       this, 'constructor',
-      registry.soy.registrar.domain.item,
+      /** @type {function()} */ (registry.soy.registrar.domain.item),
       registry.soy.registrar.domainepp,
       console);
 };
@@ -79,9 +79,11 @@ registry.registrar.Domain.prototype.prepareFetch = function(params) {
     }
     params.name = idParts[0];
     params.applicationID = idParts[1];
-    xml = registry.soy.registrar.domainepp.infoSunrush(params);
+    xml = registry.soy.registrar.domainepp.infoSunrush(
+        /** @type {{applicationID: ?, clTrid: ?, name: ?}} */(params));
   } else {
-    xml = registry.soy.registrar.domainepp.info(params);
+    xml = registry.soy.registrar.domainepp.info(
+        /** @type {{clTrid: ?, id: ?}} */ (params));
   }
   return xml.toString();
 };
@@ -140,7 +142,7 @@ registry.registrar.Domain.prototype.setupEditor = function(objArgs) {
       goog.bind(function(newFieldName) {
         return registry.util.renderBeforeRow(
             'domain-contacts-footer',
-            registry.soy.forms.selectRow, {
+            /** @type {function()} */(registry.soy.forms.selectRow), {
               label: 'Type',
               name: newFieldName + '.@type',
               options: ['admin', 'tech', 'billing']
@@ -165,9 +167,11 @@ registry.registrar.Domain.prototype.prepareCreate = function(params) {
   }
   var xml;
   if (registry.registrar.Domain.SUNRUSH) {
-    xml = registry.soy.registrar.domainepp.createSunrush(params);
+    xml = registry.soy.registrar.domainepp.createSunrush(
+        /** @type {{clTrid:?, item: ?}} */(params));
   } else {
-    xml = registry.soy.registrar.domainepp.create(params);
+    xml = registry.soy.registrar.domainepp.create(
+        /** @type {{clTrid: ?, item: ?}} */(params));
   }
   return xml.toString();
 };
@@ -190,14 +194,16 @@ registry.registrar.Domain.prototype.prepareUpdate =
 
   var xml;
   if (registry.registrar.Domain.SUNRUSH) {
-    xml = registry.soy.registrar.domainepp.updateSunrush(params);
+    xml = registry.soy.registrar.domainepp.updateSunrush(
+        /** @type {{clTrid: ?, item: ?}} */(params));
     nextId += ':' + form['launch:applicationID'];
   } else {
     if (form['domain:ns'] && form['domain:ns']['domain:hostObj']) {
       this.addRem(form['domain:ns']['domain:hostObj'], 'Hosts', params);
     }
     this.addRem(form['domain:contact'], 'Contacts', params);
-    xml = registry.soy.registrar.domainepp.update(params);
+    xml = registry.soy.registrar.domainepp.update(
+        /** @type {{clTrid: ?, item: ?}} */(params));
   }
 
   return xml.toString();
