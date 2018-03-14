@@ -67,7 +67,6 @@ java_library(
 GenTestRules(
     name = "GeneratedTestRules",
     default_test_size = "medium",
-    jvm_flags = ["-XX:MaxPermSize=256m"],
     shard_count = 4,
     test_files = glob([
         "*Test.java",

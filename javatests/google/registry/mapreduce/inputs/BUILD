@@ -32,7 +32,6 @@ java_library(
 GenTestRules(
     name = "GeneratedTestRules",
     default_test_size = "medium",
-    jvm_flags = ["-XX:MaxPermSize=256m"],
     test_files = glob(["*Test.java"]),
     deps = [":inputs"],
 )
