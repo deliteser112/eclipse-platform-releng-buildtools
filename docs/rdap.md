@@ -308,7 +308,7 @@ returned result set. A request can specify that only items owned by a specific
 registrar be included, by adding an extra parameter:
 
 ```
-    /rdap/domains?name=*.tld&includeDeleted=true
+    /rdap/domains?name=*.tld&registrar=registrar-client-string
 ```
 
 This could be useful when designing a registrar user interface that uses RDAP as
