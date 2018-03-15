@@ -62,7 +62,7 @@ public class FrontendMetrics {
           .newGauge(
               "/proxy/frontend/active_connections",
               "Number of active connections from clients to the proxy.",
-              "Connections",
+              "Active Connections",
               LABELS,
               () ->
                   activeConnections
@@ -78,7 +78,7 @@ public class FrontendMetrics {
           .newIncrementableMetric(
               "/proxy/frontend/total_connections",
               "Total number connections ever made from clients to the proxy.",
-              "Connections",
+              "Total Connections",
               LABELS);
 
   static final IncrementableMetric quotaRejectionsCounter =
@@ -86,7 +86,7 @@ public class FrontendMetrics {
           .newIncrementableMetric(
               "/proxy/frontend/quota_rejections",
               "Total number rejected quota request made by proxy for each connection.",
-              "Rejections",
+              "Quota Rejections",
               LABELS);
 
   @Inject

@@ -72,7 +72,7 @@ public class BackendMetrics {
           .newEventMetric(
               "/proxy/backend/request_bytes",
               "Size of the backend requests sent.",
-              "Bytes",
+              "Request Bytes",
               LABELS,
               DEFAULT_SIZE_FITTER);
 
@@ -81,7 +81,7 @@ public class BackendMetrics {
           .newEventMetric(
               "/proxy/backend/response_bytes",
               "Size of the backend responses received.",
-              "Bytes",
+              "Response Bytes",
               LABELS,
               DEFAULT_SIZE_FITTER);
 
@@ -90,7 +90,7 @@ public class BackendMetrics {
           .newEventMetric(
               "/proxy/backend/latency_ms",
               "Round-trip time between a request sent and its corresponding response received.",
-              "Milliseconds",
+              "Latency Milliseconds",
               LABELS,
               DEFAULT_LATENCY_FITTER);
 

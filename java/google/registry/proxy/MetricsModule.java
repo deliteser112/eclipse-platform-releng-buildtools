@@ -26,16 +26,16 @@ import com.google.monitoring.metrics.stackdriver.StackdriverWriter;
 import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
+import google.registry.proxy.ProxyConfig.Environment;
+import google.registry.proxy.metric.MetricParameters;
+import google.registry.util.FormattingLogger;
 import javax.inject.Singleton;
 
 /** Module that provides necessary bindings to instantiate a {@link MetricReporter} */
 @Module
 public class MetricsModule {
 
-  // TODO (b/64765479): change to GKE cluster and config in YAML file.
-  private static final String MONITORED_RESOURCE_TYPE = "gce_instance";
-  private static final String GCE_INSTANCE_ZONE = "us-east4-c";
-  private static final String GCE_INSTANCE_ID = "5401454098973297721";
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Singleton
   @Provides
@@ -48,15 +48,12 @@ public class MetricsModule {
 
   @Singleton
   @Provides
-  static MetricWriter provideMetricWriter(Monitoring monitoringClient, ProxyConfig config) {
-    // The MonitoredResource for GAE apps is not writable (and missing fields anyway) so we just
-    // use the gce_instance resource type instead.
+  static MetricWriter provideMetricWriter(
+      Monitoring monitoringClient, MonitoredResource monitoredResource, ProxyConfig config) {
     return new StackdriverWriter(
         monitoringClient,
         config.projectId,
-        new MonitoredResource()
-            .setType(MONITORED_RESOURCE_TYPE)
-            .setLabels(ImmutableMap.of("zone", GCE_INSTANCE_ZONE, "instance_id", GCE_INSTANCE_ID)),
+        monitoredResource,
         config.metrics.stackdriverMaxQps,
         config.metrics.stackdriverMaxPointsPerRequest);
   }
@@ -68,6 +65,32 @@ public class MetricsModule {
         metricWriter,
         config.metrics.writeIntervalSeconds,
         new ThreadFactoryBuilder().setDaemon(true).build());
+  }
+
+  /**
+   * Provides a {@link MonitoredResource} appropriate for environment tha proxy runs in.
+   *
+   * <p>When running locally, the type of the monitored resource is set to {@code global}, otherwise
+   * it is {@code gke_container}.
+   *
+   * @see <a
+   *     href="https://cloud.google.com/monitoring/custom-metrics/creating-metrics#which-resource">
+   *     Choosing a monitored resource type</a>
+   */
+  @Singleton
+  @Provides
+  static MonitoredResource provideMonitoredResource(
+      Environment env, ProxyConfig config, MetricParameters metricParameters) {
+    MonitoredResource monitoredResource = new MonitoredResource();
+    if (env == Environment.LOCAL) {
+      monitoredResource
+          .setType("global")
+          .setLabels(ImmutableMap.of("project_id", config.projectId));
+    } else {
+      monitoredResource.setType("gke_container").setLabels(metricParameters.makeLabelsMap());
+    }
+    logger.infofmt("Monitored resource: %s", monitoredResource);
+    return monitoredResource;
   }
 
   @Singleton
