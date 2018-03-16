@@ -15,9 +15,9 @@ spec:
         app: proxy
     spec:
       volumes:
-      - name: service-account
+      - name: service-account-key
         secret:
-          secretName: proxy-account
+          secretName: service-account
       containers:
       - name: proxy
         image: gcr.io/GCP_PROJECT/IMAGE_NAME:bazel
@@ -39,13 +39,13 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 20
         volumeMounts:
-        - name: service-account
+        - name: service-account-key
           mountPath: /var/secrets/google
         imagePullPolicy: Always
         args: ["--env", "alpha", "--log"]
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /var/secrets/google/service-account.json
+          value: /var/secrets/google/service-account-key.json
         - name: POD_ID
           valueFrom:
             fieldRef:
@@ -56,3 +56,17 @@ spec:
               fieldPath: metadata.namespace
         - name: CONTAINER_NAME
           value: proxy
+---
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: proxy-autoscale
+  labels:
+    app: proxy
+spec:
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: proxy-deployment
+  maxReplicas: 5
+  minReplicas: 1
