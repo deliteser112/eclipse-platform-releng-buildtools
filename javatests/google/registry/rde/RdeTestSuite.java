@@ -18,7 +18,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
-/** Convenience class for jart@ so she can run all RDE tests inside Eclipse with one keystroke. */
+/** Convenience class to run all RDE tests inside IDE with one keystroke. */
 @RunWith(Suite.class)
 @SuiteClasses({
   DomainResourceToXjcConverterTest.class,

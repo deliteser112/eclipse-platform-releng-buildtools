@@ -18,7 +18,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
-/** Convenience class to run all TMCH tests inside Eclipse with one keystroke. */
+/** Convenience class to run all TMCH tests inside IDE with one keystroke. */
 @RunWith(Suite.class)
 @SuiteClasses({
   LordnTaskTest.class,

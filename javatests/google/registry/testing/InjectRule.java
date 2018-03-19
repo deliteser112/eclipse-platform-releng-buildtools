@@ -27,30 +27,26 @@ import org.junit.rules.ExternalResource;
 /**
  * JUnit Rule for overriding {@code private static} fields during a test.
  *
- * <p>This rule uses reflection to change the value of a field while your test
- * is running and then restore it to its original value after it's done (even
- * if the test fails). The injection will work even if the field is marked
- * {@code private} (but not if it's {@code final}). The downside is that if you
- * rename the field in the future, Eclipse refactoring won't be smart enough to
- * update the injection site.
+ * <p>This rule uses reflection to change the value of a field while your test is running and then
+ * restore it to its original value after it's done (even if the test fails). The injection will
+ * work even if the field is marked {@code private} (but not if it's {@code final}). The downside is
+ * that if you rename the field in the future, IDE refactoring won't be smart enough to update the
+ * injection site.
  *
- * <p>We encourage you to consider using
- * {@link google.registry.util.NonFinalForTesting &#064;NonFinalForTesting}
- * to document your injected fields.
+ * <p>We encourage you to consider using {@link google.registry.util.NonFinalForTesting
+ * &#064;NonFinalForTesting} to document your injected fields.
  *
- * <p>This class is a horrible evil hack, but it alleviates you of the toil of
- * having to break encapsulation by making your fields non-{@code private}, using
- * the {@link com.google.common.annotations.VisibleForTesting &#064;VisibleForTesting}
- * annotation to document why you've reduced visibility, creating a temporary field
- * to store the old value, and then writing an {@link org.junit.After &#064;After}
- * method to restore it. So sometimes it feels good to be evil; but hopefully one
- * day we'll be able to delete this class and do things <i>properly</i> with
- * <a href="http://square.github.io/dagger/">Dagger</a> dependency injection.
+ * <p>This class is a horrible evil hack, but it alleviates you of the toil of having to break
+ * encapsulation by making your fields non-{@code private}, using the {@link
+ * com.google.common.annotations.VisibleForTesting &#064;VisibleForTesting} annotation to document
+ * why you've reduced visibility, creating a temporary field to store the old value, and then
+ * writing an {@link org.junit.After &#064;After} method to restore it. So sometimes it feels good
+ * to be evil; but hopefully one day we'll be able to delete this class and do things
+ * <i>properly</i> with <a href="http://square.github.io/dagger/">Dagger</a> dependency injection.
  *
- * <p>You use this class by declaring it as a {@link org.junit.Rule &#064;Rule}
- * field and then calling {@link #setStaticField} from either your {@link
- * org.junit.Test &#064;Test} or {@link org.junit.Before &#064;Before} methods. For
- * example:
+ * <p>You use this class by declaring it as a {@link org.junit.Rule &#064;Rule} field and then
+ * calling {@link #setStaticField} from either your {@link org.junit.Test &#064;Test} or {@link
+ * org.junit.Before &#064;Before} methods. For example:
  *
  * <pre>
  * // Doomsday.java

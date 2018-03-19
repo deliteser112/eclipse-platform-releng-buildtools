@@ -76,7 +76,7 @@ server-side command otherwise.
 ## Common tool patterns
 
 All tools ultimately implement the `Command` interface located in the `tools`
-package. If you use an integrated development environment (IDE) such as Eclipse
+package. If you use an integrated development environment (IDE) such as IntelliJ
 to view the type hierarchy of that interface, you'll see all of the commands
 that exist, as well as how a lot of them are grouped using sub-interfaces or
 abstract classes that provide additional functionality. The most common patterns
