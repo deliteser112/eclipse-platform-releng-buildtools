@@ -73,8 +73,8 @@ public class CertificateModule {
       ImmutableList<Object> objects, Class<T> clazz, Function<T, E> converter) {
     return objects
         .stream()
-        .filter(obj -> clazz.isInstance(obj))
-        .map(obj -> clazz.cast(obj))
+        .filter(clazz::isInstance)
+        .map(clazz::cast)
         .map(converter)
         .collect(toImmutableList());
   }

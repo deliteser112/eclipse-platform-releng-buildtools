@@ -46,7 +46,6 @@ public class QuotaManagerTest {
       new QuotaManager(tokenStore, MoreExecutors.newDirectExecutorService());
   private QuotaRequest request;
   private QuotaResponse response;
-  private QuotaRebate rebate;
 
   @Test
   public void testSuccess_requestApproved() {
@@ -74,7 +73,7 @@ public class QuotaManagerTest {
   public void testSuccess_rebate() throws Exception {
     DateTime grantedTokenRefillTime = clock.nowUtc();
     response = QuotaResponse.create(true, USER_ID, grantedTokenRefillTime);
-    rebate = QuotaRebate.create(response);
+    QuotaRebate rebate = QuotaRebate.create(response);
     Future<?> unusedFuture = quotaManager.releaseQuota(rebate);
     verify(tokenStore).scheduleRefresh();
     verify(tokenStore).put(USER_ID, grantedTokenRefillTime);

@@ -17,7 +17,6 @@ package google.registry.proxy.handler;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.base.Supplier;
 import google.registry.proxy.metric.FrontendMetrics;
 import google.registry.util.FormattingLogger;
 import io.netty.buffer.ByteBuf;
@@ -38,6 +37,7 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * Handler that relays a single (framed) ByteBuf message to an HTTPS server.

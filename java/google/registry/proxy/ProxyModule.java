@@ -26,8 +26,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.util.Utils;
 import com.google.api.services.cloudkms.v1.CloudKMS;
 import com.google.api.services.cloudkms.v1.model.DecryptRequest;
-import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.monitoring.metrics.MetricReporter;
@@ -48,10 +46,12 @@ import io.netty.handler.ssl.OpenSsl;
 import io.netty.handler.ssl.SslProvider;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -96,9 +96,9 @@ public class ProxyModule {
   private void configureLogging() {
     // Remove all other handlers on the root logger to avoid double logging.
     Logger rootLogger = Logger.getLogger("");
-    Arrays.asList(rootLogger.getHandlers()).forEach(h -> rootLogger.removeHandler(h));
+    Arrays.asList(rootLogger.getHandlers()).forEach(rootLogger::removeHandler);
 
-    // If running on in a non-local environment, use GCP JSON formater.
+    // If running on in a non-local environment, use GCP JSON formatter.
     Handler rootHandler = new ConsoleHandler();
     rootHandler.setLevel(Level.FINE);
     if (env != Environment.LOCAL) {
@@ -129,19 +129,19 @@ public class ProxyModule {
   @Provides
   @WhoisProtocol
   int provideWhoisPort(ProxyConfig config) {
-    return Optional.fromNullable(whoisPort).or(config.whois.port);
+    return Optional.ofNullable(whoisPort).orElse(config.whois.port);
   }
 
   @Provides
   @EppProtocol
   int provideEppPort(ProxyConfig config) {
-    return Optional.fromNullable(eppPort).or(config.epp.port);
+    return Optional.ofNullable(eppPort).orElse(config.epp.port);
   }
 
   @Provides
   @HealthCheckProtocol
   int provideHealthCheckPort(ProxyConfig config) {
-    return Optional.fromNullable(healthCheckPort).or(config.healthCheck.port);
+    return Optional.ofNullable(healthCheckPort).orElse(config.healthCheck.port);
   }
 
   @Provides
@@ -295,7 +295,7 @@ public class ProxyModule {
 
     private final byte[] bytes;
 
-    static final PemBytes create(byte[] bytes) {
+    static PemBytes create(byte[] bytes) {
       return new PemBytes(bytes);
     }
 

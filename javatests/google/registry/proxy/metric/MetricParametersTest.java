@@ -62,8 +62,7 @@ public class MetricParametersTest {
           ZONE_PATH,
           zoneConnection);
   private final HashMap<String, String> fakeEnvVarMap = new HashMap<>();
-  private final Function<String, HttpURLConnection> fakeConnectionFactory =
-      path -> mockConnections.get(path);
+  private final Function<String, HttpURLConnection> fakeConnectionFactory = mockConnections::get;
 
   private final MetricParameters metricParameters =
       new MetricParameters(fakeEnvVarMap, fakeConnectionFactory);

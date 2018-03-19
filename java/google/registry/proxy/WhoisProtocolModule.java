@@ -14,7 +14,6 @@
 
 package google.registry.proxy;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
@@ -36,6 +35,7 @@ import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Qualifier;
@@ -47,7 +47,7 @@ public class WhoisProtocolModule {
 
   /** Dagger qualifier to provide whois protocol related handlers and other bindings. */
   @Qualifier
-  public @interface WhoisProtocol {};
+  public @interface WhoisProtocol {}
 
   private static final String PROTOCOL_NAME = "whois";
 

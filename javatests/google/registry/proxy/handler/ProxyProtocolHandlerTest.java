@@ -51,7 +51,7 @@ public class ProxyProtocolHandlerTest {
 
   @Test
   public void testSuccess_proxyHeaderMalformed_singleFrame() {
-    header = String.format("PROXY UNKNOWN\r\n");
+    header = "PROXY UNKNOWN\r\n";
     String message = "some message";
     // Header processed, rest of the message passed along.
     assertThat(channel.writeInbound(Unpooled.wrappedBuffer((header + message).getBytes(UTF_8))))

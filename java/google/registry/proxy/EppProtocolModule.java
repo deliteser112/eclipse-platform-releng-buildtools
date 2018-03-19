@@ -16,7 +16,6 @@ package google.registry.proxy;
 
 import static google.registry.util.ResourceUtils.readResourceBytes;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
@@ -43,6 +42,7 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Qualifier;
@@ -56,7 +56,7 @@ public class EppProtocolModule {
 
   /** Dagger qualifier to provide epp protocol related handlers and other bindings. */
   @Qualifier
-  public @interface EppProtocol {};
+  public @interface EppProtocol {}
 
   private static final String PROTOCOL_NAME = "epp";
 

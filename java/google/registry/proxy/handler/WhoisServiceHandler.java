@@ -14,13 +14,13 @@
 
 package google.registry.proxy.handler;
 
-import com.google.common.base.Supplier;
 import google.registry.proxy.metric.FrontendMetrics;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import java.util.function.Supplier;
 
 /** Handler that processes WHOIS protocol logic. */
 public final class WhoisServiceHandler extends HttpsRelayServiceHandler {

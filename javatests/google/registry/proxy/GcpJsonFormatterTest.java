@@ -37,16 +37,13 @@ public class GcpJsonFormatterTest {
   private final LogRecord logRecord = new LogRecord(Level.WARNING, MESSAGE);
 
   private static String makeJson(String severity, String source, String message) {
-    StringBuilder builder = new StringBuilder();
-    builder.append("{");
-    builder.append(
-        Joiner.on(",")
+    return "{"
+        + Joiner.on(",")
             .join(
                 makeJsonField("severity", severity),
                 makeJsonField("source", source),
-                makeJsonField("message", "\\n" + message)));
-    builder.append("}\n");
-    return builder.toString();
+                makeJsonField("message", "\\n" + message))
+        + "}\n";
   }
 
   private static String makeJsonField(String name, String content) {

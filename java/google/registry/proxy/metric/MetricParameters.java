@@ -78,7 +78,7 @@ public class MetricParameters {
     this(ImmutableMap.copyOf(System.getenv()), MetricParameters::gceConnectionFactory);
   }
 
-  private static final HttpURLConnection gceConnectionFactory(String path) {
+  private static HttpURLConnection gceConnectionFactory(String path) {
     String url = GCE_METADATA_URL_BASE + path;
     try {
       HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
@@ -91,7 +91,7 @@ public class MetricParameters {
       logger.warningfmt(e, "Incorrect GCE metadata server URL: %s", url);
       throw new RuntimeException(e);
     }
-  };
+  }
 
   private String readEnvVar(String envVar) {
     return envVarMap.getOrDefault(envVar, "");

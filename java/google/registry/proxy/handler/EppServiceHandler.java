@@ -20,7 +20,6 @@ import static google.registry.proxy.handler.ProxyProtocolHandler.REMOTE_ADDRESS_
 import static google.registry.proxy.handler.SslServerInitializer.CLIENT_CERTIFICATE_PROMISE_KEY;
 import static google.registry.util.X509Utils.getCertificateHash;
 
-import com.google.common.base.Supplier;
 import google.registry.proxy.metric.FrontendMetrics;
 import google.registry.util.FormattingLogger;
 import io.netty.buffer.ByteBuf;
@@ -36,6 +35,7 @@ import io.netty.handler.ssl.SslHandshakeCompletionEvent;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.Promise;
 import java.security.cert.X509Certificate;
+import java.util.function.Supplier;
 
 /** Handler that processes EPP protocol logic. */
 public class EppServiceHandler extends HttpsRelayServiceHandler {
