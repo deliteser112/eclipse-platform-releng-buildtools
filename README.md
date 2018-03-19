@@ -89,26 +89,26 @@ Nomulus has the following capabilities:
 *   **Administrative tool**: Performs the full range of administrative tasks
     needed to manage a running registry system, including creating and
     configuring new TLDs.
-
-## Known issues
-
-Registry operators interested in deploying Nomulus will likely require some
-additional components that are not provided out of the box.
-
-**Core dependencies**
-
-*   A DNS system. An interface for DNS operations is provided so you can write
-    an implementation for your chosen provider, along with a sample
+*   **DNS interface**: An interface for DNS operations is provided so you can
+    write an implementation for your chosen provider, along with a sample
     implementation that uses [Google Cloud DNS](https://cloud.google.com/dns/).
     If you are using Google Cloud DNS you may need to understand its
     capabilities and provide your own
     multi-[AS](https://en.wikipedia.org/wiki/Autonomous_system_\(Internet\))
     solution.
-*   A proxy to forward traffic on EPP and WHOIS ports to App Engine via HTTPS,
-    since App Engine Standard only serves HTTP/S traffic. The proxy must support
-    IPv4 and IPv6 access to comply with ICANN's requirements for gTLDs.
+*   **GAE Proxy**: App Engine Standard only serves HTTP/S traffic. A proxy to
+    forward traffic on EPP and WHOIS ports to App Engine via HTTPS is provided.
+    Instructions on setting up the proxy on
+    [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/)
+    is [available](https://github.com/google/nomulus/blob/master/docs/proxy-setup.md).
+    Running the proxy on GKE supports IPv4 and IPv6 access, per ICANN's
+    requirements for gTLDs. The proxy can also run as a single jar file, or on
+    other Kubernetes providers, with modifications.
 
-**Additional functionality**
+## Additional components
+
+Registry operators interested in deploying Nomulus will likely require some
+additional components that are need to be configured separately.
 
 *   A way to invoice registrars for domain name registrations and accept
     payments. Nomulus records the information required to generate invoices in
