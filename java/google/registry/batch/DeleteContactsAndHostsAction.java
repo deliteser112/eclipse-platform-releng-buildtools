@@ -501,7 +501,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
               checkNotNull(
                   params.get(PARAM_SERVER_TRANSACTION_ID), "Server transaction id not specified"))
           .setIsSuperuser(
-              Boolean.valueOf(
+              Boolean.parseBoolean(
                   checkNotNull(params.get(PARAM_IS_SUPERUSER), "Is superuser not specified")))
           .setRequestedTime(
               DateTime.parse(

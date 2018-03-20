@@ -84,7 +84,7 @@ public final class RequestParameters {
    */
   public static int extractIntParameter(HttpServletRequest req, String name) {
     try {
-      return Integer.valueOf(nullToEmpty(req.getParameter(name)));
+      return Integer.parseInt(nullToEmpty(req.getParameter(name)));
     } catch (NumberFormatException e) {
       throw new BadRequestException("Expected integer: " + name);
     }

@@ -137,6 +137,6 @@ public final class IdnTable {
     checkArgument(matcher.lookingAt(), "Can't parse line: %s", line);
 
     String hexString = matcher.group(1);
-    return Integer.valueOf(hexString, 16);
+    return Integer.parseInt(hexString, 16);
   }
 }
