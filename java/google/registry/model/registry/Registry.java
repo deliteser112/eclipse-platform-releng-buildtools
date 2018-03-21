@@ -104,7 +104,7 @@ public class Registry extends ImmutableObject implements Buildable {
   public static final boolean DEFAULT_ESCROW_ENABLED = false;
   public static final boolean DEFAULT_DNS_PAUSED = false;
   public static final Duration DEFAULT_ADD_GRACE_PERIOD = Duration.standardDays(5);
-  public static final Duration DEFAULT_SUNRUSH_ADD_GRACE_PERIOD = Duration.standardDays(30);
+  public static final Duration DEFAULT_SUNRUSH_ADD_GRACE_PERIOD = Duration.standardDays(5);
   public static final Duration DEFAULT_AUTO_RENEW_GRACE_PERIOD = Duration.standardDays(45);
   public static final Duration DEFAULT_REDEMPTION_GRACE_PERIOD = Duration.standardDays(30);
   public static final Duration DEFAULT_RENEW_GRACE_PERIOD = Duration.standardDays(5);
