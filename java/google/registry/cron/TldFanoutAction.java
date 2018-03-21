@@ -16,13 +16,13 @@ package google.registry.cron;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Multimaps.filterKeys;
-import static com.google.common.collect.Sets.difference;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static google.registry.model.registry.Registries.getTldsOfType;
 import static google.registry.model.registry.Registry.TldType.REAL;
@@ -42,10 +42,11 @@ import google.registry.request.ParameterMap;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
+import google.registry.util.FormattingLogger;
 import google.registry.util.TaskEnqueuer;
 import java.util.Optional;
 import java.util.Random;
-import java.util.Set;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 
 /**
@@ -58,10 +59,10 @@ import javax.inject.Inject;
  * <li>{@code queue} (Required) Name of the App Engine push queue to which this task should be sent.
  * <li>{@code forEachRealTld} Launch the task in each real TLD namespace.
  * <li>{@code forEachTestTld} Launch the task in each test TLD namespace.
- * <li>{@code runInEmpty} Launch the task in the empty namespace.
+ * <li>{@code runInEmpty} Launch the task once, without the TLD argument.
  * <li>{@code exclude} TLDs to exclude.
  * <li>{@code jitterSeconds} Randomly delay each task by up to this many seconds.
-  * <li>Any other parameters specified will be passed through as POST parameters to the called task.
+ * <li>Any other parameters specified will be passed through as POST parameters to the called task.
  * </ul>
  *
  * <h3>Patharg Reference</h3>
@@ -98,8 +99,9 @@ public final class TldFanoutAction implements Runnable {
           EXCLUDE_PARAM,
           JITTER_SECONDS_PARAM);
 
-  private static final String TLD_PATHARG = ":tld";
   private static final Random random = new Random();
+
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Inject TaskEnqueuer taskEnqueuer;
   @Inject Response response;
@@ -115,28 +117,40 @@ public final class TldFanoutAction implements Runnable {
 
   @Override
   public void run() {
-    Set<String> tlds =
-        difference(
-            Streams.concat(
-                    Streams.stream(runInEmpty ? ImmutableSet.of("") : ImmutableSet.of()),
-                    Streams.stream(
-                        forEachRealTld ? getTldsOfType(REAL) : ImmutableSet.of()),
-                    Streams.stream(
-                        forEachTestTld ? getTldsOfType(TEST) : ImmutableSet.of()))
-                .collect(toImmutableSet()),
-            excludes);
+    checkArgument(
+        !(runInEmpty && (forEachTestTld || forEachRealTld)),
+        "runInEmpty and forEach*Tld are mutually exclusive");
+    checkArgument(
+        runInEmpty || forEachTestTld || forEachRealTld,
+        "At least one of runInEmpty, forEachTestTld, forEachRealTld must be given");
+    checkArgument(
+        !(runInEmpty && !excludes.isEmpty()),
+        "Can't specify 'exclude' with 'runInEmpty'");
+    ImmutableSet<String> tlds =
+        Streams.concat(
+                runInEmpty ? Stream.of("") : Stream.of(),
+                forEachRealTld ? getTldsOfType(REAL).stream() : Stream.of(),
+                forEachTestTld ? getTldsOfType(TEST).stream() : Stream.of())
+            .filter(tld -> !excludes.contains(tld))
+            .collect(toImmutableSet());
     Multimap<String, String> flowThruParams = filterKeys(params, not(in(CONTROL_PARAMS)));
     Queue taskQueue = getQueue(queue);
     StringBuilder outputPayload =
         new StringBuilder(
             String.format("OK: Launched the following %d tasks in queue %s\n", tlds.size(), queue));
+    logger.infofmt("Launching %d tasks in queue %s", tlds.size(), queue);
+    if (tlds.isEmpty()) {
+      logger.warning("No TLDs to fan-out!");
+    }
     for (String tld : tlds) {
       TaskOptions taskOptions = createTaskOptions(tld, flowThruParams);
       TaskHandle taskHandle = taskEnqueuer.enqueue(taskQueue, taskOptions);
       outputPayload.append(
           String.format(
-              "- Task: %s, tld: %s, endpoint: %s\n",
+              "- Task: '%s', tld: '%s', endpoint: '%s'\n",
               taskHandle.getName(), tld, taskOptions.getUrl()));
+      logger.infofmt("Task: '%s', tld: '%s', endpoint: '%s'",
+              taskHandle.getName(), tld, taskOptions.getUrl());
     }
     response.setContentType(PLAIN_TEXT_UTF_8);
     response.setPayload(outputPayload.toString());
@@ -144,12 +158,14 @@ public final class TldFanoutAction implements Runnable {
 
   private TaskOptions createTaskOptions(String tld, Multimap<String, String> params) {
     TaskOptions options =
-        withUrl(endpoint.replace(TLD_PATHARG, String.valueOf(tld)))
+        withUrl(endpoint)
             .countdownMillis(
-                jitterSeconds.isPresent()
-                    ? random.nextInt((int) SECONDS.toMillis(jitterSeconds.get()))
-                    : 0);
-    options.param(RequestParameters.PARAM_TLD, tld);
+                jitterSeconds
+                    .map(seconds -> random.nextInt((int) SECONDS.toMillis(seconds)))
+                    .orElse(0));
+    if (!tld.isEmpty()) {
+      options.param(RequestParameters.PARAM_TLD, tld);
+    }
     for (String param : params.keySet()) {
       // TaskOptions.param() does not accept null values.
       options.param(param, nullToEmpty((getFirst(params.get(param), null))));

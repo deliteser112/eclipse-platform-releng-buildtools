@@ -14,14 +14,14 @@
 
 package google.registry.cron;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.getLast;
-import static com.google.common.collect.Lists.transform;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static java.util.Arrays.asList;
 
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
@@ -38,6 +38,7 @@ import google.registry.util.Retrier;
 import google.registry.util.TaskEnqueuer;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -101,24 +102,21 @@ public class TldFanoutActionTest {
   private static void assertTasks(String... tasks) throws Exception {
     assertTasksEnqueued(
         QUEUE,
-        transform(
-            asList(tasks),
-            (String namespace) ->
+        Stream.of(tasks).map(
+            namespace ->
                 new TaskMatcher()
                     .url(ENDPOINT)
                     .header("content-type", "application/x-www-form-urlencoded")
-                    .param("tld", namespace)));
+                    .param("tld", namespace))
+        .collect(toImmutableList()));
   }
 
-  @Test
-  public void testSuccess_pathargTld() throws Exception {
-    run(getParamsMap(
-        "forEachRealTld", "",
-        "endpoint", "/the/servlet/:tld"));
-    assertTasksEnqueued(QUEUE,
-        new TaskMatcher().url("/the/servlet/com"),
-        new TaskMatcher().url("/the/servlet/net"),
-        new TaskMatcher().url("/the/servlet/org"));
+  private static void assertTaskWithoutTld() throws Exception {
+    assertTasksEnqueued(
+        QUEUE,
+        new TaskMatcher()
+            .url(ENDPOINT)
+            .header("content-type", "application/x-www-form-urlencoded"));
   }
 
   @Test
@@ -128,15 +126,14 @@ public class TldFanoutActionTest {
   }
 
   @Test
-  public void testSuccess_noTlds() throws Exception {
-    run(getParamsMap());
-    assertNoTasksEnqueued(QUEUE);
+  public void testFailure_noTlds() throws Exception {
+    assertThrows(IllegalArgumentException.class, () -> run(getParamsMap()));
   }
 
   @Test
   public void testSuccess_runInEmpty() throws Exception {
     run(getParamsMap("runInEmpty", ""));
-    assertTasks("");
+    assertTaskWithoutTld();
   }
 
   @Test
@@ -152,12 +149,6 @@ public class TldFanoutActionTest {
   }
 
   @Test
-  public void testSuccess_runInEmptyAndRunInRealTld() throws Exception {
-    run(getParamsMap("runInEmpty", "", "forEachRealTld", ""));
-    assertTasks("", "com", "net", "org");
-  }
-
-  @Test
   public void testSuccess_forEachTestTldAndForEachRealTld() throws Exception {
     run(getParamsMap(
         "forEachTestTld", "",
@@ -166,15 +157,9 @@ public class TldFanoutActionTest {
   }
 
   @Test
-  public void testSuccess_runInEmptyAndForEachTestTld() throws Exception {
-    run(getParamsMap("runInEmpty", "", "forEachTestTld", ""));
-    assertTasks("", "example");
-  }
-
-  @Test
   public void testSuccess_runEverywhere() throws Exception {
-    run(getParamsMap("runInEmpty", "", "forEachTestTld", "", "forEachRealTld", ""));
-    assertTasks("", "com", "net", "org", "example");
+    run(getParamsMap("forEachTestTld", "", "forEachRealTld", ""));
+    assertTasks("com", "net", "org", "example");
   }
 
   @Test
@@ -196,11 +181,43 @@ public class TldFanoutActionTest {
   @Test
   public void testSuccess_excludeNonexistentTlds() throws Exception {
     run(getParamsMap(
-        "runInEmpty", "",
         "forEachTestTld", "",
         "forEachRealTld", "",
         "exclude", "foo"));
-    assertTasks("", "com", "net", "org", "example");
+    assertTasks("com", "net", "org", "example");
+  }
+
+  @Test
+  public void testFailure_runInEmptyAndTest() throws Exception {
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            run(
+                getParamsMap(
+                    "runInEmpty", "",
+                    "forEachTestTld", "")));
+  }
+
+  @Test
+  public void testFailure_runInEmptyAndReal() throws Exception {
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            run(
+                getParamsMap(
+                    "runInEmpty", "",
+                    "forEachRealTld", "")));
+  }
+
+  @Test
+  public void testFailure_runInEmptyAndExclude() throws Exception {
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            run(
+                getParamsMap(
+                    "runInEmpty", "",
+                    "exclude", "foo")));
   }
 
   @Test
@@ -212,7 +229,7 @@ public class TldFanoutActionTest {
 
   @Test
   public void testSuccess_returnHttpResponse() throws Exception {
-    run(getParamsMap("forEachRealTld", "", "endpoint", "/the/servlet/:tld"));
+    run(getParamsMap("forEachRealTld", "", "endpoint", "/the/servlet"));
 
     List<TaskStateInfo> taskList =
         LocalTaskQueueTestConfig.getLocalTaskQueue().getQueueStateInfo().get(QUEUE).getTaskInfo();
@@ -220,12 +237,27 @@ public class TldFanoutActionTest {
     assertThat(taskList).hasSize(3);
     String expectedResponse = String.format(
         "OK: Launched the following 3 tasks in queue the-queue\n"
-            + "- Task: %s, tld: com, endpoint: /the/servlet/com\n"
-            + "- Task: %s, tld: net, endpoint: /the/servlet/net\n"
-            + "- Task: %s, tld: org, endpoint: /the/servlet/org\n",
+            + "- Task: '%s', tld: 'com', endpoint: '/the/servlet'\n"
+            + "- Task: '%s', tld: 'net', endpoint: '/the/servlet'\n"
+            + "- Task: '%s', tld: 'org', endpoint: '/the/servlet'\n",
         taskList.get(0).getTaskName(),
         taskList.get(1).getTaskName(),
         taskList.get(2).getTaskName());
+    assertThat(response.getPayload()).isEqualTo(expectedResponse);
+  }
+
+  @Test
+  public void testSuccess_returnHttpResponse_runInEmpty() throws Exception {
+    run(getParamsMap("runInEmpty", "", "endpoint", "/the/servlet"));
+
+    List<TaskStateInfo> taskList =
+        LocalTaskQueueTestConfig.getLocalTaskQueue().getQueueStateInfo().get(QUEUE).getTaskInfo();
+
+    assertThat(taskList).hasSize(1);
+    String expectedResponse = String.format(
+        "OK: Launched the following 1 tasks in queue the-queue\n"
+            + "- Task: '%s', tld: '', endpoint: '/the/servlet'\n",
+        taskList.get(0).getTaskName());
     assertThat(response.getPayload()).isEqualTo(expectedResponse);
   }
 }
