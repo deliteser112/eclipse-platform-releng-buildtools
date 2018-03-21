@@ -61,22 +61,11 @@ public class RetrierTest {
 
   static class TestReporter implements FailureReporter {
     int numBeforeRetry = 0;
-    int numOnFinalFailure = 0;
 
     @Override
     public void beforeRetry(Throwable e, int failures, int maxAttempts) {
       numBeforeRetry++;
       assertThat(failures).isEqualTo(numBeforeRetry);
-    }
-
-    @Override
-    public void afterFinalFailure(Throwable e, int failures) {
-      numOnFinalFailure++;
-    }
-
-    void assertNumbers(int expectedBeforeRetry, int expectedOnFinalFailure) {
-      assertThat(numBeforeRetry).isEqualTo(expectedBeforeRetry);
-      assertThat(numOnFinalFailure).isEqualTo(expectedOnFinalFailure);
     }
   }
 
@@ -114,7 +103,7 @@ public class RetrierTest {
               try {
                 retrier.callWithRetry(new CountingThrower(3), reporter, CountingException.class);
               } catch (CountingException expected) {
-                reporter.assertNumbers(2, 1);
+                assertThat(reporter.numBeforeRetry).isEqualTo(2);
                 throw expected;
               }
             });
@@ -126,7 +115,7 @@ public class RetrierTest {
     TestReporter reporter = new TestReporter();
     assertThat(retrier.callWithRetry(new CountingThrower(2), reporter, CountingException.class))
         .isEqualTo(2);
-    reporter.assertNumbers(2, 0);
+    assertThat(reporter.numBeforeRetry).isEqualTo(2);
   }
 
   @Test
@@ -134,6 +123,6 @@ public class RetrierTest {
     TestReporter reporter = new TestReporter();
     assertThat(retrier.callWithRetry(new CountingThrower(0), reporter, CountingException.class))
         .isEqualTo(0);
-    reporter.assertNumbers(0, 0);
+    assertThat(reporter.numBeforeRetry).isEqualTo(0);
   }
 }

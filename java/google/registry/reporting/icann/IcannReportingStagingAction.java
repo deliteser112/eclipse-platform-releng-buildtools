@@ -14,6 +14,7 @@
 
 package google.registry.reporting.icann;
 
+import static com.google.common.base.Throwables.getRootCause;
 import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -73,50 +74,51 @@ public final class IcannReportingStagingAction implements Runnable {
 
   @Override
   public void run() {
-    retrier.callWithRetry(
-        () -> {
-          ImmutableList.Builder<String> manifestedFilesBuilder = new ImmutableList.Builder<>();
-          for (ReportType reportType : reportTypes) {
-            manifestedFilesBuilder.addAll(stager.stageReports(reportType));
-          }
-          ImmutableList<String> manifestedFiles = manifestedFilesBuilder.build();
-          stager.createAndUploadManifest(manifestedFiles);
+    try {
+      retrier.callWithRetry(
+          () -> {
+            ImmutableList.Builder<String> manifestedFilesBuilder = new ImmutableList.Builder<>();
+            for (ReportType reportType : reportTypes) {
+              manifestedFilesBuilder.addAll(stager.stageReports(reportType));
+            }
+            ImmutableList<String> manifestedFiles = manifestedFilesBuilder.build();
+            stager.createAndUploadManifest(manifestedFiles);
 
-          logger.infofmt("Completed staging %d report files.", manifestedFiles.size());
-          emailUtils.emailResults(
-              "ICANN Monthly report staging summary [SUCCESS]",
-              String.format(
-                  "Completed staging the following %d ICANN reports:\n%s",
-                  manifestedFiles.size(), Joiner.on('\n').join(manifestedFiles)));
-
-          response.setStatus(SC_OK);
-          response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
-          response.setPayload("Completed staging action.");
-
-          logger.infofmt("Enqueueing report upload :");
-          TaskOptions uploadTask = TaskOptions.Builder.withUrl(IcannReportingUploadAction.PATH)
-              .method(Method.POST)
-              .countdownMillis(Duration.standardMinutes(2).getMillis())
-              .param(IcannReportingModule.PARAM_SUBDIR, subdir);
-          QueueFactory.getQueue(CRON_QUEUE).add(uploadTask);
-          return null;
-        },
-        new Retrier.FailureReporter() {
-          @Override
-          public void beforeRetry(Throwable thrown, int failures, int maxAttempts) {}
-
-          @Override
-          public void afterFinalFailure(Throwable thrown, int failures) {
+            logger.infofmt("Completed staging %d report files.", manifestedFiles.size());
             emailUtils.emailResults(
-                "ICANN Monthly report staging summary [FAILURE]",
+                "ICANN Monthly report staging summary [SUCCESS]",
                 String.format(
-                    "Staging failed due to %s, check logs for more details.", thrown.toString()));
-            logger.severe(thrown, "Staging action failed.");
-            response.setStatus(SC_INTERNAL_SERVER_ERROR);
+                    "Completed staging the following %d ICANN reports:\n%s",
+                    manifestedFiles.size(), Joiner.on('\n').join(manifestedFiles)));
+
+            response.setStatus(SC_OK);
             response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
-            response.setPayload(String.format("Staging failed due to %s", thrown.toString()));
-          }
-        },
-        BigqueryJobFailureException.class);
+            response.setPayload("Completed staging action.");
+
+            logger.infofmt("Enqueueing report upload :");
+            TaskOptions uploadTask =
+                TaskOptions.Builder.withUrl(IcannReportingUploadAction.PATH)
+                    .method(Method.POST)
+                    .countdownMillis(Duration.standardMinutes(2).getMillis())
+                    .param(IcannReportingModule.PARAM_SUBDIR, subdir);
+            QueueFactory.getQueue(CRON_QUEUE).add(uploadTask);
+            return null;
+          },
+          BigqueryJobFailureException.class);
+    } catch (Throwable e) {
+      emailUtils.emailResults(
+          "ICANN Monthly report staging summary [FAILURE]",
+          String.format(
+              "Staging failed due to %s, check logs for more details.",
+              getRootCause(e).toString()));
+      logger.severe(e, "Staging action failed.");
+      response.setStatus(SC_INTERNAL_SERVER_ERROR);
+      response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
+      response.setPayload(
+          String.format(
+              "Staging failed due to %s",
+              getRootCause(e).toString()));
+      throw e;
+    }
   }
 }

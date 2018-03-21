@@ -138,19 +138,9 @@ class CommitLogManifestReader extends InputReader<Key<CommitLogManifest>> {
     try {
       return retrier.callWithRetry(
           () -> queryIterator.next(),
-          new Retrier.FailureReporter() {
-            @Override
-            public void beforeRetry(Throwable thrown, int failures, int maxAttempts) {
-              checkNotNull(currentCursor, "Can't retry because cursor is null. Giving up.");
-              queryIterator = query().startAt(currentCursor).keys().iterator();
-            }
-
-            @Override
-            public void afterFinalFailure(Throwable thrown, int failures) {
-              logger.severefmt(
-                  "Max retry attempts reached trying to read item %d/%d. Giving up.",
-                  loaded, total);
-            }
+          (thrown, failures, maxAttempts) -> {
+            checkNotNull(currentCursor, "Can't retry because cursor is null. Giving up.");
+            queryIterator = query().startAt(currentCursor).keys().iterator();
           },
           DatastoreTimeoutException.class);
     } finally {

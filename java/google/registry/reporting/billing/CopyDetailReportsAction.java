@@ -14,6 +14,7 @@
 
 package google.registry.reporting.billing;
 
+import static com.google.common.base.Throwables.getRootCause;
 import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -104,34 +105,30 @@ public final class CopyDetailReportsAction implements Runnable {
         continue;
       }
       // Attempt to copy each detail report to its associated registrar's drive folder.
-      retrier.callWithRetry(
-          () -> {
-            try (InputStream input =
-                gcsUtils.openInputStream(
-                    new GcsFilename(billingBucket, invoiceDirectoryPrefix + detailReportName))) {
-              driveConnection.createFile(
-                  detailReportName,
-                  MediaType.CSV_UTF_8,
-                  driveFolderId,
-                  ByteStreams.toByteArray(input));
-              logger.infofmt(
-                  "Published detail report for %s to folder %s using GCS file gs://%s/%s.",
-                  registrarId, driveFolderId, billingBucket, detailReportName);
-            }
-          },
-          new Retrier.FailureReporter() {
-            @Override
-            public void beforeRetry(Throwable thrown, int failures, int maxAttempts) {}
-
-            @Override
-            public void afterFinalFailure(Throwable thrown, int failures) {
-              emailUtils.sendAlertEmail(
-                  String.format(
-                      "Warning: CopyDetailReportsAction failed.\nEncountered: %s on file: %s",
-                      thrown.getMessage(), detailReportName));
-            }
-          },
-          IOException.class);
+      try {
+        retrier.callWithRetry(
+            () -> {
+              try (InputStream input =
+                  gcsUtils.openInputStream(
+                      new GcsFilename(billingBucket, invoiceDirectoryPrefix + detailReportName))) {
+                driveConnection.createFile(
+                    detailReportName,
+                    MediaType.CSV_UTF_8,
+                    driveFolderId,
+                    ByteStreams.toByteArray(input));
+                logger.infofmt(
+                    "Published detail report for %s to folder %s using GCS file gs://%s/%s.",
+                    registrarId, driveFolderId, billingBucket, detailReportName);
+              }
+            },
+            IOException.class);
+      } catch (Throwable e) {
+        emailUtils.sendAlertEmail(
+            String.format(
+                "Warning: CopyDetailReportsAction failed.\nEncountered: %s on file: %s",
+                getRootCause(e).getMessage(), detailReportName));
+        throw e;
+      }
     }
     response.setStatus(SC_OK);
     response.setContentType(MediaType.PLAIN_TEXT_UTF_8);

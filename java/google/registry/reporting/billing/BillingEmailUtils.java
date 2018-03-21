@@ -14,6 +14,7 @@
 
 package google.registry.reporting.billing;
 
+import static com.google.common.base.Throwables.getRootCause;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
@@ -78,71 +79,68 @@ class BillingEmailUtils {
 
   /** Sends an e-mail to all expected recipients with an attached overall invoice from GCS. */
   void emailOverallInvoice() {
-    retrier.callWithRetry(
-        () -> {
-          String invoiceFile =
-              String.format(
-                  "%s-%s.csv", BillingModule.OVERALL_INVOICE_PREFIX, yearMonth.toString());
-          GcsFilename invoiceFilename =
-              new GcsFilename(billingBucket, invoiceDirectoryPrefix + invoiceFile);
-          try (InputStream in = gcsUtils.openInputStream(invoiceFilename)) {
-            Message msg = emailService.createMessage();
-            msg.setFrom(new InternetAddress(alertSenderAddress));
-            for (String recipient : invoiceEmailRecipients) {
-              msg.addRecipient(RecipientType.TO, new InternetAddress(recipient));
-            }
-            msg.setSubject(String.format("Domain Registry invoice data %s", yearMonth.toString()));
-            Multipart multipart = new MimeMultipart();
-            BodyPart textPart = new MimeBodyPart();
-            textPart.setText(
+    try {
+      retrier.callWithRetry(
+          () -> {
+            String invoiceFile =
                 String.format(
-                    "Attached is the %s invoice for the domain registry.", yearMonth.toString()));
-            multipart.addBodyPart(textPart);
-            BodyPart invoicePart = new MimeBodyPart();
-            String invoiceData = CharStreams.toString(new InputStreamReader(in, UTF_8));
-            invoicePart.setContent(invoiceData, "text/csv; charset=utf-8");
-            invoicePart.setFileName(invoiceFile);
-            multipart.addBodyPart(invoicePart);
-            msg.setContent(multipart);
-            msg.saveChanges();
-            emailService.sendMessage(msg);
-          }
-        },
-        new Retrier.FailureReporter() {
-          @Override
-          public void beforeRetry(Throwable thrown, int failures, int maxAttempts) {}
-
-          @Override
-          public void afterFinalFailure(Throwable thrown, int failures) {
-            sendAlertEmail(
-                String.format("Emailing invoice failed due to %s", thrown.getMessage()));
-          }
-        },
-        IOException.class,
-        MessagingException.class);
+                    "%s-%s.csv", BillingModule.OVERALL_INVOICE_PREFIX, yearMonth.toString());
+            GcsFilename invoiceFilename =
+                new GcsFilename(billingBucket, invoiceDirectoryPrefix + invoiceFile);
+            try (InputStream in = gcsUtils.openInputStream(invoiceFilename)) {
+              Message msg = emailService.createMessage();
+              msg.setFrom(new InternetAddress(alertSenderAddress));
+              for (String recipient : invoiceEmailRecipients) {
+                msg.addRecipient(RecipientType.TO, new InternetAddress(recipient));
+              }
+              msg.setSubject(
+                  String.format("Domain Registry invoice data %s", yearMonth.toString()));
+              Multipart multipart = new MimeMultipart();
+              BodyPart textPart = new MimeBodyPart();
+              textPart.setText(
+                  String.format(
+                      "Attached is the %s invoice for the domain registry.", yearMonth.toString()));
+              multipart.addBodyPart(textPart);
+              BodyPart invoicePart = new MimeBodyPart();
+              String invoiceData = CharStreams.toString(new InputStreamReader(in, UTF_8));
+              invoicePart.setContent(invoiceData, "text/csv; charset=utf-8");
+              invoicePart.setFileName(invoiceFile);
+              multipart.addBodyPart(invoicePart);
+              msg.setContent(multipart);
+              msg.saveChanges();
+              emailService.sendMessage(msg);
+            }
+          },
+          IOException.class,
+          MessagingException.class);
+    } catch (Throwable e) {
+      logger.severe(e, "Emailing invoice failed");
+      // Strip one layer, because callWithRetry wraps in a RuntimeException
+      sendAlertEmail(
+          String.format(
+              "Emailing invoice failed due to %s",
+              getRootCause(e).getMessage()));
+      throw e;
+    }
   }
 
   /** Sends an e-mail to the provided alert e-mail address indicating a billing failure. */
   void sendAlertEmail(String body) {
-    retrier.callWithRetry(
-        () -> {
-          Message msg = emailService.createMessage();
-          msg.setFrom(new InternetAddress(alertSenderAddress));
-          msg.addRecipient(RecipientType.TO, new InternetAddress(alertRecipientAddress));
-          msg.setSubject(String.format("Billing Pipeline Alert: %s", yearMonth.toString()));
-          msg.setText(body);
-          emailService.sendMessage(msg);
-          return null;
-        },
-        new Retrier.FailureReporter() {
-          @Override
-          public void beforeRetry(Throwable thrown, int failures, int maxAttempts) {}
-
-          @Override
-          public void afterFinalFailure(Throwable thrown, int failures) {
-            logger.severe(thrown, "The alert e-mail system failed.");
-          }
-        },
-        MessagingException.class);
+    try {
+      retrier.callWithRetry(
+          () -> {
+            Message msg = emailService.createMessage();
+            msg.setFrom(new InternetAddress(alertSenderAddress));
+            msg.addRecipient(RecipientType.TO, new InternetAddress(alertRecipientAddress));
+            msg.setSubject(String.format("Billing Pipeline Alert: %s", yearMonth.toString()));
+            msg.setText(body);
+            emailService.sendMessage(msg);
+            return null;
+          },
+          MessagingException.class);
+    } catch (Throwable e) {
+      logger.severe(e, "The alert e-mail system failed.");
+      throw e;
+    }
   }
 }

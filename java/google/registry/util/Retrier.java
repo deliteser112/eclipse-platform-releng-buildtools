@@ -49,16 +49,6 @@ public class Retrier implements Serializable {
      * <p>Not called at all if the retrier succeeded on its first attempt.
      */
     void beforeRetry(Throwable thrown, int failures, int maxAttempts);
-
-    /**
-     * Called after a a non-retriable error.
-     *
-     * <p>Called either after the final failure, or if the Throwable thrown isn't "a retriable
-     * error". The retrier throws right after calling this function.
-     *
-     * <p>Not called at all if the retrier succeeds.
-     */
-    void afterFinalFailure(Throwable thrown, int failures);
   }
 
   @Inject
@@ -89,7 +79,6 @@ public class Retrier implements Serializable {
         return callable.call();
       } catch (Throwable e) {
         if (++failures == attempts || !isRetryable.test(e)) {
-          failureReporter.afterFinalFailure(e, failures);
           throwIfUnchecked(e);
           throw new RuntimeException(e);
         }
@@ -180,13 +169,6 @@ public class Retrier implements Serializable {
   }
 
   private static final FailureReporter LOGGING_FAILURE_REPORTER =
-      new FailureReporter() {
-        @Override
-        public void beforeRetry(Throwable thrown, int failures, int maxAttempts) {
-          logger.infofmt(thrown, "Retrying transient error, attempt %d", failures);
-        }
-
-        @Override
-        public void afterFinalFailure(Throwable thrown, int failures) {}
-      };
+      (thrown, failures, maxAttempts) ->
+          logger.infofmt(thrown, "Retrying transient error, attempt %d/%d", failures, maxAttempts);
 }
