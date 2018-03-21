@@ -54,7 +54,7 @@ def GenTestRules(name,
     if (test in flaky_tests) or ("flaky" in tags):
       flaky = 1
     java_class = _package_from_path(
-        PACKAGE_NAME + "/" + _strip_right(test, ".java"))
+        native.package_name() + "/" + _strip_right(test, ".java"))
     package = java_class[:java_class.rfind(".")]
     native.java_test(name = prefix + test,
                      runtime_deps = deps,
