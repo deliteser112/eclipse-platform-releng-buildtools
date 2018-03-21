@@ -19,7 +19,8 @@
     </create>
     <extension>
       <launch:create
-       xmlns:launch="urn:ietf:params:xml:ns:launch-1.0">
+       xmlns:launch="urn:ietf:params:xml:ns:launch-1.0"
+       type="application">
         <launch:phase>sunrise</launch:phase>
      </launch:create>
     </extension>

@@ -86,7 +86,6 @@ import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.host.HostCommand;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 /** Class that picks a flow to handle a given EPP command. */
 public class FlowPicker {
@@ -243,6 +242,9 @@ public class FlowPicker {
         }
       };
 
+  private static final ImmutableSet<LaunchPhase> LAUNCH_PHASES_DEFAULTING_TO_APPLICATION =
+      ImmutableSet.of(LaunchPhase.SUNRUSH, LaunchPhase.LANDRUSH);
+
   /**
    * Application CRUD flows have an extension and are keyed on the type of their {@link
    * ResourceCommand}.
@@ -258,9 +260,6 @@ public class FlowPicker {
                     DomainCommand.Info.class, DomainApplicationInfoFlow.class,
                     DomainCommand.Update.class, DomainApplicationUpdateFlow.class);
 
-        private final Set<LaunchPhase> launchPhases =
-            ImmutableSet.of(LaunchPhase.SUNRISE, LaunchPhase.SUNRUSH, LaunchPhase.LANDRUSH);
-
         @Override
         Class<? extends Flow> get(
             EppInput eppInput, InnerCommand innerCommand, ResourceCommand resourceCommand) {
@@ -269,13 +268,28 @@ public class FlowPicker {
           }
           Optional<LaunchCreateExtension> createExtension =
               eppInput.getSingleExtension(LaunchCreateExtension.class);
-          // Return a flow if the type is APPLICATION, or if it's null and we are in a launch phase.
-          // If the type is specified as REGISTRATION, return null.
+          // Return a flow if the type is APPLICATION. If the type is REGISTRATION, return null.
           if (createExtension.isPresent()) {
             LaunchPhase launchPhase = createExtension.get().getPhase();
+            // <launch:create> has an optional type argument, that can take either "application" or
+            // "registration".
+            // https://tools.ietf.org/html/rfc8334#section-3.3.1
+            // We get that type via createExtension.get().getCreateType()
+            // If it isn't given, the function returns null.
+            // In that case, we need to decide based on the TLD. For now we can't do that - so we
+            // TEMPORARILY decide as follows:
+            // landrush and sunrush phases will default to APPLICATION, because there's no possible
+            // registration for it.
+            // sunrise defaults to REGISTRATION because we're currenly launching start-date sunrise
+            // that uses direct registration.
+            //
+            // TODO(b/76095570): if createExtension.get().getCreateType() isn't explicitly given,
+            // we need to set it according to the TldState (which means we need to know the TLD and
+            // load the Registry - which will probably result in a big refactoring since we can use
+            // TldState information to pick the flow)
             if (APPLICATION.equals(createExtension.get().getCreateType())
                 || (createExtension.get().getCreateType() == null
-                    && launchPhases.contains(launchPhase))) {
+                    && LAUNCH_PHASES_DEFAULTING_TO_APPLICATION.contains(launchPhase))) {
               return applicationFlows.get(resourceCommand.getClass());
             }
           }

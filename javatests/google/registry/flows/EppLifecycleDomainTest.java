@@ -1189,4 +1189,59 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
     assertCommandAndResponse("logout.xml", "logout_response.xml");
   }
+
+  /**
+   * Test that missing type= argument on launch create works in start-date sunrise.
+   *
+   * <p>TODO(b/76095570):have the same exact test on end-date sunrise - using the same .xml file -
+   * that checks that an application was created.
+   */
+  @Test
+  public void testDomainCreation_startDateSunrise_noType() throws Exception {
+    // The signed mark is valid between 2013 and 2017
+    DateTime sunriseDate = DateTime.parse("2014-09-08T09:09:09Z");
+    DateTime gaDate = sunriseDate.plusDays(30);
+    createTld(
+        "example",
+        ImmutableSortedMap.of(
+            START_OF_TIME, TldState.PREDELEGATION,
+            sunriseDate, TldState.START_DATE_SUNRISE,
+            gaDate, TldState.GENERAL_AVAILABILITY));
+
+    assertCommandAndResponse("login_valid.xml", "login_response.xml", sunriseDate.minusDays(3));
+
+    createContactsAndHosts();
+
+    // During start-date sunrise, create with mark will succeed but without will fail.
+    // We also test we can delete without a mark.
+    assertCommandAndResponse(
+        "domain_info.xml",
+        ImmutableMap.of("NAME", "test-validate.example"),
+        "response_error.xml",
+        ImmutableMap.of(
+            "MSG", "The domain with given ID (example.tld) doesn't exist.", "CODE", "2303"),
+        sunriseDate.plusDays(1));
+
+    assertCommandAndResponse(
+        "domain_create_start_date_sunrise_encoded_mark_no_type.xml",
+        ImmutableMap.of(),
+        "domain_create_response.xml",
+        ImmutableMap.of(
+            "NAME", "test-validate.example",
+            "CRDATE", "2014-09-09T09:10:09Z",
+            "EXDATE", "2015-09-09T09:10:09Z"),
+        sunriseDate.plusDays(1).plusMinutes(1));
+
+    assertCommandAndResponse(
+        "domain_info_wildcard.xml",
+        ImmutableMap.of("NAME", "test-validate.example"),
+        "domain_info_response_ok_wildcard.xml",
+        ImmutableMap.of(
+            "NAME", "test-validate.example",
+            "CRDATE", "2014-09-09T09:10:09Z",
+            "EXDATE", "2015-09-09T09:10:09Z"),
+        sunriseDate.plusDays(1).plusMinutes(2));
+
+    assertCommandAndResponse("logout.xml", "logout_response.xml");
+  }
 }

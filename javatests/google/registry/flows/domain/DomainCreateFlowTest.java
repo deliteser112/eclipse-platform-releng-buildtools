@@ -1779,6 +1779,24 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     assertNoLordn("0000001761376042759136-65535", null);
   }
 
+  /**
+   * Test that missing type= argument on launch create works in start-date sunrise.
+   *
+   * <p>TODO(b/76095570):have the same exact test on end-date sunrise - using the same .xml file -
+   * that checks that an application was created.
+   */
+  @Test
+  public void testSuccess_startDateSunriseRegistration_withEncodedSignedMark_noType()
+      throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
+    clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
+    setEppInput("domain_create_sunrise_encoded_signed_mark_no_type.xml");
+    persistContactsAndHosts();
+    runFlowAssertResponse(loadFile("domain_create_response_encoded_signed_mark_name.xml"));
+    assertSuccessfulCreate("tld", false);
+    assertNoLordn("0000001761376042759136-65535", null);
+  }
+
 
   /** Tests possible confusion caused by the common start-date and end-date sunrise LaunchPhase. */
   @Test

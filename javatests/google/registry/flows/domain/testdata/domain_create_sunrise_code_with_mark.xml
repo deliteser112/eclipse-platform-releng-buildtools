@@ -15,7 +15,8 @@
     </create>
     <extension>
       <launch:create
-       xmlns:launch="urn:ietf:params:xml:ns:launch-1.0">
+       xmlns:launch="urn:ietf:params:xml:ns:launch-1.0"
+       type="application">
         <launch:phase>sunrise</launch:phase>
         <launch:codeMark>
           <launch:code>49FD46E6C4B45C55D4AC</launch:code>
