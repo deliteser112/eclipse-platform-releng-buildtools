@@ -46,7 +46,7 @@
           {/call}
         <li>
           <label>Payment Method</label>
-          <iframe src="{$brainframe}"
+          <iframe src="{$brainframe |blessStringAsTrustedResourceUrlForLegacy}"
                   id="method"
                   class="{css('reg-payment-form-method')}"
                   height="0"
