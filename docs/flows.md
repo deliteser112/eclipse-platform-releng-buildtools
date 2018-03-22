@@ -330,6 +330,8 @@ An EPP flow that creates a new application for a domain resource.
         phase.
     *   Domain labels cannot begin with a dash.
     *   Missing type attribute for contact.
+    *   The provided mark is not yet valid.
+    *   The provided mark has expired.
     *   Signed marks must be encoded.
     *   Certificate used in signed mark signature has expired.
     *   Certificate parsing error, or possibly a bad provider or algorithm.
@@ -580,6 +582,8 @@ An EPP flow that creates a new domain resource.
 *   2305
     *   The allocation token was already redeemed.
 *   2306
+    *   The provided mark is not yet valid.
+    *   The provided mark has expired.
     *   Domain names can only contain a-z, 0-9, '.' and '-'.
     *   Periods for domain registrations must be specified in years.
     *   The requested fees cannot be provided in the requested currency.

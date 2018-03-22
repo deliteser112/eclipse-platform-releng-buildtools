@@ -68,6 +68,8 @@ import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.domain.DomainCreateFlow.DomainHasOpenApplicationsException;
 import google.registry.flows.domain.DomainCreateFlow.MustHaveSignedMarksInCurrentPhaseException;
 import google.registry.flows.domain.DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException;
+import google.registry.flows.domain.DomainFlowTmchUtils.FoundMarkExpiredException;
+import google.registry.flows.domain.DomainFlowTmchUtils.FoundMarkNotYetValidException;
 import google.registry.flows.domain.DomainFlowTmchUtils.NoMarksFoundMatchingDomainException;
 import google.registry.flows.domain.DomainFlowUtils.AcceptedTooLongAgoException;
 import google.registry.flows.domain.DomainFlowUtils.BadDomainNameCharacterException;
@@ -1817,6 +1819,28 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_registration_start_date_sunrise_wrong_encoded_signed_mark.xml");
     persistContactsAndHosts();
     EppException thrown = assertThrows(NoMarksFoundMatchingDomainException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFail_startDateSunriseRegistration_markNotYetValid() throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
+    // If we move now back in time a bit, the mark will not have gone into effect yet.
+    clock.setTo(DateTime.parse("2013-08-09T10:05:59Z").minusSeconds(1));
+    setEppInput("domain_create_registration_start_date_sunrise_encoded_signed_mark.xml");
+    persistContactsAndHosts();
+    EppException thrown = assertThrows(FoundMarkNotYetValidException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFail_startDateSunriseRegistration_markExpired() throws Exception {
+    createTld("tld", TldState.START_DATE_SUNRISE);
+    // Move time forward to the mark expiration time.
+    clock.setTo(DateTime.parse("2017-07-23T22:00:00.000Z"));
+    setEppInput("domain_create_registration_start_date_sunrise_encoded_signed_mark.xml");
+    persistContactsAndHosts();
+    EppException thrown = assertThrows(FoundMarkExpiredException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

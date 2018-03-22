@@ -16,7 +16,6 @@ package google.registry.flows.domain;
 
 import static com.google.common.collect.Iterables.concat;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
-import static google.registry.util.DateTimeUtils.isAtOrAfter;
 
 import com.google.common.collect.ImmutableList;
 import google.registry.flows.EppException;
@@ -111,11 +110,18 @@ public final class DomainFlowTmchUtils {
       throw new SignedMarkParsingErrorException();
     }
 
-    if (!(isAtOrAfter(now, signedMark.getCreationTime())
-          && now.isBefore(signedMark.getExpirationTime())
-          && containsMatchingLabel(signedMark.getMark(), domainLabel))) {
+    if (now.isBefore(signedMark.getCreationTime())) {
+      throw new FoundMarkNotYetValidException();
+    }
+
+    if (now.isAfter(signedMark.getExpirationTime())) {
+      throw new FoundMarkExpiredException();
+    }
+
+    if (!containsMatchingLabel(signedMark.getMark(), domainLabel)) {
       throw new NoMarksFoundMatchingDomainException();
     }
+
     return signedMark;
   }
 
@@ -147,6 +153,20 @@ public final class DomainFlowTmchUtils {
   static class NoMarksFoundMatchingDomainException extends RequiredParameterMissingException {
     public NoMarksFoundMatchingDomainException() {
       super("The provided mark does not match the desired domain label");
+    }
+  }
+
+  /** The provided mark is not yet valid. */
+  static class FoundMarkNotYetValidException extends ParameterValuePolicyErrorException {
+    public FoundMarkNotYetValidException() {
+      super("The provided mark is not yet valid");
+    }
+  }
+
+  /** The provided mark has expired. */
+  static class FoundMarkExpiredException extends ParameterValuePolicyErrorException {
+    public FoundMarkExpiredException() {
+      super("The provided mark has expired");
     }
   }
 

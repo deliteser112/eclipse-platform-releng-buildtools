@@ -144,6 +144,8 @@ import org.joda.time.DateTime;
  * @error {@link NameserversNotSpecifiedForNameserverRestrictedDomainException}
  * @error {@link NameserversNotSpecifiedForTldWithNameserverWhitelistException}
  * @error {@link DomainFlowTmchUtils.NoMarksFoundMatchingDomainException}
+ * @error {@link DomainFlowTmchUtils.FoundMarkNotYetValidException}
+ * @error {@link DomainFlowTmchUtils.FoundMarkExpiredException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.PremiumNameBlockedException}
  * @error {@link DomainFlowUtils.RegistrantNotAllowedException}
@@ -167,7 +169,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.UnsupportedFeeAttributeException}
  * @error {@link DomainFlowUtils.UnsupportedMarkTypeException}
  */
-@ReportingSpec(ActivityReportField.DOMAIN_CREATE)  // Applications are technically domains in EPP.
+@ReportingSpec(ActivityReportField.DOMAIN_CREATE) // Applications are technically domains in EPP.
 public final class DomainApplicationCreateFlow implements TransactionalFlow {
 
   @Inject ExtensionManager extensionManager;

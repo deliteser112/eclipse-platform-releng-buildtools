@@ -51,6 +51,8 @@ import google.registry.flows.domain.DomainApplicationCreateFlow.NoticeCannotBeUs
 import google.registry.flows.domain.DomainApplicationCreateFlow.SunriseApplicationDisallowedDuringLandrushException;
 import google.registry.flows.domain.DomainApplicationCreateFlow.UncontestedSunriseApplicationBlockedInLandrushException;
 import google.registry.flows.domain.DomainFlowTmchUtils.Base64RequiredForEncodedSignedMarksException;
+import google.registry.flows.domain.DomainFlowTmchUtils.FoundMarkExpiredException;
+import google.registry.flows.domain.DomainFlowTmchUtils.FoundMarkNotYetValidException;
 import google.registry.flows.domain.DomainFlowTmchUtils.NoMarksFoundMatchingDomainException;
 import google.registry.flows.domain.DomainFlowTmchUtils.SignedMarkCertificateExpiredException;
 import google.registry.flows.domain.DomainFlowTmchUtils.SignedMarkCertificateInvalidException;
@@ -1301,7 +1303,7 @@ public class DomainApplicationCreateFlowTest
     clock.setTo(DateTime.parse("2013-08-09T10:05:59Z").minusSeconds(1));
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    EppException thrown = assertThrows(NoMarksFoundMatchingDomainException.class, this::runFlow);
+    EppException thrown = assertThrows(FoundMarkNotYetValidException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -1311,7 +1313,7 @@ public class DomainApplicationCreateFlowTest
     clock.setTo(DateTime.parse("2017-07-23T22:00:00.000Z"));
     persistContactsAndHosts();
     clock.advanceOneMilli();
-    EppException thrown = assertThrows(NoMarksFoundMatchingDomainException.class, this::runFlow);
+    EppException thrown = assertThrows(FoundMarkExpiredException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

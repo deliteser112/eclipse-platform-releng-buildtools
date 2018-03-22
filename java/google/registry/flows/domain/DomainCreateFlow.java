@@ -124,6 +124,8 @@ import org.joda.time.Duration;
  * @error {@link DomainCreateFlow.MustHaveSignedMarksInCurrentPhaseException}
  * @error {@link DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException}
  * @error {@link DomainFlowTmchUtils.NoMarksFoundMatchingDomainException}
+ * @error {@link DomainFlowTmchUtils.FoundMarkNotYetValidException}
+ * @error {@link DomainFlowTmchUtils.FoundMarkExpiredException}
  * @error {@link DomainFlowUtils.NotAuthorizedForTldException}
  * @error {@link DomainFlowUtils.AcceptedTooLongAgoException}
  * @error {@link DomainFlowUtils.BadDomainNameCharacterException}
