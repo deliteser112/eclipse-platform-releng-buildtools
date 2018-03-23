@@ -42,7 +42,6 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeLockHandler;
 import google.registry.testing.InjectRule;
-import java.util.Optional;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Before;
@@ -93,8 +92,8 @@ public class PublishDnsUpdatesActionTest {
     action.tld = tld;
     action.hosts = ImmutableSet.of();
     action.domains = ImmutableSet.of();
-    action.itemsCreateTime = Optional.of(clock.nowUtc().minusHours(2));
-    action.enqueuedTime = Optional.of(clock.nowUtc().minusHours(1));
+    action.itemsCreateTime = clock.nowUtc().minusHours(2);
+    action.enqueuedTime = clock.nowUtc().minusHours(1);
     action.dnsWriter = "correctWriter";
     action.dnsWriterProxy = new DnsWriterProxy(ImmutableMap.of("correctWriter", dnsWriter));
     action.dnsMetrics = dnsMetrics;

@@ -218,7 +218,7 @@ public final class ReadDnsQueueAction implements Runnable {
    * tasks for paused TLDs or tasks for TLDs not part of {@link Registries#getTlds()}.
    */
   private void dispatchTasks(ImmutableSet<TaskHandle> tasks, ImmutableSet<String> tlds) {
-    ClassifiedTasks classifiedTasks = classifyTasks(tasks, tlds, clock.nowUtc());
+    ClassifiedTasks classifiedTasks = classifyTasks(tasks, tlds);
     if (!classifiedTasks.pausedTlds().isEmpty()) {
       logger.infofmt("The dns-pull queue is paused for TLDs: %s.", classifiedTasks.pausedTlds());
     }
@@ -255,7 +255,7 @@ public final class ReadDnsQueueAction implements Runnable {
    * taken on them) or in no category (if no action is to be taken on them)
    */
   private static ClassifiedTasks classifyTasks(
-      ImmutableSet<TaskHandle> tasks, ImmutableSet<String> tlds, DateTime now) {
+      ImmutableSet<TaskHandle> tasks, ImmutableSet<String> tlds) {
 
     ClassifiedTasks.Builder classifiedTasksBuilder = ClassifiedTasks.builder();
 
@@ -263,14 +263,7 @@ public final class ReadDnsQueueAction implements Runnable {
     for (TaskHandle task : tasks) {
       try {
         Map<String, String> params = ImmutableMap.copyOf(task.extractParams());
-        // We allow 'null' create-time for the transition period - and during that time we set the
-        // create-time to "now".
-        //
-        // TODO(b/73343464):remove support for null create-time once transition is over.
-        DateTime creationTime =
-            Optional.ofNullable(params.get(DNS_TARGET_CREATE_TIME_PARAM))
-                .map(DateTime::parse)
-                .orElse(now);
+        DateTime creationTime = DateTime.parse(params.get(DNS_TARGET_CREATE_TIME_PARAM));
         String tld = params.get(RequestParameters.PARAM_TLD);
         if (tld == null) {
           logger.severefmt("Discarding invalid DNS refresh request %s; no TLD specified.", task);

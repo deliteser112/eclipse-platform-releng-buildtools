@@ -33,7 +33,6 @@ import google.registry.request.lock.LockHandler;
 import google.registry.util.Clock;
 import google.registry.util.DomainNameUtils;
 import google.registry.util.FormattingLogger;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
@@ -75,10 +74,14 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
    * out (and not necessarily currently).
    */
   @Inject @Parameter(PARAM_DNS_WRITER) String dnsWriter;
-  // TODO(b/73343464): make not-optional once transition has ended
-  @Inject @Parameter(PARAM_PUBLISH_TASK_ENQUEUED) Optional<DateTime> enqueuedTime;
-  // TODO(b/73343464): make not-optional once transition has ended
-  @Inject @Parameter(PARAM_REFRESH_REQUEST_CREATED) Optional<DateTime> itemsCreateTime;
+
+  @Inject
+  @Parameter(PARAM_PUBLISH_TASK_ENQUEUED)
+  DateTime enqueuedTime;
+
+  @Inject
+  @Parameter(PARAM_REFRESH_REQUEST_CREATED)
+  DateTime itemsCreateTime;
 
   @Inject @Parameter(PARAM_LOCK_INDEX) int lockIndex;
   @Inject @Parameter(PARAM_NUM_PUBLISH_LOCKS) int numPublishLocks;
@@ -96,8 +99,8 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
         dnsWriter,
         status,
         nullToEmpty(domains).size() + nullToEmpty(hosts).size(),
-        new Duration(itemsCreateTime.orElse(now), now),
-        new Duration(enqueuedTime.orElse(now), now));
+        new Duration(itemsCreateTime, now),
+        new Duration(enqueuedTime, now));
     logger.infofmt(
         "publishDnsWriter latency statistics: TLD: %s, dnsWriter: %s, actionStatus: %s, "
             + "numItems: %s, timeSinceCreation: %s, timeInQueue: %s",
@@ -105,8 +108,8 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
         dnsWriter,
         status,
         nullToEmpty(domains).size() + nullToEmpty(hosts).size(),
-        new Duration(itemsCreateTime.orElse(now), now),
-        new Duration(enqueuedTime.orElse(now), now));
+        new Duration(itemsCreateTime, now),
+        new Duration(enqueuedTime, now));
   }
 
   /** Runs the task. */

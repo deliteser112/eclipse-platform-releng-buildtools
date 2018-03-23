@@ -67,6 +67,8 @@ public class ReadDnsQueueActionTest {
 
   private static final int TEST_TLD_UPDATE_BATCH_SIZE = 100;
   private DnsQueue dnsQueue;
+  // Because of a bug in the queue test environment - b/73372999 - we must set the fake date of the
+  // test in the future. Set to year 3000 so it'll remain in the future for a very long time.
   private FakeClock clock = new FakeClock(DateTime.parse("3000-01-01TZ"));
 
   @Rule
@@ -129,10 +131,11 @@ public class ReadDnsQueueActionTest {
   }
 
   private static TaskOptions createRefreshTask(String name, TargetType type) {
-    TaskOptions options = TaskOptions.Builder
-        .withMethod(Method.PULL)
-        .param(DNS_TARGET_TYPE_PARAM, type.toString())
-        .param(DNS_TARGET_NAME_PARAM, name);
+    TaskOptions options =
+        TaskOptions.Builder.withMethod(Method.PULL)
+            .param(DNS_TARGET_TYPE_PARAM, type.toString())
+            .param(DNS_TARGET_NAME_PARAM, name)
+            .param(DNS_TARGET_CREATE_TIME_PARAM, "3000-01-01TZ");
     String tld = InternetDomainName.from(name).parts().reverse().get(0);
     return options.param("tld", tld);
   }
@@ -285,6 +288,7 @@ public class ReadDnsQueueActionTest {
                 .method(Method.PULL)
                 .param(DNS_TARGET_TYPE_PARAM, TargetType.DOMAIN.toString())
                 .param(DNS_TARGET_NAME_PARAM, "domain.unknown")
+                .param(DNS_TARGET_CREATE_TIME_PARAM, "3000-01-01TZ")
                 .param(PARAM_TLD, "unknown"));
 
     run();
