@@ -84,9 +84,8 @@ registryPolicy:
   reservedTermsExportDisclaimer: |
     This list contains reserved terms for the TLD. Other terms may be reserved
     but not included in this list, including terms the registry chooses not
-    to publish, and terms that ICANN commonly mandates to be reserved. This
-    list is subject to change and the most up-to-date source is always to
-    check availability directly with the Registry server.
+    to publish. This list is subject to change. The most up-to-date source
+    is always the registry itself, by sending domain check EPP commands.
 
   # Disclaimer at the top of WHOIS results.
   whoisDisclaimer: |
