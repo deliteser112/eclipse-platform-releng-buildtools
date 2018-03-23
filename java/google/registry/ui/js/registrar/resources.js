@@ -37,7 +37,7 @@ registry.registrar.Resources = function(console, xsrfToken) {
       this,
       'constructor',
       console,
-      new registry.Resource(new goog.Uri('/registrar-settings'), xsrfToken),
+      new registry.Resource(new goog.Uri('/registrar-premium-price-ack'), xsrfToken),
       registry.soy.registrar.console.resources,
       null);
 };
@@ -47,6 +47,6 @@ goog.inherits(registry.registrar.Resources,
 
 /** @override */
 registry.registrar.Resources.prototype.bindToDom = function(id) {
-  registry.registrar.Resources.base(this, 'bindToDom', '');
-  goog.dom.removeChildren(goog.dom.getRequiredElement('reg-app-buttons'));
+  registry.registrar.Resources.base(this, 'bindToDom', 'fake');
+  goog.dom.removeNode(goog.dom.getRequiredElement('reg-app-btn-back'));
 };

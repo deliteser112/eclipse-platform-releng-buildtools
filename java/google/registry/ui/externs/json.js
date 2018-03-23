@@ -84,7 +84,8 @@ registry.json.Response.prototype.results;
  *   localizedAddress: registry.json.RegistrarAddress,
  *   whoisServer: (string?|undefined),
  *   referralUrl: (string?|undefined),
- *   contacts: !Array.<registry.json.RegistrarContact>
+ *   contacts: !Array.<registry.json.RegistrarContact>,
+ *   premiumPriceAckRequired: boolean
  * }}
  */
 registry.json.Registrar;

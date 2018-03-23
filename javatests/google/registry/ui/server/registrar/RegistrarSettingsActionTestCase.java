@@ -106,13 +106,13 @@ public class RegistrarSettingsActionTestCase {
     when(rsp.getWriter()).thenReturn(new PrintWriter(writer));
     when(req.getContentType()).thenReturn("application/json");
     when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of("op", "read")));
-    when(sessionUtils.getRegistrarForAuthResult(req, action.authResult))
+    when(sessionUtils.getRegistrarForAuthResult(req, action.authResult, false))
         .thenReturn(loadRegistrar(CLIENT_ID));
     when(modulesService.getVersionHostname("backend", null)).thenReturn("backend.hostname");
   }
 
-  protected Map<String, Object> readJsonFromFile(String filename) {
-    String contents = readResourceUtf8(getClass(), filename);
+  static Map<String, Object> readJsonFromFile(String filename) {
+    String contents = readResourceUtf8(RegistrarSettingsActionTestCase.class, filename);
     try {
       @SuppressWarnings("unchecked")
       Map<String, Object> json = (Map<String, Object>) JSONValue.parseWithException(contents);

@@ -266,6 +266,8 @@
 {template .resources}
   {@param? driveFolderId: string}
   {@param technicalDocsUrl: string}
+  {@param premiumPriceAckRequired: bool}
+  {@param readonly: bool}
   <div id="domain-registrar-resources">
     <h1>Resources &amp; billing</h1>
     <p>
@@ -290,6 +292,15 @@
       {else}
         <em>Your billing folder is pending allocation.</em>
       {/if}
+    <h2><img src="/assets/images/folder.png">EPP Settings</h2>
+    <p>Use the 'Edit' button above to switch to enable editing the information
+      below.  <i>Updates may require up to 10 minutes to take effect.</i>
+    <form name="item" class="{css('item')} {css('registrar')}">
+      <input type="checkbox" id="premiumPriceAckRequired" name="premiumPriceAckRequired"
+             {if $premiumPriceAckRequired} checked{/if}
+             {if $readonly} disabled{/if}>
+        Require use of fee extension to acknowledge all premium domain prices.
+    </form>
   </div>
 {/template}
 

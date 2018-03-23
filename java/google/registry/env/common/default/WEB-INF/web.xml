@@ -49,6 +49,18 @@
     <url-pattern>/registrar-settings</url-pattern>
   </servlet-mapping>
 
+  <!--
+    Registrar Self-serve console to support updating the premium price ack
+    flag.  Ideally, this should be handled by /registrar-settings (above), but
+    unfortunately the console is broken and registrar-settings doesn't support
+    this use-case as it requires fields that are not universally sent during
+    updates.
+  -->
+  <servlet-mapping>
+    <servlet-name>frontend-servlet</servlet-name>
+    <url-pattern>/registrar-premium-price-ack</url-pattern>
+  </servlet-mapping>
+
   <!-- HTTP WHOIS. -->
   <servlet-mapping>
     <servlet-name>frontend-servlet</servlet-name>

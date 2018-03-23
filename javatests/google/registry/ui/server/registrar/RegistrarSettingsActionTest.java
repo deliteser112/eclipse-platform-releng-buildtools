@@ -22,6 +22,7 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -71,7 +72,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   @Test
   public void testRead_notAuthorized_failure() throws Exception {
     when(sessionUtils.getRegistrarForAuthResult(
-            any(HttpServletRequest.class), any(AuthResult.class)))
+            any(HttpServletRequest.class), any(AuthResult.class), anyBoolean()))
         .thenThrow(new ForbiddenException("Not authorized to access Registrar Console"));
     assertThrows(ForbiddenException.class, () -> action.handleJsonRequest(ImmutableMap.of()));
     assertNoTasksEnqueued("sheet");

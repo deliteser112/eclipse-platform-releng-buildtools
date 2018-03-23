@@ -138,6 +138,7 @@ public final class ConsoleUiAction implements Runnable {
     data.put("xsrfToken", xsrfTokenManager.generateToken(userAuthInfo.user().getEmail()));
     data.put("clientId", clientId);
     data.put("showPaymentLink", registrar.getBillingMethod() == Registrar.BillingMethod.BRAINTREE);
+    data.put("requireFeeExtension", registrar.getPremiumPriceAckRequired());
 
     String payload = TOFU_SUPPLIER.get()
             .newRenderer(ConsoleSoyInfo.MAIN)

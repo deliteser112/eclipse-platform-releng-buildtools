@@ -48,7 +48,8 @@ public class SessionUtils {
   @Config("registryAdminClientId")
   String registryAdminClientId;
 
-  @Inject public SessionUtils() {}
+  @Inject
+  public SessionUtils() {}
 
   /**
    * Checks that the authentication result indicates a user that has access to the registrar
@@ -58,7 +59,8 @@ public class SessionUtils {
    * the registrar console.
    */
   @CheckReturnValue
-  Registrar getRegistrarForAuthResult(HttpServletRequest request, AuthResult authResult) {
+  Registrar getRegistrarForAuthResult(
+      HttpServletRequest request, AuthResult authResult, boolean bypassCache) {
     if (!authResult.userAuthInfo().isPresent()) {
       throw new ForbiddenException("Not logged in");
     }
@@ -67,7 +69,11 @@ public class SessionUtils {
     }
     String clientId = getRegistrarClientId(request);
     return checkArgumentPresent(
-        Registrar.loadByClientIdCached(clientId), "Registrar %s not found", clientId);
+        bypassCache
+            ? Registrar.loadByClientId(clientId)
+            : Registrar.loadByClientIdCached(clientId),
+        "Registrar %s not found",
+        clientId);
   }
 
   /**
@@ -77,11 +83,11 @@ public class SessionUtils {
    * {@code clientId} attribute:
    *
    * <ul>
-   * <li>If it does not exist, then we will attempt to guess the {@link Registrar} with which the
-   * user is associated. The {@code clientId} of the first matching {@code Registrar} will then
-   * be stored to the HTTP session.
-   * <li>If it does exist, then we'll fetch the Registrar from Datastore to make sure access
-   * wasn't revoked.
+   *   <li>If it does not exist, then we will attempt to guess the {@link Registrar} with which the
+   *       user is associated. The {@code clientId} of the first matching {@code Registrar} will
+   *       then be stored to the HTTP session.
+   *   <li>If it does exist, then we'll fetch the Registrar from Datastore to make sure access
+   *       wasn't revoked.
    * </ul>
    *
    * <p><b>Note:</b> You must ensure the user has logged in before calling this method.
@@ -162,10 +168,8 @@ public class SessionUtils {
 
   /** Returns first {@link Registrar} that {@code gaeUserId} is authorized to administer. */
   private static Optional<Registrar> findRegistrarForUser(String gaeUserId) {
-    RegistrarContact contact = ofy().load()
-        .type(RegistrarContact.class)
-        .filter("gaeUserId", gaeUserId)
-        .first().now();
+    RegistrarContact contact =
+        ofy().load().type(RegistrarContact.class).filter("gaeUserId", gaeUserId).first().now();
     if (contact == null) {
       return Optional.empty();
     }

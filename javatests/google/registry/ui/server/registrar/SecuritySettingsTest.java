@@ -112,7 +112,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
                 .setClientCertificate(SAMPLE_CERT, START_OF_TIME)
                 .setFailoverClientCertificate(SAMPLE_CERT2, START_OF_TIME)
                 .build());
-    when(sessionUtils.getRegistrarForAuthResult(req, action.authResult))
+    when(sessionUtils.getRegistrarForAuthResult(req, action.authResult, false))
         .thenReturn(initialRegistrar);
     Map<String, Object> jsonMap = initialRegistrar.toJsonMap();
     jsonMap.put("clientCertificate", null);

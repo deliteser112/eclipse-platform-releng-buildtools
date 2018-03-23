@@ -1,0 +1,2 @@
+The following changes were made to the registrar:
+premiumPriceAckRequired: false -> true

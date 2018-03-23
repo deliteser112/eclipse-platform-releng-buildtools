@@ -91,7 +91,7 @@ public final class RegistrarPaymentSetupAction implements Runnable, JsonAction {
 
   @Override
   public Map<String, Object> handleJsonRequest(Map<String, ?> json) {
-    Registrar registrar = sessionUtils.getRegistrarForAuthResult(request, authResult);
+    Registrar registrar = sessionUtils.getRegistrarForAuthResult(request, authResult, false);
 
     if (!json.isEmpty()) {
       return JsonResponseHelper.create(ERROR, "JSON request object must be empty");

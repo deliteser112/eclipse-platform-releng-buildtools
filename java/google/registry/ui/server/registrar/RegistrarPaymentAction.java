@@ -157,7 +157,7 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
 
   @Override
   public Map<String, Object> handleJsonRequest(Map<String, ?> json) {
-    Registrar registrar = sessionUtils.getRegistrarForAuthResult(request, authResult);
+    Registrar registrar = sessionUtils.getRegistrarForAuthResult(request, authResult, false);
     logger.infofmt("Processing payment: %s", json);
     String paymentMethodNonce;
     Money amount;

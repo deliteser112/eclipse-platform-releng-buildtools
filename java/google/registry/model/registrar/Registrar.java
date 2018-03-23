@@ -615,6 +615,7 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
         .put("emailAddress", emailAddress)
         .put("whoisServer", getWhoisServer())
         .put("blockPremiumNames", blockPremiumNames)
+        .put("premiumPriceAckRequired", premiumPriceAckRequired)
         .put("url", url)
         .put("referralUrl", getReferralUrl())
         .put("icannReferralEmail", getIcannReferralEmail())

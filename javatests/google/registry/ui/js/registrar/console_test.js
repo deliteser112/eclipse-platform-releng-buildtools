@@ -128,11 +128,13 @@ function testNavToResources() {
   registry.registrar.ConsoleTestUtil.visit(test, {
     path: 'resources',
     xsrfToken: test.testXsrfToken,
-    technicalDocsUrl: 'http://example.com/techdocs'
+    technicalDocsUrl: 'http://example.com/techdocs',
+    premiumPriceAckRequired: false,
+    readonly: true,
   });
   var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue(xhr.isActive());
-  assertEquals('/registrar-settings', xhr.getLastUri());
+  assertEquals('/registrar-premium-price-ack', xhr.getLastUri());
   assertEquals(test.testXsrfToken,
                xhr.getLastRequestHeaders().get('X-CSRF-Token'));
   xhr.simulateResponse(200, goog.json.serialize({
