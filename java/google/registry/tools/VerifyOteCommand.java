@@ -48,7 +48,7 @@ final class VerifyOteCommand implements ServerSideCommand {
   private List<String> mainParameters = new ArrayList<>();
 
   @Parameter(
-      names = "--check-all",
+      names = "--check_all",
       description = "Check the OT&E pass status of all active registrars")
   private boolean checkAll;
 
@@ -74,7 +74,7 @@ final class VerifyOteCommand implements ServerSideCommand {
     }
     checkArgument(
         mainParameters.isEmpty() == checkAll,
-        "Must provide at least one registrar name, or supply --check-all with no names.");
+        "Must provide at least one registrar name, or supply --check_all with no names.");
     for (String clientId : mainParameters) {
       // OT&E registrars are created with clientIDs of registrarName-[1-4], but this command is
       // passed registrarName.  So check the existence of the first persisted registrar to see if

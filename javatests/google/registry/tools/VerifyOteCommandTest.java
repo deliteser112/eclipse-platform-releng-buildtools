@@ -78,6 +78,6 @@ public class VerifyOteCommandTest extends CommandTestCase<VerifyOteCommand> {
         assertThrows(IllegalArgumentException.class, () -> runCommand(""));
     assertThat(thrown)
         .hasMessageThat()
-        .contains("Must provide at least one registrar name, or supply --check-all with no names.");
+        .contains("Must provide at least one registrar name, or supply --check_all with no names.");
   }
 }
