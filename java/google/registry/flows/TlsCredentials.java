@@ -112,8 +112,8 @@ public class TlsCredentials implements TransportCredentials {
       }
     }
     logger.infofmt(
-        "Authentication error: IP address %s is not whitelisted for registrar %s.",
-        clientInetAddr, registrar.getClientId());
+        "Authentication error: IP address %s is not whitelisted for registrar %s; whitelist is: %s",
+        clientInetAddr, registrar.getClientId(), ipWhitelist);
     throw new BadRegistrarIpAddressException();
   }
 
