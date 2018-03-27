@@ -140,9 +140,7 @@ public final class DeleteOldCommitLogsAction implements Runnable {
       // If it isn't a Key<CommitLogManifest> then it should be an EppResource, which we need to
       // load to emit the revisions.
       //
-      // We want to make sure we retry any load individually to reduce the chance of the entire
-      // shard failing, hence we wrap it in a transactNew.
-      Object object = ofy().transactNew(() -> ofy().load().key(key).now());
+      Object object = ofy().load().key(key).now();
       checkNotNull(object, "Received a key to a missing object. key: %s", key);
       checkState(
           object instanceof EppResource,

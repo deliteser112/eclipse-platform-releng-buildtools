@@ -40,6 +40,6 @@ class EppResourceIndexReader extends EppResourceBaseReader<EppResourceIndex> {
    */
   @Override
   public EppResourceIndex next() throws NoSuchElementException {
-    return nextEri();
+    return nextQueryResult();
   }
 }

@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.cmd.Query;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.index.EppResourceIndex;
@@ -33,6 +32,7 @@ import google.registry.model.index.EppResourceIndexBucket;
 import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.util.NoSuchElementException;
+import javax.annotation.Nullable;
 
 /**
  * Reader that maps over {@link EppResourceIndex} and returns resources that are children of
@@ -40,24 +40,21 @@ import java.util.NoSuchElementException;
  */
 class ChildEntityReader<R extends EppResource, I extends ImmutableObject> extends InputReader<I> {
 
-  private static final long serialVersionUID = -7430731417793849164L;
+  private static final long serialVersionUID = 7481761146349663848L;
 
   static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   /** This reader uses an EppResourceEntityReader under the covers to iterate over EPP resources. */
   private final EppResourceEntityReader<? extends R> eppResourceEntityReader;
-  /** The current EPP resource being referenced for child entity queries. */
-  private Key<? extends R> currentEppResource;
 
   /** The child resource classes to postfilter for. */
   private final ImmutableList<Class<? extends I>> childResourceClasses;
+
   /** The index within the list above for the next ofy query. */
   private int childResourceClassIndex;
 
-  /** An iterator over queries for child entities of EppResources. */
-  private transient QueryResultIterator<I> childQueryIterator;
-  /** A cursor for queries for child entities of EppResources. */
-  private Cursor childCursor;
+  /** A reader used to go over children of the current eppResourceEntity and childResourceClass. */
+  @Nullable private ChildReader<? extends I> childReader;
 
   public ChildEntityReader(
       Key<EppResourceIndexBucket> bucketKey,
@@ -92,28 +89,58 @@ class ChildEntityReader<R extends EppResource, I extends ImmutableObject> extend
    * @throws NoSuchElementException if there are no more EPP resources to iterate over.
    */
   I nextChild() throws NoSuchElementException {
-    try {
-      while (true) {
-        if (currentEppResource == null) {
-          currentEppResource = Key.create(eppResourceEntityReader.next());
+    // This code implements a single iteration over a triple-nested loop. It returns the next
+    // innermost item of that 3-nested loop. The entire loop would look like this:
+    //
+    // NOTE: I'm treating eppResourceEntityReader and childReader as if they were iterables for
+    // brevity, although they aren't - they are Readers
+    //
+    // I'm also using the python 'yield' command to show we're returning this item one by one.
+    //
+    // for (eppResourceEntity : eppResourceEntityReader) {
+    //   for (childResourceClass :  childResourceClasses) {
+    //     for (I child : ChildReader.create(childResourceClass, Key.create(eppResourceEntity)) {
+    //       yield child; // returns the 'child's one by one.
+    //     }
+    //   }
+    // }
+
+    // First, set all the variables if they aren't set yet. This should only happen on the first
+    // time in the function.
+    //
+    // This can be merged with the calls in the "catch" below to avoid code duplication, but it
+    // makes the code harder to read.
+    if (childReader == null) {
+      childResourceClassIndex = 0;
+      childReader =
+          ChildReader.create(
+              childResourceClasses.get(childResourceClassIndex),
+              Key.create(eppResourceEntityReader.next()));
+    }
+    // Then continue advancing the 3-nested loop until we find a value
+    while (true) {
+      try {
+        // Advance the inner loop and return the next value.
+        return childReader.next();
+      } catch (NoSuchElementException e) {
+        // If we got here it means the inner loop (childQueryIterator) is done - we need to advance
+        // the middle loop by one, and then reset the inner loop.
+        childResourceClassIndex++;
+        // Check if the middle loop is done as well
+        if (childResourceClassIndex < childResourceClasses.size()) {
+          // The middle loop is not done. Reset the inner loop.
+          childReader = childReader.withType(childResourceClasses.get(childResourceClassIndex));
+        } else {
+          // We're done with the middle loop as well! Advance the outer loop, and reset the middle
+          // loop and inner loops
           childResourceClassIndex = 0;
-          childQueryIterator = null;
+          childReader =
+              ChildReader.create(
+                  childResourceClasses.get(childResourceClassIndex),
+                  Key.create(eppResourceEntityReader.next()));
         }
-        if (childQueryIterator == null) {
-          childQueryIterator = childQuery().iterator();
-        }
-        try {
-          return childQueryIterator.next();
-        } catch (NoSuchElementException e) {
-          childQueryIterator = null;
-          childResourceClassIndex++;
-          if (childResourceClassIndex >= childResourceClasses.size()) {
-            currentEppResource = null;
-          }
-        }
+        // Loop back up the while, to try reading reading a value again
       }
-    } finally {
-      ofy().clearSessionCache(); // Try not to leak memory.
     }
   }
 
@@ -132,30 +159,20 @@ class ChildEntityReader<R extends EppResource, I extends ImmutableObject> extend
     }
   }
 
-  /** Query for children of the current resource and of the current child class. */
-  private Query<I> childQuery() {
-    @SuppressWarnings("unchecked")
-    Query<I> query = (Query<I>) ofy().load()
-        .type(childResourceClasses.get(childResourceClassIndex))
-        .ancestor(currentEppResource);
-    return query;
-  }
-
   @Override
   public void beginSlice() {
     eppResourceEntityReader.beginSlice();
-    if (childCursor != null) {
-      Query<I> query = childQuery().startAt(childCursor);
-      childQueryIterator = query.iterator();
+    if (childReader != null) {
+      childReader.beginSlice();
     }
   }
 
   @Override
   public void endSlice() {
-    if (childQueryIterator != null) {
-      childCursor = childQueryIterator.getCursor();
-    }
     eppResourceEntityReader.endSlice();
+    if (childReader != null) {
+      childReader.endSlice();
+    }
   }
 
   @Override
@@ -186,5 +203,54 @@ class ChildEntityReader<R extends EppResource, I extends ImmutableObject> extend
   @Override
   public void endShard() throws IOException {
     eppResourceEntityReader.endShard();
+  }
+
+  private static class ChildReader<I> extends RetryingInputReader<I, I> {
+
+    private static final long serialVersionUID = -8443132445119657998L;
+
+    private final Class<I> type;
+
+    private final Key<?> ancestor;
+
+    /** Create a reader that goes over all the children of a given type to the given ancestor. */
+    public ChildReader(Class<I> type, Key<?> ancestor) {
+      this.type = type;
+      this.ancestor = ancestor;
+      // This reader isn't initialized by mapreduce, so we need to initialize it ourselves
+      beginShard();
+      beginSlice();
+    }
+
+    /**
+     * Create a reader that goes over all the children of a given type to the given ancestor.
+     *
+     * <p>We need this function in addition to the constructor so that we can create a ChildReader<?
+     * extends I>.
+     */
+    public static <I> ChildReader<I> create(Class<I> type, Key<?> ancestor) {
+      return new ChildReader<I>(type, ancestor);
+    }
+
+    /** Query for children of the current resource and of the current child class. */
+    @Override
+    public QueryResultIterator<I> getQueryIterator(Cursor cursor) {
+      return startQueryAt(ofy().load().type(type).ancestor(ancestor), cursor).iterator();
+    }
+
+    @Override
+    public int getTotal() {
+      return 0;
+    }
+
+    @Override
+    public I next() {
+      return nextQueryResult();
+    }
+
+    /** Retruns a new ChildReader of the same ancestor for the given type. */
+    public <J> ChildReader<J> withType(Class<J> type) {
+      return create(type, ancestor);
+    }
   }
 }

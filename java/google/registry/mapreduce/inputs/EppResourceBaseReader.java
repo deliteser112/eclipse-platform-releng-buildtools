@@ -27,17 +27,17 @@ import google.registry.model.EppResource;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.EppResourceIndexBucket;
 import google.registry.util.FormattingLogger;
-import java.util.NoSuchElementException;
+import javax.annotation.Nullable;
 
 /** Base class for {@link InputReader} classes that map over {@link EppResourceIndex}. */
-abstract class EppResourceBaseReader<T> extends InputReader<T> {
+abstract class EppResourceBaseReader<T> extends RetryingInputReader<EppResourceIndex, T> {
 
   static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   /** Number of bytes in 1MB of memory, used for memory estimates. */
   static final long ONE_MB = 1024 * 1024;
 
-  private static final long serialVersionUID = -2970253037856017147L;
+  private static final long serialVersionUID = 7942584269402339168L;
 
   /**
    * The resource kinds to filter for.
@@ -51,12 +51,6 @@ abstract class EppResourceBaseReader<T> extends InputReader<T> {
   private final Key<EppResourceIndexBucket> bucketKey;
   private final long memoryEstimate;
 
-  private Cursor cursor;
-  private int total;
-  private int loaded;
-
-  private transient QueryResultIterator<EppResourceIndex> queryIterator;
-
   EppResourceBaseReader(
       Key<EppResourceIndexBucket> bucketKey,
       long memoryEstimate,
@@ -66,44 +60,14 @@ abstract class EppResourceBaseReader<T> extends InputReader<T> {
     this.filterKinds = filterKinds;
   }
 
-  /** Called once at start. Cache the expected size. */
   @Override
-  public void beginShard() {
-    total = query().count();
+  public QueryResultIterator<EppResourceIndex> getQueryIterator(@Nullable Cursor cursor) {
+    return startQueryAt(query(), cursor).iterator();
   }
 
-  /** Called every time we are deserialized. Create a new query or resume an existing one. */
   @Override
-  public void beginSlice() {
-    Query<EppResourceIndex> query = query();
-    if (cursor != null) {
-      // The underlying query is strongly consistent, and according to the documentation at
-      // https://cloud.google.com/appengine/docs/java/datastore/queries#Java_Data_consistency
-      // "strongly consistent queries are always transactionally consistent". However, each time
-      // we restart the query at a cursor we have a new effective query, and "if the results for a
-      // query change between uses of a cursor, the query notices only changes that occur in
-      // results after the cursor. If a new result appears before the cursor's position for the
-      // query, it will not be returned when the results after the cursor are fetched."
-      // What this means in practice is that entities that are created after the initial query
-      // begins may or may not be seen by this reader, depending on whether the query was
-      // paused and restarted with a cursor before it would have reached the new entity.
-      query = query.startAt(cursor);
-    }
-    queryIterator = query.iterator();
-  }
-
-  /** Called occasionally alongside {@link #next}. */
-  @Override
-  public Double getProgress() {
-    // Cap progress at 1.0, since the query's count() can increase during the run of the mapreduce
-    // if more entities are written, but we've cached the value once in "total".
-    return Math.min(1.0, ((double) loaded) / total);
-  }
-
-  /** Called before we are serialized. Save a serializable cursor for this query. */
-  @Override
-  public void endSlice() {
-    cursor = queryIterator.getCursor();
+  public int getTotal() {
+    return query().count();
   }
 
   /** Query for children of this bucket. */
@@ -116,20 +80,6 @@ abstract class EppResourceBaseReader<T> extends InputReader<T> {
   @Override
   public long estimateMemoryRequirement() {
     return memoryEstimate;
-  }
-
-  /**
-   * Get the next {@link EppResourceIndex} from the query.
-   *
-   * @throws NoSuchElementException if there are no more elements.
-   */
-  EppResourceIndex nextEri() {
-    loaded++;
-    try {
-      return queryIterator.next();
-    } finally {
-      ofy().clearSessionCache();  // Try not to leak memory.
-    }
   }
 
   static <R extends EppResource> ImmutableSet<String> varargsToKinds(

@@ -56,9 +56,9 @@ class EppResourceEntityReader<R extends EppResource> extends EppResourceBaseRead
    */
   @Override
   public R next() throws NoSuchElementException {
-    // Loop until we find a value, or nextEri() throws a NoSuchElementException.
+    // Loop until we find a value, or nextQueryResult() throws a NoSuchElementException.
     while (true) {
-      Key<? extends EppResource> key = nextEri().getKey();
+      Key<? extends EppResource> key = nextQueryResult().getKey();
       EppResource resource = ofy().load().key(key).now();
       if (resource == null) {
         logger.severefmt("EppResourceIndex key %s points at a missing resource", key);
