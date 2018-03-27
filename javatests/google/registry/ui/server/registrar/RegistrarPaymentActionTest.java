@@ -19,7 +19,6 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.ReflectiveFieldExtractor.extractField;
 import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -94,7 +93,7 @@ public class RegistrarPaymentActionTest {
     when(braintreeGateway.transaction()).thenReturn(transactionGateway);
     when(transactionGateway.sale(any(TransactionRequest.class))).thenReturn(result);
     when(sessionUtils.getRegistrarForAuthResult(
-            any(HttpServletRequest.class), any(AuthResult.class), anyBoolean()))
+            any(HttpServletRequest.class), any(AuthResult.class)))
         .thenReturn(loadRegistrar("TheRegistrar"));
   }
 

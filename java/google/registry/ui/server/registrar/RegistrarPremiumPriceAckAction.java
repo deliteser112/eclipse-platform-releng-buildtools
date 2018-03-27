@@ -81,7 +81,7 @@ public class RegistrarPremiumPriceAckAction implements Runnable, JsonActionRunne
     }
 
     // Get the registrar
-    Registrar initialRegistrar = sessionUtils.getRegistrarForAuthResult(request, authResult, true);
+    Registrar initialRegistrar = sessionUtils.getRegistrarForAuthResult(request, authResult);
 
     // Process the operation.  Though originally derived from a CRUD handler, registrar-settings
     // and registrar-premium-price-action really only support read and update.

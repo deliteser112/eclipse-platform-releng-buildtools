@@ -59,8 +59,7 @@ public class SessionUtils {
    * the registrar console.
    */
   @CheckReturnValue
-  Registrar getRegistrarForAuthResult(
-      HttpServletRequest request, AuthResult authResult, boolean bypassCache) {
+  Registrar getRegistrarForAuthResult(HttpServletRequest request, AuthResult authResult) {
     if (!authResult.userAuthInfo().isPresent()) {
       throw new ForbiddenException("Not logged in");
     }
@@ -69,9 +68,7 @@ public class SessionUtils {
     }
     String clientId = getRegistrarClientId(request);
     return checkArgumentPresent(
-        bypassCache
-            ? Registrar.loadByClientId(clientId)
-            : Registrar.loadByClientIdCached(clientId),
+        Registrar.loadByClientId(clientId),
         "Registrar %s not found",
         clientId);
   }

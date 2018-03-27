@@ -19,7 +19,6 @@ import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -69,7 +68,7 @@ public class RegistrarPaymentSetupActionTest {
             .setBillingMethod(Registrar.BillingMethod.BRAINTREE)
             .build());
     when(sessionUtils.getRegistrarForAuthResult(
-            any(HttpServletRequest.class), any(AuthResult.class), anyBoolean()))
+            any(HttpServletRequest.class), any(AuthResult.class)))
         .thenReturn(registrar);
     when(braintreeGateway.clientToken()).thenReturn(clientTokenGateway);
   }
@@ -112,7 +111,7 @@ public class RegistrarPaymentSetupActionTest {
             .setBillingMethod(Registrar.BillingMethod.EXTERNAL)
             .build());
     when(sessionUtils.getRegistrarForAuthResult(
-            any(HttpServletRequest.class), any(AuthResult.class), anyBoolean()))
+            any(HttpServletRequest.class), any(AuthResult.class)))
         .thenReturn(registrar);
     assertThat(action.handleJsonRequest(ImmutableMap.of()))
         .containsExactly(

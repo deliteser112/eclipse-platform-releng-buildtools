@@ -106,7 +106,7 @@ public class RegistrarSettingsActionTestCase {
     when(rsp.getWriter()).thenReturn(new PrintWriter(writer));
     when(req.getContentType()).thenReturn("application/json");
     when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of("op", "read")));
-    when(sessionUtils.getRegistrarForAuthResult(req, action.authResult, false))
+    when(sessionUtils.getRegistrarForAuthResult(req, action.authResult))
         .thenReturn(loadRegistrar(CLIENT_ID));
     when(modulesService.getVersionHostname("backend", null)).thenReturn("backend.hostname");
   }

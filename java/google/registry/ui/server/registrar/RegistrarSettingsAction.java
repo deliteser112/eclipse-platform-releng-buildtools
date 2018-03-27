@@ -93,7 +93,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
       throw new BadRequestException("Malformed JSON");
     }
 
-    Registrar initialRegistrar = sessionUtils.getRegistrarForAuthResult(request, authResult, false);
+    Registrar initialRegistrar = sessionUtils.getRegistrarForAuthResult(request, authResult);
     // Process the operation.  Though originally derived from a CRUD
     // handler, registrar-settings really only supports read and update.
     String op = Optional.ofNullable((String) input.get(OP_PARAM)).orElse("read");
