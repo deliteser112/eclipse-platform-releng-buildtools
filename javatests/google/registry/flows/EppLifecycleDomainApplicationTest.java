@@ -50,83 +50,72 @@ public class EppLifecycleDomainApplicationTest extends EppTestCase {
   /** Create the two administrative contacts and two hosts. */
   void createContactsAndHosts() throws Exception {
     DateTime startTime = DateTime.parse("2000-06-01T00:00:00Z");
-    assertCommandAndResponse(
-        "contact_create_sh8013.xml",
-        ImmutableMap.of(),
-        "contact_create_response_sh8013.xml",
-        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
-        startTime);
-    assertCommandAndResponse(
-        "contact_create_jd1234.xml",
-        "contact_create_response_jd1234.xml",
-        startTime.plusMinutes(1));
-    assertCommandAndResponse(
-        "host_create.xml",
-        ImmutableMap.of("HOSTNAME", "ns1.example.external"),
-        "host_create_response.xml",
-        ImmutableMap.of(
-            "HOSTNAME", "ns1.example.external", "CRDATE", startTime.plusMinutes(2).toString()),
-        startTime.plusMinutes(2));
-    assertCommandAndResponse(
-        "host_create.xml",
-        ImmutableMap.of("HOSTNAME", "ns2.example.external"),
-        "host_create_response.xml",
-        ImmutableMap.of(
-            "HOSTNAME", "ns2.example.external", "CRDATE", startTime.plusMinutes(3).toString()),
-        startTime.plusMinutes(3));
+    assertThatCommand("contact_create_sh8013.xml")
+        .atTime(startTime)
+        .hasResponse(
+            "contact_create_response_sh8013.xml",
+            ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"));
+    assertThatCommand("contact_create_jd1234.xml")
+        .atTime(startTime.plusMinutes(1))
+        .hasResponse("contact_create_response_jd1234.xml");
+    assertThatCommand("host_create.xml", ImmutableMap.of("HOSTNAME", "ns1.example.external"))
+        .atTime(startTime.plusMinutes(2))
+        .hasResponse(
+            "host_create_response.xml",
+            ImmutableMap.of(
+                "HOSTNAME", "ns1.example.external", "CRDATE", startTime.plusMinutes(2).toString()));
+    assertThatCommand("host_create.xml", ImmutableMap.of("HOSTNAME", "ns2.example.external"))
+        .atTime(startTime.plusMinutes(3))
+        .hasResponse(
+            "host_create_response.xml",
+            ImmutableMap.of(
+                "HOSTNAME", "ns2.example.external", "CRDATE", startTime.plusMinutes(3).toString()));
   }
 
   @Test
   public void testApplicationDuringSunrise_doesntCreateDomainWithoutAllocation() throws Exception {
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
     createContactsAndHosts();
     // Note that the trademark is valid from 2013-08-09 to 2017-07-23, hence the creation in 2014.
-    assertCommandAndResponse(
-        "domain_create_sunrise_encoded_mark.xml",
-        "domain_create_sunrise_encoded_signed_mark_response.xml",
-        DateTime.parse("2014-01-01T00:00:00Z"));
-    assertCommandAndResponse(
-        "domain_info_testvalidate.xml",
-        ImmutableMap.of(),
-        "response_error.xml",
-        ImmutableMap.of(
-            "MSG", "The domain with given ID (test-validate.example) doesn't exist.",
-            "CODE", "2303"),
-        DateTime.parse("2014-01-01T00:01:00Z"));
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatCommand("domain_create_sunrise_encoded_mark.xml")
+        .atTime("2014-01-01T00:00:00Z")
+        .hasResponse("domain_create_sunrise_encoded_signed_mark_response.xml");
+    assertThatCommand("domain_info_testvalidate.xml")
+        .atTime("2014-01-01T00:01:00Z")
+        .hasResponse(
+            "response_error.xml",
+            ImmutableMap.of(
+                "CODE", "2303",
+                "MSG", "The domain with given ID (test-validate.example) doesn't exist."));
+    assertThatLogoutSucceeds();
   }
 
   @Test
   public void testDomainAllocation_succeedsOnlyAsSuperuser() throws Exception {
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
     createContactsAndHosts();
-    assertCommandAndResponse(
-        "domain_create_sunrise_encoded_mark.xml",
-        "domain_create_sunrise_encoded_signed_mark_response.xml",
-        DateTime.parse("2014-01-01T00:00:00Z"));
-    assertCommandAndResponse(
-        "domain_info_testvalidate.xml",
-        ImmutableMap.of(),
-        "response_error.xml",
-        ImmutableMap.of(
-            "MSG", "The domain with given ID (test-validate.example) doesn't exist.",
-            "CODE", "2303"),
-        DateTime.parse("2014-01-01T00:01:00Z"));
-    assertCommandAndResponse(
-        "domain_allocate_testvalidate.xml",
-        ImmutableMap.of(),
-        "response_error.xml",
-        ImmutableMap.of("MSG", "Only a superuser can allocate domains", "CODE", "2201"),
-        START_OF_GA.plusDays(1));
+    assertThatCommand("domain_create_sunrise_encoded_mark.xml")
+        .atTime("2014-01-01T00:00:00Z")
+        .hasResponse("domain_create_sunrise_encoded_signed_mark_response.xml");
+    assertThatCommand("domain_info_testvalidate.xml")
+        .atTime("2014-01-01T00:01:00Z")
+        .hasResponse(
+            "response_error.xml",
+            ImmutableMap.of(
+                "CODE", "2303",
+                "MSG", "The domain with given ID (test-validate.example) doesn't exist."));
+    assertThatCommand("domain_allocate_testvalidate.xml")
+        .atTime(START_OF_GA.plusDays(1))
+        .hasResponse(
+            "response_error.xml",
+            ImmutableMap.of("CODE", "2201", "MSG", "Only a superuser can allocate domains"));
     setIsSuperuser(true);
-    assertCommandAndResponse(
-        "domain_allocate_testvalidate.xml",
-        "domain_allocate_response_testvalidate.xml",
-        START_OF_GA.plusDays(1).plusMinutes(1));
+    assertThatCommand("domain_allocate_testvalidate.xml")
+        .atTime(START_OF_GA.plusDays(1).plusMinutes(1))
+        .hasResponse("domain_allocate_response_testvalidate.xml");
     setIsSuperuser(false);
-    assertCommandAndResponse(
-        "domain_info_testvalidate.xml",
-        "domain_info_response_testvalidate_ok.xml",
-        START_OF_GA.plusDays(1).plusMinutes(2));
+    assertThatCommand("domain_info_testvalidate.xml")
+        .atTime(START_OF_GA.plusDays(1).plusMinutes(2))
+        .hasResponse("domain_info_response_testvalidate_ok.xml");
   }
 }

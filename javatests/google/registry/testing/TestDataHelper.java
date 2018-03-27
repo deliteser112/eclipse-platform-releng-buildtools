@@ -23,6 +23,7 @@ import com.google.common.io.ByteSource;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.Nullable;
 
 /** Contains helper methods for dealing with test data. */
 public final class TestDataHelper {
@@ -56,7 +57,7 @@ public final class TestDataHelper {
    * context class, and substitutes in values for placeholders of the form <code>%tagname%</code>.
    */
   public static String loadFile(
-      Class<?> context, String filename, Map<String, String> substitutions) {
+      Class<?> context, String filename, @Nullable Map<String, String> substitutions) {
     String fileContents = loadFile(context, filename);
     for (Entry<String, String> entry : nullToEmpty(substitutions).entrySet()) {
       fileContents = fileContents.replaceAll("%" + entry.getKey() + "%", entry.getValue());

@@ -37,7 +37,7 @@ public class EppLoginUserTest extends EppTestCase {
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
-      .withUserService(UserInfo.create("person@example.com", "12345"))
+      .withUserService(UserInfo.create("user@example.com", "12345"))
       .build();
 
   @Before
@@ -55,40 +55,38 @@ public class EppLoginUserTest extends EppTestCase {
 
   @Test
   public void testLoginLogout() throws Exception {
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatLogoutSucceeds();
   }
 
   @Test
   public void testNonAuthedLogin_fails() throws Exception {
-    assertCommandAndResponse(
-        "login2_valid.xml",
-        ImmutableMap.of(),
-        "response_error.xml",
-        ImmutableMap.of(
-            "MSG", "User id is not allowed to login as requested registrar: person@example.com",
-            "CODE", "2200"));
+    assertThatLogin("TheRegistrar", "password2")
+        .hasResponse(
+            "response_error.xml",
+            ImmutableMap.of(
+                "CODE", "2200",
+                "MSG", "User id is not allowed to login as requested registrar: user@example.com"));
   }
 
   @Test
   public void testMultiLogin() throws Exception {
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
-    assertCommandAndResponse(
-        "login2_valid.xml",
-        ImmutableMap.of(),
-        "response_error.xml",
-        ImmutableMap.of(
-            "MSG", "User id is not allowed to login as requested registrar: person@example.com",
-            "CODE", "2200"));
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatLogoutSucceeds();
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatLogoutSucceeds();
+    assertThatLogin("TheRegistrar", "password2")
+        .hasResponse(
+            "response_error.xml",
+            ImmutableMap.of(
+                "CODE", "2200",
+                "MSG", "User id is not allowed to login as requested registrar: user@example.com"));
   }
 
   @Test
   public void testLoginLogout_wrongPasswordStillWorks() throws Exception {
     // For user-based logins the password in the epp xml is ignored.
-    assertCommandAndResponse("login_invalid_wrong_password.xml", "login_response.xml");
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "incorrect");
+    assertThatLogoutSucceeds();
   }
 }

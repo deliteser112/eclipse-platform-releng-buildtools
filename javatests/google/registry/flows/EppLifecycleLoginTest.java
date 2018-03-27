@@ -34,14 +34,14 @@ public class EppLifecycleLoginTest extends EppTestCase {
 
   @Test
   public void testLoginAndLogout_recordsEppMetric() throws Exception {
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
     assertThat(getRecordedEppMetric())
         .hasClientId("NewRegistrar")
         .and()
         .hasCommandName("Login")
         .and()
         .hasStatus(SUCCESS);
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatLogoutSucceeds();
     assertThat(getRecordedEppMetric())
         .hasClientId("NewRegistrar")
         .and()

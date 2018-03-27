@@ -37,25 +37,19 @@ public class EppLoggedOutTest extends EppTestCase {
   @Test
   public void testHello() throws Exception {
     DateTime now = DateTime.now(UTC);
-    assertCommandAndResponse(
-        "hello.xml",
-        null,
-        "greeting.xml",
-        ImmutableMap.of("DATE", now.toString(dateTimeNoMillis())),
-        now);
+    assertThatCommand("hello.xml", null)
+        .atTime(now)
+        .hasResponse("greeting.xml", ImmutableMap.of("DATE", now.toString(dateTimeNoMillis())));
   }
 
   @Test
   public void testSyntaxError() throws Exception {
-    assertCommandAndResponse(
-        "syntax_error.xml",
-        ImmutableMap.of(),
-        "response_error_no_cltrid.xml",
-        ImmutableMap.of(
-            "MSG",
-            "Syntax error at line 4, column 65: cvc-complex-type.3.2.2: "
-                + "Attribute 'xsi:schemaLocation' is not allowed to appear in element 'epp'.",
-            "CODE",
-            "2001"));
+    assertThatCommand("syntax_error.xml")
+        .hasResponse(
+            "response_error_no_cltrid.xml",
+            ImmutableMap.of(
+                "CODE", "2001",
+                "MSG", "Syntax error at line 4, column 65: cvc-complex-type.3.2.2: "
+                    + "Attribute 'xsi:schemaLocation' is not allowed to appear in element 'epp'."));
   }
 }

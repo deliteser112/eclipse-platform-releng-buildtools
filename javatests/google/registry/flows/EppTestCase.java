@@ -22,6 +22,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.joda.time.DateTimeZone.UTC;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import google.registry.flows.EppTestComponent.FakesAndMocksModule;
 import google.registry.model.ofy.Ofy;
@@ -32,6 +33,7 @@ import google.registry.testing.FakeResponse;
 import google.registry.testing.InjectRule;
 import google.registry.testing.ShardableTestCase;
 import java.util.Map;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -72,30 +74,64 @@ public class EppTestCase extends ShardableTestCase {
     this.isSuperuser = isSuperuser;
   }
 
-  String assertCommandAndResponse(String inputFilename, String outputFilename) throws Exception {
-    return assertCommandAndResponse(inputFilename, null, outputFilename, null);
+  class CommandAsserter {
+    private final String inputFilename;
+    private @Nullable final Map<String, String> inputSubstitutions;
+    private DateTime now;
+
+    private CommandAsserter(
+        String inputFilename, @Nullable Map<String, String> inputSubstitutions) {
+      this.inputFilename = inputFilename;
+      this.inputSubstitutions = inputSubstitutions;
+      this.now = DateTime.now(UTC);
+    }
+
+    CommandAsserter atTime(DateTime now) {
+      this.now = now;
+      return this;
+    }
+
+    CommandAsserter atTime(String now) {
+      return atTime(DateTime.parse(now));
+    }
+
+    String hasResponse(String outputFilename) throws Exception {
+      return hasResponse(outputFilename, null);
+    }
+
+    String hasResponse(String outputFilename, @Nullable Map<String, String> outputSubstitutions)
+        throws Exception {
+      return assertCommandAndResponse(
+          inputFilename, inputSubstitutions, outputFilename, outputSubstitutions, now);
+    }
   }
 
-  String assertCommandAndResponse(String inputFilename, String outputFilename, DateTime now)
-      throws Exception {
-    return assertCommandAndResponse(inputFilename, null, outputFilename, null, now);
+  CommandAsserter assertThatCommand(String inputFilename) {
+    return assertThatCommand(inputFilename, null);
   }
 
-  String assertCommandAndResponse(
+  CommandAsserter assertThatCommand(
+      String inputFilename, @Nullable Map<String, String> inputSubstitutions) {
+    return new CommandAsserter(inputFilename, inputSubstitutions);
+  }
+
+  CommandAsserter assertThatLogin(String clientId, String password) throws Exception {
+    return assertThatCommand("login.xml", ImmutableMap.of("CLID", clientId, "PW", password));
+  }
+
+  void assertThatLoginSucceeds(String clientId, String password) throws Exception {
+    assertThatLogin(clientId, password).hasResponse("login_response.xml");
+  }
+
+  void assertThatLogoutSucceeds() throws Exception {
+    assertThatCommand("logout.xml").hasResponse("logout_response.xml");
+  }
+
+  private String assertCommandAndResponse(
       String inputFilename,
-      Map<String, String> inputSubstitutions,
+      @Nullable Map<String, String> inputSubstitutions,
       String outputFilename,
-      Map<String, String> outputSubstitutions)
-      throws Exception {
-    return assertCommandAndResponse(
-        inputFilename, inputSubstitutions, outputFilename, outputSubstitutions, DateTime.now(UTC));
-  }
-
-  String assertCommandAndResponse(
-      String inputFilename,
-      Map<String, String> inputSubstitutions,
-      String outputFilename,
-      Map<String, String> outputSubstitutions,
+      @Nullable Map<String, String> outputSubstitutions,
       DateTime now)
       throws Exception {
     clock.setTo(now);

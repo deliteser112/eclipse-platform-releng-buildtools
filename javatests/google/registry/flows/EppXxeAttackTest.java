@@ -35,49 +35,40 @@ public class EppXxeAttackTest extends EppTestCase {
 
   @Test
   public void testRemoteXmlExternalEntity() throws Exception {
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse(
-        "contact_create_remote_xxe.xml",
-        ImmutableMap.of(),
-        "response_error_no_cltrid.xml",
-        ImmutableMap.of(
-            "MSG",
-            "Syntax error at line 11, column 34: "
-                + "The entity &quot;remote&quot; was referenced, but not declared.",
-            "CODE",
-            "2001"));
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatCommand("contact_create_remote_xxe.xml")
+        .hasResponse(
+            "response_error_no_cltrid.xml",
+            ImmutableMap.of(
+                "CODE", "2001",
+                "MSG", "Syntax error at line 11, column 34: "
+                    + "The entity &quot;remote&quot; was referenced, but not declared."));
+    assertThatLogoutSucceeds();
   }
 
   @Test
   public void testLocalXmlExtrernalEntity() throws Exception {
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse(
-        "contact_create_local_xxe.xml",
-        ImmutableMap.of(),
-        "response_error_no_cltrid.xml",
-        ImmutableMap.of(
-            "MSG",
-            "Syntax error at line 11, column 31: "
-                + "The entity &quot;ent&quot; was referenced, but not declared.",
-            "CODE",
-            "2001"));
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatCommand("contact_create_local_xxe.xml")
+        .hasResponse(
+            "response_error_no_cltrid.xml",
+            ImmutableMap.of(
+                "CODE", "2001",
+                "MSG", "Syntax error at line 11, column 31: "
+                    + "The entity &quot;ent&quot; was referenced, but not declared."));
+    assertThatLogoutSucceeds();
   }
 
   @Test
   public void testBillionLaughsAttack() throws Exception {
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse(
-        "contact_create_billion_laughs.xml",
-        ImmutableMap.of(),
-        "response_error_no_cltrid.xml",
-        ImmutableMap.of(
-            "MSG",
-            "Syntax error at line 20, column 32: "
-                + "The entity &quot;lol9&quot; was referenced, but not declared.",
-            "CODE",
-            "2001"));
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatCommand("contact_create_billion_laughs.xml")
+        .hasResponse(
+            "response_error_no_cltrid.xml",
+            ImmutableMap.of(
+                "CODE", "2001",
+                "MSG", "Syntax error at line 20, column 32: "
+                    + "The entity &quot;lol9&quot; was referenced, but not declared."));
+    assertThatLogoutSucceeds();
   }
 }

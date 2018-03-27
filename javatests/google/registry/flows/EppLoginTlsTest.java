@@ -62,67 +62,62 @@ public class EppLoginTlsTest extends EppTestCase {
   @Test
   public void testLoginLogout() throws Exception {
     setClientCertificateHash(CertificateSamples.SAMPLE_CERT_HASH);
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatLogoutSucceeds();
   }
 
   @Test
   public void testLogin_wrongPasswordFails() throws Exception {
     setClientCertificateHash(CertificateSamples.SAMPLE_CERT_HASH);
     // For TLS login, we also check the epp xml password.
-    assertCommandAndResponse(
-        "login_invalid_wrong_password.xml",
-        ImmutableMap.of(),
-        "response_error.xml",
-        ImmutableMap.of("MSG", "Registrar password is incorrect", "CODE", "2200"));
+    assertThatLogin("NewRegistrar", "incorrect")
+        .hasResponse(
+            "response_error.xml",
+            ImmutableMap.of("CODE", "2200", "MSG", "Registrar password is incorrect"));
   }
 
   @Test
   public void testMultiLogin() throws Exception {
     setClientCertificateHash(CertificateSamples.SAMPLE_CERT_HASH);
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
-    assertCommandAndResponse(
-        "login2_valid.xml",
-        ImmutableMap.of(),
-        "response_error.xml",
-        ImmutableMap.of(
-            "MSG", "Registrar certificate does not match stored certificate", "CODE", "2200"));
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatLogoutSucceeds();
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatLogoutSucceeds();
+    assertThatLogin("TheRegistrar", "password2")
+        .hasResponse(
+            "response_error.xml",
+            ImmutableMap.of(
+                "CODE", "2200", "MSG", "Registrar certificate does not match stored certificate"));
   }
 
   @Test
   public void testNonAuthedLogin_fails() throws Exception {
     setClientCertificateHash(CertificateSamples.SAMPLE_CERT_HASH);
-    assertCommandAndResponse(
-        "login2_valid.xml",
-        ImmutableMap.of(),
-        "response_error.xml",
-        ImmutableMap.of(
-            "MSG", "Registrar certificate does not match stored certificate", "CODE", "2200"));
+    assertThatLogin("TheRegistrar", "password2")
+        .hasResponse(
+            "response_error.xml",
+            ImmutableMap.of(
+                "CODE", "2200", "MSG", "Registrar certificate does not match stored certificate"));
   }
 
 
   @Test
   public void testBadCertificate_failsBadCertificate2200() throws Exception {
     setClientCertificateHash("laffo");
-    assertCommandAndResponse(
-        "login_valid.xml",
-        ImmutableMap.of(),
-        "response_error.xml",
-        ImmutableMap.of(
-            "MSG", "Registrar certificate does not match stored certificate", "CODE", "2200"));
+    assertThatLogin("NewRegistrar", "foo-BAR2")
+        .hasResponse(
+            "response_error.xml",
+            ImmutableMap.of(
+                "CODE", "2200", "MSG", "Registrar certificate does not match stored certificate"));
   }
 
   @Test
   public void testGfeDidntProvideClientCertificate_failsMissingCertificate2200() throws Exception {
     setClientCertificateHash("");
-    assertCommandAndResponse(
-        "login_valid.xml",
-        ImmutableMap.of(),
-        "response_error.xml",
-        ImmutableMap.of("MSG", "Registrar certificate not present", "CODE", "2200"));
+    assertThatLogin("NewRegistrar", "foo-BAR2")
+        .hasResponse(
+            "response_error.xml",
+            ImmutableMap.of("CODE", "2200", "MSG", "Registrar certificate not present"));
   }
 
   @Test
@@ -135,7 +130,7 @@ public class EppLoginTlsTest extends EppTestCase {
             .setClientCertificate(CertificateSamples.SAMPLE_CERT, now)
             .setFailoverClientCertificate(CertificateSamples.SAMPLE_CERT2, now)
             .build());
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
   }
 
   @Test
@@ -148,7 +143,7 @@ public class EppLoginTlsTest extends EppTestCase {
             .setClientCertificate(CertificateSamples.SAMPLE_CERT, now)
             .setFailoverClientCertificate(CertificateSamples.SAMPLE_CERT2, now)
             .build());
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
   }
 
   @Test
@@ -161,7 +156,7 @@ public class EppLoginTlsTest extends EppTestCase {
             .setClientCertificate(null, now)
             .setFailoverClientCertificate(CertificateSamples.SAMPLE_CERT2, now)
             .build());
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
   }
 
   @Test
@@ -174,6 +169,6 @@ public class EppLoginTlsTest extends EppTestCase {
             .setClientCertificate(null, now)
             .setFailoverClientCertificate(null, now)
             .build());
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
   }
 }

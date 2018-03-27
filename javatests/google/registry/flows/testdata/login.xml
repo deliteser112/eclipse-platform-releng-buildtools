@@ -1,8 +1,8 @@
 <epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
   <command>
     <login>
-      <clID>TheRegistrar</clID>
-      <pw>password2</pw>
+      <clID>%CLID%</clID>
+      <pw>%PW%</pw>
       <options>
         <version>1.0</version>
         <lang>en</lang>

@@ -22,7 +22,6 @@ import static google.registry.testing.EppMetricSubject.assertThat;
 
 import com.google.common.collect.ImmutableMap;
 import google.registry.testing.AppEngineRule;
-import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,13 +39,12 @@ public class EppLifecycleContactTest extends EppTestCase {
 
   @Test
   public void testContactLifecycle() throws Exception {
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse(
-        "contact_create_sh8013.xml",
-        ImmutableMap.of(),
-        "contact_create_response_sh8013.xml",
-        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
-        DateTime.parse("2000-06-01T00:00:00Z"));
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatCommand("contact_create_sh8013.xml")
+        .atTime("2000-06-01T00:00:00Z")
+        .hasResponse(
+            "contact_create_response_sh8013.xml",
+            ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"));
     assertThat(getRecordedEppMetric())
         .hasClientId("NewRegistrar")
         .and()
@@ -57,10 +55,9 @@ public class EppLifecycleContactTest extends EppTestCase {
         .hasEppTarget("sh8013")
         .and()
         .hasStatus(SUCCESS);
-    assertCommandAndResponse(
-        "contact_info.xml",
-        "contact_info_from_create_response.xml",
-        DateTime.parse("2000-06-01T00:01:00Z"));
+    assertThatCommand("contact_info.xml")
+        .atTime("2000-06-01T00:01:00Z")
+        .hasResponse("contact_info_from_create_response.xml");
     assertThat(getRecordedEppMetric())
         .hasClientId("NewRegistrar")
         .and()
@@ -69,7 +66,8 @@ public class EppLifecycleContactTest extends EppTestCase {
         .hasEppTarget("sh8013")
         .and()
         .hasStatus(SUCCESS);
-    assertCommandAndResponse("contact_delete_sh8013.xml", "contact_delete_response_sh8013.xml");
+    assertThatCommand("contact_delete_sh8013.xml")
+        .hasResponse("contact_delete_response_sh8013.xml");
     assertThat(getRecordedEppMetric())
         .hasClientId("NewRegistrar")
         .and()
@@ -78,52 +76,46 @@ public class EppLifecycleContactTest extends EppTestCase {
         .hasEppTarget("sh8013")
         .and()
         .hasStatus(SUCCESS_WITH_ACTION_PENDING);
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatLogoutSucceeds();
   }
 
   @Test
   public void testContactTransferPollMessage() throws Exception {
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse(
-        "contact_create_sh8013.xml",
-        ImmutableMap.of(),
-        "contact_create_response_sh8013.xml",
-        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
-        DateTime.parse("2000-06-01T00:00:00Z"));
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatCommand("contact_create_sh8013.xml")
+        .atTime("2000-06-01T00:00:00Z")
+        .hasResponse(
+            "contact_create_response_sh8013.xml",
+            ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"));
+    assertThatLogoutSucceeds();
 
     // Initiate a transfer of the newly created contact.
-    assertCommandAndResponse("login2_valid.xml", "login_response.xml");
-    assertCommandAndResponse(
-        "contact_transfer_request.xml",
-        "contact_transfer_request_response_alternate.xml",
-        DateTime.parse("2000-06-08T22:00:00Z"));
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatLoginSucceeds("TheRegistrar", "password2");
+    assertThatCommand("contact_transfer_request.xml")
+        .atTime("2000-06-08T22:00:00Z")
+        .hasResponse("contact_transfer_request_response_alternate.xml");
+    assertThatLogoutSucceeds();
 
     // Log back in with the losing registrar, read the poll message, and then ack it.
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse(
-        "poll.xml",
-        "poll_response_contact_transfer.xml",
-        DateTime.parse("2000-06-08T22:01:00Z"));
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatCommand("poll.xml")
+        .atTime("2000-06-08T22:01:00Z")
+        .hasResponse("poll_response_contact_transfer.xml");
     assertThat(getRecordedEppMetric())
         .hasClientId("NewRegistrar")
         .and()
         .hasCommandName("PollRequest")
         .and()
         .hasStatus(SUCCESS_WITH_ACK_MESSAGE);
-    assertCommandAndResponse(
-        "poll_ack.xml",
-        ImmutableMap.of("ID", "2-1-ROID-3-6-2000"),
-        "poll_ack_response_empty.xml",
-        ImmutableMap.of(),
-        DateTime.parse("2000-06-08T22:02:00Z"));
+    assertThatCommand("poll_ack.xml", ImmutableMap.of("ID", "2-1-ROID-3-6-2000"))
+        .atTime("2000-06-08T22:02:00Z")
+        .hasResponse("poll_ack_response_empty.xml");
     assertThat(getRecordedEppMetric())
         .hasClientId("NewRegistrar")
         .and()
         .hasCommandName("PollAck")
         .and()
         .hasStatus(SUCCESS_WITH_NO_MESSAGES);
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatLogoutSucceeds();
   }
 }

@@ -42,23 +42,23 @@ public class EppLoginAdminUserTest extends EppTestCase {
   @Test
   public void testNonAuthedLogin_succeedsAsAdmin() throws Exception {
     // Login succeeds even though this user isn't listed on the registrar.
-    assertCommandAndResponse("login2_valid.xml", "login_response.xml");
+    assertThatLoginSucceeds("TheRegistrar", "password2");
   }
 
   @Test
   public void testLoginLogout_wrongPasswordStillWorks() throws Exception {
     // For user-based logins the password in the epp xml is ignored.
-    assertCommandAndResponse("login_invalid_wrong_password.xml", "login_response.xml");
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "incorrect");
+    assertThatLogoutSucceeds();
   }
 
   @Test
   public void testNonAuthedMultiLogin_succeedsAsAdmin() throws Exception {
     // The admin can log in as different registrars.
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
-    assertCommandAndResponse("login2_valid.xml", "login_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatLogoutSucceeds();
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatLogoutSucceeds();
+    assertThatLoginSucceeds("TheRegistrar", "password2");
   }
 }

@@ -46,13 +46,10 @@ public class EppLifecycleHostTest extends EppTestCase {
 
   @Test
   public void testLifecycle() throws Exception {
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
-    assertCommandAndResponse(
-        "hello.xml",
-        ImmutableMap.of(),
-        "greeting.xml",
-        ImmutableMap.of("DATE", "2000-06-02T00:00:00Z"),
-        DateTime.parse("2000-06-02T00:00:00Z"));
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
+    assertThatCommand("hello.xml")
+        .atTime("2000-06-02T00:00:00Z")
+        .hasResponse("greeting.xml", ImmutableMap.of("DATE", "2000-06-02T00:00:00Z"));
     // Note that Hello commands don't set a status code on the response.
     assertThat(getRecordedEppMetric())
         .hasClientId("NewRegistrar")
@@ -60,12 +57,11 @@ public class EppLifecycleHostTest extends EppTestCase {
         .hasCommandName("Hello")
         .and()
         .hasNoStatus();
-    assertCommandAndResponse(
-        "host_create.xml",
-        ImmutableMap.of("HOSTNAME", "ns1.example.tld"),
-        "host_create_response.xml",
-        ImmutableMap.of("HOSTNAME", "ns1.example.tld", "CRDATE", "2000-06-02T00:01:00Z"),
-        DateTime.parse("2000-06-02T00:01:00Z"));
+    assertThatCommand("host_create.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld"))
+        .atTime("2000-06-02T00:01:00Z")
+        .hasResponse(
+            "host_create_response.xml",
+            ImmutableMap.of("HOSTNAME", "ns1.example.tld", "CRDATE", "2000-06-02T00:01:00Z"));
     assertThat(getRecordedEppMetric())
         .hasClientId("NewRegistrar")
         .and()
@@ -74,13 +70,12 @@ public class EppLifecycleHostTest extends EppTestCase {
         .hasEppTarget("ns1.example.tld")
         .and()
         .hasStatus(SUCCESS);
-    assertCommandAndResponse(
-        "host_info.xml",
-        ImmutableMap.of("HOSTNAME", "ns1.example.tld"),
-        "host_info_response.xml",
-        ImmutableMap.of(
-            "HOSTNAME", "ns1.example.tld", "ROID", "1-ROID", "CRDATE", "2000-06-02T00:01:00Z"),
-        DateTime.parse("2000-06-02T00:02:00Z"));
+    assertThatCommand("host_info.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld"))
+        .atTime("2000-06-02T00:02:00Z")
+        .hasResponse(
+            "host_info_response.xml",
+            ImmutableMap.of(
+                "HOSTNAME", "ns1.example.tld", "ROID", "1-ROID", "CRDATE", "2000-06-02T00:01:00Z"));
     assertThat(getRecordedEppMetric())
         .hasClientId("NewRegistrar")
         .and()
@@ -89,12 +84,9 @@ public class EppLifecycleHostTest extends EppTestCase {
         .hasEppTarget("ns1.example.tld")
         .and()
         .hasStatus(SUCCESS);
-    assertCommandAndResponse(
-        "host_delete.xml",
-        ImmutableMap.of("HOSTNAME", "ns1.example.tld"),
-        "generic_success_action_pending_response.xml",
-        ImmutableMap.of(),
-        DateTime.parse("2000-06-02T00:03:00Z"));
+    assertThatCommand("host_delete.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld"))
+        .atTime("2000-06-02T00:03:00Z")
+        .hasResponse("generic_success_action_pending_response.xml");
     assertThat(getRecordedEppMetric())
         .hasClientId("NewRegistrar")
         .and()
@@ -103,140 +95,128 @@ public class EppLifecycleHostTest extends EppTestCase {
         .hasEppTarget("ns1.example.tld")
         .and()
         .hasStatus(SUCCESS_WITH_ACTION_PENDING);
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatLogoutSucceeds();
   }
 
   @Test
   public void testRenamingHostToExistingHost_fails() throws Exception {
     createTld("example");
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
     // Create the fakesite domain.
-    assertCommandAndResponse(
-        "contact_create_sh8013.xml",
-        ImmutableMap.of(),
-        "contact_create_response_sh8013.xml",
-        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
-        DateTime.parse("2000-06-01T00:00:00Z"));
-    assertCommandAndResponse(
-        "contact_create_jd1234.xml",
-        "contact_create_response_jd1234.xml",
-        DateTime.parse("2000-06-01T00:01:00Z"));
-    assertCommandAndResponse(
-        "domain_create_fakesite_no_nameservers.xml",
-        ImmutableMap.of(),
-        "domain_create_response.xml",
-        ImmutableMap.of(
-            "NAME", "fakesite.example",
-            "CRDATE", "2000-06-01T00:04:00.0Z",
-            "EXDATE", "2002-06-01T00:04:00.0Z"),
-        DateTime.parse("2000-06-01T00:04:00Z"));
-    assertCommandAndResponse(
-        "domain_info_fakesite.xml",
-        "domain_info_response_fakesite_inactive.xml",
-        DateTime.parse("2000-06-05T00:02:00Z"));
+    assertThatCommand("contact_create_sh8013.xml")
+        .atTime("2000-06-01T00:00:00Z")
+        .hasResponse(
+            "contact_create_response_sh8013.xml",
+            ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"));
+    assertThatCommand("contact_create_jd1234.xml")
+        .atTime("2000-06-01T00:01:00Z")
+        .hasResponse("contact_create_response_jd1234.xml");
+    assertThatCommand("domain_create_fakesite_no_nameservers.xml")
+        .atTime("2000-06-01T00:04:00Z")
+        .hasResponse(
+            "domain_create_response.xml",
+            ImmutableMap.of(
+                "NAME", "fakesite.example",
+                "CRDATE", "2000-06-01T00:04:00.0Z",
+                "EXDATE", "2002-06-01T00:04:00.0Z"));
+    assertThatCommand("domain_info_fakesite.xml")
+        .atTime("2000-06-05T00:02:00Z")
+        .hasResponse("domain_info_response_fakesite_inactive.xml");
     // Add the fakesite subordinate host (requires that domain is already created).
-    assertCommandAndResponse(
-        "host_create_fakesite.xml",
-        "host_create_response_fakesite.xml",
-        DateTime.parse("2000-06-06T00:01:00Z"));
+    assertThatCommand("host_create_fakesite.xml")
+        .atTime("2000-06-06T00:01:00Z")
+        .hasResponse("host_create_response_fakesite.xml");
     // Add the 2nd fakesite subordinate host.
-    assertCommandAndResponse(
-        "host_create_fakesite2.xml",
-        "host_create_response_fakesite2.xml",
-        DateTime.parse("2000-06-09T00:01:00Z"));
+    assertThatCommand("host_create_fakesite2.xml")
+        .atTime("2000-06-09T00:01:00Z")
+        .hasResponse("host_create_response_fakesite2.xml");
     // Attempt overwriting of 2nd fakesite subordinate host with the 1st.
-    assertCommandAndResponse(
-        "host_update_fakesite1_to_fakesite2.xml",
-        ImmutableMap.of(),
-        "response_error.xml",
-        ImmutableMap.of(
-            "MSG", "Object with given ID (ns4.fakesite.example) already exists", "CODE", "2302"),
-        DateTime.parse("2000-06-10T00:01:00Z"));
+    assertThatCommand("host_update_fakesite1_to_fakesite2.xml")
+        .atTime("2000-06-10T00:01:00Z")
+        .hasResponse(
+            "response_error.xml",
+            ImmutableMap.of(
+                "CODE", "2302",
+                "MSG", "Object with given ID (ns4.fakesite.example) already exists"));
     // Verify that fakesite hosts still exist in their unmodified states.
-    assertCommandAndResponse(
-        "host_info_fakesite.xml",
-        "host_info_response_fakesite_ok.xml",
-        DateTime.parse("2000-06-11T00:07:00Z"));
-    assertCommandAndResponse(
-        "host_info_fakesite2.xml",
-        "host_info_response_fakesite2.xml",
-        DateTime.parse("2000-06-11T00:08:00Z"));
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatCommand("host_info_fakesite.xml")
+        .atTime("2000-06-11T00:07:00Z")
+        .hasResponse("host_info_response_fakesite_ok.xml");
+    assertThatCommand("host_info_fakesite2.xml")
+        .atTime("2000-06-11T00:08:00Z")
+        .hasResponse("host_info_response_fakesite2.xml");
+    assertThatLogoutSucceeds();
   }
 
   @Test
   public void testSuccess_multipartTldsWithSharedSuffixes() throws Exception {
     createTlds("bar.foo.tld", "foo.tld", "tld");
 
-    assertCommandAndResponse("login_valid.xml", "login_response.xml");
+    assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
 
-    assertCommandAndResponse(
-        "contact_create_sh8013.xml",
-        ImmutableMap.of(),
-        "contact_create_response_sh8013.xml",
-        ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"),
-        DateTime.parse("2000-06-01T00:00:00Z"));
-    assertCommandAndResponse(
-        "contact_create_jd1234.xml",
-        "contact_create_response_jd1234.xml",
-        DateTime.parse("2000-06-01T00:01:00Z"));
+    assertThatCommand("contact_create_sh8013.xml")
+        .atTime("2000-06-01T00:00:00Z")
+        .hasResponse(
+            "contact_create_response_sh8013.xml",
+            ImmutableMap.of("CRDATE", "2000-06-01T00:00:00Z"));
+    assertThatCommand("contact_create_jd1234.xml")
+        .atTime("2000-06-01T00:01:00Z")
+        .hasResponse("contact_create_response_jd1234.xml");
 
     // Create domain example.bar.foo.tld
-    assertCommandAndResponse(
-        "domain_create_wildcard.xml",
-        ImmutableMap.of("HOSTNAME", "example.bar.foo.tld"),
-        "domain_create_response.xml",
-        ImmutableMap.of(
-            "NAME", "example.bar.foo.tld",
-            "CRDATE", "2000-06-01T00:02:00Z",
-            "EXDATE", "2002-06-01T00:02:00Z"),
-        DateTime.parse("2000-06-01T00:02:00.000Z"));
+    assertThatCommand(
+            "domain_create_wildcard.xml", ImmutableMap.of("HOSTNAME", "example.bar.foo.tld"))
+        .atTime("2000-06-01T00:02:00.000Z")
+        .hasResponse(
+            "domain_create_response.xml",
+            ImmutableMap.of(
+                "NAME", "example.bar.foo.tld",
+                "CRDATE", "2000-06-01T00:02:00Z",
+                "EXDATE", "2002-06-01T00:02:00Z"));
 
     // Create domain example.foo.tld
-    assertCommandAndResponse(
-        "domain_create_wildcard.xml",
-        ImmutableMap.of("HOSTNAME", "example.foo.tld"),
-        "domain_create_response.xml",
-        ImmutableMap.of(
-            "NAME", "example.foo.tld",
-            "CRDATE", "2000-06-01T00:02:00Z",
-            "EXDATE", "2002-06-01T00:02:00Z"),
-        DateTime.parse("2000-06-01T00:02:00.001Z"));
+    assertThatCommand("domain_create_wildcard.xml", ImmutableMap.of("HOSTNAME", "example.foo.tld"))
+        .atTime("2000-06-01T00:02:00.001Z")
+        .hasResponse(
+            "domain_create_response.xml",
+            ImmutableMap.of(
+                "NAME", "example.foo.tld",
+                "CRDATE", "2000-06-01T00:02:00Z",
+                "EXDATE", "2002-06-01T00:02:00Z"));
 
     // Create domain example.tld
-    assertCommandAndResponse(
-        "domain_create_wildcard.xml",
-        ImmutableMap.of("HOSTNAME", "example.tld"),
-        "domain_create_response.xml",
-        ImmutableMap.of(
-            "NAME", "example.tld",
-            "CRDATE", "2000-06-01T00:02:00Z",
-            "EXDATE", "2002-06-01T00:02:00Z"),
-        DateTime.parse("2000-06-01T00:02:00.002Z"));
+    assertThatCommand("domain_create_wildcard.xml", ImmutableMap.of("HOSTNAME", "example.tld"))
+        .atTime("2000-06-01T00:02:00.002Z")
+        .hasResponse(
+            "domain_create_response.xml",
+            ImmutableMap.of(
+                "NAME", "example.tld",
+                "CRDATE", "2000-06-01T00:02:00Z",
+                "EXDATE", "2002-06-01T00:02:00Z"));
 
     // Create host ns1.example.bar.foo.tld
-    assertCommandAndResponse(
-        "host_create_with_ips.xml",
-        ImmutableMap.of("HOSTNAME", "ns1.example.bar.foo.tld"),
-        "host_create_response.xml",
-        ImmutableMap.of("HOSTNAME", "ns1.example.bar.foo.tld", "CRDATE", "2000-06-01T00:03:00Z"),
-        DateTime.parse("2000-06-01T00:03:00Z"));
+    assertThatCommand(
+            "host_create_with_ips.xml", ImmutableMap.of("HOSTNAME", "ns1.example.bar.foo.tld"))
+        .atTime("2000-06-01T00:03:00Z")
+        .hasResponse(
+            "host_create_response.xml",
+            ImmutableMap.of(
+                "HOSTNAME", "ns1.example.bar.foo.tld", "CRDATE", "2000-06-01T00:03:00Z"));
 
     // Create host ns1.example.foo.tld
-    assertCommandAndResponse(
-        "host_create_with_ips.xml",
-        ImmutableMap.of("HOSTNAME", "ns1.example.foo.tld"),
-        "host_create_response.xml",
-        ImmutableMap.of("HOSTNAME", "ns1.example.foo.tld", "CRDATE", "2000-06-01T00:04:00Z"),
-        DateTime.parse("2000-06-01T00:04:00Z"));
+    assertThatCommand(
+            "host_create_with_ips.xml", ImmutableMap.of("HOSTNAME", "ns1.example.foo.tld"))
+        .atTime("2000-06-01T00:04:00Z")
+        .hasResponse(
+            "host_create_response.xml",
+            ImmutableMap.of("HOSTNAME", "ns1.example.foo.tld", "CRDATE", "2000-06-01T00:04:00Z"));
 
     // Create host ns1.example.tld
-    assertCommandAndResponse(
-        "host_create_with_ips.xml",
-        ImmutableMap.of("HOSTNAME", "ns1.example.tld"),
-        "host_create_response.xml",
-        ImmutableMap.of("HOSTNAME", "ns1.example.tld", "CRDATE", "2000-06-01T00:05:00Z"),
-        DateTime.parse("2000-06-01T00:05:00Z"));
+    assertThatCommand("host_create_with_ips.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld"))
+        .atTime("2000-06-01T00:05:00Z")
+        .hasResponse(
+            "host_create_response.xml",
+            ImmutableMap.of("HOSTNAME", "ns1.example.tld", "CRDATE", "2000-06-01T00:05:00Z"));
 
     DateTime timeAfterCreates = DateTime.parse("2000-06-01T00:06:00Z");
 
@@ -266,6 +246,6 @@ public class EppLifecycleHostTest extends EppTestCase {
     assertAboutHosts().that(exampleTldHost).hasSuperordinateDomain(Key.create(exampleTldDomain));
     assertThat(exampleTldDomain.getSubordinateHosts()).containsExactly("ns1.example.tld");
 
-    assertCommandAndResponse("logout.xml", "logout_response.xml");
+    assertThatLogoutSucceeds();
   }
 }
