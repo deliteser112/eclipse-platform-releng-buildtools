@@ -47,38 +47,8 @@ public class VerifyOteActionTest {
     persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
-            .setType(Type.DOMAIN_APPLICATION_CREATE)
-            .setXmlBytes(ToolsTestData.loadBytes("domain_create_complete.xml").read())
-            .build());
-    persistResource(
-        new HistoryEntry.Builder()
-            .setClientId("blobio-1")
-            .setType(Type.DOMAIN_APPLICATION_CREATE)
+            .setType(Type.DOMAIN_CREATE)
             .setXmlBytes(ToolsTestData.loadBytes("domain_create_sunrise.xml").read())
-            .build());
-    persistResource(
-        new HistoryEntry.Builder()
-            .setClientId("blobio-1")
-            .setType(Type.DOMAIN_APPLICATION_DELETE)
-            .setXmlBytes(ToolsTestData.loadBytes("domain_delete.xml").read())
-            .build());
-    persistResource(
-        new HistoryEntry.Builder()
-            .setClientId("blobio-2")
-            .setType(Type.DOMAIN_APPLICATION_DELETE)
-            .setXmlBytes(ToolsTestData.loadBytes("domain_delete.xml").read())
-            .build());
-    persistResource(
-        new HistoryEntry.Builder()
-            .setClientId("blobio-1")
-            .setType(Type.DOMAIN_APPLICATION_UPDATE)
-            .setXmlBytes(ToolsTestData.loadBytes("domain_update_complete.xml").read())
-            .build());
-    persistResource(
-        new HistoryEntry.Builder()
-            .setClientId("blobio-2")
-            .setType(Type.DOMAIN_APPLICATION_UPDATE)
-            .setXmlBytes(ToolsTestData.loadBytes("domain_update_complete.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
@@ -181,7 +151,7 @@ public class VerifyOteActionTest {
 
     for (Entry<String, Object> registrar : response.entrySet()) {
       assertThat(registrar.getKey()).matches("blobio");
-      assertThat(registrar.getValue().toString()).containsMatch("Reqs passed: 19/19");
+      assertThat(registrar.getValue().toString()).containsMatch("Reqs passed: 16/16");
       assertThat(registrar.getValue().toString()).containsMatch("Overall: PASS");
     }
   }
@@ -195,12 +165,8 @@ public class VerifyOteActionTest {
     for (Entry<String, Object> registrar : response.entrySet()) {
       assertThat(registrar.getKey()).matches("blobio");
       String expectedOteStatus =
-          "domain application creates landrush: 1\n"
-              + "domain application creates sunrise: 1\n"
-              + "domain application deletes: 2\n"
-              + "domain application updates: 2\n"
-              + ".*"
-              + "domain creates idn: 1\n"
+          "domain creates idn: 1\n"
+              + "domain creates start date sunrise: 1\n"
               + "domain creates with claims notice: 1\n"
               + "domain creates with fee: 1\n"
               + "domain creates with sec dns: 1\n"
@@ -219,7 +185,7 @@ public class VerifyOteActionTest {
               + "host deletes: 1\n"
               + "host updates: 1\n"
               + ".*"
-              + "Requirements passed: 19/19\n"
+              + "Requirements passed: 16/16\n"
               + "Overall OT&E status: PASS\n";
       Pattern expectedOteStatusPattern = Pattern.compile(expectedOteStatus, Pattern.DOTALL);
       assertThat(registrar.getValue().toString()).containsMatch(expectedOteStatusPattern);
@@ -239,12 +205,8 @@ public class VerifyOteActionTest {
       String oteStatus = registrar.getValue().toString();
 
       String expectedOteStatus =
-          "domain application creates landrush: 1\n"
-              + "domain application creates sunrise: 1\n"
-              + "domain application deletes: 2\n"
-              + "domain application updates: 2\n"
-              + ".*"
-              + "domain creates idn: 1\n"
+          "domain creates idn: 1\n"
+              + "domain creates start date sunrise: 1\n"
               + "domain creates with claims notice: 1\n"
               + "domain creates with fee: 1\n"
               + "domain creates with sec dns: 1\n"
@@ -263,7 +225,7 @@ public class VerifyOteActionTest {
               + "host deletes: 0\n"
               + "host updates: 1\n"
               + ".*"
-              + "Requirements passed: 18/19\n"
+              + "Requirements passed: 15/16\n"
               + "Overall OT&E status: FAIL\n";
       Pattern expectedOteStatusPattern = Pattern.compile(expectedOteStatus, Pattern.DOTALL);
       assertThat(oteStatus).containsMatch(expectedOteStatusPattern);

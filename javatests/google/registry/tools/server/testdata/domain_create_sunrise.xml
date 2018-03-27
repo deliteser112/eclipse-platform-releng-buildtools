@@ -19,8 +19,7 @@
     </create>
     <extension>
       <launch:create
-          xmlns:launch="urn:ietf:params:xml:ns:launch-1.0"
-          type="application">
+          xmlns:launch="urn:ietf:params:xml:ns:launch-1.0">
         <launch:phase>sunrise</launch:phase>
         <smd:signedMark xmlns:smd="urn:ietf:params:xml:ns:signedMark-1.0" id="signedMark">
           <smd:id>1-2</smd:id>
