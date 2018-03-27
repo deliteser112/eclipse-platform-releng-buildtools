@@ -28,6 +28,230 @@ service like [Spinnaker](https://www.spinnaker.io/) for release management.
 
 ## Detailed Instruction
 
+We use [`gcloud`](https://cloud.google.com/sdk/gcloud/) and
+[`terraform`](https://terraform.io) to configure the proxy project on GCP. We
+use [`kubectl`](https://kubernetes.io/docs/tasks/tools/install-kubectl/) to
+deploy the proxy to the project. Additionally,
+[`gsutil`](https://cloud.google.com/storage/docs/gsutil) is used to create GCS
+bucket for storing the terraform state file. These instructions assume that all
+four tools are installed.
+
+### Setup GCP project
+
+There are three projects involved:
+
+-   Nomulus project: the project that hosts Nomulus.
+-   Proxy project: the project that hosts this proxy.
+-   GCR ([Google Container
+    Registry](https://cloud.google.com/container-registry/)) project: the
+    project from which the proxy pulls its Docker image.
+
+We recommend using the same project for Nomulus and the proxy, so that logs for
+both are collected in the same place and easily accessible. If there are
+multiple Nomulus projects (environments), such as production, sandbox, alpha,
+etc, it is recommended to use just one as the GCR project. This way the same
+proxy images are deployed to each environment, and what is running in production
+is the same image tested in sandbox before.
+
+The following document outlines the procedure to setup the proxy for one
+environment.
+
+In the proxy project, create a GCS bucket to store the terraform state file:
+
+```bash
+$ gsutil config
+$ gsutil mb -p <proxy-project> gs://<bucket-name>/
+```
+
+### Obtain a domain and SSL certificate
+
+The proxy exposes two endpoints, whois.\<yourdomain.tld\> and
+epp.\<yourdomain.tld\>. The base domain \<yourdomain.tld\> needs to be obtained
+from a registrar ([Google Domains](https://domains.google) for example). Nomulus
+operators can also self-allocate a domain in the TLDs under management.
+
+[EPP protocol over TCP](https://tools.ietf.org/html/rfc5734) requires a
+client-authenticated SSL connection. The operator of the proxy needs to obtain
+an SSL certificate for domain epp.\<yourdomain.tld\>. [Let's
+Encrypt](https://letsencrypt.org) offers SSL certificate free of charge, but any
+other CA can fill the role.
+
+Concatenate the certificate and its private key into one file:
+
+```bash
+$ cat <certificate.pem> <private.key> > <combined_secret.pem>
+```
+
+The order between the certificate and the private key inside the combined file
+does not matter. However, if the certificate file is chained, i. e. it contains
+not only the certificate for your domain, but also certificates from
+intermediate CAs, these certificates must appear in order. The previous
+certificate's issuer must be the next certificate's subject.
+
+### Setup proxy project
+
+First setup the [Application Default
+Credential](https://cloud.google.com/docs/authentication/production) locally:
+
+```bash
+$ gcloud auth application-default login
+```
+
+Login with the account that has "Project Owner" role of all three projects
+mentioned above.
+
+Navigate to `java/google/registry/proxy/terraform`, create a folder called
+`envs`, and inside it, create a folder for the environment that proxy is
+deployed to ("alpha" for example). Copy `example_config.tf` to the environment
+folder.
+
+```bash
+$ cd java/google/registry/proxy/terraform
+$ mkdir -p envs/alpha
+$ cp example_config.tf envs/alpha/config.tf
+```
+
+Now go to the environment folder, edit the `config.tf` file and replace
+placeholders with actual project and domain names.
+
+Run terraform:
+
+```bash
+$ cd envs/alpha
+(edit config.tf)
+$ terraform init -upgrade
+$ terraform apply
+```
+
+Go over the proposed changes, and answer "yes". Terraform will start configuring
+the projects, including setting up clusters, keyrings, load balancer, etc. This
+takes a couple of minutes.
+
+### Setup Nomulus
+
+After terraform completes, it outputs some information, among which is the
+client id of the service account created for the proxy. This needs to be added
+to the Nomulus configuration file so that Nomulus accepts traffic from the
+proxy. Edit the following section in
+`java/google/registry/config/files/nomulus-config-<env>.yaml` and redeploy
+Nomulus:
+
+```yaml
+oAuth:
+  allowedOauthClientIds:
+    - <client_id>
+```
+
+### Setup nameservers
+
+The terraform output (run `terraform output` in the environment folder to show
+it again) also shows the nameservers of the proxy domain (\<yourdomain.tld\>).
+Delegate this domain to these nameservers (through your registrar). If the
+domain is self-allocated by Nomulus, run:
+
+```bash
+$ nomulus -e production update_domain <yourdomain.tld> \
+-c <registrar_client_name> -n <nameserver1>,<nameserver2>,...
+```
+
+### Setup named ports
+
+Unfortunately, terraform currently cannot add named ports on the instance groups
+of the GKE clusters it manages. [Named
+ports](https://cloud.google.com/compute/docs/load-balancing/http/backend-service#named_ports)
+are needed for the load balancer it sets up to route traffic to the proxy. To
+set named ports, in the environment folder, do:
+
+```bash
+$ bash ../../update_named_ports.sh
+```
+
+### Encrypt the certificate to Cloud KMS
+
+With the newly set up Cloud KMS key, encrypt the certificate/key combo file
+created earlier:
+
+```bash
+$ gcloud kms encrypt --plaintext-file <combined_secret.pem> \
+--ciphertext-file <combined_secret.pem.enc> \
+--key <key-name> --keyring <keyring-name> --location global
+```
+
+Place the encrypted file <combined_secret.pem.enc> to
+`java/google/registry/proxy/resources`.
+
+### Edit proxy config file
+
+Proxy configuration files are at `java/google/registry/proxy/config/`. There is
+a default config that provides most values needed to run the proxy, and several
+environment-specific configs for proxy instances that communicate to different
+Nomulus environments. The values specified in the environment-specific file
+override those in the default file.
+
+The values that need to be changed include the project name, the Nomulus
+endpoint, encrypted certificate/key combo filename, Cloud KMS keyring and key
+names, etc. Refer to the default file for detailed descriptions on each field.
+
+### Upload proxy docker image to GCR
+
+Edit the `proxy_push` rule in `java/google/registry/proxy/BUILD` to add the GCR
+project name and the image name to save to. Note that as currently set up, all
+images pushed to GCR will be tagged `bazel` and the GKE deployment object loads
+the image tagged as `bazel`. This is fine for testing, but for production one
+should give images unique tags (also configured in the `proxy_push` rule).
+
+To push to GCR, run:
+
+```bash
+$ bazel run java/google/registry/proxy:proxy_push
+```
+
+### Deploy proxy
+
+Terraform by default creates three clusters, in the Americas, EMEA, and APAC,
+respectively. We will have to deploy to each cluster separately. The cluster
+information is shown by `terraform output` as well.
+
+Deployment is defined in two files, `proxy-deployment-<env>.yaml` and
+`proxy-service.yaml`. Edit `proxy-deployment-<env>.yaml` for your environment,
+fill in the GCR project name and image name. You can also change the arguments
+in the file to turn on logging, for example. To deploy to a cluster:
+
+```bash
+# Get credentials to deploy to a cluster.
+$ gcloud container clusters get-credentials --project <proxy-project> \
+--zone <cluster-zone> <cluster-name>
+
+# Deploys environment specific kubernetes objects.
+$ kubectl create -f \
+java/google/registry/proxy/kubernetes/proxy-deployment-<env>.yaml
+
+# Deploys shared kubernetes objects.
+$ kubectl create -f \
+java/google/registry/proxy/kubernetes/proxy-service.yaml
+```
+
+Repeat this for all three clusters.
+
+### Afterwork
+
+Remember to turn on [Stackdriver
+Monitoring](https://cloud.google.com/monitoring/docs/) for the proxy project as
+we use it to collect metrics from the proxy.
+
+You are done! The proxy should be running now. You should store the private key
+safely, or delete it as you now have the encrypted file shipped with the proxy.
+See "Additional Steps" in the appendix for other things to check.
+
+## Appendix
+
+Here we give detailed instructions on how to configure a GCP project to host the
+proxy manually. We strongly recommend against doing so because it is tedious and
+error-prone. Using Terraform is much easier. The following instructions are for
+educational purpose for readers to understand why we set up the infrastructure
+this way. The Terraform config is essentially a translation of the following
+procedure.
+
 ### Set default project
 
 The proxy can run on its own GCP project, or use the existing project that also
@@ -91,6 +315,15 @@ project viewer so that OAuth protected endpoints like `/_dr/epp` and
 ```bash
 $ gcloud projects add-iam-policy-binding <project-id> \
 --member serviceAccount:<service-account-email> --role roles/viewer
+```
+
+Also bind the "Logs Writer" and role to the proxy service account so that it can
+write logs to [Stackdriver Logging](https://cloud.google.com/logging/).
+
+```bash
+$ gcloud projects add-iam-policy-binding <project-id> \
+--member serviceAccount:<service-accounte-email> \
+--role roles/logging.logWriter
 ```
 
 ### Obtain a domain and SSL certificate
@@ -202,8 +435,16 @@ immediately after.
 ```bash
 $ gcloud container clusters create proxy-americas-cluster --enable-autorepair \
 --enable-autoupgrade --enable-autoscaling --max-nodes=3 --min-nodes=1 \
---zone=us-east1-c --cluster-version=1.9.4-gke.1 --tags=proxy-cluster
+--zone=us-east1-c --cluster-version=1.9.4-gke.1 --tags=proxy-cluster \
+--service-account=<service-account-email>
 ```
+
+We give the GCE instances inside the cluster the same credential as the proxy
+service account, which makes it easier to limit permissions granted to service
+accounts. If we use the default GCE service account, we'd have to grant the
+default GCE service account permission to read from GCR in order to download
+images of the proxy to create pods, which gives *any* GCE instance with the
+default service account that permission.
 
 Note the `--tags` flag: it will apply the tag to all GCE instances running in
 the cluster, making it easier to set up firewall rules later on. Use the same
@@ -239,29 +480,13 @@ To push to GCR, run:
 $ bazel run java/google/registry/proxy:proxy_push
 ```
 
-If the GCP project to host pull images (image project) is different from the
-project that the proxy runs in (proxy project), the default compute engine
-service account from the proxy project needs to be granted the ["Storage Object
-Viewer"](https://cloud.google.com/container-registry/docs/access-control) role
-in the image project. Kubernetes clusters in the proxy project use GCE VMs as
-nodes and the nodes by default use the default compute engine service account
-credential to pull images. This account is different from the proxy service
-account created earlier, which represents the credentials that the proxy itself
-has.
-
-To find the default compute engine service account:
-
-```bash
-$ gcloud iam service-accounts list \
-| grep "Compute Engine default service account"
-```
-
-To add the account with "Storage Object Viewer" role to the project hosting the
-images:
+If the GCP project to host images (gcr project) is different from the project
+that the proxy runs in (proxy project), give the service account "Storage Object
+Viewer" role of the gcr project.
 
 ```bash
 $ gcloud projects add-iam-policy-binding <image-project> \
---member serviceAccount:<gce-default-service-account> \
+--member serviceAccount:<service-account-email> \
 --role roles/storage.objectViewer
 ```
 

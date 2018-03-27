@@ -14,10 +14,6 @@ spec:
       labels:
         app: proxy
     spec:
-      volumes:
-      - name: service-account-key
-        secret:
-          secretName: service-account
       containers:
       - name: proxy
         image: gcr.io/GCP_PROJECT/IMAGE_NAME:bazel
@@ -38,14 +34,9 @@ spec:
             port: health-check
           initialDelaySeconds: 15
           periodSeconds: 20
-        volumeMounts:
-        - name: service-account-key
-          mountPath: /var/secrets/google
         imagePullPolicy: Always
         args: ["--env", "alpha", "--log"]
         env:
-        - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /var/secrets/google/service-account-key.json
         - name: POD_ID
           valueFrom:
             fieldRef:
