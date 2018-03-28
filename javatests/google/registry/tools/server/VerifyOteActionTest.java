@@ -41,6 +41,8 @@ public class VerifyOteActionTest {
   private final VerifyOteAction action = new VerifyOteAction();
 
   HistoryEntry hostDeleteHistoryEntry;
+  HistoryEntry domainCreateHistoryEntry;
+  HistoryEntry domainRestoreHistoryEntry;
 
   @Before
   public void init() throws Exception {
@@ -50,7 +52,7 @@ public class VerifyOteActionTest {
             .setType(Type.DOMAIN_CREATE)
             .setXmlBytes(ToolsTestData.loadBytes("domain_create_sunrise.xml").read())
             .build());
-    persistResource(
+    domainCreateHistoryEntry = persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_CREATE)
@@ -86,7 +88,7 @@ public class VerifyOteActionTest {
             .setType(Type.DOMAIN_DELETE)
             .setXmlBytes(ToolsTestData.loadBytes("domain_delete.xml").read())
             .build());
-    persistResource(
+    domainRestoreHistoryEntry = persistResource(
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_RESTORE)
@@ -144,16 +146,26 @@ public class VerifyOteActionTest {
   }
 
   @Test
-  public void testSuccess_passSummarize() throws Exception {
+  public void testSuccess_summarize_allPass() throws Exception {
     Map<String, Object> response =
         action.handleJsonRequest(
             ImmutableMap.of("summarize", "true", "registrars", ImmutableList.of("blobio")));
+    assertThat(response)
+        .containsExactly(
+            "blobio", "# actions:   31 - Reqs: [----------------] 16/16 - Overall: PASS");
+  }
 
-    for (Entry<String, Object> registrar : response.entrySet()) {
-      assertThat(registrar.getKey()).matches("blobio");
-      assertThat(registrar.getValue().toString()).containsMatch("Reqs passed: 16/16");
-      assertThat(registrar.getValue().toString()).containsMatch("Overall: PASS");
-    }
+  @Test
+  public void testSuccess_summarize_someFailures() throws Exception {
+    deleteResource(hostDeleteHistoryEntry);
+    deleteResource(domainCreateHistoryEntry);
+    deleteResource(domainRestoreHistoryEntry);
+    Map<String, Object> response =
+        action.handleJsonRequest(
+            ImmutableMap.of("summarize", "true", "registrars", ImmutableList.of("blobio")));
+    assertThat(response)
+        .containsExactly(
+            "blobio", "# actions:   26 - Reqs: [-.-----.------.-] 13/16 - Overall: FAIL");
   }
 
   @Test

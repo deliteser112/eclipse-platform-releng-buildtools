@@ -89,18 +89,23 @@ public class VerifyOteAction implements Runnable, JsonAction {
     HistoryEntryStats historyEntryStats =
         new HistoryEntryStats().recordRegistrarHistory(registrarName);
     List<String> failureMessages = historyEntryStats.findFailures();
-    String passedFraction =
-        String.format(
-            "%2d/%2d",
-            StatType.NUM_REQUIREMENTS - failureMessages.size(), StatType.NUM_REQUIREMENTS);
+    int testsPassed = StatType.NUM_REQUIREMENTS - failureMessages.size();
     String status = failureMessages.isEmpty() ? "PASS" : "FAIL";
     return summarize
         ? String.format(
-            "Num actions: %4d - Reqs passed: %s - Overall: %s",
-            historyEntryStats.statCounts.size(), passedFraction, status)
+            "# actions: %4d - Reqs: [%s] %2d/%2d - Overall: %s",
+            historyEntryStats.statCounts.size(),
+            historyEntryStats.toSummary(),
+            testsPassed,
+            StatType.NUM_REQUIREMENTS,
+            status)
         : String.format(
-            "%s\n%s\nRequirements passed: %s\nOverall OT&E status: %s\n",
-            historyEntryStats, Joiner.on('\n').join(failureMessages), passedFraction, status);
+            "%s\n%s\nRequirements passed: %2d/%2d\nOverall OT&E status: %s\n",
+            historyEntryStats,
+            Joiner.on('\n').join(failureMessages),
+            testsPassed,
+            StatType.NUM_REQUIREMENTS,
+            status);
   }
 
   private static final Predicate<EppInput> HAS_CLAIMS_NOTICE =
@@ -298,6 +303,16 @@ public class VerifyOteAction implements Runnable, JsonAction {
               .map(stat -> String.format("%s: %d", stat.description(), statCounts.count(stat)))
               .collect(Collectors.joining("\n")),
           statCounts.size());
+    }
+
+    /** Returns a string showing the results of each test, one character per test. */
+    String toSummary() {
+      return EnumSet.allOf(StatType.class)
+          .stream()
+          .filter(statType -> statType.requirement > 0)
+          .sorted()
+          .map(statType -> (statCounts.count(statType) < statType.requirement) ? "." : "-")
+          .collect(Collectors.joining(""));
     }
   }
 }
