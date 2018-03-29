@@ -21,7 +21,6 @@ import static google.registry.config.RegistryConfig.getCommitLogBucketCount;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 
-import com.google.common.base.Supplier;
 import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
@@ -36,6 +35,7 @@ import google.registry.model.annotations.NotBackedUp;
 import google.registry.model.annotations.NotBackedUp.Reason;
 import google.registry.util.NonFinalForTesting;
 import java.util.Random;
+import java.util.function.Supplier;
 import org.joda.time.DateTime;
 
 /**
@@ -119,7 +119,7 @@ public class CommitLogBucket extends ImmutableObject implements Buildable {
   /** Returns the loaded bucket for the given key, or a new object if the bucket doesn't exist. */
   public static CommitLogBucket loadBucket(Key<CommitLogBucket> bucketKey) {
     CommitLogBucket bucket = ofy().load().key(bucketKey).now();
-    return bucket == null
+    return (bucket == null)
         ? new CommitLogBucket.Builder().setBucketNum(bucketKey.getId()).build()
         : bucket;
   }
