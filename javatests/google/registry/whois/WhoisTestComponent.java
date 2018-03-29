@@ -30,6 +30,7 @@ import javax.inject.Singleton;
     WhoisModule.class,
 })
 interface WhoisTestComponent {
-  WhoisHttpServer whoisHttpServer();
-  WhoisServer whoisServer();
+  WhoisHttpAction whoisHttpAction();
+
+  WhoisAction whoisAction();
 }

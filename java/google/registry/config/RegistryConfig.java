@@ -852,7 +852,7 @@ public final class RegistryConfig {
     /**
      * Amount of time public HTTP proxies are permitted to cache our WHOIS responses.
      *
-     * @see google.registry.whois.WhoisHttpServer
+     * @see google.registry.whois.WhoisHttpAction
      */
     @Provides
     @Config("whoisHttpExpires")

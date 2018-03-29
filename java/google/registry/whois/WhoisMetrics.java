@@ -31,7 +31,7 @@ import org.joda.time.DateTime;
 /**
  * Instrumentation for WHOIS requests.
  *
- * @see WhoisServer
+ * @see WhoisAction
  */
 public class WhoisMetrics {
 

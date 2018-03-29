@@ -41,20 +41,16 @@ import org.joda.time.DateTime;
  * <p>All commands and responses conform to the WHOIS spec as defined in RFC 3912. Commands must be
  * sent via an HTTP POST in the request body.
  *
- * <p>This servlet is meant to serve as a low level interface for the proxy app which forwards us
+ * <p>This action is meant to serve as a low level interface for the proxy app which forwards us
  * requests received on port 43. However this interface is technically higher level because it sends
  * back proper HTTP error codes such as 200, 400, 500, etc. These are discarded by the proxy because
  * WHOIS specifies no manner for differentiating successful and erroneous requests.
  *
- * @see WhoisHttpServer
+ * @see WhoisHttpAction
  * @see <a href="http://www.ietf.org/rfc/rfc3912.txt">RFC 3912: WHOIS Protocol Specification</a>
  */
-@Action(
-  path = "/_dr/whois",
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
-public class WhoisServer implements Runnable {
+@Action(path = "/_dr/whois", method = POST, auth = Auth.AUTH_INTERNAL_OR_ADMIN)
+public class WhoisAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -75,7 +71,9 @@ public class WhoisServer implements Runnable {
   @Inject @Config("whoisDisclaimer") String disclaimer;
   @Inject WhoisMetric.Builder metricBuilder;
   @Inject WhoisMetrics whoisMetrics;
-  @Inject WhoisServer() {}
+
+  @Inject
+  WhoisAction() {}
 
   @Override
   public void run() {

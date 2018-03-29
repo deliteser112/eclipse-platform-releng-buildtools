@@ -42,9 +42,9 @@ import google.registry.ui.server.registrar.RegistrarPaymentAction;
 import google.registry.ui.server.registrar.RegistrarPaymentSetupAction;
 import google.registry.ui.server.registrar.RegistrarPremiumPriceAckAction;
 import google.registry.ui.server.registrar.RegistrarSettingsAction;
-import google.registry.whois.WhoisHttpServer;
+import google.registry.whois.WhoisAction;
+import google.registry.whois.WhoisHttpAction;
 import google.registry.whois.WhoisModule;
-import google.registry.whois.WhoisServer;
 
 /** Dagger component with per-request lifetime for "default" App Engine module. */
 @RequestScope
@@ -77,8 +77,10 @@ interface FrontendRequestComponent {
   RdapIpAction rdapDefaultAction();
   RdapNameserverAction rdapNameserverAction();
   RdapNameserverSearchAction rdapNameserverSearchAction();
-  WhoisHttpServer whoisHttpServer();
-  WhoisServer whoisServer();
+
+  WhoisHttpAction whoisHttpAction();
+
+  WhoisAction whoisAction();
 
   @Subcomponent.Builder
   abstract class Builder implements RequestComponentBuilder<FrontendRequestComponent> {

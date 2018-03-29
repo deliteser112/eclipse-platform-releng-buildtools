@@ -55,28 +55,28 @@ public final class WhoisInjectionTest {
   }
 
   @Test
-  public void testWhoisServer_injectsAndWorks() throws Exception {
+  public void testWhoisAction_injectsAndWorks() throws Exception {
     createTld("lol");
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     when(req.getReader()).thenReturn(new BufferedReader(new StringReader("ns1.cat.lol\r\n")));
     DaggerWhoisTestComponent.builder()
         .requestModule(new RequestModule(req, rsp))
         .build()
-        .whoisServer()
+        .whoisAction()
         .run();
     verify(rsp).setStatus(200);
     assertThat(httpOutput.toString()).contains("ns1.cat.lol");
   }
 
   @Test
-  public void testWhoisHttpServer_injectsAndWorks() throws Exception {
+  public void testWhoisHttpAction_injectsAndWorks() throws Exception {
     createTld("lol");
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     when(req.getRequestURI()).thenReturn("/whois/ns1.cat.lol");
     DaggerWhoisTestComponent.builder()
         .requestModule(new RequestModule(req, rsp))
         .build()
-        .whoisHttpServer()
+        .whoisHttpAction()
         .run();
     verify(rsp).setStatus(200);
     assertThat(httpOutput.toString()).contains("ns1.cat.lol");

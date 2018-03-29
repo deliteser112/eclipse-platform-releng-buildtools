@@ -48,12 +48,12 @@ import org.joda.time.Duration;
 /**
  * Human-Friendly HTTP WHOIS API
  *
- * <p>This API uses easy to understand paths rather than {@link WhoisServer} which requires a POST
+ * <p>This API uses easy to understand paths rather than {@link WhoisAction} which requires a POST
  * request containing a WHOIS command. Because the typical WHOIS command is along the lines of
- * {@code "domain google.lol"} or the equivalent {@code "google.lol}, this servlet is just going to
+ * {@code "domain google.lol"} or the equivalent {@code "google.lol}, this action is just going to
  * replace the slashes with spaces and let {@link WhoisReader} figure out what to do.
  *
- * <p>This servlet accepts requests from any origin.
+ * <p>This action accepts requests from any origin.
  *
  * <p>You can send AJAX requests to our WHOIS API from your <em>very own</em> website using the
  * following embed code:
@@ -93,14 +93,10 @@ import org.joda.time.Duration;
  *   </script>
  * </pre>
  *
- * @see WhoisServer
+ * @see WhoisAction
  */
-@Action(
-  path = WhoisHttpServer.PATH,
-  isPrefix = true,
-  auth = Auth.AUTH_PUBLIC_ANONYMOUS
-)
-public final class WhoisHttpServer implements Runnable {
+@Action(path = WhoisHttpAction.PATH, isPrefix = true, auth = Auth.AUTH_PUBLIC_ANONYMOUS)
+public final class WhoisHttpAction implements Runnable {
 
   public static final String PATH = "/whois/";
 
@@ -142,7 +138,9 @@ public final class WhoisHttpServer implements Runnable {
   @Inject @RequestPath String requestPath;
   @Inject WhoisMetric.Builder metricBuilder;
   @Inject WhoisMetrics whoisMetrics;
-  @Inject WhoisHttpServer() {}
+
+  @Inject
+  WhoisHttpAction() {}
 
   @Override
   public void run() {
