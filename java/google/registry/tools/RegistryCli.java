@@ -131,8 +131,10 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     // JCommander stores sub-commands as nested JCommander objects containing a list of user objects
     // to be populated.  Extract the subcommand by getting the JCommander wrapper and then
     // retrieving the first (and, by virtue of our usage, only) object from it.
-    JCommander jcCommand = jcommander.getCommands().get(jcommander.getParsedCommand());
-    Command command = (Command) Iterables.getOnlyElement(jcCommand.getObjects());
+    Command command =
+        (Command)
+            Iterables.getOnlyElement(
+                jcommander.getCommands().get(jcommander.getParsedCommand()).getObjects());
     loggingParams.configureLogging();  // Must be called after parameters are parsed.
 
     try {
