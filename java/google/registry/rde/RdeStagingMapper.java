@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Streams;
 import com.googlecode.objectify.Result;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactResource;
@@ -62,12 +61,15 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
     // emitted from the mapper. Without this, a cursor might never advance because no EppResource
     // entity exists at the watermark.
     if (resource == null) {
+      long registrarsEmitted = 0;
       for (Registrar registrar : Registrar.loadAllCached()) {
         DepositFragment fragment = marshaller.marshalRegistrar(registrar);
         for (PendingDeposit pending : pendings.values()) {
           emit(pending, fragment);
+          registrarsEmitted++;
         }
       }
+      getContext().incrementCounter("registrars emitted", registrarsEmitted);
       return;
     }
 
@@ -75,6 +77,7 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
     if (!(resource instanceof ContactResource
         || resource instanceof DomainResource
         || resource instanceof HostResource)) {
+      getContext().incrementCounter("polymorphic entities skipped");
       return;
     }
 
@@ -82,24 +85,31 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
     if (nullToEmpty(resource.getCreationClientId()).startsWith("prober-")
         || nullToEmpty(resource.getPersistedCurrentSponsorClientId()).startsWith("prober-")
         || nullToEmpty(resource.getLastEppUpdateClientId()).startsWith("prober-")) {
+      getContext().incrementCounter("prober data skipped");
       return;
     }
 
-    // Contacts and hosts get emitted on all TLDs, even if domains don't reference them.
-    boolean shouldEmitOnAllTlds = !(resource instanceof DomainResource);
-
-    // Get the set of all TLDs to which this resource should be emitted.
-    ImmutableSet<String> tlds =
-        shouldEmitOnAllTlds
-            ? pendings.keySet()
-            : ImmutableSet.of(((DomainResource) resource).getTld());
+    // The set of all TLDs to which this resource should be emitted.
+    ImmutableSet<String> tlds;
+    if (resource instanceof DomainResource) {
+      String tld = ((DomainResource) resource).getTld();
+      if (!pendings.containsKey(tld)) {
+        getContext().incrementCounter("DomainResource of an unneeded TLD skipped");
+        return;
+      }
+      getContext().incrementCounter("DomainResource instances");
+      tlds = ImmutableSet.of(tld);
+    } else {
+      getContext().incrementCounter("non-DomainResource instances");
+      // Contacts and hosts get emitted on all TLDs, even if domains don't reference them.
+      tlds = pendings.keySet();
+    }
 
     // Get the set of all point-in-time watermarks we need, to minimize rewinding.
     ImmutableSet<DateTime> dates =
-        Streams.stream(
-                shouldEmitOnAllTlds
-                    ? pendings.values()
-                    : pendings.get(((DomainResource) resource).getTld()))
+        tlds.stream()
+            .map(pendings::get)
+            .flatMap(ImmutableSet::stream)
             .map(PendingDeposit::watermark)
             .collect(toImmutableSet());
 
@@ -111,6 +121,7 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
     Fragmenter fragmenter = new Fragmenter(resourceAtTimes);
 
     // Emit resource as an XML fragment for all TLDs and modes pending deposit.
+    long resourcesEmitted = 0;
     for (String tld : tlds) {
       for (PendingDeposit pending : pendings.get(tld)) {
         // Hosts and contacts don't get included in BRDA deposits.
@@ -119,11 +130,18 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
                 || resource instanceof HostResource)) {
           continue;
         }
-        fragmenter
-            .marshal(pending.watermark(), pending.mode())
-            .ifPresent(fragment -> emit(pending, fragment));
+        Optional<DepositFragment> fragment =
+            fragmenter.marshal(pending.watermark(), pending.mode());
+        if (fragment.isPresent()) {
+          emit(pending, fragment.get());
+          resourcesEmitted++;
+        }
       }
     }
+    getContext().incrementCounter("resources emitted", resourcesEmitted);
+    getContext().incrementCounter("fragmenter cache hits", fragmenter.cacheHits);
+    getContext().incrementCounter("fragmenter resources not found", fragmenter.resourcesNotFound);
+    getContext().incrementCounter("fragmenter resources found", fragmenter.resourcesFound);
 
     // Avoid running out of memory.
     ofy().clearSessionCache();
@@ -134,6 +152,10 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
     private final Map<WatermarkModePair, Optional<DepositFragment>> cache = new HashMap<>();
     private final ImmutableMap<DateTime, Result<EppResource>> resourceAtTimes;
 
+    long cacheHits = 0;
+    long resourcesNotFound = 0;
+    long resourcesFound = 0;
+
     Fragmenter(ImmutableMap<DateTime, Result<EppResource>> resourceAtTimes) {
       this.resourceAtTimes = resourceAtTimes;
     }
@@ -141,6 +163,7 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
     Optional<DepositFragment> marshal(DateTime watermark, RdeMode mode) {
       Optional<DepositFragment> result = cache.get(WatermarkModePair.create(watermark, mode));
       if (result != null) {
+        cacheHits++;
         return result;
       }
       EppResource resource = resourceAtTimes.get(watermark).now();
@@ -148,8 +171,10 @@ public final class RdeStagingMapper extends Mapper<EppResource, PendingDeposit, 
         result = Optional.empty();
         cache.put(WatermarkModePair.create(watermark, RdeMode.FULL), result);
         cache.put(WatermarkModePair.create(watermark, RdeMode.THIN), result);
+        resourcesNotFound++;
         return result;
       }
+      resourcesFound++;
       if (resource instanceof DomainResource) {
         result = Optional.of(marshaller.marshalDomain((DomainResource) resource, mode));
         cache.put(WatermarkModePair.create(watermark, mode), result);
