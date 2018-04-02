@@ -50,7 +50,6 @@ public class ShellCommandTest {
   @Test
   public void testCommandProcessing() {
     String testData = "test1 foo bar\ntest2 foo bar\n";
-    ImmutableMap<String, Class<? extends Command>> commandMap = ImmutableMap.of();
     MockCli cli = new MockCli();
     ShellCommand shellCommand =
         new ShellCommand(new ByteArrayInputStream(testData.getBytes(US_ASCII)), cli);
