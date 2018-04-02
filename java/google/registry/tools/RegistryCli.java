@@ -25,11 +25,11 @@ import com.beust.jcommander.ParametersDelegate;
 import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
 import com.google.appengine.tools.remoteapi.RemoteApiOptions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import google.registry.model.ofy.ObjectifyService;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.ParameterFactory;
 import java.security.Security;
-import java.util.HashMap;
 import java.util.Map;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -61,42 +61,15 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
   private AppEngineConnection connection;
   private RemoteApiInstaller installer;
 
-
-  Map<String, Command> commandInstances;
   Map<String, ? extends Class<? extends Command>> commands;
-  JCommander jcommander;
+  String programName;
 
   RegistryCli(
       String programName, ImmutableMap<String, ? extends Class<? extends Command>> commands) {
+    this.programName = programName;
     this.commands = commands;
 
     Security.addProvider(new BouncyCastleProvider());
-    jcommander = new JCommander(this);
-    jcommander.addConverterFactory(new ParameterFactory());
-    jcommander.setProgramName(programName);
-
-    // Store the instances of each Command class here so we can retrieve the same one for the
-    // called command later on.  JCommander could have done this for us, but it doesn't.
-    commandInstances = new HashMap<>();
-
-    HelpCommand helpCommand = new HelpCommand(jcommander);
-    jcommander.addCommand("help", helpCommand);
-    commandInstances.put("help", helpCommand);
-
-    // Add the shell command.
-    ShellCommand shellCommand = new ShellCommand(System.in, this);
-    jcommander.addCommand("shell", shellCommand);
-    commandInstances.put("shell", shellCommand);
-
-    try {
-      for (Map.Entry<String, ? extends Class<? extends Command>> entry : commands.entrySet()) {
-        Command command = entry.getValue().getDeclaredConstructor().newInstance();
-        jcommander.addCommand(entry.getKey(), command);
-        commandInstances.put(entry.getKey(), command);
-      }
-    } catch (ReflectiveOperationException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   // The <? extends Class<? extends Command>> wildcard looks a little funny, but is needed so that
@@ -105,6 +78,29 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
   //   http://www.angelikalanger.com/GenericsFAQ/FAQSections/TypeArguments.html#FAQ104
   @Override
   public void run(String[] args) throws Exception {
+
+    // Create the JCommander instance.
+    JCommander jcommander = new JCommander(this);
+    jcommander.addConverterFactory(new ParameterFactory());
+    jcommander.setProgramName(programName);
+
+    // Create the "help" and "shell" commands (these are special in that they don't have a default
+    // constructor).
+    jcommander.addCommand("help", new HelpCommand(jcommander));
+    jcommander.addCommand("shell", new ShellCommand(System.in, this));
+
+    // Create all command instances. It would be preferrable to do this in the constructor, but
+    // JCommander mutates the command instances and doesn't reset them so we have to do it for every
+    // run.
+    try {
+      for (Map.Entry<String, ? extends Class<? extends Command>> entry : commands.entrySet()) {
+        Command command = entry.getValue().getDeclaredConstructor().newInstance();
+        jcommander.addCommand(entry.getKey(), command);
+      }
+    } catch (ReflectiveOperationException e) {
+      throw new RuntimeException(e);
+    }
+
     try {
       jcommander.parse(args);
     } catch (ParameterException e) {
@@ -132,11 +128,11 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     checkState(RegistryToolEnvironment.get() == environment,
         "RegistryToolEnvironment argument pre-processing kludge failed.");
 
-    Command command = commandInstances.get(jcommander.getParsedCommand());
-    if (command == null) {
-      jcommander.usage();
-      return;
-    }
+    // JCommander stores sub-commands as nested JCommander objects containing a list of user objects
+    // to be populated.  Extract the subcommand by getting the JCommander wrapper and then
+    // retrieving the first (and, by virtue of our usage, only) object from it.
+    JCommander jcCommand = jcommander.getCommands().get(jcommander.getParsedCommand());
+    Command command = (Command) Iterables.getOnlyElement(jcCommand.getObjects());
     loggingParams.configureLogging();  // Must be called after parameters are parsed.
 
     try {
