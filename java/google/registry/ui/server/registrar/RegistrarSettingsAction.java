@@ -44,6 +44,7 @@ import google.registry.ui.forms.FormFieldException;
 import google.registry.ui.server.RegistrarFormFields;
 import google.registry.util.CollectionUtils;
 import google.registry.util.DiffUtils;
+import google.registry.util.FormattingLogger;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,6 +67,8 @@ import javax.servlet.http.HttpServletRequest;
 public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonAction {
 
   public static final String PATH = "/registrar-settings";
+
+  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   static final String OP_PARAM = "op";
   static final String ARGS_PARAM = "args";
@@ -100,6 +103,11 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     @SuppressWarnings("unchecked")
     Map<String, ?> args = (Map<String, Object>)
         Optional.<Object>ofNullable(input.get(ARGS_PARAM)).orElse(ImmutableMap.of());
+    logger.infofmt(
+        "Received request '%s' on registrar '%s' with args %s",
+        op,
+        initialRegistrar.getClientId(),
+        args);
     try {
       switch (op) {
         case "update":
@@ -110,8 +118,20 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
           return JsonResponseHelper.create(ERROR, "Unknown or unsupported operation: " + op);
       }
     } catch (FormFieldException e) {
+      logger.warningfmt(
+          e,
+          "Failed to perform operation '%s' on registrar '%s' for args %s",
+          op,
+          initialRegistrar.getClientId(),
+          args);
       return JsonResponseHelper.createFormFieldError(e.getMessage(), e.getFieldName());
     } catch (FormException ee) {
+      logger.warningfmt(
+          ee,
+          "Failed to perform operation '%s' on registrar '%s' for args %s",
+          op,
+          initialRegistrar.getClientId(),
+          args);
       return JsonResponseHelper.create(ERROR, ee.getMessage());
     }
 
