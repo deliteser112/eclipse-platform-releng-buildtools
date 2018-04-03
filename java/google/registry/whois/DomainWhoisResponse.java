@@ -26,8 +26,6 @@ import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
-import google.registry.model.domain.DesignatedContact;
-import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.GracePeriod;
 import google.registry.model.eppcommon.StatusValue;
@@ -101,9 +99,6 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
                 abuseContact.map(RegistrarContact::getPhoneNumber).orElse(null))
             .emitStatusValues(domain.getStatusValues(), domain.getGracePeriods())
             .emitContact("Registrant", domain.getRegistrant(), preferUnicode)
-            .emitContact("Admin", getContactReference(Type.ADMIN), preferUnicode)
-            .emitContact("Tech", getContactReference(Type.TECH), preferUnicode)
-            .emitContact("Billing", getContactReference(Type.BILLING), preferUnicode)
             .emitSet(
                 "Name Server",
                 domain.loadNameserverFullyQualifiedHostNames(),
@@ -116,14 +111,6 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
             .emitFooter(disclaimer)
             .toString();
     return WhoisResponseResults.create(plaintext, 1);
-  }
-
-  /** Returns the contact of the given type, or null if it does not exist. */
-  @Nullable
-  private Key<ContactResource> getContactReference(final Type type) {
-    Optional<DesignatedContact> contactOfType =
-        domain.getContacts().stream().filter(d -> d.getType() == type).findFirst();
-    return contactOfType.map(DesignatedContact::getContactKey).orElse(null);
   }
 
   /** Output emitter with logic for domains. */
@@ -140,9 +127,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
 
     /** Emit the contact entry of the given type. */
     DomainEmitter emitContact(
-        String contactType,
-        @Nullable Key<ContactResource> contact,
-        boolean preferUnicode) {
+        String contactType, @Nullable Key<ContactResource> contact, boolean preferUnicode) {
       if (contact == null) {
         return this;
       }
@@ -151,24 +136,21 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
       // someone's attention.
       ContactResource contactResource = ofy().load().key(contact).now();
       if (contactResource == null) {
-        logger.severefmt("(BUG) Broken reference found from domain %s to contact %s",
+        logger.severefmt(
+            "(BUG) Broken reference found from domain %s to contact %s",
             domain.getFullyQualifiedDomainName(), contact);
         return this;
       }
-      // ICANN Consistent Labeling & Display policy requires that this be the ROID.
-      emitField(ImmutableList.of("Registry", contactType, "ID"), contactResource.getRepoId());
-      PostalInfo postalInfo = chooseByUnicodePreference(
-          preferUnicode,
-          contactResource.getLocalizedPostalInfo(),
-          contactResource.getInternationalizedPostalInfo());
+      PostalInfo postalInfo =
+          chooseByUnicodePreference(
+              preferUnicode,
+              contactResource.getLocalizedPostalInfo(),
+              contactResource.getInternationalizedPostalInfo());
       if (postalInfo != null) {
-        emitFieldIfDefined(ImmutableList.of(contactType, "Name"), postalInfo.getName());
         emitFieldIfDefined(ImmutableList.of(contactType, "Organization"), postalInfo.getOrg());
-        emitAddress(contactType, postalInfo.getAddress());
+        emitRegistrantAddress(contactType, postalInfo.getAddress());
       }
-      return emitPhone(contactType, "Phone", contactResource.getVoiceNumber())
-          .emitPhone(contactType, "Fax", contactResource.getFaxNumber())
-          .emitField(ImmutableList.of(contactType, "Email"), contactResource.getEmailAddress());
+      return this;
     }
 
     /** Emits status values and grace periods as a set, in the AWIP format. */

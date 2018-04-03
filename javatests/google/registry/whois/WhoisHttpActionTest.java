@@ -163,9 +163,16 @@ public class WhoisHttpActionTest {
 
   @Test
   public void testRun_wickedLineFeedForgeryInDatastore_crlfSubstitutedWithSpace() throws Exception {
-    String evilName = "Eric\r\nSchmidt";
-    ContactResource trl = persistResource(
-        makeContactResource("5372808-TRL", evilName, "bog@cat.みんな"));
+    ContactResource trl = makeContactResource("5372808-TRL", "Eric Schmidt", "bog@cat.みんな");
+    trl =
+        persistResource(
+            trl.asBuilder()
+                .setInternationalizedPostalInfo(
+                    trl.getInternationalizedPostalInfo()
+                        .asBuilder()
+                        .setOrg("Galactic\r\nEmpire")
+                        .build())
+                .build());
     persistResource(makeDomainResource(
         "cat.みんな", trl,
         trl,
@@ -174,7 +181,7 @@ public class WhoisHttpActionTest {
         persistResource(makeHostResource("ns2.cat.みんな", "bad:f00d:cafe::15:beef")),
         persistResource(makeRegistrar("example", "Example Registrar", Registrar.State.ACTIVE))));
     newWhoisHttpAction("/domain/cat.みんな").run();
-    assertThat(response.getPayload()).contains("Eric  Schmidt");
+    assertThat(response.getPayload()).contains("Galactic  Empire");
   }
 
   @Test

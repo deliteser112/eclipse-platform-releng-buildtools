@@ -13,39 +13,9 @@ Domain Status: clientDeleteProhibited https://icann.org/epp#clientDeleteProhibit
 Domain Status: clientRenewProhibited https://icann.org/epp#clientRenewProhibited
 Domain Status: clientTransferProhibited https://icann.org/epp#clientTransferProhibited
 Domain Status: serverUpdateProhibited https://icann.org/epp#serverUpdateProhibited
-Registry Registrant ID: 4-ROID
-Registrant Name: Goblin Market
 Registrant Organization: GOOGLE INCORPORATED &lt;script&gt;
-Registrant Street: 123 Example Boulevard &lt;script&gt;
-Registrant City: KOKOMO
 Registrant State/Province: BM
-Registrant Postal Code: 31337
 Registrant Country: US
-Registrant Phone: +1.2126660420
-Registrant Fax: +1.2126660420
-Registrant Email: lol@cat.lol
-Registry Admin ID: 5-ROID
-Admin Name: Santa Claus
-Admin Organization: GOOGLE INCORPORATED &lt;script&gt;
-Admin Street: 123 Example Boulevard &lt;script&gt;
-Admin City: KOKOMO
-Admin State/Province: BM
-Admin Postal Code: 31337
-Admin Country: US
-Admin Phone: +1.2126660420
-Admin Fax: +1.2126660420
-Admin Email: BOFH@cat.lol
-Registry Tech ID: 6-ROID
-Tech Name: The Raven
-Tech Organization: GOOGLE INCORPORATED &lt;script&gt;
-Tech Street: 123 Example Boulevard &lt;script&gt;
-Tech City: KOKOMO
-Tech State/Province: BM
-Tech Postal Code: 31337
-Tech Country: US
-Tech Phone: +1.2126660420
-Tech Fax: +1.2126660420
-Tech Email: bog@cat.lol
 Name Server: ns1.cat.lol
 Name Server: ns2.cat.lol
 DNSSEC: signedDelegation

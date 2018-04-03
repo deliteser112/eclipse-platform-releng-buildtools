@@ -135,14 +135,24 @@ abstract class WhoisResponseImpl implements WhoisResponse {
       return emitField(Joiner.on(' ').join(nameParts), value);
     }
 
-    /** Emit a contact address. */
-    E emitAddress(@Nullable String prefix, @Nullable Address address) {
+    /** Emit registrar address. */
+    E emitRegistrarAddress(@Nullable String prefix, @Nullable Address address) {
       prefix = isNullOrEmpty(prefix) ? "" : prefix + " ";
       if (address != null) {
         emitList(prefix + "Street", address.getStreet());
         emitField(prefix + "City", address.getCity());
         emitField(prefix + "State/Province", address.getState());
         emitField(prefix + "Postal Code", address.getZip());
+        emitField(prefix + "Country", address.getCountryCode());
+      }
+      return thisCastToDerived();
+    }
+
+    /** Emit registrant address. */
+    E emitRegistrantAddress(@Nullable String prefix, @Nullable Address address) {
+      prefix = isNullOrEmpty(prefix) ? "" : prefix + " ";
+      if (address != null) {
+        emitField(prefix + "State/Province", address.getState());
         emitField(prefix + "Country", address.getCountryCode());
       }
       return thisCastToDerived();

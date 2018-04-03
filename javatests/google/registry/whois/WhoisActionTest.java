@@ -237,7 +237,6 @@ public class WhoisActionTest {
     assertThat(domain1.getRepoId()).isNotEqualTo(domain2.getRepoId());
     newWhoisAction("domain cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getPayload()).contains("Dr. Pablo");
     assertThat(response.getPayload()).contains("ns1.google.lol");
   }
 

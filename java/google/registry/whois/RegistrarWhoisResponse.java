@@ -48,7 +48,7 @@ class RegistrarWhoisResponse extends WhoisResponseImpl {
     String plaintext =
         new RegistrarEmitter()
             .emitField("Registrar", registrar.getRegistrarName())
-            .emitAddress(
+            .emitRegistrarAddress(
                 null,
                 chooseByUnicodePreference(
                     preferUnicode,
