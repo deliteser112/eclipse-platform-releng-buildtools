@@ -14,6 +14,9 @@
 
 package google.registry.tools;
 
+import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
+import com.google.appengine.tools.remoteapi.RemoteApiOptions;
+
 import static com.google.common.base.Preconditions.checkState;
 import static google.registry.tools.Injector.injectReflectively;
 
@@ -22,8 +25,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
-import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
-import com.google.appengine.tools.remoteapi.RemoteApiOptions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import google.registry.model.ofy.ObjectifyService;
@@ -61,6 +62,10 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
   private AppEngineConnection connection;
   private RemoteApiInstaller installer;
 
+  // The "shell" command should only exist on first use - so that we can't run "shell" inside
+  // "shell".
+  private boolean isFirstUse = true;
+
   Map<String, ? extends Class<? extends Command>> commands;
   String programName;
 
@@ -87,7 +92,12 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     // Create the "help" and "shell" commands (these are special in that they don't have a default
     // constructor).
     jcommander.addCommand("help", new HelpCommand(jcommander));
-    jcommander.addCommand("shell", new ShellCommand(System.in, this));
+    ShellCommand shellCommand = null;
+    if (isFirstUse) {
+      shellCommand = new ShellCommand(this);
+      jcommander.addCommand("shell", shellCommand);
+      isFirstUse = false;
+    }
 
     // Create all command instances. It would be preferrable to do this in the constructor, but
     // JCommander mutates the command instances and doesn't reset them so we have to do it for every
@@ -99,6 +109,10 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
       }
     } catch (ReflectiveOperationException e) {
       throw new RuntimeException(e);
+    }
+
+    if (shellCommand != null) {
+      shellCommand.buildCompletions(jcommander);
     }
 
     try {
@@ -119,14 +133,17 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     }
 
     if (showAllCommands) {
-      for (Map.Entry<String, ? extends Class<? extends Command>> entry : commands.entrySet()) {
-        System.out.println(entry.getKey());
-      }
+      commands.keySet().forEach(System.out::println);
       return;
     }
 
     checkState(RegistryToolEnvironment.get() == environment,
         "RegistryToolEnvironment argument pre-processing kludge failed.");
+
+    // We have to set the prompt here, because the environment wasn't set until this point
+    if (shellCommand != null) {
+      shellCommand.setPrompt(String.format("nom@%s > ", environment));
+    }
 
     // JCommander stores sub-commands as nested JCommander objects containing a list of user objects
     // to be populated.  Extract the subcommand by getting the JCommander wrapper and then

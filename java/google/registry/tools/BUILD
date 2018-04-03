@@ -86,6 +86,7 @@ java_library(
         "@com_google_re2j",
         "@com_googlecode_json_simple",
         "@io_bazel_rules_closure//closure/templates",
+        "@jline",
         "@joda_time",
         "@org_bouncycastle_bcpg_jdk15on",
         "@org_bouncycastle_bcpkix_jdk15on",

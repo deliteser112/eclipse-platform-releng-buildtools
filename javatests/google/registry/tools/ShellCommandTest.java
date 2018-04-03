@@ -19,11 +19,13 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static org.mockito.Mockito.mock;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.MissingCommandException;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import google.registry.tools.ShellCommand.JCommanderCompletor;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,27 +73,73 @@ public class ShellCommandTest {
 
   @Test
   public void testMultipleCommandInvocations() throws Exception {
-    RegistryCli cli =
-        new RegistryCli("unittest", ImmutableMap.of("test_command", TestCommand.class));
-    RegistryToolEnvironment.UNITTEST.setup();
-    cli.setEnvironment(RegistryToolEnvironment.UNITTEST);
-    cli.run(new String[] {"test_command", "-x", "xval", "arg1", "arg2"});
-    cli.run(new String[] {"test_command", "-x", "otherxval", "arg3"});
-    cli.run(new String[] {"test_command"});
-    assertThat(TestCommand.commandInvocations)
-        .containsExactly(
-            ImmutableList.of("xval", "arg1", "arg2"),
-            ImmutableList.of("otherxval", "arg3"),
-            ImmutableList.of("default value"));
+    try (RegistryCli cli =
+        new RegistryCli("unittest", ImmutableMap.of("test_command", TestCommand.class))) {
+      RegistryToolEnvironment.UNITTEST.setup();
+      cli.setEnvironment(RegistryToolEnvironment.UNITTEST);
+      cli.run(new String[] {"test_command", "-x", "xval", "arg1", "arg2"});
+      cli.run(new String[] {"test_command", "-x", "otherxval", "arg3"});
+      cli.run(new String[] {"test_command"});
+      assertThat(TestCommand.commandInvocations)
+          .containsExactly(
+              ImmutableList.of("xval", "arg1", "arg2"),
+              ImmutableList.of("otherxval", "arg3"),
+              ImmutableList.of("default value"));
+    }
   }
 
   @Test
   public void testNonExistentCommand() throws Exception {
-    RegistryCli cli =
-        new RegistryCli("unittest", ImmutableMap.of("test_command", TestCommand.class));
+    try (RegistryCli cli =
+        new RegistryCli("unittest", ImmutableMap.of("test_command", TestCommand.class))) {
 
-    cli.setEnvironment(RegistryToolEnvironment.UNITTEST);
-    assertThrows(MissingCommandException.class, () -> cli.run(new String[] {"bad_command"}));
+      cli.setEnvironment(RegistryToolEnvironment.UNITTEST);
+      assertThrows(MissingCommandException.class, () -> cli.run(new String[] {"bad_command"}));
+    }
+  }
+
+  private void performJCommanderCompletorTest(
+      String line,
+      int expectedBackMotion,
+      String... expectedCompletions) {
+    JCommander jcommander = new JCommander();
+    jcommander.setProgramName("test");
+    jcommander.addCommand("help", new HelpCommand(jcommander));
+    jcommander.addCommand("testCommand", new TestCommand());
+    jcommander.addCommand("testAnotherCommand", new TestAnotherCommand());
+    List<String> completions = new ArrayList<>();
+    assertThat(
+            line.length()
+                - new JCommanderCompletor(jcommander)
+                    .completeInternal(line, line.length(), completions))
+        .isEqualTo(expectedBackMotion);
+    assertThat(completions).containsExactlyElementsIn(expectedCompletions);
+  }
+
+  @Test
+  public void testCompletion_commands() throws Exception {
+    performJCommanderCompletorTest("", 0, "testCommand ", "testAnotherCommand ", "help ");
+    performJCommanderCompletorTest("n", 1);
+    performJCommanderCompletorTest("test", 4, "testCommand ", "testAnotherCommand ");
+    performJCommanderCompletorTest(" test", 4, "testCommand ", "testAnotherCommand ");
+    performJCommanderCompletorTest("testC", 5, "testCommand ");
+    performJCommanderCompletorTest("testA", 5, "testAnotherCommand ");
+  }
+
+  @Test
+  public void testCompletion_help() throws Exception {
+    performJCommanderCompletorTest("h", 1, "help ");
+    performJCommanderCompletorTest("help ", 0, "testCommand ", "testAnotherCommand ", "help ");
+    performJCommanderCompletorTest("help testC", 5, "testCommand ");
+    performJCommanderCompletorTest("help testCommand ", 0);
+  }
+
+  @Test
+  public void testCompletion_arguments() throws Exception {
+    performJCommanderCompletorTest("testCommand ", 0, "-x ", "--xparam ", "--xorg ");
+    performJCommanderCompletorTest("testCommand --wrong", 7);
+    performJCommanderCompletorTest("testCommand noise  --", 2, "--xparam ", "--xorg ");
+    performJCommanderCompletorTest("testAnotherCommand --o", 3);
   }
 
   @Parameters(commandDescription = "Test command")
@@ -101,6 +149,12 @@ public class ShellCommandTest {
       description = "test parameter"
     )
     String xparam = "default value";
+
+    @Parameter(
+      names = {"--xorg"},
+      description = "test organization"
+    )
+    String xorg = "default value";
 
     // List for recording command invocations by run().
     //
@@ -122,5 +176,11 @@ public class ShellCommandTest {
       }
       commandInvocations.add(callRecord.build());
     }
+  }
+
+  @Parameters(commandDescription = "Another test command")
+  static class TestAnotherCommand implements Command {
+    @Override
+    public void run() {}
   }
 }

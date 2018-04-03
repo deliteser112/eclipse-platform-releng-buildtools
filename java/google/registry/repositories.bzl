@@ -118,6 +118,7 @@ def domain_registry_repositories(
     omit_javax_xml_bind_jaxb_api=False,
     omit_javax_xml_soap_api=False,
     omit_javax_xml_ws_jaxws_api=False,
+    omit_jline=False,
     omit_joda_time=False,
     omit_junit=False,
     omit_org_apache_avro=False,
@@ -350,6 +351,8 @@ def domain_registry_repositories(
     javax_xml_soap_api()
   if not omit_javax_xml_ws_jaxws_api:
     javax_xml_ws_jaxws_api()
+  if not omit_jline:
+    jline()
   if not omit_joda_time:
     joda_time()
   if not omit_junit:
@@ -1905,6 +1908,18 @@ def javax_xml_ws_jaxws_api():
           "@javax_xml_soap_api",
       ],
   )
+
+def jline():
+  java_import_external(
+      name = "jline",
+      licenses = ["notice"],  # BSD
+      jar_sha256 = "b0d884980fab1df2f948c568f576c365f3379dc8bc930272fa508843d1f3652b",
+      jar_urls = [
+          "http://maven.ibiblio.org/maven2/jline/jline/1.0/jline-1.0.jar",
+          "http://repo1.maven.org/maven2/jline/jline/1.0/jline-1.0.jar",
+      ],
+  )
+
 
 def joda_time():
   java_import_external(
