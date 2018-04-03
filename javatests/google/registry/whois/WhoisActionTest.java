@@ -15,10 +15,12 @@
 package google.registry.whois;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.EppResourceUtils.loadByForeignKeyCached;
 import static google.registry.model.registrar.Registrar.State.ACTIVE;
 import static google.registry.model.registrar.Registrar.Type.PDT;
 import static google.registry.model.registry.Registries.getTlds;
 import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.persistActiveDomain;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
@@ -27,6 +29,7 @@ import static google.registry.testing.FullFieldsTestEntityHelper.makeHostResourc
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrar;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeRegistrarContacts;
 import static google.registry.whois.WhoisTestData.loadFile;
+import static java.util.concurrent.TimeUnit.DAYS;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -38,7 +41,14 @@ import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.datastore.DatastoreFailureException;
 import com.google.appengine.api.datastore.DatastoreTimeoutException;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.net.InetAddresses;
+import google.registry.model.EppResource;
+import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.host.HostResource;
+import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
@@ -88,6 +98,10 @@ public class WhoisActionTest {
   public void setUp() throws Exception {
     createTlds("lol", "xn--q9jyb4c", "1.test");
     inject.setStaticField(Ofy.class, "clock", clock);
+
+    // Set caches with long intervals, to test caching.
+    EppResource.setCacheForTest(CacheBuilder.newBuilder().expireAfterWrite(1L, DAYS));
+    ForeignKeyIndex.setCacheForTest(CacheBuilder.newBuilder().expireAfterWrite(1L, DAYS));
   }
 
   @Test
@@ -98,18 +112,55 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_domainQuery_works() throws Exception {
-    Registrar registrar = persistResource(makeRegistrar(
-        "evilregistrar", "Yes Virginia <script>", ACTIVE));
-    persistResource(makeDomainResource(
-        "cat.lol",
-        persistResource(makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol")),
-        persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.lol")),
-        persistResource(makeContactResource("5372808-TRL", "The Raven", "bog@cat.lol")),
-        persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4")),
-        persistResource(makeHostResource("ns2.cat.lol", "bad:f00d:cafe::15:beef")),
-        registrar));
+  public void testRun_domainQuery_works() {
+    Registrar registrar =
+        persistResource(makeRegistrar("evilregistrar", "Yes Virginia <script>", ACTIVE));
+    persistResource(
+        makeDomainResource(
+            "cat.lol",
+            persistResource(makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol")),
+            persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.lol")),
+            persistResource(makeContactResource("5372808-TRL", "The Raven", "bog@cat.lol")),
+            persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4")),
+            persistResource(makeHostResource("ns2.cat.lol", "bad:f00d:cafe::15:beef")),
+            registrar));
     persistSimpleResources(makeRegistrarContacts(registrar));
+    newWhoisAction("domain cat.lol\r\n").run();
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_action_domain.txt"));
+  }
+
+  @Test
+  public void testRun_domainQuery_usesCache() {
+    Registrar registrar =
+        persistResource(makeRegistrar("evilregistrar", "Yes Virginia <script>", ACTIVE));
+    persistResource(
+        makeDomainResource(
+            "cat.lol",
+            persistResource(makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol")),
+            persistResource(makeContactResource("5372808-IRL", "Santa Claus", "BOFH@cat.lol")),
+            persistResource(makeContactResource("5372808-TRL", "The Raven", "bog@cat.lol")),
+            persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4")),
+            persistResource(makeHostResource("ns2.cat.lol", "bad:f00d:cafe::15:beef")),
+            registrar));
+    persistSimpleResources(makeRegistrarContacts(registrar));
+    // Populate the cache for both the domain and contact.
+    DomainResource domain =
+        loadByForeignKeyCached(DomainResource.class, "cat.lol", clock.nowUtc());
+    ContactResource contact =
+        loadByForeignKeyCached(ContactResource.class, "5372808-ERL", clock.nowUtc());
+    // Make a change to the domain and contact that won't be seen because the cache will be hit.
+    persistResource(domain.asBuilder().setDeletionTime(clock.nowUtc().minusDays(1)).build());
+    persistResource(
+        contact
+            .asBuilder()
+            .setInternationalizedPostalInfo(
+                contact
+                    .getInternationalizedPostalInfo()
+                    .asBuilder()
+                    .setOrg("Two by Two, Hands Blue Inc.")
+                    .build())
+            .build());
     newWhoisAction("domain cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload()).isEqualTo(loadFile("whois_action_domain.txt"));
@@ -152,7 +203,18 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_domainNotFound_returns200OkAndPlainTextResponse() throws Exception {
+  public void testRun_domainNotFound_returns200OkAndPlainTextResponse() {
+    newWhoisAction("domain cat.lol\r\n").run();
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getPayload()).isEqualTo(loadFile("whois_action_domain_not_found.txt"));
+  }
+
+  @Test
+  public void testRun_domainNotFound_usesCache() {
+    // Populate the cache with the nonexistence of this domain.
+    assertThat(loadByForeignKeyCached(DomainResource.class, "cat.lol", clock.nowUtc())).isNull();
+    // Add a new valid cat.lol domain that won't be found because the cache will be hit instead.
+    persistActiveDomain("cat.lol");
     newWhoisAction("domain cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload()).isEqualTo(loadFile("whois_action_domain_not_found.txt"));
@@ -260,8 +322,25 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_idnNameserver_works() throws Exception {
+  public void testRun_idnNameserver_works() {
     persistResource(makeHostResource("ns1.cat.みんな", "1.2.3.4"));
+    newWhoisAction("nameserver ns1.cat.みんな\r\n").run();
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getPayload()).contains("ns1.cat.xn--q9jyb4c");
+    assertThat(response.getPayload()).contains("1.2.3.4");
+  }
+
+  @Test
+  public void testRun_nameserver_usesCache() {
+    persistResource(makeHostResource("ns1.cat.xn--q9jyb4c", "1.2.3.4"));
+    // Populate the cache.
+    HostResource host =
+        loadByForeignKeyCached(HostResource.class, "ns1.cat.xn--q9jyb4c", clock.nowUtc());
+    // Make a change to the persisted host that won't be seen because the cache will be hit.
+    persistResource(
+        host.asBuilder()
+            .setInetAddresses(ImmutableSet.of(InetAddresses.forString("8.8.8.8")))
+            .build());
     newWhoisAction("nameserver ns1.cat.みんな\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload()).contains("ns1.cat.xn--q9jyb4c");

@@ -22,6 +22,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.TypeUtils.instantiate;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -218,12 +219,17 @@ public abstract class ForeignKeyIndex<E extends EppResource> extends BackupGroup
    * given IDs (blah) don't exist."
    */
   @NonFinalForTesting
-  static LoadingCache<Key<ForeignKeyIndex<?>>, Optional<ForeignKeyIndex<?>>>
+  private static LoadingCache<Key<ForeignKeyIndex<?>>, Optional<ForeignKeyIndex<?>>>
       cacheForeignKeyIndexes =
           CacheBuilder.newBuilder()
               .expireAfterWrite(getEppResourceCachingDuration().getMillis(), MILLISECONDS)
               .maximumSize(getEppResourceMaxCachedEntries())
               .build(CACHE_LOADER);
+
+  @VisibleForTesting
+  public static void setCacheForTest(CacheBuilder<Object, Object> cacheBuilder) {
+    cacheForeignKeyIndexes = cacheBuilder.build(CACHE_LOADER);
+  }
 
   /**
    * Load a list of {@link ForeignKeyIndex} instances by class and id strings that are active at or

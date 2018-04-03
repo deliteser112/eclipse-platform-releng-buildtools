@@ -16,13 +16,13 @@ package google.registry.whois;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.CollectionUtils.isNullOrEmpty;
 import static google.registry.xml.UtcDateTimeAdapter.getFormattedString;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
+import google.registry.model.EppResource;
 import google.registry.model.contact.ContactPhoneNumber;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
@@ -134,7 +134,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
       // If we refer to a contact that doesn't exist, that's a bug. It means referential integrity
       // has somehow been broken. We skip the rest of this contact, but log it to hopefully bring it
       // someone's attention.
-      ContactResource contactResource = ofy().load().key(contact).now();
+      ContactResource contactResource = EppResource.loadCached(contact);
       if (contactResource == null) {
         logger.severefmt(
             "(BUG) Broken reference found from domain %s to contact %s",

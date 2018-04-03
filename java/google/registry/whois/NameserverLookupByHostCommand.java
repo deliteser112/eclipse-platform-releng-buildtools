@@ -14,7 +14,7 @@
 
 package google.registry.whois;
 
-import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static google.registry.model.EppResourceUtils.loadByForeignKeyCached;
 
 import com.google.common.net.InternetDomainName;
 import google.registry.model.host.HostResource;
@@ -31,7 +31,7 @@ public class NameserverLookupByHostCommand extends DomainOrHostLookupCommand {
   @Override
   protected Optional<WhoisResponse> getResponse(InternetDomainName hostName, DateTime now) {
     final HostResource hostResource =
-        loadByForeignKey(HostResource.class, hostName.toString(), now);
+        loadByForeignKeyCached(HostResource.class, hostName.toString(), now);
     return Optional.ofNullable(
         hostResource == null ? null : new NameserverWhoisResponse(hostResource, now));
   }

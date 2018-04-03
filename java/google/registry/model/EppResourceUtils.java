@@ -21,10 +21,12 @@ import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static google.registry.util.DateTimeUtils.latestOf;
 
+import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.util.ResultNow;
+import google.registry.config.RegistryConfig;
 import google.registry.model.EppResource.Builder;
 import google.registry.model.EppResource.BuilderWithTransferData;
 import google.registry.model.EppResource.ForeignKeyedEppResource;
@@ -80,10 +82,10 @@ public final class EppResourceUtils {
    * it may have various expirable conditions and status values that might implicitly change its
    * state as time progresses even if it has not been updated in Datastore. Rather, the resource
    * must be combined with a timestamp to view its current state. We use a global last updated
-   * timestamp on the entire entity group (which is essentially free since all writes to the entity
-   * group must be serialized anyways) to guarantee monotonically increasing write times, so
-   * forwarding our projected time to the greater of "now", and this update timestamp guarantees
-   * that we're not projecting into the past.
+   * timestamp on the resource's entity group (which is essentially free since all writes to the
+   * entity group must be serialized anyways) to guarantee monotonically increasing write times, and
+   * forward our projected time to the greater of this timestamp or "now". This guarantees that
+   * we're not projecting into the past.
    *
    * @param clazz the resource type to load
    * @param foreignKey id to match
@@ -92,16 +94,58 @@ public final class EppResourceUtils {
   @Nullable
   public static <T extends EppResource> T loadByForeignKey(
       Class<T> clazz, String foreignKey, DateTime now) {
+    return loadByForeignKeyHelper(clazz, foreignKey, now, false);
+  }
+
+  /**
+   * Loads the last created version of an {@link EppResource} from Datastore by foreign key, using a
+   * cache.
+   *
+   * <p>Returns null if no resource with this foreign key was ever created, or if the most recently
+   * created resource was deleted before time "now".
+   *
+   * <p>Loading an {@link EppResource} by itself is not sufficient to know its current state since
+   * it may have various expirable conditions and status values that might implicitly change its
+   * state as time progresses even if it has not been updated in Datastore. Rather, the resource
+   * must be combined with a timestamp to view its current state. We use a global last updated
+   * timestamp on the resource's entity group (which is essentially free since all writes to the
+   * entity group must be serialized anyways) to guarantee monotonically increasing write times, and
+   * forward our projected time to the greater of this timestamp or "now". This guarantees that
+   * we're not projecting into the past.
+   *
+   * <p>Do not call this cached version for anything that needs transactional consistency. It should
+   * only be used when it's OK if the data is potentially being out of date, e.g. WHOIS.
+   *
+   * @param clazz the resource type to load
+   * @param foreignKey id to match
+   * @param now the current logical time to project resources at
+   */
+  @Nullable
+  public static <T extends EppResource> T loadByForeignKeyCached(
+      Class<T> clazz, String foreignKey, DateTime now) {
+    return loadByForeignKeyHelper(
+        clazz, foreignKey, now, RegistryConfig.isEppResourceCachingEnabled());
+  }
+
+  @Nullable
+  private static <T extends EppResource> T loadByForeignKeyHelper(
+      Class<T> clazz, String foreignKey, DateTime now, boolean useCache) {
     checkArgument(
         ForeignKeyedEppResource.class.isAssignableFrom(clazz),
         "loadByForeignKey may only be called for foreign keyed EPP resources");
     ForeignKeyIndex<T> fki =
-        ofy().load().type(ForeignKeyIndex.mapToFkiClass(clazz)).id(foreignKey).now();
+        useCache
+            ? ForeignKeyIndex.loadCached(clazz, ImmutableList.of(foreignKey), now)
+                .getOrDefault(foreignKey, null)
+            : ofy().load().type(ForeignKeyIndex.mapToFkiClass(clazz)).id(foreignKey).now();
     // The value of fki.getResourceKey() might be null for hard-deleted prober data.
     if (fki == null || isAtOrAfter(now, fki.getDeletionTime()) || fki.getResourceKey() == null) {
       return null;
     }
-    T resource = ofy().load().key(fki.getResourceKey()).now();
+    T resource =
+        useCache
+            ? EppResource.loadCached(fki.getResourceKey())
+            : ofy().load().key(fki.getResourceKey()).now();
     if (resource == null || isAtOrAfter(now, resource.getDeletionTime())) {
       return null;
     }

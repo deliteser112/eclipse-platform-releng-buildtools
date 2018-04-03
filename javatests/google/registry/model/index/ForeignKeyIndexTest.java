@@ -15,7 +15,6 @@
 package google.registry.model.index;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.index.ForeignKeyIndex.CACHE_LOADER;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.deleteResource;
@@ -232,7 +231,6 @@ public class ForeignKeyIndexTest extends EntityTestCase {
   }
 
   private static void setNonZeroCachingInterval() {
-    ForeignKeyIndex.cacheForeignKeyIndexes =
-        CacheBuilder.newBuilder().expireAfterWrite(1L, DAYS).build(CACHE_LOADER);
+    ForeignKeyIndex.setCacheForTest(CacheBuilder.newBuilder().expireAfterWrite(1L, DAYS));
   }
 }

@@ -15,7 +15,6 @@
 package google.registry.model;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EppResource.CACHE_LOADER;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -64,7 +63,6 @@ public class EppResourceTest extends EntityTestCase {
   }
 
   private static void setNonZeroCachingInterval() {
-    EppResource.cacheEppResources =
-        CacheBuilder.newBuilder().expireAfterWrite(1L, DAYS).build(CACHE_LOADER);
+    EppResource.setCacheForTest(CacheBuilder.newBuilder().expireAfterWrite(1L, DAYS));
   }
 }

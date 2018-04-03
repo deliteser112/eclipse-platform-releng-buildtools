@@ -341,11 +341,16 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
    * directly should of course never use the cache.
    */
   @NonFinalForTesting
-  static LoadingCache<Key<? extends EppResource>, EppResource> cacheEppResources =
+  private static LoadingCache<Key<? extends EppResource>, EppResource> cacheEppResources =
       CacheBuilder.newBuilder()
           .expireAfterWrite(getEppResourceCachingDuration().getMillis(), MILLISECONDS)
           .maximumSize(getEppResourceMaxCachedEntries())
           .build(CACHE_LOADER);
+
+  @VisibleForTesting
+  public static void setCacheForTest(CacheBuilder<Object, Object> cacheBuilder) {
+    cacheEppResources = cacheBuilder.build(CACHE_LOADER);
+  }
 
   private static ImmutableMap<Key<? extends EppResource>, EppResource> loadMultiple(
       Iterable<? extends Key<? extends EppResource>> keys) {
@@ -368,7 +373,7 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
   }
 
   /**
-   * Loads a given EppResource by its key using the cache (if enabled).
+   * Loads the given EppResources by their keys using the cache (if enabled).
    *
    * <p>Don't use this unless you really need it for performance reasons, and be sure that you are
    * OK with the trade-offs in loss of transactional consistency.
@@ -380,6 +385,26 @@ public abstract class EppResource extends BackupGroupRoot implements Buildable {
     }
     try {
       return cacheEppResources.getAll(keys);
+    } catch (ExecutionException e) {
+      throw new RuntimeException("Error loading cached EppResources", e.getCause());
+    }
+  }
+
+  /**
+   * Loads a given EppResource by its key using the cache (if enabled).
+   *
+   * <p>Don't use this unless you really need it for performance reasons, and be sure that you are
+   * OK with the trade-offs in loss of transactional consistency.
+   */
+  public static <T extends EppResource> T loadCached(Key<T> key) {
+    if (!RegistryConfig.isEppResourceCachingEnabled()) {
+      return ofy().load().key(key).now();
+    }
+    try {
+      // Safe to cast because loading a Key<T> returns an entity of type T.
+      @SuppressWarnings("unchecked")
+      T resource = (T) cacheEppResources.get(key);
+      return resource;
     } catch (ExecutionException e) {
       throw new RuntimeException("Error loading cached EppResources", e.getCause());
     }
