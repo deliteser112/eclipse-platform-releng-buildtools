@@ -66,8 +66,10 @@ class CreateCdnsTld extends ConfirmingCommand {
     managedZone =
         new ManagedZone()
             .setDescription(description)
-            // TODO(b/67413698): allow parameterizing the nameserver set once it's safe to do so.
-            .setNameServerSet("cloud-dns-registry-test")
+            .setNameServerSet(
+                RegistryToolEnvironment.get() == RegistryToolEnvironment.PRODUCTION
+                ? "cloud-dns-registry"
+                : "cloud-dns-registry-test")
             .setDnsName(dnsName)
             .setName((name != null) ? name : dnsName)
             .setDnssecConfig(new ManagedZoneDnsSecConfig().setNonExistence("NSEC").setState("ON"));
