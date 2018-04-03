@@ -320,6 +320,88 @@ public class ExportCommitLogDiffActionTest {
   }
 
   @Test
+  public void testRun_checkpointDiffWithNonExistentBucketTimestamps_exportsCorrectly()
+      throws Exception {
+    // Non-existent bucket timestamps can exist when the commit log bucket count was increased
+    // recently.
+
+    task.lowerCheckpointTime = oneMinuteAgo;
+    task.upperCheckpointTime = now;
+
+    // No lower checkpoint times are persisted for buckets 2 and 3 (simulating a recent increase in
+    // the number of commit log buckets from 1 to 3), so all mutations on buckets 2 and 3, even
+    // those older than the lower checkpoint, will be exported.
+    persistResource(
+        CommitLogCheckpoint.createForTest(oneMinuteAgo, ImmutableMap.of(1, oneMinuteAgo)));
+    CommitLogCheckpoint upperCheckpoint =
+        persistResource(
+            CommitLogCheckpoint.create(
+                now,
+                ImmutableMap.of(
+                    1, now,
+                    2, now.minusDays(1),
+                    3, oneMinuteAgo.minusDays(2))));
+
+    // These shouldn't be in the diff because the lower bound is exclusive.
+    persistManifestAndMutation(1, oneMinuteAgo);
+    // These shouldn't be in the diff because they are above the upper bound.
+    persistManifestAndMutation(1, now.plusMillis(1));
+    persistManifestAndMutation(2, now.minusDays(1).plusMillis(1));
+    persistManifestAndMutation(3, oneMinuteAgo.minusDays(2).plusMillis(1));
+    // These should be in the diff because they happened after START_OF_TIME on buckets with
+    // non-existent timestamps.
+    persistManifestAndMutation(2, oneMinuteAgo.minusDays(1));
+    persistManifestAndMutation(3, oneMinuteAgo.minusDays(2));
+    // These should be in the diff because they are between the bounds.
+    persistManifestAndMutation(1, now.minusMillis(1));
+    persistManifestAndMutation(2, now.minusDays(1).minusMillis(1));
+    // These should be in the diff because they are at the upper bound.
+    persistManifestAndMutation(1, now);
+    persistManifestAndMutation(2, now.minusDays(1));
+
+    task.run();
+
+    GcsFilename expectedFilename = new GcsFilename("gcs bucket", "commit_diff_until_" + now);
+    assertWithMessage("GCS file not found: " + expectedFilename)
+        .that(gcsService.getMetadata(expectedFilename))
+        .isNotNull();
+    assertThat(gcsService.getMetadata(expectedFilename).getOptions().getUserMetadata())
+        .containsExactly(
+            LOWER_BOUND_CHECKPOINT,
+            oneMinuteAgo.toString(),
+            UPPER_BOUND_CHECKPOINT,
+            now.toString(),
+            NUM_TRANSACTIONS,
+            "6");
+    List<ImmutableObject> exported =
+        deserializeEntities(GcsTestingUtils.readGcsFile(gcsService, expectedFilename));
+    assertThat(exported.get(0)).isEqualTo(upperCheckpoint);
+    // We expect these manifests, in time order, with matching mutations.
+    CommitLogManifest manifest1 = createManifest(3, oneMinuteAgo.minusDays(2));
+    CommitLogManifest manifest2 = createManifest(2, oneMinuteAgo.minusDays(1));
+    CommitLogManifest manifest3 = createManifest(2, now.minusDays(1).minusMillis(1));
+    CommitLogManifest manifest4 = createManifest(2, now.minusDays(1));
+    CommitLogManifest manifest5 = createManifest(1, now.minusMillis(1));
+    CommitLogManifest manifest6 = createManifest(1, now);
+    assertThat(exported)
+        .containsExactly(
+            upperCheckpoint,
+            manifest1,
+            createMutation(manifest1),
+            manifest2,
+            createMutation(manifest2),
+            manifest3,
+            createMutation(manifest3),
+            manifest4,
+            createMutation(manifest4),
+            manifest5,
+            createMutation(manifest5),
+            manifest6,
+            createMutation(manifest6))
+        .inOrder();
+  }
+
+  @Test
   public void testRun_exportingFromStartOfTime_exportsAllCommits() throws Exception {
     task.lowerCheckpointTime = START_OF_TIME;
     task.upperCheckpointTime = now;

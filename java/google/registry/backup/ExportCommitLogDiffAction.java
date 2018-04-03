@@ -14,6 +14,7 @@
 
 package google.registry.backup;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
@@ -175,10 +176,13 @@ public final class ExportCommitLogDiffAction implements Runnable {
       @Nullable CommitLogCheckpoint lowerCheckpoint,
       CommitLogCheckpoint upperCheckpoint,
       int bucketNum) {
-    // If no lower checkpoint exists, use START_OF_TIME as the effective exclusive lower bound.
-    DateTime lowerCheckpointBucketTime = lowerCheckpoint == null
-        ? START_OF_TIME
-        : lowerCheckpoint.getBucketTimestamps().get(bucketNum);
+    // If no lower checkpoint exists, or if it exists but had no timestamp for this bucket number
+    // (because the bucket count was increased between these checkpoints), then use START_OF_TIME
+    // as the effective exclusive lower bound.
+    DateTime lowerCheckpointBucketTime =
+        firstNonNull(
+            (lowerCheckpoint == null) ? null : lowerCheckpoint.getBucketTimestamps().get(bucketNum),
+            START_OF_TIME);
     // Since START_OF_TIME=0 is not a valid id in a key, add 1 to both bounds. Then instead of
     // loading lowerBound < x <= upperBound, we can load lowerBound <= x < upperBound.
     DateTime lowerBound = lowerCheckpointBucketTime.plusMillis(1);

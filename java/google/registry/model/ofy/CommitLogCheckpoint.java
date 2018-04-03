@@ -17,6 +17,7 @@ package google.registry.model.ofy;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.joda.time.DateTimeZone.UTC;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
@@ -71,16 +72,29 @@ public class CommitLogCheckpoint extends ImmutableObject {
   }
 
   /**
-   * Creates a CommitLogCheckpoint for the given wall time and bucket checkpoint times, specified
-   * as a map from bucket ID to bucket commit timestamp.
+   * Creates a CommitLogCheckpoint for the given wall time and bucket checkpoint times, specified as
+   * a map from bucket ID to bucket commit timestamp.
    */
   public static CommitLogCheckpoint create(
-      DateTime checkpointTime,
-      ImmutableMap<Integer, DateTime> bucketTimestamps) {
+      DateTime checkpointTime, ImmutableMap<Integer, DateTime> bucketTimestamps) {
     checkArgument(
         Objects.equals(CommitLogBucket.getBucketIds().asList(), bucketTimestamps.keySet().asList()),
         "Bucket ids are incorrect: %s",
         bucketTimestamps.keySet());
+    CommitLogCheckpoint instance = new CommitLogCheckpoint();
+    instance.checkpointTime = checkpointTime.getMillis();
+    instance.bucketTimestamps = ImmutableList.copyOf(bucketTimestamps.values());
+    return instance;
+  }
+
+  /**
+   * Creates a CommitLogCheckpoint for the given wall time and bucket checkpoint times. Test only.
+   *
+   * <p>This lacks validation on the bucketTimestamps map.
+   */
+  @VisibleForTesting
+  public static CommitLogCheckpoint createForTest(
+      DateTime checkpointTime, ImmutableMap<Integer, DateTime> bucketTimestamps) {
     CommitLogCheckpoint instance = new CommitLogCheckpoint();
     instance.checkpointTime = checkpointTime.getMillis();
     instance.bucketTimestamps = ImmutableList.copyOf(bucketTimestamps.values());
