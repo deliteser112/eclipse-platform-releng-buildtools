@@ -25,7 +25,7 @@
   {@param? whoisServer: string}
   {@param? referralUrl: string}
   // Passed to .contactInfo_
-  {@param emailAddress: string}
+  {@param? emailAddress: string}
   {@param? localizedAddress: ?}
   {@param? phoneNumber: string}
   {@param? faxNumber: string}
@@ -79,7 +79,7 @@
  * Contact info.
  */
 {template .contactInfo_ visibility="private"}
-  {@param emailAddress: string}
+  {@param? emailAddress: string}
   {@param readonly: bool}
   {@param? localizedAddress: ?}
   {@param? phoneNumber: string}
@@ -107,11 +107,13 @@
                  value="{$faxNumber}">
           <div class="{css('contact-fax-number')}">{$faxNumber} (Fax)</div>
         {/if}
-        <input type="hidden"
-               name="emailAddress"
-               id="emailAddress"
-               value="{$emailAddress}">
-        <div class="{css('contact-fax-number')}">{$emailAddress}</div>
+        {if isNonnull($emailAddress)}
+          <input type="hidden"
+                 name="emailAddress"
+                 id="emailAddress"
+                 value="{$emailAddress}">
+          <div class="{css('contact-fax-number')}">{$emailAddress}</div>
+        {/if}
       </td>
   {else}
     {call registry.soy.forms.inputFieldRowWithValue}

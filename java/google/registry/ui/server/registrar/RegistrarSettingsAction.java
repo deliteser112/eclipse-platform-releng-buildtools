@@ -20,6 +20,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -125,14 +126,14 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
           initialRegistrar.getClientId(),
           args);
       return JsonResponseHelper.createFormFieldError(e.getMessage(), e.getFieldName());
-    } catch (FormException ee) {
+    } catch (FormException e) {
       logger.warningfmt(
-          ee,
+          e,
           "Failed to perform operation '%s' on registrar '%s' for args %s",
           op,
           initialRegistrar.getClientId(),
           args);
-      return JsonResponseHelper.create(ERROR, ee.getMessage());
+      return JsonResponseHelper.create(ERROR, e.getMessage());
     }
 
   }
@@ -196,7 +197,12 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
         RegistrarFormFields.WHOIS_SERVER_FIELD.extractUntyped(args).orElse(null));
     builder.setReferralUrl(
         RegistrarFormFields.REFERRAL_URL_FIELD.extractUntyped(args).orElse(null));
-    RegistrarFormFields.EMAIL_ADDRESS_FIELD
+
+    // If the email is already null / empty - we can keep it so. But if it's set - it's required to
+    // remain set.
+    (Strings.isNullOrEmpty(existingRegistrarObj.getEmailAddress())
+            ? RegistrarFormFields.EMAIL_ADDRESS_FIELD_OPTIONAL
+            : RegistrarFormFields.EMAIL_ADDRESS_FIELD_REQUIRED)
         .extractUntyped(args)
         .ifPresent(builder::setEmailAddress);
     builder.setPhoneNumber(

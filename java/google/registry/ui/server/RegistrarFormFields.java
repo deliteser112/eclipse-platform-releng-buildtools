@@ -71,10 +71,15 @@ public final class RegistrarFormFields {
           .required()
           .build();
 
-  public static final FormField<String, String> EMAIL_ADDRESS_FIELD =
+  public static final FormField<String, String> EMAIL_ADDRESS_FIELD_REQUIRED =
       FormFields.EMAIL.asBuilderNamed("emailAddress")
           .matches(ASCII_PATTERN, ASCII_ERROR)
           .required()
+          .build();
+
+  public static final FormField<String, String> EMAIL_ADDRESS_FIELD_OPTIONAL =
+      FormFields.EMAIL.asBuilderNamed("emailAddress")
+          .matches(ASCII_PATTERN, ASCII_ERROR)
           .build();
 
   public static final FormField<String, String> ICANN_REFERRAL_EMAIL_FIELD =

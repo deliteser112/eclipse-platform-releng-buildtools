@@ -77,7 +77,7 @@ registry.json.Response.prototype.results;
  *   ianaIdentifier: (number?|undefined),
  *   icannReferralEmail: string,
  *   ipAddressWhitelist: !Array<string>,
- *   emailAddress: string,
+ *   emailAddress: (string?|undefined),
  *   phonePasscode: (string?|undefined),
  *   phoneNumber: (string?|undefined),
  *   faxNumber: (string?|undefined),

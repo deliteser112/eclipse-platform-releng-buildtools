@@ -16,6 +16,7 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
@@ -96,6 +97,16 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     assertThat(response).containsEntry("field", "emailAddress");
     assertThat(response).containsEntry("message", "This field is required.");
     assertNoTasksEnqueued("sheet");
+  }
+
+  @Test
+  public void testUpdate_emptyJsonObject_emailFieldNotRequiredWhenEmpty() throws Exception {
+    persistResource(loadRegistrar(CLIENT_ID).asBuilder().setEmailAddress(null).build());
+
+    Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
+        "op", "update",
+        "args", ImmutableMap.of()));
+    assertThat(response).containsEntry("status", "SUCCESS");
   }
 
   @Test

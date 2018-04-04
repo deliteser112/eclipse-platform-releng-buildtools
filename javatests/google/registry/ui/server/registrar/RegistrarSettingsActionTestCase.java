@@ -106,8 +106,12 @@ public class RegistrarSettingsActionTestCase {
     when(rsp.getWriter()).thenReturn(new PrintWriter(writer));
     when(req.getContentType()).thenReturn("application/json");
     when(req.getReader()).thenReturn(createJsonPayload(ImmutableMap.of("op", "read")));
+    // We mock getRegistrarForAuthResult to reload the registrar each time it's called. Otherwise -
+    // the result is out of date after mutations.
+    // (for example, if someone wants to change the registrar to prepare for a test, the function
+    // would still return the old value)
     when(sessionUtils.getRegistrarForAuthResult(req, action.authResult))
-        .thenReturn(loadRegistrar(CLIENT_ID));
+        .thenAnswer(x -> loadRegistrar(CLIENT_ID));
     when(modulesService.getVersionHostname("backend", null)).thenReturn("backend.hostname");
   }
 
