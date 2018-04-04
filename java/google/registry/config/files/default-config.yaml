@@ -101,9 +101,9 @@ registryPolicy:
     the WHOIS database, and may modify these terms at any time.
 
 datastore:
-  # Number of commit log buckets in Datastore. Don't change after initial
-  # install.
-  commitLogBucketsNum: 100
+  # Number of commit log buckets in Datastore. Lowering this after initial
+  # install risks losing up to a days' worth of differential backups.
+  commitLogBucketsNum: 397
 
   # Number of EPP resource index buckets in Datastore. Don’t change after
   # initial install.

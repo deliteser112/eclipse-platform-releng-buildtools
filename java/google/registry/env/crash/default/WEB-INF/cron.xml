@@ -107,7 +107,7 @@
     <description>
       This job checkpoints the commit log buckets and exports the diff since last checkpoint to GCS.
     </description>
-    <schedule>every 1 minutes synchronized</schedule>
+    <schedule>every 3 minutes synchronized</schedule>
     <target>backend</target>
   </cron>
 
