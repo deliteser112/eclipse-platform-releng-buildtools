@@ -102,6 +102,9 @@ public class ShellCommand implements Command {
     String line;
     while ((line = getLine()) != null) {
       String[] lineArgs = parseCommand(line);
+      if (lineArgs.length == 0) {
+        continue;
+      }
       try {
         runner.run(lineArgs);
       } catch (Exception e) {
@@ -242,5 +245,4 @@ public class ShellCommand implements Command {
           .collect(toImmutableList());
     }
   }
-
 }

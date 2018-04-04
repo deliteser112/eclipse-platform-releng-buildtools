@@ -89,16 +89,6 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     jcommander.addConverterFactory(new ParameterFactory());
     jcommander.setProgramName(programName);
 
-    // Create the "help" and "shell" commands (these are special in that they don't have a default
-    // constructor).
-    jcommander.addCommand("help", new HelpCommand(jcommander));
-    ShellCommand shellCommand = null;
-    if (isFirstUse) {
-      shellCommand = new ShellCommand(this);
-      jcommander.addCommand("shell", shellCommand);
-      isFirstUse = false;
-    }
-
     // Create all command instances. It would be preferrable to do this in the constructor, but
     // JCommander mutates the command instances and doesn't reset them so we have to do it for every
     // run.
@@ -111,8 +101,17 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
       throw new RuntimeException(e);
     }
 
-    if (shellCommand != null) {
+    // Create the "help" and "shell" commands (these are special in that they don't have a default
+    // constructor).
+    jcommander.addCommand("help", new HelpCommand(jcommander));
+    ShellCommand shellCommand = null;
+    if (isFirstUse) {
+      isFirstUse = false;
+      shellCommand = new ShellCommand(this);
+      // We have to build the completions based on the jcommander *before* we add the "shell"
+      // command - to avoid completion for the "shell" command itself.
       shellCommand.buildCompletions(jcommander);
+      jcommander.addCommand("shell", shellCommand);
     }
 
     try {
