@@ -18,12 +18,9 @@
 # the project, zone and instance group names, and then call gcloud to add the
 # named ports.
 
-terraform output proxy_instance_groups | awk '{print $3}' | \
-  awk -F '/' '{print "--project", $7, "--zone", $9, $11}' |
-{
-  while read line
-  do
-    gcloud compute instance-groups set-named-ports \
-      --named-ports whois:30001,epp:30002 $line
-  done
-}
+while read line
+do
+  gcloud compute instance-groups set-named-ports \
+    --named-ports whois:30001,epp:30002 $line
+done < <(terraform output proxy_instance_groups | awk '{print $3}' | \
+  awk -F '/' '{print "--project", $7, "--zone", $9, $11}')
