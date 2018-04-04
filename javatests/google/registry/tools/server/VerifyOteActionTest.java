@@ -74,7 +74,7 @@ public class VerifyOteActionTest {
         new HistoryEntry.Builder()
             .setClientId("blobio-1")
             .setType(Type.DOMAIN_CREATE)
-            .setXmlBytes(ToolsTestData.loadBytes("allocate_domain.xml").read())
+            .setXmlBytes(ToolsTestData.loadBytes("domain_create_dsdata.xml").read())
             .build());
     persistResource(
         new HistoryEntry.Builder()
