@@ -23,9 +23,10 @@ variable "proxy_key" {
 # Node ports exposed by the proxy.
 variable "proxy_ports" {
   type = "map"
+
   default = {
     health_check = 30000
-    whois = 30001
-    epp = 30002
+    whois        = 30001
+    epp          = 30002
   }
 }

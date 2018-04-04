@@ -7,31 +7,36 @@ data "google_container_engine_versions" "gke_version" {
 }
 
 resource "google_container_cluster" "proxy_cluster" {
-  name = "proxy-cluster-${var.proxy_cluster_region}"
-  zone = "${local.proxy_cluster_zone}"
-  node_version = "${data.google_container_engine_versions.gke_version.latest_node_version}"
+  name               = "proxy-cluster-${var.proxy_cluster_region}"
+  zone               = "${local.proxy_cluster_zone}"
+  node_version       = "${data.google_container_engine_versions.gke_version.latest_node_version}"
   min_master_version = "${data.google_container_engine_versions.gke_version.latest_master_version}"
 
   node_pool {
-    name = "proxy-node-pool"
+    name               = "proxy-node-pool"
     initial_node_count = 1
+
     node_config {
       tags = [
-        "proxy-cluster"]
+        "proxy-cluster",
+      ]
+
       service_account = "${var.proxy_service_account_email}"
+
       oauth_scopes = [
         "https://www.googleapis.com/auth/cloud-platform",
-        "https://www.googleapis.com/auth/userinfo.email"
+        "https://www.googleapis.com/auth/userinfo.email",
       ]
     }
+
     autoscaling {
       max_node_count = 5
       min_node_count = 1
     }
+
     management {
-      auto_repair = true
+      auto_repair  = true
       auto_upgrade = true
     }
   }
 }
-
