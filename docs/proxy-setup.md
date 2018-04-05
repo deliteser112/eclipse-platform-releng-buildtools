@@ -177,8 +177,12 @@ $ gcloud kms encrypt --plaintext-file <combined_secret.pem> \
 --key <key-name> --keyring <keyring-name> --location global
 ```
 
-Place the encrypted file <combined_secret.pem.enc> to
-`java/google/registry/proxy/resources`.
+This encrypted file is then uploaded to a GCS bucket specified in the
+`config.tf` file.
+
+```bash
+$ gsutil cp <combined_secret.pem.enc> gs://<your-gcs-bucket>
+```
 
 ### Edit proxy config file
 
@@ -189,8 +193,9 @@ Nomulus environments. The values specified in the environment-specific file
 override those in the default file.
 
 The values that need to be changed include the project name, the Nomulus
-endpoint, encrypted certificate/key combo filename, Cloud KMS keyring and key
-names, etc. Refer to the default file for detailed descriptions on each field.
+endpoint, encrypted certificate/key combo filename and the GCS bucket it is
+stored in, Cloud KMS keyring and key names, etc. Refer to the default file for
+detailed descriptions on each field.
 
 ### Upload proxy docker image to GCR
 
@@ -375,9 +380,13 @@ $ gcloud kms encrypt --plaintext-file ssl-cert-key.pem \
 --key <key-name> --keyring <keyring-name> --location global
 ```
 
-A file named `ssl-cert-key.pem.enc` will be created; move it to
-`java/google/registry/proxy/resources/` so that it will be packaged with the
-proxy.
+A file named `ssl-cert-key.pem.enc` will be created. Upload it to a GCS bucket
+in the proxy project. To create a bucket and upload the file:
+
+```bash
+$ gsutil mb -p <proxy-project> gs://<bucket-name>
+$ gustil cp ssl-cert-key.pem.enc gs://<bucket-name>
+```
 
 The proxy service account needs the "Cloud KMS CryptoKey Decrypter" role to
 decrypt the file using Cloud KMS:
@@ -386,6 +395,15 @@ decrypt the file using Cloud KMS:
 $ gcloud projects add-iam-policy-binding <project-id> \
 --member serviceAccount:<service-accounte-email> \
 --role roles/cloudkms.cryptoKeyDecrypter
+```
+
+The service account also needs the "Storage Object Viewer" role to retrieve the
+encrypted file from GCS:
+
+```bash
+$ gsutil iam ch \
+serviceAccount:<service-account-email>:roles/storage.objectViewer \
+gs://<bucket-name>
 ```
 
 ### Proxy configuration
