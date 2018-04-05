@@ -10,6 +10,9 @@ variable "gcr_project_name" {}
 # The base domain name of the proxy, without the whois. or epp. part.
 variable "proxy_domain_name" {}
 
+# The GCS bucket that stores the encrypted SSL certificate.
+variable "proxy_certificate_bucket" {}
+
 # Cloud KMS keyring name
 variable "proxy_key_ring" {
   default = "proxy-key-ring"

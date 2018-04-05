@@ -37,13 +37,19 @@ public class ProxyConfig {
   public List<String> gcpScopes;
   public int accessTokenValidPeriodSeconds;
   public int accessTokenRefreshBeforeExpirySeconds;
-  public String sslPemFilename;
+  public Gcs gcs;
   public Kms kms;
   public Epp epp;
   public Whois whois;
   public HealthCheck healthCheck;
   public HttpsRelay httpsRelay;
   public Metrics metrics;
+
+  /** Configuration options that apply to GCS. */
+  public static class Gcs {
+    public String bucket;
+    public String sslPemFilename;
+  }
 
   /** Configuration options that apply to Cloud KMS. */
   public static class Kms {

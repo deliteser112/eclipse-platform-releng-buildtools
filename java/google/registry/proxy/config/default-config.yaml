@@ -36,8 +36,11 @@ accessTokenValidPeriodSeconds: 1800
 # com.google.api.client.auth.oauth2.Credential#intercept.
 accessTokenRefreshBeforeExpirySeconds: 60
 
-# Name of the encrypted PEM file.
-sslPemFilename: your-ssl.pem
+gcs:
+  # GCS bucket that stores the encrypted PEM file.
+  bucket: your-gcs-bucket
+  # Name of the encrypted PEM file.
+  sslPemFilename: your-pem-filename
 
 # Strings used to construct the KMS crypto key URL.
 # See: https://cloud.google.com/kms/docs/reference/rest/v1/projects.locations.keyRings.cryptoKeys

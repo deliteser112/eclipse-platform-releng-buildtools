@@ -16,7 +16,6 @@ package google.registry.proxy;
 
 import static com.google.common.base.Suppliers.memoizeWithExpiration;
 import static google.registry.proxy.ProxyConfig.getProxyConfig;
-import static google.registry.util.ResourceUtils.readResourceBytes;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.beust.jcommander.JCommander;
@@ -26,6 +25,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.util.Utils;
 import com.google.api.services.cloudkms.v1.CloudKMS;
 import com.google.api.services.cloudkms.v1.model.DecryptRequest;
+import com.google.api.services.storage.Storage;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.monitoring.metrics.MetricReporter;
@@ -44,6 +44,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.OpenSsl;
 import io.netty.handler.ssl.SslProvider;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
@@ -220,12 +221,30 @@ public class ProxyModule {
 
   @Singleton
   @Provides
+  static Storage provideStorage(GoogleCredential credential, ProxyConfig config) {
+    return new Storage.Builder(
+            Utils.getDefaultTransport(), Utils.getDefaultJsonFactory(), credential)
+        .setApplicationName(config.projectId)
+        .build();
+  }
+
+  @Singleton
+  @Provides
   @Named("encryptedPemBytes")
-  static byte[] provideEncryptedPemBytes(ProxyConfig config) {
+  static byte[] provideEncryptedPemBytes(Storage storage, ProxyConfig config) {
     try {
-      return readResourceBytes(ProxyModule.class, "resources/" + config.sslPemFilename).read();
+      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+      storage
+          .objects()
+          .get(config.gcs.bucket, config.gcs.sslPemFilename)
+          .executeMediaAndDownloadTo(outputStream);
+      return outputStream.toByteArray();
     } catch (IOException e) {
-      logger.severefmt(e, "Error reading encrypted PEM file: %s", config.sslPemFilename);
+      logger.severefmt(
+          e,
+          "Error reading encrypted PEM file %s from GCS bucket %s",
+          config.gcs.sslPemFilename,
+          config.gcs.bucket);
       throw new RuntimeException(e);
     }
   }

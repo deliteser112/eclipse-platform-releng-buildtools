@@ -27,6 +27,7 @@ java_library(
         "@com_google_api_client",
         "@com_google_apis_google_api_services_cloudkms",
         "@com_google_apis_google_api_services_monitoring",
+        "@com_google_apis_google_api_services_storage",
         "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
