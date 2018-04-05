@@ -19,7 +19,7 @@ import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDispla
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.security.JsonHttpTestUtils.createJsonResponseSupplier;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -116,7 +116,7 @@ public class RegistrarSettingsActionTestCase {
   }
 
   static Map<String, Object> readJsonFromFile(String filename) {
-    String contents = readResourceUtf8(RegistrarSettingsActionTestCase.class, filename);
+    String contents = loadFile(RegistrarSettingsActionTestCase.class, filename);
     try {
       @SuppressWarnings("unchecked")
       Map<String, Object> json = (Map<String, Object>) JSONValue.parseWithException(contents);

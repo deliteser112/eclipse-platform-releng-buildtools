@@ -20,7 +20,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static java.util.Arrays.asList;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
@@ -46,8 +46,8 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
 
   @Test
   public void testSuccess_updateRegistrarInfo_andSendsNotificationEmail() throws Exception {
-    String expectedEmailBody = readResourceUtf8(getClass(), "testdata/update_registrar_email.txt");
-    action.handleJsonRequest(readJsonFromFile("testdata/update_registrar.json"));
+    String expectedEmailBody = loadFile(getClass(), "update_registrar_email.txt");
+    action.handleJsonRequest(readJsonFromFile("update_registrar.json"));
     verify(rsp, never()).setStatus(anyInt());
     verify(emailService).createMessage();
     verify(emailService).sendMessage(message);
@@ -63,8 +63,8 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
 
   @Test
   public void testFailure_updateRegistrarInfo_duplicateContacts() throws Exception {
-    Map<String, Object> response = action.handleJsonRequest(
-        readJsonFromFile("testdata/update_registrar_duplicate_contacts.json"));
+    Map<String, Object> response =
+        action.handleJsonRequest(readJsonFromFile("update_registrar_duplicate_contacts.json"));
     assertThat(response).containsEntry("status", "ERROR");
     assertThat((String) response.get("message")).startsWith("One email address");
   }

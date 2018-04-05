@@ -16,8 +16,8 @@ package google.registry.testing;
 
 import static google.registry.keyring.api.PgpHelper.KeyRequirement.ENCRYPT;
 import static google.registry.keyring.api.PgpHelper.KeyRequirement.SIGN;
-import static google.registry.util.ResourceUtils.readResourceBytes;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.testing.TestDataHelper.loadBytes;
+import static google.registry.testing.TestDataHelper.loadFile;
 
 import com.google.common.io.ByteSource;
 import dagger.Module;
@@ -47,9 +47,9 @@ public final class FakeKeyringModule {
   private static final String SIGNING_KEY_EMAIL = "rde-unittest@registry.test";
   private static final String RECEIVER_KEY_EMAIL = "rde-unittest@escrow.test";
   private static final ByteSource PGP_PUBLIC_KEYRING =
-      readResourceBytes(FakeKeyringModule.class, "testdata/pgp-public-keyring.asc");
+      loadBytes(FakeKeyringModule.class, "pgp-public-keyring.asc");
   private static final ByteSource PGP_PRIVATE_KEYRING =
-      readResourceBytes(FakeKeyringModule.class, "testdata/pgp-private-keyring-registry.asc");
+      loadBytes(FakeKeyringModule.class, "pgp-private-keyring-registry.asc");
   private static final String ICANN_REPORTING_PASSWORD = "yolo";
   private static final String MARKSDB_DNL_LOGIN = "dnl:yolo";
   private static final String MARKSDB_LORDN_PASSWORD = "yolo";
@@ -76,10 +76,8 @@ public final class FakeKeyringModule {
         PgpHelper.lookupKeyPair(publics, privates, SIGNING_KEY_EMAIL, SIGN);
     final PGPPublicKey rdeReceiverKey =
         PgpHelper.lookupPublicKey(publics, RECEIVER_KEY_EMAIL, ENCRYPT);
-    final String sshPublic =
-        readResourceUtf8(FakeKeyringModule.class, "testdata/registry-unittest.id_rsa.pub");
-    final String sshPrivate =
-        readResourceUtf8(FakeKeyringModule.class, "testdata/registry-unittest.id_rsa");
+    final String sshPublic = loadFile(FakeKeyringModule.class, "registry-unittest.id_rsa.pub");
+    final String sshPrivate = loadFile(FakeKeyringModule.class, "registry-unittest.id_rsa");
 
     return new Keyring() {
       @Override

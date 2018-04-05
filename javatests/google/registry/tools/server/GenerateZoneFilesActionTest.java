@@ -25,7 +25,7 @@ import static google.registry.testing.DatastoreHelper.persistActiveDomainApplica
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.GcsTestingUtils.readGcsFile;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.joda.time.Duration.standardDays;
 
@@ -144,8 +144,7 @@ public class GenerateZoneFilesActionTest extends MapreduceTestCase<GenerateZoneF
     // files with literal tabs irritate our build tools.
     Splitter splitter = Splitter.on('\n').omitEmptyStrings();
     Iterable<String> generatedFileLines = splitter.split(generatedFile.replaceAll("\t", " "));
-    Iterable<String> goldenFileLines =
-        splitter.split(readResourceUtf8(getClass(), "testdata/tld.zone"));
+    Iterable<String> goldenFileLines = splitter.split(loadFile(getClass(), "tld.zone"));
     // The first line needs to be the same as the golden file.
     assertThat(generatedFileLines.iterator().next()).isEqualTo(goldenFileLines.iterator().next());
     // The remaining lines can be in any order.

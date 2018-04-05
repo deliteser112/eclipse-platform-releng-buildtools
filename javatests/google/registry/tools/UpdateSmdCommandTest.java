@@ -23,7 +23,7 @@ import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
@@ -56,15 +56,13 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
   DomainApplication domainApplication;
 
   private static final String ACTIVE_SMD =
-      readResourceUtf8(UpdateSmdCommandTest.class, "testdata/Court-Agent-English-Active.smd");
+      loadFile(UpdateSmdCommandTest.class, "Court-Agent-English-Active.smd");
   private static final String DIFFERENT_LABEL_SMD =
-      readResourceUtf8(UpdateSmdCommandTest.class, "testdata/Court-Agent-Chinese-Active.smd");
+      loadFile(UpdateSmdCommandTest.class, "Court-Agent-Chinese-Active.smd");
   private static final String INVALID_SMD =
-      readResourceUtf8(UpdateSmdCommandTest.class,
-          "testdata/InvalidSignature-Trademark-Agent-English-Active.smd");
+      loadFile(UpdateSmdCommandTest.class, "InvalidSignature-Trademark-Agent-English-Active.smd");
   private static final String REVOKED_TMV_SMD =
-      readResourceUtf8(UpdateSmdCommandTest.class,
-          "testdata/TMVRevoked-Trademark-Agent-English-Active.smd");
+      loadFile(UpdateSmdCommandTest.class, "TMVRevoked-Trademark-Agent-English-Active.smd");
 
   // The test data was created by ICANN on 2013. It includes SMDs that expire sometime during 2017.
   // We want the "current date" to be sometime between 2013 and 2017.

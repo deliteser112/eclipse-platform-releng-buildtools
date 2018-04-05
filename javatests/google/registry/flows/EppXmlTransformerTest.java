@@ -18,7 +18,7 @@ package google.registry.flows;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.util.ResourceUtils.readResourceBytes;
+import static google.registry.testing.TestDataHelper.loadBytes;
 
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppoutput.EppOutput;
@@ -33,8 +33,7 @@ public class EppXmlTransformerTest extends ShardableTestCase {
 
   @Test
   public void testUnmarshalingEppInput() throws Exception {
-    EppInput input = unmarshal(
-        EppInput.class, readResourceBytes(getClass(), "testdata/contact_info.xml").read());
+    EppInput input = unmarshal(EppInput.class, loadBytes(getClass(), "contact_info.xml").read());
     assertThat(input.getCommandType()).isEqualTo("info");
   }
 
@@ -44,7 +43,6 @@ public class EppXmlTransformerTest extends ShardableTestCase {
         ClassCastException.class,
         () ->
             EppXmlTransformer.unmarshal(
-                EppOutput.class,
-                readResourceBytes(getClass(), "testdata/contact_info.xml").read()));
+                EppOutput.class, loadBytes(getClass(), "contact_info.xml").read()));
   }
 }

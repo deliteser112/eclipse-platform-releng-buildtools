@@ -15,7 +15,7 @@
 package google.registry.xjc;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import google.registry.xjc.rdehost.XjcRdeHostElement;
@@ -31,8 +31,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class JaxbFragmentTest {
 
-  private static final String HOST_FRAGMENT =
-      readResourceUtf8(XjcObjectTest.class, "testdata/host_fragment.xml");
+  private static final String HOST_FRAGMENT = loadFile(XjcObjectTest.class, "host_fragment.xml");
 
   /** Verifies that a {@link JaxbFragment} can be serialized and deserialized successfully. */
   @SuppressWarnings("unchecked")

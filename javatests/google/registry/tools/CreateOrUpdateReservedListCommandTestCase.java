@@ -15,7 +15,7 @@
 package google.registry.tools;
 
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.ParameterException;
@@ -40,8 +40,8 @@ public abstract class CreateOrUpdateReservedListCommandTestCase
   public void init() throws IOException {
     File reservedTermsFile = tmpDir.newFile("xn--q9jyb4c_common-reserved.txt");
     File invalidReservedTermsFile = tmpDir.newFile("reserved-terms-wontparse.csv");
-    String reservedTermsCsv = readResourceUtf8(
-        CreateOrUpdateReservedListCommandTestCase.class, "testdata/example_reserved_terms.csv");
+    String reservedTermsCsv =
+        loadFile(CreateOrUpdateReservedListCommandTestCase.class, "example_reserved_terms.csv");
     Files.asCharSink(reservedTermsFile, UTF_8).write(reservedTermsCsv);
     Files.asCharSink(invalidReservedTermsFile, UTF_8)
         .write("sdfgagmsdgs,sdfgsd\nasdf234tafgs,asdfaw\n\n");

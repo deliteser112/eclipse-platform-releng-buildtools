@@ -30,8 +30,8 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertAtLeastOneTaskIsEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static google.registry.tldconfig.idn.IdnTableEnum.EXTENDED_LATIN;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
@@ -550,7 +550,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     executeTasksUntilEmpty("mapreduce", clock);
 
     XmlTestUtils.assertXmlEquals(
-        readResourceUtf8(getClass(), "testdata/testMapReduce_withDomain_producesExpectedXml.xml"),
+        loadFile(getClass(), "testMapReduce_withDomain_producesExpectedXml.xml"),
         readXml("lol_2000-01-01_full_S1_R0.xml.ghostryde"),
         "deposit.contents.registrar.crDate",
         "deposit.contents.registrar.upDate");
@@ -582,7 +582,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     executeTasksUntilEmpty("mapreduce", clock);
 
     XmlTestUtils.assertXmlEquals(
-        readResourceUtf8(getClass(), "testdata/testMapReduce_withDomain_producesReportXml.xml"),
+        loadFile(getClass(), "testMapReduce_withDomain_producesReportXml.xml"),
         readXml("lol_2000-01-01_full_S1_R0-report.xml.ghostryde"),
         "deposit.contents.registrar.crDate",
         "deposit.contents.registrar.upDate");
@@ -799,14 +799,13 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
       throws Exception {
     doManualModeMapReduceTest(0, ImmutableSet.of("lol"));
     XmlTestUtils.assertXmlEquals(
-        readResourceUtf8(getClass(), "testdata/testMapReduce_withDomain_producesExpectedXml.xml"),
+        loadFile(getClass(), "testMapReduce_withDomain_producesExpectedXml.xml"),
         readXml("manual/test/lol_2000-01-01_full_S1_R0.xml.ghostryde"),
         "deposit.contents.registrar.crDate",
         "deposit.contents.registrar.upDate");
     XmlTestUtils.assertXmlEquals(
-        readResourceUtf8(getClass(), "testdata/testMapReduce_withDomain_producesReportXml.xml"),
-        readXml(
-            "manual/test/lol_2000-01-01_full_S1_R0-report.xml.ghostryde"),
+        loadFile(getClass(), "testMapReduce_withDomain_producesReportXml.xml"),
+        readXml("manual/test/lol_2000-01-01_full_S1_R0-report.xml.ghostryde"),
         "deposit.contents.registrar.crDate",
         "deposit.contents.registrar.upDate");
   }

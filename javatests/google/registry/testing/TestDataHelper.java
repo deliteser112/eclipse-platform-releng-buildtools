@@ -74,4 +74,12 @@ public final class TestDataHelper {
         FileKey.create(context, filename),
         k -> readResourceBytes(context, "testdata/" + filename));
   }
+
+  /**
+   * Returns the "real" location of the file loaded by the other commands, starting from javatests/.
+   */
+  public static String filePath(Class<?> context, String filename) {
+    String packagePath = context.getPackage().getName().replace('.', '/');
+    return String.format("javatests/%s/testdata/%s", packagePath, filename);
+  }
 }

@@ -17,7 +17,7 @@ package google.registry.tools;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.request.JsonResponse.JSON_SAFETY_PREFIX;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyMapOf;
 import static org.mockito.Matchers.eq;
@@ -48,11 +48,10 @@ public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
   @Before
   public void init() throws Exception {
     command.setConnection(connection);
-    premiumTermsPath = writeToNamedTmpFile(
-        "example_premium_terms.csv",
-        readResourceUtf8(
-            CreatePremiumListCommandTest.class,
-            "testdata/example_premium_terms.csv"));
+    premiumTermsPath =
+        writeToNamedTmpFile(
+            "example_premium_terms.csv",
+            loadFile(CreatePremiumListCommandTest.class, "example_premium_terms.csv"));
     servletPath = "/_dr/admin/createPremiumList";
     when(connection.send(
         eq(CreatePremiumListAction.PATH),
@@ -108,10 +107,10 @@ public class CreatePremiumListCommandTest<C extends CreatePremiumListCommand>
 
   @Test
   public void testRun_invalidInputData() throws Exception {
-    premiumTermsPath = writeToNamedTmpFile(
-        "tmp_file2",
-        readResourceUtf8(
-            CreatePremiumListCommandTest.class, "testdata/example_invalid_premium_terms.csv"));
+    premiumTermsPath =
+        writeToNamedTmpFile(
+            "tmp_file2",
+            loadFile(CreatePremiumListCommandTest.class, "example_invalid_premium_terms.csv"));
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

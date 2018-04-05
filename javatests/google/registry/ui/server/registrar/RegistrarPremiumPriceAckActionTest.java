@@ -21,7 +21,7 @@ import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -133,7 +133,7 @@ public class RegistrarPremiumPriceAckActionTest {
     assertThat(loadRegistrar(CLIENT_ID).getPremiumPriceAckRequired()).isTrue();
 
     // Verify that we sent notification emails.
-    String expectedEmailBody = readResourceUtf8(getClass(), "testdata/update_ppa_email.txt");
+    String expectedEmailBody = loadFile(getClass(), "update_ppa_email.txt");
     verify(rsp, never()).setStatus(anyInt());
     verify(emailService).createMessage();
     verify(emailService).sendMessage(message);

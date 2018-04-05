@@ -17,7 +17,7 @@ package google.registry.model.eppinput;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
-import static google.registry.util.ResourceUtils.readResourceBytes;
+import static google.registry.testing.TestDataHelper.loadBytes;
 
 import google.registry.model.contact.ContactResourceTest;
 import google.registry.model.domain.DomainResourceTest;
@@ -34,9 +34,7 @@ public class EppInputTest {
   @Test
   public void testUnmarshalling_contactInfo() throws Exception {
     EppInput input =
-        unmarshal(
-            EppInput.class,
-            readResourceBytes(ContactResourceTest.class, "testdata/contact_info.xml").read());
+        unmarshal(EppInput.class, loadBytes(ContactResourceTest.class, "contact_info.xml").read());
     assertThat(input.getCommandWrapper().getClTrid()).isEqualTo("ABC-12345");
     assertThat(input.getCommandType()).isEqualTo("info");
     assertThat(input.getResourceType()).hasValue("contact");
@@ -47,9 +45,7 @@ public class EppInputTest {
   @Test
   public void testUnmarshalling_domainCheck() throws Exception {
     EppInput input =
-        unmarshal(
-            EppInput.class,
-            readResourceBytes(DomainResourceTest.class, "testdata/domain_check.xml").read());
+        unmarshal(EppInput.class, loadBytes(DomainResourceTest.class, "domain_check.xml").read());
     assertThat(input.getCommandWrapper().getClTrid()).isEqualTo("ABC-12345");
     assertThat(input.getCommandType()).isEqualTo("check");
     assertThat(input.getResourceType()).hasValue("domain");
@@ -59,8 +55,7 @@ public class EppInputTest {
 
   @Test
   public void testUnmarshalling_login() throws Exception {
-    EppInput input =
-        unmarshal(EppInput.class, readResourceBytes(getClass(), "testdata/login_valid.xml").read());
+    EppInput input = unmarshal(EppInput.class, loadBytes(getClass(), "login_valid.xml").read());
     assertThat(input.getCommandWrapper().getClTrid()).isEqualTo("ABC-12345");
     assertThat(input.getCommandType()).isEqualTo("login");
     assertThat(input.getResourceType()).isEmpty();
@@ -83,4 +78,3 @@ public class EppInputTest {
         .containsExactly("urn:ietf:params:xml:ns:launch-1.0", "urn:ietf:params:xml:ns:rgp-1.0");
   }
 }
-

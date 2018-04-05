@@ -17,7 +17,8 @@ package google.registry.xjc;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.testing.TestDataHelper.loadBytes;
+import static google.registry.testing.TestDataHelper.loadFile;
 import static google.registry.xjc.XjcXmlTransformer.unmarshal;
 import static java.nio.charset.StandardCharsets.UTF_16;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -36,7 +37,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class XjcObjectTest {
   private static final String RDE_DEPOSIT_FULL =
-      readResourceUtf8(XjcObjectTest.class, "testdata/rde_deposit_full.xml");
+      loadFile(XjcObjectTest.class, "rde_deposit_full.xml");
 
   @Test
   public void testMarshalUtf8() throws Exception {
@@ -116,8 +117,9 @@ public class XjcObjectTest {
 
   @Test
   public void testNamespaceEpp() throws Exception {
-    String xml = unmarshal(XjcObject.class, new ByteArrayInputStream(readResourceUtf8(
-        XjcObjectTest.class, "testdata/greeting.xml").getBytes(UTF_8))).toString();
+    String xml =
+        unmarshal(XjcObject.class, loadBytes(XjcObjectTest.class, "greeting.xml").openStream())
+            .toString();
     assertWithMessage(xml).that(xml).startsWith("<epp:epp ");
     assertWithMessage(xml).that(xml).contains("\"urn:ietf:params:xml:ns:epp-1.0\"");
     assertWithMessage(xml).that(xml).contains("<epp:greeting>");

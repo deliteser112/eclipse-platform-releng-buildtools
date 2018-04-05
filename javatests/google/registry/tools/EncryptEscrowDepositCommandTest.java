@@ -15,7 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.util.ResourceUtils.readResourceBytes;
+import static google.registry.testing.TestDataHelper.loadBytes;
 
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
@@ -39,8 +39,7 @@ public class EncryptEscrowDepositCommandTest
   @Rule
   public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
 
-  private final ByteSource depositXml =
-      readResourceBytes(RdeTestData.class, "testdata/deposit_full.xml");
+  private final ByteSource depositXml = loadBytes(RdeTestData.class, "deposit_full.xml");
 
   static EscrowDepositEncryptor createEncryptor() {
     EscrowDepositEncryptor res = new EscrowDepositEncryptor();
