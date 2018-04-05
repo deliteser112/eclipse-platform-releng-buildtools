@@ -232,7 +232,8 @@ public class ProxyModule {
 
   @Singleton
   @Provides
-  static PemBytes providePemBytes(
+  @Named("pemBytes")
+  static byte[] providePemBytes(
       CloudKMS cloudKms, @Named("encryptedPemBytes") byte[] encryptedPemBytes, ProxyConfig config) {
     String cryptoKeyUrl =
         String.format(
@@ -240,15 +241,14 @@ public class ProxyModule {
             config.projectId, config.kms.location, config.kms.keyRing, config.kms.cryptoKey);
     try {
       DecryptRequest decryptRequest = new DecryptRequest().encodeCiphertext(encryptedPemBytes);
-      return PemBytes.create(
-          cloudKms
-              .projects()
-              .locations()
-              .keyRings()
-              .cryptoKeys()
-              .decrypt(cryptoKeyUrl, decryptRequest)
-              .execute()
-              .decodePlaintext());
+      return cloudKms
+          .projects()
+          .locations()
+          .keyRings()
+          .cryptoKeys()
+          .decrypt(cryptoKeyUrl, decryptRequest)
+          .execute()
+          .decodePlaintext();
     } catch (IOException e) {
       logger.severefmt(e, "PEM file decryption failed using CryptoKey: %s", cryptoKeyUrl);
       throw new RuntimeException(e);
@@ -281,31 +281,6 @@ public class ProxyModule {
   @Provides
   ProxyConfig provideProxyConfig(Environment env) {
     return getProxyConfig(env);
-  }
-
-  /**
-   * A wrapper class for decrypted bytes of the PEM file.
-   *
-   * <p>Note that this should not be an @AutoValue class because we need a clone of the bytes to be
-   * returned, otherwise the wrapper class becomes mutable.
-   */
-  // TODO: remove this class once FOSS build can use @BindsInstance to bind a byte[]
-  // (https://github.com/bazelbuild/bazel/issues/4138)
-  static class PemBytes {
-
-    private final byte[] bytes;
-
-    static PemBytes create(byte[] bytes) {
-      return new PemBytes(bytes);
-    }
-
-    private PemBytes(byte[] bytes) {
-      this.bytes = bytes;
-    }
-
-    byte[] getBytes() {
-      return bytes.clone();
-    }
   }
 
   /** Root level component that exposes the port-to-protocol map. */

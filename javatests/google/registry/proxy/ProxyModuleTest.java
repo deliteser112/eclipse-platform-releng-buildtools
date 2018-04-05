@@ -15,7 +15,7 @@
 package google.registry.proxy;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.proxy.ProxyConfig.Environment.TEST;
+import static google.registry.proxy.ProxyConfig.Environment.LOCAL;
 import static google.registry.proxy.ProxyConfig.getProxyConfig;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.junit.Assert.fail;
@@ -30,7 +30,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class ProxyModuleTest {
 
-  private static final ProxyConfig PROXY_CONFIG = getProxyConfig(TEST);
+  private static final ProxyConfig PROXY_CONFIG = getProxyConfig(LOCAL);
   private final ProxyModule proxyModule = new ProxyModule();
 
   @Test
@@ -41,7 +41,7 @@ public class ProxyModuleTest {
     assertThat(proxyModule.provideEppPort(PROXY_CONFIG)).isEqualTo(PROXY_CONFIG.epp.port);
     assertThat(proxyModule.provideHealthCheckPort(PROXY_CONFIG))
         .isEqualTo(PROXY_CONFIG.healthCheck.port);
-    assertThat(proxyModule.provideEnvironment()).isEqualTo(Environment.LOCAL);
+    assertThat(proxyModule.provideEnvironment()).isEqualTo(LOCAL);
     assertThat(proxyModule.log).isFalse();
   }
 

@@ -14,6 +14,7 @@
 
 package google.registry.proxy.handler;
 
+import google.registry.proxy.CertificateModule.EppCertificates;
 import google.registry.util.FormattingLogger;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -30,7 +31,6 @@ import io.netty.util.concurrent.Promise;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import javax.inject.Inject;
-import javax.inject.Named;
 import javax.inject.Singleton;
 
 /**
@@ -66,8 +66,8 @@ public class SslServerInitializer<C extends Channel> extends ChannelInitializer<
   @Inject
   SslServerInitializer(
       SslProvider sslProvider,
-      PrivateKey privateKey,
-      @Named("eppServerCertificates") X509Certificate... certificates) {
+      @EppCertificates PrivateKey privateKey,
+      @EppCertificates X509Certificate... certificates) {
     logger.infofmt("Server SSL Provider: %s", sslProvider);
     this.sslProvider = sslProvider;
     this.privateKey = privateKey;

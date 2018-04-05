@@ -15,7 +15,7 @@
 package google.registry.proxy;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static google.registry.proxy.ProxyConfig.Environment.TEST;
+import static google.registry.proxy.ProxyConfig.Environment.LOCAL;
 import static google.registry.proxy.ProxyConfig.getProxyConfig;
 
 import com.google.common.base.Suppliers;
@@ -28,6 +28,7 @@ import dagger.Provides;
 import google.registry.proxy.EppProtocolModule.EppProtocol;
 import google.registry.proxy.HealthCheckProtocolModule.HealthCheckProtocol;
 import google.registry.proxy.HttpsRelayProtocolModule.HttpsRelayProtocol;
+import google.registry.proxy.ProxyConfig.Environment;
 import google.registry.proxy.WhoisProtocolModule.WhoisProtocol;
 import google.registry.proxy.handler.BackendMetricsHandler;
 import google.registry.proxy.handler.ProxyProtocolHandler;
@@ -45,10 +46,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslProvider;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.handler.timeout.ReadTimeoutHandler;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -74,7 +72,7 @@ import org.junit.Before;
  */
 public abstract class ProtocolModuleTest {
 
-  protected static final ProxyConfig PROXY_CONFIG = getProxyConfig(TEST);
+  protected static final ProxyConfig PROXY_CONFIG = getProxyConfig(LOCAL);
 
   protected TestComponent testComponent;
 
@@ -179,6 +177,7 @@ public abstract class ProtocolModuleTest {
   @Component(
     modules = {
       TestModule.class,
+      CertificateModule.class,
       WhoisProtocolModule.class,
       EppProtocolModule.class,
       HealthCheckProtocolModule.class,
@@ -224,7 +223,7 @@ public abstract class ProtocolModuleTest {
     @Singleton
     @Provides
     static ProxyConfig provideProxyConfig() {
-      return getProxyConfig(TEST);
+      return getProxyConfig(LOCAL);
     }
 
     @Singleton
@@ -248,43 +247,35 @@ public abstract class ProtocolModuleTest {
 
     @Singleton
     @Provides
-    static SelfSignedCertificate provideSelfSignedCertificate() {
-      try {
-        return new SelfSignedCertificate();
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    @Singleton
-    @Provides
-    @Named("eppServerCertificates")
-    static X509Certificate[] provideCertificate(SelfSignedCertificate ssc) {
-      return new X509Certificate[] {ssc.cert()};
-    }
-
-    @Singleton
-    @Provides
-    static PrivateKey providePrivateKey(SelfSignedCertificate ssc) {
-      return ssc.key();
-    }
-
-    @Singleton
-    @Provides
     Clock provideFakeClock() {
       return fakeClock;
     }
 
     @Singleton
     @Provides
-    ExecutorService provideExecutorService() {
+    static ExecutorService provideExecutorService() {
       return MoreExecutors.newDirectExecutorService();
     }
 
     @Singleton
     @Provides
-    ScheduledExecutorService provideScheduledExecutorService() {
+    static ScheduledExecutorService provideScheduledExecutorService() {
       return Executors.newSingleThreadScheduledExecutor();
+    }
+
+    @Singleton
+    @Provides
+    static Environment provideEnvironment() {
+      return Environment.LOCAL;
+    }
+
+    // This method is only here to satisfy Dagger binding, but is never used. In test environment,
+    // it is the self-signed certificate and its key that end up being used.
+    @Singleton
+    @Provides
+    @Named("pemBytes")
+    static byte[] providePemBytes() {
+      return new byte[0];
     }
   }
 }

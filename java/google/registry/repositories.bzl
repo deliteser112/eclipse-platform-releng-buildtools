@@ -1147,10 +1147,10 @@ def com_google_code_findbugs_jsr305():
 def com_google_dagger():
   java_import_external(
       name = "com_google_dagger",
-      jar_sha256 = "b2142693bc7413f0b74330f0a92ca44ea95a12a22b659972ed6aa9832e8352e4",
+      jar_sha256 = "1f14720ffc3152a4207e374edb2ce114d94625058a6ef48a35cb67764dac4756",
       jar_urls = [
-          "http://repo1.maven.org/maven2/com/google/dagger/dagger/2.13/dagger-2.13.jar",
-          "http://maven.ibiblio.org/maven2/com/google/dagger/dagger/2.13/dagger-2.13.jar",
+          "http://repo1.maven.org/maven2/com/google/dagger/dagger/2.15/dagger-2.15.jar",
+          "http://maven.ibiblio.org/maven2/com/google/dagger/dagger/2.15/dagger-2.15.jar",
       ],
       licenses = ["notice"],  # Apache 2.0
       deps = ["@javax_inject"],
@@ -1170,10 +1170,10 @@ def com_google_dagger():
 def com_google_dagger_compiler():
   java_import_external(
       name = "com_google_dagger_compiler",
-      jar_sha256 = "8b711253c9cbb58bd2c019cb38afb32ee79f283e1bb3030c8c85b645c7a6d25f",
+      jar_sha256 = "ecd1e8ee0224312ae29203767fb8ec70af13e4f2724df2174ba0d2867cd2de78",
       jar_urls = [
-          "http://maven.ibiblio.org/maven2/com/google/dagger/dagger-compiler/2.13/dagger-compiler-2.13.jar",
-          "http://repo1.maven.org/maven2/com/google/dagger/dagger-compiler/2.13/dagger-compiler-2.13.jar",
+          "http://maven.ibiblio.org/maven2/com/google/dagger/dagger-compiler/2.15/dagger-compiler-2.15.jar",
+          "http://repo1.maven.org/maven2/com/google/dagger/dagger-compiler/2.15/dagger-compiler-2.15.jar",
       ],
       licenses = ["notice"],  # Apache 2.0
       deps = [
@@ -1204,10 +1204,10 @@ def com_google_dagger_compiler():
 def com_google_dagger_producers():
   java_import_external(
       name = "com_google_dagger_producers",
-      jar_sha256 = "cf35b21c634939917eee9ffcd72a9f5f6e261ad57a4c0f0d15cf6f1430262bb0",
+      jar_sha256 = "eb189206f80df260de4331bb51e92a94e06f5cbf5ef3d1492d34c5e139e92eb1",
       jar_urls = [
-          "http://repo1.maven.org/maven2/com/google/dagger/dagger-producers/2.13/dagger-producers-2.13.jar",
-          "http://maven.ibiblio.org/maven2/com/google/dagger/dagger-producers/2.13/dagger-producers-2.13.jar",
+          "http://repo1.maven.org/maven2/com/google/dagger/dagger-producers/2.15/dagger-producers-2.15.jar",
+          "http://maven.ibiblio.org/maven2/com/google/dagger/dagger-producers/2.15/dagger-producers-2.15.jar",
       ],
       licenses = ["notice"],  # Apache 2.0
       deps = [

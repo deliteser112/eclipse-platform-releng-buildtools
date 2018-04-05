@@ -28,7 +28,6 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.logging.LoggingHandler;
 import java.security.cert.X509Certificate;
 import javax.annotation.Nullable;
-import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Qualifier;
 
@@ -44,7 +43,7 @@ public class HttpsRelayProtocolModule {
 
   /** Dagger qualifier to provide https relay protocol related handlers and other bindings. */
   @Qualifier
-  @interface HttpsRelayProtocol {}
+  public @interface HttpsRelayProtocol {}
 
   private static final String PROTOCOL_NAME = "https_relay";
 
@@ -89,7 +88,7 @@ public class HttpsRelayProtocolModule {
 
   @Nullable
   @Provides
-  @Named("relayTrustedCertificates")
+  @HttpsRelayProtocol
   public static X509Certificate[] provideTrustedCertificates() {
     // null uses the system default trust store.
     return null;

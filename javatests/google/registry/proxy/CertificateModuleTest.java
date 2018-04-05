@@ -20,9 +20,10 @@ import static google.registry.proxy.handler.SslInitializerTestUtils.signKeyPair;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.fail;
 
-import dagger.BindsInstance;
 import dagger.Component;
-import google.registry.proxy.ProxyModule.PemBytes;
+import dagger.Module;
+import dagger.Provides;
+import google.registry.proxy.CertificateModule.Prod;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
@@ -59,9 +60,9 @@ public class CertificateModuleTest {
   }
 
   /** Create a component with bindings to the given bytes[] as the contents from a PEM file. */
-  private TestComponent createComponent(byte[] bytes) {
+  private TestComponent createComponent(byte[] pemBytes) {
     return DaggerCertificateModuleTest_TestComponent.builder()
-        .pemBytes(PemBytes.create(bytes))
+        .pemBytesModule(new PemBytesModule(pemBytes))
         .build();
   }
 
@@ -137,22 +138,36 @@ public class CertificateModuleTest {
     }
   }
 
+  @Module
+  static class PemBytesModule {
+    private final byte[] pemBytes;
+
+    PemBytesModule(byte[] pemBytes) {
+      this.pemBytes = pemBytes;
+    }
+
+    @Provides
+    @Named("pemBytes")
+    byte[] providePemBytes() {
+      return pemBytes;
+    }
+  }
+
+  /**
+   * Test component that exposes prod certificate and key.
+   *
+   * <p>Local certificate and key are not tested because they are directly extracted from a
+   * self-signed certificate. Here we want to test that we can correctly parse and create
+   * certificate and keys from a .pem file.
+   */
   @Singleton
-  @Component(modules = {CertificateModule.class})
+  @Component(modules = {CertificateModule.class, PemBytesModule.class})
   interface TestComponent {
 
+    @Prod
     PrivateKey privateKey();
 
-    @Named("eppServerCertificates")
+    @Prod
     X509Certificate[] certificates();
-
-    @Component.Builder
-    interface Builder {
-
-      @BindsInstance
-      Builder pemBytes(PemBytes pemBytes);
-
-      TestComponent build();
-    }
   }
 }
