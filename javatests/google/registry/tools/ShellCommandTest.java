@@ -135,8 +135,28 @@ public class ShellCommandTest {
   }
 
   @Test
+  public void testCompletion_documentation() throws Exception {
+    performJCommanderCompletorTest(
+        "testCommand ",
+        0,
+        "",
+        "Main parameter: normal argument\n  (java.util.List<java.lang.String>)\n");
+    performJCommanderCompletorTest("testAnotherCommand ", 0, "", "Main parameter: [None]\n");
+    performJCommanderCompletorTest(
+        "testCommand -x ", 0, "", "Flag documentation: test parameter\n  (java.lang.String)\n");
+    performJCommanderCompletorTest(
+        "testAnotherCommand -x ", 0, "", "Flag documentation: [No documentation available]\n");
+    performJCommanderCompletorTest(
+        "testCommand x ",
+        0,
+        "",
+        "Main parameter: normal argument\n  (java.util.List<java.lang.String>)\n");
+    performJCommanderCompletorTest("testAnotherCommand x ", 0, "", "Main parameter: [None]\n");
+  }
+
+  @Test
   public void testCompletion_arguments() throws Exception {
-    performJCommanderCompletorTest("testCommand ", 0, "-x ", "--xparam ", "--xorg ");
+    performJCommanderCompletorTest("testCommand -", 1, "-x ", "--xparam ", "--xorg ");
     performJCommanderCompletorTest("testCommand --wrong", 7);
     performJCommanderCompletorTest("testCommand noise  --", 2, "--xparam ", "--xorg ");
     performJCommanderCompletorTest("testAnotherCommand --o", 3);
