@@ -16,8 +16,8 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static java.nio.charset.StandardCharsets.US_ASCII;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.MissingCommandException;
@@ -25,10 +25,15 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import google.registry.testing.FakeClock;
 import google.registry.tools.ShellCommand.JCommanderCompletor;
-import java.io.ByteArrayInputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -37,6 +42,7 @@ import org.junit.runners.JUnit4;
 public class ShellCommandTest {
 
   CommandRunner cli = mock(CommandRunner.class);
+  FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
 
   public ShellCommandTest() {}
 
@@ -49,17 +55,67 @@ public class ShellCommandTest {
     assertThat(ShellCommand.parseCommand("")).isEqualTo(new String[0]);
   }
 
+  private ShellCommand createShellCommand(
+      CommandRunner commandRunner, Duration delay, String... commands) throws Exception {
+    ArrayDeque<String> queue = new ArrayDeque<String>(ImmutableList.copyOf(commands));
+    BufferedReader bufferedReader = mock(BufferedReader.class);
+    when(bufferedReader.readLine()).thenAnswer((x) -> {
+      clock.advanceBy(delay);
+      if (queue.isEmpty()) {
+        throw new IOException();
+      }
+      return queue.poll();
+    });
+    return new ShellCommand(bufferedReader, clock, commandRunner);
+  }
+
   @Test
-  public void testCommandProcessing() {
-    String testData = "test1 foo bar\ntest2 foo bar\n";
+  public void testCommandProcessing() throws Exception {
     MockCli cli = new MockCli();
     ShellCommand shellCommand =
-        new ShellCommand(new ByteArrayInputStream(testData.getBytes(US_ASCII)), cli);
+        createShellCommand(cli, Duration.ZERO, "test1 foo bar", "test2 foo bar");
     shellCommand.run();
     assertThat(cli.calls)
         .containsExactly(
             ImmutableList.of("test1", "foo", "bar"), ImmutableList.of("test2", "foo", "bar"))
         .inOrder();
+  }
+
+  @Test
+  public void testNoIdleWhenInAlpha() throws Exception {
+    RegistryToolEnvironment.ALPHA.setup();
+    MockCli cli = new MockCli();
+    ShellCommand shellCommand =
+        createShellCommand(cli, Duration.standardDays(1), "test1 foo bar", "test2 foo bar");
+    shellCommand.run();
+  }
+
+  @Test
+  public void testNoIdleWhenInSandbox() throws Exception {
+    RegistryToolEnvironment.SANDBOX.setup();
+    MockCli cli = new MockCli();
+    ShellCommand shellCommand =
+        createShellCommand(cli, Duration.standardDays(1), "test1 foo bar", "test2 foo bar");
+    shellCommand.run();
+  }
+
+  @Test
+  public void testIdleWhenOverHourInProduction() throws Exception {
+    RegistryToolEnvironment.PRODUCTION.setup();
+    MockCli cli = new MockCli();
+    ShellCommand shellCommand =
+        createShellCommand(cli, Duration.standardMinutes(61), "test1 foo bar", "test2 foo bar");
+    RuntimeException exception = assertThrows(RuntimeException.class, shellCommand::run);
+    assertThat(exception).hasMessageThat().contains("Been idle for too long");
+  }
+
+  @Test
+  public void testNoIdleWhenUnderHourInProduction() throws Exception {
+    RegistryToolEnvironment.PRODUCTION.setup();
+    MockCli cli = new MockCli();
+    ShellCommand shellCommand =
+        createShellCommand(cli, Duration.standardMinutes(59), "test1 foo bar", "test2 foo bar");
+    shellCommand.run();
   }
 
   static class MockCli implements CommandRunner {

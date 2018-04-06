@@ -19,11 +19,15 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.Parameters;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableTable;
+import google.registry.util.Clock;
+import google.registry.util.SystemClock;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +45,8 @@ import jline.ConsoleReader;
 import jline.ConsoleReaderInputStream;
 import jline.FileNameCompletor;
 import jline.History;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /**
  * Implements a tiny shell interpreter for the nomulus tool.
@@ -52,10 +58,22 @@ import jline.History;
 public class ShellCommand implements Command {
 
   private static final String HISTORY_FILE = ".nomulus_history";
+  private static final String RESET = "\u001b[0m";
+  private static final String NON_ALERT_COLOR = "\u001b[32m"; // green foreground
+  private static final String ALERT_COLOR = "\u001b[1;41;97m"; // red background
+  private static final Duration IDLE_THRESHOLD = Duration.standardHours(1);
 
   private final CommandRunner runner;
   private final BufferedReader lineReader;
   private final ConsoleReader consoleReader;
+  private final Clock clock;
+
+  @Parameter(
+      names = {"--dont_exit_on_idle"},
+      description =
+          "Prevents the shell from exiting on PROD after the 1 hour idle delay. "
+              + "Will instead warn you and require re-running the command.")
+  boolean dontExitOnIdle = false;
 
   public ShellCommand(CommandRunner runner) throws IOException {
     this.runner = runner;
@@ -71,20 +89,29 @@ public class ShellCommand implements Command {
       consoleReader = null;
     }
     this.lineReader = new BufferedReader(new InputStreamReader(in, US_ASCII));
+    this.clock = new SystemClock();
   }
 
   @VisibleForTesting
-  ShellCommand(InputStream in, CommandRunner runner) {
+  ShellCommand(BufferedReader bufferedReader, Clock clock, CommandRunner runner) {
     this.runner = runner;
-    this.lineReader = new BufferedReader(new InputStreamReader(in, US_ASCII));
+    this.lineReader = bufferedReader;
+    this.clock = clock;
     this.consoleReader = null;
   }
 
-  public ShellCommand setPrompt(String prompt) {
-    if (consoleReader != null) {
-      consoleReader.setDefaultPrompt(prompt);
+  private void setPrompt(RegistryToolEnvironment environment, boolean alert) {
+    if (consoleReader == null) {
+      return;
     }
-    return this;
+    if (alert) {
+      consoleReader.setDefaultPrompt(
+          String.format("nom@%s%s%s > ", ALERT_COLOR, environment, RESET));
+    } else {
+      consoleReader.setDefaultPrompt(
+          String.format(
+              "nom@%s%s%s > ", NON_ALERT_COLOR, Ascii.toLowerCase(environment.toString()), RESET));
+    }
   }
 
   public ShellCommand buildCompletions(JCommander jcommander) {
@@ -101,8 +128,21 @@ public class ShellCommand implements Command {
   /** Run the shell until the user presses "Ctrl-D". */
   @Override
   public void run() {
+    // On Production we want to be extra careful - to prevent accidental use.
+    boolean beExtraCareful = (RegistryToolEnvironment.get() == RegistryToolEnvironment.PRODUCTION);
+    setPrompt(RegistryToolEnvironment.get(), beExtraCareful);
     String line;
+    DateTime lastTime = clock.nowUtc();
     while ((line = getLine()) != null) {
+      // Make sure we're not idle for too long. Only relevant when we're "extra careful"
+      if (!dontExitOnIdle
+          && beExtraCareful
+          && lastTime.plus(IDLE_THRESHOLD).isBefore(clock.nowUtc())) {
+        throw new RuntimeException(
+            "Been idle for too long, while in 'extra careful' mode. "
+            + "The last command was saved in history. Please rerun the shell and try again.");
+      }
+      lastTime = clock.nowUtc();
       String[] lineArgs = parseCommand(line);
       if (lineArgs.length == 0) {
         continue;

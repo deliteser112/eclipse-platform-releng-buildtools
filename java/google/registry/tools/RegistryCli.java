@@ -104,10 +104,9 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
     // Create the "help" and "shell" commands (these are special in that they don't have a default
     // constructor).
     jcommander.addCommand("help", new HelpCommand(jcommander));
-    ShellCommand shellCommand = null;
     if (isFirstUse) {
       isFirstUse = false;
-      shellCommand = new ShellCommand(this);
+      ShellCommand shellCommand = new ShellCommand(this);
       // We have to build the completions based on the jcommander *before* we add the "shell"
       // command - to avoid completion for the "shell" command itself.
       shellCommand.buildCompletions(jcommander);
@@ -138,11 +137,6 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
 
     checkState(RegistryToolEnvironment.get() == environment,
         "RegistryToolEnvironment argument pre-processing kludge failed.");
-
-    // We have to set the prompt here, because the environment wasn't set until this point
-    if (shellCommand != null) {
-      shellCommand.setPrompt(String.format("nom@%s > ", environment));
-    }
 
     // JCommander stores sub-commands as nested JCommander objects containing a list of user objects
     // to be populated.  Extract the subcommand by getting the JCommander wrapper and then
