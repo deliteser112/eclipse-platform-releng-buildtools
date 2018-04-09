@@ -14,9 +14,7 @@
 
 package google.registry.module.frontend;
 
-import static com.google.common.io.Resources.getResource;
 
-import google.registry.request.RouterDisplayHelper;
 import google.registry.testing.GoldenFileTestHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,10 +26,8 @@ public class FrontendRequestComponentTest {
 
   @Test
   public void testRoutingMap() throws Exception {
-    GoldenFileTestHelper.testGoldenFile(
-        RouterDisplayHelper.extractHumanReadableRoutesFromComponent(FrontendRequestComponent.class),
-        getResource(FrontendRequestComponentTest.class, "testdata/frontend_routing.txt"),
-        "frontend routing map",
-        "get_routing_map -c " + FrontendRequestComponent.class.getName());
+    GoldenFileTestHelper.assertThatRoutesFromComponent(FrontendRequestComponent.class)
+        .describedAs("frontend routing map")
+        .isEqualToGolden(FrontendRequestComponentTest.class, "frontend_routing.txt");
   }
 }

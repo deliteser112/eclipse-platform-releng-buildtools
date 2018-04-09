@@ -14,9 +14,6 @@
 
 package google.registry.module.backend;
 
-import static com.google.common.io.Resources.getResource;
-
-import google.registry.request.RouterDisplayHelper;
 import google.registry.testing.GoldenFileTestHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,10 +25,8 @@ public class BackendRequestComponentTest {
 
   @Test
   public void testRoutingMap() throws Exception {
-    GoldenFileTestHelper.testGoldenFile(
-        RouterDisplayHelper.extractHumanReadableRoutesFromComponent(BackendRequestComponent.class),
-        getResource(BackendRequestComponentTest.class, "testdata/backend_routing.txt"),
-        "backend routing map",
-        "get_routing_map -c " + BackendRequestComponent.class.getName());
+    GoldenFileTestHelper.assertThatRoutesFromComponent(BackendRequestComponent.class)
+        .describedAs("backend routing map")
+        .isEqualToGolden(BackendRequestComponentTest.class, "backend_routing.txt");
   }
 }

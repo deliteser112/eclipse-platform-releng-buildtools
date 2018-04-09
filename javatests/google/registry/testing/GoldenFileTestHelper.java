@@ -14,12 +14,14 @@
 
 package google.registry.testing;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.Truth.assert_;
-import static google.registry.util.ResourceUtils.readResourceUtf8;
+import static google.registry.testing.TestDataHelper.filePath;
+import static google.registry.testing.TestDataHelper.loadFile;
 
 import com.google.common.base.Joiner;
-import java.net.MalformedURLException;
-import java.net.URL;
+import google.registry.request.RouterDisplayHelper;
 
 /**
  * Helper class to compare a string against a golden file and print out update instructions if
@@ -27,8 +29,12 @@ import java.net.URL;
  */
 public class GoldenFileTestHelper {
 
+  String actualValue = null;
+  String nomulusCommand = null;
+  String goldenFileDescription = null;
+
   private static final String UPDATE_COMMAND =
-      "google.registry.tools.RegistryTool -e localhost %1$s >javatests%2$s";
+      "google.registry.tools.RegistryTool -e localhost %1$s > %2$s";
 
   private static final String UPDATE_INSTRUCTIONS =
       Joiner.on('\n')
@@ -39,36 +45,46 @@ public class GoldenFileTestHelper {
               UPDATE_COMMAND,
               "");
 
-  private static String getPathProper(URL url) throws MalformedURLException {
-    String protocol = url.getProtocol();
-    if (protocol.equals("jar")) {
-      url = new URL(url.getPath());
-      protocol = url.getProtocol();
-    }
-    if (protocol.equals("file")) {
-      String[] components = url.getPath().split("!");
-      if (components.length >= 2) {
-        return components[1];
-      }
-    }
-    return url.getPath();
+
+  public static GoldenFileTestHelper assertThat(String actualValue) {
+    return new GoldenFileTestHelper().setActualValue(actualValue);
   }
 
-  public static void testGoldenFile(
-      String actualValue,
-      URL goldenFileUrl,
-      String goldenFileDescription,
-      String nomulusCommand)
-      throws Exception {
-    // Don't use Truth's isEqualTo() because the output is huge and unreadable for large files.
-    if (!actualValue.equals(readResourceUtf8(goldenFileUrl).trim())) {
+  public static GoldenFileTestHelper assertThatRoutesFromComponent(Class<?> component) {
+    return assertThat(RouterDisplayHelper.extractHumanReadableRoutesFromComponent(component))
+        .createdByNomulusCommand("get_routing_map -c " + component.getName());
+  }
+
+  public GoldenFileTestHelper createdByNomulusCommand(String nomulusCommand) {
+    checkState(this.nomulusCommand == null, "Trying to set nomulus command twice");
+    this.nomulusCommand = checkNotNull(nomulusCommand);
+    return this;
+  }
+
+  public GoldenFileTestHelper describedAs(String goldenFileDescription) {
+    checkState(this.goldenFileDescription == null, "Trying to set description twice");
+    this.goldenFileDescription = checkNotNull(goldenFileDescription);
+    return this;
+  }
+
+  public void isEqualToGolden(Class<?> context, String filename) {
+    checkNotNull(nomulusCommand, "Didn't set nomulus command");
+    checkNotNull(goldenFileDescription, "Didn't set description");
+    checkNotNull(context);
+    checkNotNull(filename);
+    if (!actualValue.equals(loadFile(context, filename).trim())) {
       assert_()
           .fail(
               String.format(
                   UPDATE_INSTRUCTIONS,
                   nomulusCommand,
-                  getPathProper(goldenFileUrl),
+                  filePath(context, filename),
                   goldenFileDescription));
     }
+  }
+
+  private GoldenFileTestHelper setActualValue(String actualValue) {
+    this.actualValue = checkNotNull(actualValue);
+    return this;
   }
 }

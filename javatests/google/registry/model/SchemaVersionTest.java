@@ -14,8 +14,6 @@
 
 package google.registry.model;
 
-import static com.google.common.io.Resources.getResource;
-
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.GoldenFileTestHelper;
 import org.junit.Rule;
@@ -36,10 +34,9 @@ public class SchemaVersionTest {
 
   @Test
   public void testGoldenSchemaFile() throws Exception {
-    GoldenFileTestHelper.testGoldenFile(
-        SchemaVersion.getSchema(),
-        getResource(SchemaVersionTest.class, "schema.txt"),
-        "Datastore schema",
-        "get_schema");
+    GoldenFileTestHelper.assertThat(SchemaVersion.getSchema())
+        .describedAs("Datastore schema")
+        .createdByNomulusCommand("get_schema")
+        .isEqualToGolden(SchemaVersionTest.class, "schema.txt");
   }
 }

@@ -16,8 +16,7 @@ java_library(
         "**/*.java",
     ]),
     resources = [
-        "schema.txt",
-    ] + glob(["**/testdata/*.xml"]),
+    ] + glob(["**/testdata/*"]),
     deps = [
         "//java/google/registry/config",
         "//java/google/registry/dns/writer",

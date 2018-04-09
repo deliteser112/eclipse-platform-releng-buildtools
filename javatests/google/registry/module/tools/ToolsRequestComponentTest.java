@@ -14,9 +14,6 @@
 
 package google.registry.module.tools;
 
-import static com.google.common.io.Resources.getResource;
-
-import google.registry.request.RouterDisplayHelper;
 import google.registry.testing.GoldenFileTestHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,10 +25,8 @@ public class ToolsRequestComponentTest {
 
   @Test
   public void testRoutingMap() throws Exception {
-    GoldenFileTestHelper.testGoldenFile(
-        RouterDisplayHelper.extractHumanReadableRoutesFromComponent(ToolsRequestComponent.class),
-        getResource(ToolsRequestComponentTest.class, "testdata/tools_routing.txt"),
-        "tools routing map",
-        "get_routing_map -c " + ToolsRequestComponent.class.getName());
+    GoldenFileTestHelper.assertThatRoutesFromComponent(ToolsRequestComponent.class)
+        .describedAs("tools routing map")
+        .isEqualToGolden(ToolsRequestComponentTest.class, "tools_routing.txt");
   }
 }
