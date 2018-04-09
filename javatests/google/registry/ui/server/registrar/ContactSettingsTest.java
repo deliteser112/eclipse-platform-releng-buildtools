@@ -113,7 +113,8 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
         .setTypes(ImmutableSet.of(RegistrarContact.Type.ADMIN, RegistrarContact.Type.TECH))
         .build();
     // Lest we anger the timestamp inversion bug.
-    persistResource(registrar);
+    // (we also update the registrar so we get the timestamp right)
+    registrar = persistResource(registrar);
     persistSimpleResource(rc);
 
     // Now try to remove the phone number.
@@ -138,7 +139,8 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
             .setVisibleInDomainWhoisAsAbuse(true)
             .build();
     // Lest we anger the timestamp inversion bug.
-    persistResource(registrar);
+    // (we also update the registrar so we get the timestamp right)
+    registrar = persistResource(registrar);
     persistSimpleResource(rc);
 
     // Now try to remove the contact.
@@ -164,7 +166,8 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
             .setVisibleInDomainWhoisAsAbuse(true)
             .build();
     // Lest we anger the timestamp inversion bug.
-    persistResource(registrar);
+    // (we also update the registrar so we get the timestamp right)
+    registrar = persistResource(registrar);
     persistSimpleResource(rc);
 
     // Now try to set the phone number to null.

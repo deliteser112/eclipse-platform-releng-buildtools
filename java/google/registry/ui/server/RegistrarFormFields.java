@@ -37,7 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
+import javax.annotation.Nullable;
+import org.joda.time.DateTime;
 
 /** Form fields for validating input for the {@code Registrar} class. */
 public final class RegistrarFormFields {
@@ -46,28 +47,15 @@ public final class RegistrarFormFields {
   public static final Pattern ASCII_PATTERN = Pattern.compile("[[:ascii:]]*");
   public static final String ASCII_ERROR = "Please only use ASCII-US characters.";
 
-  private static final Function<String, CidrAddressBlock> CIDR_TRANSFORM =
-      input -> {
-        try {
-          return input != null ? CidrAddressBlock.create(input) : null;
-        } catch (IllegalArgumentException e) {
-          throw new FormFieldException("Not a valid CIDR notation IP-address block.", e);
-        }
-      };
-
-  private static final Function<String, String> HOSTNAME_TRANSFORM =
-      input -> {
-        if (input == null) {
-          return null;
-        }
-        if (!InternetDomainName.isValid(input)) {
-          throw new FormFieldException("Not a valid hostname.");
-        }
-        return canonicalizeDomainName(input);
-      };
-
   public static final FormField<String, String> NAME_FIELD =
       FormFields.NAME.asBuilderNamed("registrarName")
+          .required()
+          .build();
+
+  public static final FormField<String, DateTime> LAST_UPDATE_TIME =
+      FormFields.LABEL
+          .asBuilderNamed("lastUpdateTime")
+          .transform(DateTime.class, RegistrarFormFields::parseDateTime)
           .required()
           .build();
 
@@ -111,7 +99,7 @@ public final class RegistrarFormFields {
 
   public static final FormField<String, String> WHOIS_SERVER_FIELD =
       FormFields.LABEL.asBuilderNamed("whoisServer")
-          .transform(HOSTNAME_TRANSFORM)
+          .transform(RegistrarFormFields::parseHostname)
           .build();
 
   public static final FormField<Boolean, Boolean> BLOCK_PREMIUM_NAMES_FIELD =
@@ -173,7 +161,7 @@ public final class RegistrarFormFields {
   public static final FormField<List<String>, List<CidrAddressBlock>> IP_ADDRESS_WHITELIST_FIELD =
       FormField.named("ipAddressWhitelist")
           .emptyToNull()
-          .transform(CidrAddressBlock.class, CIDR_TRANSFORM)
+          .transform(CidrAddressBlock.class, RegistrarFormFields::parseCidr)
           .asList()
           .build();
 
@@ -228,34 +216,9 @@ public final class RegistrarFormFields {
           .asSet(Splitter.on(',').omitEmptyStrings().trimResults())
           .build();
 
-  public static final Function<Map<String, ?>, RegistrarContact.Builder>
-      REGISTRAR_CONTACT_TRANSFORM =
-          args -> {
-            if (args == null) {
-              return null;
-            }
-            RegistrarContact.Builder builder = new RegistrarContact.Builder();
-            CONTACT_NAME_FIELD.extractUntyped(args).ifPresent(builder::setName);
-            CONTACT_EMAIL_ADDRESS_FIELD.extractUntyped(args).ifPresent(builder::setEmailAddress);
-            CONTACT_VISIBLE_IN_WHOIS_AS_ADMIN_FIELD
-                .extractUntyped(args)
-                .ifPresent(builder::setVisibleInWhoisAsAdmin);
-            CONTACT_VISIBLE_IN_WHOIS_AS_TECH_FIELD
-                .extractUntyped(args)
-                .ifPresent(builder::setVisibleInWhoisAsTech);
-            PHONE_AND_EMAIL_VISIBLE_IN_DOMAIN_WHOIS_AS_ABUSE_FIELD
-                .extractUntyped(args)
-                .ifPresent(builder::setVisibleInDomainWhoisAsAbuse);
-            CONTACT_PHONE_NUMBER_FIELD.extractUntyped(args).ifPresent(builder::setPhoneNumber);
-            CONTACT_FAX_NUMBER_FIELD.extractUntyped(args).ifPresent(builder::setFaxNumber);
-            CONTACT_TYPES.extractUntyped(args).ifPresent(builder::setTypes);
-            CONTACT_GAE_USER_ID_FIELD.extractUntyped(args).ifPresent(builder::setGaeUserId);
-            return builder;
-          };
-
   public static final FormField<List<Map<String, ?>>, List<RegistrarContact.Builder>>
       CONTACTS_FIELD = FormField.mapNamed("contacts")
-          .transform(RegistrarContact.Builder.class, REGISTRAR_CONTACT_TRANSFORM)
+          .transform(RegistrarContact.Builder.class, RegistrarFormFields::toRegistrarContactBuilder)
           .asList()
           .build();
 
@@ -316,42 +279,94 @@ public final class RegistrarFormFields {
 
   public static final FormField<Map<String, ?>, RegistrarAddress> L10N_ADDRESS_FIELD =
       FormField.mapNamed("localizedAddress")
-          .transform(RegistrarAddress.class, newAddressTransform(
-              L10N_STREET_FIELD, L10N_CITY_FIELD, L10N_STATE_FIELD, L10N_ZIP_FIELD))
+          .transform(RegistrarAddress.class, (args) -> toNewAddress(
+              args, L10N_STREET_FIELD, L10N_CITY_FIELD, L10N_STATE_FIELD, L10N_ZIP_FIELD))
           .build();
 
   public static final FormField<Boolean, Boolean> PREMIUM_PRICE_ACK_REQUIRED =
       FormField.named("premiumPriceAckRequired", Boolean.class).build();
 
-  private static Function<Map<String, ?>, RegistrarAddress> newAddressTransform(
+  private static @Nullable RegistrarAddress toNewAddress(
+      @Nullable Map<String, ?> args,
       final FormField<List<String>, List<String>> streetField,
       final FormField<String, String> cityField,
       final FormField<String, String> stateField,
       final FormField<String, String> zipField) {
-    return args -> {
-      if (args == null) {
-        return null;
-      }
-      RegistrarAddress.Builder builder = new RegistrarAddress.Builder();
-      String countryCode = COUNTRY_CODE_FIELD.extractUntyped(args).get();
-      builder.setCountryCode(countryCode);
-      streetField
-          .extractUntyped(args)
-          .ifPresent(streets -> builder.setStreet(ImmutableList.copyOf(streets)));
-      cityField.extractUntyped(args).ifPresent(builder::setCity);
-      Optional<String> stateFieldValue = stateField.extractUntyped(args);
-      if (stateFieldValue.isPresent()) {
-        String state = stateFieldValue.get();
-        if ("US".equals(countryCode)) {
-          state = Ascii.toUpperCase(state);
-          if (!StateCode.US_MAP.containsKey(state)) {
-            throw new FormFieldException(stateField, "Unknown US state code.");
-          }
+    if (args == null) {
+      return null;
+    }
+    RegistrarAddress.Builder builder = new RegistrarAddress.Builder();
+    String countryCode = COUNTRY_CODE_FIELD.extractUntyped(args).get();
+    builder.setCountryCode(countryCode);
+    streetField
+        .extractUntyped(args)
+        .ifPresent(streets -> builder.setStreet(ImmutableList.copyOf(streets)));
+    cityField.extractUntyped(args).ifPresent(builder::setCity);
+    Optional<String> stateFieldValue = stateField.extractUntyped(args);
+    if (stateFieldValue.isPresent()) {
+      String state = stateFieldValue.get();
+      if ("US".equals(countryCode)) {
+        state = Ascii.toUpperCase(state);
+        if (!StateCode.US_MAP.containsKey(state)) {
+          throw new FormFieldException(stateField, "Unknown US state code.");
         }
-        builder.setState(state);
       }
-      zipField.extractUntyped(args).ifPresent(builder::setZip);
-      return builder.build();
-    };
+      builder.setState(state);
+    }
+    zipField.extractUntyped(args).ifPresent(builder::setZip);
+    return builder.build();
+  }
+
+  private static CidrAddressBlock parseCidr(String input) {
+    try {
+      return input != null ? CidrAddressBlock.create(input) : null;
+    } catch (IllegalArgumentException e) {
+      throw new FormFieldException("Not a valid CIDR notation IP-address block.", e);
+    }
+  }
+
+  private static @Nullable String parseHostname(@Nullable String input) {
+    if (input == null) {
+      return null;
+    }
+    if (!InternetDomainName.isValid(input)) {
+      throw new FormFieldException("Not a valid hostname.");
+    }
+    return canonicalizeDomainName(input);
+  }
+
+  public static @Nullable DateTime parseDateTime(@Nullable String input) {
+    if (input == null) {
+      return null;
+    }
+    try {
+      return DateTime.parse(input);
+    } catch (IllegalArgumentException e) {
+      throw new FormFieldException("Not a valid ISO date-time string.", e);
+    }
+  }
+
+  private static @Nullable RegistrarContact.Builder toRegistrarContactBuilder(
+      @Nullable Map<String, ?> args) {
+    if (args == null) {
+      return null;
+    }
+    RegistrarContact.Builder builder = new RegistrarContact.Builder();
+    CONTACT_NAME_FIELD.extractUntyped(args).ifPresent(builder::setName);
+    CONTACT_EMAIL_ADDRESS_FIELD.extractUntyped(args).ifPresent(builder::setEmailAddress);
+    CONTACT_VISIBLE_IN_WHOIS_AS_ADMIN_FIELD
+        .extractUntyped(args)
+        .ifPresent(builder::setVisibleInWhoisAsAdmin);
+    CONTACT_VISIBLE_IN_WHOIS_AS_TECH_FIELD
+        .extractUntyped(args)
+        .ifPresent(builder::setVisibleInWhoisAsTech);
+    PHONE_AND_EMAIL_VISIBLE_IN_DOMAIN_WHOIS_AS_ABUSE_FIELD
+        .extractUntyped(args)
+        .ifPresent(builder::setVisibleInDomainWhoisAsAbuse);
+    CONTACT_PHONE_NUMBER_FIELD.extractUntyped(args).ifPresent(builder::setPhoneNumber);
+    CONTACT_FAX_NUMBER_FIELD.extractUntyped(args).ifPresent(builder::setFaxNumber);
+    CONTACT_TYPES.extractUntyped(args).ifPresent(builder::setTypes);
+    CONTACT_GAE_USER_ID_FIELD.extractUntyped(args).ifPresent(builder::setGaeUserId);
+    return builder;
   }
 }

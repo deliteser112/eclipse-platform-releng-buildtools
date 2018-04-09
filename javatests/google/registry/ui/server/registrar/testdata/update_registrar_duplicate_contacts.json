@@ -4,7 +4,7 @@
     "clientIdentifier": "theregistrar",
     "driveFolderId": null,
     "registrarName": "The Registrar",
-    "lastUpdateTime": "2015-01-22T17:27:36.999Z",
+    "lastUpdateTime": "%LAST_UPDATE_TIME%",
     "state": "ACTIVE",
     "type": "REAL",
     "contacts": [

@@ -78,6 +78,8 @@ registry.json.Response.prototype.results;
  *   icannReferralEmail: string,
  *   ipAddressWhitelist: !Array<string>,
  *   emailAddress: (string?|undefined),
+ *   lastUpdateTime: string,
+ *   url: (string?|undefined),
  *   phonePasscode: (string?|undefined),
  *   phoneNumber: (string?|undefined),
  *   faxNumber: (string?|undefined),

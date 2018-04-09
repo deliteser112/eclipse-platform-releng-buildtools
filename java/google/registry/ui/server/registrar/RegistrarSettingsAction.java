@@ -27,7 +27,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Streams;
-import com.googlecode.objectify.Work;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
@@ -55,6 +54,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.DateTime;
 
 /**
  * Admin servlet that allows creating or updating a registrar. Deletes are not allowed so as to
@@ -112,7 +112,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     try {
       switch (op) {
         case "update":
-          return update(args, initialRegistrar);
+          return update(args, initialRegistrar.getClientId());
         case "read":
           return JsonResponseHelper.create(SUCCESS, "Success", initialRegistrar.toJsonMap());
         default:
@@ -135,41 +135,66 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
           args);
       return JsonResponseHelper.create(ERROR, e.getMessage());
     }
-
   }
 
-  Map<String, Object> update(final Map<String, ?> args, final Registrar registrar) {
-    final String clientId = sessionUtils.getRegistrarClientId(request);
+  Map<String, Object> update(final Map<String, ?> args, String clientId) {
     return ofy()
         .transact(
-            (Work<Map<String, Object>>)
-                () -> {
-                  ImmutableSet<RegistrarContact> oldContacts = registrar.getContacts();
-                  Map<String, Object> existingRegistrarMap =
-                      expandRegistrarWithContacts(oldContacts, registrar);
-                  Registrar.Builder builder = registrar.asBuilder();
-                  ImmutableSet<RegistrarContact> updatedContacts =
-                      changeRegistrarFields(registrar, builder, args);
-                  if (!updatedContacts.isEmpty()) {
-                    builder.setContactsRequireSyncing(true);
-                  }
-                  Registrar updatedRegistrar = builder.build();
-                  ofy().save().entity(updatedRegistrar);
-                  if (!updatedContacts.isEmpty()) {
-                    checkContactRequirements(oldContacts, updatedContacts);
-                    RegistrarContact.updateContacts(updatedRegistrar, updatedContacts);
-                  }
-                  // Update the registrar map with updated contacts to bypass Objectify caching
-                  // issues that come into play with calling getContacts().
-                  Map<String, Object> updatedRegistrarMap =
-                      expandRegistrarWithContacts(updatedContacts, updatedRegistrar);
-                  sendExternalUpdatesIfNecessary(
-                      updatedRegistrar.getRegistrarName(),
-                      existingRegistrarMap,
-                      updatedRegistrarMap);
-                  return JsonResponseHelper.create(
-                      SUCCESS, "Saved " + clientId, updatedRegistrar.toJsonMap());
-                });
+            () -> {
+              // We load the registrar here rather than use the initialRegistrar above - to make
+              // sure we have the latest version. This one is loaded inside the transaction, so it's
+              // guaranteed to not change before we update it.
+              Registrar registrar = Registrar.loadByClientId(clientId).get();
+              // Verify that the registrar hasn't been changed.
+              // To do that - we find the latest update time (or null if the registrar has been
+              // deleted) and compare to the update time from the args. The update time in the args
+              // comes from the read that gave the UI the data - if it's out of date, then the UI
+              // had out of date data.
+              DateTime latest = registrar.getLastUpdateTime();
+              DateTime latestFromArgs =
+                  RegistrarFormFields.LAST_UPDATE_TIME.extractUntyped(args).get();
+              if (!latestFromArgs.equals(latest)) {
+                logger.warningfmt(
+                    "registrar changed since reading the data! "
+                        + " Last updated at %s, but args data last updated at %s",
+                    latest, latestFromArgs);
+                return JsonResponseHelper.create(
+                    ERROR, "registrar has been changed by someone else. Please reload and retry.");
+              }
+
+              // Keep the current contacts so we can later check that no required contact was
+              // removed, email the changes to the contacts
+              ImmutableSet<RegistrarContact> contacts = registrar.getContacts();
+
+              // Update the registrar from the request.
+              Registrar.Builder builder = registrar.asBuilder();
+              changeRegistrarFields(registrar, builder, args);
+
+              // read the contacts from the request.
+              ImmutableSet<RegistrarContact> updatedContacts =
+                  readContacts(registrar, args);
+              if (!updatedContacts.isEmpty()) {
+                builder.setContactsRequireSyncing(true);
+              }
+
+              // Save the updated registrar
+              Registrar updatedRegistrar = builder.build();
+              if (!updatedRegistrar.equals(registrar)) {
+                ofy().save().entity(updatedRegistrar);
+              }
+
+              // Save the updated contacts
+              if (!updatedContacts.isEmpty()) {
+                checkContactRequirements(contacts, updatedContacts);
+                RegistrarContact.updateContacts(updatedRegistrar, updatedContacts);
+              }
+
+              // Email and return update.
+              sendExternalUpdatesIfNecessary(
+                  registrar, contacts, updatedRegistrar, updatedContacts);
+              return JsonResponseHelper.create(
+                  SUCCESS, "Saved " + clientId, updatedRegistrar.toJsonMap());
+            });
   }
 
   private Map<String, Object> expandRegistrarWithContacts(Iterable<RegistrarContact> contacts,
@@ -186,11 +211,15 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
   }
 
   /**
-   * Updates a registrar builder with the supplied args from the http request, and returns a list of
-   * the new registrar contacts.
+   * Updates a registrar builder with the supplied args from the http request;
    */
-  public static ImmutableSet<RegistrarContact> changeRegistrarFields(
+  public static void changeRegistrarFields(
       Registrar existingRegistrarObj, Registrar.Builder builder, Map<String, ?> args) {
+
+    // BILLING
+    RegistrarFormFields.PREMIUM_PRICE_ACK_REQUIRED
+        .extractUntyped(args)
+        .ifPresent(builder::setPremiumPriceAckRequired);
 
     // WHOIS
     builder.setWhoisServer(
@@ -212,6 +241,8 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     builder.setLocalizedAddress(
         RegistrarFormFields.L10N_ADDRESS_FIELD.extractUntyped(args).orElse(null));
 
+    builder.setUrl(RegistrarFormFields.URL_FIELD.extractUntyped(args).orElse(null));
+
     // Security
     builder.setIpAddressWhitelist(
         RegistrarFormFields.IP_ADDRESS_WHITELIST_FIELD
@@ -226,17 +257,16 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
         .ifPresent(
             certificate ->
                 builder.setFailoverClientCertificate(certificate, ofy().getTransactionTime()));
+  }
 
-    builder.setUrl(
-        RegistrarFormFields.URL_FIELD.extractUntyped(args).orElse(null));
-    builder.setReferralUrl(
-        RegistrarFormFields.REFERRAL_URL_FIELD.extractUntyped(args).orElse(null));
+  /** Reads the contacts from the supplied args. */
+  public static ImmutableSet<RegistrarContact> readContacts(
+      Registrar registrar, Map<String, ?> args) {
 
-    // Contact
     ImmutableSet.Builder<RegistrarContact> contacts = new ImmutableSet.Builder<>();
     Optional<List<Builder>> builders = RegistrarFormFields.CONTACTS_FIELD.extractUntyped(args);
     if (builders.isPresent()) {
-      builders.get().forEach(c -> contacts.add(c.setParent(existingRegistrarObj).build()));
+      builders.get().forEach(c -> contacts.add(c.setParent(registrar).build()));
     }
 
     return contacts.build();
@@ -332,10 +362,19 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
    * enqueues a task to re-sync the registrar sheet.
    */
   private void sendExternalUpdatesIfNecessary(
-      String registrarName,
-      Map<String, Object> existingRegistrar,
-      Map<String, Object> updatedRegistrar) {
-    Map<?, ?> diffs = DiffUtils.deepDiff(existingRegistrar, updatedRegistrar, true);
+      Registrar existingRegistrar,
+      ImmutableSet<RegistrarContact> existingContacts,
+      Registrar updatedRegistrar,
+      ImmutableSet<RegistrarContact> updatedContacts) {
+    if (registrarChangesNotificationEmailAddresses.isEmpty()) {
+      return;
+    }
+
+    Map<?, ?> diffs =
+        DiffUtils.deepDiff(
+            expandRegistrarWithContacts(existingContacts, existingRegistrar),
+            expandRegistrarWithContacts(updatedContacts, updatedRegistrar),
+            true);
     @SuppressWarnings("unchecked")
     Set<String> changedKeys = (Set<String>) diffs.keySet();
     if (CollectionUtils.difference(changedKeys, "lastUpdateTime").isEmpty()) {
@@ -345,7 +384,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     if (!registrarChangesNotificationEmailAddresses.isEmpty()) {
       sendEmailUtils.sendEmail(
           registrarChangesNotificationEmailAddresses,
-          String.format("Registrar %s updated", registrarName),
+          String.format("Registrar %s updated", existingRegistrar.getRegistrarName()),
           "The following changes were made to the registrar:\n"
               + DiffUtils.prettyPrintDiffedMap(diffs, null));
     }

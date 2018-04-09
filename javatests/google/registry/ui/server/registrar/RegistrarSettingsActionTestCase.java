@@ -19,7 +19,6 @@ import static google.registry.config.RegistryConfig.getGSuiteOutgoingEmailDispla
 import static google.registry.security.JsonHttpTestUtils.createJsonPayload;
 import static google.registry.security.JsonHttpTestUtils.createJsonResponseSupplier;
 import static google.registry.testing.DatastoreHelper.loadRegistrar;
-import static google.registry.testing.TestDataHelper.loadFile;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -50,8 +49,6 @@ import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.joda.time.DateTime;
-import org.json.simple.JSONValue;
-import org.json.simple.parser.ParseException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
@@ -113,16 +110,5 @@ public class RegistrarSettingsActionTestCase {
     when(sessionUtils.getRegistrarForAuthResult(req, action.authResult))
         .thenAnswer(x -> loadRegistrar(CLIENT_ID));
     when(modulesService.getVersionHostname("backend", null)).thenReturn("backend.hostname");
-  }
-
-  static Map<String, Object> readJsonFromFile(String filename) {
-    String contents = loadFile(RegistrarSettingsActionTestCase.class, filename);
-    try {
-      @SuppressWarnings("unchecked")
-      Map<String, Object> json = (Map<String, Object>) JSONValue.parseWithException(contents);
-      return json;
-    } catch (ParseException ex) {
-      throw new RuntimeException(ex);
-    }
   }
 }
