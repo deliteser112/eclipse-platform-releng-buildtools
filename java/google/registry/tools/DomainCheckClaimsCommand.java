@@ -24,7 +24,7 @@ import java.util.List;
 
 /** A command to execute a domain check claims epp command. */
 @Parameters(separators = " =", commandDescription = "Check claims on domain(s)")
-final class DomainCheckClaimsCommand extends EppToolCommand {
+final class DomainCheckClaimsCommand extends NonMutatingEppToolCommand {
 
   @Parameter(
       names = {"-c", "--client"},

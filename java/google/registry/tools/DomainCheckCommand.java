@@ -24,7 +24,7 @@ import java.util.List;
 
 /** A command to execute a domain check epp command. */
 @Parameters(separators = " =", commandDescription = "Check domain availability")
-final class DomainCheckCommand extends EppToolCommand {
+final class DomainCheckCommand extends NonMutatingEppToolCommand {
 
   @Parameter(
       names = {"-c", "--client"},

@@ -25,17 +25,17 @@ public class DomainApplicationInfoCommandTest
 
   @Test
   public void testSuccess() throws Exception {
-    runCommandForced("--client=NewRegistrar", "--domain_name=example.tld",
+    runCommand("--client=NewRegistrar", "--domain_name=example.tld",
         "--phase=landrush", "--id=123");
-    eppVerifier.verifySent("domain_info_landrush.xml");
+    eppVerifier.expectDryRun().verifySent("domain_info_landrush.xml");
   }
 
   @Test
   public void testSuccess_subphase() throws Exception {
     // Sunrush: phase=sunrise, subphase=landrush
-    runCommandForced("--client=NewRegistrar", "--domain_name=example.tld",
+    runCommand("--client=NewRegistrar", "--domain_name=example.tld",
         "--phase=sunrush", "--id=123");
-    eppVerifier.verifySent("domain_info_sunrush.xml");
+    eppVerifier.expectDryRun().verifySent("domain_info_sunrush.xml");
   }
 
   @Test
@@ -43,7 +43,7 @@ public class DomainApplicationInfoCommandTest
     assertThrows(
         IllegalArgumentException.class,
         () ->
-            runCommandForced(
+            runCommand(
                 "--client=NewRegistrar",
                 "--domain_name=example.tld",
                 "--phase=landrise",
@@ -54,14 +54,14 @@ public class DomainApplicationInfoCommandTest
   public void testFailure_missingClientId() throws Exception {
     assertThrows(
         ParameterException.class,
-        () -> runCommandForced("--domain_name=example.tld", "--phase=sunrush", "--id=123"));
+        () -> runCommand("--domain_name=example.tld", "--phase=sunrush", "--id=123"));
   }
 
   @Test
   public void testFailure_missingPhase() throws Exception {
     assertThrows(
         ParameterException.class,
-        () -> runCommandForced("--client=NewRegistrar", "--domain_name=example.tld", "--id=123"));
+        () -> runCommand("--client=NewRegistrar", "--domain_name=example.tld", "--id=123"));
   }
 
   @Test
@@ -69,7 +69,7 @@ public class DomainApplicationInfoCommandTest
     assertThrows(
         ParameterException.class,
         () ->
-            runCommandForced(
+            runCommand(
                 "--client=NewRegistrar", "--domain_name=example.tld", "--phase=landrush"));
   }
 
@@ -78,7 +78,7 @@ public class DomainApplicationInfoCommandTest
     assertThrows(
         ParameterException.class,
         () ->
-            runCommandForced(
+            runCommand(
                 "--client=NewRegistrar",
                 "--domain_name=example.tld",
                 "--phase=landrush",
@@ -91,7 +91,7 @@ public class DomainApplicationInfoCommandTest
     assertThrows(
         ParameterException.class,
         () ->
-            runCommandForced(
+            runCommand(
                 "--client=NewRegistrar",
                 "--domain_name=example.tld",
                 "--phase=landrush",

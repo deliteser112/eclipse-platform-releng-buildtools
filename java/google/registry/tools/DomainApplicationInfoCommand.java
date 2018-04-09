@@ -25,7 +25,7 @@ import google.registry.tools.soy.DomainApplicationInfoSoyInfo;
 
 /** A command to execute a domain application info EPP command. */
 @Parameters(separators = " =", commandDescription = "Get domain application EPP info")
-final class DomainApplicationInfoCommand extends EppToolCommand {
+final class DomainApplicationInfoCommand extends NonMutatingEppToolCommand {
 
   @Parameter(
       names = {"-c", "--client"},

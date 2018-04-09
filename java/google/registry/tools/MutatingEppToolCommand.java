@@ -14,6 +14,8 @@
 
 package google.registry.tools;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.beust.jcommander.Parameter;
 
 /**
@@ -26,6 +28,12 @@ public abstract class MutatingEppToolCommand extends EppToolCommand {
       names = {"-d", "--dry_run"},
       description = "Do not actually commit any mutations")
   boolean dryRun;
+
+  @Override
+  protected boolean checkExecutionState() throws Exception {
+    checkArgument(!(force && isDryRun()), "--force and --dry_run are incompatible");
+    return true;
+  }
 
   @Override
   protected boolean isDryRun() {

@@ -32,7 +32,11 @@ public abstract class ConfirmingCommand implements Command {
     if (checkExecutionState()) {
       init();
       printLineIfNotEmpty(prompt());
-      if (force || promptForYes("Perform this command?")) {
+      if (dontRunCommand()) {
+        // This typically happens when all of the work is accomplished inside of prompt(), so do
+        // nothing further.
+        return;
+      } else if (force || promptForYes("Perform this command?")) {
         System.out.println(execute());
         printLineIfNotEmpty(postExecute());
       } else {
@@ -48,6 +52,11 @@ public abstract class ConfirmingCommand implements Command {
 
   /** Initializes the command. */
   protected void init() throws Exception {}
+
+  /** Whether to NOT run the command. Override to true for dry-run commands. */
+  protected boolean dontRunCommand() {
+    return false;
+  }
 
   /** Returns the optional extra confirmation prompt for the command. */
   protected String prompt() throws Exception {

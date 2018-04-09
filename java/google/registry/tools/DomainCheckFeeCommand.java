@@ -24,7 +24,7 @@ import java.util.List;
 
 /** A command to execute a domain check fees epp command. */
 @Parameters(separators = " =", commandDescription = "Check domain fees (for a 1-year create)")
-final class DomainCheckFeeCommand extends EppToolCommand {
+final class DomainCheckFeeCommand extends NonMutatingEppToolCommand {
 
   @Parameter(
       names = {"-c", "--client"},

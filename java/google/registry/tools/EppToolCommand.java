@@ -14,7 +14,6 @@
 
 package google.registry.tools;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.Maps.filterValues;
@@ -123,9 +122,8 @@ abstract class EppToolCommand extends ConfirmingCommand implements ServerSideCom
   }
 
   @Override
-  protected boolean checkExecutionState() throws Exception {
-    checkArgument(!(force && isDryRun()), "--force and --dry_run are incompatible");
-    return true;
+  protected boolean dontRunCommand() {
+    return isDryRun();
   }
 
   @Override

@@ -24,55 +24,57 @@ public class DomainCheckFeeCommandTest extends EppToolCommandTestCase<DomainChec
 
   @Test
   public void testSuccess() throws Exception {
-    runCommandForced("--client=NewRegistrar", "example.tld");
-    eppVerifier.verifySent("domain_check_fee.xml");
+    runCommand("--client=NewRegistrar", "example.tld");
+    eppVerifier.expectDryRun().verifySent("domain_check_fee.xml");
   }
 
   @Test
   public void testSuccess_multipleTlds() throws Exception {
-    runCommandForced("--client=NewRegistrar", "example.tld", "example.tld2");
+    runCommand("--client=NewRegistrar", "example.tld", "example.tld2");
     eppVerifier
+        .expectDryRun()
         .verifySent("domain_check_fee.xml")
         .verifySent("domain_check_fee_second_tld.xml");
   }
 
   @Test
   public void testSuccess_multipleDomains() throws Exception {
-    runCommandForced(
+    runCommand(
         "--client=NewRegistrar",
         "example.tld",
         "example2.tld",
         "example3.tld");
-    eppVerifier.verifySent("domain_check_fee_multiple.xml");
+    eppVerifier.expectDryRun().verifySent("domain_check_fee_multiple.xml");
   }
 
   @Test
   public void testSuccess_multipleDomainsAndTlds() throws Exception {
-    runCommandForced(
+    runCommand(
         "--client=NewRegistrar",
         "example.tld",
         "example2.tld",
         "example3.tld",
         "example.tld2");
     eppVerifier
+        .expectDryRun()
         .verifySent("domain_check_fee_multiple.xml")
         .verifySent("domain_check_fee_second_tld.xml");
   }
 
   @Test
   public void testFailure_missingClientId() throws Exception {
-    assertThrows(ParameterException.class, () -> runCommandForced("example.tld"));
+    assertThrows(ParameterException.class, () -> runCommand("example.tld"));
   }
 
   @Test
   public void testFailure_NoMainParameter() throws Exception {
-    assertThrows(ParameterException.class, () -> runCommandForced("--client=NewRegistrar"));
+    assertThrows(ParameterException.class, () -> runCommand("--client=NewRegistrar"));
   }
 
   @Test
   public void testFailure_unknownFlag() throws Exception {
     assertThrows(
         ParameterException.class,
-        () -> runCommandForced("--client=NewRegistrar", "--unrecognized=foo", "example.tld"));
+        () -> runCommand("--client=NewRegistrar", "--unrecognized=foo", "example.tld"));
   }
 }

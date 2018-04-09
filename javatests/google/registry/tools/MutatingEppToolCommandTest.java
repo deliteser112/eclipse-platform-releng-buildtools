@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import google.registry.tools.server.ToolsTestData;
 import java.util.List;
 import org.junit.Test;
 
-/** Unit tests for {@link EppToolCommand}. */
-public class EppToolCommandTest extends EppToolCommandTestCase<EppToolCommand> {
+/** Unit tests for {@link MutatingEppToolCommand}. */
+public class MutatingEppToolCommandTest extends EppToolCommandTestCase<MutatingEppToolCommand> {
 
-  /** Dummy implementation of EppToolCommand. */
-  @Parameters(separators = " =", commandDescription = "Dummy EppToolCommand")
-  static class TestEppToolCommand extends EppToolCommand {
+  /** Dummy implementation of MutatingEppToolCommand. */
+  @Parameters(separators = " =", commandDescription = "Dummy MutatingEppToolCommand")
+  static class TestMutatingEppToolCommand extends MutatingEppToolCommand {
 
     @Parameter(names = {"--client"})
     String clientId;
@@ -37,7 +37,7 @@ public class EppToolCommandTest extends EppToolCommandTestCase<EppToolCommand> {
     List<String> xmlPayloads;
 
     @Override
-    void initEppToolCommand() {
+    protected void initMutatingEppToolCommand() {
       for (String xmlData : xmlPayloads) {
         addXmlCommand(clientId, xmlData);
       }
@@ -45,39 +45,31 @@ public class EppToolCommandTest extends EppToolCommandTestCase<EppToolCommand> {
   }
 
   @Override
-  protected EppToolCommand newCommandInstance() {
-    return new TestEppToolCommand();
+  protected MutatingEppToolCommand newCommandInstance() {
+    return new TestMutatingEppToolCommand();
   }
 
   @Test
-  public void testSuccess_singleXmlCommand() throws Exception {
+  public void testSuccess_dryrun() throws Exception {
     // The choice of xml file is arbitrary.
-    runCommandForced(
+    runCommand(
         "--client=NewRegistrar",
+        "--dry_run",
         ToolsTestData.loadFile("contact_create.xml"));
-    eppVerifier.verifySent("contact_create.xml");
+    eppVerifier.expectDryRun().verifySent("contact_create.xml");
   }
 
   @Test
-  public void testSuccess_multipleXmlCommands() throws Exception {
-    // The choice of xml files is arbitrary.
-    runCommandForced(
-        "--client=NewRegistrar",
-        ToolsTestData.loadFile("contact_create.xml"),
-        ToolsTestData.loadFile("domain_check.xml"),
-        ToolsTestData.loadFile("domain_check_fee.xml"));
-    eppVerifier
-        .verifySent("contact_create.xml")
-        .verifySent("domain_check.xml")
-        .verifySent("domain_check_fee.xml");
-  }
-
-  @Test
-  public void testFailure_nonexistentClientId() {
-    IllegalArgumentException thrown =
+  public void testFailure_cantUseForceWithDryRun() {
+    Exception e =
         assertThrows(
             IllegalArgumentException.class,
-            () -> runCommandForced("--client=fakeclient", "fake-xml"));
-    assertThat(thrown).hasMessageThat().contains("fakeclient");
+            () ->
+                runCommand(
+                    "--force",
+                    "--dry_run",
+                    "--client=NewRegistrar",
+                    ToolsTestData.loadFile("domain_check.xml")));
+    assertThat(e).hasMessageThat().isEqualTo("--force and --dry_run are incompatible");
   }
 }
