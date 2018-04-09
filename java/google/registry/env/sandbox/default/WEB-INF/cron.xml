@@ -18,39 +18,7 @@
       and streams it to cloud storage. When this job has finished successfully, it'll
       launch a separate task that uploads the deposit file to Iron Mountain via SFTP.
     </description>
-    <!--
-      This only needs to run once per day, but we launch additional jobs in case the
-      cursor is lagging behind, so it'll catch up to the current date as quickly as
-      possible. The only job that'll run under normal circumstances is the one that's
-      close to midnight, since if the cursor is up-to-date, the task is a no-op.
-
-      We want it to be close to midnight because that reduces the chance that the
-      point-in-time code won't have to go to the extra trouble of fetching old
-      versions of objects from Datastore. However, we don't want it to run too
-      close to midnight, because there's always a chance that a change which was
-      timestamped before midnight hasn't fully been committed to Datastore. So
-      we add a 4+ minute grace period to ensure the transactions cool down, since
-      our queries are not transactional.
-    -->
-    <schedule>every 4 hours from 00:07 to 20:00</schedule>
-    <target>backend</target>
-  </cron>
-
-  <cron>
-    <url><![CDATA[/_dr/cron/fanout?queue=rde-upload&endpoint=/_dr/task/rdeUpload&forEachRealTld]]></url>
-    <description>
-      This job is a no-op unless RdeUploadCursor falls behind for some reason.
-    </description>
-    <schedule>every 4 hours synchronized</schedule>
-    <target>backend</target>
-  </cron>
-
-  <cron>
-    <url><![CDATA[/_dr/cron/fanout?queue=rde-report&endpoint=/_dr/task/rdeReport&forEachRealTld]]></url>
-    <description>
-      This job is a no-op unless RdeReportCursor falls behind for some reason.
-    </description>
-    <schedule>every 4 hours synchronized</schedule>
+    <schedule>every day 00:07</schedule>
     <target>backend</target>
   </cron>
 
