@@ -24,7 +24,7 @@ import static google.registry.dns.PublishDnsUpdatesAction.PARAM_NUM_PUBLISH_LOCK
 import static google.registry.dns.PublishDnsUpdatesAction.PARAM_PUBLISH_TASK_ENQUEUED;
 import static google.registry.dns.PublishDnsUpdatesAction.PARAM_REFRESH_REQUEST_CREATED;
 import static google.registry.request.RequestParameters.extractEnumParameter;
-import static google.registry.request.RequestParameters.extractOptionalIntParameter;
+import static google.registry.request.RequestParameters.extractIntParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 import static google.registry.request.RequestParameters.extractSetOfParameters;
 
@@ -96,15 +96,13 @@ public abstract class DnsModule {
   @Provides
   @Parameter(PARAM_LOCK_INDEX)
   static int provideLockIndex(HttpServletRequest req) {
-    // TODO(b/72150053): Make non-optional once this cl has reached production for an hour
-    return extractOptionalIntParameter(req, PARAM_LOCK_INDEX).orElse(1);
+    return extractIntParameter(req, PARAM_LOCK_INDEX);
   }
 
   @Provides
   @Parameter(PARAM_NUM_PUBLISH_LOCKS)
   static int provideMaxNumLocks(HttpServletRequest req) {
-    // TODO(b/72150053): Make non-optional once this cl has reached production for an hour
-    return extractOptionalIntParameter(req, PARAM_NUM_PUBLISH_LOCKS).orElse(1);
+    return extractIntParameter(req, PARAM_NUM_PUBLISH_LOCKS);
   }
 
   @Provides
