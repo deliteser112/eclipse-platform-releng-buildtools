@@ -17,6 +17,7 @@ package google.registry.model.registrar;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.util.CollectionUtils.forceEmptyToNull;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.eppcommon.Address;
 
@@ -30,8 +31,20 @@ import google.registry.model.eppcommon.Address;
 @Embed
 public class RegistrarAddress extends Address {
 
+  @Override
+  @VisibleForTesting
+  public Builder asBuilder() {
+    return new Builder(clone(this));
+  }
+
   /** Builder for {@link RegistrarAddress}. */
   public static class Builder extends Address.Builder<RegistrarAddress> {
+    public Builder() {}
+
+    private Builder(RegistrarAddress instance) {
+      super(instance);
+    }
+
     @Override
     public RegistrarAddress build() {
       RegistrarAddress instance = getInstance();

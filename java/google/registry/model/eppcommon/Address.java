@@ -94,9 +94,21 @@ public class Address extends ImmutableObject implements Jsonifiable {
         .build();
   }
 
+  @VisibleForTesting
+  public Builder<? extends Address> asBuilder() {
+    return new Builder<>(clone(this));
+  }
+
   /** A builder for constructing {@link Address}. */
   @VisibleForTesting
   public static class Builder<T extends Address> extends Buildable.Builder<T> {
+
+    public Builder() {}
+
+    protected Builder(T instance) {
+      super(instance);
+    }
+
     public Builder<T> setStreet(ImmutableList<String> street) {
       checkArgument(
           street == null || (!street.isEmpty() && street.size() <= 3),

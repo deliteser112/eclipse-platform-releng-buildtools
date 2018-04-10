@@ -28,12 +28,18 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
+import google.registry.model.registrar.Registrar;
 import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.auth.AuthResult;
+import google.registry.testing.CertificateSamples;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.util.CidrAddressBlock;
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import javax.mail.internet.InternetAddress;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONValue;
@@ -156,6 +162,125 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     assertThat(response).containsEntry("field", "emailAddress");
     assertThat(response).containsEntry("message", "Please only use ASCII-US characters.");
     assertNoTasksEnqueued("sheet");
+  }
+
+  private <T> void doTestUpdate(
+      Function<Registrar, T> getter,
+      T newValue,
+      BiFunction<Registrar.Builder, T, Registrar.Builder> setter) {
+    Registrar registrar = loadRegistrar(CLIENT_ID);
+    assertThat(getter.apply(registrar)).isNotEqualTo(newValue);
+
+    Map<String, Object> response =
+        action.handleJsonRequest(
+            ImmutableMap.of(
+                "op", "update",
+                "args", setter.apply(registrar.asBuilder(), newValue).build().toJsonMap()));
+
+    registrar = loadRegistrar(CLIENT_ID);
+    assertThat(response).containsEntry("status", "SUCCESS");
+    assertThat(response).containsEntry("results", asList(registrar.toJsonMap()));
+    assertThat(getter.apply(registrar)).isEqualTo(newValue);
+  }
+
+  @Test
+  public void testUpdate_premiumPriceAck() throws Exception {
+    doTestUpdate(
+        Registrar::getPremiumPriceAckRequired, true, Registrar.Builder::setPremiumPriceAckRequired);
+  }
+
+  @Test
+  public void testUpdate_whoisServer() throws Exception {
+    doTestUpdate(Registrar::getWhoisServer, "new-whois.example", Registrar.Builder::setWhoisServer);
+  }
+
+  @Test
+  public void testUpdate_referralUrl() throws Exception {
+    doTestUpdate(
+        Registrar::getReferralUrl, "new-reference-url.example", Registrar.Builder::setReferralUrl);
+  }
+
+  @Test
+  public void testUpdate_phoneNumber() throws Exception {
+    doTestUpdate(Registrar::getPhoneNumber, "+1.2345678900", Registrar.Builder::setPhoneNumber);
+  }
+
+  @Test
+  public void testUpdate_faxNumber() throws Exception {
+    doTestUpdate(Registrar::getFaxNumber, "+1.2345678900", Registrar.Builder::setFaxNumber);
+  }
+
+  @Test
+  public void testUpdate_url() throws Exception {
+    doTestUpdate(Registrar::getUrl, "new-url.example", Registrar.Builder::setUrl);
+  }
+
+  @Test
+  public void testUpdate_ipAddressWhitelist() throws Exception {
+    doTestUpdate(
+        Registrar::getIpAddressWhitelist,
+        ImmutableList.of(CidrAddressBlock.create("1.1.1.0/24")),
+        Registrar.Builder::setIpAddressWhitelist);
+  }
+
+  @Test
+  public void testUpdate_clientCertificate() throws Exception {
+    doTestUpdate(
+        Registrar::getClientCertificate,
+        CertificateSamples.SAMPLE_CERT,
+        (builder, s) -> builder.setClientCertificate(s, clock.nowUtc()));
+  }
+
+  @Test
+  public void testUpdate_failoverClientCertificate() throws Exception {
+    doTestUpdate(
+        Registrar::getFailoverClientCertificate,
+        CertificateSamples.SAMPLE_CERT,
+        (builder, s) -> builder.setFailoverClientCertificate(s, clock.nowUtc()));
+  }
+
+  @Test
+  public void testUpdate_localizedAddress_city() throws Exception {
+    doTestUpdate(
+        Registrar::getLocalizedAddress,
+        loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setCity("newCity").build(),
+        Registrar.Builder::setLocalizedAddress);
+  }
+
+  @Test
+  public void testUpdate_localizedAddress_countryCode() throws Exception {
+    doTestUpdate(
+        Registrar::getLocalizedAddress,
+        loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setCountryCode("GB").build(),
+        Registrar.Builder::setLocalizedAddress);
+  }
+
+  @Test
+  public void testUpdate_localizedAddress_state() throws Exception {
+    doTestUpdate(
+        Registrar::getLocalizedAddress,
+        loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setState("NJ").build(),
+        Registrar.Builder::setLocalizedAddress);
+  }
+
+  @Test
+  public void testUpdate_localizedAddress_street() throws Exception {
+    doTestUpdate(
+        Registrar::getLocalizedAddress,
+        loadRegistrar(CLIENT_ID)
+            .getLocalizedAddress()
+            .asBuilder()
+            .setStreet(ImmutableList.of("new street"))
+            .build(),
+        Registrar.Builder::setLocalizedAddress);
+  }
+
+  @Test
+  public void testUpdate_localizedAddress_zip() throws Exception {
+    doTestUpdate(
+        Registrar::getLocalizedAddress,
+        loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setZip("new zip").build(),
+        Registrar.Builder::setLocalizedAddress);
   }
 
   private static String getLastUpdateTime() {
