@@ -44,6 +44,7 @@ import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
+import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.ShardableTestCase;
 import google.registry.util.Clock;
 import google.registry.xml.ValidationMode;
@@ -58,17 +59,17 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Matchers;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /** Unit tests for {@link EppController}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class EppControllerTest extends ShardableTestCase {
 
-  @Rule
-  public AppEngineRule appEngineRule = new AppEngineRule.Builder().withDatastore().build();
+  @Rule public AppEngineRule appEngineRule = new AppEngineRule.Builder().withDatastore().build();
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
   @Mock SessionMetadata sessionMetadata;
   @Mock TransportCredentials transportCredentials;

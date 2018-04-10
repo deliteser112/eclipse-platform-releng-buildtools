@@ -36,19 +36,20 @@ import google.registry.model.registry.Registry;
 import google.registry.request.HttpException.ConflictException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeResponse;
+import google.registry.testing.MockitoJUnitRule;
 import java.net.URL;
 import java.util.Optional;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /** Unit tests for {@link NordnVerifyAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class NordnVerifyActionTest {
 
   private static final String CSV_DATA = "1,2012-08-16T00:00:00.0Z,3\n"
@@ -82,18 +83,14 @@ public class NordnVerifyActionTest {
       + "bogpog,4611\n";
 
   @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .withTaskQueue()
-      .build();
-  @Mock
-  private URLFetchService fetchService;
+  public final AppEngineRule appEngine =
+      AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
-  @Captor
-  private ArgumentCaptor<HTTPRequest> httpRequestCaptor;
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
-  @Mock
-  private HTTPResponse httpResponse;
+  @Mock private URLFetchService fetchService;
+  @Mock private HTTPResponse httpResponse;
+  @Captor private ArgumentCaptor<HTTPRequest> httpRequestCaptor;
 
   private final FakeResponse response = new FakeResponse();
   private final LordnRequestInitializer lordnRequestInitializer = new LordnRequestInitializer();

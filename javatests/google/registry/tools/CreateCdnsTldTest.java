@@ -25,13 +25,11 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+/** Unit tests for {@link CreateCdnsTld}. */
 public class CreateCdnsTldTest extends CommandTestCase<CreateCdnsTld> {
 
   @Mock Dns dnsService;

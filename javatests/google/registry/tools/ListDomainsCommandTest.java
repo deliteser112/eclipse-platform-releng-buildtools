@@ -22,15 +22,12 @@ import com.google.common.collect.ImmutableList;
 import google.registry.tools.server.ListDomainsAction;
 import java.util.List;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /**
  * Unit tests for {@link ListDomainsCommand}.
  *
  * @see ListObjectsCommandTestCase
  */
-@RunWith(MockitoJUnitRunner.class)
 public class ListDomainsCommandTest extends ListObjectsCommandTestCase<ListDomainsCommand> {
 
   @Override

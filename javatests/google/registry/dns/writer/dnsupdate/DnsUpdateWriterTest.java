@@ -45,6 +45,7 @@ import google.registry.model.ofy.Ofy;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
+import google.registry.testing.MockitoJUnitRule;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -54,10 +55,10 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 import org.xbill.DNS.Flags;
 import org.xbill.DNS.Message;
 import org.xbill.DNS.Opcode;
@@ -69,21 +70,18 @@ import org.xbill.DNS.Type;
 import org.xbill.DNS.Update;
 
 /** Unit tests for {@link DnsUpdateWriter}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class DnsUpdateWriterTest {
 
   @Rule
   public final AppEngineRule appEngine =
       AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
-  @Rule
-  public final InjectRule inject = new InjectRule();
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final InjectRule inject = new InjectRule();
 
-  @Mock
-  private DnsMessageTransport mockResolver;
-
-  @Captor
-  private ArgumentCaptor<Update> updateCaptor;
+  @Mock private DnsMessageTransport mockResolver;
+  @Captor private ArgumentCaptor<Update> updateCaptor;
 
   private final FakeClock clock = new FakeClock(DateTime.parse("1971-01-01TZ"));
 

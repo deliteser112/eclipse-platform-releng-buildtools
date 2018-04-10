@@ -21,7 +21,6 @@ import static google.registry.config.RegistryConfig.getDefaultRegistrarWhoisServ
 import static google.registry.model.common.Cursor.CursorType.SYNC_REGISTRAR_SHEET;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
-import static google.registry.testing.DatastoreHelper.deleteResource;
 import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
@@ -41,35 +40,30 @@ import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarAddress;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.DatastoreHelper;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
+import google.registry.testing.MockitoJUnitRule;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /** Unit tests for {@link SyncRegistrarsSheet}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class SyncRegistrarsSheetTest {
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .build();
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final InjectRule inject = new InjectRule();
 
-  @Rule
-  public final InjectRule inject = new InjectRule();
-
-  @Captor
-  private ArgumentCaptor<ImmutableList<ImmutableMap<String, String>>> rowsCaptor;
-
-  @Mock
-  private SheetSynchronizer sheetSynchronizer;
+  @Captor private ArgumentCaptor<ImmutableList<ImmutableMap<String, String>>> rowsCaptor;
+  @Mock private SheetSynchronizer sheetSynchronizer;
 
   private final FakeClock clock = new FakeClock(DateTime.now(UTC));
 
@@ -85,9 +79,7 @@ public class SyncRegistrarsSheetTest {
     inject.setStaticField(Ofy.class, "clock", clock);
     createTld("example");
     // Remove Registrar entities created by AppEngineRule.
-    for (Registrar registrar : Registrar.loadAll()) {
-      deleteResource(registrar);
-    }
+    Registrar.loadAll().forEach(DatastoreHelper::deleteResource);
   }
 
   @Test

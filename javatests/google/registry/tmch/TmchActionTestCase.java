@@ -25,41 +25,30 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
+import google.registry.testing.MockitoJUnitRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /** Common code for unit tests of classes that extend {@link Marksdb}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class TmchActionTestCase {
 
   static final String MARKSDB_LOGIN = "lolcat:attack";
-  static final String MARKSDB_LOGIN_BASE64 = "bG9sY2F0OmF0dGFjaw==";
   static final String MARKSDB_URL = "http://127.0.0.1/love";
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .build();
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
+  @Rule public final InjectRule inject = new InjectRule();
 
-  @Rule
-  public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
-
-  @Rule
-  public final InjectRule inject = new InjectRule();
-
-  @Mock
-  URLFetchService fetchService;
-
-  @Captor
-  ArgumentCaptor<HTTPRequest> httpRequest;
-
-  @Mock
-  HTTPResponse httpResponse;
+  @Mock URLFetchService fetchService;
+  @Mock HTTPResponse httpResponse;
+  @Captor ArgumentCaptor<HTTPRequest> httpRequest;
 
   final FakeClock clock = new FakeClock();
   final Marksdb marksdb = new Marksdb();

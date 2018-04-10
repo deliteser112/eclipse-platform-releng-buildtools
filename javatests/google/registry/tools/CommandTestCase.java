@@ -31,6 +31,7 @@ import com.google.common.reflect.TypeToken;
 import google.registry.model.poll.PollMessage;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.CertificateSamples;
+import google.registry.testing.MockitoJUnitRule;
 import google.registry.tools.params.ParameterFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -41,14 +42,14 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
 
 /**
  * Base class for all command tests.
  *
  * @param <C> the command type
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public abstract class CommandTestCase<C extends Command> {
 
   private final ByteArrayOutputStream stdout = new ByteArrayOutputStream();
@@ -57,10 +58,10 @@ public abstract class CommandTestCase<C extends Command> {
   protected C command;
 
   @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .withTaskQueue()
-      .build();
+  public final AppEngineRule appEngine =
+      AppEngineRule.builder().withDatastore().withTaskQueue().build();
+
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();

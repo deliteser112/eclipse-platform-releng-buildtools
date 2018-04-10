@@ -48,6 +48,7 @@ import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
+import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.UrlFetchException;
 import java.net.URL;
@@ -57,13 +58,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /** Unit tests for {@link NordnUploadAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class NordnUploadActionTest {
 
   private static final String CLAIMS_CSV = "1,2000-01-01T00:00:00.000Z,1\n"
@@ -79,21 +80,15 @@ public class NordnUploadActionTest {
   private static final String LOCATION_URL = "http://trololol";
 
   @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .withTaskQueue()
-      .build();
+  public final AppEngineRule appEngine =
+      AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
-  @Rule
-  public final InjectRule inject = new InjectRule();
-  @Mock
-  private URLFetchService fetchService;
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+  @Rule public final InjectRule inject = new InjectRule();
 
-  @Captor
-  private ArgumentCaptor<HTTPRequest> httpRequestCaptor;
-
-  @Mock
-  private HTTPResponse httpResponse;
+  @Mock private URLFetchService fetchService;
+  @Mock private HTTPResponse httpResponse;
+  @Captor private ArgumentCaptor<HTTPRequest> httpRequestCaptor;
 
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
   private final LordnRequestInitializer lordnRequestInitializer = new LordnRequestInitializer();

@@ -38,6 +38,7 @@ import google.registry.request.auth.AuthLevel;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.MockitoJUnitRule;
 import java.math.BigDecimal;
 import javax.servlet.http.HttpServletRequest;
 import org.joda.money.CurrencyUnit;
@@ -45,40 +46,27 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /** Tests for {@link RegistrarPaymentAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class RegistrarPaymentActionTest {
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
-  @Mock
-  private BraintreeGateway braintreeGateway;
-
-  @Mock
-  private TransactionGateway transactionGateway;
-
-  @Mock
-  private Result<Transaction> result;
-
-  @Mock
-  private Transaction transaction;
-
-  @Mock
-  private ValidationErrors validationErrors;
+  @Mock private BraintreeGateway braintreeGateway;
+  @Mock private TransactionGateway transactionGateway;
+  @Mock private Result<Transaction> result;
+  @Mock private Transaction transaction;
+  @Mock private ValidationErrors validationErrors;
+  @Captor private ArgumentCaptor<TransactionRequest> transactionRequestCaptor;
 
   private final SessionUtils sessionUtils = mock(SessionUtils.class);
-
   private final User user = new User("marla.singer@example.com", "gmail.com", "12345");
-
-  @Captor
-  private ArgumentCaptor<TransactionRequest> transactionRequestCaptor;
-
   private final RegistrarPaymentAction paymentAction = new RegistrarPaymentAction();
 
   @Before

@@ -37,18 +37,16 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.Matchers;
-import org.mockito.runners.MockitoJUnitRunner;
 
 /** Unit tests for {@link MetricsExportAction}. */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class MetricsExportActionTest {
 
   @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .withTaskQueue()
-      .build();
+  public final AppEngineRule appEngine =
+      AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
   private final BigqueryFactory bigqueryFactory = mock(BigqueryFactory.class);
   private final Bigquery bigquery = mock(Bigquery.class);

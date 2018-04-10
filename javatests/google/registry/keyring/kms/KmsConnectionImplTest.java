@@ -36,18 +36,22 @@ import com.google.api.services.cloudkms.v1.model.KeyRing;
 import com.google.api.services.cloudkms.v1.model.UpdateCryptoKeyPrimaryVersionRequest;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
+import google.registry.testing.MockitoJUnitRule;
 import google.registry.util.Retrier;
 import java.io.ByteArrayInputStream;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class KmsConnectionImplTest {
+
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
   @Mock private CloudKMS kms;
   @Mock private CloudKMS.Projects kmsProjects;
@@ -72,8 +76,6 @@ public class KmsConnectionImplTest {
   @Mock private CloudKMS.Projects.Locations.KeyRings.CryptoKeys.Encrypt kmsCryptoKeysEncrypt;
   @Mock private CloudKMS.Projects.Locations.KeyRings.CryptoKeys.Decrypt kmsCryptoKeysDecrypt;
 
-  private final Retrier retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
-
   @Captor private ArgumentCaptor<KeyRing> keyRing;
   @Captor private ArgumentCaptor<CryptoKey> cryptoKey;
   @Captor private ArgumentCaptor<CryptoKeyVersion> cryptoKeyVersion;
@@ -85,6 +87,8 @@ public class KmsConnectionImplTest {
 
   @Captor
   private ArgumentCaptor<UpdateCryptoKeyPrimaryVersionRequest> updateCryptoKeyPrimaryVersionRequest;
+
+  private final Retrier retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
 
   @Before
   public void setUp() throws Exception {
