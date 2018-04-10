@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.Multimap;
 import com.google.template.soy.data.SoyMapData;
-import google.registry.tools.soy.DomainCheckSoyInfo;
+import google.registry.tools.soy.DomainCheckClaimsSoyInfo;
 import java.util.Collection;
 import java.util.List;
 
-/** A command to execute a domain check epp command. */
-@Parameters(separators = " =", commandDescription = "Check domain availability")
-final class DomainCheckCommand extends NonMutatingEppToolCommand {
+/** A command to execute a domain check claims epp command. */
+@Parameters(separators = " =", commandDescription = "Check claims on domain(s)")
+final class CheckDomainClaimsCommand extends NonMutatingEppToolCommand {
 
   @Parameter(
       names = {"-c", "--client"},
@@ -33,7 +33,7 @@ final class DomainCheckCommand extends NonMutatingEppToolCommand {
   String clientId;
 
   @Parameter(
-      description = "List of domains to check.",
+      description = "Domain(s) to check.",
       required = true)
   private List<String> mainParameters;
 
@@ -41,7 +41,8 @@ final class DomainCheckCommand extends NonMutatingEppToolCommand {
   void initEppToolCommand() {
     Multimap<String, String> domainNameMap = validateAndGroupDomainNamesByTld(mainParameters);
     for (Collection<String> values : domainNameMap.asMap().values()) {
-      setSoyTemplate(DomainCheckSoyInfo.getInstance(), DomainCheckSoyInfo.DOMAINCHECK);
+      setSoyTemplate(
+          DomainCheckClaimsSoyInfo.getInstance(), DomainCheckClaimsSoyInfo.DOMAINCHECKCLAIMS);
       addSoyRecord(clientId, new SoyMapData("domainNames", values));
     }
   }

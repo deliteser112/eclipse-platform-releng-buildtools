@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,13 +19,13 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 import com.beust.jcommander.ParameterException;
 import org.junit.Test;
 
-/** Unit tests for {@link DomainCheckCommand}. */
-public class DomainCheckCommandTest extends EppToolCommandTestCase<DomainCheckCommand> {
+/** Unit tests for {@link CheckDomainFeeCommand}. */
+public class CheckDomainFeeCommandTest extends EppToolCommandTestCase<CheckDomainFeeCommand> {
 
   @Test
   public void testSuccess() throws Exception {
     runCommand("--client=NewRegistrar", "example.tld");
-    eppVerifier.expectDryRun().verifySent("domain_check.xml");
+    eppVerifier.expectDryRun().verifySent("domain_check_fee.xml");
   }
 
   @Test
@@ -33,8 +33,8 @@ public class DomainCheckCommandTest extends EppToolCommandTestCase<DomainCheckCo
     runCommand("--client=NewRegistrar", "example.tld", "example.tld2");
     eppVerifier
         .expectDryRun()
-        .verifySent("domain_check.xml")
-        .verifySent("domain_check_second_tld.xml");
+        .verifySent("domain_check_fee.xml")
+        .verifySent("domain_check_fee_second_tld.xml");
   }
 
   @Test
@@ -44,7 +44,7 @@ public class DomainCheckCommandTest extends EppToolCommandTestCase<DomainCheckCo
         "example.tld",
         "example2.tld",
         "example3.tld");
-    eppVerifier.expectDryRun().verifySent("domain_check_multiple.xml");
+    eppVerifier.expectDryRun().verifySent("domain_check_fee_multiple.xml");
   }
 
   @Test
@@ -57,8 +57,8 @@ public class DomainCheckCommandTest extends EppToolCommandTestCase<DomainCheckCo
         "example.tld2");
     eppVerifier
         .expectDryRun()
-        .verifySent("domain_check_multiple.xml")
-        .verifySent("domain_check_second_tld.xml");
+        .verifySent("domain_check_fee_multiple.xml")
+        .verifySent("domain_check_fee_second_tld.xml");
   }
 
   @Test

@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.Multimap;
 import com.google.template.soy.data.SoyMapData;
-import google.registry.tools.soy.DomainCheckFeeSoyInfo;
+import google.registry.tools.soy.DomainCheckSoyInfo;
 import java.util.Collection;
 import java.util.List;
 
-/** A command to execute a domain check fees epp command. */
-@Parameters(separators = " =", commandDescription = "Check domain fees (for a 1-year create)")
-final class DomainCheckFeeCommand extends NonMutatingEppToolCommand {
+/** A command to execute a domain check epp command. */
+@Parameters(separators = " =", commandDescription = "Check domain availability")
+final class CheckDomainCommand extends NonMutatingEppToolCommand {
 
   @Parameter(
       names = {"-c", "--client"},
@@ -33,15 +33,15 @@ final class DomainCheckFeeCommand extends NonMutatingEppToolCommand {
   String clientId;
 
   @Parameter(
-      description = "Domain(s) to check.",
+      description = "List of domains to check.",
       required = true)
-  List<String> mainParameters;
+  private List<String> mainParameters;
 
   @Override
   void initEppToolCommand() {
     Multimap<String, String> domainNameMap = validateAndGroupDomainNamesByTld(mainParameters);
     for (Collection<String> values : domainNameMap.asMap().values()) {
-      setSoyTemplate(DomainCheckFeeSoyInfo.getInstance(), DomainCheckFeeSoyInfo.DOMAINCHECKFEE);
+      setSoyTemplate(DomainCheckSoyInfo.getInstance(), DomainCheckSoyInfo.DOMAINCHECK);
       addSoyRecord(clientId, new SoyMapData("domainNames", values));
     }
   }
