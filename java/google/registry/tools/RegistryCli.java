@@ -18,6 +18,7 @@ import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
 import com.google.appengine.tools.remoteapi.RemoteApiOptions;
 
 import static com.google.common.base.Preconditions.checkState;
+import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.tools.Injector.injectReflectively;
 
 import com.beust.jcommander.JCommander;
@@ -203,6 +204,9 @@ final class RegistryCli implements AutoCloseable, CommandRunner {
 
     // Ensure that all entity classes are loaded before command code runs.
     ObjectifyService.initOfy();
+    // Make sure we start the command with a clean cache, so that any previous command won't
+    // interfere with this one.
+    ofy().clearSessionCache();
 
     command.run();
   }
