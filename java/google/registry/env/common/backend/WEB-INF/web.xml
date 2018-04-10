@@ -286,6 +286,12 @@
     <url-pattern>/_dr/task/deleteProberData</url-pattern>
   </servlet-mapping>
 
+  <!--  Mapreduce to delete load test data. -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/deleteLoadTestData</url-pattern>
+  </servlet-mapping>
+
   <!--  Mapreduce to re-save all EppResources. -->
   <servlet-mapping>
     <servlet-name>backend-servlet</servlet-name>

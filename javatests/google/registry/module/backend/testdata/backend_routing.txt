@@ -8,6 +8,7 @@ PATH                                   CLASS                              METHOD
 /_dr/task/checkSnapshot                CheckSnapshotAction                POST,GET y  INTERNAL     APP IGNORED
 /_dr/task/copyDetailReports            CopyDetailReportsAction            POST     n  INTERNAL,API APP ADMIN
 /_dr/task/deleteContactsAndHosts       DeleteContactsAndHostsAction       GET      n  INTERNAL     APP IGNORED
+/_dr/task/deleteLoadTestData           DeleteLoadTestDataAction           POST     n  INTERNAL     APP IGNORED
 /_dr/task/deleteOldCommitLogs          DeleteOldCommitLogsAction          GET      n  INTERNAL     APP IGNORED
 /_dr/task/deleteProberData             DeleteProberDataAction             POST     n  INTERNAL     APP IGNORED
 /_dr/task/expandRecurringBillingEvents ExpandRecurringBillingEventsAction GET      n  INTERNAL     APP IGNORED
