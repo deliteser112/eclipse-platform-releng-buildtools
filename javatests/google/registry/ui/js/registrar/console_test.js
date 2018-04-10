@@ -134,7 +134,7 @@ function testNavToResources() {
   });
   var xhr = goog.testing.net.XhrIo.getSendInstances().pop();
   assertTrue(xhr.isActive());
-  assertEquals('/registrar-premium-price-ack', xhr.getLastUri());
+  assertEquals('/registrar-settings', xhr.getLastUri());
   assertEquals(test.testXsrfToken,
                xhr.getLastRequestHeaders().get('X-CSRF-Token'));
   xhr.simulateResponse(200, goog.json.serialize({

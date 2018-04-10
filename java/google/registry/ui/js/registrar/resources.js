@@ -37,7 +37,7 @@ registry.registrar.Resources = function(console, xsrfToken) {
       this,
       'constructor',
       console,
-      new registry.Resource(new goog.Uri('/registrar-premium-price-ack'), xsrfToken),
+      new registry.Resource(new goog.Uri('/registrar-settings'), xsrfToken),
       registry.soy.registrar.console.resources,
       null);
 };

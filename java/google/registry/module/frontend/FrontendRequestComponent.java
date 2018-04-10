@@ -40,7 +40,6 @@ import google.registry.request.RequestScope;
 import google.registry.ui.server.registrar.ConsoleUiAction;
 import google.registry.ui.server.registrar.RegistrarPaymentAction;
 import google.registry.ui.server.registrar.RegistrarPaymentSetupAction;
-import google.registry.ui.server.registrar.RegistrarPremiumPriceAckAction;
 import google.registry.ui.server.registrar.RegistrarSettingsAction;
 import google.registry.whois.WhoisAction;
 import google.registry.whois.WhoisHttpAction;
@@ -67,7 +66,6 @@ interface FrontendRequestComponent {
   RdapAutnumAction rdapAutnumAction();
   RegistrarPaymentAction registrarPaymentAction();
   RegistrarPaymentSetupAction registrarPaymentSetupAction();
-  RegistrarPremiumPriceAckAction registrarPremiumPriceAckAction();
   RegistrarSettingsAction registrarSettingsAction();
   RdapDomainAction rdapDomainAction();
   RdapDomainSearchAction rdapDomainSearchAction();
