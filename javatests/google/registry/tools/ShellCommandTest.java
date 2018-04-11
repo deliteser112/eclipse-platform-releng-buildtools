@@ -196,18 +196,18 @@ public class ShellCommandTest {
         "testCommand ",
         0,
         "",
-        "Main parameter: normal argument\n  (java.util.List<java.lang.String>)\n");
-    performJCommanderCompletorTest("testAnotherCommand ", 0, "", "Main parameter: [None]\n");
+        "Main parameter: normal argument\n  (java.util.List<java.lang.String>)");
+    performJCommanderCompletorTest("testAnotherCommand ", 0, "", "Main parameter: [None]");
     performJCommanderCompletorTest(
-        "testCommand -x ", 0, "", "Flag documentation: test parameter\n  (java.lang.String)\n");
+        "testCommand -x ", 0, "", "Flag documentation: test parameter\n  (java.lang.String)");
     performJCommanderCompletorTest(
-        "testAnotherCommand -x ", 0, "", "Flag documentation: [No documentation available]\n");
+        "testAnotherCommand -x ", 0, "", "Flag documentation: [No documentation available]");
     performJCommanderCompletorTest(
         "testCommand x ",
         0,
         "",
-        "Main parameter: normal argument\n  (java.util.List<java.lang.String>)\n");
-    performJCommanderCompletorTest("testAnotherCommand x ", 0, "", "Main parameter: [None]\n");
+        "Main parameter: normal argument\n  (java.util.List<java.lang.String>)");
+    performJCommanderCompletorTest("testAnotherCommand x ", 0, "", "Main parameter: [None]");
   }
 
   @Test
@@ -218,8 +218,21 @@ public class ShellCommandTest {
     performJCommanderCompletorTest("testAnotherCommand --o", 3);
   }
 
+  @Test
+  public void testCompletion_enum() throws Exception {
+    performJCommanderCompletorTest("testCommand --xorg P", 1, "PRIVATE ", "PUBLIC ");
+    performJCommanderCompletorTest("testCommand --xorg PU", 2, "PUBLIC ");
+    performJCommanderCompletorTest(
+        "testCommand --xorg ", 0, "", "Flag documentation: test organization\n  (PRIVATE, PUBLIC)");
+  }
+
   @Parameters(commandDescription = "Test command")
   static class TestCommand implements Command {
+    enum OrgType {
+      PRIVATE,
+      PUBLIC
+    }
+
     @Parameter(
       names = {"-x", "--xparam"},
       description = "test parameter"
@@ -230,7 +243,7 @@ public class ShellCommandTest {
       names = {"--xorg"},
       description = "test organization"
     )
-    String xorg = "default value";
+    OrgType orgType = OrgType.PRIVATE;
 
     // List for recording command invocations by run().
     //

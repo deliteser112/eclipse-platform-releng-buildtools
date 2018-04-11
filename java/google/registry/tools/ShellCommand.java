@@ -22,6 +22,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.Parameters;
+import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
@@ -39,6 +40,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import jline.Completor;
 import jline.ConsoleReader;
@@ -207,9 +209,55 @@ public class ShellCommand implements Command {
      * (the "" key, for the main parameter). THIS IS IMPORTANT - otherwise the command won't appear
      * in {@link ImmutableTable#rowKeySet}.
      */
-    private final ImmutableTable<String, String, String> commandFlagDocs;
+    private final ImmutableTable<String, String, ParamDoc> commandFlagDocs;
 
     private final FileNameCompletor filenameCompletor = new FileNameCompletor();
+
+    /**
+     * Holds all the information about a parameter we need for completion.
+     *
+     * <p>Parameters include the values after flags, and the "main parameters" that don't have a
+     * flag associated with them.
+     *
+     * <p>The information includes documentation and all the possible options, if known.
+     *
+     * <p>For now - "all possible options" are only known for enum parameters.
+     */
+    @AutoValue
+    abstract static class ParamDoc {
+      abstract String documentation();
+
+      abstract ImmutableList<String> options();
+
+      static ParamDoc create(@Nullable ParameterDescription parameter) {
+        if (parameter == null) {
+          return create("[None]", ImmutableList.of());
+        }
+        String type = parameter.getParameterized().getGenericType().toString();
+        Class<?> clazz = parameter.getParameterized().getType();
+        ImmutableList<String> options = ImmutableList.of();
+        if (clazz.isEnum()) {
+          options =
+              Arrays.stream(clazz.getEnumConstants())
+                  .map(Object::toString)
+                  .collect(toImmutableList());
+          type = options.stream().collect(Collectors.joining(", "));
+        }
+        if (type.startsWith("class ")) {
+          type = type.substring(6);
+        }
+        return create(
+            String.format(
+                "%s\n  (%s)",
+                parameter.getDescription(),
+                type),
+            options);
+      }
+
+      static ParamDoc create(String documentation, ImmutableList<String> options) {
+        return new AutoValue_ShellCommand_JCommanderCompletor_ParamDoc(documentation, options);
+      }
+    }
 
     /**
      * Populates the completions and documentation based on the JCommander.
@@ -218,8 +266,7 @@ public class ShellCommand implements Command {
      * JCommanderCompletor doesn't change the completions.
      */
     JCommanderCompletor(JCommander jcommander) {
-      ImmutableTable.Builder<String, String, String> builder =
-          new ImmutableTable.Builder<>();
+      ImmutableTable.Builder<String, String, ParamDoc> builder = new ImmutableTable.Builder<>();
 
       // Go over all the commands
       for (Entry<String, JCommander> entry : jcommander.getCommands().entrySet()) {
@@ -227,30 +274,19 @@ public class ShellCommand implements Command {
         JCommander subCommander = entry.getValue();
 
         // Add the "main" parameters documentation
-        builder.put(command, "", createDocText(subCommander.getMainParameter()));
+        builder.put(command, "", ParamDoc.create(subCommander.getMainParameter()));
 
         // For each command - go over the parameters (arguments / flags)
         for (ParameterDescription parameter : subCommander.getParameters()) {
-          String documentation = createDocText(parameter);
+          ParamDoc paramDoc = ParamDoc.create(parameter);
 
           // For each parameter - go over all the "flag" names of that parameter (e.g., -o and
           // --output being aliases of the same parameter) and populate each one
           Arrays.stream(parameter.getParameter().names())
-              .forEach(flag -> builder.put(command, flag, documentation));
+              .forEach(flag -> builder.put(command, flag, paramDoc));
         }
       }
       commandFlagDocs = builder.build();
-    }
-
-    private static String createDocText(@Nullable ParameterDescription parameter) {
-      if (parameter == null) {
-        return "[None]";
-      }
-      String type = parameter.getParameterized().getGenericType().toString();
-      if (type.startsWith("class ")) {
-        type = type.substring(6);
-      }
-      return String.format("%s\n  (%s)", parameter.getDescription(), type);
     }
 
     @Override
@@ -330,19 +366,16 @@ public class ShellCommand implements Command {
         return getCommandCompletions(word);
       }
 
-      // 'tab' on empty will show the documentation - either for the "current flag" or for the main
-      // parameters, depending on the context (the "context" being the previous argument)
-      if (word.isEmpty()) {
-        return getParameterDocCompletions(command, context, word);
-      }
-
-      // For existing commands, complete based on the command arguments
+      // If it's the beginning of a flag, complete the flag
       if (word.startsWith("-")) {
         return getFlagCompletions(command, word);
       }
 
-      // We don't know how to complete based on context... :( So that's the best we can do
-      return ImmutableList.of();
+      // 'tab' on empty will show the documentation, while 'tab' on non-empty will attempt to
+      // complete if we know how (currently - only on enums)
+      // - either for the "current flag" or for the main
+      // parameters, depending on the context (the "context" being the previous argument)
+      return getParameterDocCompletions(command, context, word);
     }
 
     private List<String> getCommandCompletions(String word) {
@@ -365,14 +398,40 @@ public class ShellCommand implements Command {
     }
 
     private List<String> getParameterDocCompletions(
-        String command, @Nullable String argument, String word) {
+        String command, @Nullable String context, String word) {
+      // First, check if we want the documentation for a specific flag, or for the "main"
+      // parameters.
+      //
+      // We want documentation for a flag if the previous argument was a flag, but the value of the
+      // flag wasn't set. So if the previous argument is "--flag" then we want documentation of that
+      // flag, but if it's "--flag=value" then that flag is set and we want documentation of the
+      // main parameters.
+      boolean isFlagParameter =
+          context != null
+              && context.startsWith("-")
+              && context.indexOf('=') == -1;
+      ParamDoc paramDoc =
+          Optional.ofNullable(commandFlagDocs.get(command, isFlagParameter ? context : ""))
+              .orElse(DEFAULT_PARAM_DOC);
       if (!word.isEmpty()) {
-        return ImmutableList.of();
+        return paramDoc
+            .options()
+            .stream()
+            .filter(s -> s.startsWith(word))
+            .map(s -> s + " ")
+            .collect(toImmutableList());
       }
-      return ImmutableList.of("", getParameterDoc(command, argument));
+      String documentation =
+          String.format(
+              "%s: %s",
+              isFlagParameter ? "Flag documentation" : "Main parameter", paramDoc.documentation());
+      return ImmutableList.of("", documentation);
     }
 
-    private String getParameterDoc(String command, @Nullable String previousArgument) {
+    private static final ParamDoc DEFAULT_PARAM_DOC =
+        ParamDoc.create("[No documentation available]", ImmutableList.of());
+
+    private @Nullable ParamDoc getParamDoc(String command, @Nullable String previousArgument) {
       // First, check if we want the documentation for a specific flag, or for the "main"
       // parameters.
       //
@@ -384,11 +443,9 @@ public class ShellCommand implements Command {
           previousArgument != null
               && previousArgument.startsWith("-")
               && previousArgument.indexOf('=') == -1;
-      return (isFlagParameter ? "Flag documentation: " : "Main parameter: ")
-          + Optional.ofNullable(
-                  commandFlagDocs.get(command, isFlagParameter ? previousArgument : ""))
-              .orElse("[No documentation available]")
-          + "\n";
+      return Optional.ofNullable(
+              commandFlagDocs.get(command, isFlagParameter ? previousArgument : ""))
+          .orElse(DEFAULT_PARAM_DOC);
     }
   }
 }
