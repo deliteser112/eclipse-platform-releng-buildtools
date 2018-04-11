@@ -69,7 +69,7 @@
   <!-- Queue for launching new snapshots and for triggering the initial BigQuery load jobs. -->
   <queue>
     <name>export-snapshot</name>
-    <rate>5/m</rate>
+    <rate>1/s</rate>
     <retry-parameters>
       <!-- Should be less than the exportSnapshot cron interval; see cron.xml. -->
       <task-age-limit>22h</task-age-limit>
