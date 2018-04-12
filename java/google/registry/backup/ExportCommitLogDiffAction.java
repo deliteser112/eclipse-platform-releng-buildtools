@@ -85,6 +85,8 @@ public final class ExportCommitLogDiffAction implements Runnable {
 
   @Override
   public void run() {
+    logger.infofmt(
+        "Exporting commit log diffs between %s and %s.", lowerCheckpointTime, upperCheckpointTime);
     checkArgument(isAtOrAfter(lowerCheckpointTime, START_OF_TIME));
     checkArgument(lowerCheckpointTime.isBefore(upperCheckpointTime));
     // Load the boundary checkpoints - lower is exclusive and may not exist (on the first export,
