@@ -1,6 +1,7 @@
 kind: Service
 apiVersion: v1
 metadata:
+  namespace: default
   name: proxy-service
 spec:
   selector:
