@@ -26,7 +26,6 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegat
 import static google.registry.model.EppResourceUtils.checkResourcesExist;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
 import static google.registry.model.registry.label.ReservationType.getTypeOfHighestSeverity;
-import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -199,12 +198,6 @@ public final class DomainCheckFlow implements Flow {
       return Optional.of("Pending allocation");
     }
     ImmutableSet<ReservationType> reservationTypes = getReservationTypes(domainName);
-    if (reservationTypes.isEmpty()
-        && isDomainPremium(domainName.toString(), now)
-        && registry.getPremiumPriceAckRequired()
-        && !eppInput.getSingleExtension(FeeCheckCommandExtension.class).isPresent()) {
-      return Optional.of("Premium names require EPP ext.");
-    }
     if (!reservationTypes.isEmpty()) {
       return Optional.of(getTypeOfHighestSeverity(reservationTypes).getMessageForCheck());
     }

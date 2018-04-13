@@ -460,27 +460,10 @@ public class DomainCheckFlowTest
         create(true, "example3.tld", null));
   }
 
-  /**
-   * Test that premium names are shown as unavailable if the premium pricing extension is not
-   * declared at login.
-   */
+  /** Test that premium names are shown as available even if the fee extension is not used. */
   @Test
-  public void testAvailExtension_premiumDomainsAreUnavailableWithoutExtension() throws Exception {
-    sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
+  public void testAvailExtension_premiumDomainsAreAvailableWithoutExtension() throws Exception {
     createTld("example");
-    setEppInput("domain_check_premium.xml");
-    doCheckTest(create(false, "rich.example", "Premium names require EPP ext."));
-  }
-
-  /**
-   * Test that premium names are always shown as available if the TLD does not require the premium
-   * pricing extension to register premium names.
-   */
-  @Test
-  public void testAvailExtension_premiumDomainsAvailableIfNotRequiredByTld() throws Exception {
-    sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
-    createTld("example");
-    persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
     setEppInput("domain_check_premium.xml");
     doCheckTest(create(true, "rich.example", null));
   }
