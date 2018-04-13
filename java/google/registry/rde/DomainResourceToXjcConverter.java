@@ -14,7 +14,9 @@
 
 package google.registry.rde;
 
+import static com.google.common.base.Preconditions.checkState;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Strings;
@@ -29,6 +31,7 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.rde.RdeMode;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
+import google.registry.util.FormattingLogger;
 import google.registry.util.Idn;
 import google.registry.xjc.domain.XjcDomainContactAttrType;
 import google.registry.xjc.domain.XjcDomainContactType;
@@ -47,6 +50,8 @@ import org.joda.time.DateTime;
 
 /** Utility class that turns {@link DomainResource} as {@link XjcRdeDomainElement}. */
 final class DomainResourceToXjcConverter {
+
+  private static final FormattingLogger logger = getLoggerForCallerClass();
 
   /** Converts {@link DomainResource} to {@link XjcRdeDomainElement}. */
   static XjcRdeDomainElement convert(DomainResource domain, RdeMode mode) {
@@ -151,6 +156,8 @@ final class DomainResourceToXjcConverter {
 
     switch (mode) {
       case FULL:
+        String domainName = model.getFullyQualifiedDomainName();
+
         // o  Zero or more OPTIONAL <rgpStatus> element to represent
         //    "pendingDelete" sub-statuses, including "redemptionPeriod",
         //    "pendingRestore", and "pendingDelete", that a domain name can be
@@ -164,15 +171,23 @@ final class DomainResourceToXjcConverter {
         //    the human or organizational social information object associated
         //    as the holder of the domain name object.
         Key<ContactResource> registrant = model.getRegistrant();
-        if (registrant != null) {
-          bean.setRegistrant(ofy().load().key(registrant).now().getContactId());
+        if (registrant == null) {
+          logger.warningfmt("Domain %s has no registrant contact.", domainName);
+        } else {
+          ContactResource registrantContact = ofy().load().key(registrant).now();
+          checkState(
+              registrantContact != null,
+              "Registrant contact %s on domain %s does not exist",
+              registrant,
+              domainName);
+          bean.setRegistrant(registrantContact.getContactId());
         }
 
         // o  Zero or more OPTIONAL <contact> elements that contain identifiers
         //    for the human or organizational social information objects
         //    associated with the domain name object.
         for (DesignatedContact contact : model.getContacts()) {
-          bean.getContacts().add(convertDesignatedContact(contact));
+          bean.getContacts().add(convertDesignatedContact(contact, domainName));
         }
 
         // o  An OPTIONAL <secDNS> element that contains the public key
@@ -291,9 +306,20 @@ final class DomainResourceToXjcConverter {
   }
 
   /** Converts {@link DesignatedContact} to {@link XjcDomainContactType}. */
-  private static XjcDomainContactType convertDesignatedContact(DesignatedContact model) {
+  private static XjcDomainContactType convertDesignatedContact(
+      DesignatedContact model, String domainName) {
     XjcDomainContactType bean = new XjcDomainContactType();
+    checkState(
+        model.getContactKey() != null,
+        "Contact key for type %s is null on domain %s",
+        model.getType(),
+        domainName);
     ContactResource contact = ofy().load().key(model.getContactKey()).now();
+    checkState(
+        contact != null,
+        "Contact %s on domain %s does not exist",
+        model.getContactKey(),
+        domainName);
     bean.setType(XjcDomainContactAttrType.fromValue(Ascii.toLowerCase(model.getType().toString())));
     bean.setValue(contact.getContactId());
     return bean;
