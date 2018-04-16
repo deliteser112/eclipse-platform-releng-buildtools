@@ -88,6 +88,13 @@ not only the certificate for your domain, but also certificates from
 intermediate CAs, these certificates must appear in order. The previous
 certificate's issuer must be the next certificate's subject.
 
+The certificate will be encrypted by KMS and uploaded to a GCS bucket. To create
+the bucket:
+
+```bash
+$ gsutil mb -p <proxy-project> gs://<certificate-bucket-name>/
+```
+
 ### Setup proxy project
 
 First setup the [Application Default
@@ -181,7 +188,7 @@ This encrypted file is then uploaded to a GCS bucket specified in the
 `config.tf` file.
 
 ```bash
-$ gsutil cp <combined_secret.pem.enc> gs://<your-gcs-bucket>
+$ gsutil cp <combined_secret.pem.enc> gs://<your-certificate-bucket>
 ```
 
 ### Edit proxy config file
