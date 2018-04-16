@@ -59,7 +59,7 @@ environment.
 In the proxy project, create a GCS bucket to store the terraform state file:
 
 ```bash
-$ gsutil config
+$ gsutil config # only if you haven't run gsutil before.
 $ gsutil mb -p <proxy-project> gs://<bucket-name>/
 ```
 
