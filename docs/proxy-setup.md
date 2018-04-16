@@ -88,12 +88,8 @@ not only the certificate for your domain, but also certificates from
 intermediate CAs, these certificates must appear in order. The previous
 certificate's issuer must be the next certificate's subject.
 
-The certificate will be encrypted by KMS and uploaded to a GCS bucket. To create
-the bucket:
-
-```bash
-$ gsutil mb -p <proxy-project> gs://<certificate-bucket-name>/
-```
+The certificate will be encrypted by KMS and uploaded to a GCS bucket. The
+bucket will be created automatically by terraform.
 
 ### Setup proxy project
 
