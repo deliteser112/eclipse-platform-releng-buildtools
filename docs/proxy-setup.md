@@ -145,6 +145,15 @@ oAuth:
     - <client_id>
 ```
 
+This service account also needs to be an ["App Engine Admin"](https://github.com/google/nomulus/blob/3dfd141e0fed650b5eb2631b4345220355221b77/java/google/registry/request/auth/UserAuthInfo.java#L31),
+which means it needs to granted a role like "Project Viewer":
+
+```bash
+$ gcloud add-iam-binding <nomulus-project> \
+ --member=serviceAccount:<service-account-email> \
+ --role=roles/viewer
+ ```
+
 ### Setup nameservers
 
 The terraform output (run `terraform output` in the environment folder to show
