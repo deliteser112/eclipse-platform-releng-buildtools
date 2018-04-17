@@ -33,3 +33,14 @@ variable "proxy_ports" {
     epp          = 30002
   }
 }
+
+# Node ports exposed by the canary proxy.
+variable "proxy_ports_canary" {
+  type = "map"
+
+  default = {
+    health_check = 40000
+    whois        = 40001
+    epp          = 40002
+  }
+}

@@ -8,7 +8,7 @@ resource "google_dns_record_set" "proxy_epp_a_record" {
   type         = "A"
   ttl          = 300
   managed_zone = "${google_dns_managed_zone.proxy_domain.name}"
-  rrdatas      = ["${google_compute_global_address.proxy_ipv4_address.address}"]
+  rrdatas      = ["${module.proxy_networking.proxy_ipv4_address}"]
 }
 
 resource "google_dns_record_set" "proxy_epp_aaaa_record" {
@@ -16,7 +16,7 @@ resource "google_dns_record_set" "proxy_epp_aaaa_record" {
   type         = "AAAA"
   ttl          = 300
   managed_zone = "${google_dns_managed_zone.proxy_domain.name}"
-  rrdatas      = ["${google_compute_global_address.proxy_ipv6_address.address}"]
+  rrdatas      = ["${module.proxy_networking.proxy_ipv6_address}"]
 }
 
 resource "google_dns_record_set" "proxy_whois_a_record" {
@@ -24,7 +24,7 @@ resource "google_dns_record_set" "proxy_whois_a_record" {
   type         = "A"
   ttl          = 300
   managed_zone = "${google_dns_managed_zone.proxy_domain.name}"
-  rrdatas      = ["${google_compute_global_address.proxy_ipv4_address.address}"]
+  rrdatas      = ["${module.proxy_networking.proxy_ipv4_address}"]
 }
 
 resource "google_dns_record_set" "proxy_whois_aaaa_record" {
@@ -32,5 +32,5 @@ resource "google_dns_record_set" "proxy_whois_aaaa_record" {
   type         = "AAAA"
   ttl          = 300
   managed_zone = "${google_dns_managed_zone.proxy_domain.name}"
-  rrdatas      = ["${google_compute_global_address.proxy_ipv6_address.address}"]
+  rrdatas      = ["${module.proxy_networking.proxy_ipv6_address}"]
 }

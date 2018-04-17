@@ -28,8 +28,5 @@ output "proxy_instance_groups" {
 }
 
 output "proxy_ip_addresses" {
-  value = {
-    ipv4 = "${module.proxy.proxy_ipv4_address}"
-    ipv6 = "${module.proxy.proxy_ipv6_address}"
-  }
+  value = "${module.proxy.proxy_ip_addresses}"
 }

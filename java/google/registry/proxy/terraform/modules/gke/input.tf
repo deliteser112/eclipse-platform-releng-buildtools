@@ -11,7 +11,3 @@ variable "proxy_cluster_zones" {
     apac     = "asia-northeast1-c"
   }
 }
-
-variable "proxy_ports" {
-  type = "map"
-}
