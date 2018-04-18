@@ -266,9 +266,7 @@ public final class FormField<I, O> {
 
     /** Ensure value is not {@code null}. */
     public Builder<I, O> required() {
-      @SuppressWarnings("unchecked")
-      Function<O, O> requiredFunction = (Function<O, O>) REQUIRED_FUNCTION;
-      return transform(requiredFunction);
+      return transform(Builder::checkNotNullTransform);
     }
 
     /**
@@ -280,17 +278,12 @@ public final class FormField<I, O> {
     public Builder<I, O> emptyToNull() {
       checkState(CharSequence.class.isAssignableFrom(typeOut)
           || Collection.class.isAssignableFrom(typeOut));
-      @SuppressWarnings("unchecked")
-      Function<O, O> emptyToNullFunction =
-          (Function<O, O>)
-              ((Function<Object, Object>)
-                  input ->
-                      ((input instanceof CharSequence) && (((CharSequence) input).length() == 0))
-                              || ((input instanceof Collection)
-                                  && ((Collection<?>) input).isEmpty())
-                          ? null
-                          : input);
-      return transform(emptyToNullFunction);
+      return transform(
+          input ->
+              ((input instanceof CharSequence) && (((CharSequence) input).length() == 0))
+                      || ((input instanceof Collection) && ((Collection<?>) input).isEmpty())
+                  ? null
+                  : input);
     }
 
     /**
@@ -560,13 +553,12 @@ public final class FormField<I, O> {
       return new FormField<>(name, typeIn, typeOut, converter);
     }
 
-    private static final Function<Object, Object> REQUIRED_FUNCTION =
-        input -> {
-          if (input == null) {
-            throw new FormFieldException("This field is required.");
-          }
-          return input;
-        };
+    private static <O> O checkNotNullTransform(@Nullable O input) {
+      if (input == null) {
+        throw new FormFieldException("This field is required.");
+      }
+      return input;
+    }
 
     private static final class DefaultFunction<O> implements Function<O, O> {
       private final O defaultValue;
