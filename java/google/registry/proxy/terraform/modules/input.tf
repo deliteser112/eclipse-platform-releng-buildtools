@@ -39,8 +39,8 @@ variable "proxy_ports_canary" {
   type = "map"
 
   default = {
-    health_check = 40000
-    whois        = 40001
-    epp          = 40002
+    health_check = 31000
+    whois        = 31001
+    epp          = 31002
   }
 }

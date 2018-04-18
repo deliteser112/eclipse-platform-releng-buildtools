@@ -6,8 +6,11 @@ output "proxy_instance_groups" {
   value = "${local.proxy_instance_groups}"
 }
 
-output "proxy_service_account_client_id" {
-  value = "${google_service_account.proxy_service_account.unique_id}"
+output "proxy_service_account" {
+  value = {
+    email     = "${google_service_account.proxy_service_account.email}"
+    client_id = "${google_service_account.proxy_service_account.unique_id}"
+  }
 }
 
 output "proxy_ip_addresses" {

@@ -15,8 +15,8 @@ module "proxy" {
   proxy_certificate_bucket = "YOU_CERTIFICATE_BUCKET"
 }
 
-output "proxy_service_account_client_id" {
-  value = "${module.proxy.proxy_service_account_client_id}"
+output "proxy_service_account" {
+  value = "${module.proxy.proxy_service_account}"
 }
 
 output "proxy_name_servers" {
