@@ -71,11 +71,14 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
 
   @Test
   public void testFailure_updateRegistrarInfo_duplicateContacts() throws Exception {
-    Map<String, Object> response =
-        action.handleJsonRequest(
-            readJsonFromFile("update_registrar_duplicate_contacts.json", getLastUpdateTime()));
-    assertThat(response).containsEntry("status", "ERROR");
-    assertThat((String) response.get("message")).startsWith("One email address");
+    Map<String, Object> response = action.handleJsonRequest(
+        readJsonFromFile("update_registrar_duplicate_contacts.json", getLastUpdateTime()));
+    assertThat(response).containsExactly(
+        "status", "ERROR",
+        "results", ImmutableList.of(),
+        "message",
+        "One email address (etphonehome@example.com) cannot be used for multiple contacts");
+    assertNoTasksEnqueued("sheet");
   }
 
   @Test
@@ -93,8 +96,10 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   @Test
   public void testRead_authorized_returnsRegistrarJson() throws Exception {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of());
-    assertThat(response).containsEntry("status", "SUCCESS");
-    assertThat(response).containsEntry("results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
+    assertThat(response).containsExactly(
+        "status", "SUCCESS",
+        "message", "Success",
+        "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
   }
 
   @Test
@@ -102,9 +107,11 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "args", ImmutableMap.of()));
-    assertThat(response).containsEntry("status", "ERROR");
-    assertThat(response).containsEntry("field", "lastUpdateTime");
-    assertThat(response).containsEntry("message", "This field is required.");
+    assertThat(response).containsExactly(
+        "status", "ERROR",
+        "field", "lastUpdateTime",
+        "results", ImmutableList.of(),
+        "message", "This field is required.");
     assertNoTasksEnqueued("sheet");
   }
 
@@ -113,9 +120,11 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "args", ImmutableMap.of("lastUpdateTime", getLastUpdateTime())));
-    assertThat(response).containsEntry("status", "ERROR");
-    assertThat(response).containsEntry("field", "emailAddress");
-    assertThat(response).containsEntry("message", "This field is required.");
+    assertThat(response).containsExactly(
+        "status", "ERROR",
+        "field", "emailAddress",
+        "results", ImmutableList.of(),
+        "message", "This field is required.");
     assertNoTasksEnqueued("sheet");
   }
 
@@ -126,17 +135,24 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "args", ImmutableMap.of("lastUpdateTime", getLastUpdateTime())));
-    assertThat(response).containsEntry("status", "SUCCESS");
+    assertThat(response).containsExactly(
+        "status", "SUCCESS",
+        "message", "Saved TheRegistrar",
+        "results", asList(loadRegistrar(CLIENT_ID).toJsonMap()));
   }
 
   @Test
   public void testUpdate_badEmail_errorEmailField() throws Exception {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
-        "args", ImmutableMap.of("lastUpdateTime", getLastUpdateTime(), "emailAddress", "lolcat")));
-    assertThat(response).containsEntry("status", "ERROR");
-    assertThat(response).containsEntry("field", "emailAddress");
-    assertThat(response).containsEntry("message", "Please enter a valid email address.");
+        "args", ImmutableMap.of(
+            "lastUpdateTime", getLastUpdateTime(),
+            "emailAddress", "lolcat")));
+    assertThat(response).containsExactly(
+        "status", "ERROR",
+        "field", "emailAddress",
+        "results", ImmutableList.of(),
+        "message", "Please enter a valid email address.");
     assertNoTasksEnqueued("sheet");
   }
 
@@ -145,9 +161,11 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "args", ImmutableMap.of("lastUpdateTime", "cookies")));
-    assertThat(response).containsEntry("status", "ERROR");
-    assertThat(response).containsEntry("field", "lastUpdateTime");
-    assertThat(response).containsEntry("message", "Not a valid ISO date-time string.");
+    assertThat(response).containsExactly(
+        "status", "ERROR",
+        "field", "lastUpdateTime",
+        "results", ImmutableList.of(),
+        "message", "Not a valid ISO date-time string.");
     assertNoTasksEnqueued("sheet");
   }
 
@@ -158,9 +176,11 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
         "args", ImmutableMap.of(
             "lastUpdateTime", getLastUpdateTime(),
             "emailAddress", "ヘ(◕。◕ヘ)@example.com")));
-    assertThat(response).containsEntry("status", "ERROR");
-    assertThat(response).containsEntry("field", "emailAddress");
-    assertThat(response).containsEntry("message", "Please only use ASCII-US characters.");
+    assertThat(response).containsExactly(
+        "status", "ERROR",
+        "field", "emailAddress",
+        "results", ImmutableList.of(),
+        "message", "Please only use ASCII-US characters.");
     assertNoTasksEnqueued("sheet");
   }
 
