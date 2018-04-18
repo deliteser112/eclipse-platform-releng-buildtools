@@ -1,9 +1,6 @@
 # GCP project in which the proxy runs.
 variable "proxy_project_name" {}
 
-# GCP project in which Nomulus runs.
-variable "nomulus_project_name" {}
-
 # GCP project from which the proxy image is pulled.
 variable "gcr_project_name" {}
 

@@ -29,7 +29,7 @@ import javax.servlet.http.HttpSession;
 @Action(
   path = "/_dr/epp",
   method = Method.POST,
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
+  auth = Auth.AUTH_PUBLIC_OR_INTERNAL
 )
 public class EppTlsAction implements Runnable {
 

@@ -57,6 +57,17 @@ public enum Auth {
       UserPolicy.PUBLIC),
 
   /**
+   * Allows anyone access, as long as they use OAuth to authenticate.
+   *
+   * Also allows access from App Engine task-queue. Note that OAuth client ID still needs to be
+   * whitelisted in the config file for OAuth-based authentication to succeed.
+   */
+  AUTH_PUBLIC_OR_INTERNAL(
+      ImmutableList.of(AuthMethod.INTERNAL, AuthMethod.API),
+      AuthLevel.APP,
+      UserPolicy.PUBLIC),
+
+  /**
    * Allows only admins or App Engine task-queue access.
    */
   AUTH_INTERNAL_OR_ADMIN(

@@ -9,7 +9,6 @@ terraform {
 module "proxy" {
   source                   = "../../modules"
   proxy_project_name       = "YOUR_PROXY_PROJECT"
-  nomulus_project_name     = "YOUR_NOMULUS_GPROJECT"
   gcr_project_name         = "YOUR_GCR_PROJECT"
   proxy_domain_name        = "YOUR_PROXY_DOMAIN"
   proxy_certificate_bucket = "YOU_CERTIFICATE_BUCKET"

@@ -1,6 +1,6 @@
 PATH                     CLASS                       METHODS  OK AUTH_METHODS        MIN  USER_POLICY
-/_dr/epp                 EppTlsAction                POST     n  INTERNAL,API        APP  ADMIN
-/_dr/whois               WhoisAction                 POST     n  INTERNAL,API        APP  ADMIN
+/_dr/epp                 EppTlsAction                POST     n  INTERNAL,API        APP  PUBLIC
+/_dr/whois               WhoisAction                 POST     n  INTERNAL,API        APP  PUBLIC
 /check                   CheckApiAction              GET      n  INTERNAL            NONE PUBLIC
 /rdap/autnum/(*)         RdapAutnumAction            GET,HEAD n  INTERNAL            NONE PUBLIC
 /rdap/domain/(*)         RdapDomainAction            GET,HEAD n  INTERNAL,API,LEGACY NONE PUBLIC

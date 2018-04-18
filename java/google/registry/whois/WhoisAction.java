@@ -49,7 +49,7 @@ import org.joda.time.DateTime;
  * @see WhoisHttpAction
  * @see <a href="http://www.ietf.org/rfc/rfc3912.txt">RFC 3912: WHOIS Protocol Specification</a>
  */
-@Action(path = "/_dr/whois", method = POST, auth = Auth.AUTH_INTERNAL_OR_ADMIN)
+@Action(path = "/_dr/whois", method = POST, auth = Auth.AUTH_PUBLIC_OR_INTERNAL)
 public class WhoisAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();

@@ -3,12 +3,6 @@ resource "google_service_account" "proxy_service_account" {
   display_name = "Nomulus proxy service account"
 }
 
-resource "google_project_iam_member" "nomulus_project_viewer" {
-  project = "${var.nomulus_project_name}"
-  role    = "roles/viewer"
-  member  = "serviceAccount:${google_service_account.proxy_service_account.email}"
-}
-
 resource "google_project_iam_member" "gcr_storage_viewer" {
   project = "${var.gcr_project_name}"
   role    = "roles/storage.objectViewer"
