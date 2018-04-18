@@ -25,9 +25,9 @@ public class ProxyConfig {
   enum Environment {
     PRODUCTION,
     SANDBOX,
+    SANDBOX_CANARY,
     ALPHA,
     LOCAL,
-    TEST,
   }
 
   private static final String DEFAULT_CONFIG = "config/default-config.yaml";
@@ -119,7 +119,8 @@ public class ProxyConfig {
     String defaultYaml = readResourceUtf8(ProxyConfig.class, DEFAULT_CONFIG);
     String customYaml =
         readResourceUtf8(
-            ProxyConfig.class, String.format(CUSTOM_CONFIG_FORMATTER, env.name().toLowerCase()));
+            ProxyConfig.class,
+            String.format(CUSTOM_CONFIG_FORMATTER, env.name().toLowerCase().replace("_", "-")));
     return getConfigSettings(defaultYaml, customYaml, ProxyConfig.class);
   }
 }

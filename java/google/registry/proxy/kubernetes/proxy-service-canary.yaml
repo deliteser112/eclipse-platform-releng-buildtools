@@ -1,0 +1,25 @@
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: default
+  name: proxy-service-canary
+spec:
+  selector:
+    app: proxy-canary
+  ports:
+  - protocol: TCP
+    port: 30000
+    nodePort: 31000
+    targetPort: health-check
+    name: health-check
+  - protocol: TCP
+    port: 30001
+    nodePort: 31001
+    targetPort: whois
+    name: whois
+  - protocol: TCP
+    port: 30002
+    nodePort: 31002
+    targetPort: epp
+    name: epp
+  type: NodePort
