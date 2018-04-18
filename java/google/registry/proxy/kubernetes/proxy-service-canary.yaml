@@ -23,3 +23,18 @@ spec:
     targetPort: epp
     name: epp
   type: NodePort
+---
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  namespace: default
+  name: proxy-autoscale-canary
+  labels:
+    app: proxy-canary
+spec:
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: proxy-deployment-canary
+  maxReplicas: 5
+  minReplicas: 1
