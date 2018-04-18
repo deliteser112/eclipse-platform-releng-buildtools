@@ -1669,7 +1669,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_invalidPunycode() throws Exception {
-    doFailingDomainNameTest("xn--abcdefg.tld", InvalidPunycodeException.class);
+    // You don't want to know what this string (might?) mean.
+    doFailingDomainNameTest("xn--uxa129t5ap4f1h1bc3p.tld", InvalidPunycodeException.class);
   }
 
   @Test

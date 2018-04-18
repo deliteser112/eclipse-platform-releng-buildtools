@@ -44,6 +44,7 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.mapper.Mapper;
+import google.registry.model.Buildable;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.DomainLabelMetrics.MetricsReservedListMatch;
 import java.util.List;
@@ -72,7 +73,7 @@ public final class ReservedList
    */
   @Embed
   public static class ReservedListEntry
-      extends DomainLabelEntry<ReservationType, ReservedListEntry> {
+      extends DomainLabelEntry<ReservationType, ReservedListEntry> implements Buildable {
 
     ReservationType reservationType;
 
@@ -114,8 +115,12 @@ public final class ReservedList
         String label,
         ReservationType reservationType,
         @Nullable String restrictions,
-        String comment) {
-      ReservedListEntry entry = new ReservedListEntry();
+        @Nullable String comment) {
+      ReservedListEntry.Builder builder =
+          new ReservedListEntry.Builder()
+              .setLabel(label)
+              .setComment(comment)
+              .setReservationType(reservationType);
       if (restrictions != null) {
         checkArgument(
             reservationType == RESERVED_FOR_ANCHOR_TENANT
@@ -123,12 +128,10 @@ public final class ReservedList
             "Only anchor tenant and nameserver restricted reservations "
                 + "should have restrictions imposed");
         if (reservationType == RESERVED_FOR_ANCHOR_TENANT) {
-          entry.authCode = restrictions;
+          builder.setAuthCode(restrictions);
         } else if (reservationType == NAMESERVER_RESTRICTED) {
-          Set<String> allowedNameservers =
-              ImmutableSet.copyOf(Splitter.on(':').trimResults().split(restrictions));
-          checkNameserversAreValid(allowedNameservers);
-          entry.allowedNameservers = Joiner.on(',').join(allowedNameservers);
+          builder.setAllowedNameservers(
+              ImmutableSet.copyOf(Splitter.on(':').trimResults().split(restrictions)));
         }
       } else {
         checkArgument(
@@ -138,10 +141,7 @@ public final class ReservedList
             reservationType != NAMESERVER_RESTRICTED,
             "Nameserver restricted reservations must have at least one nameserver configured");
       }
-      entry.label = label;
-      entry.comment = comment;
-      entry.reservationType = reservationType;
-      return entry;
+      return builder.build();
     }
 
     private static void checkNameserversAreValid(Set<String> nameservers) {
@@ -165,6 +165,38 @@ public final class ReservedList
 
     public ImmutableSet<String> getAllowedNameservers() {
       return ImmutableSet.copyOf(Splitter.on(',').splitToList(allowedNameservers));
+    }
+
+    @Override
+    public ReservedListEntry.Builder asBuilder() {
+      return new ReservedListEntry.Builder(clone(this));
+    }
+
+    /** A builder for constructing {@link ReservedListEntry} objects, since they are immutable. */
+    private static class Builder
+        extends DomainLabelEntry.Builder<ReservedListEntry, ReservedListEntry.Builder> {
+
+      public Builder() {}
+
+      private Builder(ReservedListEntry instance) {
+        super(instance);
+      }
+
+      ReservedListEntry.Builder setAllowedNameservers(Set<String> allowedNameservers) {
+        checkNameserversAreValid(allowedNameservers);
+        getInstance().allowedNameservers = Joiner.on(',').join(allowedNameservers);
+        return this;
+      }
+
+      ReservedListEntry.Builder setAuthCode(String authCode) {
+        getInstance().authCode = authCode;
+        return this;
+      }
+
+      ReservedListEntry.Builder setReservationType(ReservationType reservationType) {
+        getInstance().reservationType = reservationType;
+        return this;
+      }
     }
   }
 

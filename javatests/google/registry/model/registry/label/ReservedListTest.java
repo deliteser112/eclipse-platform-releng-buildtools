@@ -410,7 +410,7 @@ public class ReservedListTest {
         "reserved",
         "trombone,FULLY_BLOCKED  # yup",
         "oysters,MISTAKEN_PREMIUM #  this is a loooong comment",
-        "nullComment,ALLOWED_IN_SUNRISE  #");
+        "nullcomment,ALLOWED_IN_SUNRISE  #");
     assertThat(reservedList.getReservedListEntries()).hasSize(3);
 
     ReservedListEntry trombone = reservedList.getReservedListEntries().get("trombone");
@@ -423,8 +423,8 @@ public class ReservedListTest {
     assertThat(oysters.reservationType).isEqualTo(ReservationType.MISTAKEN_PREMIUM);
     assertThat(oysters.comment).isEqualTo("this is a loooong comment");
 
-    ReservedListEntry nullComment = reservedList.getReservedListEntries().get("nullComment");
-    assertThat(nullComment.label).isEqualTo("nullComment");
+    ReservedListEntry nullComment = reservedList.getReservedListEntries().get("nullcomment");
+    assertThat(nullComment.label).isEqualTo("nullcomment");
     assertThat(nullComment.reservationType).isEqualTo(ReservationType.ALLOWED_IN_SUNRISE);
     assertThat(nullComment.comment).isEmpty();
   }
@@ -581,5 +581,23 @@ public class ReservedListTest {
         .hasMessageThat()
         .contains(
             "List 'blah' cannot contain duplicate labels. Dupes (with counts) were: [lol x 2]");
+  }
+
+  @Test
+  public void testValidation_labelMustBeLowercase() {
+    Exception e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> ReservedListEntry.create("UPPER.tld", FULLY_BLOCKED, null, null));
+    assertThat(e).hasMessageThat().contains("must be in puny-coded, lower-case form");
+  }
+
+  @Test
+  public void testValidation_labelMustBePunyCoded() {
+    Exception e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> ReservedListEntry.create("lower.みんな", FULLY_BLOCKED, null, null));
+    assertThat(e).hasMessageThat().contains("must be in puny-coded, lower-case form");
   }
 }

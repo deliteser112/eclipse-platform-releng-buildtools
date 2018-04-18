@@ -25,8 +25,10 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import google.registry.model.registry.Registry;
+import google.registry.model.registry.label.PremiumList.PremiumListEntry;
 import google.registry.model.registry.label.PremiumList.PremiumListRevision;
 import google.registry.testing.AppEngineRule;
+import org.joda.money.Money;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -97,5 +99,31 @@ public class PremiumListTest {
         .hasMessageThat()
         .contains(
             "List 'tld' cannot contain duplicate labels. Dupes (with counts) were: [lol x 2]");
+  }
+
+  @Test
+  public void testValidation_labelMustBeLowercase() {
+    Exception e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                new PremiumListEntry.Builder()
+                    .setPrice(Money.parse("USD 399"))
+                    .setLabel("UPPER.tld")
+                    .build());
+    assertThat(e).hasMessageThat().contains("must be in puny-coded, lower-case form");
+  }
+
+  @Test
+  public void testValidation_labelMustBePunyCoded() {
+    Exception e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                new PremiumListEntry.Builder()
+                    .setPrice(Money.parse("USD 399"))
+                    .setLabel("lower.みんな")
+                    .build());
+    assertThat(e).hasMessageThat().contains("must be in puny-coded, lower-case form");
   }
 }
