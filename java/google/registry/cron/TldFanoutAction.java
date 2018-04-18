@@ -131,7 +131,7 @@ public final class TldFanoutAction implements Runnable {
                 runInEmpty ? Stream.of("") : Stream.of(),
                 forEachRealTld ? getTldsOfType(REAL).stream() : Stream.of(),
                 forEachTestTld ? getTldsOfType(TEST).stream() : Stream.of())
-            .filter(tld -> !excludes.contains(tld))
+            .filter(not(in(excludes)))
             .collect(toImmutableSet());
     Multimap<String, String> flowThruParams = filterKeys(params, not(in(CONTROL_PARAMS)));
     Queue taskQueue = getQueue(queue);

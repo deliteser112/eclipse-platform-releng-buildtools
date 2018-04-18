@@ -15,6 +15,7 @@
 package google.registry.model.ofy;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Maps.filterValues;
 import static com.google.common.collect.Maps.toMap;
@@ -88,7 +89,7 @@ class TransactionInfo {
         .build()
         .values()
         .stream()
-        .filter(change -> !Delete.SENTINEL.equals(change))
+        .filter(not(Delete.SENTINEL::equals))
         .collect(toImmutableSet());
   }
 }

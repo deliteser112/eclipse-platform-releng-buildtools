@@ -14,6 +14,7 @@
 
 package google.registry.rdap;
 
+import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
@@ -57,7 +58,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
@@ -1153,7 +1153,7 @@ public class RdapJsonFormatter {
     if (isDeleted) {
       stream =
           Streams.concat(
-              stream.filter(rdapStatus -> !Objects.equals(rdapStatus, RdapStatus.ACTIVE)),
+              stream.filter(not(RdapStatus.ACTIVE::equals)),
               Stream.of(RdapStatus.INACTIVE));
     }
     return stream
