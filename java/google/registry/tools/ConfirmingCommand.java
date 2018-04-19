@@ -37,6 +37,7 @@ public abstract class ConfirmingCommand implements Command {
         // nothing further.
         return;
       } else if (force || promptForYes("Perform this command?")) {
+        System.out.println("Running ... ");
         System.out.println(execute());
         printLineIfNotEmpty(postExecute());
       } else {
