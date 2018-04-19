@@ -17,6 +17,7 @@ package google.registry.util;
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.CollectionUtils.union;
 
+import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableSet;
 import java.io.IOException;
 import java.net.Inet6Address;
@@ -72,7 +73,7 @@ public final class NetworkUtils {
    */
   public static String getCanonicalHostName() {
     try {
-      return getExternalAddressOfLocalSystem().getCanonicalHostName().toLowerCase();
+      return Ascii.toLowerCase(getExternalAddressOfLocalSystem().getCanonicalHostName());
     } catch (UnknownHostException e) {
       throw new RuntimeException(e);
     }

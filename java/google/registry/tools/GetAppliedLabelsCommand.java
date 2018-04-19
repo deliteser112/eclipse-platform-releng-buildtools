@@ -23,6 +23,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.internal.Sets;
+import com.google.common.base.Ascii;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.launch.ApplicationStatus;
 import google.registry.tools.Command.RemoteApiCommand;
@@ -58,7 +59,7 @@ final class GetAppliedLabelsCommand implements RemoteApiCommand {
     for (String label : getDomainApplicationMap(assertTldExists(tld))) {
       label = label.substring(0, label.lastIndexOf('.'));
       try {
-        lines.add(Idn.toUnicode(label.toLowerCase()));
+        lines.add(Idn.toUnicode(Ascii.toLowerCase(label)));
       } catch (IllegalArgumentException e) {
         // An invalid punycode label that we need to reject later.
         lines.add(label + " (invalid)");

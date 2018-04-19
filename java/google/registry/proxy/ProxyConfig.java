@@ -17,6 +17,7 @@ package google.registry.proxy;
 import static google.registry.config.YamlUtils.getConfigSettings;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 
+import com.google.common.base.Ascii;
 import java.util.List;
 
 /** The POJO that YAML config files are deserialized into. */
@@ -120,7 +121,8 @@ public class ProxyConfig {
     String customYaml =
         readResourceUtf8(
             ProxyConfig.class,
-            String.format(CUSTOM_CONFIG_FORMATTER, env.name().toLowerCase().replace("_", "-")));
+            String.format(
+                CUSTOM_CONFIG_FORMATTER, Ascii.toLowerCase(env.name()).replace("_", "-")));
     return getConfigSettings(defaultYaml, customYaml, ProxyConfig.class);
   }
 }
