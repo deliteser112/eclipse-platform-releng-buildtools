@@ -591,6 +591,18 @@ public final class RegistryConfig {
     }
 
     /**
+     * Returns whether or not we should publish invoices to partners automatically by default.
+     *
+     * @see google.registry.reporting.billing.BillingModule
+     */
+    @Provides
+    @Config("defaultShouldPublishInvoices")
+    public static boolean provideDefaultShouldPublishInvoices() {
+      // TODO(b/78278360): Make the default 'true' once we're done with SUNRISE.
+      return false;
+    }
+
+    /**
      * Returns the list of addresses that receive monthly invoicing emails.
      *
      * @see google.registry.reporting.billing.BillingEmailUtils

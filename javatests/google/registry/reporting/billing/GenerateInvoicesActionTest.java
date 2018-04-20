@@ -15,6 +15,7 @@
 package google.registry.reporting.billing;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -54,7 +55,7 @@ public class GenerateInvoicesActionTest {
   private Launch launch;
   private FakeResponse response;
   private BillingEmailUtils emailUtils;
-  private GenerateInvoicesAction action;
+  GenerateInvoicesAction action;
 
   @Before
   public void setUp() throws IOException {
@@ -73,20 +74,20 @@ public class GenerateInvoicesActionTest {
     Job job = new Job();
     job.setId("12345");
     when(launch.execute()).thenReturn(new LaunchTemplateResponse().setJob(job));
+  }
 
+  @Test
+  public void testLaunchTemplateJob_withPublish() throws Exception {
     action =
         new GenerateInvoicesAction(
             "test-project",
             "gs://test-project-beam",
             "gs://test-project-beam/templates/invoicing",
+            true,
             new YearMonth(2017, 10),
             dataflow,
             response,
             emailUtils);
-  }
-
-  @Test
-  public void testLaunchTemplateJob() throws Exception {
     action.run();
     LaunchTemplateParameters expectedParams =
         new LaunchTemplateParameters()
@@ -111,8 +112,46 @@ public class GenerateInvoicesActionTest {
   }
 
   @Test
+  public void testLaunchTemplateJob_withoutPublish() throws Exception {
+    action =
+        new GenerateInvoicesAction(
+            "test-project",
+            "gs://test-project-beam",
+            "gs://test-project-beam/templates/invoicing",
+            false,
+            new YearMonth(2017, 10),
+            dataflow,
+            response,
+            emailUtils);
+    action.run();
+    LaunchTemplateParameters expectedParams =
+        new LaunchTemplateParameters()
+            .setJobName("invoicing-2017-10")
+            .setEnvironment(
+                new RuntimeEnvironment()
+                    .setZone("us-east1-c")
+                    .setTempLocation("gs://test-project-beam/temporary"))
+            .setParameters(ImmutableMap.of("yearMonth", "2017-10"));
+    verify(templates).launch("test-project", expectedParams);
+    verify(launch).setGcsPath("gs://test-project-beam/templates/invoicing");
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getPayload()).isEqualTo("Launched dataflow template.");
+    assertNoTasksEnqueued();
+  }
+
+  @Test
   public void testCaughtIOException() throws IOException {
     when(launch.execute()).thenThrow(new IOException("expected"));
+    action =
+        new GenerateInvoicesAction(
+            "test-project",
+            "gs://test-project-beam",
+            "gs://test-project-beam/templates/invoicing",
+            true,
+            new YearMonth(2017, 10),
+            dataflow,
+            response,
+            emailUtils);
     action.run();
     assertThat(response.getStatus()).isEqualTo(500);
     assertThat(response.getPayload()).isEqualTo("Template launch failed: expected");

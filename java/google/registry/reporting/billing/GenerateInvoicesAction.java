@@ -15,6 +15,7 @@
 package google.registry.reporting.billing;
 
 import static google.registry.reporting.ReportingModule.PARAM_YEAR_MONTH;
+import static google.registry.reporting.billing.BillingModule.PARAM_SHOULD_PUBLISH;
 import static google.registry.request.Action.Method.POST;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -29,6 +30,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
+import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
@@ -55,6 +57,7 @@ public class GenerateInvoicesAction implements Runnable {
   private final String projectId;
   private final String beamBucketUrl;
   private final String invoiceTemplateUrl;
+  private final boolean shouldPublish;
   private final YearMonth yearMonth;
   private final Dataflow dataflow;
   private final Response response;
@@ -65,6 +68,7 @@ public class GenerateInvoicesAction implements Runnable {
       @Config("projectId") String projectId,
       @Config("apacheBeamBucketUrl") String beamBucketUrl,
       @Config("invoiceTemplateUrl") String invoiceTemplateUrl,
+      @Parameter(PARAM_SHOULD_PUBLISH) boolean shouldPublish,
       YearMonth yearMonth,
       Dataflow dataflow,
       Response response,
@@ -72,6 +76,7 @@ public class GenerateInvoicesAction implements Runnable {
     this.projectId = projectId;
     this.beamBucketUrl = beamBucketUrl;
     this.invoiceTemplateUrl = invoiceTemplateUrl;
+    this.shouldPublish = shouldPublish;
     this.yearMonth = yearMonth;
     this.dataflow = dataflow;
     this.response = response;
@@ -99,7 +104,9 @@ public class GenerateInvoicesAction implements Runnable {
               .execute();
       logger.infofmt("Got response: %s", launchResponse.getJob().toPrettyString());
       String jobId = launchResponse.getJob().getId();
-      enqueuePublishTask(jobId);
+      if (shouldPublish) {
+        enqueuePublishTask(jobId);
+      }
     } catch (IOException e) {
       logger.warning(e, "Template Launch failed");
       emailUtils.sendAlertEmail(String.format("Template Launch failed due to %s", e.getMessage()));

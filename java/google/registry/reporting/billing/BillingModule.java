@@ -14,6 +14,7 @@
 
 package google.registry.reporting.billing;
 
+import static google.registry.request.RequestParameters.extractOptionalBooleanParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
@@ -43,6 +44,7 @@ public final class BillingModule {
   public static final String INVOICES_DIRECTORY = "invoices";
 
   static final String PARAM_JOB_ID = "jobId";
+  static final String PARAM_SHOULD_PUBLISH = "shouldPublish";
   static final String BILLING_QUEUE = "billing";
   static final String CRON_QUEUE = "retryable-cron-tasks";
 
@@ -54,6 +56,15 @@ public final class BillingModule {
   @Parameter(PARAM_JOB_ID)
   static String provideJobId(HttpServletRequest req) {
     return extractRequiredParameter(req, PARAM_JOB_ID);
+  }
+
+  @Provides
+  @Parameter(PARAM_SHOULD_PUBLISH)
+  static boolean provideShouldPublish(
+      HttpServletRequest req,
+      @Config("defaultShouldPublishInvoices") boolean defaultShouldPublishInvoices) {
+    return extractOptionalBooleanParameter(req, PARAM_SHOULD_PUBLISH)
+        .orElse(defaultShouldPublishInvoices);
   }
 
   @Provides
