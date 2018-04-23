@@ -65,6 +65,7 @@ import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.EppRequestSource;
 import google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException;
 import google.registry.flows.ResourceFlowTestCase;
+import google.registry.flows.domain.DomainCreateFlow.AnchorTenantCreatePeriodException;
 import google.registry.flows.domain.DomainCreateFlow.DomainHasOpenApplicationsException;
 import google.registry.flows.domain.DomainCreateFlow.MustHaveSignedMarksInCurrentPhaseException;
 import google.registry.flows.domain.DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException;
@@ -1056,6 +1057,14 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_anchor_wrong_authcode.xml");
     persistContactsAndHosts();
     EppException thrown = assertThrows(DomainReservedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_anchorTenantViaAuthCode_notTwoYearPeriod() throws Exception {
+    setEppInput("domain_create_anchor_authcode_invalid_years.xml");
+    persistContactsAndHosts();
+    EppException thrown = assertThrows(AnchorTenantCreatePeriodException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

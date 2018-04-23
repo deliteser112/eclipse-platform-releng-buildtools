@@ -56,6 +56,7 @@ import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.CommandUseErrorException;
+import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.StatusProhibitsOperationException;
 import google.registry.flows.ExtensionManager;
 import google.registry.flows.FlowModule.ClientId;
@@ -120,6 +121,7 @@ import org.joda.time.Duration;
  * @error {@link google.registry.flows.exceptions.ResourceAlreadyExistsException}
  * @error {@link google.registry.flows.EppException.UnimplementedExtensionException}
  * @error {@link google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException}
+ * @error {@link DomainCreateFlow.AnchorTenantCreatePeriodException}
  * @error {@link DomainCreateFlow.DomainHasOpenApplicationsException}
  * @error {@link DomainCreateFlow.MustHaveSignedMarksInCurrentPhaseException}
  * @error {@link DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException}
@@ -184,6 +186,9 @@ public class DomainCreateFlow implements TransactionalFlow {
   private static final ImmutableSet<TldState> SUNRISE_STATES =
       Sets.immutableEnumSet(TldState.SUNRISE, TldState.SUNRUSH);
 
+  /** Anchor tenant creates should always be for 2 years, since they get 2 years free. */
+  private static final int ANCHOR_TENANT_CREATE_VALID_YEARS = 2;
+
   @Inject ExtensionManager extensionManager;
   @Inject EppInput eppInput;
   @Inject AuthInfo authInfo;
@@ -229,6 +234,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     }
     TldState tldState = registry.getTldState(now);
     boolean isAnchorTenant = isAnchorTenant(domainName);
+    verifyAnchorTenantValidPeriod(isAnchorTenant, years);
     Optional<LaunchCreateExtension> launchCreate =
         eppInput.getSingleExtension(LaunchCreateExtension.class);
     boolean hasSignedMarks =
@@ -372,6 +378,17 @@ public class DomainCreateFlow implements TransactionalFlow {
         eppInput.getSingleExtension(MetadataExtension.class);
     return matchesAnchorTenantReservation(domainName, authInfo.getPw().getValue())
         || (metadataExtension.isPresent() && metadataExtension.get().getIsAnchorTenant());
+  }
+
+  /**
+   * Verifies anchor tenant creates are only done for {@value ANCHOR_TENANT_CREATE_VALID_YEARS} year
+   * periods, as anchor tenants get exactly that many years of free registration.
+   */
+  static void verifyAnchorTenantValidPeriod(boolean isAnchorTenant, int registrationYears)
+      throws EppException {
+    if (isAnchorTenant && registrationYears != ANCHOR_TENANT_CREATE_VALID_YEARS) {
+      throw new AnchorTenantCreatePeriodException(registrationYears);
+    }
   }
 
   /** Prohibit creating a domain if there is an open application for the same name. */
@@ -555,6 +572,16 @@ public class DomainCreateFlow implements TransactionalFlow {
   static class MustHaveSignedMarksInCurrentPhaseException extends CommandUseErrorException {
     public MustHaveSignedMarksInCurrentPhaseException() {
       super("The current registry phase requires a signed mark for registrations");
+    }
+  }
+
+  /** Anchor tenant domain create is for the wrong number of years. */
+  static class AnchorTenantCreatePeriodException extends ParameterValuePolicyErrorException {
+    public AnchorTenantCreatePeriodException(int invalidYears) {
+      super(
+          String.format(
+              "Anchor tenant domain creates must be for a period of %s years, got %s instead.",
+              ANCHOR_TENANT_CREATE_VALID_YEARS, invalidYears));
     }
   }
 }
