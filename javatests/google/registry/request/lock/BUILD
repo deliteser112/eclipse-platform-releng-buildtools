@@ -27,6 +27,7 @@ java_library(
         "@joda_time",
         "@junit",
         "@org_mockito_all",
+        "@org_mortbay_jetty",
     ],
 )
 

@@ -58,5 +58,6 @@ java_library(
         "@org_joda_money",
         "@org_json",
         "@org_mockito_all",
+        "@org_mortbay_jetty",
     ],
 )

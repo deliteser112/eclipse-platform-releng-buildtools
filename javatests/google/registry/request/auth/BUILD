@@ -27,6 +27,7 @@ java_library(
         "@javax_servlet_api",
         "@junit",
         "@org_mockito_all",
+        "@org_mortbay_jetty",
     ],
 )
 
