@@ -163,16 +163,17 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
   /** Asserts the presence of a single enqueued async contact or host deletion */
   protected <T extends EppResource> void assertAsyncDeletionTaskEnqueued(
       T resource, String requestingClientId, Trid trid, boolean isSuperuser) throws Exception {
-    assertTasksEnqueued(
-        "async-delete-pull",
-        new TaskMatcher()
-            .etaDelta(Duration.standardSeconds(75), Duration.standardSeconds(105)) // expected: 90
-            .param("resourceKey", Key.create(resource).getString())
-            .param("requestingClientId", requestingClientId)
-            .param("clientTransactionId", trid.getClientTransactionId())
-            .param("serverTransactionId", trid.getServerTransactionId())
-            .param("isSuperuser", Boolean.toString(isSuperuser))
-            .param("requestedTime", clock.nowUtc().toString()));
+    TaskMatcher expected = new TaskMatcher()
+        .etaDelta(Duration.standardSeconds(75), Duration.standardSeconds(105)) // expected: 90
+        .param("resourceKey", Key.create(resource).getString())
+        .param("requestingClientId", requestingClientId)
+        .param("serverTransactionId", trid.getServerTransactionId())
+        .param("isSuperuser", Boolean.toString(isSuperuser))
+        .param("requestedTime", clock.nowUtc().toString());
+    if (trid.getClientTransactionId().isPresent()) {
+      expected.param("clientTransactionId", trid.getClientTransactionId().get());
+    }
+    assertTasksEnqueued("async-delete-pull", expected);
   }
 
 

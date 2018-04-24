@@ -65,7 +65,26 @@ public class ContactDeleteFlowTest
     assertAboutContacts().that(deletedContact).hasStatusValue(StatusValue.PENDING_DELETE);
     assertAsyncDeletionTaskEnqueued(
         deletedContact, "TheRegistrar", Trid.create("ABC-12345", "server-trid"), false);
-    assertAboutContacts().that(deletedContact)
+    assertAboutContacts()
+        .that(deletedContact)
+        .hasOnlyOneHistoryEntryWhich()
+        .hasType(HistoryEntry.Type.CONTACT_PENDING_DELETE);
+    assertNoBillingEvents();
+  }
+
+  @Test
+  public void testSuccess_clTridNotSpecified() throws Exception {
+    setEppInput("contact_delete_no_cltrid.xml");
+    persistActiveContact(getUniqueIdFromCommand());
+    clock.advanceOneMilli();
+    assertTransactionalFlow(true);
+    runFlowAssertResponse(loadFile("contact_delete_response_no_cltrid.xml"));
+    ContactResource deletedContact = reloadResourceByForeignKey();
+    assertAboutContacts().that(deletedContact).hasStatusValue(StatusValue.PENDING_DELETE);
+    assertAsyncDeletionTaskEnqueued(
+        deletedContact, "TheRegistrar", Trid.create(null, "server-trid"), false);
+    assertAboutContacts()
+        .that(deletedContact)
         .hasOnlyOneHistoryEntryWhich()
         .hasType(HistoryEntry.Type.CONTACT_PENDING_DELETE);
     assertNoBillingEvents();

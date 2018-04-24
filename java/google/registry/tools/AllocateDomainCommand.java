@@ -134,7 +134,7 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
                             "Could not find any history entries for domain application %s",
                             application.getRepoId());
                     String clientTransactionId =
-                        emptyToNull(history.getTrid().getClientTransactionId());
+                        emptyToNull(history.getTrid().getClientTransactionId().orElse(null));
                     Period period = checkNotNull(extractPeriodFromXml(history.getXmlBytes()));
                     checkArgument(period.getUnit() == Period.Unit.YEARS);
                     ImmutableMap.Builder<String, String> contactsMapBuilder =

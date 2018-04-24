@@ -83,10 +83,12 @@ public final class AsyncFlowEnqueuer {
             .countdownMillis(asyncDeleteDelay.getMillis())
             .param(PARAM_RESOURCE_KEY, resourceKey.getString())
             .param(PARAM_REQUESTING_CLIENT_ID, requestingClientId)
-            .param(PARAM_CLIENT_TRANSACTION_ID, trid.getClientTransactionId())
             .param(PARAM_SERVER_TRANSACTION_ID, trid.getServerTransactionId())
             .param(PARAM_IS_SUPERUSER, Boolean.toString(isSuperuser))
             .param(PARAM_REQUESTED_TIME, now.toString());
+    if (trid.getClientTransactionId().isPresent()) {
+      task.param(PARAM_CLIENT_TRANSACTION_ID, trid.getClientTransactionId().get());
+    }
     addTaskToQueueWithRetry(asyncDeletePullQueue, task);
   }
 

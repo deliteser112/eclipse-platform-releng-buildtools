@@ -77,7 +77,7 @@ final class GetHistoryEntriesCommand implements RemoteApiCommand {
           "Client: %s\nTime: %s\nClient TRID: %s\nServer TRID: %s\n%s\n",
           entry.getClientId(),
           entry.getModificationTime(),
-          (entry.getTrid() == null) ? null : entry.getTrid().getClientTransactionId(),
+          (entry.getTrid() == null) ? null : entry.getTrid().getClientTransactionId().orElse(null),
           (entry.getTrid() == null) ? null : entry.getTrid().getServerTransactionId(),
           entry.getXmlBytes() == null
               ? String.format("[no XML stored for %s]\n", entry.getType())

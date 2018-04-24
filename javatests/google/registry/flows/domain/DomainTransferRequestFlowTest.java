@@ -17,6 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;
 import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_CREATE;
@@ -344,7 +345,7 @@ public class DomainTransferRequestFlowTest
             .filter(PendingActionNotificationResponse.class::isInstance)
             .map(PendingActionNotificationResponse.class::cast)
             .collect(onlyElement());
-    assertThat(panData.getTrid().getClientTransactionId()).isEqualTo("ABC-12345");
+    assertThat(panData.getTrid().getClientTransactionId()).hasValue("ABC-12345");
     assertThat(panData.getActionResult()).isTrue();
 
     // Two poll messages on the losing registrar's side at the implicit transfer time: a

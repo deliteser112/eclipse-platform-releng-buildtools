@@ -85,6 +85,25 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   }
 
   @Test
+  public void testSuccess_clTridNotSpecified() throws Exception {
+    setEppInput("host_delete_no_cltrid.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld"));
+    persistActiveHost("ns1.example.tld");
+    clock.advanceOneMilli();
+    assertTransactionalFlow(true);
+    runFlowAssertResponse(loadFile("host_delete_response_no_cltrid.xml"));
+    HostResource deletedHost = reloadResourceByForeignKey();
+    assertAboutHosts().that(deletedHost).hasStatusValue(StatusValue.PENDING_DELETE);
+    assertAsyncDeletionTaskEnqueued(
+        deletedHost, "TheRegistrar", Trid.create(null, "server-trid"), false);
+    assertAboutHosts()
+        .that(deletedHost)
+        .hasOnlyOneHistoryEntryWhich()
+        .hasType(HistoryEntry.Type.HOST_PENDING_DELETE);
+    assertNoBillingEvents();
+    assertNoDnsTasksEnqueued();
+  }
+
+  @Test
   public void testFailure_neverExisted() throws Exception {
     ResourceDoesNotExistException thrown =
         assertThrows(ResourceDoesNotExistException.class, this::runFlow);

@@ -92,6 +92,7 @@ import google.registry.util.SystemClock;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.joda.time.DateTime;
@@ -379,7 +380,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
         EppResource resource,
         boolean deleteAllowed,
         DateTime now) {
-      String clientTransactionId = deletionRequest.clientTransactionId();
+      @Nullable String clientTransactionId = deletionRequest.clientTransactionId();
       String serverTransactionId = deletionRequest.serverTransactionId();
       Trid trid = Trid.create(clientTransactionId, serverTransactionId);
       if (resource instanceof HostResource) {
@@ -445,6 +446,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
 
     abstract Key<? extends EppResource> key();
     abstract DateTime lastUpdateTime();
+
     /**
      * The client id of the registrar that requested this deletion (which might NOT be the same as
      * the actual current owner of the resource).
@@ -452,6 +454,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
     abstract String requestingClientId();
 
     /** First half of TRID for the original request, split for serializability. */
+    @Nullable
     abstract String clientTransactionId();
 
     /** Second half of TRID for the original request, split for serializability. */
@@ -467,7 +470,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
       abstract Builder setKey(Key<? extends EppResource> key);
       abstract Builder setLastUpdateTime(DateTime lastUpdateTime);
       abstract Builder setRequestingClientId(String requestingClientId);
-      abstract Builder setClientTransactionId(String clientTransactionId);
+      abstract Builder setClientTransactionId(@Nullable String clientTransactionId);
       abstract Builder setServerTransactionId(String serverTransactionId);
       abstract Builder setIsSuperuser(boolean isSuperuser);
       abstract Builder setRequestedTime(DateTime requestedTime);
@@ -494,9 +497,8 @@ public class DeleteContactsAndHostsAction implements Runnable {
           .setRequestingClientId(
               checkNotNull(
                   params.get(PARAM_REQUESTING_CLIENT_ID), "Requesting client id not specified"))
-          .setClientTransactionId(
-              checkNotNull(
-                  params.get(PARAM_CLIENT_TRANSACTION_ID), "Client transaction id not specified"))
+          // Note that client transaction ID is optional, in which case this sets it to null.
+          .setClientTransactionId(params.get(PARAM_CLIENT_TRANSACTION_ID))
           .setServerTransactionId(
               checkNotNull(
                   params.get(PARAM_SERVER_TRANSACTION_ID), "Server transaction id not specified"))

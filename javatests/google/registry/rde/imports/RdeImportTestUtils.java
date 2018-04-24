@@ -15,6 +15,7 @@
 package google.registry.rde.imports;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 
 import google.registry.model.eppcommon.Trid;
 
@@ -34,9 +35,10 @@ public class RdeImportTestUtils {
    */
   public static void checkTrid(Trid trid) {
     assertThat(trid).isNotNull();
-    assertThat(trid.getClientTransactionId()).isNotNull();
-    assertThat(trid.getClientTransactionId().length()).isAtLeast(3);
-    assertThat(trid.getClientTransactionId().length()).isAtMost(64);
-    assertThat(trid.getClientTransactionId()).startsWith("Import_");
+    assertThat(trid.getClientTransactionId()).isPresent();
+    String clTrid = trid.getClientTransactionId().get();
+    assertThat(clTrid.length()).isAtLeast(3);
+    assertThat(clTrid.length()).isAtMost(64);
+    assertThat(clTrid).startsWith("Import_");
   }
 }

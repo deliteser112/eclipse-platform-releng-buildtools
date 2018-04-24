@@ -19,6 +19,7 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import com.google.common.annotations.VisibleForTesting;
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.ImmutableObject;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
@@ -45,8 +46,8 @@ public class Trid extends ImmutableObject {
     return serverTransactionId;
   }
 
-  public String getClientTransactionId() {
-    return clientTransactionId;
+  public Optional<String> getClientTransactionId() {
+    return Optional.ofNullable(clientTransactionId);
   }
 
   @VisibleForTesting

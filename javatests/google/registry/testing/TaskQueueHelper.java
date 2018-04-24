@@ -15,6 +15,7 @@
 package google.registry.testing;
 
 import static com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig.getLocalTaskQueue;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
@@ -104,8 +105,7 @@ public class TaskQueueHelper {
     }
 
     public TaskMatcher payload(String payload) {
-      checkState(
-          expected.params.isEmpty(), "Cannot add a payload to a TaskMatcher with params.");
+      checkState(expected.params.isEmpty(), "Cannot add a payload to a TaskMatcher with params");
       expected.payload = payload;
       return this;
     }
@@ -122,16 +122,16 @@ public class TaskQueueHelper {
     }
 
     public TaskMatcher param(String key, String value) {
-      checkState(
-          expected.payload == null, "Cannot add params to a TaskMatcher with a payload.");
+      checkState(expected.payload == null, "Cannot add params to a TaskMatcher with a payload");
+      checkNotNull(value, "Test error: A task can never have a null value, so don't assert it");
       expected.params.put(key, value);
       return this;
     }
 
     public TaskMatcher etaDelta(Duration lowerBound, Duration upperBound) {
-      checkState(!lowerBound.isShorterThan(Duration.ZERO), "lowerBound must be non-negative.");
+      checkState(!lowerBound.isShorterThan(Duration.ZERO), "lowerBound must be non-negative");
       checkState(
-          upperBound.isLongerThan(lowerBound), "upperBound must be greater than lowerBound.");
+          upperBound.isLongerThan(lowerBound), "upperBound must be greater than lowerBound");
       expected.etaDeltaLowerBound = lowerBound.getStandardSeconds();
       expected.etaDeltaUpperBound = upperBound.getStandardSeconds();
       return this;
