@@ -49,7 +49,7 @@ public abstract class BaseFee extends ImmutableObject {
   /** Enum for the type of the fee. */
   public enum FeeType {
     CREATE("create"),
-    EAP("Early Access Period, fee expires: %s"),
+    EAP("Early Access Period, fee expires: %s", "Early Access Period"),
     RENEW("renew"),
     RESTORE("restore"),
     /**
@@ -65,8 +65,11 @@ public abstract class BaseFee extends ImmutableObject {
 
     private final String formatString;
 
-    FeeType(String formatString) {
+    private final ImmutableList<String> extraAcceptableDescriptions;
+
+    FeeType(String formatString, String... extraAcceptableDescriptions) {
       this.formatString = formatString;
+      this.extraAcceptableDescriptions = ImmutableList.copyOf(extraAcceptableDescriptions);
     }
 
     String renderDescription(Object... args) {
@@ -74,7 +77,14 @@ public abstract class BaseFee extends ImmutableObject {
     }
 
     boolean matchFormatString(String description) {
-      return Ascii.toLowerCase(formatString).contains(Ascii.toLowerCase(description));
+      return new ImmutableList.Builder<String>()
+          .add(formatString)
+          .addAll(extraAcceptableDescriptions)
+          .build()
+          .stream()
+          .anyMatch(
+              expectedDescription ->
+                  Ascii.toLowerCase(description).contains(Ascii.toLowerCase(expectedDescription)));
     }
   }
 

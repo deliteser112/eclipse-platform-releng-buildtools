@@ -2278,11 +2278,39 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
+  public void testSuccess_eapFee_fullDescription_includingArbitraryExpiryTime() throws Exception {
+    setEppInput(
+        "domain_create_eap_fee.xml",
+        ImmutableMap.of(
+            "FEE_VERSION",
+            "0.6",
+            "DESCRIPTION_1",
+            "create",
+            "DESCRIPTION_2",
+            "Early Access Period, fee expires: 2022-03-01T00:00:00.000Z"));
+    persistContactsAndHosts();
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setEapFeeSchedule(
+                ImmutableSortedMap.of(
+                    START_OF_TIME,
+                    Money.of(USD, 0),
+                    clock.nowUtc().minusDays(1),
+                    Money.of(USD, 100),
+                    clock.nowUtc().plusDays(1),
+                    Money.of(USD, 0)))
+            .build());
+    doSuccessfulTest(
+        "tld", "domain_create_response_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
+  }
+
+  @Test
   public void testFailure_eapFee_description_multipleMatch() throws Exception {
     setEppInput(
         "domain_create_eap_fee.xml",
         ImmutableMap.of(
-            "FEE_VERSION", "0.6", "DESCRIPTION_1", "Early Access Period", "DESCRIPTION_2", "ea"));
+            "FEE_VERSION", "0.6", "DESCRIPTION_1", "create", "DESCRIPTION_2", "renew transfer"));
     persistContactsAndHosts();
     persistResource(
         Registry.get("tld")
@@ -2297,7 +2325,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                     Money.of(USD, 0)))
             .build());
     EppException thrown = assertThrows(FeeDescriptionMultipleMatchesException.class, this::runFlow);
-    assertThat(thrown).hasMessageThat().contains("ea");
+    assertThat(thrown).hasMessageThat().contains("RENEW, TRANSFER");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 

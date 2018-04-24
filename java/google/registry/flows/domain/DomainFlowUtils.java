@@ -120,6 +120,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -724,7 +725,7 @@ public class DomainFlowUtils {
     if (types.size() == 0) {
       throw new FeeDescriptionParseException(fee.getDescription());
     } else if (types.size() > 1) {
-      throw new FeeDescriptionMultipleMatchesException(fee.getDescription());
+      throw new FeeDescriptionMultipleMatchesException(fee.getDescription(), types);
     } else {
       return types.get(0);
     }
@@ -1354,11 +1355,13 @@ public class DomainFlowUtils {
   /** The fee description passed in the transform command matches multiple fee types. */
   public static class FeeDescriptionMultipleMatchesException
       extends ParameterValuePolicyErrorException {
-    public FeeDescriptionMultipleMatchesException(String description) {
+    public FeeDescriptionMultipleMatchesException(
+        String description, ImmutableList<FeeType> types) {
       super(
           String.format(
-              "The fee description \"%s\" passed in the transform matches multiple fee types",
-              description));
+              "The fee description \"%s\" passed in the transform matches multiple fee types: %s",
+              description,
+              types.stream().map(FeeType::toString).collect(Collectors.joining(", "))));
     }
   }
 
