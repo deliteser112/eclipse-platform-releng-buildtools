@@ -17,6 +17,7 @@ package google.registry.whois;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTlds;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DatastoreHelper.persistSimpleResources;
 import static google.registry.testing.FullFieldsTestEntityHelper.makeContactResource;
@@ -239,6 +240,7 @@ public class WhoisHttpActionTest {
 
   @Test
   public void testRun_nameserverQuery_works() throws Exception {
+    persistResource(loadRegistrar("TheRegistrar").asBuilder().setUrl("http://my.fake.url").build());
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     newWhoisHttpAction("/nameserver/ns1.cat.lol").run();
     assertThat(response.getPayload()).isEqualTo(loadFile("whois_action_nameserver.txt"));

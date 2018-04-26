@@ -61,7 +61,7 @@ final class NameserverWhoisResponse extends WhoisResponseImpl {
           .emitSet("IP Address", host.getInetAddresses(), InetAddresses::toAddrString)
           .emitField("Registrar", registrar.get().getRegistrarName())
           .emitField("Registrar WHOIS Server", registrar.get().getWhoisServer())
-          .emitField("Registrar URL", registrar.get().getReferralUrl());
+          .emitField("Registrar URL", registrar.get().getUrl());
       if (i < hosts.size() - 1) {
         emitter.emitNewline();
       }

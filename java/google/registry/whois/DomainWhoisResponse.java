@@ -82,7 +82,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
                 maybeFormatHostname(domain.getFullyQualifiedDomainName(), preferUnicode))
             .emitField("Registry Domain ID", domain.getRepoId())
             .emitField("Registrar WHOIS Server", registrar.getWhoisServer())
-            .emitField("Registrar URL", registrar.getReferralUrl())
+            .emitField("Registrar URL", registrar.getUrl())
             .emitFieldIfDefined("Updated Date", getFormattedString(domain.getLastEppUpdateTime()))
             .emitField("Creation Date", getFormattedString(domain.getCreationTime()))
             .emitField(

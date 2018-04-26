@@ -3,7 +3,7 @@ IP Address: 192.0.2.123
 IP Address: 2001:db8::1
 Registrar: Example Registrar, Inc.
 Registrar WHOIS Server: whois.nic.fakewhois.example
-Registrar URL: http://www.referral.example/path
+Registrar URL: http://my.fake.url
 >>> Last update of WHOIS database: 2009-05-29T20:15:00Z <<<
 
 Doodle Disclaimer

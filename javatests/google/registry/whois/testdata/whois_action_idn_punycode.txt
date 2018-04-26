@@ -1,7 +1,7 @@
 Domain Name: cat.xn--q9jyb4c
 Registry Domain ID: 9-Q9JYB4C
 Registrar WHOIS Server: whois.example.com
-Registrar URL: http://www.example.com
+Registrar URL: http://my.fake.url
 Updated Date: 2009-05-29T20:13:00Z
 Creation Date: 2000-10-08T00:45:00Z
 Registry Expiry Date: 2110-10-08T00:44:59Z

@@ -57,7 +57,7 @@ class RegistrarWhoisResponse extends WhoisResponseImpl {
             .emitPhonesAndEmail(
                 registrar.getPhoneNumber(), registrar.getFaxNumber(), registrar.getEmailAddress())
             .emitField("Registrar WHOIS Server", registrar.getWhoisServer())
-            .emitField("Registrar URL", registrar.getReferralUrl())
+            .emitField("Registrar URL", registrar.getUrl())
             .emitRegistrarContacts("Admin", contacts, AdminOrTech.ADMIN)
             .emitRegistrarContacts("Technical", contacts, AdminOrTech.TECH)
             .emitLastUpdated(getTimestamp())

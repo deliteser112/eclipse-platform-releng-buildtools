@@ -70,7 +70,11 @@ public class DomainWhoisResponseTest {
     // Update the registrar to have an IANA ID.
     Registrar registrar =
         persistResource(
-            loadRegistrar("NewRegistrar").asBuilder().setIanaIdentifier(5555555L).build());
+            loadRegistrar("NewRegistrar")
+                .asBuilder()
+                .setUrl("http://my.fake.url")
+                .setIanaIdentifier(5555555L)
+                .build());
 
     persistResource(
         new RegistrarContact.Builder()

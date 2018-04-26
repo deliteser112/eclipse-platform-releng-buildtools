@@ -63,6 +63,7 @@ public class RegistrarWhoisResponseTest {
         .setEmailAddress("registrar@example.tld")
         .setWhoisServer("whois.example-registrar.tld")
         .setReferralUrl("http://www.example-registrar.tld")
+        .setUrl("http://my.fake.url")
         .build();
     // Use the registrar key for contacts' parent.
     ImmutableList<RegistrarContact> contacts = ImmutableList.of(

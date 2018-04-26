@@ -16,7 +16,9 @@ package google.registry.whois;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.loadRegistrar;
 import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
+import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.whois.WhoisTestData.loadFile;
 
 import com.google.common.collect.ImmutableList;
@@ -51,6 +53,7 @@ public class NameserverWhoisResponseTest {
   @Before
   public void setUp() {
     persistNewRegistrar("example", "Example Registrar, Inc.", Registrar.Type.REAL, 8L);
+    persistResource(loadRegistrar("example").asBuilder().setUrl("http://my.fake.url").build());
     createTld("tld");
 
     hostResource1 = new HostResource.Builder()

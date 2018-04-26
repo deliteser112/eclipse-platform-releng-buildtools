@@ -8,7 +8,7 @@ Phone Number: +1.3105551212
 Fax Number: +1.3105551213
 Email: registrar@example.tld
 Registrar WHOIS Server: whois.example-registrar.tld
-Registrar URL: http://www.example-registrar.tld
+Registrar URL: http://my.fake.url
 Admin Contact: Jane Registrar
 Phone Number: +1.3105551214
 Fax Number: +1.3105551213

@@ -2,7 +2,7 @@ Server Name: ns1.cat.lol
 IP Address: 1.2.3.4
 Registrar: The Registrar
 Registrar WHOIS Server: whois.nic.fakewhois.example
-Registrar URL: http://www.referral.example/path
+Registrar URL: http://my.fake.url
 >>> Last update of WHOIS database: 2009-06-29T20:13:00Z <<<
 
 Doodle Disclaimer

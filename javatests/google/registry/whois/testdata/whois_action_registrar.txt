@@ -8,7 +8,7 @@ Phone Number: +1.2125551212
 Fax Number: +1.2125551213
 Email: contact-us@example.com
 Registrar WHOIS Server: whois.example.com
-Registrar URL: http://www.example.com
+Registrar URL: http://my.fake.url
 Admin Contact: Jane Doe
 Phone Number: +1.2125551215
 Fax Number: +1.2125551216
