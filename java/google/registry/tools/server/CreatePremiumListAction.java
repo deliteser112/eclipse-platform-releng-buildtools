@@ -55,7 +55,7 @@ public class CreatePremiumListAction extends CreateOrUpdatePremiumListAction {
     }
 
     logger.infofmt("Saving premium list for TLD %s", name);
-    logger.infofmt("Got the following input data: %s", inputData);
+    logInputData();
     List<String> inputDataPreProcessed =
         Splitter.on('\n').omitEmptyStrings().splitToList(inputData);
     PremiumList premiumList = new PremiumList.Builder().setName(name).build();

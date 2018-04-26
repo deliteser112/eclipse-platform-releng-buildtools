@@ -51,7 +51,7 @@ public class UpdatePremiumListAction extends CreateOrUpdatePremiumListAction {
         name);
 
     logger.infofmt("Updating premium list for TLD %s", name);
-    logger.infofmt("Got the following input data: %s", inputData);
+    logInputData();
     List<String> inputDataPreProcessed =
         Splitter.on('\n').omitEmptyStrings().splitToList(inputData);
     PremiumList newPremiumList =
