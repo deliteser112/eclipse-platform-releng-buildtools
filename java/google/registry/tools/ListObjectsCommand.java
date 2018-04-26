@@ -114,9 +114,9 @@ abstract class ListObjectsCommand implements RemoteApiCommand, ServerSideCommand
     if (status.equals("error")) {
       obj = responseMap.get("error");
       if (obj == null) {
-        throw new VerifyException("Server returned no error message");
+        throw new VerifyException("Server returned an error with no error message");
       }
-      System.out.println(obj);
+      throw new VerifyException(String.format("Server returned an error with message '%s'", obj));
     // Handle success.
     } else if (status.equals("success")) {
       obj = responseMap.get("lines");
