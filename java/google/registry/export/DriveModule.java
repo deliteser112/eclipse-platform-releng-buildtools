@@ -19,11 +19,19 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
+import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfig.Config;
+import google.registry.config.RegistryConfig.ConfigModule;
+import google.registry.request.Modules.AppIdentityCredentialModule;
+import google.registry.request.Modules.Jackson2Module;
+import google.registry.request.Modules.UrlFetchTransportModule;
+import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
+import google.registry.storage.drive.DriveConnection;
 import java.util.Set;
 import java.util.function.Function;
+import javax.inject.Singleton;
 
 /** Dagger module for Google {@link Drive} service connection objects. */
 @Module
@@ -38,5 +46,19 @@ public final class DriveModule {
     return new Drive.Builder(transport, jsonFactory, credential.apply(DriveScopes.all()))
         .setApplicationName(projectId)
         .build();
+  }
+
+  @Singleton
+  @Component(
+      modules = {
+        DriveModule.class,
+        UrlFetchTransportModule.class,
+        Jackson2Module.class,
+        AppIdentityCredentialModule.class,
+        UseAppIdentityCredentialForGoogleApisModule.class,
+        ConfigModule.class
+      })
+  interface DriveComponent {
+    DriveConnection driveConnection();
   }
 }

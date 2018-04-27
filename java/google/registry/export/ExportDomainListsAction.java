@@ -28,21 +28,25 @@ import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.appengine.tools.mapreduce.Reducer;
 import com.google.appengine.tools.mapreduce.ReducerInput;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
+import google.registry.storage.drive.DriveConnection;
 import google.registry.util.FormattingLogger;
+import google.registry.util.NonFinalForTesting;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.io.Writer;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
@@ -50,14 +54,10 @@ import org.joda.time.DateTime;
 /**
  * A mapreduce that exports the list of active domains on all real TLDs to Google Cloud Storage.
  *
- * Each TLD's active domain names are exported as a newline-delimited flat text file with the name
- * TLD.txt into the domain-lists bucket.  Note that this overwrites the files in place.
+ * <p>Each TLD's active domain names are exported as a newline-delimited flat text file with the
+ * name TLD.txt into the domain-lists bucket. Note that this overwrites the files in place.
  */
-@Action(
-  path = "/_dr/task/exportDomainLists",
-  method = POST,
-  auth = Auth.AUTH_INTERNAL_ONLY
-)
+@Action(path = "/_dr/task/exportDomainLists", method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
 public class ExportDomainListsAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
@@ -108,32 +108,69 @@ public class ExportDomainListsAction implements Runnable {
 
     private static final long serialVersionUID = 7035260977259119087L;
 
+    @NonFinalForTesting
+    private static DriveConnection driveConnection =
+        DaggerDriveModule_DriveComponent.create().driveConnection();
+
+    static final String REGISTERED_DOMAINS_FILENAME = "registered_domains.txt";
+    static final MediaType EXPORT_MIME_TYPE = MediaType.PLAIN_TEXT_UTF_8;
+
     private final String gcsBucket;
     private final int gcsBufferSize;
+
+    static void setDriveConnectionForTesting(DriveConnection driveConnection) {
+      ExportDomainListsReducer.driveConnection = driveConnection;
+    }
 
     public ExportDomainListsReducer(String gcsBucket, int gcsBufferSize) {
       this.gcsBucket = gcsBucket;
       this.gcsBufferSize = gcsBufferSize;
     }
 
-    @Override
-    public void reduce(String tld, ReducerInput<String> fqdns) {
+    private void exportToDrive(String tld, String domains) {
+      try {
+        Registry registry = Registry.get(tld);
+        if (registry.getDriveFolderId() == null) {
+          logger.infofmt(
+              "Skipping registered domains export for TLD %s because Drive folder isn't specified",
+              tld);
+        } else {
+          String resultMsg =
+              driveConnection.createOrUpdateFile(
+                  REGISTERED_DOMAINS_FILENAME,
+                  EXPORT_MIME_TYPE,
+                  registry.getDriveFolderId(),
+                  domains.getBytes(UTF_8));
+          logger.infofmt(
+              "Exporting registered domains succeeded for TLD %s, response was: %s",
+              tld, resultMsg);
+        }
+      } catch (Throwable e) {
+        logger.severefmt(e, "Error exporting registered domains for TLD %s to Drive", tld);
+      }
+      getContext().incrementCounter("domain lists written out to Drive");
+    }
+
+    private void exportToGcs(String tld, String domains) {
       GcsFilename filename = new GcsFilename(gcsBucket, tld + ".txt");
       GcsUtils cloudStorage =
           new GcsUtils(createGcsService(RetryParams.getDefaultInstance()), gcsBufferSize);
       try (OutputStream gcsOutput = cloudStorage.openOutputStream(filename);
-          Writer osWriter = new OutputStreamWriter(gcsOutput, UTF_8);
-          PrintWriter writer = new PrintWriter(osWriter)) {
-        long count;
-        for (count = 0; fqdns.hasNext(); count++) {
-          writer.println(fqdns.next());
-        }
-        writer.flush();
-        getContext().incrementCounter("tld domain lists written out");
-        logger.infofmt("Wrote out %d domains for tld %s.", count, tld);
+          Writer osWriter = new OutputStreamWriter(gcsOutput, UTF_8)) {
+        osWriter.write(domains);
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        logger.severefmt(e, "Error exporting registered domains for TLD %s to GCS.", tld);
       }
+      getContext().incrementCounter("domain lists written out to GCS");
+    }
+
+    @Override
+    public void reduce(String tld, ReducerInput<String> fqdns) {
+      ImmutableList<String> domains = ImmutableList.sortedCopyOf(() -> fqdns);
+      String domainsList = Joiner.on('\n').join(domains);
+      logger.infofmt("Exporting %d domains for TLD %s to GCS and Drive.", domains.size(), tld);
+      exportToGcs(tld, domainsList);
+      exportToDrive(tld, domainsList);
     }
   }
 }
