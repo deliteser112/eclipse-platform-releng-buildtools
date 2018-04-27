@@ -36,6 +36,7 @@ public final class RegistryTool {
           .put("check_domain_fee", CheckDomainFeeCommand.class)
           .put("check_snapshot", CheckSnapshotCommand.class)
           .put("convert_idn", ConvertIdnCommand.class)
+          .put("count_domains", CountDomainsCommand.class)
           .put("create_anchor_tenant", CreateAnchorTenantCommand.class)
           .put("create_auction_credits", CreateAuctionCreditsCommand.class)
           .put("create_cdns_tld", CreateCdnsTld.class)
