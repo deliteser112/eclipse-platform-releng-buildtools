@@ -560,8 +560,8 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("domainSearchResults", ImmutableList.of(obj));
     builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
-    RdapTestHelper.addNotices(builder, "https://example.com/rdap/");
-    RdapTestHelper.addDomainBoilerplateRemarks(builder);
+    RdapTestHelper.addDomainBoilerplateNotices(
+        builder, RdapTestHelper.createNotices("https://example.com/rdap/"));
     return new JSONObject(builder.build());
   }
 

@@ -321,7 +321,7 @@ public class RdapJsonFormatter {
    *        mandates extra boilerplate for domain objects
    * @param notices a list of notices to be inserted before the boilerplate notices. If the TOS
    *        notice is in this list, the method avoids adding a second copy.
-   * @param remarks a list of remarks to be inserted before the boilerplate notices.
+   * @param remarks a list of remarks to be inserted.
    * @param rdapLinkBase the base for link URLs
    */
   void addTopLevelEntries(
@@ -347,24 +347,20 @@ public class RdapJsonFormatter {
     if (!tosNoticeFound) {
       noticesBuilder.add(tosNotice);
     }
-    jsonBuilder.put(NOTICES, noticesBuilder.build());
-    ImmutableList.Builder<ImmutableMap<String, Object>> remarksBuilder =
-        new ImmutableList.Builder<>();
-    remarksBuilder.addAll(remarks);
     switch (boilerplateType) {
       case DOMAIN:
-        remarksBuilder.addAll(RdapIcannStandardInformation.domainBoilerplateRemarks);
+        noticesBuilder.addAll(RdapIcannStandardInformation.domainBoilerplateNotices);
         break;
       case NAMESERVER:
       case ENTITY:
-        remarksBuilder.addAll(RdapIcannStandardInformation.nameserverAndEntityBoilerplateRemarks);
+        noticesBuilder.addAll(RdapIcannStandardInformation.nameserverAndEntityBoilerplateNotices);
         break;
-      default: // things other than domains, nameservers and entities cannot contain remarks
+      default: // things other than domains, nameservers and entities do not yet have boilerplate
         break;
     }
-    ImmutableList<ImmutableMap<String, Object>> remarksToAdd = remarksBuilder.build();
-    if (!remarksToAdd.isEmpty()) {
-      jsonBuilder.put(REMARKS, remarksToAdd);
+    jsonBuilder.put(NOTICES, noticesBuilder.build());
+    if (!remarks.isEmpty()) {
+      jsonBuilder.put(REMARKS, remarks);
     }
   }
 

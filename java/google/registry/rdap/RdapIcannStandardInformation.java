@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableMap;
 public class RdapIcannStandardInformation {
 
   /** Required by ICANN RDAP Profile section 1.4.10. */
-  private static final ImmutableMap<String, Object> CONFORMANCE_REMARK =
+  private static final ImmutableMap<String, Object> CONFORMANCE_NOTICE =
       ImmutableMap.of(
           "description",
           ImmutableList.of(
@@ -34,7 +34,7 @@ public class RdapIcannStandardInformation {
                   + " Registrars version 1.0"));
 
   /** Required by ICANN RDAP Profile section 1.5.18. */
-  private static final ImmutableMap<String, Object> DOMAIN_STATUS_CODES_REMARK =
+  private static final ImmutableMap<String, Object> DOMAIN_STATUS_CODES_NOTICE =
       ImmutableMap.of(
           "title",
           "EPP Status Codes",
@@ -50,7 +50,7 @@ public class RdapIcannStandardInformation {
                   "type", "text/html")));
 
   /** Required by ICANN RDAP Profile section 1.5.20. */
-  private static final ImmutableMap<String, Object> INACCURACY_COMPLAINT_FORM_REMARK =
+  private static final ImmutableMap<String, Object> INACCURACY_COMPLAINT_FORM_NOTICE =
       ImmutableMap.of(
           "description",
           ImmutableList.of(
@@ -63,14 +63,14 @@ public class RdapIcannStandardInformation {
                   "href", "https://www.icann.org/wicf",
                   "type", "text/html")));
 
-  /** Boilerplate remarks required by domain responses. */
-  static final ImmutableList<ImmutableMap<String, Object>> domainBoilerplateRemarks =
+  /** Boilerplate notices required by domain responses. */
+  static final ImmutableList<ImmutableMap<String, Object>> domainBoilerplateNotices =
       ImmutableList.of(
-          CONFORMANCE_REMARK, DOMAIN_STATUS_CODES_REMARK, INACCURACY_COMPLAINT_FORM_REMARK);
+          CONFORMANCE_NOTICE, DOMAIN_STATUS_CODES_NOTICE, INACCURACY_COMPLAINT_FORM_NOTICE);
 
   /** Boilerplate remarks required by nameserver and entity responses. */
-  static final ImmutableList<ImmutableMap<String, Object>> nameserverAndEntityBoilerplateRemarks =
-      ImmutableList.of(CONFORMANCE_REMARK);
+  static final ImmutableList<ImmutableMap<String, Object>> nameserverAndEntityBoilerplateNotices =
+      ImmutableList.of(CONFORMANCE_NOTICE);
 
   /**
    * Required by ICANN RDAP Profile section 1.4.9, as corrected by Gustavo Lozano of ICANN.

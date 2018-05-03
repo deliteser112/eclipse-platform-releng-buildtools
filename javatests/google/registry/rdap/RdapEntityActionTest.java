@@ -256,14 +256,14 @@ public class RdapEntityActionTest {
           RdapTestHelper.getBuilderExcluding(
               map, ImmutableSet.of("rdapConformance", "notices", "remarks"));
       builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
-      RdapTestHelper.addNotices(
+      RdapTestHelper.addNonDomainBoilerplateNotices(
           builder,
-          "https://example.com/rdap/",
-          addNoPersonalDataRemark
-              ? RdapTestHelper.ContactNoticeType.CONTACT
-              : RdapTestHelper.ContactNoticeType.NONE,
-          map.get("notices"));
-      RdapTestHelper.addNonDomainBoilerplateRemarks(builder, map.get("remarks"));
+          RdapTestHelper.createNotices(
+              "https://example.com/rdap/",
+              addNoPersonalDataRemark
+                  ? RdapTestHelper.ContactNoticeType.CONTACT
+                  : RdapTestHelper.ContactNoticeType.NONE,
+              map.get("notices")));
       obj = builder.build();
     }
     return obj;

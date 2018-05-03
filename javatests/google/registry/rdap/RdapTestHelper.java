@@ -45,13 +45,11 @@ public class RdapTestHelper {
     return builder;
   }
 
-  static void addNotices(
-      ImmutableMap.Builder<String, Object> builder, String linkBase) {
-    addNotices(builder, linkBase, ContactNoticeType.NONE, null);
+  static ImmutableList<ImmutableMap<String, Object>> createNotices(String linkBase) {
+    return createNotices(linkBase, ContactNoticeType.NONE, null);
   }
 
-  static void addNotices(
-      ImmutableMap.Builder<String, Object> builder,
+  static ImmutableList<ImmutableMap<String, Object>> createNotices(
       String linkBase,
       ContactNoticeType contactNoticeType,
       @Nullable Object otherNotices) {
@@ -123,51 +121,56 @@ public class RdapTestHelper {
                         "rel", "alternate",
                         "href", "https://www.registry.tld/about/rdap/tos.html",
                         "type", "text/html"))));
-    builder.put("notices", noticesBuilder.build());
+    return noticesBuilder.build();
   }
 
-  static void addNonDomainBoilerplateRemarks(ImmutableMap.Builder<String, Object> builder) {
-    addNonDomainBoilerplateRemarks(builder, null);
+  static void addNonDomainBoilerplateNotices(ImmutableMap.Builder<String, Object> builder) {
+    addNonDomainBoilerplateNotices(builder, null);
   }
 
-  static void addNonDomainBoilerplateRemarks(
-      ImmutableMap.Builder<String, Object> builder, @Nullable Object otherRemarks) {
-    ImmutableList.Builder<ImmutableMap<String, Object>> remarksBuilder =
-        getBuilderWithOthersAdded(otherRemarks);
-    remarksBuilder.add(
+  static void addNonDomainBoilerplateNotices(
+      ImmutableMap.Builder<String, Object> builder, @Nullable Object otherNotices) {
+    ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder =
+        getBuilderWithOthersAdded(otherNotices);
+    noticesBuilder.add(
         ImmutableMap.of(
             "description",
             ImmutableList.of(
                 "This response conforms to the RDAP Operational Profile for gTLD Registries and"
                     + " Registrars version 1.0")));
-    builder.put("remarks", remarksBuilder.build());
+    builder.put("notices", noticesBuilder.build());
   }
 
-  static void addDomainBoilerplateRemarks(ImmutableMap.Builder<String, Object> builder) {
-    addDomainBoilerplateRemarks(builder, false, null);
+  static void addDomainBoilerplateNotices(ImmutableMap.Builder<String, Object> builder) {
+    addDomainBoilerplateNotices(builder, false, null);
   }
 
-  static void addDomainBoilerplateRemarks(
+  static void addDomainBoilerplateNotices(
+      ImmutableMap.Builder<String, Object> builder, @Nullable Object otherNotices) {
+    addDomainBoilerplateNotices(builder, false, otherNotices);
+  }
+
+  static void addDomainBoilerplateNotices(
       ImmutableMap.Builder<String, Object> builder,
       boolean addNoContactRemark,
-      @Nullable Object otherRemarks) {
-    ImmutableList.Builder<ImmutableMap<String, Object>> remarksBuilder =
-        getBuilderWithOthersAdded(otherRemarks);
+      @Nullable Object otherNotices) {
+    ImmutableList.Builder<ImmutableMap<String, Object>> noticesBuilder =
+        getBuilderWithOthersAdded(otherNotices);
     if (addNoContactRemark) {
-      remarksBuilder.add(
+      noticesBuilder.add(
           ImmutableMap.of(
               "title", "Contacts Hidden",
               "description",
                   ImmutableList.of("Domain contacts are visible only to the owning registrar."),
               "type", "object truncated due to unexplainable reasons"));
     }
-    remarksBuilder.add(
+    noticesBuilder.add(
         ImmutableMap.of(
             "description",
             ImmutableList.of(
                 "This response conforms to the RDAP Operational Profile for gTLD Registries and"
                     + " Registrars version 1.0")));
-    remarksBuilder.add(
+    noticesBuilder.add(
         ImmutableMap.of(
             "title",
             "EPP Status Codes",
@@ -182,7 +185,7 @@ public class RdapTestHelper {
                     "rel", "alternate",
                     "href", "https://icann.org/epp",
                     "type", "text/html"))));
-    remarksBuilder.add(
+    noticesBuilder.add(
         ImmutableMap.of(
             "description",
             ImmutableList.of(
@@ -194,7 +197,7 @@ public class RdapTestHelper {
                     "rel", "alternate",
                     "href", "https://www.icann.org/wicf",
                     "type", "text/html"))));
-    builder.put("remarks", remarksBuilder.build());
+    builder.put("notices", noticesBuilder.build());
   }
 
   private static ImmutableList.Builder<ImmutableMap<String, Object>> getBuilderWithOthersAdded(
@@ -269,6 +272,9 @@ public class RdapTestHelper {
     for (Object notice : (JSONArray) notices) {
       assertThat(notice).isInstanceOf(JSONObject.class);
       Object title = ((JSONObject) notice).get("title");
+      if (title == null) {
+        continue;
+      }
       assertThat(title).isInstanceOf(String.class);
       if (!title.equals("Navigation Links")) {
         continue;

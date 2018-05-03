@@ -263,8 +263,8 @@ public class RdapNameserverSearchActionTest extends RdapSearchActionTestCase {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("nameserverSearchResults", ImmutableList.of(obj));
     builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
-    RdapTestHelper.addNotices(builder, "https://example.tld/rdap/");
-    RdapTestHelper.addNonDomainBoilerplateRemarks(builder);
+    RdapTestHelper.addNonDomainBoilerplateNotices(
+        builder, RdapTestHelper.createNotices("https://example.tld/rdap/"));
     return builder.build();
   }
 

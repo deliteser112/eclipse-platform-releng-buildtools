@@ -393,14 +393,15 @@ public class RdapDomainActionTest {
           RdapTestHelper.getBuilderExcluding(
               map, ImmutableSet.of("rdapConformance", "notices", "remarks"));
       builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
-      RdapTestHelper.addNotices(
+      RdapTestHelper.addDomainBoilerplateNotices(
           builder,
-          "https://example.com/rdap/",
-          (contactRoids == null)
-              ? RdapTestHelper.ContactNoticeType.DOMAIN
-              : RdapTestHelper.ContactNoticeType.NONE,
-          map.get("notices"));
-      RdapTestHelper.addDomainBoilerplateRemarks(builder, false, map.get("remarks"));
+          false,
+          RdapTestHelper.createNotices(
+              "https://example.com/rdap/",
+              (contactRoids == null)
+                  ? RdapTestHelper.ContactNoticeType.DOMAIN
+                  : RdapTestHelper.ContactNoticeType.NONE,
+              map.get("notices")));
       obj = new JSONObject(builder.build());
     }
     return obj;

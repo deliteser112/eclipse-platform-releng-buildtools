@@ -265,8 +265,8 @@ public class RdapEntitySearchActionTest extends RdapSearchActionTestCase {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("entitySearchResults", ImmutableList.of(obj));
     builder.put("rdapConformance", ImmutableList.of("rdap_level_0"));
-    RdapTestHelper.addNotices(builder, "https://example.com/rdap/");
-    RdapTestHelper.addNonDomainBoilerplateRemarks(builder);
+    RdapTestHelper.addNonDomainBoilerplateNotices(
+        builder, RdapTestHelper.createNotices("https://example.com/rdap/"));
     return new JSONObject(builder.build());
   }
 
