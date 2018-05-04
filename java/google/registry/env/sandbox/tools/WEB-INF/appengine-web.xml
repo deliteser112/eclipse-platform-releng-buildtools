@@ -10,7 +10,7 @@
   <instance-class>B4</instance-class>
   <basic-scaling>
     <max-instances>5</max-instances>
-    <idle-timeout>10m</idle-timeout>
+    <idle-timeout>60m</idle-timeout>
   </basic-scaling>
 
   <system-properties>
