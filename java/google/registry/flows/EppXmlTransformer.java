@@ -81,7 +81,7 @@ public class EppXmlTransformer  {
    * Unmarshal bytes into Epp classes.
    *
    * @param clazz type to return, specified as a param to enforce typesafe generics
-   * @see <a href="http://errorprone.info/bugpattern/TypeParameterUnusedInFormals">TypeParameterUnusedInFormals</a>
+   * @see <a href="https://errorprone.info/bugpattern/TypeParameterUnusedInFormals">TypeParameterUnusedInFormals</a>
    */
   public static <T> T unmarshal(Class<T> clazz, byte[] bytes) throws EppException {
     try {
