@@ -2245,6 +2245,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                     Money.of(USD, 0)))
             .build());
     EppException thrown = assertThrows(FeeDescriptionParseException.class, this::runFlow);
+    assertThat(thrown).hasMessageThat().contains("No fee description");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
@@ -2275,6 +2276,98 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     EppException thrown = assertThrows(FeesMismatchException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("CREATE");
     assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testFailure_eapFee_totalAmountNotMatched() throws Exception {
+    setEppInput(
+        "domain_create_extra_fees.xml",
+        new ImmutableMap.Builder<String, String>()
+            .put("FEE_VERSION", "0.6")
+            .put("DESCRIPTION_1", "create")
+            .put("FEE_1", "26")
+            .put("DESCRIPTION_2", "Early Access Period")
+            .put("FEE_2", "100")
+            .put("DESCRIPTION_3", "renew")
+            .put("FEE_3", "55")
+            .build());
+    persistContactsAndHosts();
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setEapFeeSchedule(
+                ImmutableSortedMap.of(
+                    START_OF_TIME,
+                    Money.of(USD, 0),
+                    clock.nowUtc().minusDays(1),
+                    Money.of(USD, 100),
+                    clock.nowUtc().plusDays(1),
+                    Money.of(USD, 0)))
+            .build());
+    EppException thrown = assertThrows(FeesMismatchException.class, this::runFlow);
+    assertThat(thrown).hasMessageThat().contains("expected total of USD 126.00");
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testSuccess_eapFee_multipleEAPfees_doNotAddToExpectedValue() throws Exception {
+    setEppInput(
+        "domain_create_extra_fees.xml",
+        new ImmutableMap.Builder<String, String>()
+            .put("FEE_VERSION", "0.6")
+            .put("DESCRIPTION_1", "create")
+            .put("FEE_1", "26")
+            .put("DESCRIPTION_2", "Early Access Period")
+            .put("FEE_2", "55")
+            .put("DESCRIPTION_3", "Early Access Period")
+            .put("FEE_3", "55")
+            .build());
+    persistContactsAndHosts();
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setEapFeeSchedule(
+                ImmutableSortedMap.of(
+                    START_OF_TIME,
+                    Money.of(USD, 0),
+                    clock.nowUtc().minusDays(1),
+                    Money.of(USD, 100),
+                    clock.nowUtc().plusDays(1),
+                    Money.of(USD, 0)))
+            .build());
+    EppException thrown = assertThrows(FeesMismatchException.class, this::runFlow);
+    assertThat(thrown).hasMessageThat().contains("expected fee of USD 100.00");
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testSuccess_eapFee_multipleEAPfees_addToExpectedValue() throws Exception {
+    setEppInput(
+        "domain_create_extra_fees.xml",
+        new ImmutableMap.Builder<String, String>()
+            .put("FEE_VERSION", "0.6")
+            .put("DESCRIPTION_1", "create")
+            .put("FEE_1", "26")
+            .put("DESCRIPTION_2", "Early Access Period")
+            .put("FEE_2", "55")
+            .put("DESCRIPTION_3", "Early Access Period")
+            .put("FEE_3", "45")
+            .build());
+    persistContactsAndHosts();
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setEapFeeSchedule(
+                ImmutableSortedMap.of(
+                    START_OF_TIME,
+                    Money.of(USD, 0),
+                    clock.nowUtc().minusDays(1),
+                    Money.of(USD, 100),
+                    clock.nowUtc().plusDays(1),
+                    Money.of(USD, 0)))
+            .build());
+    doSuccessfulTest(
+        "tld", "domain_create_response_eap_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
   }
 
   @Test
