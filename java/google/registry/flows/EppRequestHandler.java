@@ -52,8 +52,8 @@ public class EppRequestHandler {
       EppOutput eppOutput =
           eppController.handleEppCommand(
               sessionMetadata, credentials, eppRequestSource, isDryRun, isSuperuser, inputXmlBytes);
-      response.setPayload(new String(marshalWithLenientRetry(eppOutput), UTF_8));
       response.setContentType(APPLICATION_EPP_XML);
+      response.setPayload(new String(marshalWithLenientRetry(eppOutput), UTF_8));
       // Note that we always return 200 (OK) even if the EppController returns an error response.
       // This is because returning a non-OK HTTP status code will cause the proxy server to
       // silently close the connection without returning any data. The only time we will ever return

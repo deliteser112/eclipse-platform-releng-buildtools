@@ -60,6 +60,7 @@ public final class FakeResponse implements Response {
 
   @Override
   public void setContentType(MediaType contentType) {
+    checkArgument(payload.isEmpty(), "setContentType must be called before setPayload");
     this.contentType = checkNotNull(contentType);
   }
 
