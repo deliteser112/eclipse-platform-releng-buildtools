@@ -52,12 +52,6 @@ import org.mockito.Mock;
 @RunWith(JUnit4.class)
 public class NordnVerifyActionTest {
 
-  private static final String CSV_DATA = "1,2012-08-16T00:00:00.0Z,3\n"
-      + "roid,domain-name,SMD-id,registrar-id,registration-datetime,application-datetime\n"
-      + "SH8013-REP,example1.gtld,1-2,9999,2012-08-15T13:20:00.0Z,2012-07-15T00:50:00.0Z\n"
-      + "EK77-REP,example2.gtld,2-2,9999,2012-08-15T14:00:03.0Z\n"
-      + "HB800-REP,example3.gtld,3-2,9999,2012-08-15T15:40:00.0Z\n";
-
   private static final String LOG_ACCEPTED = "1,2012-08-16T02:15:00.0Z,2012-08-16T00:00:00.0Z,"
       + "0000000000000478Nzs+3VMkR8ckuUynOLmyeqTmZQSbzDuf/R50n2n5QX4=,accepted,no-warnings,1\n"
       + "roid,result-code\n"
@@ -105,7 +99,6 @@ public class NordnVerifyActionTest {
     persistResource(Registry.get("gtld").asBuilder().setLordnUsername("lolcat").build());
     lordnRequestInitializer.marksdbLordnPassword = Optional.of("attack");
     action.tld = "gtld";
-    action.csvData = CSV_DATA;
     action.fetchService = fetchService;
     action.lordnRequestInitializer = lordnRequestInitializer;
     action.response = response;

@@ -64,10 +64,4 @@ public final class TmchModule {
   static String provideActionLogId(HttpServletRequest req) {
     return extractRequiredHeader(req, NordnVerifyAction.HEADER_ACTION_LOG_ID);
   }
-
-  @Provides
-  @Parameter(NordnVerifyAction.PARAM_CSV_DATA)
-  static String provideCsvData(HttpServletRequest req) {
-    return extractRequiredParameter(req, NordnVerifyAction.PARAM_CSV_DATA);
-  }
 }

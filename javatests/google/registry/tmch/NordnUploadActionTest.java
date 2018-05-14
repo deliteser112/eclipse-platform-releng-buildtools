@@ -167,8 +167,7 @@ public class NordnUploadActionTest {
     assertTasksEnqueued(NordnVerifyAction.QUEUE, new TaskMatcher()
         .url(NordnVerifyAction.PATH)
         .header(NordnVerifyAction.URL_HEADER, LOCATION_URL)
-        .header(CONTENT_TYPE, FORM_DATA.toString())
-        .param(NordnVerifyAction.PARAM_CSV_DATA, CLAIMS_CSV));
+        .header(CONTENT_TYPE, FORM_DATA.toString()));
   }
 
   @Test
@@ -185,8 +184,7 @@ public class NordnUploadActionTest {
     assertTasksEnqueued(NordnVerifyAction.QUEUE, new TaskMatcher()
         .url(NordnVerifyAction.PATH)
         .header(NordnVerifyAction.URL_HEADER, LOCATION_URL)
-        .header(CONTENT_TYPE, FORM_DATA.toString())
-        .param(NordnVerifyAction.PARAM_CSV_DATA, SUNRISE_CSV));
+        .header(CONTENT_TYPE, FORM_DATA.toString()));
   }
 
   @Test

@@ -27,7 +27,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.ByteSource;
 import google.registry.request.Action;
 import google.registry.request.Header;
-import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.ConflictException;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
@@ -60,8 +59,6 @@ import javax.inject.Inject;
 )
 public final class NordnVerifyAction implements Runnable {
 
-  public static final String PARAM_CSV_DATA = "csvData";
-
   static final String PATH = "/_dr/task/nordnVerify";
   static final String QUEUE = "marksdb";
   static final String URL_HEADER = "X-DomainRegistry-Nordn-Url";
@@ -75,7 +72,6 @@ public final class NordnVerifyAction implements Runnable {
   @Inject @Header(URL_HEADER) URL url;
   @Inject @Header(HEADER_ACTION_LOG_ID) String actionLogId;
   @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
-  @Inject @Parameter(PARAM_CSV_DATA) String csvData;
   @Inject NordnVerifyAction() {}
 
   @Override
@@ -99,10 +95,6 @@ public final class NordnVerifyAction implements Runnable {
    */
   @VisibleForTesting
   LordnLog verify() throws IOException {
-    if (csvData.isEmpty()) {
-      throw new BadRequestException(
-          String.format("LORDN verify task %s: Missing CSV payload.", actionLogId));
-    }
     logger.infofmt("LORDN verify task %s: Sending request to URL %s.", actionLogId, url);
     HTTPRequest req = new HTTPRequest(url, GET, validateCertificate().setDeadline(60d));
     lordnRequestInitializer.initialize(req, tld);

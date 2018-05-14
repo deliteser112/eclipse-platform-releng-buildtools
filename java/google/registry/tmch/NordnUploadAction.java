@@ -153,17 +153,15 @@ public final class NordnUploadAction implements Runnable {
               actionLogId),
           req, rsp);
     }
-    getQueue(NordnVerifyAction.QUEUE).add(makeVerifyTask(new URL(location.get()), csvData));
+    getQueue(NordnVerifyAction.QUEUE).add(makeVerifyTask(new URL(location.get())));
   }
 
-  private TaskOptions makeVerifyTask(URL url, String csvData) {
-    // This task doesn't technically need csvData. The only reason it's passed along is in case the
-    // upload is rejected, in which case csvData will be logged so that it may be uploaded manually.
+  private TaskOptions makeVerifyTask(URL url) {
+    // The actionLogId is used to uniquely associate the verify task back to the upload task.
     return withUrl(NordnVerifyAction.PATH)
         .header(NordnVerifyAction.URL_HEADER, url.toString())
         .header(NordnVerifyAction.HEADER_ACTION_LOG_ID, actionLogId)
         .param(RequestParameters.PARAM_TLD, tld)
-        .param(NordnVerifyAction.PARAM_CSV_DATA, csvData)
         .countdownMillis(VERIFY_DELAY.getMillis());
   }
 }
