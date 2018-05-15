@@ -59,6 +59,7 @@ import google.registry.flows.custom.DomainUpdateFlowCustomLogic;
 import google.registry.flows.custom.DomainUpdateFlowCustomLogic.AfterValidationParameters;
 import google.registry.flows.custom.DomainUpdateFlowCustomLogic.BeforeSaveParameters;
 import google.registry.flows.custom.EntityChanges;
+import google.registry.flows.domain.DomainFlowUtils.MissingRegistrantException;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Reason;
@@ -117,6 +118,7 @@ import org.joda.time.DateTime;
  * @error {@link DomainFlowUtils.MissingAdminContactException}
  * @error {@link DomainFlowUtils.MissingContactTypeException}
  * @error {@link DomainFlowUtils.MissingTechnicalContactException}
+ * @error {@link DomainFlowUtils.MissingRegistrantException}
  * @error {@link DomainFlowUtils.NameserversNotAllowedForTldException}
  * @error {@link DomainFlowUtils.NameserversNotSpecifiedForTldWithNameserverWhitelistException}
  * @error {@link DomainFlowUtils.NameserversNotAllowedForDomainException}
@@ -258,6 +260,7 @@ public final class DomainUpdateFlow implements TransactionalFlow {
     checkSameValuesNotAddedAndRemoved(add.getContacts(), remove.getContacts());
     checkSameValuesNotAddedAndRemoved(add.getStatusValues(), remove.getStatusValues());
     Change change = command.getInnerChange();
+    validateRegistrantIsntBeingRemoved(change);
     Optional<SecDnsUpdateExtension> secDnsUpdate =
         eppInput.getSingleExtension(SecDnsUpdateExtension.class);
     DomainResource.Builder domainBuilder =
@@ -328,6 +331,12 @@ public final class DomainUpdateFlow implements TransactionalFlow {
         .setBillingTime(addGracePeriodExpirationTime)
         .setParent(historyEntry)
         .build();
+  }
+
+  private void validateRegistrantIsntBeingRemoved(Change change) throws EppException {
+    if (change.getRegistrantContactId() != null && change.getRegistrantContactId().isEmpty()) {
+      throw new MissingRegistrantException();
+    }
   }
 
   private void validateNewState(DomainResource newDomain) throws EppException {

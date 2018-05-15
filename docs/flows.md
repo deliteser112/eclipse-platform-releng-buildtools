@@ -956,6 +956,7 @@ the domain to convert to a normal create and be billed for accordingly.
         is not free.
     *   Admin contact is required.
     *   Technical contact is required.
+    *   Registrant is required.
 *   2004
     *   The specified status value cannot be set by clients.
     *   The fees passed in the transform command do not match the fees that will

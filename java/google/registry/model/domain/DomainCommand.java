@@ -27,6 +27,7 @@ import static google.registry.util.CollectionUtils.nullToEmptyImmutableCopy;
 import static google.registry.util.CollectionUtils.union;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
@@ -387,7 +388,7 @@ public class DomainCommand {
       /** Creates a copy of this {@link Change} with hard links to hosts and contacts. */
       Change cloneAndLinkReferences(DateTime now) throws InvalidReferencesException {
         Change clone = clone(this);
-        clone.registrant = clone.registrantContactId == null
+        clone.registrant = Strings.isNullOrEmpty(clone.registrantContactId)
             ? null
             : getOnlyElement(
                 loadByForeignKeys(

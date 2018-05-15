@@ -63,6 +63,7 @@ import google.registry.flows.domain.DomainFlowUtils.LinkedResourcesDoNotExistExc
 import google.registry.flows.domain.DomainFlowUtils.MaxSigLifeChangeNotSupportedException;
 import google.registry.flows.domain.DomainFlowUtils.MissingAdminContactException;
 import google.registry.flows.domain.DomainFlowUtils.MissingContactTypeException;
+import google.registry.flows.domain.DomainFlowUtils.MissingRegistrantException;
 import google.registry.flows.domain.DomainFlowUtils.MissingTechnicalContactException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedForDomainException;
 import google.registry.flows.domain.DomainFlowUtils.NameserversNotAllowedForTldException;
@@ -183,6 +184,16 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistReferencedEntities();
     persistDomain();
     doSuccessfulTest();
+  }
+
+  @Test
+  public void testFailure_emptyRegistrant() throws Exception {
+    setEppInput("domain_update_empty_registrant.xml");
+    persistReferencedEntities();
+    persistDomain();
+    MissingRegistrantException thrown =
+        assertThrows(MissingRegistrantException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   private void doSunrushAddTest(
