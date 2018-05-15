@@ -311,6 +311,11 @@ public class DatastoreHelper {
     return persistResource(newDomainResource(domainName));
   }
 
+  public static DomainResource persistActiveDomain(String domainName, DateTime creationTime) {
+    return persistResource(
+        newDomainResource(domainName).asBuilder().setCreationTimeForTest(creationTime).build());
+  }
+
   public static DomainApplication persistActiveDomainApplication(String domainName) {
     return persistResource(newDomainApplication(domainName));
   }

@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.request.JsonResponse.JSON_SAFETY_PREFIX;
 import static google.registry.tools.server.ListObjectsAction.FIELDS_PARAM;
 import static google.registry.tools.server.ListObjectsAction.FULL_FIELD_NAMES_PARAM;
@@ -24,14 +25,11 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.net.MediaType;
 import google.registry.tools.ServerSideCommand.Connection;
-import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nullable;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -40,32 +38,31 @@ import org.mockito.Mock;
 public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     extends CommandTestCase<C> {
 
-  @Mock
-  Connection connection;
+  @Mock Connection connection;
 
-  /**
-   * Where to find the servlet task; set by the subclass.
-   */
+  /** Where to find the servlet task; set by the subclass. */
   abstract String getTaskPath();
 
-  /**
-   * The TLD to be used (for those subclasses that use TLDs; defaults to empty).
-   */
-  protected List<String> getTlds() {
-    return ImmutableList.of();
+  /** The other parameters to be used (for those subclasses that use them; defaults to empty). */
+  protected ImmutableMap<String, Object> getOtherParameters() {
+    return ImmutableMap.of();
   }
 
-  /**
-   * The TLDs argument to be passed on the command line; null if not needed.
-   */
-  @Nullable String tldsParameter;
+  ImmutableList<String> otherParams = ImmutableList.of();
 
   @Before
   public void init() throws Exception {
-    tldsParameter = getTlds().isEmpty() ? null : ("--tld=" + Joiner.on(',').join(getTlds()));
+    ImmutableMap<String, Object> otherParameters = getOtherParameters();
+    if (!otherParameters.isEmpty()) {
+      otherParams =
+          otherParameters
+              .entrySet()
+              .stream()
+              .map(entry -> String.format("--%s=%s", entry.getKey(), entry.getValue()))
+              .collect(toImmutableList());
+    }
     command.setConnection(connection);
-    when(
-        connection.send(
+    when(connection.send(
             eq(getTaskPath()),
             anyMapOf(String.class, Object.class),
             eq(MediaType.PLAIN_TEXT_UTF_8),
@@ -74,9 +71,8 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
   }
 
   private void verifySent(
-      String fields,
-      Optional<Boolean> printHeaderRow,
-      Optional<Boolean> fullFieldNames) throws Exception {
+      String fields, Optional<Boolean> printHeaderRow, Optional<Boolean> fullFieldNames)
+      throws Exception {
 
     ImmutableMap.Builder<String, Object> params = new ImmutableMap.Builder<>();
     if (fields != null) {
@@ -84,88 +80,68 @@ public abstract class ListObjectsCommandTestCase<C extends ListObjectsCommand>
     }
     printHeaderRow.ifPresent(aBoolean -> params.put(PRINT_HEADER_ROW_PARAM, aBoolean));
     fullFieldNames.ifPresent(aBoolean -> params.put(FULL_FIELD_NAMES_PARAM, aBoolean));
-    if (!getTlds().isEmpty()) {
-      params.put("tlds", Joiner.on(',').join(getTlds()));
-    }
-    verify(connection).send(
-        eq(getTaskPath()),
-        eq(params.build()),
-        eq(MediaType.PLAIN_TEXT_UTF_8),
-        eq(new byte[0]));
+    params.putAll(getOtherParameters());
+    verify(connection)
+        .send(
+            eq(getTaskPath()), eq(params.build()), eq(MediaType.PLAIN_TEXT_UTF_8), eq(new byte[0]));
   }
 
   @Test
   public void testRun_noFields() throws Exception {
-    if (tldsParameter == null) {
-      runCommand();
-    } else {
-      runCommand(tldsParameter);
-    }
+    runCommand(otherParams);
     verifySent(null, Optional.empty(), Optional.empty());
   }
 
   @Test
   public void testRun_oneField() throws Exception {
-    if (tldsParameter == null) {
-      runCommand("--fields=fieldName");
-    } else {
-      runCommand("--fields=fieldName", tldsParameter);
-    }
+    runCommand(
+        new ImmutableList.Builder<String>().addAll(otherParams).add("--fields=fieldName").build());
     verifySent("fieldName", Optional.empty(), Optional.empty());
   }
 
   @Test
   public void testRun_wildcardField() throws Exception {
-    if (tldsParameter == null) {
-      runCommand("--fields=*");
-    } else {
-      runCommand("--fields=*", tldsParameter);
-    }
+    runCommand(new ImmutableList.Builder<String>().addAll(otherParams).add("--fields=*").build());
     verifySent("*", Optional.empty(), Optional.empty());
   }
 
   @Test
   public void testRun_header() throws Exception {
-    if (tldsParameter == null) {
-      runCommand("--fields=fieldName", "--header=true");
-    } else {
-      runCommand("--fields=fieldName", "--header=true", tldsParameter);
-    }
+    runCommand(
+        new ImmutableList.Builder<String>()
+            .addAll(otherParams)
+            .add("--fields=fieldName", "--header=true")
+            .build());
     verifySent("fieldName", Optional.of(Boolean.TRUE), Optional.empty());
   }
 
   @Test
   public void testRun_noHeader() throws Exception {
-    if (tldsParameter == null) {
-      runCommand("--fields=fieldName", "--header=false");
-    } else {
-      runCommand("--fields=fieldName", "--header=false", tldsParameter);
-    }
+    runCommand(
+        new ImmutableList.Builder<String>()
+            .addAll(otherParams)
+            .add("--fields=fieldName", "--header=false")
+            .build());
     verifySent("fieldName", Optional.of(Boolean.FALSE), Optional.empty());
   }
 
   @Test
   public void testRun_fullFieldNames() throws Exception {
-    if (tldsParameter == null) {
-      runCommand("--fields=fieldName", "--full_field_names");
-    } else {
-      runCommand("--fields=fieldName", "--full_field_names", tldsParameter);
-    }
+    runCommand(
+        new ImmutableList.Builder<String>()
+            .addAll(otherParams)
+            .add("--fields=fieldName", "--full_field_names")
+            .build());
     verifySent("fieldName", Optional.empty(), Optional.of(Boolean.TRUE));
   }
 
   @Test
   public void testRun_allParameters() throws Exception {
-    if (tldsParameter == null) {
-      runCommand("--fields=fieldName,otherFieldName,*", "--header=true", "--full_field_names");
-    } else {
-      runCommand(
-          "--fields=fieldName,otherFieldName,*",
-          "--header=true",
-          "--full_field_names",
-          tldsParameter);
-    }
-    verifySent(
-        "fieldName,otherFieldName,*", Optional.of(Boolean.TRUE), Optional.of(Boolean.TRUE));
+    runCommand(
+        new ImmutableList.Builder<String>()
+            .addAll(otherParams)
+            .add("--fields=fieldName,otherFieldName,*", "--header=true", "--full_field_names")
+            .build());
+    verifySent("fieldName,otherFieldName,*", Optional.of(Boolean.TRUE), Optional.of(Boolean.TRUE));
   }
 }

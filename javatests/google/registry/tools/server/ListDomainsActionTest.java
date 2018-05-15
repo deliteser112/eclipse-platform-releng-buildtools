@@ -39,7 +39,8 @@ public class ListDomainsActionTest extends ListActionTestCase {
   public void init() throws Exception {
     createTld("foo");
     action = new ListDomainsAction();
-    action.clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
+    action.clock = new FakeClock(DateTime.parse("2018-01-01TZ"));
+    action.limit = Integer.MAX_VALUE;
   }
 
   @Test
@@ -109,7 +110,6 @@ public class ListDomainsActionTest extends ListActionTestCase {
         "^example1.foo$",
         "^example2.foo$");
   }
-
 
   @Test
   public void testRun_twoLinesWithIdOnlyNoHeader() throws Exception {
@@ -230,5 +230,24 @@ public class ListDomainsActionTest extends ListActionTestCase {
         null,
         null,
         "^Field 'badfield' not found - recognized fields are:");
+  }
+
+  @Test
+  public void testRun_limitFiltersOutOldestDomains() {
+    createTlds("bar", "baz");
+    action.tlds = ImmutableSet.of("foo", "bar");
+    action.limit = 2;
+    persistActiveDomain("example4.foo", DateTime.parse("2017-04-01TZ"));
+    persistActiveDomain("example1.foo", DateTime.parse("2017-01-01TZ"));
+    persistActiveDomain("example2.bar", DateTime.parse("2017-02-01TZ"));
+    persistActiveDomain("example3.bar", DateTime.parse("2017-03-01TZ"));
+    persistActiveDomain("example5.baz", DateTime.parse("2018-01-01TZ"));
+    testRunSuccess(
+        action,
+        null,
+        null,
+        null,
+        "^example3.bar$",
+        "^example4.foo$");
   }
 }

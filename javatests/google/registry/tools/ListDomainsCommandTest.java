@@ -16,11 +16,13 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.net.MediaType;
 import google.registry.tools.server.ListDomainsAction;
-import java.util.List;
 import org.junit.Test;
 
 /**
@@ -36,17 +38,28 @@ public class ListDomainsCommandTest extends ListObjectsCommandTestCase<ListDomai
   }
 
   @Override
-  protected List<String> getTlds() {
-    return ImmutableList.of("foo");
+  protected ImmutableMap<String, Object> getOtherParameters() {
+    return ImmutableMap.of("tlds", "foo", "limit", Integer.MAX_VALUE);
   }
 
   @Test
-  public void test_tldsParamTooLong() throws Exception {
-    String tldsParam = "--tld=foo,bar" + Strings.repeat(",baz", 300);
+  public void test_tldsParamTooLong() {
+    String tldsParam = "--tlds=foo,bar" + Strings.repeat(",baz", 300);
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> runCommand(tldsParam));
     assertThat(thrown)
         .hasMessageThat()
         .contains("Total length of TLDs is too long for URL parameter");
+  }
+
+  @Test
+  public void test_bothParamsSpecified() throws Exception {
+    runCommand("--tlds=foo,bar", "--limit=100");
+    verify(connection)
+        .send(
+            eq(getTaskPath()),
+            eq(ImmutableMap.of("tlds", "foo,bar", "limit", 100)),
+            eq(MediaType.PLAIN_TEXT_UTF_8),
+            eq(new byte[0]));
   }
 }

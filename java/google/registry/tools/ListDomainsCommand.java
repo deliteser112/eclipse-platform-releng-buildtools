@@ -33,17 +33,22 @@ final class ListDomainsCommand extends ListObjectsCommand {
       required = true)
   private List<String> tlds;
 
+  @Parameter(
+      names = {"-n", "--limit"},
+      description = "Max number of domains to list, most recent first; defaults to no limit."
+  )
+  private int maxDomains = Integer.MAX_VALUE;
+
   @Override
   String getCommandPath() {
     return ListDomainsAction.PATH;
   }
 
-  /** Returns a map of parameters to be sent to the server
-   * (in addition to the usual ones). */
+  /** Returns a map of parameters to be sent to the server (in addition to the usual ones). */
   @Override
   ImmutableMap<String, Object> getParameterMap() {
     String tldsParam = Joiner.on(',').join(tlds);
     checkArgument(tldsParam.length() < 1024, "Total length of TLDs is too long for URL parameter");
-    return ImmutableMap.of("tlds", tldsParam);
+    return ImmutableMap.of("tlds", tldsParam, "limit", maxDomains);
   }
 }

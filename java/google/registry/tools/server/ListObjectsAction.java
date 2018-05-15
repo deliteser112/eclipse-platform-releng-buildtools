@@ -107,6 +107,7 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
       // Get the object data first, so we can figure out the list of all available fields using the
       // data if necessary.
       ImmutableSet<T> objects = loadObjects();
+      logger.infofmt("Loaded %d objects.", objects.size());
       // Get the list of fields we should return.
       ImmutableSet<String> fieldsToUse = getFieldsToUse(objects);
       // Convert the data into a table.

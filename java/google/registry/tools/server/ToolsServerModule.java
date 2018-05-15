@@ -16,6 +16,7 @@ package google.registry.tools.server;
 
 import static com.google.common.base.Strings.emptyToNull;
 import static google.registry.request.RequestParameters.extractBooleanParameter;
+import static google.registry.request.RequestParameters.extractIntParameter;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
 
@@ -88,6 +89,12 @@ public class ToolsServerModule {
   static ImmutableSet<String> provideTlds(HttpServletRequest req) {
     String tldsString = extractRequiredParameter(req, "tlds");
     return ImmutableSet.copyOf(Splitter.on(',').split(tldsString));
+  }
+
+  @Provides
+  @Parameter("limit")
+  static int provideLimit(HttpServletRequest req) {
+    return extractIntParameter(req, "limit");
   }
 
   @Provides
