@@ -17,6 +17,7 @@ package google.registry.tools;
 import static com.google.common.base.StandardSystemProperty.USER_HOME;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -27,13 +28,18 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableTable;
+import com.google.common.escape.SourceCodeEscapers;
 import google.registry.util.Clock;
 import google.registry.util.SystemClock;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
 import java.util.Arrays;
@@ -64,6 +70,9 @@ public class ShellCommand implements Command {
   private static final String NON_ALERT_COLOR = "\u001b[32m"; // green foreground
   private static final String ALERT_COLOR = "\u001b[1;41;97m"; // red background
   private static final Duration IDLE_THRESHOLD = Duration.standardHours(1);
+  private static final String SUCCESS = "SUCCESS";
+  private static final String FAILURE = "FAILURE ";
+
 
   private final CommandRunner runner;
   private final BufferedReader lineReader;
@@ -76,6 +85,16 @@ public class ShellCommand implements Command {
           "Prevents the shell from exiting on PROD after the 1 hour idle delay. "
               + "Will instead warn you and require re-running the command.")
   boolean dontExitOnIdle = false;
+
+  @Parameter(
+      names = {"--encapsulate_output"},
+      description =
+          "Encapsulate command standard output and error by combining the two streams to standard "
+              + "output and inserting a prefix ('out:' or 'err:') at the beginning of every line "
+              + "of normal output and adding a line consisting of either 'SUCCESS' or "
+              + "'FAILURE <exception-name> <error-message>' at the end of the output for a "
+              + "command, allowing the output to be easily parsed by wrapper scripts.")
+  boolean encapsulateOutput = false;
 
   public ShellCommand(CommandRunner runner) throws IOException {
     this.runner = runner;
@@ -136,6 +155,23 @@ public class ShellCommand implements Command {
     String line;
     DateTime lastTime = clock.nowUtc();
     while ((line = getLine()) != null) {
+      PrintStream orgStdout = null;
+      PrintStream orgStderr = null;
+      EncapsulatingOutputStream encapsulatedOutputStream = null;
+      EncapsulatingOutputStream encapsulatedErrorStream = null;
+
+
+      // Wrap standard output and error if requested. We have to do so here in run because the flags
+      // haven't been processed in the constructor.
+      if (encapsulateOutput) {
+        orgStdout = System.out;
+        orgStderr = System.err;
+        encapsulatedOutputStream = new EncapsulatingOutputStream(System.out, "out: ");
+        encapsulatedErrorStream = new EncapsulatingOutputStream(System.out, "err: ");
+        System.setOut(new PrintStream(encapsulatedOutputStream));
+        System.setErr(new PrintStream(encapsulatedErrorStream));
+      }
+
       // Make sure we're not idle for too long. Only relevant when we're "extra careful"
       if (!dontExitOnIdle
           && beExtraCareful
@@ -149,13 +185,32 @@ public class ShellCommand implements Command {
       if (lineArgs.length == 0) {
         continue;
       }
+      Exception lastError = null;
       try {
         runner.run(lineArgs);
       } catch (Exception e) {
+        lastError = e;
         System.err.println("Got an exception:\n" + e);
       }
+      try {
+        if (encapsulatedOutputStream != null) {
+          encapsulatedOutputStream.dumpLastLine();
+          encapsulatedErrorStream.dumpLastLine();
+          System.setOut(orgStdout);
+          System.setErr(orgStderr);
+          if (lastError == null) {
+            emitSuccess();
+          } else {
+            emitFailure(lastError);
+          }
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
-    System.err.println();
+    if (!encapsulateOutput) {
+      System.err.println();
+    }
   }
 
   private String getLine() {
@@ -187,6 +242,26 @@ public class ShellCommand implements Command {
     }
 
     return resultBuilder.build().toArray(new String[0]);
+  }
+
+  /**
+   * Emit a success command separator.
+   *
+   * <p>Dumps the last line of output prior to doing this.
+   */
+  private void emitSuccess() throws IOException {
+    System.out.println(SUCCESS);
+    System.out.flush();
+  }
+
+  /**
+   * Emit a failure message obtained from the throwable.
+   *
+   * <p>Dumps the last line of output prior to doing this.
+   */
+  private void emitFailure(Throwable e) throws IOException {
+    System.out.println(FAILURE + e.getClass().getName() + " "
+                       + SourceCodeEscapers.javaCharEscaper().escape(e.getMessage()));
   }
 
   @VisibleForTesting
@@ -446,6 +521,53 @@ public class ShellCommand implements Command {
       return Optional.ofNullable(
               commandFlagDocs.get(command, isFlagParameter ? previousArgument : ""))
           .orElse(DEFAULT_PARAM_DOC);
+    }
+  }
+
+  /**
+   * Encapsulate output according to the protocol described in the documentation for the
+   * --encapsulate_output flag.
+   */
+  @VisibleForTesting
+  static class EncapsulatingOutputStream extends FilterOutputStream {
+
+    private final byte[] prefix;
+    private final ByteArrayOutputStream lastLine = new ByteArrayOutputStream();
+
+    // Flag to keep track of whether the last character written was a newline.  We initialize this
+    // to "true" because we always want the first line of output to be escaped with a leading space.
+    boolean lastWasNewline = true;
+
+    EncapsulatingOutputStream(OutputStream out, String identifier) {
+      super(out);
+      this.prefix = identifier.getBytes(UTF_8);
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+      lastLine.write(b);
+      if (b == '\n') {
+        out.write(prefix);
+        lastLine.writeTo(out);
+        out.flush();
+        lastLine.reset();
+      }
+    }
+
+    @Override
+    public void flush() throws IOException {
+      dumpLastLine();
+    }
+
+    /** Dump the accumulated last line of output, if there was one. */
+    public void dumpLastLine() throws IOException {
+      if (lastLine.size() > 0) {
+        out.write(prefix);
+        lastLine.writeTo(out);
+        out.write('\n');
+        out.flush();
+        lastLine.reset();
+      }
     }
   }
 }

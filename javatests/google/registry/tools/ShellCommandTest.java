@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,12 +29,17 @@ import com.google.common.collect.ImmutableMap;
 import google.registry.testing.FakeClock;
 import google.registry.tools.ShellCommand.JCommanderCompletor;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -44,7 +50,22 @@ public class ShellCommandTest {
   CommandRunner cli = mock(CommandRunner.class);
   FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
 
+  PrintStream orgStdout;
+  PrintStream orgStderr;
+
   public ShellCommandTest() {}
+
+  @Before
+  public void setUp() {
+    orgStdout = System.out;
+    orgStderr = System.err;
+  }
+
+  @After
+  public void tearDown() {
+    System.setOut(orgStdout);
+    System.setErr(orgStderr);
+  }
 
   @Test
   public void testParsing() {
@@ -224,6 +245,55 @@ public class ShellCommandTest {
     performJCommanderCompletorTest("testCommand --xorg PU", 2, "PUBLIC ");
     performJCommanderCompletorTest(
         "testCommand --xorg ", 0, "", "Flag documentation: test organization\n  (PRIVATE, PUBLIC)");
+  }
+
+  @Test
+  public void testEncapsulatedOutputStream_basicFuncionality() throws Exception {
+    ByteArrayOutputStream backing = new ByteArrayOutputStream();
+    PrintStream out = new PrintStream(new ShellCommand.EncapsulatingOutputStream(backing, "out: "));
+    out.println("first line");
+    out.print("second line\ntrailing data");
+    out.flush();
+    assertThat(backing.toString())
+        .isEqualTo("out: first line\nout: second line\nout: trailing data\n");
+  }
+
+  @Test
+  public void testEncapsulatedOutputStream_emptyStream() throws Exception {
+    ByteArrayOutputStream backing = new ByteArrayOutputStream();
+    PrintStream out = new PrintStream(new ShellCommand.EncapsulatingOutputStream(backing, "out: "));
+    out.flush();
+    assertThat(backing.toString()).isEqualTo("");
+  }
+
+  @Test
+  public void testEncapsulatedOutput_command() throws Exception {
+    RegistryToolEnvironment.ALPHA.setup();
+
+    // capture output (have to do this before the shell command is created)
+    ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+    ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(stdout));
+    System.setErr(new PrintStream(stderr));
+    System.setIn(new ByteArrayInputStream("command1\n".getBytes(UTF_8)));
+
+    ShellCommand shellCommand =
+        new ShellCommand(
+            args -> {
+              System.out.println("first line");
+              System.err.println("second line");
+              System.out.print("fragmented ");
+              System.err.println("surprise!");
+              System.out.println("line");
+            });
+    shellCommand.encapsulateOutput = true;
+
+    shellCommand.run();
+    assertThat(stderr.toString()).isEmpty();
+    assertThat(stdout.toString())
+        .isEqualTo(
+            "out: first line\nerr: second line\nerr: surprise!\nout: fragmented line\n"
+                + "SUCCESS\n");
   }
 
   @Parameters(commandDescription = "Test command")
