@@ -17,7 +17,7 @@ Admin Contact: Joe Registrar
 Phone Number: +1.3105551213
 Fax Number: +1.3105551213
 Email: joeregistrar@example-registrar.tld
-Technical Contact: John Geek
+Technical Contact: Bonnie & Clyde
 Phone Number: +1.3105551215
 Fax Number: +1.3105551216
 Email: johngeek@example-registrar.tld

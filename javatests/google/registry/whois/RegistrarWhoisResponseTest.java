@@ -103,7 +103,7 @@ public class RegistrarWhoisResponseTest {
             .build(),
         new RegistrarContact.Builder()
             .setParent(registrar)
-            .setName("John Geek")
+            .setName("Bonnie & Clyde")
             .setEmailAddress("johngeek@example-registrar.tld")
             .setPhoneNumber("+1.3105551215")
             .setFaxNumber("+1.3105551216")

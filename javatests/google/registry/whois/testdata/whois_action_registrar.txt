@@ -1,6 +1,6 @@
 Registrar: Example Registrar, Inc.
-Street: 123 Example Boulevard &lt;script&gt;
-City: Williamsburg &lt;script&gt;
+Street: 123 Example Boulevard <script>
+City: Williamsburg <script>
 State/Province: NY
 Postal Code: 11211
 Country: US

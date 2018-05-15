@@ -117,7 +117,7 @@ public class DomainWhoisResponseTest {
             new PostalInfo.Builder()
             .setType(PostalInfo.Type.INTERNATIONALIZED)
             .setName("EXAMPLE REGISTRANT")
-            .setOrg("EXAMPLE ORGANIZATION")
+            .setOrg("Tom & Jerry Corp.")
             .setAddress(new ContactAddress.Builder()
                 .setStreet(ImmutableList.of("123 EXAMPLE STREET"))
                 .setCity("ANYTOWN")

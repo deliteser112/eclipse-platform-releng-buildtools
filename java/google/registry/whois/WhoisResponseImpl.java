@@ -17,7 +17,6 @@ package google.registry.whois;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.html.HtmlEscapers.htmlEscaper;
 
 import com.google.common.base.Joiner;
 import google.registry.model.eppcommon.Address;
@@ -187,16 +186,9 @@ abstract class WhoisResponseImpl implements WhoisResponse {
       return emitNewline();
     }
 
-    /**
-     * Remove potentially dangerous stuff from WHOIS output fields.
-     *
-     * <ul>
-     * <li>Remove ASCII control characters like {@code \n} which could be used to forge output.
-     * <li>Escape HTML entities, just in case this gets injected poorly into a webpage.
-     * </ul>
-     */
+    /** Remove ASCII control characters like {@code \n} which could be used to forge output. */
     private String cleanse(String value) {
-      return htmlEscaper().escape(value).replaceAll("[\\x00-\\x1f]", " ");
+      return value.replaceAll("[\\x00-\\x1f]", " ");
     }
 
     @Override

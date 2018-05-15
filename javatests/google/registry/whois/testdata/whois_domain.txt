@@ -15,7 +15,7 @@ Domain Status: clientRenewProhibited https://icann.org/epp#clientRenewProhibited
 Domain Status: clientTransferProhibited https://icann.org/epp#clientTransferProhibited
 Domain Status: serverUpdateProhibited https://icann.org/epp#serverUpdateProhibited
 Domain Status: transferPeriod https://icann.org/epp#transferPeriod
-Registrant Organization: EXAMPLE ORGANIZATION
+Registrant Organization: Tom & Jerry Corp.
 Registrant State/Province: AP
 Registrant Country: EX
 Name Server: ns01.exampleregistrar.tld

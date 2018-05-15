@@ -115,7 +115,7 @@ public class WhoisActionTest {
   @Test
   public void testRun_domainQuery_works() {
     Registrar registrar =
-        persistResource(makeRegistrar("evilregistrar", "Yes Virginia <script>", ACTIVE));
+        persistResource(makeRegistrar("evilregistrar", "Yes Virginia", ACTIVE));
     persistResource(
         makeDomainResource(
             "cat.lol",
@@ -134,7 +134,7 @@ public class WhoisActionTest {
   @Test
   public void testRun_domainQuery_usesCache() {
     Registrar registrar =
-        persistResource(makeRegistrar("evilregistrar", "Yes Virginia <script>", ACTIVE));
+        persistResource(makeRegistrar("evilregistrar", "Yes Virginia", ACTIVE));
     persistResource(
         makeDomainResource(
             "cat.lol",
@@ -170,7 +170,7 @@ public class WhoisActionTest {
   @Test
   public void testRun_idnDomain_works() throws Exception {
     Registrar registrar = persistResource(makeRegistrar(
-        "evilregistrar", "Yes Virginia <script>", ACTIVE));
+        "evilregistrar", "Yes Virginia", ACTIVE));
     persistResource(makeDomainResource(
         "cat.みんな",
         persistResource(makeContactResource("5372808-ERL", "(◕‿◕)", "lol@cat.みんな")),
@@ -188,7 +188,7 @@ public class WhoisActionTest {
   @Test
   public void testRun_punycodeDomain_works() throws Exception {
     Registrar registrar = persistResource(makeRegistrar(
-        "evilregistrar", "Yes Virginia <script>", ACTIVE));
+        "evilregistrar", "Yes Virginia", ACTIVE));
     persistResource(makeDomainResource(
         "cat.みんな",
         persistResource(makeContactResource("5372808-ERL", "(◕‿◕)", "lol@cat.みんな")),
@@ -227,7 +227,7 @@ public class WhoisActionTest {
   public void testRun_domainInTestTld_isConsideredNotFound() throws Exception {
     persistResource(Registry.get("lol").asBuilder().setTldType(Registry.TldType.TEST).build());
     Registrar registrar = persistResource(makeRegistrar(
-        "evilregistrar", "Yes Virginia <script>", ACTIVE));
+        "evilregistrar", "Yes Virginia", ACTIVE));
     persistResource(makeDomainResource(
         "cat.lol",
         persistResource(makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol")),

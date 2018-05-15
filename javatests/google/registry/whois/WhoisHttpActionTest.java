@@ -49,7 +49,6 @@ import java.io.IOException;
 import java.io.Reader;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -92,12 +91,6 @@ public class WhoisHttpActionTest {
     inject.setStaticField(Ofy.class, "clock", clock);
   }
 
-  @After
-  public void after() throws Exception {
-    // Extra precaution to ensure HTML escaping is working securely.
-    assertThat(response.getPayload()).doesNotContain("<script>");
-  }
-
   @Test
   public void testRun_emptyQuery_returns400BadRequestWithPlainTextOutput() throws Exception {
     newWhoisHttpAction("").run();
@@ -128,7 +121,7 @@ public class WhoisHttpActionTest {
   public void testRun_domainInTestTld_isConsideredNotFound() throws Exception {
     persistResource(Registry.get("lol").asBuilder().setTldType(Registry.TldType.TEST).build());
     Registrar registrar = persistResource(makeRegistrar(
-        "evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
+        "evilregistrar", "Yes Virginia", Registrar.State.ACTIVE));
     persistResource(makeDomainResource(
         "cat.lol",
         persistResource(makeContactResource("5372808-ERL", "Goblin Market", "lol@cat.lol")),
@@ -147,7 +140,7 @@ public class WhoisHttpActionTest {
   @Test
   public void testRun_domainQueryIdn_works() throws Exception {
     Registrar registrar = persistResource(makeRegistrar(
-        "evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
+        "evilregistrar", "Yes Virginia", Registrar.State.ACTIVE));
     persistResource(makeDomainResource(
         "cat.みんな",
         persistResource(makeContactResource("5372808-ERL", "(◕‿◕)", "lol@cat.みんな")),
@@ -201,20 +194,6 @@ public class WhoisHttpActionTest {
   }
 
   @Test
-  public void testRun_maliciousHtmlInDatastore_getsPurged() throws Exception {
-    persistResource(makeDomainResource("cat.みんな",
-        persistResource(makeContactResource("5372808-ERL", "(◕‿◕)", "lol@cat.みんな")),
-        persistResource(makeContactResource("5372808-IRL", "Operator", "BOFH@cat.みんな")),
-        persistResource(
-            makeContactResource("5372808-TRL", "<script>alert('lol');</script>", "bog@cat.みんな")),
-        persistResource(makeHostResource("ns1.cat.みんな", "1.2.3.4")),
-        persistResource(makeHostResource("ns2.cat.みんな", "bad:f00d:cafe::15:beef")),
-        persistResource(makeRegistrar("example", "Example Registrar", Registrar.State.ACTIVE))));
-    newWhoisHttpAction("cat.みんな").run();
-    assertThat(response.getPayload()).doesNotContain("<script>");
-  }
-
-  @Test
   public void testRun_hostnameOnly_works() throws Exception {
     persistResource(makeHostResource("ns1.cat.みんな", "1.2.3.4"));
     newWhoisHttpAction("ns1.cat.みんな").run();
@@ -224,7 +203,7 @@ public class WhoisHttpActionTest {
   @Test
   public void testRun_domainQueryPunycode_works() throws Exception {
     Registrar registrar = persistResource(makeRegistrar(
-        "evilregistrar", "Yes Virginia <script>", Registrar.State.ACTIVE));
+        "evilregistrar", "Yes Virginia", Registrar.State.ACTIVE));
     persistResource(makeDomainResource(
         "cat.みんな",
         persistResource(makeContactResource("5372808-ERL", "(◕‿◕)", "lol@cat.みんな")),

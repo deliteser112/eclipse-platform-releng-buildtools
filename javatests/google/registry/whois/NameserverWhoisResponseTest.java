@@ -52,7 +52,7 @@ public class NameserverWhoisResponseTest {
 
   @Before
   public void setUp() {
-    persistNewRegistrar("example", "Example Registrar, Inc.", Registrar.Type.REAL, 8L);
+    persistNewRegistrar("example", "Hänsel & Gretel Registrar, Inc.", Registrar.Type.REAL, 8L);
     persistResource(loadRegistrar("example").asBuilder().setUrl("http://my.fake.url").build());
     createTld("tld");
 
