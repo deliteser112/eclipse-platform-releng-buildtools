@@ -15,7 +15,6 @@
 package google.registry.ui.server.registrar;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.config.RegistryConfig.getDefaultRegistrarReferralUrl;
 import static google.registry.config.RegistryConfig.getDefaultRegistrarWhoisServer;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT;
 import static google.registry.testing.CertificateSamples.SAMPLE_CERT2;
@@ -53,12 +52,11 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "args", modified.toJsonMap()));
-    // Empty whoisServer and referralUrl fields should be set to defaults by server.
+    // Empty whoisServer field should be set to default by server.
     modified =
         modified
             .asBuilder()
             .setWhoisServer(getDefaultRegistrarWhoisServer())
-            .setReferralUrl(getDefaultRegistrarReferralUrl())
             .build();
     assertThat(response).containsEntry("status", "SUCCESS");
     assertThat(response).containsEntry("results", asList(modified.toJsonMap()));

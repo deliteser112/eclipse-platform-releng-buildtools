@@ -1382,13 +1382,6 @@ public final class RegistryConfig {
   }
 
   /**
-   * Returns the default referral URL that is used unless registrars have specified otherwise.
-   */
-  public static String getDefaultRegistrarReferralUrl() {
-    return CONFIG_SETTINGS.get().registryPolicy.defaultRegistrarReferralUrl;
-  }
-
-  /**
    * Returns the number of {@code EppResourceIndex} buckets to be used.
    */
   public static int getEppResourceIndexBucketCount() {

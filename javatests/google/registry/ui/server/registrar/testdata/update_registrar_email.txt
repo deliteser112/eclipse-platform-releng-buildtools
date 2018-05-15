@@ -7,6 +7,7 @@ localizedAddress.city: Williamsburg -> New York
 localizedAddress.zip: 11211 -> 10011
 phoneNumber: +1.2223334444 -> +1.2223335555
 emailAddress: new.registrar@example.com -> thase@the.registrar
+url: http://my.fake.url -> http://my.new.url
 contacts:
     ADDED:
         {parent=Key<?>(EntityGroupRoot("cross-tld")/Registrar("TheRegistrar")), name=Extra Terrestrial, emailAddress=etphonehome@example.com, phoneNumber=null, faxNumber=null, types=[ADMIN, BILLING, TECH, WHOIS], gaeUserId=null, visibleInWhoisAsAdmin=true, visibleInWhoisAsTech=false, visibleInDomainWhoisAsAbuse=false}

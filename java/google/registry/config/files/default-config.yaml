@@ -58,9 +58,6 @@ registryPolicy:
   # Default WHOIS server used when not specified on a registrar.
   defaultRegistrarWhoisServer: whois.domain-registry.example
 
-  # Default referral URL used when not changed by a registrar.
-  defaultRegistrarReferralUrl: https://www.domain-registry.example
-
   # Mode TMCH should run in (PRODUCTION for production environments, PILOT for
   # all others including sandbox).
   tmchCaMode: PILOT

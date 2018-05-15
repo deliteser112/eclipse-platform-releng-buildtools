@@ -608,7 +608,6 @@ class google.registry.model.registrar.Registrar {
   java.lang.String passwordHash;
   java.lang.String phoneNumber;
   java.lang.String phonePasscode;
-  java.lang.String referralUrl;
   java.lang.String registrarName;
   java.lang.String salt;
   java.lang.String url;

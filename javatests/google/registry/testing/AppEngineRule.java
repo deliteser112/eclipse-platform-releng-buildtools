@@ -165,6 +165,7 @@ public final class AppEngineRule extends ExternalResource {
         .setState(State.ACTIVE)
         .setEmailAddress("new.registrar@example.com")
         .setIcannReferralEmail("lol@sloth.test")
+        .setUrl("http://my.fake.url")
         .setInternationalizedAddress(new RegistrarAddress.Builder()
             .setStreet(ImmutableList.of("123 Example Boulevard"))
             .setCity("Williamsburg")

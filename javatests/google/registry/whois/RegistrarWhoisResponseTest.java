@@ -62,7 +62,6 @@ public class RegistrarWhoisResponseTest {
         .setFaxNumber("+1.3105551213")
         .setEmailAddress("registrar@example.tld")
         .setWhoisServer("whois.example-registrar.tld")
-        .setReferralUrl("http://www.example-registrar.tld")
         .setUrl("http://my.fake.url")
         .build();
     // Use the registrar key for contacts' parent.

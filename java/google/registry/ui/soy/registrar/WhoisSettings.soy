@@ -23,14 +23,14 @@
   {@param icannReferralEmail: string}
   {@param readonly: bool}
   {@param? whoisServer: string}
-  {@param? referralUrl: string}
+  {@param? url: string}
   // Passed to .contactInfo_
   {@param? emailAddress: string}
   {@param? localizedAddress: ?}
   {@param? phoneNumber: string}
   {@param? faxNumber: string}
   {let $whoisServerNonNull: $whoisServer ?: 'None' /}
-  {let $referralUrlNonNull: $referralUrl ?: 'None' /}
+  {let $urlNonNull: $url ?: 'None' /}
   <form name="item" class="{css('item')} {css('registrar')} {css('kd-settings-pane')}">
     <h1>WHOIS Settings</h1>
     {if $readonly}
@@ -66,8 +66,8 @@
     {/call}
     {call registry.soy.forms.inputFieldRowWithValue}
       {param label: 'Referral URL' /}
-      {param name: 'referralUrl' /}
-      {param value: $referralUrlNonNull /}
+      {param name: 'url' /}
+      {param value: $urlNonNull /}
       {param readonly: $readonly /}
     {/call}
     </table>

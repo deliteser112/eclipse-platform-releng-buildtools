@@ -16,7 +16,6 @@ package google.registry.export.sheet;
 
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.config.RegistryConfig.getDefaultRegistrarReferralUrl;
 import static google.registry.config.RegistryConfig.getDefaultRegistrarWhoisServer;
 import static google.registry.model.common.Cursor.CursorType.SYNC_REGISTRAR_SHEET;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -278,7 +277,7 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("url", "http://www.example.org/aaa_registrar");
     assertThat(row).containsEntry("icannReferralEmail", "");
     assertThat(row).containsEntry("whoisServer", getDefaultRegistrarWhoisServer());
-    assertThat(row).containsEntry("referralUrl", getDefaultRegistrarReferralUrl());
+    assertThat(row).containsEntry("referralUrl", "http://www.example.org/aaa_registrar");
     assertThat(row).containsEntry("billingAccountMap", "{JPY=JPY7890, USD=USD1234}");
 
     row = rows.get(1);
@@ -311,7 +310,7 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("blockPremiumNames", "false");
     assertThat(row).containsEntry("ipAddressWhitelist", "");
     assertThat(row).containsEntry("url", "http://www.example.org/another_registrar");
-    assertThat(row).containsEntry("referralUrl", getDefaultRegistrarReferralUrl());
+    assertThat(row).containsEntry("referralUrl", "http://www.example.org/another_registrar");
     assertThat(row).containsEntry("icannReferralEmail", "jim@example.net");
     assertThat(row).containsEntry("billingAccountMap", "{}");
 
@@ -355,7 +354,7 @@ public class SyncRegistrarsSheetTest {
     assertThat(row).containsEntry("blockPremiumNames", "false");
     assertThat(row).containsEntry("ipAddressWhitelist", "");
     assertThat(row).containsEntry("url", "");
-    assertThat(row).containsEntry("referralUrl", getDefaultRegistrarReferralUrl());
+    assertThat(row).containsEntry("referralUrl", "");
     assertThat(row).containsEntry("icannReferralEmail", "");
     assertThat(row).containsEntry("billingAccountMap", "{}");
   }

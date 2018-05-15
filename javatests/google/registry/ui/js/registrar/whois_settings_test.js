@@ -82,7 +82,7 @@ function createTestRegistrar() {
     ianaIdentifier: 1,
     icannReferralEmail: 'lol@sloth.test',
     whoisServer: 'foo.bar.baz',
-    referralUrl: 'blah.blar',
+    url: 'blah.blar',
     phoneNumber: '+1.2125650000',
     faxNumber: '+1.2125650001',
     localizedAddress: {

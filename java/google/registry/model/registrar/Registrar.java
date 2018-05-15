@@ -24,7 +24,6 @@ import static com.google.common.collect.ImmutableSortedSet.toImmutableSortedSet;
 import static com.google.common.collect.Ordering.natural;
 import static com.google.common.collect.Sets.immutableEnumSet;
 import static com.google.common.io.BaseEncoding.base64;
-import static google.registry.config.RegistryConfig.getDefaultRegistrarReferralUrl;
 import static google.registry.config.RegistryConfig.getDefaultRegistrarWhoisServer;
 import static google.registry.model.CacheUtils.memoizeWithShortExpiration;
 import static google.registry.model.common.EntityGroupRoot.getCrossTldKey;
@@ -364,9 +363,6 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
   /** URL of registrar's website. */
   String url;
 
-  /** Referral URL of registrar. */
-  String referralUrl;
-
   /**
    * ICANN referral email address.
    *
@@ -551,10 +547,6 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     return url;
   }
 
-  public String getReferralUrl() {
-    return firstNonNull(referralUrl, getDefaultRegistrarReferralUrl());
-  }
-
   public String getIcannReferralEmail() {
     return nullToEmpty(icannReferralEmail);
   }
@@ -617,7 +609,6 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
         .put("blockPremiumNames", blockPremiumNames)
         .put("premiumPriceAckRequired", premiumPriceAckRequired)
         .put("url", url)
-        .put("referralUrl", getReferralUrl())
         .put("icannReferralEmail", getIcannReferralEmail())
         .put("driveFolderId", driveFolderId)
         .put("phoneNumber", phoneNumber)
@@ -830,11 +821,6 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
 
     public Builder setUrl(String url) {
       getInstance().url = url;
-      return this;
-    }
-
-    public Builder setReferralUrl(String referralUrl) {
-      getInstance().referralUrl = referralUrl;
       return this;
     }
 

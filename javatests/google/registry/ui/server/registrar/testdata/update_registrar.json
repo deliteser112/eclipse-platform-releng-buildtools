@@ -51,7 +51,7 @@
     "url": null,
     "icannReferralEmail": "asdf@asdf.com",
     "phonePasscode": null,
-    "referralUrl": "",
+    "url": "http://my.new.url",
     "blockPremiumNames": false,
     "lastCertificateUpdateTime": null,
     "e": false

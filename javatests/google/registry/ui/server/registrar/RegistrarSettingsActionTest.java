@@ -215,12 +215,6 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_referralUrl() throws Exception {
-    doTestUpdate(
-        Registrar::getReferralUrl, "new-reference-url.example", Registrar.Builder::setReferralUrl);
-  }
-
-  @Test
   public void testUpdate_phoneNumber() throws Exception {
     doTestUpdate(Registrar::getPhoneNumber, "+1.2345678900", Registrar.Builder::setPhoneNumber);
   }

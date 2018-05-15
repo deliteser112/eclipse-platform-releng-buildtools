@@ -224,8 +224,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     // WHOIS
     builder.setWhoisServer(
         RegistrarFormFields.WHOIS_SERVER_FIELD.extractUntyped(args).orElse(null));
-    builder.setReferralUrl(
-        RegistrarFormFields.REFERRAL_URL_FIELD.extractUntyped(args).orElse(null));
+    builder.setUrl(RegistrarFormFields.URL_FIELD.extractUntyped(args).orElse(null));
 
     // If the email is already null / empty - we can keep it so. But if it's set - it's required to
     // remain set.
@@ -240,8 +239,6 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
         RegistrarFormFields.FAX_NUMBER_FIELD.extractUntyped(args).orElse(null));
     builder.setLocalizedAddress(
         RegistrarFormFields.L10N_ADDRESS_FIELD.extractUntyped(args).orElse(null));
-
-    builder.setUrl(RegistrarFormFields.URL_FIELD.extractUntyped(args).orElse(null));
 
     // Security
     builder.setIpAddressWhitelist(

@@ -44,7 +44,7 @@ public class WhoisSettingsTest extends RegistrarSettingsActionTestCase {
             .setEmailAddress("hello.kitty@example.com")
             .setPhoneNumber("+1.2125650000")
             .setFaxNumber("+1.2125650001")
-            .setReferralUrl("http://acme.com/")
+            .setUrl("http://acme.com/")
             .setWhoisServer("ns1.foo.bar")
             .setLocalizedAddress(
                 new RegistrarAddress.Builder()

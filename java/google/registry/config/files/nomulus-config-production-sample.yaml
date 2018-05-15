@@ -24,7 +24,6 @@ registryPolicy:
     - placeholder
     - placeholder
   defaultRegistrarWhoisServer: placeholder
-  defaultRegistrarReferralUrl: placeholder
   tmchCaMode: PRODUCTION
   tmchCrlUrl: http://crl.icann.org/tmch.crl
   tmchMarksDbUrl: https://ry.marksdb.org

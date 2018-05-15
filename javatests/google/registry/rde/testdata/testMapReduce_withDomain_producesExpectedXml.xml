@@ -62,6 +62,7 @@
     </rdeRegistrar:postalInfo>
     <rdeRegistrar:voice>+1.3334445555</rdeRegistrar:voice>
     <rdeRegistrar:email>new.registrar@example.com</rdeRegistrar:email>
+    <rdeRegistrar:url>http://my.fake.url</rdeRegistrar:url>
     <rdeRegistrar:whoisInfo>
         <rdeRegistrar:name>whois.nic.fakewhois.example</rdeRegistrar:name>
     </rdeRegistrar:whoisInfo>
@@ -94,6 +95,7 @@
     </rdeRegistrar:postalInfo>
     <rdeRegistrar:voice>+1.2223334444</rdeRegistrar:voice>
     <rdeRegistrar:email>new.registrar@example.com</rdeRegistrar:email>
+    <rdeRegistrar:url>http://my.fake.url</rdeRegistrar:url>
     <rdeRegistrar:whoisInfo>
         <rdeRegistrar:name>whois.nic.fakewhois.example</rdeRegistrar:name>
     </rdeRegistrar:whoisInfo>

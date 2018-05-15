@@ -88,7 +88,6 @@ public class RegistrarTest extends EntityTestCase {
                 .setFaxNumber("+1.2125551213")
                 .setEmailAddress("contact-us@example.com")
                 .setUrl("http://www.example.com")
-                .setReferralUrl("http://www.example.com")
                 .setIcannReferralEmail("foo@example.com")
                 .setDriveFolderId("drive folder id")
                 .setIanaIdentifier(8L)

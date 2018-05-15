@@ -154,10 +154,6 @@ public final class RegistrarFormFields {
       FormFields.MIN_TOKEN.asBuilderNamed("url")
           .build();
 
-  public static final FormField<String, String> REFERRAL_URL_FIELD =
-      FormFields.MIN_TOKEN.asBuilderNamed("referralUrl")
-          .build();
-
   public static final FormField<List<String>, List<CidrAddressBlock>> IP_ADDRESS_WHITELIST_FIELD =
       FormField.named("ipAddressWhitelist")
           .emptyToNull()

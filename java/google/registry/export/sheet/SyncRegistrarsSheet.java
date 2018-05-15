@@ -147,7 +147,7 @@ class SyncRegistrarsSheet {
                   builder.put("blockPremiumNames", convert(registrar.getBlockPremiumNames()));
                   builder.put("ipAddressWhitelist", convert(registrar.getIpAddressWhitelist()));
                   builder.put("url", convert(registrar.getUrl()));
-                  builder.put("referralUrl", convert(registrar.getReferralUrl()));
+                  builder.put("referralUrl", convert(registrar.getUrl()));
                   builder.put("icannReferralEmail", convert(registrar.getIcannReferralEmail()));
                   return builder.build();
                 })

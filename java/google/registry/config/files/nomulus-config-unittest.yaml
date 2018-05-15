@@ -6,7 +6,6 @@ registryPolicy:
     - notification@test.example
     - notification2@test.example
   defaultRegistrarWhoisServer: whois.nic.fakewhois.example
-  defaultRegistrarReferralUrl: http://www.referral.example/path
 
 datastore:
   commitLogBucketsNum: 3
