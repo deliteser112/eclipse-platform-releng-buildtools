@@ -28,7 +28,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableTable;
-import com.google.common.escape.SourceCodeEscapers;
 import google.registry.util.Clock;
 import google.registry.util.SystemClock;
 import java.io.BufferedReader;
@@ -260,8 +259,11 @@ public class ShellCommand implements Command {
    * <p>Dumps the last line of output prior to doing this.
    */
   private void emitFailure(Throwable e) throws IOException {
-    System.out.println(FAILURE + e.getClass().getName() + " "
-                       + SourceCodeEscapers.javaCharEscaper().escape(e.getMessage()));
+    System.out.println(
+        FAILURE
+            + e.getClass().getName()
+            + " "
+            + e.getMessage().replace("\\", "\\\\").replace("\n", "\\n"));
   }
 
   @VisibleForTesting
