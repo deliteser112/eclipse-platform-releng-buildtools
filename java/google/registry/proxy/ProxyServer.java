@@ -19,6 +19,7 @@ import static google.registry.proxy.handler.RelayHandler.RELAY_CHANNEL_KEY;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.flogger.FluentLogger;
 import com.google.monitoring.metrics.MetricReporter;
 import google.registry.proxy.Protocol.BackendProtocol;
 import google.registry.proxy.Protocol.FrontendProtocol;
@@ -51,6 +52,8 @@ import javax.inject.Provider;
 public class ProxyServer implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  // TODO (b/78466557): remove dummy flogger.
+  private static final FluentLogger flogger = FluentLogger.forEnclosingClass();
 
   /** Maximum length of the queue of incoming connections. */
   private static final int MAX_SOCKET_BACKLOG = 128;
@@ -170,7 +173,7 @@ public class ProxyServer implements Runnable {
               // Wait for binding to be established for each listening port.
               ChannelFuture serverChannelFuture = serverBootstrap.bind(port).sync();
               if (serverChannelFuture.isSuccess()) {
-                logger.infofmt(
+                flogger.atInfo().log(
                     "Start listening on port %s for %s protocol.", port, protocol.name());
                 Channel serverChannel = serverChannelFuture.channel();
                 serverChannel.attr(PROTOCOL_KEY).set(protocol);

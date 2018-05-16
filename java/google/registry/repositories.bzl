@@ -67,6 +67,7 @@ def domain_registry_repositories(
     omit_com_google_dagger_producers=False,
     omit_com_google_errorprone_error_prone_annotations=False,
     omit_com_google_errorprone_javac_shaded=False,
+    omit_com_google_flogger=False,
     omit_com_google_gdata_core=False,
     omit_com_google_googlejavaformat_google_java_format=False,
     omit_com_google_guava=False,
@@ -249,6 +250,8 @@ def domain_registry_repositories(
     com_google_errorprone_error_prone_annotations()
   if not omit_com_google_errorprone_javac_shaded:
     com_google_errorprone_javac_shaded()
+  if not omit_com_google_flogger:
+    com_google_flogger()
   if not omit_com_google_gdata_core:
     com_google_gdata_core()
   if not omit_com_google_googlejavaformat_google_java_format:
@@ -1252,6 +1255,18 @@ def com_google_errorprone_javac_shaded():
           "http://maven.ibiblio.org/maven2/com/google/errorprone/javac-shaded/9-dev-r4023-3/javac-shaded-9-dev-r4023-3.jar",
       ],
   )
+
+def com_google_flogger():
+  java_import_external(
+      name = "com_google_flogger",
+      licenses = ["notice"],  # Apache 2.0
+      jar_sha256 = "82f6d7fcafe92adabbb3e0ccc82c2b3a40c5c72343fe2a3226b34f8fa0f61bcb",
+      jar_urls = [
+          "http://repo1.maven.org/maven2/com/google/flogger/flogger/0.1/flogger-0.1.jar",
+          "http://maven.ibiblio.org/maven2/com/google/flogger/flogger/0.1/flogger-0.1.jar",
+      ],
+      deps = ["@com_google_code_findbugs_jsr305"],
+)
 
 def com_google_gdata_core():
   java_import_external(
