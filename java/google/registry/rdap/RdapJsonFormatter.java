@@ -1096,6 +1096,16 @@ public class RdapJsonFormatter {
     //    "Hometown", "PA", "18252", "U.S.A."
     //    ]
     //   ]
+    //
+    // Gustavo further clarified that the embedded array should only be used if there is more than
+    // one line:
+    //
+    //   My reading of RFC 7095 is that if only one element is known, it must be a string. If
+    //   multiple elements are known (e.g. two or three street elements were provided in the case of
+    //   the EPP contact data model), an array must be used.
+    //
+    //   I don’t think that one street address line nested in a single-element array is valid
+    //   according to RFC 7095.
     ImmutableList<String> street = address.getStreet();
     if (street.isEmpty()) {
       jsonBuilder.add("");
