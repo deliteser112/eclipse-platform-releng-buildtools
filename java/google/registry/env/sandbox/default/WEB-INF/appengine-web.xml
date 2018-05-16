@@ -7,9 +7,9 @@
   <module>default</module>
   <threadsafe>true</threadsafe>
   <sessions-enabled>true</sessions-enabled>
-  <instance-class>B4</instance-class>
+  <instance-class>B4_1G</instance-class>
   <manual-scaling>
-    <instances>100</instances>
+    <instances>30</instances>
   </manual-scaling>
 
   <system-properties>
