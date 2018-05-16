@@ -1288,10 +1288,10 @@ def com_google_googlejavaformat_google_java_format():
 def com_google_guava():
   java_import_external(
       name = "com_google_guava",
-      jar_sha256 = "4a87d5b1ca996e5e46a99594cf3566ae16885d0cf00b381b5e9f816a0e0125b3",
+      jar_sha256 = "3fd4341776428c7e0e5c18a7c10de129475b69ab9d30aeafbb5c277bb6074fa9",
       jar_urls = [
-          "http://repo1.maven.org/maven2/com/google/guava/guava/23.3-jre/guava-23.3-jre.jar",
-          "http://maven.ibiblio.org/maven2/com/google/guava/guava/23.3-jre/guava-23.3-jre.jar",
+          "http://repo1.maven.org/maven2/com/google/guava/guava/25.0-jre/guava-25.0-jre.jar",
+          "http://maven.ibiblio.org/maven2/com/google/guava/guava/25.0-jre/guava-25.0-jre.jar",
       ],
       licenses = ["notice"],  # The Apache Software License, Version 2.0
       exports = [
@@ -1303,10 +1303,10 @@ def com_google_guava():
 def com_google_guava_testlib():
   java_import_external(
       name = "com_google_guava_testlib",
-      jar_sha256 = "377c60720828a655ffd0f64d8b64643962b2957635323ddc9c5223827f6e5482",
+      jar_sha256 = "777159901c2a859497fc24b392bbfd9ad3c527d435a735d20aa159c6cf487553",
       jar_urls = [
-          "http://maven.ibiblio.org/maven2/com/google/guava/guava-testlib/23.3-jre/guava-testlib-23.3-jre.jar",
-          "http://repo1.maven.org/maven2/com/google/guava/guava-testlib/23.3-jre/guava-testlib-23.3-jre.jar",
+          "http://repo1.maven.org/maven2/com/google/guava/guava-testlib/25.0-jre/guava-testlib-25.0-jre.jar",
+          "http://maven.ibiblio.org/maven2/com/google/guava/guava/25.0-jre/guava-testlib-25.0-jre.jar",
       ],
       licenses = ["notice"],  # The Apache Software License, Version 2.0
       testonly_ = True,
