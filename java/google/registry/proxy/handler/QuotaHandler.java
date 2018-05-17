@@ -150,15 +150,18 @@ public abstract class QuotaHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * Returns the leased token back to the token store upon connection termination.
+     * Returns the leased token (if available) back to the token store upon connection termination.
      *
      * <p>A connection with concurrent quota needs to do this in order to maintain its quota number
      * invariance.
      */
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-      checkNotNull(quotaResponse, "No quota was leased, return not possible.");
-      Future<?> unusedFuture = quotaManager.releaseQuota(QuotaRebate.create(quotaResponse));
+      // If no reads occurred before the connection is inactive (for example when the handshake
+      // is not successful), no quota is leased and therefore no return is needed.
+      if (quotaResponse != null) {
+        Future<?> unusedFuture = quotaManager.releaseQuota(QuotaRebate.create(quotaResponse));
+      }
       ctx.fireChannelInactive();
     }
   }
