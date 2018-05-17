@@ -38,8 +38,7 @@ def registry_ear_file(name, out, configs, wars, **kwargs):
         "cd ..",
     ]
   cmd += [
-      ("find . | sed 1d | cut -c 3- | LC_ALL=C sort" +
-       " | xargs $${zipper} cC $${repo}/$@"),
+      "$${zipper} cC $${repo}/$@ $$(find . | sed 1d | cut -c 3- | LC_ALL=C sort)",
       "cd $${repo}",
       "rm -rf $${tmp}",
   ]
