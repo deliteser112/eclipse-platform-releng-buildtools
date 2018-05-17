@@ -43,7 +43,7 @@ import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
-import google.registry.util.TaskEnqueuer;
+import google.registry.util.TaskQueueUtils;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Stream;
@@ -103,7 +103,7 @@ public final class TldFanoutAction implements Runnable {
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  @Inject TaskEnqueuer taskEnqueuer;
+  @Inject TaskQueueUtils taskQueueUtils;
   @Inject Response response;
   @Inject @Parameter(ENDPOINT_PARAM) String endpoint;
   @Inject @Parameter(QUEUE_PARAM) String queue;
@@ -144,7 +144,7 @@ public final class TldFanoutAction implements Runnable {
     }
     for (String tld : tlds) {
       TaskOptions taskOptions = createTaskOptions(tld, flowThruParams);
-      TaskHandle taskHandle = taskEnqueuer.enqueue(taskQueue, taskOptions);
+      TaskHandle taskHandle = taskQueueUtils.enqueue(taskQueue, taskOptions);
       outputPayload.append(
           String.format(
               "- Task: '%s', tld: '%s', endpoint: '%s'\n",

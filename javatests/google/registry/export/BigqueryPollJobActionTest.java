@@ -44,7 +44,7 @@ import google.registry.testing.TaskQueueHelper;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.CapturingLogHandler;
 import google.registry.util.Retrier;
-import google.registry.util.TaskEnqueuer;
+import google.registry.util.TaskQueueUtils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -71,8 +71,8 @@ public class BigqueryPollJobActionTest {
   private static final String PROJECT_ID = "project_id";
   private static final String JOB_ID = "job_id";
   private static final String CHAINED_QUEUE_NAME = UpdateSnapshotViewAction.QUEUE;
-  private static final TaskEnqueuer ENQUEUER =
-      new TaskEnqueuer(new Retrier(new FakeSleeper(new FakeClock()), 1));
+  private static final TaskQueueUtils TASK_QUEUE_UTILS =
+      new TaskQueueUtils(new Retrier(new FakeSleeper(new FakeClock()), 1));
 
   private final Bigquery bigquery = mock(Bigquery.class);
   private final Bigquery.Jobs bigqueryJobs = mock(Bigquery.Jobs.class);
@@ -86,7 +86,7 @@ public class BigqueryPollJobActionTest {
     action.bigquery = bigquery;
     when(bigquery.jobs()).thenReturn(bigqueryJobs);
     when(bigqueryJobs.get(PROJECT_ID, JOB_ID)).thenReturn(bigqueryJobsGet);
-    action.enqueuer = ENQUEUER;
+    action.taskQueueUtils = TASK_QUEUE_UTILS;
     action.projectId = PROJECT_ID;
     action.jobId = JOB_ID;
     action.chainedQueueName = () -> CHAINED_QUEUE_NAME;
@@ -103,7 +103,7 @@ public class BigqueryPollJobActionTest {
 
   @Test
   public void testSuccess_enqueuePollTask() throws Exception {
-    new BigqueryPollJobEnqueuer(ENQUEUER).enqueuePollTask(
+    new BigqueryPollJobEnqueuer(TASK_QUEUE_UTILS).enqueuePollTask(
         new JobReference().setProjectId(PROJECT_ID).setJobId(JOB_ID));
     assertTasksEnqueued(BigqueryPollJobAction.QUEUE, newPollJobTaskMatcher("GET"));
   }
@@ -115,7 +115,7 @@ public class BigqueryPollJobActionTest {
         .method(Method.POST)
         .header("X-Testing", "foo")
         .param("testing", "bar");
-    new BigqueryPollJobEnqueuer(ENQUEUER).enqueuePollTask(
+    new BigqueryPollJobEnqueuer(TASK_QUEUE_UTILS).enqueuePollTask(
         new JobReference().setProjectId(PROJECT_ID).setJobId(JOB_ID),
         chainedTask,
         getQueue(CHAINED_QUEUE_NAME));

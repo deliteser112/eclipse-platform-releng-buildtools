@@ -52,7 +52,7 @@ import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
-import google.registry.util.TaskEnqueuer;
+import google.registry.util.TaskQueueUtils;
 import google.registry.util.TeeOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -108,7 +108,7 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
   @Inject RydePgpFileOutputStreamFactory pgpFileFactory;
   @Inject RydePgpSigningOutputStreamFactory pgpSigningFactory;
   @Inject RydeTarOutputStreamFactory tarFactory;
-  @Inject TaskEnqueuer taskEnqueuer;
+  @Inject TaskQueueUtils taskQueueUtils;
   @Inject Retrier retrier;
   @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
   @Inject @Config("rdeBucket") String bucket;
@@ -125,7 +125,7 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
   @Override
   public void run() {
     runner.lockRunAndRollForward(this, Registry.get(tld), timeout, CursorType.RDE_UPLOAD, interval);
-    taskEnqueuer.enqueue(
+    taskQueueUtils.enqueue(
         reportQueue,
         withUrl(RdeReportAction.PATH).param(RequestParameters.PARAM_TLD, tld));
   }

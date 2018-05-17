@@ -31,7 +31,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.Retrier;
-import google.registry.util.TaskEnqueuer;
+import google.registry.util.TaskQueueUtils;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -60,7 +60,7 @@ public class CommitLogCheckpointActionTest {
   public void before() throws Exception {
     task.clock = new FakeClock(now);
     task.strategy = strategy;
-    task.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
+    task.taskQueueUtils = new TaskQueueUtils(new Retrier(null, 1));
     when(strategy.computeCheckpoint())
         .thenReturn(
             CommitLogCheckpoint.create(

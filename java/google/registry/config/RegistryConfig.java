@@ -27,6 +27,7 @@ import com.google.common.net.HostAndPort;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.config.RegistryConfigSettings.AppEngine.ToolsServiceUrl;
+import google.registry.util.TaskQueueUtils;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.net.URI;
@@ -853,7 +854,7 @@ public final class RegistryConfig {
      * <p>Note that this uses {@code @Named} instead of {@code @Config} so that it can be used from
      * the low-level util package, which cannot have a dependency on the config package.
      *
-     * @see google.registry.util.TaskEnqueuer
+     * @see TaskQueueUtils
      */
     @Provides
     @Named("transientFailureRetries")

@@ -35,7 +35,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.Retrier;
-import google.registry.util.TaskEnqueuer;
+import google.registry.util.TaskQueueUtils;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -84,7 +84,7 @@ public class TldFanoutActionTest {
     action.excludes = params.containsKey("exclude")
         ? ImmutableSet.copyOf(Splitter.on(',').split(params.get("exclude").get(0)))
         : ImmutableSet.of();
-    action.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
+    action.taskQueueUtils = new TaskQueueUtils(new Retrier(null, 1));
     action.response = response;
     action.runInEmpty = params.containsKey("runInEmpty");
     action.forEachRealTld = params.containsKey("forEachRealTld");

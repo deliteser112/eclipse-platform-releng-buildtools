@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,12 +20,14 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TransientFailureException;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import java.io.Serializable;
 import java.util.List;
 import javax.inject.Inject;
 
 /** Utilities for dealing with App Engine task queues. */
-public class TaskEnqueuer implements Serializable {
+public class TaskQueueUtils implements Serializable {
 
   private static final long serialVersionUID = 7893211200220508362L;
 
@@ -34,8 +36,21 @@ public class TaskEnqueuer implements Serializable {
   private final Retrier retrier;
 
   @Inject
-  public TaskEnqueuer(Retrier retrier) {
+  public TaskQueueUtils(Retrier retrier) {
     this.retrier = retrier;
+  }
+
+  @NonFinalForTesting
+  @VisibleForTesting
+  static int BATCH_SIZE = 1000;
+
+  /**
+   * The batch size to use for App Engine task queue operations.
+   *
+   * <p>Note that 1,000 is currently the maximum allowable batch size in App Engine.
+   */
+  public static int getBatchSize() {
+    return BATCH_SIZE;
   }
 
   /**
@@ -72,5 +87,15 @@ public class TaskEnqueuer implements Serializable {
           return queue.add(tasks);
         },
         TransientFailureException.class);
+  }
+
+  /** Deletes the specified tasks from the queue in batches, with retrying. */
+  public void deleteTasks(Queue queue, List<TaskHandle> tasks) {
+    Lists.partition(tasks, BATCH_SIZE)
+        .stream()
+        .forEach(
+            batch ->
+                retrier.callWithRetry(
+                    () -> queue.deleteTask(batch), TransientFailureException.class));
   }
 }

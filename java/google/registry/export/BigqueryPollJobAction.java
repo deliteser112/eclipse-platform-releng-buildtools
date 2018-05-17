@@ -33,7 +33,7 @@ import google.registry.request.HttpException.NotModifiedException;
 import google.registry.request.Payload;
 import google.registry.request.auth.Auth;
 import google.registry.util.FormattingLogger;
-import google.registry.util.TaskEnqueuer;
+import google.registry.util.TaskQueueUtils;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -64,7 +64,7 @@ public class BigqueryPollJobAction implements Runnable {
   static final Duration POLL_COUNTDOWN = Duration.standardSeconds(20);
 
   @Inject Bigquery bigquery;
-  @Inject TaskEnqueuer enqueuer;
+  @Inject TaskQueueUtils taskQueueUtils;
   @Inject @Header(CHAINED_TASK_QUEUE_HEADER) Lazy<String> chainedQueueName;
   @Inject @Header(PROJECT_ID_HEADER) String projectId;
   @Inject @Header(JOB_ID_HEADER) String jobId;
@@ -84,7 +84,7 @@ public class BigqueryPollJobAction implements Runnable {
     } catch (ClassNotFoundException | IOException e) {
       throw new BadRequestException("Cannot deserialize task from payload", e);
     }
-    String taskName = enqueuer.enqueue(getQueue(chainedQueueName.get()), task).getName();
+    String taskName = taskQueueUtils.enqueue(getQueue(chainedQueueName.get()), task).getName();
     logger.infofmt(
         "Added chained task %s for %s to queue %s: %s",
         taskName,
@@ -127,16 +127,17 @@ public class BigqueryPollJobAction implements Runnable {
   /** Helper class to enqueue a bigquery poll job. */
   public static class BigqueryPollJobEnqueuer {
 
-    private final TaskEnqueuer enqueuer;
+    private final TaskQueueUtils taskQueueUtils;
 
     @Inject
-    BigqueryPollJobEnqueuer(TaskEnqueuer enqueuer) {
-      this.enqueuer = enqueuer;
+    BigqueryPollJobEnqueuer(TaskQueueUtils taskQueueUtils) {
+      this.taskQueueUtils = taskQueueUtils;
     }
 
     /** Enqueue a task to poll for the success or failure of the referenced BigQuery job. */
     public TaskHandle enqueuePollTask(JobReference jobRef) {
-      return enqueuer.enqueue(getQueue(QUEUE), createCommonPollTask(jobRef).method(Method.GET));
+      return taskQueueUtils.enqueue(
+          getQueue(QUEUE), createCommonPollTask(jobRef).method(Method.GET));
     }
 
     /**
@@ -148,7 +149,7 @@ public class BigqueryPollJobAction implements Runnable {
       // Serialize the chainedTask into a byte array to put in the task payload.
       ByteArrayOutputStream taskBytes = new ByteArrayOutputStream();
       new ObjectOutputStream(taskBytes).writeObject(chainedTask);
-      return enqueuer.enqueue(
+      return taskQueueUtils.enqueue(
           getQueue(QUEUE),
           createCommonPollTask(jobRef)
               .method(Method.POST)

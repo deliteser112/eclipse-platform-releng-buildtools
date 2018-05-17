@@ -47,7 +47,7 @@ import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.Retrier;
-import google.registry.util.TaskEnqueuer;
+import google.registry.util.TaskQueueUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -122,7 +122,7 @@ public class ReadDnsQueueActionTest {
     action.dnsQueue = dnsQueue;
     action.dnsPublishPushQueue = QueueFactory.getQueue(DNS_PUBLISH_PUSH_QUEUE_NAME);
     action.hashFunction = Hashing.murmur3_32();
-    action.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
+    action.taskQueueUtils = new TaskQueueUtils(new Retrier(null, 1));
     action.jitterSeconds = Optional.empty();
     // Advance the time a little, to ensure that leaseTasks() returns all tasks.
     clock.advanceBy(Duration.standardHours(1));

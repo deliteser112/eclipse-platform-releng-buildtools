@@ -28,7 +28,7 @@ import google.registry.request.Action;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-import google.registry.util.TaskEnqueuer;
+import google.registry.util.TaskQueueUtils;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -56,7 +56,7 @@ public final class CommitLogCheckpointAction implements Runnable {
 
   @Inject Clock clock;
   @Inject CommitLogCheckpointStrategy strategy;
-  @Inject TaskEnqueuer taskEnqueuer;
+  @Inject TaskQueueUtils taskQueueUtils;
   @Inject CommitLogCheckpointAction() {}
 
   @Override
@@ -76,7 +76,7 @@ public final class CommitLogCheckpointAction implements Runnable {
                   .entities(
                       checkpoint, CommitLogCheckpointRoot.create(checkpoint.getCheckpointTime()));
               // Enqueue a diff task between previous and current checkpoints.
-              taskEnqueuer.enqueue(
+              taskQueueUtils.enqueue(
                   getQueue(QUEUE_NAME),
                   withUrl(ExportCommitLogDiffAction.PATH)
                       .param(LOWER_CHECKPOINT_TIME_PARAM, lastWrittenTime.toString())

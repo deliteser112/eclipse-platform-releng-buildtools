@@ -64,7 +64,7 @@ import google.registry.testing.mapreduce.MapreduceTestCase;
 import google.registry.tldconfig.idn.IdnTableEnum;
 import google.registry.util.Retrier;
 import google.registry.util.SystemSleeper;
-import google.registry.util.TaskEnqueuer;
+import google.registry.util.TaskQueueUtils;
 import google.registry.xjc.XjcXmlTransformer;
 import google.registry.xjc.rde.XjcRdeContentType;
 import google.registry.xjc.rde.XjcRdeDeposit;
@@ -132,7 +132,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
     action.mrRunner = makeDefaultRunner();
     action.lenient = false;
     action.reducer = new RdeStagingReducer(
-        new TaskEnqueuer(new Retrier(new SystemSleeper(), 1)), // taskEnqueuer
+        new TaskQueueUtils(new Retrier(new SystemSleeper(), 1)), // taskQueueUtils
         new FakeLockHandler(true),
         0, // gcsBufferSize
         "rde-bucket", // bucket

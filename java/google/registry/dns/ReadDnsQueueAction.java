@@ -47,7 +47,7 @@ import google.registry.request.RequestParameters;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
-import google.registry.util.TaskEnqueuer;
+import google.registry.util.TaskQueueUtils;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Comparator;
@@ -101,7 +101,7 @@ public final class ReadDnsQueueAction implements Runnable {
   @Inject Clock clock;
   @Inject DnsQueue dnsQueue;
   @Inject HashFunction hashFunction;
-  @Inject TaskEnqueuer taskEnqueuer;
+  @Inject TaskQueueUtils taskQueueUtils;
   @Inject ReadDnsQueueAction() {}
 
   /** Container for items we pull out of the DNS pull queue and process for fanout. */
@@ -374,7 +374,7 @@ public final class ReadDnsQueueAction implements Runnable {
                   : PublishDnsUpdatesAction.PARAM_DOMAINS,
               refreshItem.name());
         }
-        taskEnqueuer.enqueue(dnsPublishPushQueue, options);
+        taskQueueUtils.enqueue(dnsPublishPushQueue, options);
       }
     }
   }

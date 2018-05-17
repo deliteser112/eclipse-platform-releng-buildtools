@@ -23,7 +23,7 @@ import google.registry.model.ofy.CommitLogBucket;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
-import google.registry.util.TaskEnqueuer;
+import google.registry.util.TaskQueueUtils;
 import java.util.Optional;
 import java.util.Random;
 import javax.inject.Inject;
@@ -40,7 +40,7 @@ public final class CommitLogFanoutAction implements Runnable {
 
   private static final Random random = new Random();
 
-  @Inject TaskEnqueuer taskEnqueuer;
+  @Inject TaskQueueUtils taskQueueUtils;
   @Inject @Parameter("endpoint") String endpoint;
   @Inject @Parameter("queue") String queue;
   @Inject @Parameter("jitterSeconds") Optional<Integer> jitterSeconds;
@@ -55,7 +55,7 @@ public final class CommitLogFanoutAction implements Runnable {
           .countdownMillis(jitterSeconds.isPresent()
               ? random.nextInt((int) SECONDS.toMillis(jitterSeconds.get()))
               : 0);
-      taskEnqueuer.enqueue(taskQueue, taskOptions);
+      taskQueueUtils.enqueue(taskQueue, taskOptions);
     }
   }
 }

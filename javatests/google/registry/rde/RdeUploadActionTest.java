@@ -72,7 +72,7 @@ import google.registry.testing.Lazies;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.testing.sftp.SftpServerRule;
 import google.registry.util.Retrier;
-import google.registry.util.TaskEnqueuer;
+import google.registry.util.TaskQueueUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -208,7 +208,7 @@ public class RdeUploadActionTest {
       action.stagingDecryptionKey = keyring.getRdeStagingDecryptionKey();
       action.reportQueue = QueueFactory.getQueue("rde-report");
       action.runner = runner;
-      action.taskEnqueuer = new TaskEnqueuer(new Retrier(null, 1));
+      action.taskQueueUtils = new TaskQueueUtils(new Retrier(null, 1));
       action.retrier = new Retrier(new FakeSleeper(clock), 3);
       return action;
     }

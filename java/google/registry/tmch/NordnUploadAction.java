@@ -41,6 +41,7 @@ import google.registry.request.RequestParameters;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.FormattingLogger;
+import google.registry.util.TaskQueueUtils;
 import google.registry.util.UrlFetchException;
 import java.io.IOException;
 import java.net.URL;
@@ -84,6 +85,7 @@ public final class NordnUploadAction implements Runnable {
   @Inject @Config("tmchMarksdbUrl") String tmchMarksdbUrl;
   @Inject @Parameter(LORDN_PHASE_PARAM) String phase;
   @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
+  @Inject TaskQueueUtils taskQueueUtils;
   @Inject NordnUploadAction() {}
 
   /**
@@ -117,7 +119,7 @@ public final class NordnUploadAction implements Runnable {
     if (!tasks.isEmpty()) {
       String csvData = convertTasksToCsv(tasks, now, columns);
       uploadCsvToLordn(String.format("/LORDN/%s/%s", tld, phase), csvData);
-      queue.deleteTask(tasks);
+      taskQueueUtils.deleteTasks(queue, tasks);
     }
   }
 

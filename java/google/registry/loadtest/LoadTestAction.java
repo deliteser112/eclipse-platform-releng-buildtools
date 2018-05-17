@@ -34,7 +34,7 @@ import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
 import google.registry.security.XsrfTokenManager;
 import google.registry.util.FormattingLogger;
-import google.registry.util.TaskEnqueuer;
+import google.registry.util.TaskQueueUtils;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -147,8 +147,7 @@ public class LoadTestAction implements Runnable {
   @Parameter("hostInfos")
   int hostInfosPerSecond;
 
-  @Inject
-  TaskEnqueuer taskEnqueuer;
+  @Inject TaskQueueUtils taskQueueUtils;
 
   private final String xmlContactCreateTmpl;
   private final String xmlContactCreateFail;
@@ -344,7 +343,7 @@ public class LoadTestAction implements Runnable {
     List<List<TaskOptions>> chunks = partition(tasks, maxTasksPerAdd());
     // Farm out tasks to multiple queues to work around queue qps quotas.
     for (int i = 0; i < chunks.size(); i++) {
-      taskEnqueuer.enqueue(getQueue("load" + (i % NUM_QUEUES)), chunks.get(i));
+      taskQueueUtils.enqueue(getQueue("load" + (i % NUM_QUEUES)), chunks.get(i));
     }
   }
 }

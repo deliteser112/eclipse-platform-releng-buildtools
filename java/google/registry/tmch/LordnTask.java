@@ -33,6 +33,7 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.util.NonFinalForTesting;
+import google.registry.util.TaskQueueUtils;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -52,9 +53,6 @@ public class LordnTask {
   public static final String COLUMNS_SUNRISE = "roid,domain-name,SMD-id,registrar-id,"
       + "registration-datetime,application-datetime";
   private static final Duration LEASE_PERIOD = Duration.standardHours(1);
-
-  /** This is the max allowable batch size. */
-  private static final long BATCH_SIZE = 1000;
 
   @NonFinalForTesting
   private static Long backOffMillis = 2000L;
@@ -85,7 +83,7 @@ public class LordnTask {
         List<TaskHandle> tasks = queue.leaseTasks(LeaseOptions.Builder
             .withTag(tld)
             .leasePeriod(LEASE_PERIOD.getMillis(), TimeUnit.MILLISECONDS)
-            .countLimit(BATCH_SIZE));
+            .countLimit(TaskQueueUtils.getBatchSize()));
         allTasks.addAll(tasks);
         if (tasks.isEmpty()) {
           return allTasks.build();

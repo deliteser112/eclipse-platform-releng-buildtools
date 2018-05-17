@@ -47,9 +47,12 @@ import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
+import google.registry.testing.FakeSleeper;
 import google.registry.testing.InjectRule;
 import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.util.Retrier;
+import google.registry.util.TaskQueueUtils;
 import google.registry.util.UrlFetchException;
 import java.net.URL;
 import java.util.Optional;
@@ -109,6 +112,7 @@ public class NordnUploadActionTest {
     action.fetchService = fetchService;
     action.lordnRequestInitializer = lordnRequestInitializer;
     action.phase = "claims";
+    action.taskQueueUtils = new TaskQueueUtils(new Retrier(new FakeSleeper(clock), 3));
     action.tld = "tld";
     action.tmchMarksdbUrl = "http://127.0.0.1";
   }

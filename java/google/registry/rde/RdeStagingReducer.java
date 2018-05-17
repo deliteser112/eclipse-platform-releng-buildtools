@@ -44,7 +44,7 @@ import google.registry.request.RequestParameters;
 import google.registry.request.lock.LockHandler;
 import google.registry.tldconfig.idn.IdnTableEnum;
 import google.registry.util.FormattingLogger;
-import google.registry.util.TaskEnqueuer;
+import google.registry.util.TaskQueueUtils;
 import google.registry.xjc.rdeheader.XjcRdeHeader;
 import google.registry.xjc.rdeheader.XjcRdeHeaderElement;
 import google.registry.xml.XmlException;
@@ -70,7 +70,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
-  private final TaskEnqueuer taskEnqueuer;
+  private final TaskQueueUtils taskQueueUtils;
   private final LockHandler lockHandler;
   private final int gcsBufferSize;
   private final String bucket;
@@ -81,7 +81,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
 
   @Inject
   RdeStagingReducer(
-      TaskEnqueuer taskEnqueuer,
+      TaskQueueUtils taskQueueUtils,
       LockHandler lockHandler,
       @Config("gcsBufferSize") int gcsBufferSize,
       @Config("rdeBucket") String bucket,
@@ -89,7 +89,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
       @Config("rdeStagingLockTimeout") Duration lockTimeout,
       @KeyModule.Key("rdeStagingEncryptionKey") byte[] stagingKeyBytes,
       @Parameter(RdeModule.PARAM_LENIENT) boolean lenient) {
-    this.taskEnqueuer = taskEnqueuer;
+    this.taskQueueUtils = taskQueueUtils;
     this.lockHandler = lockHandler;
     this.gcsBufferSize = gcsBufferSize;
     this.bucket = bucket;
@@ -248,11 +248,11 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
                   "Rolled forward %s on %s cursor to %s", key.cursor(), tld, newPosition);
               RdeRevision.saveRevision(tld, watermark, mode, revision);
               if (mode == RdeMode.FULL) {
-                taskEnqueuer.enqueue(
+                taskQueueUtils.enqueue(
                     getQueue("rde-upload"),
                     withUrl(RdeUploadAction.PATH).param(RequestParameters.PARAM_TLD, tld));
               } else {
-                taskEnqueuer.enqueue(
+                taskQueueUtils.enqueue(
                     getQueue("brda"),
                     withUrl(BrdaCopyAction.PATH)
                         .param(RequestParameters.PARAM_TLD, tld)
