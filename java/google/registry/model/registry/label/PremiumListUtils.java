@@ -180,10 +180,8 @@ public final class PremiumListUtils {
       ofy().save().entities(newList, newRevision);
       return newList;
     });
-    // Update the cache.
-    cachePremiumLists.put(premiumList.getName(), updated);
-    // Delete the entities under the old PremiumList.
-    oldPremiumList.ifPresent(PremiumListUtils::deleteRevisionAndEntriesOfPremiumList);
+    // TODO(b/79888775): Enqueue the oldPremiumList for deletion after at least
+    // RegistryConfig.getDomainLabelListCacheDuration() has elapsed.
     return updated;
   }
 

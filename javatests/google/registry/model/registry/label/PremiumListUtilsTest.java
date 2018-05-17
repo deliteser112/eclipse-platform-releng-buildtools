@@ -244,20 +244,7 @@ public class PremiumListUtilsTest {
     assertThat(getPremiumPrice("genius", registry)).hasValue(Money.parse("USD 10"));
     assertThat(getPremiumPrice("savant", registry)).hasValue(Money.parse("USD 90"));
     assertThat(getPremiumPrice("dolt", registry)).isEmpty();
-    assertThat(ofy()
-            .load()
-            .type(PremiumListEntry.class)
-            .parent(pl.getRevisionKey())
-            .id("dolt")
-            .now())
-        .isNull();
-    assertThat(ofy()
-            .load()
-            .type(PremiumListEntry.class)
-            .parent(pl2.getRevisionKey())
-            .id("dolt")
-            .now())
-        .isNull();
+    // TODO(b/79888775): Assert that the old premium list is enqueued for later deletion.
     assertThat(premiumListChecks)
         .hasValueForLabels(4, "tld", "tld", UNCACHED_POSITIVE.toString())
         .and()
