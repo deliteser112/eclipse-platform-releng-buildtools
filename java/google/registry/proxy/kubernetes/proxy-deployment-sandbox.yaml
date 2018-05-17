@@ -36,7 +36,7 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 20
         imagePullPolicy: Always
-        args: ["--env", "sandbox"]
+        args: ["--env", "sandbox", "--log"]
         env:
         - name: POD_ID
           valueFrom:
