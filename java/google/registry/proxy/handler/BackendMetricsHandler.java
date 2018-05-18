@@ -113,6 +113,10 @@ public class BackendMetricsHandler extends ChannelDuplexHandler {
     }
     FullHttpRequest request = (FullHttpRequest) msg;
 
+    // Record request size now because the content would have read by the time the listener is
+    // called and the readable bytes would be zero by then.
+    int bytes = request.content().readableBytes();
+
     // Record sent time before write finishes allows us to take network latency into account.
     DateTime sentTime = clock.nowUtc();
     ChannelFuture unusedFuture =
@@ -121,7 +125,7 @@ public class BackendMetricsHandler extends ChannelDuplexHandler {
                 future -> {
                   if (future.isSuccess()) {
                     // Only instrument request metrics when the request is actually sent to GAE.
-                    metrics.requestSent(relayedProtocolName, clientCertHash, request);
+                    metrics.requestSent(relayedProtocolName, clientCertHash, bytes);
                     requestSentTimeQueue.add(sentTime);
                   }
                 });

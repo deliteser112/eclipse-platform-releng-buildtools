@@ -114,7 +114,8 @@ public class BackendMetricsHandlerTest {
     // outbound message passed to the next handler.
     assertThat(channel.writeOutbound(request)).isTrue();
     assertHttpRequestEquivalent(request, channel.readOutbound());
-    verify(metrics).requestSent(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, request);
+    verify(metrics)
+        .requestSent(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, request.content().readableBytes());
     verifyNoMoreInteractions(metrics);
   }
 
@@ -130,7 +131,8 @@ public class BackendMetricsHandlerTest {
     assertThat(channel.writeInbound(response)).isTrue();
     assertHttpResponseEquivalent(response, channel.readInbound());
 
-    verify(metrics).requestSent(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, request);
+    verify(metrics)
+        .requestSent(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, request.content().readableBytes());
     verify(metrics).responseReceived(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, response, 1);
     verifyNoMoreInteractions(metrics);
   }
@@ -150,7 +152,8 @@ public class BackendMetricsHandlerTest {
     assertThat(channel.writeInbound(response)).isTrue();
     assertHttpResponseEquivalent(response, channel.readInbound());
 
-    verify(metrics).requestSent(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, request);
+    verify(metrics)
+        .requestSent(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, request.content().readableBytes());
     verify(metrics).responseReceived(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, response, 1);
     verifyNoMoreInteractions(metrics);
   }
@@ -167,10 +170,10 @@ public class BackendMetricsHandlerTest {
   public void testSuccess_pipelinedResponses() {
     FullHttpRequest request1 = makeHttpPostRequest("request 1", HOST, "/");
     FullHttpResponse response1 = makeHttpResponse("response 1", HttpResponseStatus.OK);
-    FullHttpRequest request2 = makeHttpPostRequest("request 2", HOST, "/");
-    FullHttpResponse response2 = makeHttpResponse("response 2", HttpResponseStatus.OK);
-    FullHttpRequest request3 = makeHttpPostRequest("request 3", HOST, "/");
-    FullHttpResponse response3 = makeHttpResponse("response 3", HttpResponseStatus.OK);
+    FullHttpRequest request2 = makeHttpPostRequest("request 22", HOST, "/");
+    FullHttpResponse response2 = makeHttpResponse("response 22", HttpResponseStatus.OK);
+    FullHttpRequest request3 = makeHttpPostRequest("request 333", HOST, "/");
+    FullHttpResponse response3 = makeHttpResponse("response 333", HttpResponseStatus.OK);
 
     // First request, time = 0
     assertThat(channel.writeOutbound(request1)).isTrue();
@@ -216,9 +219,12 @@ public class BackendMetricsHandlerTest {
     long latency2 = new Duration(sentTime2, receivedTime2).getMillis();
     long latency3 = new Duration(sentTime3, receivedTime3).getMillis();
 
-    verify(metrics).requestSent(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, request1);
-    verify(metrics).requestSent(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, request2);
-    verify(metrics).requestSent(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, request3);
+    verify(metrics)
+        .requestSent(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, request1.content().readableBytes());
+    verify(metrics)
+        .requestSent(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, request2.content().readableBytes());
+    verify(metrics)
+        .requestSent(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, request3.content().readableBytes());
     verify(metrics).responseReceived(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, response1, latency1);
     verify(metrics).responseReceived(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, response2, latency2);
     verify(metrics).responseReceived(RELAYED_PROTOCOL_NAME, CLIENT_CERT_HASH, response3, latency3);

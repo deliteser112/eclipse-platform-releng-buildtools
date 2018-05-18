@@ -47,7 +47,7 @@ public class BackendMetricsTest {
   public void testSuccess_oneRequest() {
     String content = "some content";
     FullHttpRequest request = makeHttpPostRequest(content, host, "/");
-    metrics.requestSent(protocol, certHash, request);
+    metrics.requestSent(protocol, certHash, request.content().readableBytes());
 
     assertThat(BackendMetrics.requestsCounter)
         .hasValueForLabels(1, protocol, certHash)
@@ -68,8 +68,8 @@ public class BackendMetricsTest {
     String content2 = "some other content";
     FullHttpRequest request1 = makeHttpPostRequest(content1, host, "/");
     FullHttpRequest request2 = makeHttpPostRequest(content2, host, "/");
-    metrics.requestSent(protocol, certHash, request1);
-    metrics.requestSent(protocol, certHash, request2);
+    metrics.requestSent(protocol, certHash, request1.content().readableBytes());
+    metrics.requestSent(protocol, certHash, request2.content().readableBytes());
 
     assertThat(BackendMetrics.requestsCounter)
         .hasValueForLabels(2, protocol, certHash)
@@ -146,7 +146,7 @@ public class BackendMetricsTest {
     String responseContent = "the only response";
     FullHttpRequest request = makeHttpPostRequest(requestContent, host, "/");
     FullHttpResponse response = makeHttpResponse(responseContent, HttpResponseStatus.OK);
-    metrics.requestSent(protocol, certHash, request);
+    metrics.requestSent(protocol, certHash, request.content().readableBytes());
     metrics.responseReceived(protocol, certHash, response, 10);
 
     assertThat(BackendMetrics.requestsCounter)

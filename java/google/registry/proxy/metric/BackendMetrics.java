@@ -23,7 +23,6 @@ import com.google.monitoring.metrics.IncrementableMetric;
 import com.google.monitoring.metrics.LabelDescriptor;
 import com.google.monitoring.metrics.MetricRegistryImpl;
 import google.registry.util.NonFinalForTesting;
-import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -112,9 +111,9 @@ public class BackendMetrics {
   }
 
   @NonFinalForTesting
-  public void requestSent(String protocol, String certHash, FullHttpRequest request) {
+  public void requestSent(String protocol, String certHash, int bytes) {
     requestsCounter.increment(protocol, certHash);
-    requestBytes.record(request.content().readableBytes(), protocol, certHash);
+    requestBytes.record(bytes, protocol, certHash);
   }
 
   @NonFinalForTesting
