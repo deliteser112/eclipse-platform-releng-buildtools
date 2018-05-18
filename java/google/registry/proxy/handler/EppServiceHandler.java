@@ -20,8 +20,8 @@ import static google.registry.proxy.handler.ProxyProtocolHandler.REMOTE_ADDRESS_
 import static google.registry.proxy.handler.SslServerInitializer.CLIENT_CERTIFICATE_PROMISE_KEY;
 import static google.registry.util.X509Utils.getCertificateHash;
 
+import com.google.common.logging.FormattingLogger;
 import google.registry.proxy.metric.FrontendMetrics;
-import google.registry.util.FormattingLogger;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;

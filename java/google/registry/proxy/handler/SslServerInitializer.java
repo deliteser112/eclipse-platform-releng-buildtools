@@ -14,8 +14,8 @@
 
 package google.registry.proxy.handler;
 
+import com.google.common.logging.FormattingLogger;
 import google.registry.proxy.CertificateModule.EppCertificates;
-import google.registry.util.FormattingLogger;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelInitializer;

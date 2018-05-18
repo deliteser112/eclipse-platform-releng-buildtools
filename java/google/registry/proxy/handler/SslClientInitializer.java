@@ -17,9 +17,9 @@ package google.registry.proxy.handler;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.proxy.Protocol.PROTOCOL_KEY;
 
+import com.google.common.logging.FormattingLogger;
 import google.registry.proxy.HttpsRelayProtocolModule.HttpsRelayProtocol;
 import google.registry.proxy.Protocol.BackendProtocol;
-import google.registry.util.FormattingLogger;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelInitializer;

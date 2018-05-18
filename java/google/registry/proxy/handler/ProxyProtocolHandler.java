@@ -17,7 +17,7 @@ package google.registry.proxy.handler;
 import static com.google.common.base.Preconditions.checkState;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
-import google.registry.util.FormattingLogger;
+import com.google.common.logging.FormattingLogger;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;

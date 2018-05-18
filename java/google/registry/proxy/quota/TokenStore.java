@@ -20,8 +20,8 @@ import static java.lang.StrictMath.min;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.logging.FormattingLogger;
 import google.registry.util.Clock;
-import google.registry.util.FormattingLogger;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;

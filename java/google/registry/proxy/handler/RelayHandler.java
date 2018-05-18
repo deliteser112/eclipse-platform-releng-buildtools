@@ -16,7 +16,7 @@ package google.registry.proxy.handler;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import google.registry.util.FormattingLogger;
+import com.google.common.logging.FormattingLogger;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -47,7 +47,7 @@ public class RelayHandler<I> extends SimpleChannelInboundHandler<I> {
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
     logger.severefmt(cause, "Inbound exception caught for channel %s", ctx.channel());
-    ctx.close();
+    ChannelFuture unusedFuture = ctx.close();
   }
 
   /** Close relay channel if this channel is closed. */
@@ -55,7 +55,7 @@ public class RelayHandler<I> extends SimpleChannelInboundHandler<I> {
   public void channelInactive(ChannelHandlerContext ctx) throws Exception {
     Channel relayChannel = ctx.channel().attr(RELAY_CHANNEL_KEY).get();
     if (relayChannel != null) {
-      relayChannel.close();
+      ChannelFuture unusedFuture = relayChannel.close();
     }
     ctx.fireChannelInactive();
   }
@@ -72,12 +72,12 @@ public class RelayHandler<I> extends SimpleChannelInboundHandler<I> {
           future -> {
             // Cannot write into relay channel, close this channel.
             if (!future.isSuccess()) {
-              ctx.close();
+              ChannelFuture unusedFuture = ctx.close();
             }
           });
     } else {
       // close this channel if the relay channel is closed.
-      ctx.close();
+      ChannelFuture unusedFuture = ctx.close();
     }
   }
 

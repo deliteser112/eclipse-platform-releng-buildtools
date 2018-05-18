@@ -19,11 +19,11 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.logging.FormattingLogger;
 import dagger.Lazy;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.proxy.ProxyConfig.Environment;
-import google.registry.util.FormattingLogger;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

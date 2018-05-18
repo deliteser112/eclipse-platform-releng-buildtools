@@ -17,6 +17,7 @@ package google.registry.proxy;
 import static google.registry.util.ResourceUtils.readResourceBytes;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.logging.FormattingLogger;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
@@ -33,7 +34,6 @@ import google.registry.proxy.quota.QuotaConfig;
 import google.registry.proxy.quota.QuotaManager;
 import google.registry.proxy.quota.TokenStore;
 import google.registry.util.Clock;
-import google.registry.util.FormattingLogger;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;

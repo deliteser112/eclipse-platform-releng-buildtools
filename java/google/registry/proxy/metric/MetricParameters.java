@@ -19,7 +19,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
-import google.registry.util.FormattingLogger;
+import com.google.common.logging.FormattingLogger;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;

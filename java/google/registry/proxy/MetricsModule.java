@@ -19,6 +19,7 @@ import com.google.api.client.googleapis.util.Utils;
 import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.logging.FormattingLogger;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.monitoring.metrics.MetricReporter;
 import com.google.monitoring.metrics.MetricWriter;
@@ -28,7 +29,6 @@ import dagger.Module;
 import dagger.Provides;
 import google.registry.proxy.ProxyConfig.Environment;
 import google.registry.proxy.metric.MetricParameters;
-import google.registry.util.FormattingLogger;
 import javax.inject.Singleton;
 
 /** Module that provides necessary bindings to instantiate a {@link MetricReporter} */
