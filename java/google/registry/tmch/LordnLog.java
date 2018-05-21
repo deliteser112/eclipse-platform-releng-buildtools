@@ -108,6 +108,8 @@ public final class LordnLog implements Iterable<Entry<String, LordnLog.Result>> 
           .put(
               3616, new Result(3616, "Registration Date of DN in claims before the end of Sunrise"))
           .put(3617, new Result(3617, "Registrar has not been approved by the TMDB"))
+          .put(3618, new Result(3618, "Registration Date of DN outside of QLP period"))
+          .put(3619, new Result(3619, "TCN was not valid at the time of acknowledgement"))
           .put(4501, new Result(4501, "Syntax Error in DN Line"))
           .put(4601, new Result(4601, "Invalid TLD used"))
           .put(4602, new Result(4602, "Registrar ID Invalid"))
