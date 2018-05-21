@@ -20,7 +20,6 @@ import static google.registry.proxy.handler.RelayHandler.RELAY_CHANNEL_KEY;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.flogger.FluentLogger;
-import com.google.common.logging.FormattingLogger;
 import com.google.monitoring.metrics.MetricReporter;
 import google.registry.proxy.Protocol.BackendProtocol;
 import google.registry.proxy.Protocol.FrontendProtocol;
@@ -51,9 +50,7 @@ import javax.inject.Provider;
  */
 public class ProxyServer implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
-  // TODO (b/78466557): remove dummy flogger.
-  private static final FluentLogger flogger = FluentLogger.forEnclosingClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** Maximum length of the queue of incoming connections. */
   private static final int MAX_SOCKET_BACKLOG = 128;
@@ -127,18 +124,16 @@ public class ProxyServer implements Runnable {
                 // Outbound channel established successfully, inbound channel can start reading.
                 // This setter also calls channel.read() to request read operation.
                 inboundChannel.config().setAutoRead(true);
-                logger.infofmt(
+                logger.atInfo().log(
                     "Relay established: %s <-> %s\nSERVER: %s\nCLIENT: %s",
                     inboundProtocol.name(),
                     outboundProtocol.name(),
                     inboundChannel,
                     outboundChannel);
               } else {
-                logger.severefmt(
-                    future.cause(),
+                logger.atSevere().withCause(future.cause()).log(
                     "Cannot connect to relay channel for %s protocol connection from %s.",
-                    inboundProtocol.name(),
-                    inboundChannel.remoteAddress().getHostName());
+                    inboundProtocol.name(), inboundChannel.remoteAddress().getHostName());
               }
             });
       }
@@ -173,15 +168,15 @@ public class ProxyServer implements Runnable {
               // Wait for binding to be established for each listening port.
               ChannelFuture serverChannelFuture = serverBootstrap.bind(port).sync();
               if (serverChannelFuture.isSuccess()) {
-                flogger.atInfo().log(
+                logger.atInfo().log(
                     "Start listening on port %s for %s protocol.", port, protocol.name());
                 Channel serverChannel = serverChannelFuture.channel();
                 serverChannel.attr(PROTOCOL_KEY).set(protocol);
                 portToChannelMap.put(port, serverChannel);
               }
             } catch (InterruptedException e) {
-              logger.severefmt(
-                  e, "Cannot listen on port %s for %s protocol.", port, protocol.name());
+              logger.atSevere().withCause(e).log(
+                  "Cannot listen on port %d for %s protocol.", port, protocol.name());
             }
           });
 
@@ -191,19 +186,17 @@ public class ProxyServer implements Runnable {
             try {
               // Block until all server channels are closed.
               ChannelFuture unusedFuture = channel.closeFuture().sync();
-              logger.infofmt(
-                  "Stop listening on port %s for %s protocol.",
+              logger.atInfo().log(
+                  "Stop listening on port %d for %s protocol.",
                   port, channel.attr(PROTOCOL_KEY).get().name());
             } catch (InterruptedException e) {
-              logger.severefmt(
-                  e,
-                  "Listening on port %s for %s protocol interrupted.",
-                  port,
-                  channel.attr(PROTOCOL_KEY).get().name());
+              logger.atSevere().withCause(e).log(
+                  "Listening on port %d for %s protocol interrupted.",
+                  port, channel.attr(PROTOCOL_KEY).get().name());
             }
           });
     } finally {
-      logger.info("Shutting down server...");
+      logger.atInfo().log("Shutting down server...");
       Future<?> unusedFuture = eventGroup.shutdownGracefully();
     }
   }
@@ -223,9 +216,10 @@ public class ProxyServer implements Runnable {
     MetricReporter metricReporter = proxyComponent.metricReporter();
     try {
       metricReporter.startAsync().awaitRunning(10, TimeUnit.SECONDS);
-      logger.info("Started up MetricReporter");
+      logger.atInfo().log("Started up MetricReporter");
     } catch (TimeoutException timeoutException) {
-      logger.severefmt("Failed to initialize MetricReporter: %s", timeoutException);
+      logger.atSevere().withCause(timeoutException).log(
+          "Failed to initialize MetricReporter: %s", timeoutException);
     }
 
     Runtime.getRuntime()
@@ -234,9 +228,10 @@ public class ProxyServer implements Runnable {
                 () -> {
                   try {
                     metricReporter.stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
-                    logger.info("Shut down MetricReporter");
+                    logger.atInfo().log("Shut down MetricReporter");
                   } catch (TimeoutException timeoutException) {
-                    logger.warningfmt("Failed to stop MetricReporter: %s", timeoutException);
+                    logger.atWarning().withCause(timeoutException).log(
+                        "Failed to stop MetricReporter: %s", timeoutException);
                   }
                 }));
 

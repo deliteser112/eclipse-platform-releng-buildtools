@@ -20,7 +20,7 @@ import static java.lang.StrictMath.min;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.util.Clock;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -70,7 +70,7 @@ public class TokenStore {
     T value;
   }
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** A map of {@code userId} to available tokens, timestamped at last refill time. */
   private final ConcurrentHashMap<String, TimestampedInteger> tokensMap = new ConcurrentHashMap<>();
@@ -201,7 +201,7 @@ public class TokenStore {
           refreshExecutor.scheduleWithFixedDelay(
               () -> {
                 refresh();
-                logger.infofmt("Refreshing quota for protocol %s", config.getProtocolName());
+                logger.atInfo().log("Refreshing quota for protocol %s", config.getProtocolName());
               },
               config.getRefreshPeriod().getStandardSeconds(),
               config.getRefreshPeriod().getStandardSeconds(),

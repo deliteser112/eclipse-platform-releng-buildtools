@@ -17,7 +17,7 @@ package google.registry.proxy.handler;
 import static com.google.common.base.Preconditions.checkState;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -56,7 +56,7 @@ public class ProxyProtocolHandler extends ByteToMessageDecoder {
   public static final AttributeKey<String> REMOTE_ADDRESS_KEY =
       AttributeKey.valueOf("REMOTE_ADDRESS_KEY");
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   // The proxy header must start with this prefix.
   // Sample header: "PROXY TCP4 255.255.255.255 255.255.255.255 65535 65535\r\n".
@@ -74,24 +74,24 @@ public class ProxyProtocolHandler extends ByteToMessageDecoder {
     if (finished) {
       String remoteIP;
       if (proxyHeader != null) {
-        logger.finefmt("PROXIED CONNECTION: %s", ctx.channel());
-        logger.finefmt("PROXY HEADER: %s", proxyHeader);
+        logger.atFine().log("PROXIED CONNECTION: %s", ctx.channel());
+        logger.atFine().log("PROXY HEADER: %s", proxyHeader);
         String[] headerArray = proxyHeader.split(" ", -1);
         if (headerArray.length == 6) {
           remoteIP = headerArray[2];
-          logger.finefmt("Header parsed, using %s as remote IP.", remoteIP);
+          logger.atFine().log("Header parsed, using %s as remote IP.", remoteIP);
         } else {
-          logger.finefmt("Cannot parse the header, use source IP as a last resort.");
+          logger.atFine().log("Cannot parse the header, use source IP as a last resort.");
           remoteIP = getSourceIP(ctx);
         }
       } else {
-        logger.finefmt("No header present, using source IP directly.");
+        logger.atFine().log("No header present, using source IP directly.");
         remoteIP = getSourceIP(ctx);
       }
       if (remoteIP != null) {
         ctx.channel().attr(REMOTE_ADDRESS_KEY).set(remoteIP);
       } else {
-        logger.warningfmt("Not able to obtain remote IP for %s", ctx.channel());
+        logger.atWarning().log("Not able to obtain remote IP for %s", ctx.channel());
       }
       // ByteToMessageDecoder automatically flushes unread bytes in the ByteBuf to the next handler
       // when itself is being removed.

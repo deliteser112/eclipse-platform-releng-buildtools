@@ -20,7 +20,7 @@ import static google.registry.proxy.handler.ProxyProtocolHandler.REMOTE_ADDRESS_
 import static google.registry.proxy.handler.SslServerInitializer.CLIENT_CERTIFICATE_PROMISE_KEY;
 import static google.registry.util.X509Utils.getCertificateHash;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.proxy.metric.FrontendMetrics;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -40,7 +40,7 @@ import java.util.function.Supplier;
 /** Handler that processes EPP protocol logic. */
 public class EppServiceHandler extends HttpsRelayServiceHandler {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /**
    * Attribute key to the client certificate hash whose value is set when the certificate promise is
@@ -118,7 +118,7 @@ public class EppServiceHandler extends HttpsRelayServiceHandler {
                         "epp", sslClientCertificateHash, ctx.channel());
                     channelRead(ctx, Unpooled.wrappedBuffer(helloBytes));
                   } else {
-                    logger.severefmt(promise.cause(), "Cannot finish handshake.");
+                    logger.atSevere().withCause(promise.cause()).log("Cannot finish handshake.");
                     ChannelFuture unusedFuture = ctx.close();
                   }
                 });

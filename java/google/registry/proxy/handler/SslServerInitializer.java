@@ -14,7 +14,7 @@
 
 package google.registry.proxy.handler;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.proxy.CertificateModule.EppCertificates;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -58,7 +58,7 @@ public class SslServerInitializer<C extends Channel> extends ChannelInitializer<
   public static final AttributeKey<Promise<X509Certificate>> CLIENT_CERTIFICATE_PROMISE_KEY =
       AttributeKey.valueOf("CLIENT_CERTIFICATE_PROMISE_KEY");
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private final SslProvider sslProvider;
   private final PrivateKey privateKey;
   private final X509Certificate[] certificates;
@@ -68,7 +68,7 @@ public class SslServerInitializer<C extends Channel> extends ChannelInitializer<
       SslProvider sslProvider,
       @EppCertificates PrivateKey privateKey,
       @EppCertificates X509Certificate... certificates) {
-    logger.infofmt("Server SSL Provider: %s", sslProvider);
+    logger.atInfo().log("Server SSL Provider: %s", sslProvider);
     this.sslProvider = sslProvider;
     this.privateKey = privateKey;
     this.certificates = certificates;

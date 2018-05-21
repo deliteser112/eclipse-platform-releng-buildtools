@@ -17,7 +17,7 @@ package google.registry.proxy.handler;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.proxy.metric.FrontendMetrics;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
@@ -57,7 +57,7 @@ import java.util.function.Supplier;
  */
 abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpResponse> {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final Map<String, Cookie> cookieStore = new LinkedHashMap<>();
   private final String relayHost;
@@ -162,7 +162,8 @@ abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpRespo
   /** Terminates connection upon inbound exception. */
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-    logger.severefmt(cause, "Inbound exception caught for channel %s", ctx.channel());
+    logger.atSevere().withCause(cause).log(
+        "Inbound exception caught for channel %s", ctx.channel());
     ChannelFuture unusedFuture = ctx.close();
   }
 
@@ -173,10 +174,8 @@ abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpRespo
     promise.addListener(
         (ChannelFuture channelFuture) -> {
           if (!channelFuture.isSuccess()) {
-            logger.severefmt(
-                channelFuture.cause(),
-                "Outbound exception caught for channel %s",
-                channelFuture.channel());
+            logger.atSevere().withCause(channelFuture.cause()).log(
+                "Outbound exception caught for channel %s", channelFuture.channel());
             ChannelFuture unusedFuture = channelFuture.channel().close();
           }
         });

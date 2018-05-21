@@ -16,7 +16,7 @@ package google.registry.proxy.handler;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -33,7 +33,7 @@ import javax.inject.Inject;
  */
 public class RelayHandler<I> extends SimpleChannelInboundHandler<I> {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** Key used to retrieve the relay channel from a {@link Channel}'s {@link Attribute}. */
   public static final AttributeKey<Channel> RELAY_CHANNEL_KEY =
@@ -46,7 +46,8 @@ public class RelayHandler<I> extends SimpleChannelInboundHandler<I> {
   /** Terminate connection when an exception is caught during inbound IO. */
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-    logger.severefmt(cause, "Inbound exception caught for channel %s", ctx.channel());
+    logger.atSevere().withCause(cause).log(
+        "Inbound exception caught for channel %s", ctx.channel());
     ChannelFuture unusedFuture = ctx.close();
   }
 

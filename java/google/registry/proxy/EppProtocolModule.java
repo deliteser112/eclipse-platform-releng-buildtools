@@ -17,7 +17,6 @@ package google.registry.proxy;
 import static google.registry.util.ResourceUtils.readResourceBytes;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.logging.FormattingLogger;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
@@ -51,8 +50,6 @@ import javax.inject.Singleton;
 /** A module that provides the {@link FrontendProtocol} used for epp protocol. */
 @Module
 public class EppProtocolModule {
-
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   /** Dagger qualifier to provide epp protocol related handlers and other bindings. */
   @Qualifier
@@ -136,8 +133,7 @@ public class EppProtocolModule {
     try {
       return readResourceBytes(EppProtocolModule.class, "resources/hello.xml").read();
     } catch (IOException e) {
-      logger.severe(e, "Cannot read EPP <hello> message file.");
-      throw new RuntimeException(e);
+      throw new RuntimeException("Cannot read EPP <hello> message file.", e);
     }
   }
 

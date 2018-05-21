@@ -18,8 +18,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.api.services.monitoring.v3.model.MonitoredResource;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.CharStreams;
-import com.google.common.logging.FormattingLogger;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -62,7 +62,7 @@ public class MetricParameters {
   static final String INSTANCE_ID_PATH = "computeMetadata/v1/instance/id";
   static final String ZONE_PATH = "computeMetadata/v1/instance/zone";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final Map<String, String> envVarMap;
   private final Function<String, HttpURLConnection> connectionFactory;
@@ -88,8 +88,7 @@ public class MetricParameters {
       connection.setDoOutput(true);
       return connection;
     } catch (IOException e) {
-      logger.warningfmt(e, "Incorrect GCE metadata server URL: %s", url);
-      throw new RuntimeException(e);
+      throw new RuntimeException(String.format("Incorrect GCE metadata server URL: %s", url), e);
     }
   }
 
@@ -104,7 +103,7 @@ public class MetricParameters {
       connection.connect();
       int responseCode = connection.getResponseCode();
       if (responseCode < 200 || responseCode > 299) {
-        logger.warningfmt(
+        logger.atWarning().log(
             "Got an error response: %d\n%s",
             responseCode,
             CharStreams.toString(new InputStreamReader(connection.getErrorStream(), UTF_8)));
@@ -112,7 +111,7 @@ public class MetricParameters {
         value = CharStreams.toString(new InputStreamReader(connection.getInputStream(), UTF_8));
       }
     } catch (IOException e) {
-      logger.warningfmt(e, "Cannot obtain GCE metadata from path %s", path);
+      logger.atWarning().withCause(e).log("Cannot obtain GCE metadata from path %s", path);
     }
     return value;
   }
@@ -124,7 +123,7 @@ public class MetricParameters {
     String zone;
     String[] fullZoneArray = fullZone.split("/", -1);
     if (fullZoneArray.length < 4) {
-      logger.warningfmt("Zone %s is valid.", fullZone);
+      logger.atWarning().log("Zone %s is valid.", fullZone);
       // This will make the metric report throw, but it happens in a different thread and will not
       // kill the whole application.
       zone = "";
