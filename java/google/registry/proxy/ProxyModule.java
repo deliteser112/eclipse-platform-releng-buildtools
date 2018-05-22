@@ -28,7 +28,7 @@ import com.google.api.services.cloudkms.v1.model.DecryptRequest;
 import com.google.api.services.storage.Storage;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.LoggerConfig;
 import com.google.monitoring.metrics.MetricReporter;
 import dagger.Component;
 import dagger.Module;
@@ -56,7 +56,6 @@ import java.util.function.Supplier;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -66,8 +65,6 @@ import javax.inject.Singleton;
  */
 @Module
 public class ProxyModule {
-
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   @Parameter(names = "--whois", description = "Port for WHOIS")
   private Integer whoisPort;
@@ -96,8 +93,8 @@ public class ProxyModule {
    */
   private void configureLogging() {
     // Remove all other handlers on the root logger to avoid double logging.
-    Logger rootLogger = Logger.getLogger("");
-    Arrays.asList(rootLogger.getHandlers()).forEach(rootLogger::removeHandler);
+    LoggerConfig rootLoggerConfig = LoggerConfig.getConfig("");
+    Arrays.asList(rootLoggerConfig.getHandlers()).forEach(rootLoggerConfig::removeHandler);
 
     // If running on in a non-local environment, use GCP JSON formatter.
     Handler rootHandler = new ConsoleHandler();
@@ -105,7 +102,7 @@ public class ProxyModule {
     if (env != Environment.LOCAL) {
       rootHandler.setFormatter(new GcpJsonFormatter());
     }
-    rootLogger.addHandler(rootHandler);
+    rootLoggerConfig.addHandler(rootHandler);
   }
 
   /**
@@ -170,7 +167,7 @@ public class ProxyModule {
   @Provides
   LoggingHandler provideLoggingHandler() {
     if (log) {
-      Logger.getLogger("io.netty.handler.logging.LoggingHandler").setLevel(Level.FINE);
+      LoggerConfig.getConfig(io.netty.handler.logging.LoggingHandler.class).setLevel(Level.FINE);
     }
     return new LoggingHandler(LogLevel.DEBUG);
   }
@@ -185,8 +182,7 @@ public class ProxyModule {
       }
       return credential;
     } catch (IOException e) {
-      logger.severe(e, "Unable to obtain OAuth2 credential.");
-      throw new RuntimeException(e);
+      throw new RuntimeException("Unable to obtain OAuth2 credential.", e);
     }
   }
 
@@ -201,8 +197,7 @@ public class ProxyModule {
           try {
             credential.refreshToken();
           } catch (IOException e) {
-            logger.severe(e, "Cannot refresh access token.");
-            throw new RuntimeException(e);
+            throw new RuntimeException("Cannot refresh access token.", e);
           }
           return credential.getAccessToken();
         },
@@ -240,12 +235,11 @@ public class ProxyModule {
           .executeMediaAndDownloadTo(outputStream);
       return outputStream.toByteArray();
     } catch (IOException e) {
-      logger.severefmt(
-          e,
-          "Error reading encrypted PEM file %s from GCS bucket %s",
-          config.gcs.sslPemFilename,
-          config.gcs.bucket);
-      throw new RuntimeException(e);
+      throw new RuntimeException(
+          String.format(
+              "Error reading encrypted PEM file %s from GCS bucket %s",
+              config.gcs.sslPemFilename, config.gcs.bucket),
+          e);
     }
   }
 
@@ -269,8 +263,8 @@ public class ProxyModule {
           .execute()
           .decodePlaintext();
     } catch (IOException e) {
-      logger.severefmt(e, "PEM file decryption failed using CryptoKey: %s", cryptoKeyUrl);
-      throw new RuntimeException(e);
+      throw new RuntimeException(
+          String.format("PEM file decryption failed using CryptoKey: %s", cryptoKeyUrl), e);
     }
   }
 

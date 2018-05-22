@@ -18,7 +18,6 @@ java_library(
         "config/*.yaml",
     ]),
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/util",
         "@com_beust_jcommander",
