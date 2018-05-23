@@ -21,6 +21,7 @@ import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.google.appengine.api.users.User;
 import com.google.common.base.Strings;
+import com.google.common.logging.FormattingLogger;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.registrar.Registrar;
@@ -28,7 +29,6 @@ import google.registry.model.registrar.RegistrarContact;
 import google.registry.request.HttpException.ForbiddenException;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
-import google.registry.util.FormattingLogger;
 import java.util.Optional;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.concurrent.Immutable;

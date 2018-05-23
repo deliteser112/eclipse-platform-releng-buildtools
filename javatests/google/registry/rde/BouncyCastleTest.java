@@ -23,8 +23,8 @@ import static org.bouncycastle.bcpg.PublicKeyAlgorithmTags.RSA_GENERAL;
 import static org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags.AES_128;
 
 import com.google.common.io.CharStreams;
+import com.google.common.logging.FormattingLogger;
 import google.registry.testing.BouncyCastleProviderRule;
-import google.registry.util.FormattingLogger;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;

@@ -17,6 +17,7 @@ package google.registry.rde;
 import static com.google.common.base.Verify.verify;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.logging.FormattingLogger;
 import com.googlecode.objectify.Key;
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
@@ -25,7 +26,6 @@ import google.registry.model.host.HostResource;
 import google.registry.model.rde.RdeMode;
 import google.registry.model.registrar.Registrar;
 import google.registry.tldconfig.idn.IdnTable;
-import google.registry.util.FormattingLogger;
 import google.registry.xjc.XjcXmlTransformer;
 import google.registry.xjc.rde.XjcRdeContentsType;
 import google.registry.xjc.rde.XjcRdeDeposit;

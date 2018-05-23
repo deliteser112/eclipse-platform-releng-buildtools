@@ -9,6 +9,7 @@ java_library(
     name = "sftp",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/util",
         "@com_google_code_findbugs_jsr305",
         "@com_google_guava",

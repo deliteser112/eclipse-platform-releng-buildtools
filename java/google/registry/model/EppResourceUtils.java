@@ -22,6 +22,7 @@ import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static google.registry.util.DateTimeUtils.latestOf;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.logging.FormattingLogger;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.Query;
@@ -41,7 +42,6 @@ import google.registry.model.ofy.CommitLogMutation;
 import google.registry.model.registry.Registry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
-import google.registry.util.FormattingLogger;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;

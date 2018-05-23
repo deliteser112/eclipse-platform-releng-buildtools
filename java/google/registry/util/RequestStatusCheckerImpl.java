@@ -22,6 +22,7 @@ import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.Environment;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
+import com.google.common.logging.FormattingLogger;
 import java.util.Collections;
 import javax.inject.Inject;
 

@@ -15,9 +15,9 @@
 package google.registry.tools.server;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.logging.FormattingLogger;
 import google.registry.request.JsonResponse;
 import google.registry.request.Parameter;
-import google.registry.util.FormattingLogger;
 import java.util.logging.Level;
 import javax.inject.Inject;
 

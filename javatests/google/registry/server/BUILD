@@ -17,6 +17,7 @@ java_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/util",
         "@com_google_appengine_tools_sdk",
         "@com_google_auto_value",

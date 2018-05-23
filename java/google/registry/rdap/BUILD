@@ -8,6 +8,7 @@ java_library(
     name = "rdap",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/flows",
         "//java/google/registry/model",

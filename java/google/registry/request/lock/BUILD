@@ -8,6 +8,7 @@ java_library(
     name = "lock",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/model",
         "//java/google/registry/util",
         "@com_google_code_findbugs_jsr305",

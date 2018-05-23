@@ -16,7 +16,7 @@ package google.registry.request;
 
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 
-import google.registry.util.FormattingLogger;
+import com.google.common.logging.FormattingLogger;
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 

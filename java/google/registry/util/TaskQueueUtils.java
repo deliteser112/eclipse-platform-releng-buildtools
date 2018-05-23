@@ -22,6 +22,7 @@ import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.google.common.logging.FormattingLogger;
 import java.io.Serializable;
 import java.util.List;
 import javax.inject.Inject;

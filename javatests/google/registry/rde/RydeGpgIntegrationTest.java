@@ -22,12 +22,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assume.assumeTrue;
 
 import com.google.common.io.CharStreams;
+import com.google.common.logging.FormattingLogger;
 import google.registry.keyring.api.Keyring;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.GpgSystemCommandRule;
 import google.registry.testing.ShardableTestCase;
-import google.registry.util.FormattingLogger;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

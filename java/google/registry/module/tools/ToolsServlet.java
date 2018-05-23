@@ -14,7 +14,7 @@
 
 package google.registry.module.tools;
 
-import google.registry.util.FormattingLogger;
+import com.google.common.logging.FormattingLogger;
 import java.io.IOException;
 import java.security.Security;
 import javax.servlet.http.HttpServlet;

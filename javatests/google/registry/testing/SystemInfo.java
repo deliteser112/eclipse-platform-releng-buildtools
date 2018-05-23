@@ -17,7 +17,7 @@ package google.registry.testing;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import google.registry.util.FormattingLogger;
+import com.google.common.logging.FormattingLogger;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.concurrent.ThreadSafe;

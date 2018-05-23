@@ -16,7 +16,7 @@ package google.registry.bigquery;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Sets.newConcurrentHashSet;
-import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
+import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.api.client.extensions.appengine.http.UrlFetchTransport;
 import com.google.api.client.googleapis.extensions.appengine.auth.oauth2.AppIdentityCredential;
@@ -33,7 +33,7 @@ import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableReference;
 import com.google.api.services.bigquery.model.TableSchema;
 import com.google.common.collect.ImmutableList;
-import google.registry.util.FormattingLogger;
+import com.google.common.logging.FormattingLogger;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;

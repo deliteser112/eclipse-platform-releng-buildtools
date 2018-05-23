@@ -20,6 +20,7 @@ java_library(
     ),
     deps = [
         ":constants",
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/dns/writer",
         "//java/google/registry/model",

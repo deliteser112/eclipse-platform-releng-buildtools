@@ -22,10 +22,10 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.CharStreams;
+import com.google.common.logging.FormattingLogger;
 import com.google.common.net.InetAddresses;
 import com.google.common.net.InternetDomainName;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;

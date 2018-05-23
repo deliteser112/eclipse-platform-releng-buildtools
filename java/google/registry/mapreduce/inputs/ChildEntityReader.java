@@ -23,13 +23,13 @@ import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.appengine.tools.mapreduce.ShardContext;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.logging.FormattingLogger;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.EppResourceIndexBucket;
-import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import javax.annotation.Nullable;
@@ -248,7 +248,7 @@ class ChildEntityReader<R extends EppResource, I extends ImmutableObject> extend
       return nextQueryResult();
     }
 
-    /** Retruns a new ChildReader of the same ancestor for the given type. */
+    /** Returns a new ChildReader of the same ancestor for the given type. */
     public <J> ChildReader<J> withType(Class<J> type) {
       return create(type, ancestor);
     }

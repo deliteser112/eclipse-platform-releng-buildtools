@@ -41,7 +41,7 @@ public class WhoisReaderTest {
   @Before
   public void init() {
     createTlds("tld", "xn--kgbechtv", "1.test");
-    WhoisReader.logger.addHandler(testLogHandler);
+    WhoisReader.logger.getFormattingLogger().addHandler(testLogHandler);
   }
 
   @SuppressWarnings({"TypeParameterUnusedInFormals", "unchecked"})

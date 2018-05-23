@@ -23,6 +23,7 @@ import static google.registry.request.Action.Method.POST;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.io.ByteStreams;
+import com.google.common.logging.FormattingLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.KeyModule.Key;
@@ -37,7 +38,6 @@ import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
-import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.inject.Inject;

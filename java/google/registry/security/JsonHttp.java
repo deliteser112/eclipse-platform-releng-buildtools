@@ -20,8 +20,8 @@ import static com.google.common.net.HttpHeaders.X_CONTENT_TYPE_OPTIONS;
 import static com.google.common.net.MediaType.JSON_UTF_8;
 import static org.json.simple.JSONValue.writeJSONString;
 
+import com.google.common.logging.FormattingLogger;
 import com.google.common.net.MediaType;
-import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;

@@ -22,6 +22,7 @@ import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtensio
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.logging.FormattingLogger;
 import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.SyntaxErrorException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
@@ -33,7 +34,6 @@ import google.registry.model.domain.metadata.MetadataExtension;
 import google.registry.model.domain.superuser.SuperuserExtension;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.EppInput.CommandExtension;
-import google.registry.util.FormattingLogger;
 import java.util.Set;
 import javax.inject.Inject;
 

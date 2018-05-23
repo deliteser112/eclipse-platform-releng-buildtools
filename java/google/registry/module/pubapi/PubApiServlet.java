@@ -15,9 +15,9 @@
 package google.registry.module.pubapi;
 
 import com.google.appengine.api.LifecycleManager;
+import com.google.common.logging.FormattingLogger;
 import com.google.monitoring.metrics.MetricReporter;
 import dagger.Lazy;
-import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.security.Security;
 import java.util.concurrent.TimeUnit;

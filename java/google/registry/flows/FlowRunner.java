@@ -18,6 +18,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.xml.XmlTransformer.prettyPrint;
 
 import com.google.common.base.Strings;
+import com.google.common.logging.FormattingLogger;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.DryRun;
 import google.registry.flows.FlowModule.InputXml;
@@ -27,7 +28,6 @@ import google.registry.flows.session.LoginFlow;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.monitoring.whitebox.EppMetric;
-import google.registry.util.FormattingLogger;
 import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.inject.Provider;

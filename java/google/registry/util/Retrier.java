@@ -20,6 +20,7 @@ import static com.google.common.math.IntMath.pow;
 import static google.registry.util.PredicateUtils.supertypeOf;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.logging.FormattingLogger;
 import java.io.Serializable;
 import java.util.Set;
 import java.util.concurrent.Callable;

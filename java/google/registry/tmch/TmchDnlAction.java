@@ -16,11 +16,11 @@ package google.registry.tmch;
 
 import static google.registry.request.Action.Method.POST;
 
+import com.google.common.logging.FormattingLogger;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.model.tmch.ClaimsListShard;
 import google.registry.request.Action;
 import google.registry.request.auth.Auth;
-import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.security.SignatureException;
 import java.util.List;

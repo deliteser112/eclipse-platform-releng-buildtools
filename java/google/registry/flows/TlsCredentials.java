@@ -21,6 +21,7 @@ import static google.registry.request.RequestParameters.extractRequiredHeader;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.logging.FormattingLogger;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.InetAddresses;
 import dagger.Module;
@@ -29,7 +30,6 @@ import google.registry.flows.EppException.AuthenticationErrorException;
 import google.registry.model.registrar.Registrar;
 import google.registry.request.Header;
 import google.registry.util.CidrAddressBlock;
-import google.registry.util.FormattingLogger;
 import java.net.InetAddress;
 import java.util.Optional;
 import javax.inject.Inject;

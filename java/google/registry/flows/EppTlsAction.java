@@ -14,11 +14,11 @@
 
 package google.registry.flows;
 
+import com.google.common.logging.FormattingLogger;
 import google.registry.request.Action;
 import google.registry.request.Action.Method;
 import google.registry.request.Payload;
 import google.registry.request.auth.Auth;
-import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
 import javax.servlet.http.HttpSession;
 

@@ -20,10 +20,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
+import com.google.common.logging.FormattingLogger;
 import com.google.common.net.MediaType;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.request.Response;
-import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
 
 /** Handle an EPP request and response. */

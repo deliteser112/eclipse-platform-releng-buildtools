@@ -15,10 +15,10 @@
 package google.registry.export;
 
 import static com.google.common.collect.Sets.intersection;
+import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.export.LoadSnapshotAction.enqueueLoadSnapshotTask;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.POST;
-import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskHandle;
@@ -28,6 +28,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.logging.FormattingLogger;
 import google.registry.export.DatastoreBackupInfo.BackupStatus;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
@@ -37,7 +38,6 @@ import google.registry.request.Parameter;
 import google.registry.request.RequestMethod;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
-import google.registry.util.FormattingLogger;
 import java.util.Set;
 import javax.inject.Inject;
 import org.joda.time.Duration;

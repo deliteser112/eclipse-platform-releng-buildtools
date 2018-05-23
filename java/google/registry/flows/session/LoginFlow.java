@@ -18,6 +18,7 @@ import static com.google.common.collect.Sets.difference;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.logging.FormattingLogger;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthenticationErrorClosingConnectionException;
 import google.registry.flows.EppException.AuthenticationErrorException;
@@ -40,7 +41,6 @@ import google.registry.model.eppinput.EppInput.Options;
 import google.registry.model.eppinput.EppInput.Services;
 import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.registrar.Registrar;
-import google.registry.util.FormattingLogger;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;

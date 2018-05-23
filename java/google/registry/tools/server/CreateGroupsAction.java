@@ -19,6 +19,7 @@ import static google.registry.request.Action.Method.POST;
 import static java.util.Arrays.asList;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
+import com.google.common.logging.FormattingLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.groups.GroupsConnection;
 import google.registry.groups.GroupsConnection.Role;
@@ -31,7 +32,6 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.Concurrent;
-import google.registry.util.FormattingLogger;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;

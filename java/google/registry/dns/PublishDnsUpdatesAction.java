@@ -18,6 +18,7 @@ import static google.registry.request.Action.Method.POST;
 import static google.registry.request.RequestParameters.PARAM_TLD;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
+import com.google.common.logging.FormattingLogger;
 import com.google.common.net.InternetDomainName;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.dns.DnsMetrics.ActionStatus;
@@ -32,7 +33,6 @@ import google.registry.request.auth.Auth;
 import google.registry.request.lock.LockHandler;
 import google.registry.util.Clock;
 import google.registry.util.DomainNameUtils;
-import google.registry.util.FormattingLogger;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;

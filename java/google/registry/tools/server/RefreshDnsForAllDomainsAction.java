@@ -14,16 +14,17 @@
 
 package google.registry.tools.server;
 
+import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.registry.Registries.assertTldsExist;
-import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.logging.FormattingLogger;
 import google.registry.dns.DnsQueue;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.domain.DomainResource;
@@ -31,7 +32,6 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
-import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
 import javax.inject.Inject;
 import org.joda.time.DateTime;

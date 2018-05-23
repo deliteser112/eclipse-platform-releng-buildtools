@@ -20,9 +20,9 @@ import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.logging.FormattingLogger;
 import com.google.common.net.MediaType;
 import com.google.common.primitives.Ints;
-import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

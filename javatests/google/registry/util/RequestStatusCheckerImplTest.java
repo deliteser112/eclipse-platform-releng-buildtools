@@ -69,12 +69,12 @@ public final class RequestStatusCheckerImplTest {
   public AppEngineRule appEngineRule = AppEngineRule.builder().build();
 
   @Before public void setUp() {
-    RequestStatusCheckerImpl.logger.addHandler(logHandler);
+    RequestStatusCheckerImpl.logger.getFormattingLogger().addHandler(logHandler);
     RequestStatusCheckerImpl.logService = mock(LogService.class);
   }
 
   @After public void tearDown() {
-    RequestStatusCheckerImpl.logger.removeHandler(logHandler);
+    RequestStatusCheckerImpl.logger.getFormattingLogger().removeHandler(logHandler);
   }
 
   // If a logId is unrecognized, it could be that the log hasn't been uploaded yet - so we assume

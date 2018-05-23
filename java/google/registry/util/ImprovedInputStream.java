@@ -17,6 +17,7 @@ package google.registry.util;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.logging.FormattingLogger;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;

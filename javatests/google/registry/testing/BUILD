@@ -21,6 +21,7 @@ java_library(
     ] + glob(["*.csv"]) + glob(["testdata/*"]),
     exports = ["//third_party/junit"],
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/dns",
         "//java/google/registry/dns:constants",

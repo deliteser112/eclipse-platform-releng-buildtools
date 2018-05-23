@@ -15,9 +15,10 @@
 package google.registry.module.frontend;
 
 import com.google.appengine.api.LifecycleManager;
+import com.google.common.flogger.FluentLogger;
+import com.google.common.logging.FormattingLogger;
 import com.google.monitoring.metrics.MetricReporter;
 import dagger.Lazy;
-import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.security.Security;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +35,8 @@ public final class FrontendServlet extends HttpServlet {
   private static final FrontendRequestHandler requestHandler = component.requestHandler();
   private static final Lazy<MetricReporter> metricReporter = component.metricReporter();
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  // TODO(b/): Remove this static field.
+  private static final FluentLogger flogger = FluentLogger.forEnclosingClass();
 
   @Override
   public void init() {
@@ -62,7 +65,7 @@ public final class FrontendServlet extends HttpServlet {
 
   @Override
   public void service(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
-    logger.info("Received frontend request");
+    flogger.atInfo().log("Received frontend request");
     requestHandler.handleRequest(req, rsp);
   }
 }

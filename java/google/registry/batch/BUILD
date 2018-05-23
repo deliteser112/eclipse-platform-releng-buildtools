@@ -8,6 +8,7 @@ java_library(
     name = "batch",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/bigquery",
         "//java/google/registry/config",
         "//java/google/registry/dns",

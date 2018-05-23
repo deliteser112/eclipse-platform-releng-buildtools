@@ -14,7 +14,7 @@
 
 package google.registry.testing;
 
-import google.registry.util.FormattingLogger;
+import com.google.common.logging.FormattingLogger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;

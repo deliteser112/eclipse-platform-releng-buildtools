@@ -34,6 +34,7 @@ java_library(
     ]),
     visibility = [":allowed-tools"],
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/backup",
         "//java/google/registry/beam",
         "//java/google/registry/bigquery",

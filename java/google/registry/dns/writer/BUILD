@@ -8,7 +8,7 @@ java_library(
     name = "writer",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/google/registry/util",
+        "//java/com/google/common/logging:formatting_logger",
         "@com_google_dagger",
         "@com_google_guava",
     ],

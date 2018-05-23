@@ -33,9 +33,9 @@ import com.google.appengine.tools.mapreduce.outputs.NoOutput;
 import com.google.appengine.tools.pipeline.Job0;
 import com.google.appengine.tools.pipeline.JobSetting;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.logging.FormattingLogger;
 import google.registry.mapreduce.inputs.ConcatenatingInput;
 import google.registry.request.Parameter;
-import google.registry.util.FormattingLogger;
 import google.registry.util.PipelineUtils;
 import java.io.Serializable;
 import java.util.Optional;
@@ -112,13 +112,13 @@ public class MapreduceRunner {
     return this;
   }
 
-  /** Set the default number of mappers, if not overriden by the http param. */
+  /** Set the default number of mappers, if not overridden by the http param. */
   public MapreduceRunner setDefaultMapShards(int defaultMapShards) {
     this.defaultMapShards = defaultMapShards;
     return this;
   }
 
-  /** Set the default number of reducers, if not overriden by the http param. */
+  /** Set the default number of reducers, if not overridden by the http param. */
   public MapreduceRunner setDefaultReduceShards(int defaultReduceShards) {
     this.defaultReduceShards = defaultReduceShards;
     return this;

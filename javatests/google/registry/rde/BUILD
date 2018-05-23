@@ -12,6 +12,7 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["testdata/*"]),
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/gcs",
         "//java/google/registry/keyring/api",

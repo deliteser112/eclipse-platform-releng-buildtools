@@ -8,8 +8,8 @@ java_library(
     name = "bigquery",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
-        "//java/google/registry/request",
         "//java/google/registry/util",
         "@com_google_api_client",
         "@com_google_api_client_appengine",

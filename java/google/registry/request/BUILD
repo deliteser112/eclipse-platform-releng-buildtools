@@ -11,6 +11,7 @@ java_library(
         exclude = ["Modules.java"],
     ),
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/request/auth",
         "//java/google/registry/request/lock",
         "//java/google/registry/util",

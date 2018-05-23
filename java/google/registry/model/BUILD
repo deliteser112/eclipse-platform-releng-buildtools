@@ -13,6 +13,7 @@ java_library(
     ]),
     visibility = ["//visibility:public"],
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/util",
         "//java/google/registry/xml",

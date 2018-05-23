@@ -21,7 +21,7 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.common.base.Supplier;
-import google.registry.util.FormattingLogger;
+import com.google.common.logging.FormattingLogger;
 import java.util.Map.Entry;
 import javax.inject.Inject;
 import javax.inject.Named;

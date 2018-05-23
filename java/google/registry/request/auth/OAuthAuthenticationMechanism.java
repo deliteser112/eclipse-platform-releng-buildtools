@@ -24,8 +24,8 @@ import com.google.appengine.api.oauth.OAuthServiceFailureException;
 import com.google.appengine.api.users.User;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.logging.FormattingLogger;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 

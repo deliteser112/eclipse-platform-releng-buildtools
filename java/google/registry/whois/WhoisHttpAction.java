@@ -28,13 +28,13 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.logging.FormattingLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.RequestPath;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
-import google.registry.util.FormattingLogger;
 import google.registry.whois.WhoisMetrics.WhoisMetric;
 import google.registry.whois.WhoisResponse.WhoisResponseResults;
 import java.io.IOException;

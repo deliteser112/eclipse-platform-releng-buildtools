@@ -24,6 +24,7 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.logging.FormattingLogger;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.impl.EntityMetadata;
 import google.registry.request.Action;
@@ -31,7 +32,6 @@ import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
-import google.registry.util.FormattingLogger;
 import java.util.Optional;
 import javax.inject.Inject;
 

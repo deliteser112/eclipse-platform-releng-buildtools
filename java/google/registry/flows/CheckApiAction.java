@@ -29,6 +29,7 @@ import static org.json.simple.JSONValue.toJSONString;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.google.common.logging.FormattingLogger;
 import com.google.common.net.InternetDomainName;
 import com.google.common.net.MediaType;
 import com.google.template.soy.SoyFileSet;
@@ -46,7 +47,6 @@ import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
-import google.registry.util.FormattingLogger;
 import java.util.Map;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;

@@ -16,19 +16,19 @@ package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
-import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.logging.FormattingLogger;
 import com.google.template.soy.data.SoyMapData;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.tools.soy.DomainUpdateSoyInfo;
-import google.registry.util.FormattingLogger;
 import org.joda.time.DateTime;
 
 /**

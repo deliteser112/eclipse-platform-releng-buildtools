@@ -8,8 +8,8 @@ java_library(
     name = "mapreduce",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/mapreduce/inputs",
-        "//java/google/registry/model",
         "//java/google/registry/request",
         "//java/google/registry/util",
         "//third_party/objectify:objectify-v4_1",

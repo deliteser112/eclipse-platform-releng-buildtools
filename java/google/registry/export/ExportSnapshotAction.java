@@ -17,12 +17,12 @@ package google.registry.export;
 import static google.registry.export.CheckSnapshotAction.enqueuePollTask;
 import static google.registry.request.Action.Method.POST;
 
+import com.google.common.logging.FormattingLogger;
 import google.registry.config.RegistryConfig;
 import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
-import google.registry.util.FormattingLogger;
 import javax.inject.Inject;
 
 /**

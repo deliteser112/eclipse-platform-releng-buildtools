@@ -19,6 +19,7 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.logging.FormattingLogger;
 import google.registry.batch.MapreduceEntityCleanupUtil.EligibleJobResults;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.request.Action;
@@ -26,7 +27,6 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
-import google.registry.util.FormattingLogger;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Inject;

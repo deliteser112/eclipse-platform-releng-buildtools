@@ -16,6 +16,7 @@ package google.registry.rde;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
+import com.google.common.logging.FormattingLogger;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registry;
@@ -23,7 +24,6 @@ import google.registry.request.HttpException.NoContentException;
 import google.registry.request.HttpException.ServiceUnavailableException;
 import google.registry.request.lock.LockHandler;
 import google.registry.util.Clock;
-import google.registry.util.FormattingLogger;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import org.joda.time.DateTime;

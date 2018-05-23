@@ -15,13 +15,14 @@
 package google.registry.flows.async;
 
 import static com.google.appengine.api.taskqueue.QueueConstants.maxLeaseCount;
+import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static com.google.monitoring.metrics.EventMetric.DEFAULT_FITTER;
 import static google.registry.flows.async.AsyncFlowMetrics.OperationType.CONTACT_AND_HOST_DELETE;
 import static google.registry.flows.async.AsyncFlowMetrics.OperationType.DNS_REFRESH;
-import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.logging.FormattingLogger;
 import com.google.monitoring.metrics.DistributionFitter;
 import com.google.monitoring.metrics.EventMetric;
 import com.google.monitoring.metrics.FibonacciFitter;
@@ -29,7 +30,6 @@ import com.google.monitoring.metrics.IncrementableMetric;
 import com.google.monitoring.metrics.LabelDescriptor;
 import com.google.monitoring.metrics.MetricRegistryImpl;
 import google.registry.util.Clock;
-import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
 import javax.inject.Inject;
 import org.joda.time.DateTime;

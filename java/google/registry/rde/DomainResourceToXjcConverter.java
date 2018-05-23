@@ -15,12 +15,13 @@
 package google.registry.rde;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.model.ofy.ObjectifyService.ofy;
-import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.logging.FormattingLogger;
 import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactResource;
 import google.registry.model.domain.DesignatedContact;
@@ -31,7 +32,6 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.rde.RdeMode;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferStatus;
-import google.registry.util.FormattingLogger;
 import google.registry.util.Idn;
 import google.registry.xjc.domain.XjcDomainContactAttrType;
 import google.registry.xjc.domain.XjcDomainContactType;
@@ -126,7 +126,7 @@ final class DomainResourceToXjcConverter {
     // o  An OPTIONAL <trDate> element that contains the date and time of
     //    the most recent domain object successful transfer.  This element
     //    MUST NOT be present if the domain name object has never been
-    //    transfered.
+    //    transferred.
     bean.setTrDate(model.getLastTransferTime());
 
     // o  One or more <status> elements that contain the current status

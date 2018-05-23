@@ -21,6 +21,7 @@ import static google.registry.xml.UtcDateTimeAdapter.getFormattedString;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.logging.FormattingLogger;
 import com.googlecode.objectify.Key;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactPhoneNumber;
@@ -34,7 +35,6 @@ import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.translators.EnumToAttributeAdapter.EppEnum;
-import google.registry.util.FormattingLogger;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;

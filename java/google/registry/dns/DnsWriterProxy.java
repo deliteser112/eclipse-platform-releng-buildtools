@@ -15,12 +15,12 @@
 package google.registry.dns;
 
 import static com.google.common.base.Preconditions.checkState;
-import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
+import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.logging.FormattingLogger;
 import google.registry.dns.writer.DnsWriter;
 import google.registry.model.registry.Registry;
-import google.registry.util.FormattingLogger;
 import java.util.Map;
 import javax.inject.Inject;
 

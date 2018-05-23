@@ -17,7 +17,7 @@ package google.registry.tools;
 import com.beust.jcommander.Parameters;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import com.google.api.client.util.store.AbstractDataStoreFactory;
-import google.registry.util.FormattingLogger;
+import com.google.common.logging.FormattingLogger;
 import java.io.IOException;
 import javax.inject.Inject;
 

@@ -14,8 +14,8 @@
 
 package google.registry.reporting.icann;
 
+import com.google.common.logging.FormattingLogger;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.util.FormattingLogger;
 import google.registry.util.SendEmailService;
 import javax.inject.Inject;
 import javax.mail.Message;

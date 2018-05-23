@@ -20,13 +20,13 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.appengine.api.datastore.DatastoreFailureException;
 import com.google.appengine.api.datastore.DatastoreTimeoutException;
+import com.google.common.logging.FormattingLogger;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
-import google.registry.util.FormattingLogger;
 import google.registry.util.Retrier;
 import google.registry.whois.WhoisException.UncheckedWhoisException;
 import google.registry.whois.WhoisMetrics.WhoisMetric;

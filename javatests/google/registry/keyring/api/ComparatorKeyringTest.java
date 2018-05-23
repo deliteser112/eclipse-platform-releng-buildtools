@@ -80,12 +80,12 @@ public class ComparatorKeyringTest {
 
   @Before
   public void setUp() {
-    ComparatorKeyring.logger.addHandler(testLogHandler);
+    ComparatorKeyring.logger.getFormattingLogger().addHandler(testLogHandler);
   }
 
   @After
   public void tearDown() {
-    ComparatorKeyring.logger.removeHandler(testLogHandler);
+    ComparatorKeyring.logger.getFormattingLogger().removeHandler(testLogHandler);
   }
 
   @Test

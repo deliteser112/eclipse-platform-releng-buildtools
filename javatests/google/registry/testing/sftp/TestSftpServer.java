@@ -16,7 +16,7 @@ package google.registry.testing.sftp;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import google.registry.util.FormattingLogger;
+import com.google.common.logging.FormattingLogger;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;

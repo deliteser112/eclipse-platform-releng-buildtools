@@ -15,10 +15,10 @@
 package google.registry.config;
 
 import static com.google.common.base.Ascii.toLowerCase;
-import static google.registry.util.FormattingLogger.getLoggerForCallerClass;
+import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 
-import google.registry.util.FormattingLogger;
+import com.google.common.logging.FormattingLogger;
 import java.util.Map;
 import java.util.Optional;
 import org.yaml.snakeyaml.Yaml;

@@ -27,6 +27,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.logging.FormattingLogger;
 import com.google.common.net.MediaType;
 import com.google.re2j.Pattern;
 import com.googlecode.objectify.Key;
@@ -48,7 +49,6 @@ import google.registry.request.Response;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.UserAuthInfo;
 import google.registry.ui.server.registrar.SessionUtils;
-import google.registry.util.FormattingLogger;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;

@@ -19,8 +19,8 @@ import static com.google.common.collect.Iterables.toArray;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Streams;
+import com.google.common.logging.FormattingLogger;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.util.FormattingLogger;
 import google.registry.util.NonFinalForTesting;
 import google.registry.util.SendEmailService;
 import java.util.List;

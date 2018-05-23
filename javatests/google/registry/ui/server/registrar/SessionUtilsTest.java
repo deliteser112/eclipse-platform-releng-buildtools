@@ -77,7 +77,7 @@ public class SessionUtilsTest {
 
   @Before
   public void before() throws Exception {
-    SessionUtils.logger.addHandler(testLogHandler);
+    SessionUtils.logger.getFormattingLogger().addHandler(testLogHandler);
     sessionUtils = new SessionUtils();
     sessionUtils.registryAdminClientId = ADMIN_CLIENT_ID;
     persistResource(loadRegistrar(ADMIN_CLIENT_ID));
@@ -86,7 +86,7 @@ public class SessionUtilsTest {
 
   @After
   public void after() throws Exception {
-    SessionUtils.logger.removeHandler(testLogHandler);
+    SessionUtils.logger.getFormattingLogger().removeHandler(testLogHandler);
   }
 
   /** User needs to be logged in before calling checkRegistrarConsoleLogin */

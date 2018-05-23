@@ -8,6 +8,7 @@ java_library(
     name = "cron",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/model",
         "//java/google/registry/request",
         "//java/google/registry/request/auth",

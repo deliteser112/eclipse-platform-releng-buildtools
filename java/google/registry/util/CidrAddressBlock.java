@@ -17,6 +17,7 @@ package google.registry.util;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.AbstractSequentialIterator;
+import com.google.common.logging.FormattingLogger;
 import com.google.common.net.InetAddresses;
 import java.io.Serializable;
 import java.net.InetAddress;

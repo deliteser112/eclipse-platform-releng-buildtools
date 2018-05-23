@@ -9,6 +9,7 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["sql/*"]),
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/bigquery",
         "//java/google/registry/config",
         "//java/google/registry/gcs",

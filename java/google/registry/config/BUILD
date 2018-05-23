@@ -9,6 +9,7 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["files/*.yaml"]),
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/util",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_auto_value",

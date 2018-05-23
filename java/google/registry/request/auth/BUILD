@@ -8,9 +8,9 @@ java_library(
     name = "auth",
     srcs = glob(["*.java"]),
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/security",
-        "//java/google/registry/util",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",

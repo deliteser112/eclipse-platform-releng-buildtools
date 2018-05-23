@@ -13,6 +13,7 @@ java_library(
         "*.asc",
     ]),
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/keyring/api",
         "//java/google/registry/model",

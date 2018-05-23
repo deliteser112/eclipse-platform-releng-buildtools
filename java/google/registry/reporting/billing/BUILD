@@ -11,6 +11,7 @@ java_library(
         "@com_google_apis_google_api_services_bigquery",
     ],
     deps = [
+        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/gcs",
         "//java/google/registry/model",

@@ -14,7 +14,7 @@
 
 package google.registry.dns.writer;
 
-import google.registry.util.FormattingLogger;
+import com.google.common.logging.FormattingLogger;
 import java.util.HashSet;
 import java.util.Set;
 import javax.inject.Inject;
