@@ -70,7 +70,7 @@ public class PremiumListTest {
 
   @Test
   public void testProbablePremiumLabels() throws Exception {
-    PremiumList pl = PremiumList.get("tld").get();
+    PremiumList pl = PremiumList.getUncached("tld").get();
     PremiumListRevision revision = ofy().load().key(pl.getRevisionKey()).now();
     assertThat(revision.getProbablePremiumLabels().mightContain("notpremium")).isFalse();
     for (String label : ImmutableList.of("rich", "lol", "johnny-be-goode", "icann")) {
@@ -86,7 +86,7 @@ public class PremiumListTest {
         assertThrows(
             IllegalStateException.class,
             () ->
-                PremiumList.get("tld")
+                PremiumList.getUncached("tld")
                     .get()
                     .parse(
                         ImmutableList.of(

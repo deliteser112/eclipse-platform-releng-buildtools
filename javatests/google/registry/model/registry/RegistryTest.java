@@ -226,7 +226,7 @@ public class RegistryTest extends EntityTestCase {
     Registry registry = Registry.get("tld").asBuilder().setPremiumList(pl2).build();
     Key<PremiumList> plKey = registry.getPremiumList();
     assertThat(plKey).isNotNull();
-    PremiumList stored = PremiumList.get(plKey.getName()).get();
+    PremiumList stored = PremiumList.getUncached(plKey.getName()).get();
     assertThat(stored.getName()).isEqualTo("tld2");
   }
 

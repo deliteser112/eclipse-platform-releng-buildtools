@@ -36,7 +36,7 @@ public class DeletePremiumListCommandTest extends CommandTestCase<DeletePremiumL
     PremiumList premiumList = persistPremiumList("xn--q9jyb4c", "blah,USD 100");
     assertThat(loadPremiumListEntries(premiumList)).hasSize(1);
     runCommand("--force", "--name=xn--q9jyb4c");
-    assertThat(PremiumList.get("xn--q9jyb4c")).isEmpty();
+    assertThat(PremiumList.getUncached("xn--q9jyb4c")).isEmpty();
 
     // Ensure that the Datastore premium list entry entities were deleted correctly.
     assertThat(ofy().load()
@@ -64,7 +64,7 @@ public class DeletePremiumListCommandTest extends CommandTestCase<DeletePremiumL
         assertThrows(
             IllegalArgumentException.class,
             () -> runCommandForced("--name=" + premiumList.getName()));
-    assertThat(PremiumList.get(premiumList.getName())).isPresent();
+    assertThat(PremiumList.getUncached(premiumList.getName())).isPresent();
     assertThat(thrown)
         .hasMessageThat()
         .isEqualTo("Cannot delete premium list because it is used on these tld(s): xn--q9jyb4c");

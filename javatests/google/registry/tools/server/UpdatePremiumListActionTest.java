@@ -80,7 +80,7 @@ public class UpdatePremiumListActionTest {
     action.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
     Registry registry = Registry.get("foo");
-    assertThat(loadPremiumListEntries(PremiumList.get("foo").get())).hasSize(3);
+    assertThat(loadPremiumListEntries(PremiumList.getUncached("foo").get())).hasSize(3);
     assertThat(getPremiumPrice("rich", registry)).hasValue(Money.parse("USD 75"));
     assertThat(getPremiumPrice("richer", registry)).hasValue(Money.parse("USD 5000"));
     assertThat(getPremiumPrice("poor", registry)).hasValue(Money.parse("USD 0.99"));

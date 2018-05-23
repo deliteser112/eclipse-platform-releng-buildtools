@@ -138,18 +138,14 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
           .build(
               new CacheLoader<String, PremiumList>() {
                 @Override
-                public PremiumList load(final String listName) {
-                  return ofy()
-                      .doTransactionless(
-                          () ->
-                              ofy()
-                                  .load()
-                                  .type(PremiumList.class)
-                                  .parent(getCrossTldKey())
-                                  .id(listName)
-                                  .now());
+                public PremiumList load(final String name) {
+                  return ofy().doTransactionless(() -> loadPremiumList(name));
                 }
               });
+
+  private static PremiumList loadPremiumList(String name) {
+    return ofy().load().type(PremiumList.class).parent(getCrossTldKey()).id(name).now();
+  }
 
   /**
    * In-memory cache for {@link PremiumListRevision}s, used for retrieving Bloom filters quickly.
@@ -211,8 +207,8 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
     return revisionKey;
   }
 
-  /** Returns the PremiumList with the specified name. */
-  public static Optional<PremiumList> get(String name) {
+  /** Returns the PremiumList with the specified name, from cache. */
+  public static Optional<PremiumList> getCached(String name) {
     try {
       return Optional.of(cachePremiumLists.get(name));
     } catch (InvalidCacheLoadException e) {
@@ -220,6 +216,11 @@ public final class PremiumList extends BaseDomainLabelList<Money, PremiumList.Pr
     } catch (ExecutionException e) {
       throw new UncheckedExecutionException("Could not retrieve premium list named " + name, e);
     }
+  }
+
+  /** Returns the PremiumList with the specified name, uncached. */
+  public static Optional<PremiumList> getUncached(String name) {
+    return Optional.ofNullable(loadPremiumList(name));
   }
 
   /**

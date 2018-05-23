@@ -110,7 +110,7 @@ public class PremiumListUtilsTest {
   @Test
   public void testGetPremiumPrice_throwsExceptionWhenNonExistentPremiumListConfigured()
       throws Exception {
-    deletePremiumList(PremiumList.get("tld").get());
+    deletePremiumList(PremiumList.getUncached("tld").get());
     IllegalStateException thrown =
         assertThrows(
             IllegalStateException.class, () -> getPremiumPrice("blah", Registry.get("tld")));
@@ -152,7 +152,7 @@ public class PremiumListUtilsTest {
 
   @Test
   public void testGetPremiumPrice_comesFromBloomFilter() throws Exception {
-    PremiumList pl = PremiumList.get("tld").get();
+    PremiumList pl = PremiumList.getCached("tld").get();
     PremiumListEntry entry =
         persistResource(
             new PremiumListEntry.Builder()
@@ -201,7 +201,7 @@ public class PremiumListUtilsTest {
                     .delete()
                     .keys(
                         Key.create(
-                            PremiumList.get("tld").get().getRevisionKey(),
+                            PremiumList.getCached("tld").get().getRevisionKey(),
                             PremiumListEntry.class,
                             "rich"));
               }
@@ -239,8 +239,7 @@ public class PremiumListUtilsTest {
             .now()
             .price)
         .isEqualTo(Money.parse("JPY 1000"));
-    PremiumList pl2 =
-        savePremiumListAndEntries(pl, ImmutableList.of("genius,USD 10", "savant,USD 90"));
+    savePremiumListAndEntries(pl, ImmutableList.of("genius,USD 10", "savant,USD 90"));
     assertThat(getPremiumPrice("genius", registry)).hasValue(Money.parse("USD 10"));
     assertThat(getPremiumPrice("savant", registry)).hasValue(Money.parse("USD 90"));
     assertThat(getPremiumPrice("dolt", registry)).isEmpty();
@@ -277,7 +276,7 @@ public class PremiumListUtilsTest {
     assertThat(getPremiumPrice("lol", Registry.get("tld"))).hasValue(Money.parse("USD 999"));
     assertThat(getPremiumPrice("lol ", Registry.get("tld"))).isEmpty();
     ImmutableMap<String, PremiumListEntry> entries =
-        loadPremiumListEntries(PremiumList.get("tld2").get());
+        loadPremiumListEntries(PremiumList.getUncached("tld2").get());
     assertThat(entries.keySet()).containsExactly("lol");
     assertThat(entries).doesNotContainKey("lol ");
     PremiumListEntry entry = entries.get("lol");
@@ -305,12 +304,12 @@ public class PremiumListUtilsTest {
             new PremiumList.Builder().setName("pl").build(), ImmutableList.of("test,USD 1"));
     ImmutableMap<String, PremiumListEntry> entries = loadPremiumListEntries(pl);
     assertThat(entries.keySet()).containsExactly("test");
-    assertThat(loadPremiumListEntries(PremiumList.get("pl").get())).isEqualTo(entries);
+    assertThat(loadPremiumListEntries(PremiumList.getUncached("pl").get())).isEqualTo(entries);
     // Save again with no changes, and clear the cache to force a re-load from Datastore.
     PremiumList resaved = savePremiumListAndEntries(pl, ImmutableList.of("test,USD 1"));
     ofy().clearSessionCache();
     Map<String, PremiumListEntry> entriesReloaded =
-        loadPremiumListEntries(PremiumList.get("pl").get());
+        loadPremiumListEntries(PremiumList.getUncached("pl").get());
     assertThat(entriesReloaded).hasSize(1);
     assertThat(entriesReloaded).containsKey("test");
     assertThat(entriesReloaded.get("test").parent).isEqualTo(resaved.getRevisionKey());
@@ -319,18 +318,18 @@ public class PremiumListUtilsTest {
   @Test
   public void testDelete() throws Exception {
     persistPremiumList("gtld1", "trombone,USD 10");
-    assertThat(PremiumList.get("gtld1")).isPresent();
-    Key<PremiumListRevision> parent = PremiumList.get("gtld1").get().getRevisionKey();
-    deletePremiumList(PremiumList.get("gtld1").get());
-    assertThat(PremiumList.get("gtld1")).isEmpty();
+    assertThat(PremiumList.getUncached("gtld1")).isPresent();
+    Key<PremiumListRevision> parent = PremiumList.getUncached("gtld1").get().getRevisionKey();
+    deletePremiumList(PremiumList.getUncached("gtld1").get());
+    assertThat(PremiumList.getUncached("gtld1")).isEmpty();
     assertThat(ofy().load().type(PremiumListEntry.class).ancestor(parent).list()).isEmpty();
   }
 
   @Test
   public void testDelete_largeNumberOfEntries_succeeds() {
     persistHumongousPremiumList("ginormous", 2500);
-    deletePremiumList(PremiumList.get("ginormous").get());
-    assertThat(PremiumList.get("ginormous")).isEmpty();
+    deletePremiumList(PremiumList.getUncached("ginormous").get());
+    assertThat(PremiumList.getUncached("ginormous")).isEmpty();
   }
 
   /** Persists a premium list with a specified number of nonsense entries. */

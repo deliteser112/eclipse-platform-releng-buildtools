@@ -76,7 +76,7 @@ public final class PremiumListUtils {
     }
     DateTime startTime = DateTime.now(UTC);
     String listName = registry.getPremiumList().getName();
-    Optional<PremiumList> optionalPremiumList = PremiumList.get(listName);
+    Optional<PremiumList> optionalPremiumList = PremiumList.getCached(listName);
     checkState(optionalPremiumList.isPresent(), "Could not load premium list '%s'", listName);
     PremiumList premiumList = optionalPremiumList.get();
     PremiumListRevision revision;
@@ -141,7 +141,7 @@ public final class PremiumListUtils {
   public static PremiumList savePremiumListAndEntries(
       final PremiumList premiumList,
       ImmutableMap<String, PremiumListEntry> premiumListEntries) {
-    final Optional<PremiumList> oldPremiumList = PremiumList.get(premiumList.getName());
+    final Optional<PremiumList> oldPremiumList = PremiumList.getUncached(premiumList.getName());
 
     // Create the new revision (with its Bloom filter) and parent the entries on it.
     final PremiumListRevision newRevision =
@@ -151,13 +151,8 @@ public final class PremiumListUtils {
         parentPremiumListEntriesOnRevision(premiumListEntries.values(), newRevisionKey);
 
     // Save the new child entities in a series of transactions.
-    for (final List<PremiumListEntry> batch :
-        partition(parentedEntries, TRANSACTION_BATCH_SIZE)) {
-      ofy().transactNew(new VoidWork() {
-        @Override
-        public void vrun() {
-          ofy().save().entities(batch);
-        }});
+    for (final List<PremiumListEntry> batch : partition(parentedEntries, TRANSACTION_BATCH_SIZE)) {
+      ofy().transactNew(() -> ofy().save().entities(batch));
     }
 
     // Save the new PremiumList and revision itself.

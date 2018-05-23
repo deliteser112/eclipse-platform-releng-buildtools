@@ -48,7 +48,7 @@ final class DeletePremiumListCommand extends ConfirmingCommand implements Remote
         doesPremiumListExist(name),
         "Cannot delete the premium list %s because it doesn't exist.",
         name);
-    premiumList = PremiumList.get(name).get();
+    premiumList = PremiumList.getUncached(name).get();
     ImmutableSet<String> tldsUsedOn = premiumList.getReferencingTlds();
     checkArgument(
         tldsUsedOn.isEmpty(),

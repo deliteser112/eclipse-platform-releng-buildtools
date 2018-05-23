@@ -44,7 +44,7 @@ public class UpdatePremiumListAction extends CreateOrUpdatePremiumListAction {
 
   @Override
   protected void savePremiumList() {
-    Optional<PremiumList> existingPremiumList = PremiumList.get(name);
+    Optional<PremiumList> existingPremiumList = PremiumList.getUncached(name);
     checkArgument(
         existingPremiumList.isPresent(),
         "Could not update premium list %s because it doesn't exist.",

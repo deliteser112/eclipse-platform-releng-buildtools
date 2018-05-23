@@ -46,7 +46,7 @@ public class CreatePremiumListActionTest {
   @Before
   public void init() throws Exception {
     createTlds("foo", "xn--q9jyb4c", "how");
-    deletePremiumList(PremiumList.get("foo").get());
+    deletePremiumList(PremiumList.getUncached("foo").get());
     action = new CreatePremiumListAction();
     response = new FakeJsonResponse();
     action.response = response;
@@ -78,7 +78,7 @@ public class CreatePremiumListActionTest {
     action.override = true;
     action.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(loadPremiumListEntries(PremiumList.get("zanzibar").get())).hasSize(1);
+    assertThat(loadPremiumListEntries(PremiumList.getUncached("zanzibar").get())).hasSize(1);
   }
 
   @Test
@@ -87,7 +87,7 @@ public class CreatePremiumListActionTest {
     action.inputData = "rich,USD 25\nricher,USD 1000\n";
     action.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);
-    assertThat(loadPremiumListEntries(PremiumList.get("foo").get())).hasSize(2);
+    assertThat(loadPremiumListEntries(PremiumList.getUncached("foo").get())).hasSize(2);
     assertThat(getPremiumPrice("rich", Registry.get("foo"))).hasValue(Money.parse("USD 25"));
     assertThat(getPremiumPrice("diamond", Registry.get("foo"))).isEmpty();
   }

@@ -362,8 +362,9 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
 
       if (premiumListName != null) {
         if (premiumListName.isPresent()) {
-          Optional<PremiumList> premiumList = PremiumList.get(premiumListName.get());
-          checkArgument(premiumList.isPresent(),
+          Optional<PremiumList> premiumList = PremiumList.getUncached(premiumListName.get());
+          checkArgument(
+              premiumList.isPresent(),
               String.format("The premium list '%s' doesn't exist", premiumListName.get()));
           builder.setPremiumList(premiumList.get());
         } else {
