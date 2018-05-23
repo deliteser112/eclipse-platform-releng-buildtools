@@ -48,12 +48,13 @@ class RegistrarWhoisResponse extends WhoisResponseImpl {
     String plaintext =
         new RegistrarEmitter()
             .emitField("Registrar", registrar.getRegistrarName())
-            .emitRegistrarAddress(
+            .emitAddress(
                 null,
                 chooseByUnicodePreference(
                     preferUnicode,
                     registrar.getLocalizedAddress(),
-                    registrar.getInternationalizedAddress()))
+                    registrar.getInternationalizedAddress()),
+                true)
             .emitPhonesAndEmail(
                 registrar.getPhoneNumber(), registrar.getFaxNumber(), registrar.getEmailAddress())
             .emitField("Registrar WHOIS Server", registrar.getWhoisServer())

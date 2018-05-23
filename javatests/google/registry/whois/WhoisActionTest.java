@@ -554,7 +554,7 @@ public class WhoisActionTest {
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     WhoisAction action = newWhoisAction("ns1.cat.lol");
     action.whoisReader = mock(WhoisReader.class);
-    when(action.whoisReader.readCommand(any(Reader.class), any(DateTime.class)))
+    when(action.whoisReader.readCommand(any(Reader.class), eq(false), any(DateTime.class)))
         .thenThrow(new IOException("missing cat interface"));
     action.whoisMetrics = mock(WhoisMetrics.class);
 
@@ -574,11 +574,15 @@ public class WhoisActionTest {
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     WhoisAction action = newWhoisAction("ns1.cat.lol");
     WhoisResponse expectedResponse =
-        action.whoisReader.readCommand(action.input, clock.nowUtc()).executeQuery(clock.nowUtc());
+        action
+            .whoisReader
+            .readCommand(action.input, false, clock.nowUtc())
+            .executeQuery(clock.nowUtc());
 
     WhoisReader mockReader = mock(WhoisReader.class);
     WhoisCommand mockCommand = mock(WhoisCommand.class);
-    when(mockReader.readCommand(any(Reader.class), any(DateTime.class))).thenReturn(mockCommand);
+    when(mockReader.readCommand(any(Reader.class), eq(false), any(DateTime.class)))
+        .thenReturn(mockCommand);
     when(mockCommand.executeQuery(any(DateTime.class)))
         .thenThrow(new DatastoreFailureException("Expected transient exception #1"))
         .thenThrow(new DatastoreTimeoutException("Expected transient exception #2"))

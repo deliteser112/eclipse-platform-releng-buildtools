@@ -82,21 +82,22 @@ class WhoisReader {
   }
 
   /**
-   * Read a command from some source to produce a new instance of
-   * WhoisCommand.
+   * Read a command from some source to produce a new instance of WhoisCommand.
    *
    * @throws IOException If the command could not be read from the reader.
    * @throws WhoisException If the command could not be parsed as a WhoisCommand.
    */
-  WhoisCommand readCommand(Reader reader, DateTime now) throws IOException, WhoisException {
-    return parseCommand(CharStreams.toString(checkNotNull(reader, "reader")), now);
+  WhoisCommand readCommand(Reader reader, boolean fullOutput, DateTime now)
+      throws IOException, WhoisException {
+    return parseCommand(CharStreams.toString(checkNotNull(reader, "reader")), fullOutput, now);
   }
 
   /**
    * Given a WHOIS command string, parse it into its command type and target string. See class level
    * comments for a full description of the command syntax accepted.
    */
-  private WhoisCommand parseCommand(String command, DateTime now) throws WhoisException {
+  private WhoisCommand parseCommand(String command, boolean fullOutput, DateTime now)
+      throws WhoisException {
     // Split the string into tokens based on whitespace.
     List<String> tokens = filterEmptyStrings(command.split("\\s"));
     if (tokens.isEmpty()) {
@@ -115,8 +116,8 @@ class WhoisReader {
       // Try to parse the argument as a domain name.
       try {
         logger.infofmt("Attempting domain lookup command using domain name %s", tokens.get(1));
-        return commandFactory.domainLookup(InternetDomainName.from(
-            canonicalizeDomainName(tokens.get(1))));
+        return commandFactory.domainLookup(
+            InternetDomainName.from(canonicalizeDomainName(tokens.get(1))), fullOutput);
       } catch (IllegalArgumentException iae) {
         // If we can't interpret the argument as a host name, then return an error.
         throw new WhoisException(now, SC_BAD_REQUEST, String.format(
@@ -194,7 +195,7 @@ class WhoisReader {
         // (SLD) and we should do a domain lookup on it.
         if (targetName.parent().equals(tld.get())) {
           logger.infofmt("Attempting domain lookup using %s as a domain name", targetName);
-          return commandFactory.domainLookup(targetName);
+          return commandFactory.domainLookup(targetName, fullOutput);
         }
 
         // The target is more than one level above the TLD, so we'll assume it's a nameserver.

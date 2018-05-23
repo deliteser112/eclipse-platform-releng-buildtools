@@ -27,8 +27,8 @@ import java.net.InetAddress;
 public class WhoisCommandFactory {
 
   /** Returns a new {@link WhoisCommand} to perform a domain lookup on the specified domain name. */
-  public WhoisCommand domainLookup(InternetDomainName domainName) {
-    return new DomainLookupCommand(domainName);
+  public WhoisCommand domainLookup(InternetDomainName domainName, boolean fullOutput) {
+    return new DomainLookupCommand(domainName, fullOutput);
   }
 
   /**

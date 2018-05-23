@@ -24,8 +24,11 @@ import org.joda.time.DateTime;
 /** Represents a WHOIS lookup on a domain name (i.e. SLD). */
 public class DomainLookupCommand extends DomainOrHostLookupCommand {
 
-  public DomainLookupCommand(InternetDomainName domainName) {
+  private final boolean fullOutput;
+
+  public DomainLookupCommand(InternetDomainName domainName, boolean fullOutput) {
     super(domainName, "Domain");
+    this.fullOutput = fullOutput;
   }
 
   @Override
@@ -33,6 +36,6 @@ public class DomainLookupCommand extends DomainOrHostLookupCommand {
     final DomainResource domainResource =
         loadByForeignKeyCached(DomainResource.class, domainName.toString(), now);
     return Optional.ofNullable(
-        domainResource == null ? null : new DomainWhoisResponse(domainResource, now));
+        domainResource == null ? null : new DomainWhoisResponse(domainResource, fullOutput, now));
   }
 }

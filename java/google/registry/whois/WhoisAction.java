@@ -80,7 +80,7 @@ public class WhoisAction implements Runnable {
     String responseText;
     final DateTime now = clock.nowUtc();
     try {
-      final WhoisCommand command = whoisReader.readCommand(input, now);
+      final WhoisCommand command = whoisReader.readCommand(input, false, now);
       metricBuilder.setCommand(command);
       WhoisResponseResults results =
           retrier.callWithRetry(

@@ -255,7 +255,7 @@ public class DomainWhoisResponseTest {
   @Test
   public void getPlainTextOutputTest() {
     DomainWhoisResponse domainWhoisResponse =
-        new DomainWhoisResponse(domainResource, clock.nowUtc());
+        new DomainWhoisResponse(domainResource, false, clock.nowUtc());
     assertThat(
             domainWhoisResponse.getResponse(
                 false,
@@ -264,10 +264,21 @@ public class DomainWhoisResponseTest {
   }
 
   @Test
+  public void getPlainTextOutputTest_fullOutput() {
+    DomainWhoisResponse domainWhoisResponse =
+        new DomainWhoisResponse(domainResource, true, clock.nowUtc());
+    assertThat(
+            domainWhoisResponse.getResponse(
+                false,
+                "Doodle Disclaimer\nI exist so that carriage return\nin disclaimer can be tested."))
+        .isEqualTo(WhoisResponseResults.create(loadFile("whois_domain_full_output.txt"), 1));
+  }
+
+  @Test
   public void addImplicitOkStatusTest() {
     DomainWhoisResponse domainWhoisResponse =
         new DomainWhoisResponse(
-            domainResource.asBuilder().setStatusValues(null).build(), clock.nowUtc());
+            domainResource.asBuilder().setStatusValues(null).build(), false, clock.nowUtc());
     assertThat(
             domainWhoisResponse
                 .getResponse(

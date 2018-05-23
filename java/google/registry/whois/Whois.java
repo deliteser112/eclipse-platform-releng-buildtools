@@ -36,11 +36,11 @@ public final class Whois {
   }
 
   /** Performs a WHOIS lookup on a plaintext query string. */
-  public String lookup(String query, boolean preferUnicode) {
+  public String lookup(String query, boolean preferUnicode, boolean fullOutput) {
     DateTime now = clock.nowUtc();
     try {
       return whoisReader
-          .readCommand(new StringReader(query), now)
+          .readCommand(new StringReader(query), fullOutput, now)
           .executeQuery(now)
           .getResponse(preferUnicode, disclaimer)
           .plainTextOutput();

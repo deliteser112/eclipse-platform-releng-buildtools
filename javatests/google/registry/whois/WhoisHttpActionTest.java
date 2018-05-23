@@ -358,7 +358,7 @@ public class WhoisHttpActionTest {
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     WhoisHttpAction action = newWhoisHttpAction("ns1.cat.lol");
     action.whoisReader = mock(WhoisReader.class);
-    when(action.whoisReader.readCommand(any(Reader.class), any(DateTime.class)))
+    when(action.whoisReader.readCommand(any(Reader.class), eq(false), any(DateTime.class)))
         .thenThrow(new IOException("missing cat interface"));
     action.whoisMetrics = mock(WhoisMetrics.class);
 

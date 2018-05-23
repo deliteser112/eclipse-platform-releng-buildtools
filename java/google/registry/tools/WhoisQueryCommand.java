@@ -36,11 +36,14 @@ final class WhoisQueryCommand implements RemoteApiCommand {
       description = "When set, output will be Unicode")
   private boolean unicode;
 
+  @Parameter(names = "--full_output", description = "When set, the full output will be displayed")
+  private boolean fullOutput;
+
   @Inject
   Whois whois;
 
   @Override
   public void run() {
-    System.out.println(whois.lookup(Joiner.on(' ').join(mainParameters), unicode));
+    System.out.println(whois.lookup(Joiner.on(' ').join(mainParameters), unicode, fullOutput));
   }
 }

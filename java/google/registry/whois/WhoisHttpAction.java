@@ -151,7 +151,7 @@ public final class WhoisHttpAction implements Runnable {
       String commandText =
           decode(JOINER.join(SLASHER.split(path.substring(PATH.length())))) + "\r\n";
       DateTime now = clock.nowUtc();
-      WhoisCommand command = whoisReader.readCommand(new StringReader(commandText), now);
+      WhoisCommand command = whoisReader.readCommand(new StringReader(commandText), false, now);
       metricBuilder.setCommand(command);
       sendResponse(SC_OK, command.executeQuery(now));
     } catch (WhoisException e) {

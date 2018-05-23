@@ -48,7 +48,7 @@ public class WhoisReaderTest {
   <T> T readCommand(String commandStr) throws Exception {
     return (T)
         new WhoisReader(new WhoisCommandFactory())
-            .readCommand(new StringReader(commandStr), clock.nowUtc());
+            .readCommand(new StringReader(commandStr), false, clock.nowUtc());
   }
 
   void assertLoadsExampleTld(String commandString) throws Exception {
