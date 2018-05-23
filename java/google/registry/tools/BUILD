@@ -51,6 +51,7 @@ java_library(
         "//java/google/registry/model",
         "//java/google/registry/module/backend",
         "//java/google/registry/module/frontend",
+        "//java/google/registry/module/pubapi",
         "//java/google/registry/module/tools",
         "//java/google/registry/pricing",
         "//java/google/registry/rde",

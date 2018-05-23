@@ -21,6 +21,12 @@ encoding="UTF-8"?>
   </module>
   <module>
     <web>
+      <web-uri>pubapi</web-uri>
+      <context-root>pubapi</context-root>
+    </web>
+  </module>
+  <module>
+    <web>
       <web-uri>backend</web-uri>
       <context-root>backend</context-root>
     </web>

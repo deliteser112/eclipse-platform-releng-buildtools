@@ -40,6 +40,7 @@ registry_ear_file(
     },
     wars = {
         "registry_default.war": "default",
+        "registry_pubapi.war": "pubapi",
         "registry_backend.war": "backend",
         "registry_tools.war": "tools",
     },
@@ -57,6 +58,7 @@ registry_ear_file(
     },
     wars = {
         "registry_default_nocron.war": "default",
+        "registry_pubapi.war": "pubapi",
         "registry_backend.war": "backend",
         "registry_tools.war": "tools",
     },
@@ -91,6 +93,27 @@ zip_file(
     out = "registry_default_nocron.war",
     exclude = ["WEB-INF/cron.xml"],
     deps = [":registry_default_war"],
+)
+
+zip_file(
+    name = "registry_pubapi_war",
+    srcs = [
+        "env/common/pubapi/WEB-INF/dos.xml",
+        "env/common/pubapi/WEB-INF/logging.properties",
+        "env/common/pubapi/WEB-INF/web.xml",
+        "env/production/pubapi/WEB-INF/appengine-web.xml",
+        "//java/google/registry/module/pubapi:pubapi_jar_deploy.jar",
+    ],
+    out = "registry_pubapi.war",
+    mappings = {
+        "domain_registry/java/google/registry/env/common/pubapi": "",
+        "domain_registry/java/google/registry/env/production/pubapi": "",
+        "domain_registry/java/google/registry/module/pubapi": "WEB-INF/lib",
+    },
+    deps = [
+        ":common_war",
+        "//java/google/registry/ui:war_debug",
+    ],
 )
 
 zip_file(
@@ -148,6 +171,7 @@ registry_ear_file(
     },
     wars = {
         "registry_default_sandbox.war": "default",
+        "registry_pubapi_sandbox.war": "pubapi",
         "registry_backend_sandbox.war": "backend",
         "registry_tools_sandbox.war": "tools",
     },
@@ -164,6 +188,18 @@ zip_file(
         "domain_registry/java/google/registry/env/sandbox/default": "",
     },
     deps = [":registry_default_war"],
+)
+
+zip_file(
+    name = "registry_pubapi_sandbox_war",
+    srcs = [
+        "env/sandbox/pubapi/WEB-INF/appengine-web.xml",
+    ],
+    out = "registry_pubapi_sandbox.war",
+    mappings = {
+        "domain_registry/java/google/registry/env/sandbox/pubapi": "",
+    },
+    deps = [":registry_pubapi_war"],
 )
 
 zip_file(
@@ -204,6 +240,7 @@ registry_ear_file(
     },
     wars = {
         "registry_default_alpha.war": "default",
+        "registry_pubapi_alpha.war": "pubapi",
         "registry_backend_alpha.war": "backend",
         "registry_tools_alpha.war": "tools",
     },
@@ -224,6 +261,7 @@ registry_ear_file(
     },
     wars = {
         "registry_default_alpha_nocron.war": "default",
+        "registry_pubapi_alpha.war": "pubapi",
         "registry_backend_alpha.war": "backend",
         "registry_tools_alpha.war": "tools",
     },
@@ -247,6 +285,18 @@ zip_file(
     out = "registry_default_alpha_nocron.war",
     exclude = ["WEB-INF/cron.xml"],
     deps = [":registry_default_alpha_war"],
+)
+
+zip_file(
+    name = "registry_pubapi_alpha_war",
+    srcs = [
+        "env/alpha/pubapi/WEB-INF/appengine-web.xml",
+    ],
+    out = "registry_pubapi_alpha.war",
+    mappings = {
+        "domain_registry/java/google/registry/env/alpha/pubapi": "",
+    },
+    deps = [":registry_pubapi_war"],
 )
 
 zip_file(
@@ -287,6 +337,7 @@ registry_ear_file(
     },
     wars = {
         "registry_default_crash.war": "default",
+        "registry_pubapi_crash.war": "pubapi",
         "registry_backend_crash.war": "backend",
         "registry_tools_crash.war": "tools",
     },
@@ -307,6 +358,7 @@ registry_ear_file(
     },
     wars = {
         "registry_default_crash_nocron.war": "default",
+        "registry_pubapi_crash.war": "pubapi",
         "registry_backend_crash.war": "backend",
         "registry_tools_crash.war": "tools",
     },
@@ -330,6 +382,18 @@ zip_file(
     out = "registry_default_crash_nocron.war",
     exclude = ["WEB-INF/cron.xml"],
     deps = [":registry_default_crash_war"],
+)
+
+zip_file(
+    name = "registry_pubapi_crash_war",
+    srcs = [
+        "env/crash/pubapi/WEB-INF/appengine-web.xml",
+    ],
+    out = "registry_pubapi_crash.war",
+    mappings = {
+        "domain_registry/java/google/registry/env/crash/pubapi": "",
+    },
+    deps = [":registry_pubapi_war"],
 )
 
 zip_file(
@@ -370,6 +434,7 @@ registry_ear_file(
     },
     wars = {
         "registry_default_local.war": "default",
+        "registry_pubapi_local.war": "pubapi",
         "registry_backend_local.war": "backend",
         "registry_tools_local.war": "tools",
     },
@@ -385,6 +450,18 @@ zip_file(
         "domain_registry/java/google/registry/env/local/default": "",
     },
     deps = [":registry_default_war"],
+)
+
+zip_file(
+    name = "registry_pubapi_local_war",
+    srcs = [
+        "env/local/pubapi/WEB-INF/appengine-web.xml",
+    ],
+    out = "registry_pubapi_local.war",
+    mappings = {
+        "domain_registry/java/google/registry/env/local/pubapi": "",
+    },
+    deps = [":registry_pubapi_war"],
 )
 
 zip_file(
