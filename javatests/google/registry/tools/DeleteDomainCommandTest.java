@@ -30,30 +30,31 @@ public class DeleteDomainCommandTest extends EppToolCommandTestCase<DeleteDomain
 
   @Test
   public void testSuccess_multipleWordReason() throws Exception {
-    runCommand(
-        "--client=NewRegistrar", "--domain_name=example.tld", "--force", "--reason=\"Test test\"");
+    runCommandForced(
+        "--client=NewRegistrar", "--domain_name=example.tld", "--reason=\"Test test\"");
     eppVerifier.verifySent("domain_delete_multiple_word_reason.xml");
   }
 
   @Test
+  public void testSuccess_immediately() throws Exception {
+    runCommandForced(
+        "--client=NewRegistrar", "--domain_name=example.tld", "--immediately", "--reason=Test");
+    eppVerifier.expectSuperuser().verifySent("domain_delete_immediately.xml");
+  }
+
+  @Test
   public void testSuccess_requestedByRegistrarFalse() throws Exception {
-    runCommand(
-        "--client=NewRegistrar",
-        "--domain_name=example.tld",
-        "--force",
-        "--reason=Test",
-        "--registrar_request=false");
+    runCommandForced("--client=NewRegistrar", "--domain_name=example.tld", "--reason=Test");
     eppVerifier.verifySent("domain_delete.xml");
   }
 
   @Test
   public void testSuccess_requestedByRegistrarTrue() throws Exception {
-    runCommand(
+    runCommandForced(
         "--client=NewRegistrar",
         "--domain_name=example.tld",
-        "--force",
         "--reason=Test",
-        "--registrar_request=true");
+        "--registrar_request");
     eppVerifier.verifySent("domain_delete_by_registrar.xml");
   }
 

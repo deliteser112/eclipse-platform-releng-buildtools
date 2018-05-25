@@ -36,6 +36,11 @@ final class DeleteDomainCommand extends MutatingEppToolCommand {
   private String domainName;
 
   @Parameter(
+      names = {"--immediately"},
+      description = "Whether to bypass grace periods and delete the domain immediately.")
+  private boolean immediately = false;
+
+  @Parameter(
       names = {"--reason"},
       description = "Reason for the change.",
       required = true)
@@ -43,15 +48,19 @@ final class DeleteDomainCommand extends MutatingEppToolCommand {
 
   @Parameter(
       names = {"--registrar_request"},
-      description = "Whether the change was requested by a registrar.",
-      arity = 1)
+      description = "Whether the change was requested by a registrar.")
   private boolean requestedByRegistrar = false;
 
   @Override
   protected void initMutatingEppToolCommand() {
+    if (immediately) {
+      // Immediate deletion is accomplished using the superuser extension.
+      superuser = true;
+    }
     setSoyTemplate(DeleteDomainSoyInfo.getInstance(), DeleteDomainSoyInfo.DELETEDOMAIN);
     addSoyRecord(clientId, new SoyMapData(
         "domainName", domainName,
+        "immediately", immediately,
         "reason", reason,
         "requestedByRegistrar", requestedByRegistrar));
   }

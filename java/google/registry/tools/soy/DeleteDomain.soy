@@ -19,6 +19,7 @@
  */
 {template .deletedomain stricthtml="false"}
 {@param domainName: string}
+{@param immediately: bool}
 {@param reason: string}
 {@param requestedByRegistrar: any}
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -35,6 +36,12 @@
         <metadata:reason>Deleted by registry administrator: {$reason}</metadata:reason>
         <metadata:requestedByRegistrar>{$requestedByRegistrar}</metadata:requestedByRegistrar>
       </metadata:metadata>
+    {if $immediately}
+      <superuser:domainDelete xmlns:superuser="urn:google:params:xml:ns:superuser-1.0">
+        <superuser:redemptionGracePeriodDays>0</superuser:redemptionGracePeriodDays>
+        <superuser:pendingDeleteDays>0</superuser:pendingDeleteDays>
+      </superuser:domainDelete>
+    {/if}
     </extension>
     <clTRID>RegistryTool</clTRID>
   </command>

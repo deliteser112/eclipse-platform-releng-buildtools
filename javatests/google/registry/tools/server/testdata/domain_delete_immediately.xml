@@ -1,0 +1,21 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <command>
+    <delete>
+      <domain:delete
+       xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>example.tld</domain:name>
+      </domain:delete>
+    </delete>
+    <extension>
+      <metadata:metadata xmlns:metadata="urn:google:params:xml:ns:metadata-1.0">
+        <metadata:reason>Deleted by registry administrator: Test</metadata:reason>
+        <metadata:requestedByRegistrar>false</metadata:requestedByRegistrar>
+      </metadata:metadata>
+      <superuser:domainDelete xmlns:superuser="urn:google:params:xml:ns:superuser-1.0">
+        <superuser:redemptionGracePeriodDays>0</superuser:redemptionGracePeriodDays>
+        <superuser:pendingDeleteDays>0</superuser:pendingDeleteDays>
+      </superuser:domainDelete>
+    </extension>
+    <clTRID>RegistryTool</clTRID>
+  </command>
+</epp>
