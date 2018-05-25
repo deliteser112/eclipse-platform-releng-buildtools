@@ -171,15 +171,6 @@ public class DnsQueue {
     }
   }
 
-  /** Delete the task, removing it from the queue permanently. */
-  public void deleteTask(TaskHandle task) {
-    try {
-      queue.deleteTask(task);
-    } catch (TransientFailureException | DeadlineExceededException e) {
-      logger.severe(e, "Failed deleting tasks too fast");
-    }
-  }
-
   /** Delete a list of tasks, removing them from the queue permanently. */
   public void deleteTasks(List<TaskHandle> tasks) {
     try {
