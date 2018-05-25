@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.users.User;
+import com.google.common.flogger.LoggerConfig;
 import com.google.common.testing.NullPointerTester;
 import com.google.common.testing.TestLogHandler;
 import google.registry.model.registrar.RegistrarContact;
@@ -77,7 +78,7 @@ public class SessionUtilsTest {
 
   @Before
   public void before() throws Exception {
-    SessionUtils.logger.getFormattingLogger().addHandler(testLogHandler);
+    LoggerConfig.getConfig(SessionUtils.class).addHandler(testLogHandler);
     sessionUtils = new SessionUtils();
     sessionUtils.registryAdminClientId = ADMIN_CLIENT_ID;
     persistResource(loadRegistrar(ADMIN_CLIENT_ID));
@@ -86,7 +87,7 @@ public class SessionUtilsTest {
 
   @After
   public void after() throws Exception {
-    SessionUtils.logger.getFormattingLogger().removeHandler(testLogHandler);
+    LoggerConfig.getConfig(SessionUtils.class).removeHandler(testLogHandler);
   }
 
   /** User needs to be logged in before calling checkRegistrarConsoleLogin */

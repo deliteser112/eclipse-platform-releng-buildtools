@@ -23,7 +23,6 @@ import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.appengine.tools.mapreduce.ShardContext;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import google.registry.model.EppResource;
@@ -41,8 +40,6 @@ import javax.annotation.Nullable;
 class ChildEntityReader<R extends EppResource, I extends ImmutableObject> extends InputReader<I> {
 
   private static final long serialVersionUID = 7481761146349663848L;
-
-  static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   /** This reader uses an EppResourceEntityReader under the covers to iterate over EPP resources. */
   private final EppResourceEntityReader<? extends R> eppResourceEntityReader;

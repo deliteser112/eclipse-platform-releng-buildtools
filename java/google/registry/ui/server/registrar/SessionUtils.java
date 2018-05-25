@@ -21,7 +21,7 @@ import static google.registry.util.PreconditionsUtils.checkArgumentPresent;
 
 import com.google.appengine.api.users.User;
 import com.google.common.base.Strings;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.registrar.Registrar;
@@ -40,7 +40,7 @@ import javax.servlet.http.HttpSession;
 @Immutable
 public class SessionUtils {
 
-  static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   public static final String CLIENT_ID_ATTRIBUTE = "clientId";
 
@@ -102,11 +102,12 @@ public class SessionUtils {
     // Use the clientId if it exists
     if (clientId != null) {
       if (!hasAccessToRegistrar(clientId, user.getUserId())) {
-        logger.infofmt("Registrar Console access revoked: %s", clientId);
+        logger.atInfo().log("Registrar Console access revoked: %s", clientId);
         session.invalidate();
         return false;
       }
-      logger.infofmt("Associating user %s with given registrar %s.", user.getUserId(), clientId);
+      logger.atInfo().log(
+          "Associating user %s with given registrar %s.", user.getUserId(), clientId);
       return true;
     }
 
@@ -114,7 +115,7 @@ public class SessionUtils {
     Optional<Registrar> registrar = findRegistrarForUser(user.getUserId());
     if (registrar.isPresent()) {
       verify(hasAccessToRegistrar(registrar.get(), user.getUserId()));
-      logger.infofmt(
+      logger.atInfo().log(
           "Associating user %s with found registrar %s.",
           user.getUserId(), registrar.get().getClientId());
       session.setAttribute(CLIENT_ID_ATTRIBUTE, registrar.get().getClientId());
@@ -125,20 +126,20 @@ public class SessionUtils {
     // registryAdminClientId
     if (userAuthInfo.isUserAdmin()) {
       if (Strings.isNullOrEmpty(registryAdminClientId)) {
-        logger.infofmt(
+        logger.atInfo().log(
             "Cannot associate admin user %s with configured client Id."
                 + " ClientId is null or empty.",
             user.getUserId());
         return false;
       }
       if (!Registrar.loadByClientIdCached(registryAdminClientId).isPresent()) {
-        logger.infofmt(
+        logger.atInfo().log(
             "Cannot associate admin user %s with configured client Id %s."
                 + " Registrar does not exist.",
             user.getUserId(), registryAdminClientId);
         return false;
       }
-      logger.infofmt(
+      logger.atInfo().log(
           "User %s is an admin with no associated registrar."
               + " Automatically associating the user with configured client Id %s.",
           user.getUserId(), registryAdminClientId);
@@ -147,7 +148,7 @@ public class SessionUtils {
     }
 
     // We couldn't find any relevant clientId
-    logger.infofmt("User not associated with any Registrar: %s", user.getUserId());
+    logger.atInfo().log("User not associated with any Registrar: %s", user.getUserId());
     return false;
   }
 
@@ -173,7 +174,7 @@ public class SessionUtils {
     String registrarClientId = contact.getParent().getName();
     Optional<Registrar> result = Registrar.loadByClientIdCached(registrarClientId);
     if (!result.isPresent()) {
-      logger.severefmt(
+      logger.atSevere().log(
           "A contact record exists for non-existent registrar: %s.", Key.create(contact));
     }
     return result;
@@ -183,7 +184,7 @@ public class SessionUtils {
   protected static boolean hasAccessToRegistrar(String clientId, final String gaeUserId) {
     Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
     if (!registrar.isPresent()) {
-      logger.warningfmt("Registrar '%s' disappeared from Datastore!", clientId);
+      logger.atWarning().log("Registrar '%s' disappeared from Datastore!", clientId);
       return false;
     }
     return hasAccessToRegistrar(registrar.get(), gaeUserId);

@@ -15,6 +15,8 @@ java_library(
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_errorprone_error_prone_annotations",
+        "@com_google_flogger",
+        "@com_google_flogger_system_backend",
         "@com_google_guava",
         "@com_google_re2j",
         "@com_ibm_icu_icu4j",

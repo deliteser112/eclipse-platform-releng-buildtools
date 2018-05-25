@@ -22,7 +22,7 @@ import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.Environment;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import java.util.Collections;
 import javax.inject.Inject;
 
@@ -31,8 +31,7 @@ public class RequestStatusCheckerImpl implements RequestStatusChecker {
 
   private static final long serialVersionUID = -8161977032130865437L;
 
-  @VisibleForTesting
-  static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @VisibleForTesting
   static LogService logService = LogServiceFactory.getLogService();
@@ -56,7 +55,7 @@ public class RequestStatusCheckerImpl implements RequestStatusChecker {
   public String getLogId() {
     String requestLogId =
         ApiProxy.getCurrentEnvironment().getAttributes().get(REQUEST_LOG_ID_KEY).toString();
-    logger.infofmt("Current requestLogId: %s", requestLogId);
+    logger.atInfo().log("Current requestLogId: %s", requestLogId);
     // We want to make sure there actually is a log to query for this request, even if the request
     // dies right after this call.
     //
@@ -85,12 +84,12 @@ public class RequestStatusCheckerImpl implements RequestStatusChecker {
     // request is too new (it can take several seconds until the logs are available for "fetch").
     // So we have to assume it's "running" in that case.
     if (requestLogs == null) {
-      logger.infofmt(
+      logger.atInfo().log(
           "Queried an unrecognized requestLogId %s - assume it's running", requestLogId);
       return true;
     }
-    logger.infofmt(
-        "Found logs for requestLogId %s - isFinished: %s", requestLogId, requestLogs.isFinished());
+    logger.atInfo().log(
+        "Found logs for requestLogId %s - isFinished: %b", requestLogId, requestLogs.isFinished());
     return !requestLogs.isFinished();
   }
 }

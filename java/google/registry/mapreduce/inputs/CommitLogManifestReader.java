@@ -19,7 +19,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.tools.mapreduce.InputReader;
-import com.google.common.logging.FormattingLogger;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
 import google.registry.model.ofy.CommitLogBucket;
@@ -31,8 +30,6 @@ import org.joda.time.DateTime;
 /** {@link InputReader} that maps over {@link CommitLogManifest}. */
 class CommitLogManifestReader
     extends RetryingInputReader<Key<CommitLogManifest>, Key<CommitLogManifest>> {
-
-  static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   /**
    * Memory estimation for this reader.

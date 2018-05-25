@@ -16,7 +16,7 @@ package google.registry.keyring.api;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.util.ComparingInvocationHandler;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -43,8 +43,7 @@ import org.bouncycastle.openpgp.PGPPublicKey;
  */
 public final class ComparatorKeyring extends ComparingInvocationHandler<Keyring> {
 
-  @VisibleForTesting
-  static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private ComparatorKeyring(Keyring original, Keyring second) {
     super(Keyring.class, original, second);
@@ -61,7 +60,7 @@ public final class ComparatorKeyring extends ComparingInvocationHandler<Keyring>
 
   @Override
   protected void log(Method method, String message) {
-    logger.severefmt("ComparatorKeyring.%s: %s", method.getName(), message);
+    logger.atSevere().log("ComparatorKeyring.%s: %s", method.getName(), message);
   }
 
   /** Implements equals for the PGP classes. */
@@ -124,7 +123,8 @@ public final class ComparatorKeyring extends ComparingInvocationHandler<Keyring>
       return Arrays.equals(a.getFingerprint(), b.getFingerprint())
           && Arrays.equals(a.getEncoded(), b.getEncoded());
     } catch (IOException e) {
-      logger.severe(e, "ComparatorKeyring error: PGPPublicKey.getEncoded failed.");
+      logger.atSevere().withCause(e).log(
+          "ComparatorKeyring error: PGPPublicKey.getEncoded failed.");
       return false;
     }
   }
@@ -147,7 +147,8 @@ public final class ComparatorKeyring extends ComparingInvocationHandler<Keyring>
     try {
       return Arrays.equals(a.getEncoded(), b.getEncoded());
     } catch (IOException e) {
-      logger.severe(e, "ComparatorKeyring error: PublicKeyPacket.getEncoded failed.");
+      logger.atSevere().withCause(e).log(
+          "ComparatorKeyring error: PublicKeyPacket.getEncoded failed.");
       return false;
     }
   }

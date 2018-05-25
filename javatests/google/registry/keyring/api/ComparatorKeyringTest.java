@@ -21,6 +21,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.google.common.flogger.LoggerConfig;
 import com.google.common.testing.TestLogHandler;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -80,12 +81,12 @@ public class ComparatorKeyringTest {
 
   @Before
   public void setUp() {
-    ComparatorKeyring.logger.getFormattingLogger().addHandler(testLogHandler);
+    LoggerConfig.getConfig(ComparatorKeyring.class).addHandler(testLogHandler);
   }
 
   @After
   public void tearDown() {
-    ComparatorKeyring.logger.getFormattingLogger().removeHandler(testLogHandler);
+    LoggerConfig.getConfig(ComparatorKeyring.class).removeHandler(testLogHandler);
   }
 
   @Test

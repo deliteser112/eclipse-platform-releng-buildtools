@@ -21,7 +21,6 @@ import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
 import google.registry.model.EppResource;
@@ -31,8 +30,6 @@ import javax.annotation.Nullable;
 
 /** Base class for {@link InputReader} classes that map over {@link EppResourceIndex}. */
 abstract class EppResourceBaseReader<T> extends RetryingInputReader<EppResourceIndex, T> {
-
-  static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
   /** Number of bytes in 1MB of memory, used for memory estimates. */
   static final long ONE_MB = 1024 * 1024;

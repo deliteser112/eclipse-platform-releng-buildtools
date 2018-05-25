@@ -18,6 +18,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.google.appengine.tools.mapreduce.InputReader;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.model.EppResource;
 import google.registry.model.index.EppResourceIndex;
@@ -26,6 +27,8 @@ import java.util.NoSuchElementException;
 
 /** Reader that maps over {@link EppResourceIndex} and returns resources. */
 class EppResourceEntityReader<R extends EppResource> extends EppResourceBaseReader<R> {
+
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final long serialVersionUID = -8042933349899971801L;
 
@@ -61,7 +64,7 @@ class EppResourceEntityReader<R extends EppResource> extends EppResourceBaseRead
       Key<? extends EppResource> key = nextQueryResult().getKey();
       EppResource resource = ofy().load().key(key).now();
       if (resource == null) {
-        logger.severefmt("EppResourceIndex key %s points at a missing resource", key);
+        logger.atSevere().log("EppResourceIndex key %s points at a missing resource", key);
         continue;
       }
       // Postfilter to distinguish polymorphic types (e.g. DomainBase and DomainResource).
