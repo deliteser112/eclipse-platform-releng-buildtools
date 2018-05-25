@@ -22,7 +22,7 @@ import google.registry.tools.soy.DomainCheckSoyInfo;
 import java.util.Collection;
 import java.util.List;
 
-/** A command to execute a domain check epp command. */
+/** A command to execute a domain check EPP command (including cost of a 1 year create). */
 @Parameters(separators = " =", commandDescription = "Check domain availability")
 final class CheckDomainCommand extends NonMutatingEppToolCommand {
 

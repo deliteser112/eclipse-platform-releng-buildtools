@@ -29,6 +29,17 @@
       {/for}
       </domain:check>
     </check>
+    <extension>
+      <fee:check xmlns:fee="urn:ietf:params:xml:ns:fee-0.6">
+      {for $d in $domainNames}
+        <fee:domain>
+          <fee:name>{$d}</fee:name>
+          <fee:command>create</fee:command>
+          <fee:period unit="y">1</fee:period>
+        </fee:domain>
+      {/for}
+      </fee:check>
+    </extension>
     <clTRID>RegistryTool</clTRID>
   </command>
 </epp>
