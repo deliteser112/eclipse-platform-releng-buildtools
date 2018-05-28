@@ -12,6 +12,10 @@ resource "google_container_cluster" "proxy_cluster" {
   node_version       = "${data.google_container_engine_versions.gke_version.latest_node_version}"
   min_master_version = "${data.google_container_engine_versions.gke_version.latest_master_version}"
 
+  timeouts {
+    update = "30m"
+  }
+
   node_pool {
     name               = "proxy-node-pool"
     initial_node_count = 1
