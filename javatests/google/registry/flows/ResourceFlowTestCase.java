@@ -27,6 +27,7 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Streams;
+import com.google.common.flogger.LoggerConfig;
 import com.google.common.testing.TestLogHandler;
 import com.googlecode.objectify.Key;
 import google.registry.flows.FlowUtils.NotLoggedInException;
@@ -45,7 +46,6 @@ import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.TypeUtils.TypeInstantiator;
 import java.util.Optional;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.json.simple.JSONValue;
@@ -68,7 +68,7 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
     // Attach TestLogHandler to the root logger so it has access to all log messages.
     // Note that in theory for assertIcannReportingActivityFieldLogged() below it would suffice to
     // attach it only to the FlowRunner logger, but for some reason this doesn't work for all flows.
-    Logger.getLogger("").addHandler(logHandler);
+    LoggerConfig.getConfig("").addHandler(logHandler);
   }
 
   protected R reloadResourceByForeignKey(DateTime now) throws Exception {

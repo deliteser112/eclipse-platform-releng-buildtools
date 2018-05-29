@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.flogger.LoggerConfig;
 import com.google.common.testing.TestLogHandler;
 import google.registry.flows.annotations.ReportingSpec;
 import google.registry.model.eppcommon.Trid;
@@ -33,7 +34,6 @@ import google.registry.model.reporting.IcannReportingTypes.ActivityReportField;
 import google.registry.testing.ShardableTestCase;
 import java.util.Map;
 import java.util.Optional;
-import java.util.logging.Logger;
 import org.json.simple.JSONValue;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,7 +64,7 @@ public class FlowReporterTest extends ShardableTestCase {
 
   @Before
   public void before() {
-    Logger.getLogger(FlowReporter.class.getCanonicalName()).addHandler(handler);
+    LoggerConfig.getConfig(FlowReporter.class).addHandler(handler);
     flowReporter.trid = Trid.create("client-123", "server-456");
     flowReporter.clientId = "TheRegistrar";
     flowReporter.inputXmlBytes = "<xml/>".getBytes(UTF_8);

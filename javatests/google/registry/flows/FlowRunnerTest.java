@@ -27,6 +27,7 @@ import com.google.appengine.api.users.User;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.flogger.LoggerConfig;
 import com.google.common.testing.TestLogHandler;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppOutput.ResponseOrGreeting;
@@ -38,7 +39,6 @@ import google.registry.testing.FakeHttpSession;
 import google.registry.testing.ShardableTestCase;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Logger;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,7 +68,7 @@ public class FlowRunnerTest extends ShardableTestCase {
 
   @Before
   public void before() {
-    Logger.getLogger(FlowRunner.class.getCanonicalName()).addHandler(handler);
+    LoggerConfig.getConfig(FlowRunner.class).addHandler(handler);
     flowRunner.clientId = "TheRegistrar";
     flowRunner.credentials = new PasswordOnlyTransportCredentials();
     flowRunner.eppRequestSource = EppRequestSource.UNIT_TEST;

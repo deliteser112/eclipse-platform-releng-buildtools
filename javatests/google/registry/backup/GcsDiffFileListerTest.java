@@ -32,6 +32,7 @@ import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.ListItem;
 import com.google.appengine.tools.cloudstorage.ListResult;
 import com.google.common.collect.Iterators;
+import com.google.common.flogger.LoggerConfig;
 import com.google.common.testing.TestLogHandler;
 import google.registry.testing.AppEngineRule;
 import java.io.IOException;
@@ -42,7 +43,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -79,7 +79,7 @@ public class GcsDiffFileListerTest {
               .build(),
           ByteBuffer.wrap(new byte[]{1, 2, 3}));
     }
-    Logger.getLogger(GcsDiffFileLister.class.getCanonicalName()).addHandler(logHandler);
+    LoggerConfig.getConfig(GcsDiffFileLister.class).addHandler(logHandler);
   }
 
   private Iterable<DateTime> extractTimesFromDiffFiles(List<GcsFileMetadata> diffFiles) {

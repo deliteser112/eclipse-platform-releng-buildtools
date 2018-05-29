@@ -20,6 +20,7 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.flogger.LoggerConfig;
 import com.google.common.testing.TestLogHandler;
 import google.registry.flows.EppException.UnimplementedExtensionException;
 import google.registry.flows.ExtensionManager.UndeclaredServiceExtensionException;
@@ -37,7 +38,6 @@ import google.registry.model.eppinput.EppInput.CommandExtension;
 import google.registry.testing.AppEngineRule;
 import google.registry.util.TypeUtils;
 import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,7 +70,7 @@ public class ExtensionManagerTest {
   @Test
   public void testUndeclaredExtensionsLogged() throws Exception {
     TestLogHandler handler = new TestLogHandler();
-    Logger.getLogger(ExtensionManager.class.getCanonicalName()).addHandler(handler);
+    LoggerConfig.getConfig(ExtensionManager.class).addHandler(handler);
     ExtensionManager manager =
         new TestInstanceBuilder()
             .setEppRequestSource(EppRequestSource.TOOL)

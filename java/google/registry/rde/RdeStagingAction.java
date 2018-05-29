@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimaps;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
@@ -194,7 +194,7 @@ public final class RdeStagingAction implements Runnable {
 
   public static final String PATH = "/_dr/task/rdeStaging";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject Clock clock;
   @Inject PendingDepositChecker pendingDepositChecker;
@@ -218,12 +218,14 @@ public final class RdeStagingAction implements Runnable {
         manual ? getManualPendingDeposits() : getStandardPendingDeposits();
     if (pendings.isEmpty()) {
       String message = "Nothing needs to be deposited";
-      logger.info(message);
+      logger.atInfo().log(message);
       response.setStatus(SC_NO_CONTENT);
       response.setPayload(message);
       return;
     }
-    pendings.values().stream().map(Object::toString).forEach(logger::info);
+    for (PendingDeposit pending : pendings.values()) {
+      logger.atInfo().log("Pending deposit: %s", pending);
+    }
     RdeStagingMapper mapper = new RdeStagingMapper(lenient ? LENIENT : STRICT, pendings);
 
     response.sendJavaScriptRedirect(createJobPath(mrRunner
@@ -261,7 +263,8 @@ public final class RdeStagingAction implements Runnable {
             pendingDepositChecker.getTldsAndWatermarksPendingDepositForRdeAndBrda(),
             pending -> {
               if (clock.nowUtc().isBefore(pending.watermark().plus(transactionCooldown))) {
-                logger.infofmt("Ignoring within %s cooldown: %s", transactionCooldown, pending);
+                logger.atInfo().log(
+                    "Ignoring within %s cooldown: %s", transactionCooldown, pending);
                 return false;
               } else {
                 return true;

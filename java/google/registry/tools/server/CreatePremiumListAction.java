@@ -22,6 +22,7 @@ import static google.registry.request.Action.Method.POST;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.flogger.FluentLogger;
 import google.registry.model.registry.label.PremiumList;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
@@ -40,6 +41,8 @@ import javax.inject.Inject;
 )
 public class CreatePremiumListAction extends CreateOrUpdatePremiumListAction {
 
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   public static final String OVERRIDE_PARAM = "override";
   public static final String PATH = "/_dr/admin/createPremiumList";
 
@@ -54,7 +57,7 @@ public class CreatePremiumListAction extends CreateOrUpdatePremiumListAction {
       assertTldExists(name);
     }
 
-    logger.infofmt("Saving premium list for TLD %s", name);
+    logger.atInfo().log("Saving premium list for TLD %s", name);
     logInputData();
     List<String> inputDataPreProcessed =
         Splitter.on('\n').omitEmptyStrings().splitToList(inputData);
@@ -65,7 +68,7 @@ public class CreatePremiumListAction extends CreateOrUpdatePremiumListAction {
         String.format(
             "Saved premium list %s with %d entries",
             premiumList.getName(), inputDataPreProcessed.size());
-    logger.info(message);
+    logger.atInfo().log(message);
     response.setPayload(ImmutableMap.of("status", "success", "message", message));
   }
 }

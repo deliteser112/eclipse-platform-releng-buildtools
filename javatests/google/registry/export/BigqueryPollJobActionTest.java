@@ -34,6 +34,7 @@ import com.google.api.services.bigquery.model.JobStatus;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.taskqueue.dev.QueueStateInfo.TaskStateInfo;
+import com.google.common.flogger.LoggerConfig;
 import google.registry.export.BigqueryPollJobAction.BigqueryPollJobEnqueuer;
 import google.registry.request.HttpException.BadRequestException;
 import google.registry.request.HttpException.NotModifiedException;
@@ -52,7 +53,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -90,7 +90,7 @@ public class BigqueryPollJobActionTest {
     action.projectId = PROJECT_ID;
     action.jobId = JOB_ID;
     action.chainedQueueName = () -> CHAINED_QUEUE_NAME;
-    Logger.getLogger(BigqueryPollJobAction.class.getName()).addHandler(logHandler);
+    LoggerConfig.getConfig(BigqueryPollJobAction.class).addHandler(logHandler);
   }
 
   private static TaskMatcher newPollJobTaskMatcher(String method) throws Exception {

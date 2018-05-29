@@ -43,6 +43,8 @@ java_library(
         "@com_google_appengine_testing",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
+        "@com_google_flogger",
+        "@com_google_flogger_system_backend",
         "@com_google_guava",
         "@com_google_guava_testlib",
         "@com_google_monitoring_client_metrics",
