@@ -12,7 +12,6 @@ PATH                              CLASS                         METHODS  OK AUTH
 /_dr/admin/verifyOte              VerifyOteAction               POST     n  INTERNAL,API APP ADMIN
 /_dr/epptool                      EppToolAction                 POST     n  INTERNAL,API APP ADMIN
 /_dr/loadtest                     LoadTestAction                POST     y  INTERNAL,API APP ADMIN
-/_dr/publishDetailReport          PublishDetailReportAction     POST     n  INTERNAL,API APP ADMIN
 /_dr/task/generateZoneFiles       GenerateZoneFilesAction       POST     n  INTERNAL,API APP ADMIN
 /_dr/task/killAllCommitLogs       KillAllCommitLogsAction       POST     n  INTERNAL     APP IGNORED
 /_dr/task/killAllEppResources     KillAllEppResourcesAction     POST     n  INTERNAL     APP IGNORED
