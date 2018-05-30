@@ -124,7 +124,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testRun_legacyLoggingStatement_basic() throws Exception {
+  public void testRun_loggingStatement_basic() throws Exception {
     flowRunner.run(eppMetricBuilder);
     assertThat(Splitter.on("\n\t").split(findFirstLogMessageByPrefix(handler, "EPP Command\n\t")))
         .containsExactly(
@@ -136,12 +136,13 @@ public class FlowRunnerTest extends ShardableTestCase {
             "",  // Extra newline at the end of the XML.
             "PasswordOnlyTransportCredentials{}",
             "UNIT_TEST",
-            "LIVE")
+            "LIVE",
+            "NORMAL")
         .inOrder();
   }
 
   @Test
-  public void testRun_legacyLoggingStatement_httpSessionMetadata() throws Exception {
+  public void testRun_loggingStatement_httpSessionMetadata() throws Exception {
     flowRunner.sessionMetadata = new HttpSessionMetadata(new FakeHttpSession());
     flowRunner.sessionMetadata.setClientId("TheRegistrar");
     flowRunner.run(eppMetricBuilder);
@@ -152,7 +153,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testRun_legacyLoggingStatement_gaeUserCredentials() throws Exception {
+  public void testRun_loggingStatement_gaeUserCredentials() throws Exception {
     flowRunner.credentials =
         GaeUserCredentials.forTestingUser(new User("user@example.com", "authDomain"), false);
     flowRunner.run(eppMetricBuilder);
@@ -161,7 +162,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testRun_legacyLoggingStatement_tlsCredentials() throws Exception {
+  public void testRun_loggingStatement_tlsCredentials() throws Exception {
     flowRunner.credentials = new TlsCredentials("abc123def", Optional.of("127.0.0.1"), "sni");
     flowRunner.run(eppMetricBuilder);
     assertThat(Splitter.on("\n\t").split(findFirstLogMessageByPrefix(handler, "EPP Command\n\t")))
@@ -170,7 +171,7 @@ public class FlowRunnerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testRun_legacyLoggingStatement_dryRun() throws Exception {
+  public void testRun_loggingStatement_dryRun() throws Exception {
     flowRunner.isDryRun = true;
     flowRunner.run(eppMetricBuilder);
     assertThat(Splitter.on("\n\t").split(findFirstLogMessageByPrefix(handler, "EPP Command\n\t")))
@@ -178,14 +179,22 @@ public class FlowRunnerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testRun_legacyLoggingStatement_complexEppInput() throws Exception {
+  public void testRun_loggingStatement_superuser() throws Exception {
+    flowRunner.isSuperuser = true;
+    flowRunner.run(eppMetricBuilder);
+    assertThat(Splitter.on("\n\t").split(findFirstLogMessageByPrefix(handler, "EPP Command\n\t")))
+        .contains("SUPERUSER");
+  }
+
+  @Test
+  public void testRun_loggingStatement_complexEppInput() throws Exception {
     String domainCreateXml = loadFile(getClass(), "domain_create_prettyprinted.xml");
     flowRunner.inputXmlBytes = domainCreateXml.getBytes(UTF_8);
     flowRunner.run(eppMetricBuilder);
     String logMessage = findFirstLogMessageByPrefix(handler, "EPP Command\n\t");
     List<String> lines = Splitter.on("\n\t").splitToList(logMessage);
     assertThat(lines.size()).named("number of lines in log message").isAtLeast(9);
-    String xml = Joiner.on('\n').join(lines.subList(3, lines.size() - 3));
+    String xml = Joiner.on('\n').join(lines.subList(3, lines.size() - 4));
     assertThat(xml).isEqualTo(domainCreateXml);
   }
 }

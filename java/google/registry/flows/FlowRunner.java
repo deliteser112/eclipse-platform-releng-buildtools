@@ -35,10 +35,7 @@ import javax.inject.Provider;
 /** Run a flow, either transactionally or not, with logging and retrying as needed. */
 public class FlowRunner {
 
-  /** Log format used by legacy ICANN reporting parsing - DO NOT CHANGE. */
-  // TODO(b/20725722): remove this log format entirely once we've transitioned to using the
-  //   JSON log line below instead, or change this one to be for human consumption only.
-  private static final String COMMAND_LOG_FORMAT = "EPP Command" + Strings.repeat("\n\t%s", 7);
+  private static final String COMMAND_LOG_FORMAT = "EPP Command" + Strings.repeat("\n\t%s", 8);
 
   private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
 
@@ -59,10 +56,7 @@ public class FlowRunner {
   /** Runs the EPP flow, and records metrics on the given builder. */
   public EppOutput run(final EppMetric.Builder eppMetricBuilder) throws EppException {
     String prettyXml = prettyPrint(inputXmlBytes);
-    // This log line is very fragile since it's used for ICANN reporting - DO NOT CHANGE.
-    // New data to be logged should be added only to the JSON log statement below.
-    // TODO(b/20725722): remove this log statement entirely once we've transitioned to using the
-    //   log line below instead, or change this one to be for human consumption only.
+
     if (logger.isLoggable(Level.INFO)) {
       logger.infofmt(
           COMMAND_LOG_FORMAT,
