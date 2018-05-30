@@ -124,14 +124,15 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
 
   @Override
   public void run() {
+    logger.atInfo().log("Attempting to acquire RDE upload lock for TLD '%s'.", tld);
     runner.lockRunAndRollForward(this, Registry.get(tld), timeout, CursorType.RDE_UPLOAD, interval);
     taskQueueUtils.enqueue(
-        reportQueue,
-        withUrl(RdeReportAction.PATH).param(RequestParameters.PARAM_TLD, tld));
+        reportQueue, withUrl(RdeReportAction.PATH).param(RequestParameters.PARAM_TLD, tld));
   }
 
   @Override
   public void runWithLock(final DateTime watermark) throws Exception {
+    logger.atInfo().log("Verifying readiness to upload the RDE deposit.");
     DateTime stagingCursorTime = getCursorTimeOrStartOfTime(
         ofy().load().key(Cursor.createKey(CursorType.RDE_STAGING, Registry.get(tld))).now());
     if (!stagingCursorTime.isAfter(watermark)) {
@@ -155,6 +156,7 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
     verifyFileExists(xmlFilename);
     verifyFileExists(xmlLengthFilename);
     verifyFileExists(reportFilename);
+    logger.atInfo().log("Commencing RDE upload for TLD '%s' to '%s'.", tld, uploadUrl);
     final long xmlLength = readXmlLength(xmlLengthFilename);
     retrier.callWithRetry(
         () -> {
@@ -162,6 +164,8 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
           return null;
         },
         JSchException.class);
+    logger.atInfo().log(
+        "Updating RDE cursor '%s' for TLD '%s' following successful upload.", RDE_UPLOAD_SFTP, tld);
     ofy()
         .transact(
             () ->
@@ -200,7 +204,7 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
   @VisibleForTesting
   protected void upload(
       GcsFilename xmlFile, long xmlLength, DateTime watermark, String name) throws Exception {
-    logger.atInfo().log("Uploading %s to %s", xmlFile, uploadUrl);
+    logger.atInfo().log("Uploading XML file '%s' to remote path '%s'.", xmlFile, uploadUrl);
     try (InputStream gcsInput = gcsUtils.openInputStream(xmlFile);
         Ghostryde.Decryptor decryptor = ghostryde.openDecryptor(gcsInput, stagingDecryptionKey);
         Ghostryde.Decompressor decompressor = ghostryde.openDecompressor(decryptor);
