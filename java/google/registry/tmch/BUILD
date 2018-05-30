@@ -13,7 +13,6 @@ java_library(
         "*.asc",
     ]),
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/keyring/api",
         "//java/google/registry/model",
@@ -25,6 +24,8 @@ java_library(
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
+        "@com_google_flogger",
+        "@com_google_flogger_system_backend",
         "@com_google_guava",
         "@com_google_re2j",
         "@javax_servlet_api",

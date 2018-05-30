@@ -29,7 +29,7 @@ import com.google.api.services.groupssettings.model.Groups;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
 import java.io.IOException;
 import java.util.Set;
@@ -46,7 +46,7 @@ public class DirectoryGroupsConnection implements GroupsConnection {
   private static final String MEMBER_NOT_FOUND_MSG = "Resource Not Found: memberKey";
   private static final String MEMBER_ALREADY_EXISTS_MSG = "Member already exists.";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final Groups defaultGroupPermissions = getDefaultGroupPermissions();
 
   @VisibleForTesting
@@ -80,11 +80,9 @@ public class DirectoryGroupsConnection implements GroupsConnection {
       // return it.
       GoogleJsonError err = e.getDetails();
       if (err.getCode() == SC_NOT_FOUND && err.getMessage().equals(GROUP_NOT_FOUND_MSG)) {
-        logger.infofmt(
-            e,
+        logger.atInfo().withCause(e).log(
             "Creating group %s during addition of member %s because the group doesn't exist.",
-            groupKey,
-            email);
+            groupKey, email);
         createGroup(groupKey);
         addMemberToGroup(groupKey, email, role);
       } else if (err.getCode() == SC_NOT_FOUND && err.getMessage().equals(MEMBER_NOT_FOUND_MSG)) {
@@ -98,12 +96,10 @@ public class DirectoryGroupsConnection implements GroupsConnection {
         // but it is bouncing incoming emails. It won't show up in the members list API call, but
         // will throw a "Member already exists" error message if you attempt to add it again. The
         // correct thing to do is log an info message when this happens and then ignore it.
-        logger.infofmt(
-            e,
+        logger.atInfo().withCause(e).log(
             "Could not add email %s to group %s because it is already a member "
                 + "(likely because the email address is bouncing incoming messages).",
-            email,
-            groupKey);
+            email, groupKey);
       } else {
         throw e;
       }
@@ -159,7 +155,8 @@ public class DirectoryGroupsConnection implements GroupsConnection {
       // Ignore the error thrown if the group already exists.
       if (e.getDetails().getCode() == SC_CONFLICT
           && e.getDetails().getMessage().equals("Entity already exists.")) {
-        logger.infofmt(e, "Could not create group %s because it already exists.", groupKey);
+        logger.atInfo().withCause(e).log(
+            "Could not create group %s because it already exists.", groupKey);
         return directory.groups().get(groupKey).execute();
       } else {
         throw e;

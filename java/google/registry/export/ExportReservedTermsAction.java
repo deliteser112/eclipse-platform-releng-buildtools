@@ -21,7 +21,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import google.registry.model.registry.Registry;
 import google.registry.request.Action;
@@ -40,7 +40,7 @@ import javax.inject.Inject;
 )
 public class ExportReservedTermsAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   static final MediaType EXPORT_MIME_TYPE = MediaType.PLAIN_TEXT_UTF_8;
   static final String RESERVED_TERMS_FILENAME = "reserved_terms.txt";
 
@@ -65,10 +65,10 @@ public class ExportReservedTermsAction implements Runnable {
       String resultMsg;
       if (registry.getReservedLists().isEmpty() && isNullOrEmpty(registry.getDriveFolderId())) {
         resultMsg = "No reserved lists configured";
-        logger.infofmt("No reserved terms to export for TLD %s", tld);
+        logger.atInfo().log("No reserved terms to export for TLD %s", tld);
       } else if (registry.getDriveFolderId() == null) {
         resultMsg = "Skipping export because no Drive folder is associated with this TLD";
-        logger.infofmt(
+        logger.atInfo().log(
             "Skipping reserved terms export for TLD %s because Drive folder isn't specified", tld);
       } else {
         resultMsg = driveConnection.createOrUpdateFile(
@@ -76,8 +76,8 @@ public class ExportReservedTermsAction implements Runnable {
             EXPORT_MIME_TYPE,
             registry.getDriveFolderId(),
             exportUtils.exportReservedTerms(registry).getBytes(UTF_8));
-        logger.infofmt("Exporting reserved terms succeeded for TLD %s, response was: %s",
-            tld, resultMsg);
+        logger.atInfo().log(
+            "Exporting reserved terms succeeded for TLD %s, response was: %s", tld, resultMsg);
       }
       response.setStatus(SC_OK);
       response.setPayload(resultMsg);

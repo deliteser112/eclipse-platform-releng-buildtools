@@ -133,9 +133,10 @@ public class IcannReportingStagingActionTest {
         createAction(ImmutableList.of(ReportType.ACTIVITY));
     when(stager.stageReports(ReportType.ACTIVITY))
         .thenThrow(new BigqueryJobFailureException("Expected failure", null, null, null));
-    BigqueryJobFailureException thrown =
-        assertThrows(BigqueryJobFailureException.class, action::run);
-    assertThat(thrown).hasMessageThat().isEqualTo("Expected failure");
+    RuntimeException thrown = assertThrows(RuntimeException.class, action::run);
+    assertThat(thrown).hasCauseThat().isInstanceOf(BigqueryJobFailureException.class);
+    assertThat(thrown).hasMessageThat().isEqualTo("Staging action failed.");
+    assertThat(thrown).hasCauseThat().hasMessageThat().isEqualTo("Expected failure");
     verify(stager, times(3)).stageReports(ReportType.ACTIVITY);
     verify(emailUtils)
         .emailResults(

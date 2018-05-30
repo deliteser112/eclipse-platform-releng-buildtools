@@ -19,7 +19,6 @@ import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Lists.partition;
-import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.security.XsrfTokenManager.X_CSRF_TOKEN;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.util.Arrays.asList;
@@ -28,7 +27,7 @@ import static org.joda.time.DateTimeZone.UTC;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryEnvironment;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
@@ -60,7 +59,7 @@ import org.joda.time.DateTime;
 )
 public class LoadTestAction implements Runnable {
 
-  private static final FormattingLogger logger = getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final int NUM_QUEUES = 10;
   private static final int ARBITRARY_VALID_HOST_LENGTH = 40;
@@ -257,7 +256,7 @@ public class LoadTestAction implements Runnable {
     }
     ImmutableList<TaskOptions> taskOptions = tasks.build();
     enqueue(taskOptions);
-    logger.infofmt("Added %d total load test tasks", taskOptions.size());
+    logger.atInfo().log("Added %d total load test tasks", taskOptions.size());
   }
 
   private void validateAndLogRequest() {
@@ -276,7 +275,7 @@ public class LoadTestAction implements Runnable {
             || failedHostCreatesPerSecond > 0
             || hostInfosPerSecond > 0,
         "You must specify at least one of the 'operations per second' parameters.");
-    logger.infofmt(
+    logger.atInfo().log(
         "Running load test with the following params. clientId: %s, delaySeconds: %d, "
             + "runSeconds: %d, successful|failed domain creates/s: %d|%d, domain infos/s: %d, "
             + "domain checks/s: %d, successful|failed contact creates/s: %d|%d, "

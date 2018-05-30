@@ -28,7 +28,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.RequestPath;
@@ -100,7 +100,7 @@ public final class WhoisHttpAction implements Runnable {
 
   public static final String PATH = "/whois/";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /**
    * Cross-origin resource sharing (CORS) allowed origins policy.
@@ -187,7 +187,7 @@ public final class WhoisHttpAction implements Runnable {
     try {
       return URLDecoder.decode(pathData, "UTF-8");
     } catch (IllegalArgumentException e) {
-      logger.infofmt("Malformed WHOIS request path: %s (%s)", requestPath, pathData);
+      logger.atInfo().log("Malformed WHOIS request path: %s (%s)", requestPath, pathData);
       throw new WhoisException(clock.nowUtc(), SC_BAD_REQUEST, "Malformed path query.");
     }
   }

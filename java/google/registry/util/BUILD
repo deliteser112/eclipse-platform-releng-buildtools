@@ -8,7 +8,6 @@ java_library(
     name = "util",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//third_party/jaxb",
         "//third_party/objectify:objectify-v4_1",
         "@com_google_appengine_api_1_0_sdk",

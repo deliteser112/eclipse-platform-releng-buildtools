@@ -21,7 +21,6 @@ java_library(
     ] + glob(["*.csv"]) + glob(["testdata/*"]),
     exports = ["//third_party/junit"],
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/dns",
         "//java/google/registry/dns:constants",
@@ -45,6 +44,8 @@ java_library(
         "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
+        "@com_google_flogger",
+        "@com_google_flogger_system_backend",
         "@com_google_guava",
         "@com_google_guava_testlib",
         "@com_google_truth",

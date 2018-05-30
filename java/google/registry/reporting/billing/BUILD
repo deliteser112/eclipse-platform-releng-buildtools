@@ -11,7 +11,6 @@ java_library(
         "@com_google_apis_google_api_services_bigquery",
     ],
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/gcs",
         "//java/google/registry/model",
@@ -25,6 +24,8 @@ java_library(
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_appengine_tools_appengine_gcs_client",
         "@com_google_dagger",
+        "@com_google_flogger",
+        "@com_google_flogger_system_backend",
         "@com_google_guava",
         "@com_google_http_client",
         "@javax_servlet_api",

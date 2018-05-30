@@ -16,7 +16,6 @@ package google.registry.backup;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.mapreduce.MapreduceRunner.PARAM_DRY_RUN;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PipelineUtils.createJobPath;
@@ -29,7 +28,7 @@ import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.mapreduce.MapreduceRunner;
@@ -73,7 +72,7 @@ public final class DeleteOldCommitLogsAction implements Runnable {
 
   private static final int NUM_MAP_SHARDS = 20;
   private static final int NUM_REDUCE_SHARDS = 10;
-  private static final FormattingLogger logger = getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;
@@ -85,7 +84,7 @@ public final class DeleteOldCommitLogsAction implements Runnable {
   @Override
   public void run() {
     DateTime deletionThreshold = clock.nowUtc().minus(maxAge);
-    logger.infofmt(
+    logger.atInfo().log(
         "Processing asynchronous deletion of unreferenced CommitLogManifests older than %s",
         deletionThreshold);
 
@@ -182,7 +181,7 @@ public final class DeleteOldCommitLogsAction implements Runnable {
       // First - check if there even are revisions
       if (eppResource.getRevisions().isEmpty()) {
         getContext().incrementCounter("EPP resources missing all revisions (SEE LOGS)");
-        logger.severefmt("EPP resource missing all revisions: %s", Key.create(eppResource));
+        logger.atSevere().log("EPP resource missing all revisions: %s", Key.create(eppResource));
         return;
       }
       // Next, check if there's a revision that's older than "CommitLogDatastoreRetention". There
@@ -198,9 +197,9 @@ public final class DeleteOldCommitLogsAction implements Runnable {
       }
       // The oldest revision date is newer than the threshold! This shouldn't happen.
       getContext().incrementCounter("EPP resources missing pre-threshold revision (SEE LOGS)");
-      logger.severefmt(
+      logger.atSevere().log(
           "EPP resource missing old enough revision: "
-          + "%s (created on %s) has %s revisions between %s and %s, while threshold is %s",
+              + "%s (created on %s) has %d revisions between %s and %s, while threshold is %s",
           Key.create(eppResource),
           eppResource.getCreationTime(),
           eppResource.getRevisions().size(),
@@ -320,7 +319,8 @@ public final class DeleteOldCommitLogsAction implements Runnable {
           getContext().incrementCounter("attempts to delete an already deleted manifest");
           break;
         case AFTER_THRESHOLD:
-          logger.severefmt("Won't delete CommitLogManifest %s that is too recent.", manifestKey);
+          logger.atSevere().log(
+              "Won't delete CommitLogManifest %s that is too recent.", manifestKey);
           getContext().incrementCounter("manifests incorrectly assigned for deletion (SEE LOGS)");
           break;
       }

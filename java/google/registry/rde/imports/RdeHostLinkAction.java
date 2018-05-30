@@ -24,7 +24,7 @@ import static java.util.stream.Collectors.joining;
 
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.InternetDomainName;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
@@ -62,7 +62,7 @@ import org.joda.time.DateTime;
 )
 public class RdeHostLinkAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final MapreduceRunner mrRunner;
   private final Response response;
@@ -105,7 +105,7 @@ public class RdeHostLinkAction implements Runnable {
       // Record number of attempted map operations
       getContext().incrementCounter("post-import hosts read");
       final XjcRdeHost xjcHost = fragment.getInstance().getValue();
-      logger.infofmt("Attempting to link superordinate domain for host %s", xjcHost.getName());
+      logger.atInfo().log("Attempting to link superordinate domain for host %s", xjcHost.getName());
       try {
         final InternetDomainName hostName = InternetDomainName.from(xjcHost.getName());
 
@@ -142,31 +142,32 @@ public class RdeHostLinkAction implements Runnable {
         switch (hostLinkResult) {
           case HOST_LINKED:
             getContext().incrementCounter("post-import hosts linked");
-            logger.infofmt(
+            logger.atInfo().log(
                 "Successfully linked host %s to superordinate domain", xjcHost.getName());
             // Record number of hosts successfully linked
             break;
           case HOST_NOT_FOUND:
             getContext().incrementCounter("hosts not found");
-            logger.severefmt(
+            logger.atSevere().log(
                 "Host with name %s and repoid %s not found", xjcHost.getName(), xjcHost.getRoid());
             break;
           case SUPERORDINATE_DOMAIN_IN_PENDING_DELETE:
             getContext()
                 .incrementCounter(
                     "post-import hosts with superordinate domains in pending delete");
-            logger.infofmt(
+            logger.atInfo().log(
                 "Host %s has a superordinate domain in pending delete", xjcHost.getName());
             break;
           case HOST_OUT_OF_ZONE:
             getContext().incrementCounter("post-import hosts out of zone");
-            logger.infofmt("Host %s is out of zone", xjcHost.getName());
+            logger.atInfo().log("Host %s is out of zone", xjcHost.getName());
             break;
         }
       } catch (RuntimeException e) {
         // Record the number of hosts with unexpected errors
         getContext().incrementCounter("post-import host errors");
-        logger.severefmt(e, "Error linking host %s; xml=%s", xjcHost.getName(), xjcHost);
+        logger.atSevere().withCause(e).log(
+            "Error linking host %s; xml=%s", xjcHost.getName(), xjcHost);
       }
     }
 

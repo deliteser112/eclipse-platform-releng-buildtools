@@ -16,7 +16,7 @@ package google.registry.request;
 
 import static com.google.common.html.HtmlEscapers.htmlEscaper;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 
@@ -26,7 +26,7 @@ public abstract class HttpException extends RuntimeException {
   // as per https://tools.ietf.org/html/rfc4918
   private static final int SC_UNPROCESSABLE_ENTITY = 422;
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final int responseCode;
 
@@ -57,7 +57,7 @@ public abstract class HttpException extends RuntimeException {
    */
   public final void send(HttpServletResponse rsp) throws IOException {
     rsp.sendError(getResponseCode(), htmlEscaper().escape(getMessage()));
-    logger.infofmt(getCause(), "%s", this);
+    logger.atInfo().withCause(getCause()).log("%s", this);
   }
 
   /**

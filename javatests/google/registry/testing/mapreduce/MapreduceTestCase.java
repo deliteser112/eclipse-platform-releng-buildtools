@@ -33,7 +33,7 @@ import com.google.appengine.tools.pipeline.impl.servlets.PipelineServlet;
 import com.google.appengine.tools.pipeline.impl.servlets.TaskHandler;
 import com.google.apphosting.api.ApiProxy;
 import com.google.common.base.CharMatcher;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
@@ -64,7 +64,7 @@ import org.junit.Rule;
  */
 public abstract class MapreduceTestCase<T> extends ShardableTestCase {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   protected T action;
 
@@ -97,8 +97,8 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
 
   protected void executeTask(String queueName, QueueStateInfo.TaskStateInfo taskStateInfo)
       throws Exception {
-    logger.finefmt("Executing task %s with URL %s",
-        taskStateInfo.getTaskName(), taskStateInfo.getUrl());
+    logger.atFine().log(
+        "Executing task %s with URL %s", taskStateInfo.getTaskName(), taskStateInfo.getUrl());
     // Hack to allow for deferred tasks. Exploits knowing how they work.
     if (taskStateInfo.getUrl().endsWith("__deferred__")) {
       ObjectInputStream oin =
@@ -130,7 +130,7 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
     for (HeaderWrapper header : taskStateInfo.getHeaders()) {
       int value = parseAsQuotedInt(header.getValue());
       when(request.getIntHeader(header.getKey())).thenReturn(value);
-      logger.finefmt("header: %s=%s", header.getKey(), header.getValue());
+      logger.atFine().log("header: %s=%s", header.getKey(), header.getValue());
       when(request.getHeader(header.getKey())).thenReturn(header.getValue());
     }
 

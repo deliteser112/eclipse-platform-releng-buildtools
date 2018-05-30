@@ -17,7 +17,6 @@ package google.registry.batch;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Iterables.getOnlyElement;
-import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static com.googlecode.objectify.Key.getKind;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -38,7 +37,7 @@ import com.google.appengine.tools.mapreduce.inputs.DatastoreKeyInput;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.EppResourceInputs;
@@ -95,7 +94,7 @@ import org.joda.time.DateTime;
 )
 public class VerifyEntityIntegrityAction implements Runnable {
 
-  private static final FormattingLogger logger = getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final int NUM_SHARDS = 200;
   @NonFinalForTesting
   @VisibleForTesting
@@ -220,7 +219,8 @@ public class VerifyEntityIntegrityAction implements Runnable {
         mapEntity(keyOrEntity);
       } catch (Throwable e) {
         // Log and swallow so that the mapreduce doesn't abort on first error.
-        logger.severefmt(e, "Exception while checking integrity of entity: %s", keyOrEntity);
+        logger.atSevere().withCause(e).log(
+            "Exception while checking integrity of entity: %s", keyOrEntity);
       }
     }
 
@@ -413,8 +413,8 @@ public class VerifyEntityIntegrityAction implements Runnable {
         reduceKeys(mapperKey, keys);
       } catch (Throwable e) {
         // Log and swallow so that the mapreduce doesn't abort on first error.
-        logger.severefmt(
-            e, "Exception while checking foreign key integrity constraints for: %s", mapperKey);
+        logger.atSevere().withCause(e).log(
+            "Exception while checking foreign key integrity constraints for: %s", mapperKey);
       }
     }
 

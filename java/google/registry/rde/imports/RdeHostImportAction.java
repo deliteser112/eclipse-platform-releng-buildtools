@@ -23,7 +23,7 @@ import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.VoidWork;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.config.RegistryConfig.ConfigModule;
@@ -52,7 +52,7 @@ import javax.inject.Inject;
 )
 public class RdeHostImportAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final GcsService GCS_SERVICE =
       GcsServiceFactory.createGcsService(RetryParams.getDefaultInstance());
 
@@ -123,7 +123,7 @@ public class RdeHostImportAction implements Runnable {
       try {
         // Record number of attempted map operations
         getContext().incrementCounter("host imports attempted");
-        logger.infofmt("Saving host %s", xjcHost.getName());
+        logger.atInfo().log("Saving host %s", xjcHost.getName());
         ofy().transact(new VoidWork() {
 
           @Override
@@ -134,15 +134,16 @@ public class RdeHostImportAction implements Runnable {
         });
         // Record number of hosts imported
         getContext().incrementCounter("hosts saved");
-        logger.infofmt("Host %s was imported successfully", xjcHost.getName());
+        logger.atInfo().log("Host %s was imported successfully", xjcHost.getName());
       } catch (ResourceExistsException e) {
         // Record the number of hosts already in the registry
         getContext().incrementCounter("existing hosts skipped");
-        logger.infofmt("Host %s already exists", xjcHost.getName());
+        logger.atInfo().log("Host %s already exists", xjcHost.getName());
       } catch (Exception e) {
         // Record the number of hosts with unexpected errors
         getContext().incrementCounter("host import errors");
-        logger.severefmt(e, "Error processing host %s; xml=%s", xjcHost.getName(), xjcHost);
+        logger.atSevere().withCause(e).log(
+            "Error processing host %s; xml=%s", xjcHost.getName(), xjcHost);
       }
     }
   }

@@ -23,7 +23,7 @@ import com.google.api.services.bigquery.model.TableReference;
 import com.google.api.services.bigquery.model.ViewDefinition;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.bigquery.BigqueryFactory;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
@@ -52,7 +52,7 @@ public class UpdateSnapshotViewAction implements Runnable {
 
   static final String PATH = "/_dr/task/updateSnapshotView"; // See web.xml.
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject
   @Parameter(UPDATE_SNAPSHOT_DATASET_ID_PARAM)
@@ -101,8 +101,8 @@ public class UpdateSnapshotViewAction implements Runnable {
           datasetId, tableId, kindName, STANDARD_LATEST_SNAPSHOT_DATASET, standardTemplate, false);
 
     } catch (Throwable e) {
-      logger.severefmt(e, "Could not update snapshot view for table %s", tableId);
-      throw new InternalServerErrorException("Error in update snapshot view action");
+      throw new InternalServerErrorException(
+          String.format("Could not update snapshot view for table %s", tableId), e);
     }
   }
 
@@ -134,7 +134,7 @@ public class UpdateSnapshotViewAction implements Runnable {
                             .put("SOURCE_TABLE", sourceTableId)
                             .build())));
 
-    logger.infofmt(
+    logger.atInfo().log(
         "Updated view [%s:%s.%s] to point at snapshot table [%s:%s.%s].",
         projectId, viewDataset, kindName, projectId, sourceDatasetId, sourceTableId);
   }
@@ -150,8 +150,8 @@ public class UpdateSnapshotViewAction implements Runnable {
       if (e.getDetails().getCode() == 404) {
         bigquery.tables().insert(ref.getProjectId(), ref.getDatasetId(), table).execute();
       } else {
-        logger.warningfmt(
-            e, "UpdateSnapshotViewAction failed, caught exception %s", e.getDetails());
+        logger.atWarning().withCause(e).log(
+            "UpdateSnapshotViewAction failed, caught exception %s", e.getDetails());
       }
     }
   }

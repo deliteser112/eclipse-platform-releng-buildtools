@@ -16,7 +16,7 @@ package google.registry.tmch;
 
 import static google.registry.request.Action.Method.POST;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.model.tmch.ClaimsListShard;
 import google.registry.request.Action;
@@ -37,7 +37,7 @@ import org.bouncycastle.openpgp.PGPException;
 )
 public final class TmchDnlAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final String DNL_CSV_PATH = "/dnl/dnl-latest.csv";
   private static final String DNL_SIG_PATH = "/dnl/dnl-latest.sig";
 
@@ -56,7 +56,8 @@ public final class TmchDnlAction implements Runnable {
     }
     ClaimsListShard claims = ClaimsListParser.parse(lines);
     claims.save();
-    logger.infofmt("Inserted %,d claims into Datastore, created at %s",
+    logger.atInfo().log(
+        "Inserted %,d claims into Datastore, created at %s",
         claims.size(), claims.getCreationTime());
   }
 }

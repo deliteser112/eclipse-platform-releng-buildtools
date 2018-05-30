@@ -19,7 +19,7 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.InputReader;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
 import google.registry.xjc.JaxbFragment;
@@ -37,7 +37,7 @@ public class RdeContactReader extends InputReader<JaxbFragment<XjcRdeContactElem
 
   private static final long serialVersionUID = -3688793834175577691L;
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final GcsService GCS_SERVICE =
       GcsServiceFactory.createGcsService(RetryParams.getDefaultInstance());
 
@@ -65,8 +65,8 @@ public class RdeContactReader extends InputReader<JaxbFragment<XjcRdeContactElem
       parser.skipContacts(offset + count);
       return parser;
     } catch (Exception e) {
-      logger.severefmt(e, "Error opening rde file %s/%s", importBucketName, importFileName);
-      throw new RuntimeException(e);
+      throw new RuntimeException(
+          String.format("Error opening rde file %s/%s", importBucketName, importFileName), e);
     }
   }
 

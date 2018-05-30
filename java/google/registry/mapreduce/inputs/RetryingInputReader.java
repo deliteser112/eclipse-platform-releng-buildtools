@@ -21,7 +21,7 @@ import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.DatastoreTimeoutException;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.tools.mapreduce.InputReader;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.cmd.Query;
 import google.registry.util.Retrier;
 import google.registry.util.SystemSleeper;
@@ -44,7 +44,7 @@ abstract class RetryingInputReader<I, T> extends InputReader<T> {
 
   private static final long serialVersionUID = -4897677478541818899L;
   private static final Retrier retrier = new Retrier(new SystemSleeper(), 5);
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Nullable private Cursor cursor;
   private int total;
@@ -136,9 +136,9 @@ abstract class RetryingInputReader<I, T> extends InputReader<T> {
           () -> queryIterator.next(),
           (thrown, failures, maxAttempts) -> {
             checkNotNull(cursor, "Can't retry because cursor is null. Giving up.");
-            logger.infofmt(
-                "Retriable failure while reading item %d/%d - attempt %d/%d: %s",
-                loaded, total, failures, maxAttempts, thrown);
+            logger.atInfo().withCause(thrown).log(
+                "Retriable failure while reading item %d/%d - attempt %d/%d.",
+                loaded, total, failures, maxAttempts);
             queryIterator = getQueryIterator(cursor);
           },
           DatastoreTimeoutException.class);
@@ -146,8 +146,9 @@ abstract class RetryingInputReader<I, T> extends InputReader<T> {
       // We expect NoSuchElementException to be thrown, and it isn't an error. Just rethrow.
       throw e;
     } catch (Throwable e) {
-      logger.warningfmt(e, "Got an unrecoverable failure while reading item %d/%d.", loaded, total);
-      throw e;
+      throw new RuntimeException(
+          String.format("Got an unrecoverable failure while reading item %d/%d.", loaded, total),
+          e);
     } finally {
       ofy().clearSessionCache();
     }

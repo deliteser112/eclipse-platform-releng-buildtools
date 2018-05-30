@@ -25,7 +25,7 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import dagger.Lazy;
 import google.registry.request.Action;
 import google.registry.request.Header;
@@ -54,7 +54,7 @@ import org.joda.time.Duration;
 )
 public class BigqueryPollJobAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   static final String QUEUE = "export-bigquery-poll";  // See queue.xml
   static final String PATH = "/_dr/task/pollBigqueryJob";  // See web.xml
@@ -85,12 +85,9 @@ public class BigqueryPollJobAction implements Runnable {
       throw new BadRequestException("Cannot deserialize task from payload", e);
     }
     String taskName = taskQueueUtils.enqueue(getQueue(chainedQueueName.get()), task).getName();
-    logger.infofmt(
+    logger.atInfo().log(
         "Added chained task %s for %s to queue %s: %s",
-        taskName,
-        task.getUrl(),
-        chainedQueueName.get(),
-        task.toString());
+        taskName, task.getUrl(), chainedQueueName.get(), task);
   }
 
   /**
@@ -106,7 +103,7 @@ public class BigqueryPollJobAction implements Runnable {
       job = bigquery.jobs().get(projectId, jobId).execute();
     } catch (IOException e) {
       // We will throw a new exception because done==false, but first log this exception.
-      logger.warningfmt(e, "Error checking outcome of BigQuery job %s.", jobId);
+      logger.atWarning().withCause(e).log("Error checking outcome of BigQuery job %s.", jobId);
     }
     // If job is not yet done, then throw an exception so that we'll return a failing HTTP status
     // code and the task will be retried.
@@ -116,10 +113,10 @@ public class BigqueryPollJobAction implements Runnable {
 
     // Check if the job ended with an error.
     if (job.getStatus().getErrorResult() != null) {
-      logger.severefmt("Bigquery job failed - %s - %s", jobRefString, job);
+      logger.atSevere().log("Bigquery job failed - %s - %s", jobRefString, job);
       return false;
     }
-    logger.infofmt("Bigquery job succeeded - %s", jobRefString);
+    logger.atInfo().log("Bigquery job succeeded - %s", jobRefString);
     return true;
   }
 

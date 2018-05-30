@@ -17,7 +17,7 @@ package google.registry.util;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -43,7 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class ImprovedOutputStream extends FilterOutputStream {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private long count;
   private final long expected;
@@ -103,9 +103,9 @@ public class ImprovedOutputStream extends FilterOutputStream {
     try {
       flush();
     } catch (IOException e) {
-      logger.warningfmt(e, "%s.flush() failed", getClass().getSimpleName());
+      logger.atWarning().withCause(e).log("%s.flush() failed", getClass().getSimpleName());
     }
-    logger.infofmt("%s closed with %,d bytes written", getClass().getSimpleName(), count);
+    logger.atInfo().log("%s closed with %,d bytes written", getClass().getSimpleName(), count);
     if (expected != -1 && count != expected) {
       throw new IOException(String.format(
           "%s expected %,d bytes but got %,d bytes", getClass().getSimpleName(), expected, count));

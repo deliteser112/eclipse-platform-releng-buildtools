@@ -8,7 +8,6 @@ java_library(
     name = "inputs",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/model",
         "//java/google/registry/util",
         "//third_party/objectify:objectify-v4_1",

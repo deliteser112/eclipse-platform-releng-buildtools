@@ -17,7 +17,7 @@ package google.registry.tools;
 import com.beust.jcommander.Parameters;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import com.google.api.client.util.store.AbstractDataStoreFactory;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import java.io.IOException;
 import javax.inject.Inject;
 
@@ -25,13 +25,13 @@ import javax.inject.Inject;
 @Parameters(commandDescription = "Remove local OAuth credentials")
 class LogoutCommand implements Command {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject AbstractDataStoreFactory dataStoreFactory;
 
   @Override
   public void run() throws IOException {
     StoredCredential.getDefaultDataStore(dataStoreFactory).clear();
-    logger.info("Logged out - credentials have been removed.");
+    logger.atInfo().log("Logged out - credentials have been removed.");
   }
 }

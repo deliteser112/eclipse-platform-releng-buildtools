@@ -14,7 +14,7 @@
 
 package google.registry.dns.writer;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import java.util.HashSet;
 import java.util.Set;
 import javax.inject.Inject;
@@ -32,7 +32,7 @@ public final class VoidDnsWriter extends BaseDnsWriter {
    */
   public static final String NAME = "VoidDnsWriter";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final Set<String> names = new HashSet<>();
 
@@ -51,7 +51,7 @@ public final class VoidDnsWriter extends BaseDnsWriter {
 
   @Override
   protected void commitUnchecked() {
-    logger.warningfmt(
+    logger.atWarning().log(
         "No DnsWriterFactory implementation specified; ignoring names to commit: %s", names);
   }
 }

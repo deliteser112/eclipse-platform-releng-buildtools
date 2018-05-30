@@ -8,7 +8,6 @@ java_library(
     name = "frontend",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/braintree",
         "//java/google/registry/config",
         "//java/google/registry/dns",

@@ -20,7 +20,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.appengine.api.datastore.DatastoreFailureException;
 import com.google.appengine.api.datastore.DatastoreTimeoutException;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
@@ -52,7 +52,7 @@ import org.joda.time.DateTime;
 @Action(path = "/_dr/whois", method = POST, auth = Auth.AUTH_PUBLIC_OR_INTERNAL)
 public class WhoisAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** WHOIS doesn't define an encoding, nor any way to specify an encoding in the protocol. */
   static final MediaType CONTENT_TYPE = MediaType.PLAIN_TEXT_UTF_8;
@@ -107,7 +107,7 @@ public class WhoisAction implements Runnable {
       responseText = results.plainTextOutput();
       setWhoisMetrics(metricBuilder, 0, e.getStatus());
     } catch (Throwable t) {
-      logger.severe(t, "WHOIS request crashed");
+      logger.atSevere().withCause(t).log("WHOIS request crashed");
       responseText = "Internal Server Error";
       setWhoisMetrics(metricBuilder, 0, SC_INTERNAL_SERVER_ERROR);
     }

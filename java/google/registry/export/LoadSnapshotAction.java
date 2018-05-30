@@ -17,7 +17,6 @@ package google.registry.export;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.export.UpdateSnapshotViewAction.createViewUpdateTask;
 import static google.registry.request.Action.Method.POST;
 
@@ -34,7 +33,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.bigquery.BigqueryFactory;
 import google.registry.bigquery.BigqueryUtils.SourceFormat;
 import google.registry.bigquery.BigqueryUtils.WriteDisposition;
@@ -69,7 +68,7 @@ public class LoadSnapshotAction implements Runnable {
   static final String QUEUE = "export-snapshot";  // See queue.xml.
   static final String PATH = "/_dr/task/loadSnapshot";  // See web.xml.
 
-  private static final FormattingLogger logger = getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject BigqueryFactory bigqueryFactory;
   @Inject BigqueryPollJobEnqueuer bigqueryPollEnqueuer;
@@ -96,9 +95,9 @@ public class LoadSnapshotAction implements Runnable {
     try {
       String message =
           loadSnapshot(snapshotId, snapshotFile, Splitter.on(',').split(snapshotKinds));
-      logger.infofmt("Loaded snapshot successfully: %s", message);
+      logger.atInfo().log("Loaded snapshot successfully: %s", message);
     } catch (Throwable e) {
-      logger.severe(e, "Error loading snapshot");
+      logger.atSevere().withCause(e).log("Error loading snapshot");
       if (e instanceof IllegalArgumentException) {
         throw new BadRequestException("Error calling load snapshot: " + e.getMessage(), e);
       } else {
@@ -114,7 +113,7 @@ public class LoadSnapshotAction implements Runnable {
     DateTime now = clock.nowUtc();
     String loadMessage =
         String.format("Loading Datastore snapshot %s from %s...", snapshotId, gcsFilename);
-    logger.info(loadMessage);
+    logger.atInfo().log(loadMessage);
     StringBuilder builder = new StringBuilder(loadMessage + "\n");
     builder.append("Load jobs:\n");
 
@@ -136,7 +135,7 @@ public class LoadSnapshotAction implements Runnable {
           getQueue(UpdateSnapshotViewAction.QUEUE));
 
       builder.append(String.format(" - %s:%s\n", projectId, jobId));
-      logger.infofmt("Submitted load job %s:%s", projectId, jobId);
+      logger.atInfo().log("Submitted load job %s:%s", projectId, jobId);
     }
     return builder.toString();
   }

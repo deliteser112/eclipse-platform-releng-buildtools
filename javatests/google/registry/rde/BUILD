@@ -12,7 +12,6 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["testdata/*"]),
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/gcs",
         "//java/google/registry/keyring/api",
@@ -35,6 +34,8 @@ java_library(
         "@com_google_appengine_tools_appengine_gcs_client",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
+        "@com_google_flogger",
+        "@com_google_flogger_system_backend",
         "@com_google_guava",
         "@com_google_truth",
         "@com_google_truth_extensions_truth_java8_extension",

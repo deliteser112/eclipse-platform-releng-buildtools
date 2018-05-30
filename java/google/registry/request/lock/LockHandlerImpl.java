@@ -20,7 +20,7 @@ import static com.google.common.base.Throwables.throwIfUnchecked;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import google.registry.model.server.Lock;
 import google.registry.util.AppEngineTimeLimiter;
@@ -40,7 +40,7 @@ public class LockHandlerImpl implements LockHandler {
 
   private static final long serialVersionUID = 6551645164118637767L;
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** Fudge factor to make sure we kill threads before a lock actually expires. */
   private static final Duration LOCK_TIMEOUT_FUDGE = Duration.standardSeconds(5);
@@ -114,10 +114,10 @@ public class LockHandlerImpl implements LockHandler {
         for (String lockName : lockNames) {
           Optional<Lock> lock = acquire(lockName, tld, leaseLength);
           if (!lock.isPresent()) {
-            logger.infofmt("Couldn't acquire lock named: %s for TLD: %s", lockName, tld);
+            logger.atInfo().log("Couldn't acquire lock named: %s for TLD: %s", lockName, tld);
             return false;
           }
-          logger.infofmt("Acquired lock: %s", lock);
+          logger.atInfo().log("Acquired lock: %s", lock);
           acquiredLocks.add(lock.get());
         }
         delegate.call();
@@ -125,7 +125,7 @@ public class LockHandlerImpl implements LockHandler {
       } finally {
         for (Lock lock : acquiredLocks) {
           lock.release();
-          logger.infofmt("Released lock: %s", lock);
+          logger.atInfo().log("Released lock: %s", lock);
         }
       }
     }

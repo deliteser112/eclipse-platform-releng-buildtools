@@ -17,7 +17,7 @@ package google.registry.testing;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.concurrent.ThreadSafe;
@@ -26,22 +26,25 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class SystemInfo {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private static final LoadingCache<String, Boolean> hasCommandCache = CacheBuilder.newBuilder()
-      .build(new CacheLoader<String, Boolean>() {
-        @Override
-        public Boolean load(String cmd) throws InterruptedException {
-          try {
-            Process pid = Runtime.getRuntime().exec(cmd);
-            pid.getOutputStream().close();
-            pid.waitFor();
-          } catch (IOException e) {
-            logger.warningfmt(e, "%s command not available", cmd);
-            return false;
-          }
-          return true;
-        }});
+  private static final LoadingCache<String, Boolean> hasCommandCache =
+      CacheBuilder.newBuilder()
+          .build(
+              new CacheLoader<String, Boolean>() {
+                @Override
+                public Boolean load(String cmd) throws InterruptedException {
+                  try {
+                    Process pid = Runtime.getRuntime().exec(cmd);
+                    pid.getOutputStream().close();
+                    pid.waitFor();
+                  } catch (IOException e) {
+                    logger.atWarning().withCause(e).log("%s command not available", cmd);
+                    return false;
+                  }
+                  return true;
+                }
+              });
 
   /**
    * Returns {@code true} if system command can be run from path.

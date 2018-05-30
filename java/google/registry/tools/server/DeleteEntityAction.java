@@ -24,7 +24,7 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.impl.EntityMetadata;
 import google.registry.request.Action;
@@ -54,7 +54,7 @@ import javax.inject.Inject;
 )
 public class DeleteEntityAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   public static final String PATH = "/_dr/admin/deleteEntity";
   public static final String PARAM_RAW_KEYS = "rawKeys";
@@ -99,7 +99,7 @@ public class DeleteEntityAction implements Runnable {
         "Deleted %d raw entities and %d registered entities",
         rawDeletions.size(),
         ofyDeletions.size());
-    logger.info(message);
+    logger.atInfo().log(message);
     response.setPayload(message);
   }
 
@@ -112,8 +112,8 @@ public class DeleteEntityAction implements Runnable {
     try {
       return Optional.ofNullable(getDatastoreService().get(rawKey));
     } catch (EntityNotFoundException e) {
-      logger.warningfmt(
-          e, "Could not load entity from Datastore service with key %s", rawKey.toString());
+      logger.atWarning().withCause(e).log(
+          "Could not load entity from Datastore service with key %s", rawKey);
       return Optional.empty();
     }
   }

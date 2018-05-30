@@ -15,6 +15,7 @@
 package google.registry.flows;
 
 import static com.google.common.base.Strings.nullToEmpty;
+import static com.google.common.flogger.LazyArgs.lazy;
 import static com.google.common.io.BaseEncoding.base64;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
 import static google.registry.flows.FlowReporter.extractTlds;
@@ -24,7 +25,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.flows.FlowModule.EppExceptionInProviderException;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppinput.EppInput;
@@ -35,7 +36,6 @@ import google.registry.model.eppoutput.Result.Code;
 import google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer;
 import google.registry.monitoring.whitebox.EppMetric;
 import java.util.Optional;
-import java.util.logging.Level;
 import javax.inject.Inject;
 import org.json.simple.JSONValue;
 
@@ -46,7 +46,8 @@ import org.json.simple.JSONValue;
  */
 public final class EppController {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  private static final String LOG_SEPARATOR = Strings.repeat("=", 40);
 
   @Inject FlowComponent.Builder flowComponentBuilder;
   @Inject EppMetric.Builder eppMetricBuilder;
@@ -71,25 +72,27 @@ public final class EppController {
         eppInput = unmarshal(EppInput.class, inputXmlBytes);
       } catch (EppException e) {
         // Log the unmarshalling error, with the raw bytes (in base64) to help with debugging.
-        if (logger.isLoggable(Level.INFO)) {
-          logger.infofmt(
-              e,
-              "EPP request XML unmarshalling failed - \"%s\":\n%s\n%s\n%s\n%s",
-              e.getMessage(),
-              JSONValue.toJSONString(
-                  ImmutableMap.<String, Object>of(
-                      "clientId",
-                      nullToEmpty(sessionMetadata.getClientId()),
-                      "resultCode",
-                      e.getResult().getCode().code,
-                      "resultMessage",
-                      e.getResult().getCode().msg,
-                      "xmlBytes",
-                      base64().encode(inputXmlBytes))),
-              Strings.repeat("=", 40),
-              new String(inputXmlBytes, UTF_8).trim(), // Charset decoding failures are swallowed.
-              Strings.repeat("=", 40));
-        }
+        logger.atInfo().withCause(e).log(
+            "EPP request XML unmarshalling failed - \"%s\":\n%s\n%s\n%s\n%s",
+            e.getMessage(),
+            lazy(
+                () ->
+                    JSONValue.toJSONString(
+                        ImmutableMap.<String, Object>of(
+                            "clientId",
+                            nullToEmpty(sessionMetadata.getClientId()),
+                            "resultCode",
+                            e.getResult().getCode().code,
+                            "resultMessage",
+                            e.getResult().getCode().msg,
+                            "xmlBytes",
+                            base64().encode(inputXmlBytes)))),
+            LOG_SEPARATOR,
+            lazy(
+                () ->
+                    new String(inputXmlBytes, UTF_8)
+                        .trim()), // Charset decoding failures are swallowed.
+            LOG_SEPARATOR);
         // Return early by sending an error message, with no clTRID since we couldn't unmarshal it.
         eppMetricBuilder.setStatus(e.getResult().getCode());
         return getErrorResponse(
@@ -133,12 +136,12 @@ public final class EppController {
     } catch (EppException | EppExceptionInProviderException e) {
       // The command failed. Send the client an error message, but only log at INFO since many of
       // these failures are innocuous or due to client error, so there's nothing we have to change.
-      logger.info(e, "Flow returned failure response");
+      logger.atInfo().withCause(e).log("Flow returned failure response");
       EppException eppEx = (EppException) (e instanceof EppException ? e : e.getCause());
       return getErrorResponse(eppEx.getResult(), flowComponent.trid());
     } catch (Throwable e) {
       // Something bad and unexpected happened. Send the client a generic error, and log at SEVERE.
-      logger.severe(e, "Unexpected failure in flow execution");
+      logger.atSevere().withCause(e).log("Unexpected failure in flow execution");
       return getErrorResponse(Result.create(Code.COMMAND_FAILED), flowComponent.trid());
     }
   }

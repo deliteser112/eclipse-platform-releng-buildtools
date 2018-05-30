@@ -30,7 +30,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.ListMultimap;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.bigquery.BigqueryConnection;
 import google.registry.bigquery.BigqueryUtils.TableType;
 import google.registry.config.RegistryConfig.Config;
@@ -58,7 +58,7 @@ import org.joda.time.format.DateTimeFormat;
  */
 public class IcannReportingStager {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject @Config("icannReportingBucket") String reportingBucket;
 
@@ -105,7 +105,7 @@ public class IcannReportingStager {
   private void createIntermediaryTableView(String queryName, String query, ReportType reportType)
       throws ExecutionException, InterruptedException {
     // Later views depend on the results of earlier ones, so query everything synchronously
-    logger.infofmt("Generating intermediary view %s", queryName);
+    logger.atInfo().log("Generating intermediary view %s", queryName);
     bigquery.query(
         query,
         bigquery.buildDestinationTable(queryName)
@@ -247,10 +247,7 @@ public class IcannReportingStager {
     String reportBucketname = String.format("%s/%s", reportingBucket, subdir);
     final GcsFilename gcsFilename = new GcsFilename(reportBucketname, reportFilename);
     gcsUtils.createFromBytes(gcsFilename, reportBytes);
-    logger.infofmt(
-        "Wrote %d bytes to file location %s",
-        reportBytes.length,
-        gcsFilename.toString());
+    logger.atInfo().log("Wrote %d bytes to file location %s", reportBytes.length, gcsFilename);
     return reportFilename;
   }
 
@@ -261,7 +258,6 @@ public class IcannReportingStager {
     StringBuilder manifestString = new StringBuilder();
     filenames.forEach((filename) -> manifestString.append(filename).append("\n"));
     gcsUtils.createFromBytes(gcsFilename, manifestString.toString().getBytes(UTF_8));
-    logger.infofmt(
-        "Wrote %d filenames to manifest at %s", filenames.size(), gcsFilename.toString());
+    logger.atInfo().log("Wrote %d filenames to manifest at %s", filenames.size(), gcsFilename);
   }
 }

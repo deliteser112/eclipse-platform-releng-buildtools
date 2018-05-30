@@ -20,7 +20,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.request.Response;
@@ -32,7 +32,7 @@ public class EppRequestHandler {
   private static final MediaType APPLICATION_EPP_XML =
       MediaType.create("application", "epp+xml").withCharset(UTF_8);
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject EppController eppController;
   @Inject Response response;
@@ -71,7 +71,7 @@ public class EppRequestHandler {
         response.setHeader("Epp-Session", "close");
       }
     } catch (Exception e) {
-      logger.warning(e, "handleEppCommand general exception");
+      logger.atWarning().withCause(e).log("handleEppCommand general exception");
       response.setStatus(SC_BAD_REQUEST);
     }
   }

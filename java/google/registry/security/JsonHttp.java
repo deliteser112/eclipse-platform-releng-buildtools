@@ -20,7 +20,7 @@ import static com.google.common.net.HttpHeaders.X_CONTENT_TYPE_OPTIONS;
 import static com.google.common.net.MediaType.JSON_UTF_8;
 import static org.json.simple.JSONValue.writeJSONString;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import java.io.IOException;
 import java.io.Reader;
@@ -39,7 +39,7 @@ import org.json.simple.parser.ParseException;
  */
 public final class JsonHttp {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** String prefixed to all JSON-like responses. */
   public static final String JSON_SAFETY_PREFIX = ")]}'\n";
@@ -55,18 +55,18 @@ public final class JsonHttp {
   public static Map<String, ?> read(HttpServletRequest req) throws IOException {
     if (!"POST".equals(req.getMethod())
         && !"PUT".equals(req.getMethod())) {
-      logger.warning("JSON request payload only allowed for POST/PUT");
+      logger.atWarning().log("JSON request payload only allowed for POST/PUT");
       return null;
     }
     if (!JSON_UTF_8.is(MediaType.parse(req.getContentType()))) {
-      logger.warningfmt("Invalid JSON Content-Type: %s", req.getContentType());
+      logger.atWarning().log("Invalid JSON Content-Type: %s", req.getContentType());
       return null;
     }
     try (Reader jsonReader = req.getReader()) {
       try {
         return checkNotNull((Map<String, ?>) JSONValue.parseWithException(jsonReader));
       } catch (ParseException | NullPointerException | ClassCastException e) {
-        logger.warning(e, "Malformed JSON");
+        logger.atWarning().withCause(e).log("Malformed JSON");
         return null;
       }
     }

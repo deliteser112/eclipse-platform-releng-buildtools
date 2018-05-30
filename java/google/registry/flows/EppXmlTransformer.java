@@ -22,7 +22,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.flows.EppException.ParameterValueRangeErrorException;
 import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.flows.EppException.SyntaxErrorException;
@@ -44,7 +44,7 @@ import java.util.List;
 /** {@link XmlTransformer} for marshalling to and from the Epp model classes.  */
 public class EppXmlTransformer  {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   // Hardcoded XML schemas, ordered with respect to dependency.
   private static final ImmutableList<String> SCHEMAS = ImmutableList.of(
@@ -130,8 +130,8 @@ public class EppXmlTransformer  {
       try {
         byte[] lenient = EppXmlTransformer.marshal(eppOutput, LENIENT);
         // Marshaling worked even though the results didn't validate against the schema.
-        logger.severefmt(
-            e, "Result marshaled but did not validate: %s", new String(lenient, UTF_8));
+        logger.atSevere().withCause(e).log(
+            "Result marshaled but did not validate: %s", new String(lenient, UTF_8));
         return lenient;
       } catch (XmlException e2) {
         throw new RuntimeException(e2);  // Failing to marshal at all is not recoverable.

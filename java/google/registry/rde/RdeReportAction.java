@@ -22,8 +22,8 @@ import static google.registry.model.rde.RdeMode.FULL;
 import static google.registry.request.Action.Method.POST;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
-import com.google.common.logging.FormattingLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
 import google.registry.keyring.api.KeyModule.Key;
@@ -58,7 +58,7 @@ public final class RdeReportAction implements Runnable, EscrowTask {
 
   static final String PATH = "/_dr/task/rdeReport";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject GcsUtils gcsUtils;
   @Inject Ghostryde ghostryde;
@@ -83,7 +83,7 @@ public final class RdeReportAction implements Runnable, EscrowTask {
         getCursorTimeOrStartOfTime(
             ofy().load().key(Cursor.createKey(CursorType.RDE_UPLOAD, Registry.get(tld))).now());
     if (!cursorTime.isAfter(watermark)) {
-      logger.infofmt("tld=%s reportCursor=%s uploadCursor=%s", tld, watermark, cursorTime);
+      logger.atInfo().log("tld=%s reportCursor=%s uploadCursor=%s", tld, watermark, cursorTime);
       throw new NoContentException("Waiting for RdeUploadAction to complete");
     }
     String prefix = RdeNamingUtils.makeRydeFilename(tld, watermark, FULL, 1, 0);

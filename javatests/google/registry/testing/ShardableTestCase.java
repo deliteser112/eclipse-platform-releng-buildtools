@@ -14,7 +14,7 @@
 
 package google.registry.testing;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -29,19 +29,19 @@ import org.junit.rules.TestName;
  */
 public abstract class ShardableTestCase {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Rule
   public final TestName testName = new TestName();
 
   @Before
   public void beforeShardable() {
-    logger.infofmt("Starting test %s", testName.getMethodName());
+    logger.atInfo().log("Starting test %s", testName.getMethodName());
   }
 
   @After
   public void afterShardable() {
-    logger.infofmt("Finishing test %s", testName.getMethodName());
+    logger.atInfo().log("Finishing test %s", testName.getMethodName());
   }
 
   @Test

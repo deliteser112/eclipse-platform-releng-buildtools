@@ -22,8 +22,8 @@ import static org.joda.time.DateTimeZone.UTC;
 import com.google.appengine.api.users.UserService;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.hash.Hashing;
-import com.google.common.logging.FormattingLogger;
 import google.registry.model.server.ServerSecret;
 import google.registry.util.Clock;
 import java.util.List;
@@ -43,7 +43,7 @@ public final class XsrfTokenManager {
   /** Token version identifier for version 1. */
   private static final String VERSION_1 = "1";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final Clock clock;
   private final UserService userService;
@@ -82,11 +82,11 @@ public final class XsrfTokenManager {
     checkArgumentNotNull(token);
     List<String> tokenParts = Splitter.on(':').splitToList(token);
     if (tokenParts.size() != 3) {
-      logger.warningfmt("Malformed XSRF token: %s", token);
+      logger.atWarning().log("Malformed XSRF token: %s", token);
       return false;
     }
     if (!tokenParts.get(0).equals(VERSION_1)) {
-      logger.warningfmt("Unrecognized version in XSRF token: %s", token);
+      logger.atWarning().log("Unrecognized version in XSRF token: %s", token);
       return false;
     }
     String timePart = tokenParts.get(1);
@@ -94,11 +94,11 @@ public final class XsrfTokenManager {
     try {
       timestampMillis = Long.parseLong(timePart);
     } catch (NumberFormatException e) {
-      logger.warningfmt("Bad timestamp in XSRF token: %s", token);
+      logger.atWarning().log("Bad timestamp in XSRF token: %s", token);
       return false;
     }
     if (new DateTime(timestampMillis, UTC).plus(XSRF_VALIDITY).isBefore(clock.nowUtc())) {
-      logger.infofmt("Expired timestamp in XSRF token: %s", token);
+      logger.atInfo().log("Expired timestamp in XSRF token: %s", token);
       return false;
     }
     String currentUserEmail =
@@ -108,7 +108,7 @@ public final class XsrfTokenManager {
     String reconstructedToken =
         encodeToken(ServerSecret.get().asBytes(), currentUserEmail, timestampMillis);
     if (!token.equals(reconstructedToken)) {
-      logger.warningfmt(
+      logger.atWarning().log(
           "Reconstructed XSRF mismatch (got != expected): %s != %s", token, reconstructedToken);
       return false;
     }

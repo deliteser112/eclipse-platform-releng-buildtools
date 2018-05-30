@@ -22,7 +22,7 @@ import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import java.io.Serializable;
 import java.util.List;
 import javax.inject.Inject;
@@ -32,7 +32,7 @@ public class TaskQueueUtils implements Serializable {
 
   private static final long serialVersionUID = 7893211200220508362L;
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final Retrier retrier;
 
@@ -82,7 +82,7 @@ public class TaskQueueUtils implements Serializable {
     return retrier.callWithRetry(
         () -> {
           for (TaskOptions task : tasks) {
-            logger.infofmt(
+            logger.atInfo().log(
                 "Enqueuing queue='%s' endpoint='%s'", queue.getQueueName(), task.getUrl());
           }
           return queue.add(tasks);

@@ -21,7 +21,7 @@ import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.common.base.Supplier;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import java.util.Map.Entry;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -34,7 +34,7 @@ import javax.inject.Named;
  */
 public class BigQueryMetricsEnqueuer {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   public static final String QUEUE_BIGQUERY_STREAMING_METRICS = "bigquery-streaming-metrics";
 
@@ -58,7 +58,8 @@ public class BigQueryMetricsEnqueuer {
       queue.add(opts);
     } catch (TransientFailureException e) {
       // Log and swallow. We may drop some metrics here but this should be rare.
-      logger.info(e, "Transient error occurred while recording metric; metric dropped.");
+      logger.atInfo().withCause(e).log(
+          "Transient error occurred while recording metric; metric dropped.");
     }
   }
 }

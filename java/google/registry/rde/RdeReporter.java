@@ -28,7 +28,7 @@ import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.request.HttpException.InternalServerErrorException;
@@ -53,7 +53,7 @@ import javax.inject.Inject;
  */
 public class RdeReporter {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** @see <a href="http://tools.ietf.org/html/draft-lozano-icann-registry-interfaces-05#section-4">
    *     ICANN Registry Interfaces - Interface details</a>*/
@@ -79,7 +79,7 @@ public class RdeReporter {
     req.addHeader(new HTTPHeader(CONTENT_TYPE, REPORT_MIME));
     req.addHeader(new HTTPHeader(AUTHORIZATION, "Basic " + token));
     req.setPayload(reportBytes);
-    logger.infofmt("Sending report:\n%s", new String(reportBytes, UTF_8));
+    logger.atInfo().log("Sending report:\n%s", new String(reportBytes, UTF_8));
     HTTPResponse rsp =
         retrier.callWithRetry(
             () -> {
@@ -98,10 +98,9 @@ public class RdeReporter {
     // Ensure the XML response is valid.
     XjcIirdeaResult result = parseResult(rsp);
     if (result.getCode().getValue() != 1000) {
-      logger.warningfmt("PUT rejected: %d %s\n%s",
-          result.getCode().getValue(),
-          result.getMsg(),
-          result.getDescription());
+      logger.atWarning().log(
+          "PUT rejected: %d %s\n%s",
+          result.getCode().getValue(), result.getMsg(), result.getDescription());
       throw new InternalServerErrorException(result.getMsg());
     }
   }
@@ -114,7 +113,7 @@ public class RdeReporter {
    */
   private XjcIirdeaResult parseResult(HTTPResponse rsp) throws XmlException {
     byte[] responseBytes = rsp.getContent();
-    logger.infofmt("Received response:\n%s", new String(responseBytes, UTF_8));
+    logger.atInfo().log("Received response:\n%s", new String(responseBytes, UTF_8));
     XjcIirdeaResponseElement response = XjcXmlTransformer.unmarshal(
         XjcIirdeaResponseElement.class, new ByteArrayInputStream(responseBytes));
     return response.getResult();

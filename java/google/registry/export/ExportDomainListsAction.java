@@ -31,7 +31,7 @@ import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
@@ -60,7 +60,7 @@ import org.joda.time.DateTime;
 @Action(path = "/_dr/task/exportDomainLists", method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
 public class ExportDomainListsAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final int MAX_NUM_REDUCE_SHARDS = 100;
 
   @Inject MapreduceRunner mrRunner;
@@ -72,7 +72,7 @@ public class ExportDomainListsAction implements Runnable {
   @Override
   public void run() {
     ImmutableSet<String> realTlds = getTldsOfType(TldType.REAL);
-    logger.infofmt("Exporting domain lists for tlds %s", realTlds);
+    logger.atInfo().log("Exporting domain lists for tlds %s", realTlds);
     response.sendJavaScriptRedirect(createJobPath(mrRunner
         .setJobName("Export domain lists")
         .setModuleName("backend")
@@ -131,7 +131,7 @@ public class ExportDomainListsAction implements Runnable {
       try {
         Registry registry = Registry.get(tld);
         if (registry.getDriveFolderId() == null) {
-          logger.infofmt(
+          logger.atInfo().log(
               "Skipping registered domains export for TLD %s because Drive folder isn't specified",
               tld);
         } else {
@@ -141,12 +141,13 @@ public class ExportDomainListsAction implements Runnable {
                   EXPORT_MIME_TYPE,
                   registry.getDriveFolderId(),
                   domains.getBytes(UTF_8));
-          logger.infofmt(
+          logger.atInfo().log(
               "Exporting registered domains succeeded for TLD %s, response was: %s",
               tld, resultMsg);
         }
       } catch (Throwable e) {
-        logger.severefmt(e, "Error exporting registered domains for TLD %s to Drive", tld);
+        logger.atSevere().withCause(e).log(
+            "Error exporting registered domains for TLD %s to Drive", tld);
       }
       getContext().incrementCounter("domain lists written out to Drive");
     }
@@ -159,7 +160,8 @@ public class ExportDomainListsAction implements Runnable {
           Writer osWriter = new OutputStreamWriter(gcsOutput, UTF_8)) {
         osWriter.write(domains);
       } catch (IOException e) {
-        logger.severefmt(e, "Error exporting registered domains for TLD %s to GCS.", tld);
+        logger.atSevere().withCause(e).log(
+            "Error exporting registered domains for TLD %s to GCS.", tld);
       }
       getContext().incrementCounter("domain lists written out to GCS");
     }
@@ -168,7 +170,7 @@ public class ExportDomainListsAction implements Runnable {
     public void reduce(String tld, ReducerInput<String> fqdns) {
       ImmutableList<String> domains = ImmutableList.sortedCopyOf(() -> fqdns);
       String domainsList = Joiner.on('\n').join(domains);
-      logger.infofmt("Exporting %d domains for TLD %s to GCS and Drive.", domains.size(), tld);
+      logger.atInfo().log("Exporting %d domains for TLD %s to GCS and Drive.", domains.size(), tld);
       exportToGcs(tld, domainsList);
       exportToDrive(tld, domainsList);
     }

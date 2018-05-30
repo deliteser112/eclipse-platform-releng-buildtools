@@ -21,7 +21,7 @@ import static google.registry.request.RequestParameters.extractRequiredHeader;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.HostAndPort;
 import com.google.common.net.InetAddresses;
 import dagger.Module;
@@ -55,7 +55,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class TlsCredentials implements TransportCredentials {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final String clientCertificateHash;
   private final String sni;
@@ -100,7 +100,7 @@ public class TlsCredentials implements TransportCredentials {
   private void validateIp(Registrar registrar) throws AuthenticationErrorException {
     ImmutableList<CidrAddressBlock> ipWhitelist = registrar.getIpAddressWhitelist();
     if (ipWhitelist.isEmpty()) {
-      logger.infofmt(
+      logger.atInfo().log(
           "Skipping IP whitelist check because %s doesn't have an IP whitelist",
           registrar.getClientId());
       return;
@@ -111,7 +111,7 @@ public class TlsCredentials implements TransportCredentials {
         return;
       }
     }
-    logger.infofmt(
+    logger.atInfo().log(
         "Authentication error: IP address %s is not whitelisted for registrar %s; whitelist is: %s",
         clientInetAddr, registrar.getClientId(), ipWhitelist);
     throw new BadRegistrarIpAddressException();
@@ -127,7 +127,7 @@ public class TlsCredentials implements TransportCredentials {
   private void validateCertificate(Registrar registrar) throws AuthenticationErrorException {
     if (isNullOrEmpty(registrar.getClientCertificateHash())
         && isNullOrEmpty(registrar.getFailoverClientCertificateHash())) {
-      logger.infofmt(
+      logger.atInfo().log(
           "Skipping SSL certificate check because %s doesn't have any certificate hashes on file",
           registrar.getClientId());
       return;
@@ -138,12 +138,12 @@ public class TlsCredentials implements TransportCredentials {
       if (!hasSni()) {
         throw new NoSniException();
       }
-      logger.info("Request did not include X-SSL-Certificate");
+      logger.atInfo().log("Request did not include X-SSL-Certificate");
       throw new MissingRegistrarCertificateException();
     }
     if (!clientCertificateHash.equals(registrar.getClientCertificateHash())
         && !clientCertificateHash.equals(registrar.getFailoverClientCertificateHash())) {
-      logger.warningfmt(
+      logger.atWarning().log(
           "bad certificate hash (%s) for %s, wanted either %s or %s",
           clientCertificateHash,
           registrar.getClientId(),

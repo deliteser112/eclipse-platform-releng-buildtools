@@ -25,7 +25,7 @@ import com.google.api.services.dataflow.Dataflow;
 import com.google.api.services.dataflow.model.Job;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
@@ -48,7 +48,7 @@ import org.joda.time.YearMonth;
 @Action(path = PublishInvoicesAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public class PublishInvoicesAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final String JOB_DONE = "JOB_STATE_DONE";
   private static final String JOB_FAILED = "JOB_STATE_FAILED";
 
@@ -80,24 +80,24 @@ public class PublishInvoicesAction implements Runnable {
   @Override
   public void run() {
     try {
-      logger.info("Starting publish job.");
+      logger.atInfo().log("Starting publish job.");
       Job job = dataflow.projects().jobs().get(projectId, jobId).execute();
       String state = job.getCurrentState();
       switch (state) {
         case JOB_DONE:
-          logger.infofmt("Dataflow job %s finished successfully, publishing results.", jobId);
+          logger.atInfo().log("Dataflow job %s finished successfully, publishing results.", jobId);
           response.setStatus(SC_OK);
           enqueueCopyDetailReportsTask();
           emailUtils.emailOverallInvoice();
           break;
         case JOB_FAILED:
-          logger.severefmt("Dataflow job %s finished unsuccessfully.", jobId);
+          logger.atSevere().log("Dataflow job %s finished unsuccessfully.", jobId);
           response.setStatus(SC_NO_CONTENT);
           emailUtils.sendAlertEmail(
               String.format("Dataflow job %s ended in status failure.", jobId));
           break;
         default:
-          logger.infofmt("Job in non-terminal state %s, retrying:", state);
+          logger.atInfo().log("Job in non-terminal state %s, retrying:", state);
           response.setStatus(SC_NOT_MODIFIED);
           break;
       }

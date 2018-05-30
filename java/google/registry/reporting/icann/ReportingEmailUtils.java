@@ -14,7 +14,7 @@
 
 package google.registry.reporting.icann;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.util.SendEmailService;
 import javax.inject.Inject;
@@ -30,19 +30,19 @@ public class ReportingEmailUtils {
   @Inject SendEmailService emailService;
   @Inject ReportingEmailUtils() {}
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   void emailResults(String subject, String body) {
     try {
       Message msg = emailService.createMessage();
-      logger.infofmt("Emailing %s", recipient);
+      logger.atInfo().log("Emailing %s", recipient);
       msg.setFrom(new InternetAddress(sender));
       msg.addRecipient(RecipientType.TO, new InternetAddress(recipient));
       msg.setSubject(subject);
       msg.setText(body);
       emailService.sendMessage(msg);
     } catch (Exception e) {
-      logger.warning(e, "E-mail service failed.");
+      logger.atWarning().withCause(e).log("E-mail service failed.");
     }
   }
 }

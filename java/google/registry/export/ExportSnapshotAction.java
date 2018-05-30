@@ -17,7 +17,7 @@ package google.registry.export;
 import static google.registry.export.CheckSnapshotAction.enqueuePollTask;
 import static google.registry.request.Action.Method.POST;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig;
 import google.registry.request.Action;
 import google.registry.request.Response;
@@ -54,7 +54,7 @@ public class ExportSnapshotAction implements Runnable {
   /** Prefix to use for naming all snapshots that are started by this servlet. */
   static final String SNAPSHOT_PREFIX = "auto_snapshot_";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject Clock clock;
   @Inject DatastoreBackupService backupService;
@@ -72,7 +72,7 @@ public class ExportSnapshotAction implements Runnable {
     // Enqueue a poll task to monitor the backup and load reporting-related kinds into bigquery.
     enqueuePollTask(snapshotName, ExportConstants.getReportingKinds());
     String message = "Datastore backup started with name: " + snapshotName;
-    logger.info(message);
+    logger.atInfo().log(message);
     response.setPayload(message);
   }
 }

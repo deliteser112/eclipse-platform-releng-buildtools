@@ -19,7 +19,7 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.batch.MapreduceEntityCleanupUtil.EligibleJobResults;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.request.Action;
@@ -88,7 +88,7 @@ public class MapreduceEntityCleanupAction implements Runnable {
   private static final String ERROR_NON_POSITIVE_JOBS_TO_DELETE =
       "Do not specify a non-positive integer for the number of jobs to delete";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final Optional<String> jobId;
   private final Optional<String> jobName;
@@ -133,7 +133,7 @@ public class MapreduceEntityCleanupAction implements Runnable {
   }
 
   private void handleBadRequest(String message) {
-    logger.severe(message);
+    logger.atSevere().log(message);
     response.setPayload(message);
     response.setStatus(SC_BAD_REQUEST);
   }
@@ -198,12 +198,12 @@ public class MapreduceEntityCleanupAction implements Runnable {
         && (!numJobsToDelete.isPresent() || (numJobsProcessed < numJobsToDelete.get())));
 
     if (numJobsProcessed == 0) {
-      logger.infofmt(
-          "No eligible jobs found with name '%s' older than %s days old.",
+      logger.atInfo().log(
+          "No eligible jobs found with name '%s' older than %d days old.",
           jobName.orElse("(any)"), defaultedDaysOld);
       payload.append("No eligible jobs found");
     } else {
-      logger.infofmt("A total of %s job(s) processed.", numJobsProcessed);
+      logger.atInfo().log("A total of %d job(s) processed.", numJobsProcessed);
       payload.append(String.format("A total of %d job(s) processed", numJobsProcessed));
     }
     response.setPayload(payload.toString());
@@ -219,16 +219,15 @@ public class MapreduceEntityCleanupAction implements Runnable {
       if (error.isPresent()) {
         errorCount++;
       }
-      logger.infofmt("%s: %s", actualJobId, error.orElse("deletion requested"));
+      logger.atInfo().log("%s: %s", actualJobId, error.orElse("deletion requested"));
       payloadChunkBuilder.ifPresent(
           stringBuilder ->
               stringBuilder.append(
                   String.format("%s: %s\n", actualJobId, error.orElse("deletion requested"))));
     }
-    logger.infofmt(
-        "successfully requested async deletion of %s job(s); errors received on %s",
-        actualJobIds.size() - errorCount,
-        errorCount);
+    logger.atInfo().log(
+        "successfully requested async deletion of %d job(s); errors received on %d",
+        actualJobIds.size() - errorCount, errorCount);
     if (payloadChunkBuilder.isPresent()) {
       payloadChunkBuilder.get().append(String.format(
           "successfully requested async deletion of %d job(s); errors received on %d\n",

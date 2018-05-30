@@ -18,7 +18,7 @@ import static google.registry.request.Action.Method.POST;
 import static google.registry.request.RequestParameters.PARAM_TLD;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.InternetDomainName;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.dns.DnsMetrics.ActionStatus;
@@ -58,7 +58,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
   public static final String PARAM_REFRESH_REQUEST_CREATED = "itemsCreated";
   public static final String LOCK_NAME = "DNS updates";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject DnsQueue dnsQueue;
   @Inject DnsWriterProxy dnsWriterProxy;
@@ -101,9 +101,9 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
         nullToEmpty(domains).size() + nullToEmpty(hosts).size(),
         new Duration(itemsCreateTime, now),
         new Duration(enqueuedTime, now));
-    logger.infofmt(
+    logger.atInfo().log(
         "publishDnsWriter latency statistics: TLD: %s, dnsWriter: %s, actionStatus: %s, "
-            + "numItems: %s, timeSinceCreation: %s, timeInQueue: %s",
+            + "numItems: %d, timeSinceCreation: %s, timeInQueue: %s",
         tld,
         dnsWriter,
         status,
@@ -143,7 +143,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
 
   /** Adds all the domains and hosts in the batch back to the queue to be processed later. */
   private void requeueBatch() {
-    logger.infofmt("Requeueing batch for retry");
+    logger.atInfo().log("Requeueing batch for retry");
     for (String domain : nullToEmpty(domains)) {
       dnsQueue.addDomainRefreshTask(domain);
     }
@@ -156,14 +156,14 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
   private boolean validLockParams() {
     // LockIndex should always be within [1, numPublishLocks]
     if (lockIndex > numPublishLocks || lockIndex <= 0) {
-      logger.severefmt(
+      logger.atSevere().log(
           "Lock index should be within [1,%d], got %d instead", numPublishLocks, lockIndex);
       return false;
     }
     // Check if the Registry object's num locks has changed since this task was batched
     int registryNumPublishLocks = Registry.get(tld).getNumDnsPublishLocks();
     if (registryNumPublishLocks != numPublishLocks) {
-      logger.warningfmt(
+      logger.atWarning().log(
           "Registry numDnsPublishLocks %d out of sync with parameter %d",
           registryNumPublishLocks, numPublishLocks);
       return false;
@@ -178,7 +178,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
     DnsWriter writer = dnsWriterProxy.getByClassNameForTld(dnsWriter, tld);
 
     if (writer == null) {
-      logger.warningfmt("Couldn't get writer %s for TLD %s", dnsWriter, tld);
+      logger.atWarning().log("Couldn't get writer %s for TLD %s", dnsWriter, tld);
       recordActionResult(ActionStatus.BAD_WRITER);
       requeueBatch();
       return;
@@ -189,11 +189,11 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
     for (String domain : nullToEmpty(domains)) {
       if (!DomainNameUtils.isUnder(
           InternetDomainName.from(domain), InternetDomainName.from(tld))) {
-        logger.severefmt("%s: skipping domain %s not under tld", tld, domain);
+        logger.atSevere().log("%s: skipping domain %s not under tld", tld, domain);
         domainsRejected += 1;
       } else {
         writer.publishDomain(domain);
-        logger.infofmt("%s: published domain %s", tld, domain);
+        logger.atInfo().log("%s: published domain %s", tld, domain);
         domainsPublished += 1;
       }
     }
@@ -205,11 +205,11 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
     for (String host : nullToEmpty(hosts)) {
       if (!DomainNameUtils.isUnder(
           InternetDomainName.from(host), InternetDomainName.from(tld))) {
-        logger.severefmt("%s: skipping host %s not under tld", tld, host);
+        logger.atSevere().log("%s: skipping host %s not under tld", tld, host);
         hostsRejected += 1;
       } else {
         writer.publishHost(host);
-        logger.infofmt("%s: published host %s", tld, host);
+        logger.atInfo().log("%s: published host %s", tld, host);
         hostsPublished += 1;
       }
     }
@@ -234,7 +234,7 @@ public final class PublishDnsUpdatesAction implements Runnable, Callable<Void> {
           duration,
           domainsPublished,
           hostsPublished);
-      logger.infofmt(
+      logger.atInfo().log(
           "writer.commit() statistics: TLD: %s, dnsWriter: %s, commitStatus: %s, duration: %s, "
               + "domainsPublished: %d, domainsRejected: %d, hostsPublished: %d, hostsRejected: %d",
           tld,

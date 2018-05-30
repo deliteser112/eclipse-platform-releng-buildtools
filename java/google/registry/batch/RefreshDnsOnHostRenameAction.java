@@ -41,7 +41,7 @@ import com.google.appengine.tools.mapreduce.ReducerInput;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
 import google.registry.flows.async.AsyncFlowMetrics;
@@ -72,7 +72,7 @@ import org.joda.time.DateTime;
 )
 public class RefreshDnsOnHostRenameAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final long LEASE_MINUTES = 20;
 
   @Inject AsyncFlowMetrics asyncFlowMetrics;
@@ -108,8 +108,8 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
           requestsToDelete.add(request);
         }
       } catch (Exception e) {
-        logger.severefmt(
-            e, "Could not parse DNS refresh for host request, delaying task for a day: %s", task);
+        logger.atSevere().withCause(e).log(
+            "Could not parse DNS refresh for host request, delaying task for a day: %s", task);
         // Grab the lease for a whole day, so it won't continue throwing errors every five minutes.
         pullQueue.modifyTaskLease(task, 1L, DAYS);
       }
@@ -119,11 +119,12 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
         requestsToDelete, pullQueue, asyncFlowMetrics, retrier, OperationResult.STALE);
     ImmutableList<DnsRefreshRequest> refreshRequests = requestsBuilder.build();
     if (refreshRequests.isEmpty()) {
-      logger.info(
+      logger.atInfo().log(
           "No asynchronous DNS refreshes to process because all renamed hosts are deleted.");
       response.setPayload("All requested DNS refreshes are on hosts that were since deleted.");
     } else {
-      logger.infofmt("Processing asynchronous DNS refresh for renamed hosts: %s", hostKeys.build());
+      logger.atInfo().log(
+          "Processing asynchronous DNS refresh for renamed hosts: %s", hostKeys.build());
       runMapreduce(refreshRequests);
     }
   }
@@ -141,7 +142,8 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
               ImmutableList.of(
                   new NullInput<>(), createEntityInput(DomainResource.class)))));
     } catch (Throwable t) {
-      logger.severefmt(t, "Error while kicking off mapreduce to refresh DNS for renamed hosts.");
+      logger.atSevere().withCause(t).log(
+          "Error while kicking off mapreduce to refresh DNS for renamed hosts.");
     }
   }
 
@@ -180,7 +182,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
         retrier.callWithRetry(
             () -> dnsQueue.addDomainRefreshTask(domain.getFullyQualifiedDomainName()),
             TransientFailureException.class);
-        logger.infofmt(
+        logger.atInfo().log(
             "Enqueued DNS refresh for domain %s referenced by host %s.",
             domain.getFullyQualifiedDomainName(), referencingHostKey);
         getContext().incrementCounter("domains refreshed");
@@ -278,7 +280,7 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
       boolean isHostDeleted =
           isDeleted(host, latestOf(now, host.getUpdateAutoTimestamp().getTimestamp()));
       if (isHostDeleted) {
-        logger.infofmt("Host %s is already deleted, not refreshing DNS.", hostKey);
+        logger.atInfo().log("Host %s is already deleted, not refreshing DNS.", hostKey);
       }
       return new AutoValue_RefreshDnsOnHostRenameAction_DnsRefreshRequest.Builder()
           .setHostKey(hostKey)

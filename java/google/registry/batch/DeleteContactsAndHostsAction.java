@@ -19,7 +19,6 @@ import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static com.google.common.math.IntMath.divide;
 import static com.googlecode.objectify.Key.getKind;
 import static google.registry.flows.ResourceFlowUtils.denyPendingTransfer;
@@ -58,7 +57,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Multiset;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.batch.DeleteContactsAndHostsAction.DeletionResult.Type;
 import google.registry.dns.DnsQueue;
@@ -112,7 +111,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
   static final String KIND_HOST = getKind(HostResource.class);
 
   private static final long LEASE_MINUTES = 20;
-  private static final FormattingLogger logger = getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final int MAX_REDUCE_SHARDS = 50;
   private static final int DELETES_PER_SHARD = 5;
 
@@ -149,8 +148,8 @@ public class DeleteContactsAndHostsAction implements Runnable {
           requestsToDelete.add(deletionRequest);
         }
       } catch (Exception e) {
-        logger.severefmt(
-            e, "Could not parse async deletion request, delaying task for a day: %s", task);
+        logger.atSevere().withCause(e).log(
+            "Could not parse async deletion request, delaying task for a day: %s", task);
         // Grab the lease for a whole day, so that it won't continue throwing errors every five
         // minutes.
         queue.modifyTaskLease(task, 1L, DAYS);
@@ -159,10 +158,10 @@ public class DeleteContactsAndHostsAction implements Runnable {
     deleteStaleTasksWithRetry(requestsToDelete);
     ImmutableList<DeletionRequest> deletionRequests = builder.build();
     if (deletionRequests.isEmpty()) {
-      logger.info("No asynchronous deletions to process because all were already handled.");
+      logger.atInfo().log("No asynchronous deletions to process because all were already handled.");
       response.setPayload("All requested deletions of contacts/hosts have already occurred.");
     } else {
-      logger.infofmt(
+      logger.atInfo().log(
           "Processing asynchronous deletion of %d contacts and %d hosts: %s",
           kindCounts.count(KIND_CONTACT), kindCounts.count(KIND_HOST), resourceKeys.build());
       runMapreduce(deletionRequests);
@@ -204,7 +203,8 @@ public class DeleteContactsAndHostsAction implements Runnable {
                   new NullInput<>(),
                   EppResourceInputs.createEntityInput(DomainBase.class)))));
     } catch (Throwable t) {
-      logger.severefmt(t, "Error while kicking off mapreduce to delete contacts/hosts");
+      logger.atSevere().withCause(t).log(
+          "Error while kicking off mapreduce to delete contacts/hosts");
     }
   }
 
@@ -274,7 +274,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
     @Override
     public void reduce(final DeletionRequest deletionRequest, ReducerInput<Boolean> values) {
       final boolean hasNoActiveReferences = !Iterators.contains(values, true);
-      logger.infofmt("Processing async deletion request for %s", deletionRequest.key());
+      logger.atInfo().log("Processing async deletion request for %s", deletionRequest.key());
       DeletionResult result =
           ofy()
               .transactNew(
@@ -290,7 +290,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
           deletionRequest.requestedTime());
       String resourceNamePlural = deletionRequest.key().getKind() + "s";
       getContext().incrementCounter(result.type().renderCounterText(resourceNamePlural));
-      logger.infofmt(
+      logger.atInfo().log(
           "Result of async deletion for resource %s: %s",
           deletionRequest.key(), result.pollMessageText());
     }
@@ -563,11 +563,12 @@ public class DeleteContactsAndHostsAction implements Runnable {
   static boolean doesResourceStateAllowDeletion(EppResource resource, DateTime now) {
     Key<EppResource> key = Key.create(resource);
     if (isDeleted(resource, now)) {
-      logger.warningfmt("Cannot asynchronously delete %s because it is already deleted", key);
+      logger.atWarning().log("Cannot asynchronously delete %s because it is already deleted", key);
       return false;
     }
     if (!resource.getStatusValues().contains(PENDING_DELETE)) {
-      logger.warningfmt("Cannot asynchronously delete %s because it is not in PENDING_DELETE", key);
+      logger.atWarning().log(
+          "Cannot asynchronously delete %s because it is not in PENDING_DELETE", key);
       return false;
     }
     return true;

@@ -22,8 +22,8 @@ import static org.bouncycastle.bcpg.HashAlgorithmTags.SHA256;
 import static org.bouncycastle.bcpg.PublicKeyAlgorithmTags.RSA_GENERAL;
 import static org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags.AES_128;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.CharStreams;
-import com.google.common.logging.FormattingLogger;
 import google.registry.testing.BouncyCastleProviderRule;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -120,7 +120,7 @@ public class BouncyCastleTest {
       + "Be poet's or fanatic's will be known\n"
       + "When this warm scribe my hand is in the grave.\n";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Rule
   public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
@@ -136,7 +136,7 @@ public class BouncyCastleTest {
       }
       data = output.toByteArray();
     }
-    logger.infofmt("Compressed data: %s", dumpHex(data));
+    logger.atInfo().log("Compressed data: %s", dumpHex(data));
 
     // Decompress the data.
     try (ByteArrayInputStream input = new ByteArrayInputStream(data)) {
@@ -167,7 +167,7 @@ public class BouncyCastleTest {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
     signer.generate().encode(output);
     byte[] signatureFileData = output.toByteArray();
-    logger.infofmt(".sig file data: %s", dumpHex(signatureFileData));
+    logger.atInfo().log(".sig file data: %s", dumpHex(signatureFileData));
 
     // Load algorithm information and signature data from "signatureFileData".
     PGPSignature sig;
@@ -207,7 +207,7 @@ public class BouncyCastleTest {
     signer.update(FALL_OF_HYPERION_A_DREAM.getBytes(UTF_8));
     signer.generate().encode(output);
     byte[] signatureFileData = output.toByteArray();
-    logger.infofmt(".sig file data: %s", dumpHex(signatureFileData));
+    logger.atInfo().log(".sig file data: %s", dumpHex(signatureFileData));
 
     // Load algorithm information and signature data from "signatureFileData".
     PGPSignature sig;
@@ -252,7 +252,7 @@ public class BouncyCastleTest {
       }
       encryptedData = output.toByteArray();
     }
-    logger.infofmt("Encrypted data: %s", dumpHex(encryptedData));
+    logger.atInfo().log("Encrypted data: %s", dumpHex(encryptedData));
 
     // Bob loads his "privateKey" into memory.
     PGPSecretKeyRing privateKeyRing = new BcPGPSecretKeyRing(PRIVATE_KEY);
@@ -296,7 +296,7 @@ public class BouncyCastleTest {
       }
       encryptedData = output.toByteArray();
     }
-    logger.infofmt("Encrypted data: %s", dumpHex(encryptedData));
+    logger.atInfo().log("Encrypted data: %s", dumpHex(encryptedData));
 
     // Bob loads his chain of private keys into memory.
     PGPSecretKeyRingCollection privateKeyRings = new BcPGPSecretKeyRingCollection(
@@ -344,7 +344,7 @@ public class BouncyCastleTest {
       }
       encryptedData = output.toByteArray();
     }
-    logger.infofmt("Encrypted data: %s", dumpHex(encryptedData));
+    logger.atInfo().log("Encrypted data: %s", dumpHex(encryptedData));
 
     // Bob loads his chain of private keys into memory.
     PGPSecretKeyRingCollection privateKeyRings = new BcPGPSecretKeyRingCollection(

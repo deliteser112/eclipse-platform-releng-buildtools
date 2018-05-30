@@ -16,7 +16,7 @@ package google.registry.rde;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registry;
@@ -64,7 +64,7 @@ class EscrowTaskRunner {
     void runWithLock(DateTime watermark) throws Exception;
   }
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject Clock clock;
   @Inject LockHandler lockHandler;
@@ -87,14 +87,14 @@ class EscrowTaskRunner {
       final Duration interval) {
     Callable<Void> lockRunner =
         () -> {
-          logger.infofmt("TLD: %s", registry.getTld());
+          logger.atInfo().log("TLD: %s", registry.getTld());
           DateTime startOfToday = clock.nowUtc().withTimeAtStartOfDay();
           Cursor cursor = ofy().load().key(Cursor.createKey(cursorType, registry)).now();
           final DateTime nextRequiredRun = (cursor == null ? startOfToday : cursor.getCursorTime());
           if (nextRequiredRun.isAfter(startOfToday)) {
             throw new NoContentException("Already completed");
           }
-          logger.infofmt("Cursor: %s", nextRequiredRun);
+          logger.atInfo().log("Cursor: %s", nextRequiredRun);
           task.runWithLock(nextRequiredRun);
           ofy()
               .transact(

@@ -27,7 +27,7 @@ import com.google.api.services.dataflow.model.RuntimeEnvironment;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
@@ -50,7 +50,7 @@ import org.joda.time.YearMonth;
 @Action(path = GenerateInvoicesAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
 public class GenerateInvoicesAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   static final String PATH = "/_dr/task/generateInvoices";
 
@@ -85,7 +85,7 @@ public class GenerateInvoicesAction implements Runnable {
 
   @Override
   public void run() {
-    logger.infofmt("Launching invoicing pipeline for %s", yearMonth);
+    logger.atInfo().log("Launching invoicing pipeline for %s", yearMonth);
     try {
       LaunchTemplateParameters params =
           new LaunchTemplateParameters()
@@ -102,13 +102,13 @@ public class GenerateInvoicesAction implements Runnable {
               .launch(projectId, params)
               .setGcsPath(invoiceTemplateUrl)
               .execute();
-      logger.infofmt("Got response: %s", launchResponse.getJob().toPrettyString());
+      logger.atInfo().log("Got response: %s", launchResponse.getJob().toPrettyString());
       String jobId = launchResponse.getJob().getId();
       if (shouldPublish) {
         enqueuePublishTask(jobId);
       }
     } catch (IOException e) {
-      logger.warning(e, "Template Launch failed");
+      logger.atWarning().withCause(e).log("Template Launch failed");
       emailUtils.sendAlertEmail(String.format("Template Launch failed due to %s", e.getMessage()));
       response.setStatus(SC_INTERNAL_SERVER_ERROR);
       response.setContentType(MediaType.PLAIN_TEXT_UTF_8);

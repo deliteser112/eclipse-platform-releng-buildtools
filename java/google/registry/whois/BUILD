@@ -8,7 +8,6 @@ java_library(
     name = "whois",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/model",
         "//java/google/registry/request",

@@ -22,7 +22,7 @@ import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtensio
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.flows.EppException.CommandUseErrorException;
 import google.registry.flows.EppException.SyntaxErrorException;
 import google.registry.flows.EppException.UnimplementedExtensionException;
@@ -45,7 +45,7 @@ import javax.inject.Inject;
  */
 public final class ExtensionManager {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** Blacklist of extension URIs that cause an error if they are used without being declared. */
   private static final ImmutableSet<String> UNDECLARED_URIS_BLACKLIST = FEE_EXTENSION_URIS;
@@ -99,11 +99,9 @@ public final class ExtensionManager {
     if (!undeclaredUrisThatError.isEmpty()) {
       throw new UndeclaredServiceExtensionException(undeclaredUrisThatError);
     }
-    logger.infofmt(
+    logger.atInfo().log(
         "Client %s is attempting to run %s without declaring URIs %s on login",
-        clientId,
-        flowClass.getSimpleName(),
-        undeclaredUris);
+        clientId, flowClass.getSimpleName(), undeclaredUris);
   }
 
   private void checkForRestrictedExtensions(
@@ -155,7 +153,7 @@ public final class ExtensionManager {
     ImmutableSet<Class<? extends CommandExtension>> unimplementedExtensions =
         unimplementedExtensionsBuilder.build();
     if (!unimplementedExtensions.isEmpty()) {
-      logger.infofmt("Unimplemented extensions: %s", unimplementedExtensions);
+      logger.atInfo().log("Unimplemented extensions: %s", unimplementedExtensions);
       throw new UnimplementedExtensionException();
     }
   }

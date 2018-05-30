@@ -20,7 +20,7 @@ import static com.google.common.math.IntMath.pow;
 import static google.registry.util.PredicateUtils.supertypeOf;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import java.io.Serializable;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -34,7 +34,7 @@ public class Retrier implements Serializable {
 
   private static final long serialVersionUID = 1167386907195735483L;
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final Sleeper sleeper;
   private final int attempts;
@@ -171,5 +171,6 @@ public class Retrier implements Serializable {
 
   private static final FailureReporter LOGGING_FAILURE_REPORTER =
       (thrown, failures, maxAttempts) ->
-          logger.infofmt(thrown, "Retrying transient error, attempt %d/%d", failures, maxAttempts);
+          logger.atInfo().withCause(thrown).log(
+              "Retrying transient error, attempt %d/%d", failures, maxAttempts);
 }

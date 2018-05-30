@@ -15,14 +15,13 @@
 package google.registry.flows.async;
 
 import static com.google.appengine.api.taskqueue.QueueConstants.maxLeaseCount;
-import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static com.google.monitoring.metrics.EventMetric.DEFAULT_FITTER;
 import static google.registry.flows.async.AsyncFlowMetrics.OperationType.CONTACT_AND_HOST_DELETE;
 import static google.registry.flows.async.AsyncFlowMetrics.OperationType.DNS_REFRESH;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.monitoring.metrics.DistributionFitter;
 import com.google.monitoring.metrics.EventMetric;
 import com.google.monitoring.metrics.FibonacciFitter;
@@ -42,7 +41,7 @@ import org.joda.time.Duration;
  */
 public class AsyncFlowMetrics {
 
-  private static final FormattingLogger logger = getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final Clock clock;
 
@@ -153,7 +152,7 @@ public class AsyncFlowMetrics {
         processingMillis,
         operationType.getMetricLabelValue(),
         operationResult.getMetricLabelValue());
-    logger.infofmt(
+    logger.atInfo().log(
         "Asynchronous %s operation took %d ms to process, yielding result: %s.",
         operationType.getMetricLabelValue(),
         processingMillis,

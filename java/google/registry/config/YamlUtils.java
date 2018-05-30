@@ -15,10 +15,9 @@
 package google.registry.config;
 
 import static com.google.common.base.Ascii.toLowerCase;
-import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import java.util.Map;
 import java.util.Optional;
 import org.yaml.snakeyaml.Yaml;
@@ -34,7 +33,7 @@ import org.yaml.snakeyaml.Yaml;
  */
 public final class YamlUtils {
 
-  private static final FormattingLogger logger = getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final String ENVIRONMENT_CONFIG_FORMAT = "files/nomulus-config-%s.yaml";
   private static final String YAML_CONFIG_PROD =
@@ -92,9 +91,9 @@ public final class YamlUtils {
     Optional<Map<String, Object>> customMap = loadAsMap(yaml, customYaml);
     if (customMap.isPresent()) {
       yamlMap = mergeMaps(yamlMap, customMap.get());
-      logger.fine("Successfully loaded environment configuration YAML file.");
+      logger.atFine().log("Successfully loaded environment configuration YAML file.");
     } else {
-      logger.warning("Ignoring empty environment configuration YAML file.");
+      logger.atWarning().log("Ignoring empty environment configuration YAML file.");
     }
     return yaml.dump(yamlMap);
   }

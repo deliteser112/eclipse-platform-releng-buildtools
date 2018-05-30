@@ -23,8 +23,8 @@ import static org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME;
 import static org.bouncycastle.openpgp.PGPLiteralData.BINARY;
 import static org.joda.time.DateTimeZone.UTC;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
-import com.google.common.logging.FormattingLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.util.ImprovedInputStream;
 import google.registry.util.ImprovedOutputStream;
@@ -125,7 +125,7 @@ import org.joda.time.DateTime;
 @Immutable
 public final class Ghostryde {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /**
    * Compression algorithm to use when creating ghostryde files.
@@ -455,7 +455,7 @@ public final class Ghostryde {
     PGPEncryptedDataList crypts = pgpCast(fact.nextObject(), PGPEncryptedDataList.class);
     checkState(crypts.size() > 0);
     if (crypts.size() > 1) {
-      logger.warningfmt("crypts.size() is %d (should be 1)", crypts.size());
+      logger.atWarning().log("crypts.size() is %d (should be 1)", crypts.size());
     }
     PGPPublicKeyEncryptedData crypt = pgpCast(crypts.get(0), PGPPublicKeyEncryptedData.class);
     if (crypt.getKeyID() != privateKey.getKeyID()) {

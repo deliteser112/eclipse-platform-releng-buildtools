@@ -8,7 +8,6 @@ java_library(
     name = "rde",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/gcs",
         "//java/google/registry/keyring/api",

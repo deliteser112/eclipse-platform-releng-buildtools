@@ -37,7 +37,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
 import com.google.common.collect.Streams;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.NullInput;
@@ -81,7 +81,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
 
   public static final String PARAM_CURSOR_TIME = "cursorTime";
   private static final String ERROR_COUNTER = "errors";
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject Clock clock;
   @Inject MapreduceRunner mrRunner;
@@ -99,10 +99,9 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
     checkArgument(
         cursorTime.isBefore(executeTime),
         "Cursor time must be earlier than execution time.");
-    logger.infofmt(
+    logger.atInfo().log(
         "Running Recurring billing event expansion for billing time range [%s, %s).",
-        cursorTime,
-        executeTime);
+        cursorTime, executeTime);
     response.sendJavaScriptRedirect(createJobPath(mrRunner
         .setJobName("Expand Recurring billing events into synthetic OneTime events.")
         .setModuleName("backend")
@@ -232,11 +231,12 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
           return syntheticOneTimes.size();
         });
       } catch (Throwable t) {
-        logger.severefmt(
-            t, "Error while expanding Recurring billing events for %s", recurring.getId());
         getContext().incrementCounter("error: " + t.getClass().getSimpleName());
         getContext().incrementCounter(ERROR_COUNTER);
-        throw t;
+        throw new RuntimeException(
+            String.format(
+                "Error while expanding Recurring billing events for %d", recurring.getId()),
+            t);
       }
       if (!isDryRun) {
         getContext().incrementCounter("Saved OneTime billing events", numBillingEventsSaved);
@@ -300,16 +300,15 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
     @Override
     public void reduce(final DateTime cursorTime, final ReducerInput<DateTime> executionTimeInput) {
       if (getContext().getCounter(ERROR_COUNTER).getValue() > 0) {
-        logger.severefmt("One or more errors logged during recurring event expansion. Cursor will"
-            + " not be advanced.");
+        logger.atSevere().log(
+            "One or more errors logged during recurring event expansion. Cursor will"
+                + " not be advanced.");
         return;
       }
       final DateTime executionTime = executionTimeInput.next();
-      logger.infofmt(
+      logger.atInfo().log(
           "Recurring event expansion %s complete for billing event range [%s, %s).",
-          isDryRun ? "(dry run) " : "",
-          cursorTime,
-          executionTime);
+          isDryRun ? "(dry run) " : "", cursorTime, executionTime);
       ofy()
           .transact(
               () -> {
@@ -317,7 +316,7 @@ public class ExpandRecurringBillingEventsAction implements Runnable {
                 DateTime currentCursorTime =
                     (cursor == null ? START_OF_TIME : cursor.getCursorTime());
                 if (!currentCursorTime.equals(expectedPersistedCursorTime)) {
-                  logger.severefmt(
+                  logger.atSevere().log(
                       "Current cursor position %s does not match expected cursor position %s.",
                       currentCursorTime, expectedPersistedCursorTime);
                   return;

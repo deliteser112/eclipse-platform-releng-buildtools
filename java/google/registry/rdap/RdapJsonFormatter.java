@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Streams;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
 import google.registry.config.RdapNoticeDescriptor;
@@ -83,7 +83,7 @@ public class RdapJsonFormatter {
   @Inject @Config("rdapHelpMap") ImmutableMap<String, RdapNoticeDescriptor> rdapHelpMap;
   @Inject RdapJsonFormatter() {}
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /**
    * What type of data to generate. Summary data includes only information about the object itself,
@@ -304,8 +304,8 @@ public class RdapJsonFormatter {
     try {
       return RdapJsonFormatter.makeRdapJsonNotice(rdapHelpMap.get(pathSearchString), rdapLinkBase);
     } catch (Exception e) {
-      logger.warningfmt(e, "Error reading RDAP help file: %s", pathSearchString);
-      throw new InternalServerErrorException("unable to read help for " + pathSearchString);
+      throw new InternalServerErrorException(
+          String.format("Error reading RDAP help file: %s", pathSearchString), e);
     }
   }
 

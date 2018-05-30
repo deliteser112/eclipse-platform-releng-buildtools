@@ -26,7 +26,7 @@ import com.google.appengine.tools.cloudstorage.ListResult;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import java.io.IOException;
@@ -40,7 +40,7 @@ import javax.inject.Inject;
 /** Utilities for working with Google Cloud Storage. */
 public class GcsUtils {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final ImmutableMap<String, MediaType> EXTENSIONS =
       new ImmutableMap.Builder<String, MediaType>()
@@ -105,7 +105,7 @@ public class GcsUtils {
     try {
       metadata = gcsService.getMetadata(file);
     } catch (IOException e) {
-      logger.warning(e, "Failed to check if GCS file exists");
+      logger.atWarning().withCause(e).log("Failed to check if GCS file exists");
       return false;
     }
     return metadata != null && metadata.getLength() > 0;

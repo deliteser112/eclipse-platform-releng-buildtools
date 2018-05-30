@@ -18,7 +18,7 @@ import static com.google.common.collect.Sets.difference;
 import static google.registry.util.CollectionUtils.nullToEmpty;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.flows.EppException;
 import google.registry.flows.EppException.AuthenticationErrorClosingConnectionException;
 import google.registry.flows.EppException.AuthenticationErrorException;
@@ -67,7 +67,7 @@ import javax.inject.Inject;
  */
 public class LoginFlow implements Flow {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** Maximum number of failed login attempts allowed per connection. */
   private static final int MAX_FAILED_LOGIN_ATTEMPTS_PER_CONNECTION = 3;
@@ -86,7 +86,7 @@ public class LoginFlow implements Flow {
     try {
       return runWithoutLogging();
     } catch (EppException e) {
-      logger.warning("Login failed: " + e.getMessage());
+      logger.atWarning().log("Login failed: %s", e.getMessage());
       throw e;
     }
   }

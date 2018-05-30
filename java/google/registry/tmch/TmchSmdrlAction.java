@@ -16,7 +16,7 @@ package google.registry.tmch;
 
 import static google.registry.request.Action.Method.POST;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.model.smd.SignedMarkRevocationList;
 import google.registry.request.Action;
@@ -37,7 +37,7 @@ import org.bouncycastle.openpgp.PGPException;
 )
 public final class TmchSmdrlAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final String SMDRL_CSV_PATH = "/smdrl/smdrl-latest.csv";
   private static final String SMDRL_SIG_PATH = "/smdrl/smdrl-latest.sig";
 
@@ -56,7 +56,7 @@ public final class TmchSmdrlAction implements Runnable {
     }
     SignedMarkRevocationList smdrl = SmdrlCsvParser.parse(lines);
     smdrl.save();
-    logger.infofmt(
+    logger.atInfo().log(
         "Inserted %,d smd revocations into Datastore, created at %s",
         smdrl.size(), smdrl.getCreationTime());
   }

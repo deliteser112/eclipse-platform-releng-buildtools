@@ -34,7 +34,7 @@ import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.apphosting.api.DeadlineExceededException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.InternetDomainName;
 import com.google.common.util.concurrent.RateLimiter;
 import google.registry.dns.DnsConstants.TargetType;
@@ -65,7 +65,7 @@ import org.joda.time.Duration;
  */
 public class DnsQueue {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final Queue queue;
 
@@ -107,7 +107,7 @@ public class DnsQueue {
    * Enqueues the given task type with the given target name to the DNS queue.
    */
   private TaskHandle addToQueue(TargetType targetType, String targetName, String tld) {
-    logger.infofmt(
+    logger.atInfo().log(
         "Adding task type=%s, target=%s, tld=%s to pull queue %s (%d tasks currently on queue)",
         targetType, targetName, tld, DNS_PULL_QUEUE_NAME, queue.fetchStatistics().getNumTasks());
     return queue.add(
@@ -159,14 +159,11 @@ public class DnsQueue {
     try {
       rateLimiter.acquire();
       int numTasks = queue.fetchStatistics().getNumTasks();
-      logger.logfmt(
-          (numTasks >= leaseTasksBatchSize) ? Level.WARNING : Level.INFO,
-          "There are %d tasks in the DNS queue '%s'.",
-          numTasks,
-          DNS_PULL_QUEUE_NAME);
+      logger.at((numTasks >= leaseTasksBatchSize) ? Level.WARNING : Level.INFO).log(
+          "There are %d tasks in the DNS queue '%s'.", numTasks, DNS_PULL_QUEUE_NAME);
       return queue.leaseTasks(leaseDuration.getMillis(), MILLISECONDS, leaseTasksBatchSize);
     } catch (TransientFailureException | DeadlineExceededException e) {
-      logger.severe(e, "Failed leasing tasks too fast");
+      logger.atSevere().withCause(e).log("Failed leasing tasks too fast");
       return ImmutableList.of();
     }
   }
@@ -176,7 +173,7 @@ public class DnsQueue {
     try {
       queue.deleteTask(tasks);
     } catch (TransientFailureException | DeadlineExceededException e) {
-      logger.severe(e, "Failed deleting tasks too fast");
+      logger.atSevere().withCause(e).log("Failed deleting tasks too fast");
     }
   }
 }

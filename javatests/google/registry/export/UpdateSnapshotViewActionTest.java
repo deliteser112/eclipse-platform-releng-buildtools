@@ -125,6 +125,7 @@ public class UpdateSnapshotViewActionTest {
         .thenThrow(new IOException("I'm sorry Dave, I can't let you do that"));
     InternalServerErrorException thrown =
         assertThrows(InternalServerErrorException.class, action::run);
-    assertThat(thrown).hasMessageThat().contains("Error in update snapshot view action");
+    assertThat(thrown).hasMessageThat().contains("Could not update snapshot view for table");
+    assertThat(thrown).hasCauseThat().hasMessageThat().contains("I'm sorry Dave");
   }
 }

@@ -19,7 +19,7 @@ import static google.registry.request.Action.Method.POST;
 import static java.util.Arrays.asList;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.groups.GroupsConnection;
 import google.registry.groups.GroupsConnection.Role;
@@ -50,7 +50,7 @@ public class CreateGroupsAction implements Runnable {
   public static final String PATH = "/_dr/admin/createGroups";
   public static final String CLIENT_ID_PARAM = "clientId";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final int NUM_SIMULTANEOUS_CONNECTIONS = 5;
 
   @Inject GroupsConnection groupsConnection;
@@ -97,11 +97,9 @@ public class CreateGroupsAction implements Runnable {
         if (e.isPresent()) {
           responseWriter.append(types.get(i).getDisplayName()).append(" => ");
           e.get().printStackTrace(responseWriter);
-          logger.severefmt(
-              e.get(),
+          logger.atSevere().withCause(e.get()).log(
               "Could not create Google Group for registrar %s for type %s",
-              registrar.getRegistrarName(),
-              types.get(i).toString());
+              registrar.getRegistrarName(), types.get(i));
         } else {
           responseWriter.printf("%s => Success%n", types.get(i).getDisplayName());
         }
@@ -110,7 +108,8 @@ public class CreateGroupsAction implements Runnable {
     } else {
       response.setStatus(SC_OK);
       response.setPayload("Success!");
-      logger.infofmt("Successfully created groups for registrar: %s", registrar.getRegistrarName());
+      logger.atInfo().log(
+          "Successfully created groups for registrar: %s", registrar.getRegistrarName());
     }
   }
 
@@ -128,7 +127,7 @@ public class CreateGroupsAction implements Runnable {
   }
 
   private void respondToBadRequest(String message) {
-    logger.severe(message);
+    logger.atSevere().log(message);
     throw new BadRequestException(message);
   }
 }

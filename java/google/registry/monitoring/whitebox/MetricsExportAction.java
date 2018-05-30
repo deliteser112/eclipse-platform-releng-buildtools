@@ -17,7 +17,6 @@ package google.registry.monitoring.whitebox;
 import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.collect.Multimaps.filterKeys;
-import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.request.Action.Method.POST;
 import static java.util.stream.Collectors.joining;
 
@@ -28,7 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.bigquery.BigqueryFactory;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
@@ -48,7 +47,7 @@ import javax.inject.Inject;
 public class MetricsExportAction implements Runnable {
 
   public static final String PATH = "/_dr/task/metrics";
-  private static final FormattingLogger logger = getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final String DATASET_ID = "metrics";
   private static final ImmutableSet<String> SPECIAL_PARAMS = ImmutableSet.of("tableId", "insertId");
 
@@ -97,7 +96,7 @@ public class MetricsExportAction implements Runnable {
                 .collect(joining("\n")));
       }
     } catch (Throwable e) {
-      logger.warning(e, "Unknown error while exporting metrics to BigQuery.");
+      logger.atWarning().withCause(e).log("Unknown error while exporting metrics to BigQuery.");
     }
   }
 }

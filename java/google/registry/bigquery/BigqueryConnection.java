@@ -53,8 +53,8 @@ import com.google.api.services.bigquery.model.TableRow;
 import com.google.api.services.bigquery.model.ViewDefinition;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableTable;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.BaseEncoding;
-import com.google.common.logging.FormattingLogger;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -79,7 +79,7 @@ import org.joda.time.Duration;
 /** Class encapsulating parameters and state for accessing the Bigquery API. */
 public class BigqueryConnection implements AutoCloseable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final Duration MIN_POLL_INTERVAL = Duration.millis(500);
 
@@ -642,10 +642,10 @@ public class BigqueryConnection implements AutoCloseable {
     if (jobStatus.getErrorResult() != null) {
       throw BigqueryJobFailureException.create(jobStatus);
     } else {
-      logger.info(summarizeCompletedJob(job));
+      logger.atInfo().log(summarizeCompletedJob(job));
       if (jobStatus.getErrors() != null) {
         for (ErrorProto error : jobStatus.getErrors()) {
-          logger.warningfmt("%s: %s", error.getReason(), error.getMessage());
+          logger.atWarning().log("%s: %s", error.getReason(), error.getMessage());
         }
       }
       return job;

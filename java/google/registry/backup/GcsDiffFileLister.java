@@ -27,7 +27,7 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.appengine.tools.cloudstorage.ListItem;
 import com.google.appengine.tools.cloudstorage.ListOptions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -44,7 +44,7 @@ import org.joda.time.DateTime;
 /** Utility class to list commit logs diff files stored on GCS. */
 class GcsDiffFileLister {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject GcsService gcsService;
   @Inject @Config("commitLogGcsBucket") String gcsBucket;
@@ -68,30 +68,29 @@ class GcsDiffFileLister {
         metadata = Futures.getUnchecked(upperBoundTimesToMetadata.get(checkpointTime));
       } else {
         String filename = DIFF_FILE_PREFIX + checkpointTime;
-        logger.infofmt("Patching GCS list; discovered file: %s", filename);
+        logger.atInfo().log("Patching GCS list; discovered file: %s", filename);
         metadata = getMetadata(filename);
 
         // If we hit a gap, quit.
         if (metadata == null) {
-          logger.infofmt(
+          logger.atInfo().log(
               "Gap discovered in sequence terminating at %s, missing file: %s",
-              sequence.lastKey(),
-              filename);
-          logger.infofmt("Found sequence from %s to %s", checkpointTime, lastTime);
+              sequence.lastKey(), filename);
+          logger.atInfo().log("Found sequence from %s to %s", checkpointTime, lastTime);
           return false;
         }
       }
       sequence.put(checkpointTime, metadata);
       checkpointTime = getLowerBoundTime(metadata);
     }
-    logger.infofmt("Found sequence from %s to %s", checkpointTime, lastTime);
+    logger.atInfo().log("Found sequence from %s to %s", checkpointTime, lastTime);
     return true;
   }
 
   ImmutableList<GcsFileMetadata> listDiffFiles(DateTime fromTime, @Nullable DateTime toTime) {
-    logger.infofmt("Requested restore from time: %s", fromTime);
+    logger.atInfo().log("Requested restore from time: %s", fromTime);
     if (toTime != null) {
-      logger.infofmt("  Until time: %s", toTime);
+      logger.atInfo().log("  Until time: %s", toTime);
     }
     // List all of the diff files on GCS and build a map from each file's upper checkpoint time
     // (extracted from the filename) to its asynchronously-loaded metadata, keeping only files with
@@ -117,7 +116,7 @@ class GcsDiffFileLister {
       }
     }
     if (upperBoundTimesToMetadata.isEmpty()) {
-      logger.info("No files found");
+      logger.atInfo().log("No files found");
       return ImmutableList.of();
     }
 
@@ -130,7 +129,7 @@ class GcsDiffFileLister {
     // last file and work backwards we can verify that we have no holes in our chain (although we
     // may be missing files at the end).
     TreeMap<DateTime, GcsFileMetadata> sequence = new TreeMap<>();
-    logger.infofmt("Restoring until: %s", lastUpperBoundTime);
+    logger.atInfo().log("Restoring until: %s", lastUpperBoundTime);
     boolean inconsistentFileSet = !constructDiffSequence(
         upperBoundTimesToMetadata, fromTime, lastUpperBoundTime, sequence);
 
@@ -157,9 +156,9 @@ class GcsDiffFileLister {
         "Unable to compute commit diff history, there are either gaps or forks in the history "
         + "file set.  Check log for details.");
 
-    logger.infofmt(
+    logger.atInfo().log(
         "Actual restore from time: %s", getLowerBoundTime(sequence.firstEntry().getValue()));
-    logger.infofmt("Found %d files to restore", sequence.size());
+    logger.atInfo().log("Found %d files to restore", sequence.size());
     return ImmutableList.copyOf(sequence.values());
   }
 

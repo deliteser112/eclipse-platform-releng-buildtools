@@ -14,7 +14,7 @@
 
 package google.registry.flows;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.request.Action;
 import google.registry.request.Action.Method;
 import google.registry.request.Payload;
@@ -33,7 +33,7 @@ import javax.servlet.http.HttpSession;
 )
 public class EppTlsAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject @Payload byte[] inputXmlBytes;
   @Inject TlsCredentials tlsCredentials;
@@ -46,7 +46,7 @@ public class EppTlsAction implements Runnable {
     // Check that SNI header is present. This is a signal that we're receiving traffic proxied by a
     // GFE, which is the expectation of this servlet. The value is unused.
     if (!tlsCredentials.hasSni()) {
-      logger.warning("Request did not include required SNI header.");
+      logger.atWarning().log("Request did not include required SNI header.");
     }
     eppRequestHandler.executeEpp(
         new HttpSessionMetadata(session),

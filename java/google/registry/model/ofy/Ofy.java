@@ -28,7 +28,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -59,7 +59,7 @@ import org.joda.time.Duration;
  */
 public class Ofy {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** Default clock for transactions that don't provide one. */
   @NonFinalForTesting
@@ -263,7 +263,8 @@ public class Ofy {
           throw e;  // Give up.
         }
         sleeper.sleepUninterruptibly(Duration.millis(sleepMillis));
-        logger.infofmt(e, "Retrying %s, attempt %s", e.getClass().getSimpleName(), attempt);
+        logger.atInfo().withCause(e).log(
+            "Retrying %s, attempt %d", e.getClass().getSimpleName(), attempt);
       }
     }
   }

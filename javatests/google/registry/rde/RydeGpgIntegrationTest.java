@@ -21,8 +21,8 @@ import static google.registry.testing.SystemInfo.hasCommand;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assume.assumeTrue;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.CharStreams;
-import com.google.common.logging.FormattingLogger;
 import google.registry.keyring.api.Keyring;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.FakeKeyringModule;
@@ -50,7 +50,7 @@ import org.junit.runner.RunWith;
 @SuppressWarnings("resource")
 public class RydeGpgIntegrationTest extends ShardableTestCase {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Rule
   public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
@@ -145,7 +145,7 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
     //         mode b (62), created 1287273600, name="lol_2010-10-17_full_S1_R0.tar",
     //         raw data: 10752 bytes
     // gpg: WARNING: message was not integrity protected
-    logger.info("Running GPG to list info about OpenPGP message...");
+    logger.atInfo().log("Running GPG to list info about OpenPGP message...");
     {
       Process pid =
           gpg.exec(
@@ -192,7 +192,7 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
     // jart@jart:/tmp$ gpg --verify /tmp/deposit.sig /tmp/deposit.ryde
     // gpg: Signature made Mon 26 Aug 2013 12:04:27 PM EDT using RSA-S key ID 2774D88E
     // gpg: Good signature from <rde-unittest@registry.test>
-    logger.info("Running GPG to verify signature...");
+    logger.atInfo().log("Running GPG to verify signature...");
     {
       Process pid = gpg.exec(cmd.get(), "--verify", sigFile.toString(), rydeFile.toString());
       String stderr = slurp(pid.getErrorStream());
@@ -210,7 +210,7 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
     // gpg: AES encrypted data
     // gpg: original file name='lol_2010-10-17_full_S1_R0.tar'
     // gpg: WARNING: message was not integrity protected
-    logger.info("Running GPG to extract tar...");
+    logger.atInfo().log("Running GPG to extract tar...");
     {
       Process pid =
           gpg.exec(cmd.get(), "--use-embedded-filename", "--ignore-mdc-error", rydeFile.toString());
@@ -222,7 +222,7 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
         .isTrue();
 
     // ...and finally, Iron Mountain extracts the tar file to get a happy XML file ^__^
-    logger.info("Running GNU tar to extract content...");
+    logger.atInfo().log("Running GNU tar to extract content...");
     {
       Process pid = gpg.exec("tar", "-xf", tarFile.toString());
       String stderr = slurp(pid.getErrorStream());

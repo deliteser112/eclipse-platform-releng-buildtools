@@ -20,7 +20,7 @@ import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.request.auth.AuthResult;
 import google.registry.request.auth.RequestAuthenticator;
 import google.registry.util.TypeUtils.TypeInstantiator;
@@ -59,7 +59,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class RequestHandler<C> {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final Router router;
   private final Provider<? extends RequestComponentBuilder<C>> requestComponentBuilderProvider;
@@ -115,19 +115,19 @@ public class RequestHandler<C> {
     try {
       method = Action.Method.valueOf(req.getMethod());
     } catch (IllegalArgumentException e) {
-      logger.infofmt("Unsupported method: %s", req.getMethod());
+      logger.atInfo().log("Unsupported method: %s", req.getMethod());
       rsp.sendError(SC_METHOD_NOT_ALLOWED);
       return;
     }
     String path = req.getRequestURI();
     Optional<Route> route = router.route(path);
     if (!route.isPresent()) {
-      logger.infofmt("No action found for: %s", path);
+      logger.atInfo().log("No action found for: %s", path);
       rsp.sendError(SC_NOT_FOUND);
       return;
     }
     if (!route.get().isMethodAllowed(method)) {
-      logger.infofmt("Method %s not allowed for: %s", method, path);
+      logger.atInfo().log("Method %s not allowed for: %s", method, path);
       rsp.sendError(SC_METHOD_NOT_ALLOWED);
       return;
     }

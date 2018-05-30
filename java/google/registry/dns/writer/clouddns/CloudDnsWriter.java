@@ -29,7 +29,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.InternetDomainName;
 import com.google.common.util.concurrent.RateLimiter;
 import google.registry.config.RegistryConfig.Config;
@@ -72,7 +72,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
    */
   public static final String NAME = "CloudDnsWriter";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final ImmutableSet<String> RETRYABLE_EXCEPTION_REASONS =
       ImmutableSet.of("preconditionFailed", "notFound", "alreadyExists");
 
@@ -179,12 +179,12 @@ public class CloudDnsWriter extends BaseDnsWriter {
     }
 
     desiredRecords.put(absoluteDomainName, domainRecords.build());
-    logger.finefmt(
-        "Will write %s records for domain %s", domainRecords.build().size(), absoluteDomainName);
+    logger.atFine().log(
+        "Will write %d records for domain %s", domainRecords.build().size(), absoluteDomainName);
   }
 
   private void publishSubordinateHost(String hostName) {
-    logger.infofmt("Publishing glue records for %s", hostName);
+    logger.atInfo().log("Publishing glue records for %s", hostName);
     // Canonicalize name
     String absoluteHostName = getAbsoluteHostName(hostName);
 
@@ -251,7 +251,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
 
     // Host not managed by our registry, no need to update DNS.
     if (!tld.isPresent()) {
-      logger.severefmt("publishHost called for invalid host %s", hostName);
+      logger.atSevere().log("publishHost called for invalid host %s", hostName);
       return;
     }
 
@@ -274,7 +274,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
     ImmutableMap<String, ImmutableSet<ResourceRecordSet>> desiredRecordsCopy =
         ImmutableMap.copyOf(desiredRecords);
     retrier.callWithRetry(() -> mutateZone(desiredRecordsCopy), ZoneStateException.class);
-    logger.info("Wrote to Cloud DNS");
+    logger.atInfo().log("Wrote to Cloud DNS");
   }
 
   /** Returns the glue records for in-bailiwick nameservers for the given domain+records. */
@@ -324,7 +324,7 @@ public class CloudDnsWriter extends BaseDnsWriter {
    */
   private Map<String, List<ResourceRecordSet>> getResourceRecordsForDomains(
       Set<String> domainNames) {
-    logger.finefmt("Fetching records for %s", domainNames);
+    logger.atFine().log("Fetching records for %s", domainNames);
     // As per Concurrent.transform() - if numThreads or domainNames.size() < 2, it will not use
     // threading.
     return ImmutableMap.copyOf(
@@ -373,12 +373,12 @@ public class CloudDnsWriter extends BaseDnsWriter {
     // the result.
     ImmutableSet<ResourceRecordSet> intersection =
         Sets.intersection(additions, deletions).immutableCopy();
-    logger.infofmt(
-        "There are %s common items out of the %s items in 'additions' and %s items in 'deletions'",
+    logger.atInfo().log(
+        "There are %d common items out of the %d items in 'additions' and %d items in 'deletions'",
         intersection.size(), additions.size(), deletions.size());
     // Exit early if we have nothing to update - dnsConnection doesn't work on empty changes
     if (additions.equals(deletions)) {
-      logger.infofmt("Returning early because additions is the same as deletions");
+      logger.atInfo().log("Returning early because additions is the same as deletions");
       return;
     }
     Change change =

@@ -145,7 +145,11 @@ public class BillingEmailUtilsTest {
     );
     RuntimeException thrown =
         assertThrows(RuntimeException.class, () -> emailUtils.emailOverallInvoice());
-    assertThat(thrown).hasMessageThat().isEqualTo("javax.mail.MessagingException: expected");
+    assertThat(thrown).hasMessageThat().isEqualTo("Emailing invoice failed");
+    assertThat(thrown)
+        .hasCauseThat()
+        .hasMessageThat()
+        .isEqualTo("javax.mail.MessagingException: expected");
     // Verify we sent an e-mail alert
     verify(emailService).sendMessage(msgCaptor.capture());
     validateAlertMessage(msgCaptor.getValue(), "Emailing invoice failed due to expected");

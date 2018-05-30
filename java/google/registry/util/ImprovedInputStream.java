@@ -17,7 +17,7 @@ package google.registry.util;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class ImprovedInputStream extends FilterInputStream {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private long count;
   private long mark = -1;
@@ -126,7 +126,7 @@ public class ImprovedInputStream extends FilterInputStream {
     if (in == null) {
       return;
     }
-    logger.infofmt("%s closed with %,d bytes read", getClass().getSimpleName(), count);
+    logger.atInfo().log("%s closed with %,d bytes read", getClass().getSimpleName(), count);
     if (expected != -1 && count != expected) {
       throw new IOException(String.format("%s expected %,d bytes but read %,d bytes",
           getClass().getCanonicalName(), expected, count));

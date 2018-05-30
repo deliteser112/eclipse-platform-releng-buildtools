@@ -15,7 +15,7 @@
 package google.registry.module.backend;
 
 import com.google.appengine.api.LifecycleManager;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.monitoring.metrics.MetricReporter;
 import dagger.Lazy;
 import java.io.IOException;
@@ -33,7 +33,7 @@ public final class BackendServlet extends HttpServlet {
   private static final BackendComponent component = DaggerBackendComponent.create();
   private static final BackendRequestHandler requestHandler = component.requestHandler();
   private static final Lazy<MetricReporter> metricReporter = component.metricReporter();
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Override
   public void init() {
@@ -44,25 +44,26 @@ public final class BackendServlet extends HttpServlet {
     // registered if metric reporter starts up correctly.
     try {
       metricReporter.get().startAsync().awaitRunning(10, TimeUnit.SECONDS);
-      logger.info("Started up MetricReporter");
+      logger.atInfo().log("Started up MetricReporter");
       LifecycleManager.getInstance()
           .setShutdownHook(
               () -> {
                 try {
                   metricReporter.get().stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
-                  logger.info("Shut down MetricReporter");
+                  logger.atInfo().log("Shut down MetricReporter");
                 } catch (TimeoutException timeoutException) {
-                  logger.severefmt("Failed to stop MetricReporter: %s", timeoutException);
+                  logger.atSevere().withCause(timeoutException).log(
+                      "Failed to stop MetricReporter: %s", timeoutException);
                 }
               });
     } catch (Exception e) {
-      logger.severefmt(e, "Failed to initialize MetricReporter.");
+      logger.atSevere().withCause(e).log("Failed to initialize MetricReporter.");
     }
   }
 
   @Override
   public void service(HttpServletRequest req, HttpServletResponse rsp) throws IOException {
-    logger.info("Received backend request");
+    logger.atInfo().log("Received backend request");
     requestHandler.handleRequest(req, rsp);
   }
 }

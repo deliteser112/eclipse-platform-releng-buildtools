@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Streams;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
@@ -69,7 +69,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
   public static final String PATH = "/registrar-settings";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   static final String OP_PARAM = "op";
   static final String ARGS_PARAM = "args";
@@ -104,11 +104,9 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     @SuppressWarnings("unchecked")
     Map<String, ?> args = (Map<String, Object>)
         Optional.<Object>ofNullable(input.get(ARGS_PARAM)).orElse(ImmutableMap.of());
-    logger.infofmt(
+    logger.atInfo().log(
         "Received request '%s' on registrar '%s' with args %s",
-        op,
-        initialRegistrar.getClientId(),
-        args);
+        op, initialRegistrar.getClientId(), args);
     try {
       switch (op) {
         case "update":
@@ -119,20 +117,14 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
           return JsonResponseHelper.create(ERROR, "Unknown or unsupported operation: " + op);
       }
     } catch (FormFieldException e) {
-      logger.warningfmt(
-          e,
+      logger.atWarning().withCause(e).log(
           "Failed to perform operation '%s' on registrar '%s' for args %s",
-          op,
-          initialRegistrar.getClientId(),
-          args);
+          op, initialRegistrar.getClientId(), args);
       return JsonResponseHelper.createFormFieldError(e.getMessage(), e.getFieldName());
     } catch (FormException e) {
-      logger.warningfmt(
-          e,
+      logger.atWarning().withCause(e).log(
           "Failed to perform operation '%s' on registrar '%s' for args %s",
-          op,
-          initialRegistrar.getClientId(),
-          args);
+          op, initialRegistrar.getClientId(), args);
       return JsonResponseHelper.create(ERROR, e.getMessage());
     }
   }
@@ -154,7 +146,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
               DateTime latestFromArgs =
                   RegistrarFormFields.LAST_UPDATE_TIME.extractUntyped(args).get();
               if (!latestFromArgs.equals(latest)) {
-                logger.warningfmt(
+                logger.atWarning().log(
                     "registrar changed since reading the data! "
                         + " Last updated at %s, but args data last updated at %s",
                     latest, latestFromArgs);
@@ -171,8 +163,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
               changeRegistrarFields(registrar, builder, args);
 
               // read the contacts from the request.
-              ImmutableSet<RegistrarContact> updatedContacts =
-                  readContacts(registrar, args);
+              ImmutableSet<RegistrarContact> updatedContacts = readContacts(registrar, args);
               if (!updatedContacts.isEmpty()) {
                 builder.setContactsRequireSyncing(true);
               }

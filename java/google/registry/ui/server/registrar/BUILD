@@ -12,7 +12,6 @@ java_library(
         "//java/google/registry/ui/css:registrar_dbg.css.js",
     ],
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/braintree",
         "//java/google/registry/config",
         "//java/google/registry/export/sheet",

@@ -17,7 +17,7 @@ package google.registry.util;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.AbstractSequentialIterator;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.InetAddresses;
 import java.io.Serializable;
 import java.net.InetAddress;
@@ -41,7 +41,7 @@ import javax.annotation.Nullable;
 // TODO(b/21870796): Migrate to Guava version when this is open-sourced.
 public class CidrAddressBlock implements Iterable<InetAddress>, Serializable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final InetAddress ip;
 
@@ -343,7 +343,7 @@ public class CidrAddressBlock implements Iterable<InetAddress>, Serializable {
       // not have been created with an invalid netmask and a valid
       // netmask should have been successfully applied to "ipAddr" as long
       // as it represents an address of the same family as "this.ip".
-      logger.warning(e, "Error while applying netmask.");
+      logger.atWarning().withCause(e).log("Error while applying netmask.");
       return false;
     }
   }

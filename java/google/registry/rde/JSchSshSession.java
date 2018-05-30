@@ -15,7 +15,7 @@
 package google.registry.rde;
 
 import com.google.common.base.Splitter;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -41,7 +41,7 @@ import org.joda.time.Duration;
  */
 final class JSchSshSession implements Closeable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** Factory for {@link JSchSshSession}. */
   static final class JSchSshSessionFactory {
@@ -60,7 +60,7 @@ final class JSchSshSession implements Closeable {
      */
     JSchSshSession create(JSch jsch, URI uri) throws JSchException {
       RdeUploadUrl url = RdeUploadUrl.create(uri);
-      logger.infofmt("Connecting to SSH endpoint: %s", url);
+      logger.atInfo().log("Connecting to SSH endpoint: %s", url);
       Session session = jsch.getSession(
           url.getUser().orElse("domain-registry"),
           url.getHost(),
@@ -99,7 +99,7 @@ final class JSchSshSession implements Closeable {
       try {
         chan.cd(dir);
       } catch (SftpException e) {
-        logger.warning(e, "Could not open SFTP channel.");
+        logger.atWarning().withCause(e).log("Could not open SFTP channel.");
         mkdirs(chan, dir);
         chan.cd(dir);
       }

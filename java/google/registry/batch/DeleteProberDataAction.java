@@ -33,7 +33,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.config.RegistryEnvironment;
@@ -72,7 +72,7 @@ import org.joda.time.Duration;
 )
 public class DeleteProberDataAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject @Parameter(PARAM_DRY_RUN) boolean isDryRun;
   /** List of TLDs to work on. If empty - will work on all TLDs that end with .test. */
@@ -161,7 +161,7 @@ public class DeleteProberDataAction implements Runnable {
           getContext().incrementCounter("skipped, non-prober data");
         }
       } catch (Throwable t) {
-        logger.severefmt(t, "Error while deleting prober data for key %s", key);
+        logger.atSevere().withCause(t).log("Error while deleting prober data for key %s", key);
         getContext().incrementCounter(String.format("error, kind %s", key.getKind()));
       }
     }
@@ -194,7 +194,7 @@ public class DeleteProberDataAction implements Runnable {
         return;
       }
       if (!domain.getSubordinateHosts().isEmpty()) {
-        logger.warningfmt(
+        logger.atWarning().log(
             "Cannot delete domain %s (%s) because it has subordinate hosts.",
             domainName, domainKey);
         getContext().incrementCounter("skipped, had subordinate host(s)");
@@ -207,7 +207,8 @@ public class DeleteProberDataAction implements Runnable {
       // time the mapreduce is run.
       if (EppResourceUtils.isActive(domain, now)) {
         if (isDryRun) {
-          logger.infofmt("Would soft-delete the active domain: %s (%s)", domainName, domainKey);
+          logger.atInfo().log(
+              "Would soft-delete the active domain: %s (%s)", domainName, domainKey);
         } else {
           softDeleteDomain(domain);
         }
@@ -225,22 +226,28 @@ public class DeleteProberDataAction implements Runnable {
       final Key<EppResourceIndex> eppIndex = Key.create(EppResourceIndex.create(domainKey));
       final Key<? extends ForeignKeyIndex<?>> fki = ForeignKeyIndex.createKey(domain);
 
-      int entitiesDeleted = ofy().transact(() -> {
-          // This ancestor query selects all descendant HistoryEntries, BillingEvents, PollMessages,
-          // and TLD-specific entities, as well as the domain itself.
-          List<Key<Object>> domainAndDependentKeys = ofy().load().ancestor(domainKey).keys().list();
-          ImmutableSet<Key<?>> allKeys = new ImmutableSet.Builder<Key<?>>()
-              .add(fki)
-              .add(eppIndex)
-              .addAll(domainAndDependentKeys)
-              .build();
-          if (isDryRun) {
-            logger.infofmt("Would hard-delete the following entities: %s", allKeys);
-          } else {
-            ofy().deleteWithoutBackup().keys(allKeys);
-          }
-          return allKeys.size();
-        });
+      int entitiesDeleted =
+          ofy()
+              .transact(
+                  () -> {
+                    // This ancestor query selects all descendant HistoryEntries, BillingEvents,
+                    // PollMessages,
+                    // and TLD-specific entities, as well as the domain itself.
+                    List<Key<Object>> domainAndDependentKeys =
+                        ofy().load().ancestor(domainKey).keys().list();
+                    ImmutableSet<Key<?>> allKeys =
+                        new ImmutableSet.Builder<Key<?>>()
+                            .add(fki)
+                            .add(eppIndex)
+                            .addAll(domainAndDependentKeys)
+                            .build();
+                    if (isDryRun) {
+                      logger.atInfo().log("Would hard-delete the following entities: %s", allKeys);
+                    } else {
+                      ofy().deleteWithoutBackup().keys(allKeys);
+                    }
+                    return allKeys.size();
+                  });
       getContext().incrementCounter("domains hard-deleted");
       getContext().incrementCounter("total entities hard-deleted", entitiesDeleted);
     }

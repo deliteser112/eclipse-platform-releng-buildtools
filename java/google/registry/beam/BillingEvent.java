@@ -18,7 +18,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.reporting.billing.BillingModule;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,7 +46,7 @@ import org.apache.beam.sdk.io.gcp.bigquery.SchemaAndRecord;
 @AutoValue
 public abstract class BillingEvent implements Serializable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final DateTimeFormatter DATE_TIME_FORMATTER =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss zzz");
@@ -328,9 +328,9 @@ public abstract class BillingEvent implements Serializable {
             .filter(fieldName -> record.get(fieldName) == null)
             .collect(ImmutableList.toImmutableList());
     if (!nullFields.isEmpty()) {
-      logger.severefmt(
+      logger.atSevere().log(
           "Found unexpected null value(s) in field(s) %s for record %s",
-          Joiner.on(", ").join(nullFields), record.toString());
+          Joiner.on(", ").join(nullFields), record);
       throw new IllegalStateException("Read null value from Bigquery query");
     }
   }

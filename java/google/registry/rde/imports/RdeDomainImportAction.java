@@ -34,7 +34,7 @@ import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.VoidWork;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.config.RegistryConfig.ConfigModule;
@@ -75,7 +75,7 @@ import org.joda.time.DateTime;
 )
 public class RdeDomainImportAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final GcsService GCS_SERVICE =
       GcsServiceFactory.createGcsService(RetryParams.getDefaultInstance());
 
@@ -101,10 +101,9 @@ public class RdeDomainImportAction implements Runnable {
 
   @Override
   public void run() {
-    logger.infofmt(
+    logger.atInfo().log(
         "Launching domains import mapreduce: bucket=%s, filename=%s",
-        this.importBucketName,
-        this.importFileName);
+        this.importBucketName, this.importFileName);
     response.sendJavaScriptRedirect(createJobPath(mrRunner
         .setJobName("Import domains from escrow file")
         .setModuleName("backend")
@@ -173,7 +172,7 @@ public class RdeDomainImportAction implements Runnable {
         // Record number of attempted map operations
         getContext().incrementCounter("domain imports attempted");
 
-        logger.infofmt("Saving domain %s", xjcDomain.getName());
+        logger.atInfo().log("Saving domain %s", xjcDomain.getName());
         ofy()
             .transact(
                 new VoidWork() {
@@ -288,14 +287,15 @@ public class RdeDomainImportAction implements Runnable {
                 });
         // Record the number of domains imported
         getContext().incrementCounter("domains saved");
-        logger.infofmt("Domain %s was imported successfully", xjcDomain.getName());
+        logger.atInfo().log("Domain %s was imported successfully", xjcDomain.getName());
       } catch (ResourceExistsException e) {
         // Record the number of domains already in the registry
         getContext().incrementCounter("existing domains skipped");
-        logger.infofmt("Domain %s already exists", xjcDomain.getName());
+        logger.atInfo().log("Domain %s already exists", xjcDomain.getName());
       } catch (Exception e) {
         getContext().incrementCounter("domain import errors");
-        logger.severefmt(e, "Error processing domain %s; xml=%s", xjcDomain.getName(), xjcDomain);
+        logger.atSevere().withCause(e).log(
+            "Error processing domain %s; xml=%s", xjcDomain.getName(), xjcDomain);
       }
     }
   }

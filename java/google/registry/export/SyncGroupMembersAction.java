@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.groups.GroupsConnection;
 import google.registry.groups.GroupsConnection.Role;
@@ -58,7 +58,7 @@ import javax.inject.Inject;
 )
 public final class SyncGroupMembersAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private enum Result {
     OK(SC_OK, "Group memberships successfully updated."),
@@ -66,7 +66,7 @@ public final class SyncGroupMembersAction implements Runnable {
     FAILED(SC_INTERNAL_SERVER_ERROR, "Error occurred while updating registrar contacts.") {
       @Override
       protected void log(Throwable cause) {
-        logger.severe(cause, message);
+        logger.atSevere().withCause(cause).log(message);
       }};
 
     final int statusCode;
@@ -79,7 +79,7 @@ public final class SyncGroupMembersAction implements Runnable {
 
     /** Log an error message. Results that use log levels other than info should override this. */
     void log(@Nullable Throwable cause) {
-      logger.info(cause, message);
+      logger.atInfo().withCause(cause).log(message);
     }
   }
 
@@ -134,7 +134,7 @@ public final class SyncGroupMembersAction implements Runnable {
         retrier.callWithRetry(() -> syncRegistrarContacts(registrar), RuntimeException.class);
         resultsBuilder.put(registrar, Optional.empty());
       } catch (Throwable e) {
-        logger.severe(e, e.getMessage());
+        logger.atSevere().withCause(e).log(e.getMessage());
         resultsBuilder.put(registrar, Optional.of(e));
       }
     }
@@ -193,10 +193,9 @@ public final class SyncGroupMembersAction implements Runnable {
           totalRemoved++;
         }
       }
-      logger.infofmt("Successfully synced contacts for registrar %s: added %d and removed %d",
-          registrar.getClientId(),
-          totalAdded,
-          totalRemoved);
+      logger.atInfo().log(
+          "Successfully synced contacts for registrar %s: added %d and removed %d",
+          registrar.getClientId(), totalAdded, totalRemoved);
     } catch (IOException e) {
       // Package up exception and re-throw with attached additional relevant info.
       String msg = String.format("Couldn't sync contacts for registrar %s to group %s",

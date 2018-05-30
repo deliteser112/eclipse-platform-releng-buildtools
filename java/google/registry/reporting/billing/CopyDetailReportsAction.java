@@ -21,8 +21,8 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.collect.ImmutableList;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
-import com.google.common.logging.FormattingLogger;
 import com.google.common.net.MediaType;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
@@ -44,7 +44,7 @@ public final class CopyDetailReportsAction implements Runnable {
 
   public static final String PATH = "/_dr/task/copyDetailReports";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final String billingBucket;
   private final String invoiceDirectoryPrefix;
@@ -83,7 +83,7 @@ public final class CopyDetailReportsAction implements Runnable {
               .filter(objectName -> objectName.startsWith(BillingModule.DETAIL_REPORT_PREFIX))
               .collect(ImmutableList.toImmutableList());
     } catch (IOException e) {
-      logger.severe(e, "Copying registrar detail report failed");
+      logger.atSevere().withCause(e).log("Copying registrar detail report failed");
       response.setStatus(SC_INTERNAL_SERVER_ERROR);
       response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
       response.setPayload(String.format("Failure, encountered %s", e.getMessage()));
@@ -95,13 +95,13 @@ public final class CopyDetailReportsAction implements Runnable {
       String registrarId = detailReportName.split("_")[3];
       Optional<Registrar> registrar = Registrar.loadByClientId(registrarId);
       if (!registrar.isPresent()) {
-        logger.warningfmt(
+        logger.atWarning().log(
             "Registrar %s not found in database for file %s", registrar, detailReportName);
         continue;
       }
       String driveFolderId = registrar.get().getDriveFolderId();
       if (driveFolderId == null) {
-        logger.warningfmt("Drive folder id not found for registrar %s", registrarId);
+        logger.atWarning().log("Drive folder id not found for registrar %s", registrarId);
         continue;
       }
       // Attempt to copy each detail report to its associated registrar's drive folder.
@@ -116,7 +116,7 @@ public final class CopyDetailReportsAction implements Runnable {
                     MediaType.CSV_UTF_8,
                     driveFolderId,
                     ByteStreams.toByteArray(input));
-                logger.infofmt(
+                logger.atInfo().log(
                     "Published detail report for %s to folder %s using GCS file gs://%s/%s.",
                     registrarId, driveFolderId, billingBucket, detailReportName);
               }

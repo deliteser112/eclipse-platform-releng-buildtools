@@ -22,7 +22,7 @@ import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 import static google.registry.util.DateTimeUtils.latestOf;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.Query;
@@ -53,7 +53,7 @@ import org.joda.time.Interval;
 /** Utilities for working with {@link EppResource}. */
 public final class EppResourceUtils {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** Returns the full domain repoId in the format HEX-TLD for the specified long id and tld. */
   public static String createDomainRepoId(long repoId, String tld) {
@@ -331,7 +331,7 @@ public final class EppResourceUtils {
     final Key<T> resourceKey = Key.create(resource);
     final Key<CommitLogManifest> revision = findMostRecentRevisionAtTime(resource, timestamp);
     if (revision == null) {
-      logger.severefmt("No revision found for %s, falling back to resource.", resourceKey);
+      logger.atSevere().log("No revision found for %s, falling back to resource.", resourceKey);
       return new ResultNow<>(resource);
     }
     final Result<CommitLogMutation> mutationResult =
@@ -341,7 +341,7 @@ public final class EppResourceUtils {
       if (mutation != null) {
         return ofy().load().fromEntity(mutation.getEntity());
       }
-      logger.severefmt(
+      logger.atSevere().log(
           "Couldn't load mutation for revision at %s for %s, falling back to resource."
               + " Revision: %s",
           timestamp, resourceKey, revision);
@@ -355,18 +355,20 @@ public final class EppResourceUtils {
     final Key<T> resourceKey = Key.create(resource);
     Entry<?, Key<CommitLogManifest>> revision = resource.getRevisions().floorEntry(timestamp);
     if (revision != null) {
-      logger.infofmt("Found revision history at %s for %s: %s", timestamp, resourceKey, revision);
+      logger.atInfo().log(
+          "Found revision history at %s for %s: %s", timestamp, resourceKey, revision);
       return revision.getValue();
     }
     // Fall back to the earliest revision if we don't have one before the requested timestamp.
     revision = resource.getRevisions().firstEntry();
     if (revision != null) {
-      logger.severefmt("Found no revision history at %s for %s, using earliest revision: %s",
+      logger.atSevere().log(
+          "Found no revision history at %s for %s, using earliest revision: %s",
           timestamp, resourceKey, revision);
       return revision.getValue();
     }
     // Ultimate fallback: There are no revisions whatsoever, so return null.
-    logger.severefmt("Found no revision history at all for %s", resourceKey);
+    logger.atSevere().log("Found no revision history at all for %s", resourceKey);
     return null;
   }
 

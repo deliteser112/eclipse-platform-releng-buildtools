@@ -8,7 +8,6 @@ java_library(
     name = "mapreduce",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/mapreduce/inputs",
         "//java/google/registry/request",
         "//java/google/registry/util",
@@ -17,6 +16,8 @@ java_library(
         "@com_google_appengine_tools_appengine_mapreduce",
         "@com_google_appengine_tools_appengine_pipeline",
         "@com_google_dagger",
+        "@com_google_flogger",
+        "@com_google_flogger_system_backend",
         "@com_google_guava",
         "@javax_servlet_api",
         "@joda_time",

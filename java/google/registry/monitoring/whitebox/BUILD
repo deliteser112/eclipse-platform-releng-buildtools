@@ -8,7 +8,6 @@ java_library(
     name = "whitebox",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/bigquery",
         "//java/google/registry/config",
         "//java/google/registry/model",
@@ -23,6 +22,8 @@ java_library(
         "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
+        "@com_google_flogger",
+        "@com_google_flogger_system_backend",
         "@com_google_guava",
         "@com_google_http_client",
         "@com_google_monitoring_client_metrics",

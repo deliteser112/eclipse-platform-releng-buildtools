@@ -24,7 +24,7 @@ import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import google.registry.bigquery.BigqueryJobFailureException;
 import google.registry.reporting.icann.IcannReportingModule.ReportType;
@@ -60,7 +60,7 @@ public final class IcannReportingStagingAction implements Runnable {
 
   static final String PATH = "/_dr/task/icannReportingStaging";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final String CRON_QUEUE = "retryable-cron-tasks";
 
   @Inject YearMonth yearMonth;
@@ -84,7 +84,7 @@ public final class IcannReportingStagingAction implements Runnable {
             ImmutableList<String> manifestedFiles = manifestedFilesBuilder.build();
             stager.createAndUploadManifest(manifestedFiles);
 
-            logger.infofmt("Completed staging %d report files.", manifestedFiles.size());
+            logger.atInfo().log("Completed staging %d report files.", manifestedFiles.size());
             emailUtils.emailResults(
                 "ICANN Monthly report staging summary [SUCCESS]",
                 String.format(
@@ -95,7 +95,7 @@ public final class IcannReportingStagingAction implements Runnable {
             response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
             response.setPayload("Completed staging action.");
 
-            logger.infofmt("Enqueueing report upload :");
+            logger.atInfo().log("Enqueueing report upload :");
             TaskOptions uploadTask =
                 TaskOptions.Builder.withUrl(IcannReportingUploadAction.PATH)
                     .method(Method.POST)
@@ -111,14 +111,13 @@ public final class IcannReportingStagingAction implements Runnable {
           String.format(
               "Staging failed due to %s, check logs for more details.",
               getRootCause(e).toString()));
-      logger.severe(e, "Staging action failed.");
       response.setStatus(SC_INTERNAL_SERVER_ERROR);
       response.setContentType(MediaType.PLAIN_TEXT_UTF_8);
       response.setPayload(
           String.format(
               "Staging failed due to %s",
               getRootCause(e).toString()));
-      throw e;
+      throw new RuntimeException("Staging action failed.", e);
     }
   }
 }

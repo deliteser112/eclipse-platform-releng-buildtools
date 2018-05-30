@@ -8,7 +8,6 @@ java_library(
     name = "tools",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/backup",
         "//java/google/registry/config",
         "//java/google/registry/dns",
@@ -29,6 +28,8 @@ java_library(
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
+        "@com_google_flogger",
+        "@com_google_flogger_system_backend",
         "@com_google_guava",
         "@javax_servlet_api",
         "@org_bouncycastle_bcpkix_jdk15on",

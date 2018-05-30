@@ -24,8 +24,8 @@ import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteSource;
-import com.google.common.logging.FormattingLogger;
 import google.registry.request.Action;
 import google.registry.request.Header;
 import google.registry.request.HttpException.ConflictException;
@@ -64,7 +64,7 @@ public final class NordnVerifyAction implements Runnable {
   static final String URL_HEADER = "X-DomainRegistry-Nordn-Url";
   static final String HEADER_ACTION_LOG_ID = "X-DomainRegistry-ActionLogId";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject LordnRequestInitializer lordnRequestInitializer;
   @Inject Response response;
@@ -95,11 +95,12 @@ public final class NordnVerifyAction implements Runnable {
    */
   @VisibleForTesting
   LordnLog verify() throws IOException {
-    logger.infofmt("LORDN verify task %s: Sending request to URL %s.", actionLogId, url);
+    logger.atInfo().log("LORDN verify task %s: Sending request to URL %s.", actionLogId, url);
     HTTPRequest req = new HTTPRequest(url, GET, validateCertificate().setDeadline(60d));
     lordnRequestInitializer.initialize(req, tld);
     HTTPResponse rsp = fetchService.fetch(req);
-    logger.infofmt("LORDN verify task %s response: HTTP response code %d, response data: %s",
+    logger.atInfo().log(
+        "LORDN verify task %s response: HTTP response code %d, response data: %s",
         actionLogId, rsp.getResponseCode(), rsp.getContent());
     if (rsp.getResponseCode() == SC_NO_CONTENT) {
       // Send a 400+ status code so App Engine will retry the task.
@@ -114,9 +115,10 @@ public final class NordnVerifyAction implements Runnable {
     LordnLog log =
         LordnLog.parse(ByteSource.wrap(rsp.getContent()).asCharSource(UTF_8).readLines());
     if (log.getStatus() == LordnLog.Status.ACCEPTED) {
-      logger.infofmt("LORDN verify task %s: Upload accepted", actionLogId);
+      logger.atInfo().log("LORDN verify task %s: Upload accepted", actionLogId);
     } else {
-      logger.severefmt("LORDN verify task %s: Upload rejected with reason: %s", actionLogId, log);
+      logger.atSevere().log(
+          "LORDN verify task %s: Upload rejected with reason: %s", actionLogId, log);
     }
     for (Entry<String, LordnLog.Result> result : log) {
       switch (result.getValue().getOutcome()) {
@@ -125,11 +127,11 @@ public final class NordnVerifyAction implements Runnable {
         case WARNING:
           // fall through
         case ERROR:
-          logger.warning(result.toString());
+          logger.atWarning().log(result.toString());
           break;
         default:
-          logger.warningfmt(
-              "LORDN verify task %s: Unexpected outcome: %s", actionLogId, result.toString());
+          logger.atWarning().log(
+              "LORDN verify task %s: Unexpected outcome: %s", actionLogId, result);
           break;
       }
     }

@@ -35,9 +35,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import com.google.common.logging.FormattingLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.dns.DnsConstants.TargetType;
 import google.registry.model.registry.Registries;
@@ -78,7 +78,7 @@ public final class ReadDnsQueueAction implements Runnable {
 
   private static final String PARAM_JITTER_SECONDS = "jitterSeconds";
   private static final Random random = new Random();
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /**
    * Buffer time since the end of this action until retriable tasks are available again.
@@ -134,7 +134,7 @@ public final class ReadDnsQueueAction implements Runnable {
     ImmutableSet<String> tlds = Registries.getTlds();
     while (requestedEndTime.isAfterNow()) {
       List<TaskHandle> tasks = dnsQueue.leaseTasks(requestedMaximumDuration.plus(LEASE_PADDING));
-      logger.infofmt("Leased %d DNS update tasks.", tasks.size());
+      logger.atInfo().log("Leased %d DNS update tasks.", tasks.size());
       if (!tasks.isEmpty()) {
         dispatchTasks(ImmutableSet.copyOf(tasks), tlds);
       }
@@ -220,15 +220,16 @@ public final class ReadDnsQueueAction implements Runnable {
   private void dispatchTasks(ImmutableSet<TaskHandle> tasks, ImmutableSet<String> tlds) {
     ClassifiedTasks classifiedTasks = classifyTasks(tasks, tlds);
     if (!classifiedTasks.pausedTlds().isEmpty()) {
-      logger.infofmt("The dns-pull queue is paused for TLDs: %s.", classifiedTasks.pausedTlds());
+      logger.atInfo().log(
+          "The dns-pull queue is paused for TLDs: %s.", classifiedTasks.pausedTlds());
     }
     if (!classifiedTasks.unknownTlds().isEmpty()) {
-      logger.warningfmt(
+      logger.atWarning().log(
           "The dns-pull queue has unknown TLDs: %s.", classifiedTasks.unknownTlds());
     }
     bucketRefreshItems(classifiedTasks.refreshItemsByTld());
     if (!classifiedTasks.tasksToKeep().isEmpty()) {
-      logger.warningfmt(
+      logger.atWarning().log(
           "Keeping %d DNS update tasks in the queue.", classifiedTasks.tasksToKeep().size());
     }
     // Delete the tasks we don't want to see again from the queue.
@@ -243,9 +244,9 @@ public final class ReadDnsQueueAction implements Runnable {
     // tasks again.
     ImmutableSet<TaskHandle> tasksToDelete =
         difference(tasks, classifiedTasks.tasksToKeep()).immutableCopy();
-    logger.infofmt("Removing %d DNS update tasks from the queue.", tasksToDelete.size());
+    logger.atInfo().log("Removing %d DNS update tasks from the queue.", tasksToDelete.size());
     dnsQueue.deleteTasks(tasksToDelete.asList());
-    logger.infofmt("Done processing DNS tasks.");
+    logger.atInfo().log("Done processing DNS tasks.");
   }
 
   /**
@@ -266,7 +267,8 @@ public final class ReadDnsQueueAction implements Runnable {
         DateTime creationTime = DateTime.parse(params.get(DNS_TARGET_CREATE_TIME_PARAM));
         String tld = params.get(RequestParameters.PARAM_TLD);
         if (tld == null) {
-          logger.severefmt("Discarding invalid DNS refresh request %s; no TLD specified.", task);
+          logger.atSevere().log(
+              "Discarding invalid DNS refresh request %s; no TLD specified.", task);
         } else if (!tlds.contains(tld)) {
           classifiedTasksBuilder.tasksToKeepBuilder().add(task);
           classifiedTasksBuilder.unknownTldsBuilder().add(tld);
@@ -285,12 +287,13 @@ public final class ReadDnsQueueAction implements Runnable {
                   .put(tld, RefreshItem.create(type, name, creationTime));
               break;
             default:
-              logger.severefmt("Discarding DNS refresh request %s of type %s.", task, typeString);
+              logger.atSevere().log(
+                  "Discarding DNS refresh request %s of type %s.", task, typeString);
               break;
           }
         }
       } catch (RuntimeException | UnsupportedEncodingException e) {
-        logger.severefmt(e, "Discarding invalid DNS refresh request %s.", task);
+        logger.atSevere().withCause(e).log("Discarding invalid DNS refresh request %s.", task);
       }
     }
     return classifiedTasksBuilder.build();

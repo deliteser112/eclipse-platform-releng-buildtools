@@ -28,7 +28,7 @@ import com.braintreegateway.TransactionRequest;
 import com.braintreegateway.ValidationError;
 import com.braintreegateway.ValidationErrors;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.re2j.Pattern;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.registrar.Registrar;
@@ -99,7 +99,7 @@ import org.joda.money.Money;
 )
 public final class RegistrarPaymentAction implements Runnable, JsonAction {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final FormField<String, BigDecimal> AMOUNT_FIELD =
       FormField.named("amount")
@@ -158,7 +158,7 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
   @Override
   public Map<String, Object> handleJsonRequest(Map<String, ?> json) {
     Registrar registrar = sessionUtils.getRegistrarForAuthResult(request, authResult);
-    logger.infofmt("Processing payment: %s", json);
+    logger.atInfo().log("Processing payment: %s", json);
     String paymentMethodNonce;
     Money amount;
     String merchantAccountId;
@@ -177,7 +177,7 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
         throw new FormFieldException(CURRENCY_FIELD.name(), "Unsupported currency.");
       }
     } catch (FormFieldException e) {
-      logger.warning(e, "Form field error in RegistrarPaymentAction.");
+      logger.atWarning().withCause(e).log("Form field error in RegistrarPaymentAction.");
       return JsonResponseHelper.createFormFieldError(e.getMessage(), e.getFieldName());
     }
     Result<Transaction> result =
@@ -222,10 +222,11 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
     Money amount =
         Money.of(CurrencyUnit.of(transaction.getCurrencyIsoCode()),
             transaction.getAmount().stripTrailingZeros());
-    logger.infofmt("Transaction for %s via %s %s with ID: %s",
+    logger.atInfo().log(
+        "Transaction for %s via %s %s with ID: %s",
         amount,
-        transaction.getPaymentInstrumentType(),  // e.g. credit_card, paypal_account
-        transaction.getStatus(),                 // e.g. SUBMITTED_FOR_SETTLEMENT
+        transaction.getPaymentInstrumentType(), // e.g. credit_card, paypal_account
+        transaction.getStatus(), // e.g. SUBMITTED_FOR_SETTLEMENT
         transaction.getId());
     return JsonResponseHelper
         .create(SUCCESS, "Payment processed successfully", asList(
@@ -245,7 +246,8 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
    *     Braintree - Transactions/Declines</a>
    */
   private Map<String, Object> handleProcessorDeclined(Transaction transaction) {
-    logger.warningfmt("Processor declined: %s %s",
+    logger.atWarning().log(
+        "Processor declined: %s %s",
         transaction.getProcessorResponseCode(), transaction.getProcessorResponseText());
     return JsonResponseHelper.create(ERROR,
         "Payment declined: " + transaction.getProcessorResponseText());
@@ -263,7 +265,8 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
    *     Braintree - Transactions/Declines</a>
    */
   private Map<String, Object> handleSettlementDecline(Transaction transaction) {
-    logger.warningfmt("Settlement declined: %s %s",
+    logger.atWarning().log(
+        "Settlement declined: %s %s",
         transaction.getProcessorSettlementResponseCode(),
         transaction.getProcessorSettlementResponseText());
     return JsonResponseHelper.create(ERROR,
@@ -286,7 +289,7 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
    *     Braintree - Fraud Tools/Overview</a>
    */
   private Map<String, Object> handleRejection(Transaction transaction) {
-    logger.warningfmt("Gateway rejection: %s", transaction.getGatewayRejectionReason());
+    logger.atWarning().log("Gateway rejection: %s", transaction.getGatewayRejectionReason());
     switch (transaction.getGatewayRejectionReason()) {
       case DUPLICATE:
         return JsonResponseHelper.create(ERROR, "Payment rejected: Possible duplicate.");
@@ -307,7 +310,8 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
 
   /** Handles a miscellaneous transaction processing error response. */
   private Map<String, Object> handleMiscProcessorError(Transaction transaction) {
-    logger.warningfmt("Error processing transaction: %s %s %s",
+    logger.atWarning().log(
+        "Error processing transaction: %s %s %s",
         transaction.getStatus(),
         transaction.getProcessorResponseCode(),
         transaction.getProcessorResponseText());
@@ -330,7 +334,8 @@ public final class RegistrarPaymentAction implements Runnable, JsonAction {
     List<ValidationError> errors = validationErrors.getAllDeepValidationErrors();
     verify(!errors.isEmpty(), "Payment failed but validation error list was empty");
     for (ValidationError error : errors) {
-      logger.warningfmt("Payment validation failed on field: %s\nCode: %s\nMessage: %s",
+      logger.atWarning().log(
+          "Payment validation failed on field: %s\nCode: %s\nMessage: %s",
           error.getAttribute(), error.getCode(), error.getMessage());
     }
     return JsonResponseHelper

@@ -26,7 +26,7 @@ import com.beust.jcommander.Parameters;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.template.soy.data.SoyMapData;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainResource;
@@ -42,7 +42,7 @@ import org.joda.time.DateTime;
 @Parameters(separators = " =", commandDescription = "Update a new domain via EPP.")
 final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Parameter(names = "--statuses", description = "Comma-separated list of statuses to set.")
   private List<String> statuses = new ArrayList<>();
@@ -223,7 +223,7 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
               || clearDsRecords;
 
       if (!add && !remove && !change && !secdns) {
-        logger.infofmt("No changes need to be made to domain %s", domain);
+        logger.atInfo().log("No changes need to be made to domain %s", domain);
         continue;
       }
 

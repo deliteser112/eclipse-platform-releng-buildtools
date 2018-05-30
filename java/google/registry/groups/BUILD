@@ -8,7 +8,6 @@ java_library(
     name = "groups",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/util",
         "@com_google_api_client",
@@ -16,6 +15,8 @@ java_library(
         "@com_google_apis_google_api_services_groupssettings",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
+        "@com_google_flogger",
+        "@com_google_flogger_system_backend",
         "@com_google_guava",
         "@javax_servlet_api",
         "@joda_time",

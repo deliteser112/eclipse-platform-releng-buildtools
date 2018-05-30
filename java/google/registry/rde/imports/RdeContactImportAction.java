@@ -23,7 +23,7 @@ import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.VoidWork;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.config.RegistryConfig.ConfigModule;
@@ -52,7 +52,7 @@ import javax.inject.Inject;
 )
 public class RdeContactImportAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final GcsService GCS_SERVICE =
       GcsServiceFactory.createGcsService(RetryParams.getDefaultInstance());
 
@@ -135,10 +135,10 @@ public class RdeContactImportAction implements Runnable {
     public void map(JaxbFragment<XjcRdeContactElement> fragment) {
       final XjcRdeContact xjcContact = fragment.getInstance().getValue();
       try {
-        logger.infofmt("Converting xml for contact %s", xjcContact.getId());
+        logger.atInfo().log("Converting xml for contact %s", xjcContact.getId());
         // Record number of attempted map operations
         getContext().incrementCounter("contact imports attempted");
-        logger.infofmt("Saving contact %s", xjcContact.getId());
+        logger.atInfo().log("Saving contact %s", xjcContact.getId());
         ofy().transact(new VoidWork() {
           @Override
           public void vrun() {
@@ -149,15 +149,16 @@ public class RdeContactImportAction implements Runnable {
         });
         // Record number of contacts imported
         getContext().incrementCounter("contacts saved");
-        logger.infofmt("Contact %s was imported successfully", xjcContact.getId());
+        logger.atInfo().log("Contact %s was imported successfully", xjcContact.getId());
       } catch (ResourceExistsException e) {
         // Record the number of contacts already in the registry
         getContext().incrementCounter("existing contacts skipped");
-        logger.infofmt("Contact %s already exists", xjcContact.getId());
+        logger.atInfo().log("Contact %s already exists", xjcContact.getId());
       } catch (Exception e) {
         // Record the number of contacts with unexpected errors
         getContext().incrementCounter("contact import errors");
-        logger.severefmt(e, "Error importing contact %s; xml=%s", xjcContact.getId(), xjcContact);
+        logger.atSevere().withCause(e).log(
+            "Error importing contact %s; xml=%s", xjcContact.getId(), xjcContact);
       }
     }
   }

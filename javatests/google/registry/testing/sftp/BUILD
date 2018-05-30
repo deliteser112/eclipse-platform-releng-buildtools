@@ -9,9 +9,10 @@ java_library(
     name = "sftp",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/util",
         "@com_google_code_findbugs_jsr305",
+        "@com_google_flogger",
+        "@com_google_flogger_system_backend",
         "@com_google_guava",
         "@junit",
         "@org_apache_ftpserver_core",

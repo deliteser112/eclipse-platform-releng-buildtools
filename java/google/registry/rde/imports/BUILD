@@ -8,7 +8,6 @@ java_library(
     name = "imports",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/com/google/common/logging:formatting_logger",
         "//java/google/registry/config",
         "//java/google/registry/dns",
         "//java/google/registry/flows",
@@ -30,6 +29,8 @@ java_library(
         "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
+        "@com_google_flogger",
+        "@com_google_flogger_system_backend",
         "@com_google_guava",
         "@javax_servlet_api",
         "@joda_time",

@@ -27,8 +27,8 @@ import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpTransport;
 import com.google.common.base.Ascii;
 import com.google.common.base.Splitter;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
-import com.google.common.logging.FormattingLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.reporting.icann.IcannReportingModule.ReportType;
@@ -57,7 +57,7 @@ import org.joda.time.format.DateTimeFormat;
  */
 public class IcannHttpReporter {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject HttpTransport httpTransport;
   @Inject @Key("icannReportingPassword") String password;
@@ -81,9 +81,8 @@ public class IcannHttpReporter {
     request.setFollowRedirects(false);
 
     HttpResponse response = null;
-    logger.infofmt(
-        "Sending report to %s with content length %s",
-        uploadUrl.toString(), request.getContent().getLength());
+    logger.atInfo().log(
+        "Sending report to %s with content length %d", uploadUrl, request.getContent().getLength());
     boolean success = true;
     try {
       response = request.execute();
@@ -93,25 +92,22 @@ public class IcannHttpReporter {
       } finally {
         response.getContent().close();
       }
-      logger.infofmt(
-          "Received response code %s with content %s",
+      logger.atInfo().log(
+          "Received response code %d with content %s",
           response.getStatusCode(), new String(content, UTF_8));
       XjcIirdeaResult result = parseResult(content);
       if (result.getCode().getValue() != 1000) {
         success = false;
-        logger.warningfmt(
+        logger.atWarning().log(
             "PUT rejected, status code %s:\n%s\n%s",
-            result.getCode(),
-            result.getMsg(),
-            result.getDescription());
+            result.getCode(), result.getMsg(), result.getDescription());
       }
     } finally {
       if (response != null) {
         response.disconnect();
       } else {
         success = false;
-        logger.warningfmt(
-            "Received null response from ICANN server at %s", uploadUrl.toString());
+        logger.atWarning().log("Received null response from ICANN server at %s", uploadUrl);
       }
     }
     return success;

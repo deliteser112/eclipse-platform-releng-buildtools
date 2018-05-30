@@ -34,7 +34,7 @@ import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
@@ -70,7 +70,7 @@ public final class NordnUploadAction implements Runnable {
   static final String PATH = "/_dr/task/nordnUpload";
   static final String LORDN_PHASE_PARAM = "lordn-phase";
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /**
    * A unique (enough) id that is outputted in log lines to make it clear which log lines are
@@ -134,13 +134,14 @@ public final class NordnUploadAction implements Runnable {
    */
   private void uploadCsvToLordn(String urlPath, String csvData) throws IOException {
     String url = tmchMarksdbUrl + urlPath;
-    logger.infofmt("LORDN upload task %s: Sending to URL: %s ; data: %s",
-        actionLogId, url, csvData);
+    logger.atInfo().log(
+        "LORDN upload task %s: Sending to URL: %s ; data: %s", actionLogId, url, csvData);
     HTTPRequest req = new HTTPRequest(new URL(url), POST, validateCertificate().setDeadline(60d));
     lordnRequestInitializer.initialize(req, tld);
     setPayloadMultipart(req, "file", "claims.csv", CSV_UTF_8, csvData);
     HTTPResponse rsp = fetchService.fetch(req);
-    logger.infofmt("LORDN upload task %s response: HTTP response code %d, response data: %s",
+    logger.atInfo().log(
+        "LORDN upload task %s response: HTTP response code %d, response data: %s",
         actionLogId, rsp.getResponseCode(), rsp.getContent());
     if (rsp.getResponseCode() != SC_ACCEPTED) {
       throw new UrlFetchException(

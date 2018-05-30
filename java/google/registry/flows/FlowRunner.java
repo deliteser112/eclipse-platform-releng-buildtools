@@ -18,7 +18,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.xml.XmlTransformer.prettyPrint;
 
 import com.google.common.base.Strings;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.flows.FlowModule.ClientId;
 import google.registry.flows.FlowModule.DryRun;
 import google.registry.flows.FlowModule.InputXml;
@@ -28,7 +28,6 @@ import google.registry.flows.session.LoginFlow;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.eppoutput.EppOutput;
 import google.registry.monitoring.whitebox.EppMetric;
-import java.util.logging.Level;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
@@ -37,7 +36,7 @@ public class FlowRunner {
 
   private static final String COMMAND_LOG_FORMAT = "EPP Command" + Strings.repeat("\n\t%s", 8);
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject @ClientId String clientId;
   @Inject TransportCredentials credentials;
@@ -57,18 +56,16 @@ public class FlowRunner {
   public EppOutput run(final EppMetric.Builder eppMetricBuilder) throws EppException {
     String prettyXml = prettyPrint(inputXmlBytes);
 
-    if (logger.isLoggable(Level.INFO)) {
-      logger.infofmt(
-          COMMAND_LOG_FORMAT,
-          trid.getServerTransactionId(),
-          clientId,
-          sessionMetadata,
-          prettyXml.replace("\n", "\n\t"),
-          credentials,
-          eppRequestSource,
-          isDryRun ? "DRY_RUN" : "LIVE",
-          isSuperuser ? "SUPERUSER" : "NORMAL");
-    }
+    logger.atInfo().log(
+        COMMAND_LOG_FORMAT,
+        trid.getServerTransactionId(),
+        clientId,
+        sessionMetadata,
+        prettyXml.replace("\n", "\n\t"),
+        credentials,
+        eppRequestSource,
+        isDryRun ? "DRY_RUN" : "LIVE",
+        isSuperuser ? "SUPERUSER" : "NORMAL");
     // Record flow info to the GAE request logs for reporting purposes if it's not a dry run.
     if (!isDryRun) {
       flowReporter.recordToLogs();

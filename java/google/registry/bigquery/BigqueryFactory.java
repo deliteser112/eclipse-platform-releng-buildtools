@@ -16,7 +16,6 @@ package google.registry.bigquery;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Sets.newConcurrentHashSet;
-import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 
 import com.google.api.client.extensions.appengine.http.UrlFetchTransport;
 import com.google.api.client.googleapis.extensions.appengine.auth.oauth2.AppIdentityCredential;
@@ -33,7 +32,7 @@ import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.api.services.bigquery.model.TableReference;
 import com.google.api.services.bigquery.model.TableSchema;
 import com.google.common.collect.ImmutableList;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +42,7 @@ import javax.inject.Inject;
 /** Factory for creating {@link Bigquery} connections. */
 public class BigqueryFactory {
 
-  private static final FormattingLogger logger = getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   // Cross-request caches to avoid unnecessary RPCs.
   private static Set<String> knownExistingDatasets = newConcurrentHashSet();
@@ -152,8 +151,9 @@ public class BigqueryFactory {
           .setSchema(new TableSchema().setFields(schema))
           .setTableReference(table))
           .execute();
-      logger.infofmt("Created BigQuery table %s:%s.%s", table.getProjectId(), table.getDatasetId(),
-          table.getTableId());
+      logger.atInfo().log(
+          "Created BigQuery table %s:%s.%s",
+          table.getProjectId(), table.getDatasetId(), table.getTableId());
     } catch (IOException e) {
       // Swallow errors about a table that exists, and throw any other ones.
       if (!BigqueryJobFailureException.create(e).getReason().equals("duplicate")) {

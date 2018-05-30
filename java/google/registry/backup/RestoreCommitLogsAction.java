@@ -29,7 +29,7 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.PeekingIterator;
 import com.google.common.collect.Streams;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.util.ResultNow;
@@ -64,7 +64,7 @@ import org.joda.time.DateTime;
 )
 public class RestoreCommitLogsAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   static final int BLOCK_SIZE = 1024 * 1024;  // Buffer 1mb at a time, for no particular reason.
 
@@ -90,17 +90,17 @@ public class RestoreCommitLogsAction implements Runnable {
             || RegistryEnvironment.get() == RegistryEnvironment.UNITTEST,
         "DO NOT RUN ANYWHERE ELSE EXCEPT ALPHA, CRASH OR TESTS.");
     if (dryRun) {
-      logger.info("Running in dryRun mode");
+      logger.atInfo().log("Running in dryRun mode");
     }
     List<GcsFileMetadata> diffFiles = diffLister.listDiffFiles(fromTime, toTime);
     if (diffFiles.isEmpty()) {
-      logger.info("Nothing to restore");
+      logger.atInfo().log("Nothing to restore");
       return;
     }
     Map<Integer, DateTime> bucketTimestamps = new HashMap<>();
     CommitLogCheckpoint lastCheckpoint = null;
     for (GcsFileMetadata metadata : diffFiles) {
-      logger.infofmt("Restoring: %s", metadata.getFilename().getObjectName());
+      logger.atInfo().log("Restoring: %s", metadata.getFilename().getObjectName());
       try (InputStream input = Channels.newInputStream(
           gcsService.openPrefetchingReadChannel(metadata.getFilename(), 0, BLOCK_SIZE))) {
         PeekingIterator<ImmutableObject> commitLogs =
@@ -129,7 +129,7 @@ public class RestoreCommitLogsAction implements Runnable {
                                 .build()),
                 Stream.of(CommitLogCheckpointRoot.create(lastCheckpoint.getCheckpointTime())))
             .collect(toImmutableList()));
-    logger.info("Restore complete");
+    logger.atInfo().log("Restore complete");
   }
 
   /**
@@ -164,7 +164,7 @@ public class RestoreCommitLogsAction implements Runnable {
 
   private void saveRaw(List<Entity> entitiesToSave) {
     if (dryRun) {
-      logger.infofmt("Would have saved entities: %s", entitiesToSave);
+      logger.atInfo().log("Would have saved entities: %s", entitiesToSave);
       return;
     }
     retrier.callWithRetry(() -> datastoreService.put(entitiesToSave), RuntimeException.class);
@@ -172,7 +172,7 @@ public class RestoreCommitLogsAction implements Runnable {
 
   private void saveOfy(Iterable<? extends ImmutableObject> objectsToSave) {
     if (dryRun) {
-      logger.infofmt("Would have saved entities: %s", objectsToSave);
+      logger.atInfo().log("Would have saved entities: %s", objectsToSave);
       return;
     }
     retrier.callWithRetry(
@@ -181,7 +181,7 @@ public class RestoreCommitLogsAction implements Runnable {
 
   private Result<?> deleteAsync(Set<Key<?>> keysToDelete) {
     if (dryRun) {
-      logger.infofmt("Would have deleted entities: %s", keysToDelete);
+      logger.atInfo().log("Would have deleted entities: %s", keysToDelete);
     }
     return dryRun || keysToDelete.isEmpty()
         ? new ResultNow<Void>(null)

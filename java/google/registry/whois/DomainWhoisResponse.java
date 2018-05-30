@@ -21,7 +21,7 @@ import static google.registry.xml.UtcDateTimeAdapter.getFormattedString;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.model.EppResource;
 import google.registry.model.contact.ContactPhoneNumber;
@@ -44,7 +44,7 @@ import org.joda.time.DateTime;
 /** Represents a WHOIS response to a domain query. */
 final class DomainWhoisResponse extends WhoisResponseImpl {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** Prefix for status value URLs. */
   private static final String ICANN_STATUS_URL_PREFIX = "https://icann.org/epp#";
@@ -158,7 +158,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
       // someone's attention.
       ContactResource contactResource = EppResource.loadCached(contact.get());
       if (contactResource == null) {
-        logger.severefmt(
+        logger.atSevere().log(
             "(BUG) Broken reference found from domain %s to contact %s",
             domain.getFullyQualifiedDomainName(), contact);
         return this;

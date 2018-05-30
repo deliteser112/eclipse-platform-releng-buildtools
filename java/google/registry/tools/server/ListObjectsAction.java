@@ -30,7 +30,7 @@ import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Streams;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.model.ImmutableObject;
 import google.registry.request.JsonResponse;
 import google.registry.request.Parameter;
@@ -54,7 +54,7 @@ import javax.inject.Inject;
  */
 public abstract class ListObjectsAction<T extends ImmutableObject> implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   public static final String FIELDS_PARAM = "fields";
   public static final String PRINT_HEADER_ROW_PARAM = "printHeaderRow";
@@ -107,7 +107,7 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
       // Get the object data first, so we can figure out the list of all available fields using the
       // data if necessary.
       ImmutableSet<T> objects = loadObjects();
-      logger.infofmt("Loaded %d objects.", objects.size());
+      logger.atInfo().log("Loaded %d objects.", objects.size());
       // Get the list of fields we should return.
       ImmutableSet<String> fieldsToUse = getFieldsToUse(objects);
       // Convert the data into a table.
@@ -122,7 +122,7 @@ public abstract class ListObjectsAction<T extends ImmutableObject> implements Ru
           "lines", lines,
           "status", "success"));
     } catch (IllegalArgumentException e) {
-      logger.warning(e, "Error while listing objects.");
+      logger.atWarning().withCause(e).log("Error while listing objects.");
       // Don't return a non-200 response, since that will cause RegistryTool to barf instead of
       // letting ListObjectsCommand parse the JSON response and return a clean error.
       response.setPayload(

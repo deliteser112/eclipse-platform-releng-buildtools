@@ -20,7 +20,6 @@ import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Lists.partition;
-import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.backup.BackupUtils.GcsMetadataKeys.LOWER_BOUND_CHECKPOINT;
 import static google.registry.backup.BackupUtils.GcsMetadataKeys.NUM_TRANSACTIONS;
 import static google.registry.backup.BackupUtils.GcsMetadataKeys.UPPER_BOUND_CHECKPOINT;
@@ -39,7 +38,7 @@ import com.google.appengine.tools.cloudstorage.GcsService;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.ImmutableObject;
@@ -68,7 +67,7 @@ import org.joda.time.DateTime;
 )
 public final class ExportCommitLogDiffAction implements Runnable {
 
-  private static final FormattingLogger logger = getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   static final String PATH = "/_dr/task/exportCommitLogDiff";
   static final String UPPER_CHECKPOINT_TIME_PARAM = "upperCheckpointTime";
@@ -85,7 +84,7 @@ public final class ExportCommitLogDiffAction implements Runnable {
 
   @Override
   public void run() {
-    logger.infofmt(
+    logger.atInfo().log(
         "Exporting commit log diffs between %s and %s.", lowerCheckpointTime, upperCheckpointTime);
     checkArgument(isAtOrAfter(lowerCheckpointTime, START_OF_TIME));
     checkArgument(lowerCheckpointTime.isBefore(upperCheckpointTime));
@@ -99,7 +98,7 @@ public final class ExportCommitLogDiffAction implements Runnable {
 
     // Load the keys of all the manifests to include in this diff.
     List<Key<CommitLogManifest>> sortedKeys = loadAllDiffKeys(lowerCheckpoint, upperCheckpoint);
-    logger.infofmt("Found %d manifests to export", sortedKeys.size());
+    logger.atInfo().log("Found %d manifests to export", sortedKeys.size());
     // Open an output channel to GCS, wrapped in a stream for convenience.
     try (OutputStream gcsStream = newOutputStream(gcsService.createOrReplace(
         new GcsFilename(gcsBucket, DIFF_FILE_PREFIX + upperCheckpointTime),
@@ -123,7 +122,7 @@ public final class ExportCommitLogDiffAction implements Runnable {
       for (int i = 0; i < keyChunks.size(); i++) {
         // Force the async load to finish.
         Collection<CommitLogManifest> chunkValues = nextChunkToExport.values();
-        logger.infofmt("Loaded %d manifests", chunkValues.size());
+        logger.atInfo().log("Loaded %d manifests", chunkValues.size());
         // Since there is no hard bound on how much data this might be, take care not to let the
         // Objectify session cache fill up and potentially run out of memory. This is the only safe
         // point to do this since at this point there is no async load in progress.
@@ -133,12 +132,12 @@ public final class ExportCommitLogDiffAction implements Runnable {
           nextChunkToExport = ofy().load().keys(keyChunks.get(i + 1));
         }
         exportChunk(gcsStream, chunkValues);
-        logger.infofmt("Exported %d manifests", chunkValues.size());
+        logger.atInfo().log("Exported %d manifests", chunkValues.size());
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    logger.infofmt("Exported %d manifests in total", sortedKeys.size());
+    logger.atInfo().log("Exported %d manifests in total", sortedKeys.size());
   }
 
   /**

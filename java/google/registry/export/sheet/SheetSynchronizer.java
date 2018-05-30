@@ -25,7 +25,7 @@ import com.google.api.services.sheets.v4.model.ClearValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +34,7 @@ import javax.inject.Inject;
 /** Generic data synchronization utility for Google Spreadsheets. */
 class SheetSynchronizer {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final String SHEET_NAME = "Registrars";
 
@@ -117,7 +117,7 @@ class SheetSynchronizer {
       BatchUpdateValuesResponse response =
           sheetsService.spreadsheets().values().batchUpdate(spreadsheetId, updateRequest).execute();
       Integer cellsUpdated = response.getTotalUpdatedCells();
-      logger.infofmt("Updated %d originalVals", cellsUpdated != null ? cellsUpdated : 0);
+      logger.atInfo().log("Updated %d originalVals", cellsUpdated != null ? cellsUpdated : 0);
     }
 
     // Append extra rows if necessary
@@ -139,7 +139,7 @@ class SheetSynchronizer {
           .setValueInputOption("RAW")
           .setInsertDataOption("INSERT_ROWS")
           .execute();
-      logger.infofmt(
+      logger.atInfo().log(
           "Appended %d rows to range %s",
           data.size() - originalVals.size(), appendResponse.getTableRange());
     // Clear the extra rows if necessary
@@ -154,7 +154,7 @@ class SheetSynchronizer {
                   getRowRange(data.size(), originalVals.size()),
                   new ClearValuesRequest())
               .execute();
-      logger.infofmt(
+      logger.atInfo().log(
           "Cleared %d rows from range %s",
           originalVals.size() - data.size(), clearResponse.getClearedRange());
     }

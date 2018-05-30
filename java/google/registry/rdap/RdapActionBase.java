@@ -27,7 +27,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import com.google.re2j.Pattern;
 import com.googlecode.objectify.Key;
@@ -69,7 +69,7 @@ import org.json.simple.JSONValue;
  */
 public abstract class RdapActionBase implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /**
    * Pattern for checking LDH names, which must officially contains only alphanumeric plus dots and
@@ -160,7 +160,7 @@ public abstract class RdapActionBase implements Runnable {
       setError(SC_BAD_REQUEST, "Bad Request", "Not a valid " + getHumanReadableObjectTypeName());
     } catch (RuntimeException e) {
       setError(SC_INTERNAL_SERVER_ERROR, "Internal Server Error", "An error was encountered");
-      logger.severe(e, "Exception encountered while processing RDAP command");
+      logger.atSevere().withCause(e).log("Exception encountered while processing RDAP command");
     }
     rdapMetrics.updateMetrics(metricInformationBuilder.build());
   }
@@ -185,8 +185,8 @@ public abstract class RdapActionBase implements Runnable {
         response.setPayload(new JacksonFactory().toPrettyString(rdapJson));
         return;
       } catch (IOException e) {
-        logger.warning(
-            e, "Unable to pretty-print RDAP JSON response; falling back to unformatted output.");
+        logger.atWarning().withCause(e).log(
+            "Unable to pretty-print RDAP JSON response; falling back to unformatted output.");
       }
     }
     response.setPayload(JSONValue.toJSONString(rdapJson));

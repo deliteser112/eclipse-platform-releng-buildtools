@@ -16,7 +16,7 @@ package google.registry.testing.sftp;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -47,7 +47,7 @@ import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 /** In-process SFTP server using Apache SSHD. */
 public class TestSftpServer implements FtpServer {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static SingletonRandomFactory secureRandomFactory;
 
@@ -93,10 +93,10 @@ public class TestSftpServer implements FtpServer {
     try (PEMParser pemParser = new PEMParser(new StringReader(key))) {
       PEMKeyPair pemPair = (PEMKeyPair) pemParser.readObject();
       KeyPair result = new JcaPEMKeyConverter().setProvider("BC").getKeyPair(pemPair);
-      logger.infofmt("Read key pair %s", result);
+      logger.atInfo().log("Read key pair %s", result);
       return result;
     } catch (IOException e) {
-      logger.severe(e, "Couldn't read key pair from string.");
+      logger.atSevere().withCause(e).log("Couldn't read key pair from string.");
       return null;
     }
   }
@@ -185,18 +185,18 @@ public class TestSftpServer implements FtpServer {
   @Override
   public synchronized void stop() {
     try {
-      logger.info("Stopping server");
+      logger.atInfo().log("Stopping server");
       server.stop(true);
       stopped = true;
     } catch (IOException e) {
-      logger.warning(e, "Error shutting down server");
+      logger.atWarning().withCause(e).log("Error shutting down server");
     }
   }
 
   @Override
   public synchronized void start() throws FtpException {
     try {
-      logger.info("Starting server");
+      logger.atInfo().log("Starting server");
       server.start();
       stopped = false;
     } catch (IOException e) {

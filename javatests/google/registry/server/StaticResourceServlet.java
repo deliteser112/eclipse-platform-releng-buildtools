@@ -20,7 +20,7 @@ import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.MediaType;
 import com.google.common.primitives.Ints;
 import java.io.IOException;
@@ -44,7 +44,7 @@ import org.mortbay.jetty.servlet.ServletHolder;
  */
 public final class StaticResourceServlet extends HttpServlet {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final MediaType DEFAULT_MIME_TYPE = MediaType.OCTET_STREAM;
 
@@ -122,12 +122,12 @@ public final class StaticResourceServlet extends HttpServlet {
       verify(req.getRequestURI().startsWith(prefix));
       Path file = root.resolve(req.getRequestURI().substring(prefix.length()));
       if (!Files.exists(file)) {
-        logger.infofmt("Not found: %s (%s)", req.getRequestURI(), file);
+        logger.atInfo().log("Not found: %s (%s)", req.getRequestURI(), file);
         rsp.sendError(SC_NOT_FOUND, "Not found");
         return Optional.empty();
       }
       if (Files.isDirectory(file)) {
-        logger.infofmt("Directory listing forbidden: %s (%s)", req.getRequestURI(), file);
+        logger.atInfo().log("Directory listing forbidden: %s (%s)", req.getRequestURI(), file);
         rsp.sendError(SC_FORBIDDEN, "No directory listing");
         return Optional.empty();
       }

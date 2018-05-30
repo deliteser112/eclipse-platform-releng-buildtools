@@ -17,7 +17,7 @@ package google.registry.rde;
 import static com.google.common.base.Verify.verify;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.model.ImmutableObject;
 import google.registry.model.contact.ContactResource;
@@ -50,7 +50,7 @@ import org.joda.time.DateTime;
 @NotThreadSafe
 public final class RdeMarshaller implements Serializable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final long serialVersionUID = 202890386611768455L;
 
   private final ValidationMode validationMode;
@@ -168,7 +168,7 @@ public final class RdeMarshaller implements Serializable {
           Key.create(resource),
           e.getLinkedException(),
           getMarshaller().marshalLenient(element));
-      logger.severe(e, error);
+      logger.atSevere().withCause(e).log(error);
     }
     return DepositFragment.create(type, xml, error);
   }

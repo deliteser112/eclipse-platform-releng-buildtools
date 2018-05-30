@@ -26,7 +26,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.net.InetAddresses;
 import com.google.common.primitives.Booleans;
 import com.googlecode.objectify.Key;
@@ -79,7 +79,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
 
   public static final int MAX_NAMESERVERS_IN_FIRST_STAGE = 300;
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject Clock clock;
   @Inject @Parameter("name") Optional<String> nameParam;
@@ -399,7 +399,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
           if (hostKey != null) {
             builder.add(hostKey);
           } else {
-            logger.warning("Host key unexpectedly null");
+            logger.atWarning().log("Host key unexpectedly null");
           }
         }
       }

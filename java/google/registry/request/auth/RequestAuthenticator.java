@@ -20,7 +20,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.google.errorprone.annotations.Immutable;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -33,7 +33,7 @@ public class RequestAuthenticator {
   private final ImmutableList<AuthenticationMechanism> apiAuthenticationMechanisms;
   private final LegacyAuthenticationMechanism legacyAuthenticationMechanism;
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @VisibleForTesting
   @Inject
@@ -108,7 +108,7 @@ public class RequestAuthenticator {
    *     auth settings are set to NONE -- in this case, NOT_AUTHENTICATED is returned
    */
   public Optional<AuthResult> authorize(AuthSettings auth, HttpServletRequest req) {
-    logger.infofmt("Action requires auth: %s", auth);
+    logger.atInfo().log("Action requires auth: %s", auth);
     AuthResult authResult = authenticate(auth, req);
     switch (auth.minimumLevel()) {
       case NONE:
@@ -116,13 +116,13 @@ public class RequestAuthenticator {
         break;
       case APP:
         if (!authResult.isAuthenticated()) {
-          logger.warning("Not authorized; no authentication found");
+          logger.atWarning().log("Not authorized; no authentication found");
           return Optional.empty();
         }
         break;
       case USER:
         if (authResult.authLevel() != AuthLevel.USER) {
-          logger.warning("Not authorized; no authenticated user");
+          logger.atWarning().log("Not authorized; no authenticated user");
           // TODO(mountford): change this so that the caller knows to return a more helpful error
           return Optional.empty();
         }
@@ -131,7 +131,7 @@ public class RequestAuthenticator {
     switch (auth.userPolicy()) {
       case IGNORED:
         if (authResult.authLevel() == AuthLevel.USER) {
-          logger.warning("Not authorized; user policy is IGNORED, but a user was found");
+          logger.atWarning().log("Not authorized; user policy is IGNORED, but a user was found");
           return Optional.empty();
         }
         break;
@@ -141,7 +141,8 @@ public class RequestAuthenticator {
       case ADMIN:
         if (authResult.userAuthInfo().isPresent()
             && !authResult.userAuthInfo().get().isUserAdmin()) {
-          logger.warning("Not authorized; user policy is ADMIN, but the user was not an admin");
+          logger.atWarning().log(
+              "Not authorized; user policy is ADMIN, but the user was not an admin");
           return Optional.empty();
         }
         break;
@@ -166,7 +167,7 @@ public class RequestAuthenticator {
           {
             AuthResult authResult = appEngineInternalAuthenticationMechanism.authenticate(req);
             if (authResult.isAuthenticated()) {
-              logger.infofmt("Authenticated via internal auth: %s", authResult);
+              logger.atInfo().log("Authenticated via internal auth: %s", authResult);
               return authResult;
             }
           }
@@ -177,7 +178,7 @@ public class RequestAuthenticator {
           for (AuthenticationMechanism authMechanism : apiAuthenticationMechanisms) {
             AuthResult authResult = authMechanism.authenticate(req);
             if (authResult.isAuthenticated()) {
-              logger.infofmt(
+              logger.atInfo().log(
                   "Authenticated via %s: %s", authMechanism.getClass().getSimpleName(), authResult);
               return authResult;
             }
@@ -188,13 +189,13 @@ public class RequestAuthenticator {
           // checkAuthConfig will have insured that the user policy is not IGNORED.
           AuthResult authResult = legacyAuthenticationMechanism.authenticate(req);
           if (authResult.isAuthenticated()) {
-            logger.infofmt("Authenticated via legacy auth: %s", authResult);
+            logger.atInfo().log("Authenticated via legacy auth: %s", authResult);
             return authResult;
           }
           break;
       }
     }
-    logger.info("No authentication found");
+    logger.atInfo().log("No authentication found");
     return AuthResult.NOT_AUTHENTICATED;
   }
 

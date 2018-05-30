@@ -21,7 +21,7 @@ import static google.registry.util.DateTimeUtils.isAtOrAfter;
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -48,7 +48,7 @@ import org.joda.time.Duration;
 @NotBackedUp(reason = Reason.TRANSIENT)
 public class Lock extends ImmutableObject {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** Disposition of locking, for monitoring. */
   enum LockState { IN_USE, FREE, TIMED_OUT, OWNER_DIED }
@@ -133,28 +133,19 @@ public class Lock extends ImmutableObject {
       DateTime now = acquireResult.transactionTime();
       switch (acquireResult.lockState()) {
         case IN_USE:
-          logger.infofmt(
+          logger.atInfo().log(
               "Existing lock by request %s is still valid now %s (until %s) lock: %s",
-              lock.requestLogId,
-              now,
-              lock.expirationTime,
-              lock.lockId);
+              lock.requestLogId, now, lock.expirationTime, lock.lockId);
           break;
         case TIMED_OUT:
-          logger.infofmt(
+          logger.atInfo().log(
               "Existing lock by request %s is timed out now %s (was valid until %s) lock: %s",
-              lock.requestLogId,
-              now,
-              lock.expirationTime,
-              lock.lockId);
+              lock.requestLogId, now, lock.expirationTime, lock.lockId);
           break;
         case OWNER_DIED:
-          logger.infofmt(
+          logger.atInfo().log(
               "Existing lock is valid now %s (until %s), but owner (%s) isn't running lock: %s",
-              now,
-              lock.expirationTime,
-              lock.requestLogId,
-              lock.lockId);
+              now, lock.expirationTime, lock.requestLogId, lock.lockId);
           break;
         case FREE:
           // There was no existing lock
@@ -162,15 +153,13 @@ public class Lock extends ImmutableObject {
       }
       Lock newLock = acquireResult.newLock();
       if (acquireResult.newLock() != null) {
-        logger.infofmt(
-            "acquire succeeded %s lock: %s",
-            newLock,
-            newLock.lockId);
+        logger.atInfo().log("acquire succeeded %s lock: %s", newLock, newLock.lockId);
       }
     } catch (Throwable e) {
       // We might get here if there is a NullPointerException for example, if AcquireResult wasn't
       // constructed correctly. Simply log it for debugging but continue as if nothing happened
-      logger.warningfmt(e, "Error while logging AcquireResult %s. Continuing.", acquireResult);
+      logger.atWarning().withCause(e).log(
+          "Error while logging AcquireResult %s. Continuing.", acquireResult);
     }
   }
 
@@ -184,38 +173,38 @@ public class Lock extends ImmutableObject {
     // It's important to use transactNew rather than transact, because a Lock can be used to control
     // access to resources like GCS that can't be transactionally rolled back. Therefore, the lock
     // must be definitively acquired before it is used, even when called inside another transaction.
-    AcquireResult acquireResult = ofy().transactNew(() -> {
-      DateTime now = ofy().getTransactionTime();
+    AcquireResult acquireResult =
+        ofy()
+            .transactNew(
+                () -> {
+                  DateTime now = ofy().getTransactionTime();
 
-      // Checking if an unexpired lock still exists - if so, the lock can't be acquired.
-      Lock lock = ofy().load().type(Lock.class).id(lockId).now();
-      if (lock != null) {
-        logger.infofmt(
-            "Loaded existing lock: %s for request: %s", lock.lockId, lock.requestLogId);
-      }
-      LockState lockState;
-      if (lock == null) {
-        lockState = LockState.FREE;
-      } else if (isAtOrAfter(now, lock.expirationTime)) {
-        lockState = LockState.TIMED_OUT;
-      } else if (!requestStatusChecker.isRunning(lock.requestLogId)) {
-        lockState = LockState.OWNER_DIED;
-      } else {
-        lockState = LockState.IN_USE;
-        return AcquireResult.create(now, lock, null, lockState);
-      }
+                  // Checking if an unexpired lock still exists - if so, the lock can't be acquired.
+                  Lock lock = ofy().load().type(Lock.class).id(lockId).now();
+                  if (lock != null) {
+                    logger.atInfo().log(
+                        "Loaded existing lock: %s for request: %s", lock.lockId, lock.requestLogId);
+                  }
+                  LockState lockState;
+                  if (lock == null) {
+                    lockState = LockState.FREE;
+                  } else if (isAtOrAfter(now, lock.expirationTime)) {
+                    lockState = LockState.TIMED_OUT;
+                  } else if (!requestStatusChecker.isRunning(lock.requestLogId)) {
+                    lockState = LockState.OWNER_DIED;
+                  } else {
+                    lockState = LockState.IN_USE;
+                    return AcquireResult.create(now, lock, null, lockState);
+                  }
 
-      Lock newLock = create(
-          resourceName,
-          tld,
-          requestStatusChecker.getLogId(),
-          now,
-          leaseLength);
-      // Locks are not parented under an EntityGroupRoot (so as to avoid write contention) and
-      // don't need to be backed up.
-      ofy().saveWithoutBackup().entity(newLock);
-      return AcquireResult.create(now, lock, newLock, lockState);
-    });
+                  Lock newLock =
+                      create(resourceName, tld, requestStatusChecker.getLogId(), now, leaseLength);
+                  // Locks are not parented under an EntityGroupRoot (so as to avoid write
+                  // contention) and
+                  // don't need to be backed up.
+                  ofy().saveWithoutBackup().entity(newLock);
+                  return AcquireResult.create(now, lock, newLock, lockState);
+                });
 
     logAcquireResult(acquireResult);
     lockMetrics.recordAcquire(resourceName, tld, acquireResult.lockState());
@@ -225,28 +214,33 @@ public class Lock extends ImmutableObject {
   /** Release the lock. */
   public void release() {
     // Just use the default clock because we aren't actually doing anything that will use the clock.
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        // To release a lock, check that no one else has already obtained it and if not delete it.
-        // If the lock in Datastore was different then this lock is gone already; this can happen
-        // if release() is called around the expiration time and the lock expires underneath us.
-        Lock loadedLock = ofy().load().type(Lock.class).id(lockId).now();
-        if (Lock.this.equals(loadedLock)) {
-          // Use noBackupOfy() so that we don't create a commit log entry for deleting the lock.
-          logger.infofmt("Deleting lock: %s", lockId);
-          ofy().deleteWithoutBackup().entity(Lock.this);
-          lockMetrics.recordRelease(
-              resourceName, tld, new Duration(acquiredTime, ofy().getTransactionTime()));
-        } else {
-          logger.severefmt(
-              "The lock we acquired was transferred to someone else before we"
-              + " released it! Did action take longer than lease length?"
-              + " Our lock: %s, current lock: %s",
-              Lock.this,
-              loadedLock);
-          logger.infofmt("Not deleting lock: %s - someone else has it: %s", lockId, loadedLock);
-        }
-      }});
+    ofy()
+        .transact(
+            new VoidWork() {
+              @Override
+              public void vrun() {
+                // To release a lock, check that no one else has already obtained it and if not
+                // delete it. If the lock in Datastore was different then this lock is gone already;
+                // this can happen if release() is called around the expiration time and the lock
+                // expires underneath us.
+                Lock loadedLock = ofy().load().type(Lock.class).id(lockId).now();
+                if (Lock.this.equals(loadedLock)) {
+                  // Use noBackupOfy() so that we don't create a commit log entry for deleting the
+                  // lock.
+                  logger.atInfo().log("Deleting lock: %s", lockId);
+                  ofy().deleteWithoutBackup().entity(Lock.this);
+                  lockMetrics.recordRelease(
+                      resourceName, tld, new Duration(acquiredTime, ofy().getTransactionTime()));
+                } else {
+                  logger.atSevere().log(
+                      "The lock we acquired was transferred to someone else before we"
+                          + " released it! Did action take longer than lease length?"
+                          + " Our lock: %s, current lock: %s",
+                      Lock.this, loadedLock);
+                  logger.atInfo().log(
+                      "Not deleting lock: %s - someone else has it: %s", lockId, loadedLock);
+                }
+              }
+            });
   }
 }

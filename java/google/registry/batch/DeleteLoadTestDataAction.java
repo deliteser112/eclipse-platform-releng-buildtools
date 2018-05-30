@@ -24,7 +24,7 @@ import static google.registry.request.Action.Method.POST;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryEnvironment;
 import google.registry.mapreduce.MapreduceRunner;
@@ -54,7 +54,7 @@ import javax.inject.Inject;
 @Action(path = "/_dr/task/deleteLoadTestData", method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
 public class DeleteLoadTestDataAction implements Runnable {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /**
    * The registrars for which to wipe out all contacts/hosts.
@@ -136,7 +136,7 @@ public class DeleteLoadTestDataAction implements Runnable {
                             .addAll(resourceAndDependentKeys)
                             .build();
                     if (isDryRun) {
-                      logger.infofmt("Would hard-delete the following entities: %s", allKeys);
+                      logger.atInfo().log("Would hard-delete the following entities: %s", allKeys);
                     } else {
                       ofy().deleteWithoutBackup().keys(allKeys);
                     }

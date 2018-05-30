@@ -14,7 +14,6 @@
 
 package google.registry.tools.server;
 
-import static com.google.common.logging.FormattingLogger.getLoggerForCallerClass;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.registry.Registries.assertTldsExist;
@@ -24,7 +23,7 @@ import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.dns.DnsQueue;
 import google.registry.mapreduce.MapreduceRunner;
 import google.registry.model.domain.DomainResource;
@@ -54,7 +53,7 @@ import org.joda.time.DateTimeZone;
 )
 public class RefreshDnsForAllDomainsAction implements Runnable {
 
-  private static final FormattingLogger logger = getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;
@@ -100,7 +99,8 @@ public class RefreshDnsForAllDomainsAction implements Runnable {
             dnsQueue.addDomainRefreshTask(domainName);
             getContext().incrementCounter("active domains refreshed");
           } catch (Throwable t) {
-            logger.severefmt(t, "Error while refreshing DNS for domain %s", domainName);
+            logger.atSevere().withCause(t).log(
+                "Error while refreshing DNS for domain %s", domainName);
             getContext().incrementCounter("active domains errored");
           }
         } else {

@@ -19,7 +19,7 @@ import static com.google.common.collect.Iterables.toArray;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Streams;
-import com.google.common.logging.FormattingLogger;
+import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.util.NonFinalForTesting;
 import google.registry.util.SendEmailService;
@@ -35,7 +35,7 @@ import javax.mail.internet.InternetAddress;
  */
 public class SendEmailUtils {
 
-  private static final FormattingLogger logger = FormattingLogger.getLoggerForCallerClass();
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final String gSuiteOutgoingEmailAddress;
   private final String gSuiteOutoingEmailDisplayName;
@@ -67,11 +67,8 @@ public class SendEmailUtils {
                     try {
                       return new InternetAddress(emailAddress, true);
                     } catch (AddressException e) {
-                      logger.severefmt(
-                          e,
-                          "Could not send email to %s with subject '%s'.",
-                          emailAddress,
-                          subject);
+                      logger.atSevere().withCause(e).log(
+                          "Could not send email to %s with subject '%s'.", emailAddress, subject);
                       // Returning null excludes this address from the list of recipients on the
                       // email.
                       return null;
@@ -87,11 +84,9 @@ public class SendEmailUtils {
       msg.setText(body);
       emailService.sendMessage(msg);
     } catch (Throwable t) {
-      logger.severefmt(
-          t,
+      logger.atSevere().withCause(t).log(
           "Could not email to addresses %s with subject '%s'.",
-          Joiner.on(", ").join(addresses),
-          subject);
+          Joiner.on(", ").join(addresses), subject);
       return false;
     }
     return true;
