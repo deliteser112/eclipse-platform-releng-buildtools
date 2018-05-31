@@ -38,6 +38,7 @@ import google.registry.proxy.HealthCheckProtocolModule.HealthCheckProtocol;
 import google.registry.proxy.Protocol.FrontendProtocol;
 import google.registry.proxy.ProxyConfig.Environment;
 import google.registry.proxy.WhoisProtocolModule.WhoisProtocol;
+import google.registry.proxy.handler.ProxyProtocolHandler;
 import google.registry.util.Clock;
 import google.registry.util.SystemClock;
 import io.netty.handler.logging.LogLevel;
@@ -103,6 +104,19 @@ public class ProxyModule {
       rootHandler.setFormatter(new GcpJsonFormatter());
     }
     rootLoggerConfig.addHandler(rootHandler);
+
+    if (log) {
+      // The LoggingHandler records logs at LogLevel.DEBUG (internal Netty log level), which
+      // corresponds to Level.FINE (JUL log level). It uses a JUL logger with the name
+      // "io.netty.handler.logging.LoggingHandler" to actually process the logs. This JUL logger is
+      // set to Level.FINE if the --log parameter is passed, so that it does not filter out logs
+      // that the LoggingHandler writes. Otherwise the logs are silently ignored because the default
+      // JUL logger level is Level.INFO.
+      LoggerConfig.getConfig(LoggingHandler.class).setLevel(Level.FINE);
+      // Log source IP information if --log parameter is passed. This is considered PII and should
+      // only be used in non-production environment for debugging purpose.
+      LoggerConfig.getConfig(ProxyProtocolHandler.class).setLevel(Level.FINE);
+    }
   }
 
   /**
@@ -156,19 +170,13 @@ public class ProxyModule {
   /**
    * Provides shared logging handler.
    *
-   * <p>The {@link LoggingHandler} records logs at {@code LogLevel.DEBUG} (internal Netty log
-   * level), which corresponds to {@code Level.FINE} (JUL log level). It uses a JUL logger called
-   * {@code io.netty.handler.logging.LoggingHandler} to actually process the logs. This logger is
-   * set to {@code Level.FINE} if {@code --log} parameter is passed, so that it does not filter out
-   * logs that the {@link LoggingHandler} captures. Otherwise the logs are silently ignored because
-   * the default logger level is {@code Level.INFO}.
+   * <p>Note that this handler always records logs at {@code LogLevel.DEBUG}, it is up to the JUL
+   * logger that it contains to decide if logs at this level should actually be captured. The log
+   * level of the JUL logger is configured in {@link #configureLogging()}.
    */
   @Singleton
   @Provides
   LoggingHandler provideLoggingHandler() {
-    if (log) {
-      LoggerConfig.getConfig(io.netty.handler.logging.LoggingHandler.class).setLevel(Level.FINE);
-    }
     return new LoggingHandler(LogLevel.DEBUG);
   }
 

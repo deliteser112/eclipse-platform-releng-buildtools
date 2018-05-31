@@ -203,7 +203,7 @@ public class ProxyServer implements Runnable {
 
   public static void main(String[] args) throws Exception {
     // Use JDK logger for Netty's LoggingHandler,
-    // which is what google.registry.util.FormattingLog uses under the hood.
+    // which is what Flogger uses under the hood.
     InternalLoggerFactory.setDefaultFactory(JdkLoggerFactory.INSTANCE);
 
     // Configure the components, this needs to run first so that the logging format is properly
