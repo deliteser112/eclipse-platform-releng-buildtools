@@ -125,7 +125,7 @@ public class ProxyServer implements Runnable {
                 // This setter also calls channel.read() to request read operation.
                 inboundChannel.config().setAutoRead(true);
                 logger.atInfo().log(
-                    "Relay established: %s <-> %s\nSERVER: %s\nCLIENT: %s",
+                    "Relay established: %s <-> %s\nFRONTEND: %s\nBACKEND: %s",
                     inboundProtocol.name(),
                     outboundProtocol.name(),
                     inboundChannel,
