@@ -43,9 +43,10 @@ public class BackendModule {
   }
 
   @Provides
-  @Parameter(RequestParameters.PARAM_TLD)
+  @Parameter(RequestParameters.PARAM_TLDS)
   static ImmutableSet<String> provideTlds(HttpServletRequest req) {
-    ImmutableSet<String> tlds = extractSetOfParameters(req, RequestParameters.PARAM_TLD);
+    ImmutableSet<String> tlds =
+        extractSetOfParameters(req, RequestParameters.PARAM_TLDS, RequestParameters.PARAM_TLD);
     assertTldsExist(tlds);
     return tlds;
   }

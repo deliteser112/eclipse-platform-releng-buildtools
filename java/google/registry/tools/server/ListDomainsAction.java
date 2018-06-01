@@ -20,6 +20,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.assertTldsExist;
 import static google.registry.request.Action.Method.GET;
 import static google.registry.request.Action.Method.POST;
+import static google.registry.request.RequestParameters.PARAM_TLDS;
 import static java.util.Comparator.comparing;
 
 import com.google.common.collect.ImmutableSet;
@@ -45,7 +46,7 @@ public final class ListDomainsAction extends ListObjectsAction<DomainResource> {
   private static final int MAX_NUM_SUBQUERIES = 30;
   public static final String PATH = "/_dr/admin/list/domains";
 
-  @Inject @Parameter("tlds") ImmutableSet<String> tlds;
+  @Inject @Parameter(PARAM_TLDS) ImmutableSet<String> tlds;
   @Inject @Parameter("limit") int limit;
   @Inject Clock clock;
   @Inject ListDomainsAction() {}

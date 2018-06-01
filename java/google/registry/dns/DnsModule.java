@@ -16,13 +16,6 @@ package google.registry.dns;
 
 import static google.registry.dns.DnsConstants.DNS_PUBLISH_PUSH_QUEUE_NAME;
 import static google.registry.dns.DnsConstants.DNS_PULL_QUEUE_NAME;
-import static google.registry.dns.PublishDnsUpdatesAction.PARAM_DNS_WRITER;
-import static google.registry.dns.PublishDnsUpdatesAction.PARAM_DOMAINS;
-import static google.registry.dns.PublishDnsUpdatesAction.PARAM_HOSTS;
-import static google.registry.dns.PublishDnsUpdatesAction.PARAM_LOCK_INDEX;
-import static google.registry.dns.PublishDnsUpdatesAction.PARAM_NUM_PUBLISH_LOCKS;
-import static google.registry.dns.PublishDnsUpdatesAction.PARAM_PUBLISH_TASK_ENQUEUED;
-import static google.registry.dns.PublishDnsUpdatesAction.PARAM_REFRESH_REQUEST_CREATED;
 import static google.registry.request.RequestParameters.extractEnumParameter;
 import static google.registry.request.RequestParameters.extractIntParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
@@ -47,6 +40,14 @@ import org.joda.time.DateTime;
 /** Dagger module for the dns package. */
 @Module
 public abstract class DnsModule {
+
+  public static final String PARAM_DNS_WRITER = "dnsWriter";
+  public static final String PARAM_LOCK_INDEX = "lockIndex";
+  public static final String PARAM_NUM_PUBLISH_LOCKS = "numPublishLocks";
+  public static final String PARAM_DOMAINS = "domains";
+  public static final String PARAM_HOSTS = "hosts";
+  public static final String PARAM_PUBLISH_TASK_ENQUEUED = "enqueued";
+  public static final String PARAM_REFRESH_REQUEST_CREATED = "itemsCreated";
 
   @Binds
   @DnsWriterZone

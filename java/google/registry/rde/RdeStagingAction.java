@@ -205,8 +205,8 @@ public final class RdeStagingAction implements Runnable {
   @Inject @Parameter(RdeModule.PARAM_MANUAL) boolean manual;
   @Inject @Parameter(RdeModule.PARAM_DIRECTORY) Optional<String> directory;
   @Inject @Parameter(RdeModule.PARAM_MODE) ImmutableSet<String> modeStrings;
-  @Inject @Parameter(RequestParameters.PARAM_TLD) ImmutableSet<String> tlds;
-  @Inject @Parameter(RdeModule.PARAM_WATERMARK) ImmutableSet<DateTime> watermarks;
+  @Inject @Parameter(RequestParameters.PARAM_TLDS) ImmutableSet<String> tlds;
+  @Inject @Parameter(RdeModule.PARAM_WATERMARKS) ImmutableSet<DateTime> watermarks;
   @Inject @Parameter(RdeModule.PARAM_REVISION) Optional<Integer> revision;
   @Inject @Parameter(RdeModule.PARAM_LENIENT) boolean lenient;
 

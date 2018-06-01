@@ -17,6 +17,7 @@ package google.registry.tools.server;
 import static google.registry.mapreduce.inputs.EppResourceInputs.createEntityInput;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.model.registry.Registries.assertTldsExist;
+import static google.registry.request.RequestParameters.PARAM_TLDS;
 import static google.registry.util.PipelineUtils.createJobPath;
 
 import com.google.appengine.tools.mapreduce.Mapper;
@@ -57,7 +58,7 @@ public class RefreshDnsForAllDomainsAction implements Runnable {
 
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;
-  @Inject @Parameter("tlds") ImmutableSet<String> tlds;
+  @Inject @Parameter(PARAM_TLDS) ImmutableSet<String> tlds;
   @Inject RefreshDnsForAllDomainsAction() {}
 
   @Override

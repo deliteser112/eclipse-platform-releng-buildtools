@@ -23,7 +23,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.getTldsOfType;
 import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_DELETE;
 import static google.registry.request.Action.Method.POST;
-import static google.registry.request.RequestParameters.PARAM_TLD;
+import static google.registry.request.RequestParameters.PARAM_TLDS;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.appengine.tools.mapreduce.Mapper;
@@ -76,7 +76,7 @@ public class DeleteProberDataAction implements Runnable {
 
   @Inject @Parameter(PARAM_DRY_RUN) boolean isDryRun;
   /** List of TLDs to work on. If empty - will work on all TLDs that end with .test. */
-  @Inject @Parameter(PARAM_TLD) ImmutableSet<String> tlds;
+  @Inject @Parameter(PARAM_TLDS) ImmutableSet<String> tlds;
   @Inject @Config("registryAdminClientId") String registryAdminClientId;
   @Inject MapreduceRunner mrRunner;
   @Inject Response response;

@@ -17,6 +17,7 @@ package google.registry.dns;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.Lists.transform;
+import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.dns.DnsConstants.DNS_PUBLISH_PUSH_QUEUE_NAME;
@@ -35,6 +36,7 @@ import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -48,10 +50,9 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.util.Retrier;
 import google.registry.util.TaskQueueUtils;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -218,7 +219,8 @@ public class ReadDnsQueueActionTest {
     assertThat(
             queuedParams
                 .stream()
-                .flatMap(params -> params.get("domains").stream()))
+                .map(params -> params.get("domains").stream().collect(onlyElement()))
+                .flatMap(values -> Splitter.on(',').splitToList(values).stream()))
         .containsExactlyElementsIn(domains);
   }
 
@@ -249,19 +251,17 @@ public class ReadDnsQueueActionTest {
     run();
 
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
-    assertThat(getQueuedParams(DNS_PUBLISH_PUSH_QUEUE_NAME))
+    assertThat(getQueuedParams(DNS_PUBLISH_PUSH_QUEUE_NAME)).hasSize(1);
+    assertThat(getQueuedParams(DNS_PUBLISH_PUSH_QUEUE_NAME).get(0))
         .containsExactly(
-            new ImmutableMultimap.Builder<String, String>()
-                .put("enqueued", "3000-02-05T01:00:00.000Z")
-                .put("itemsCreated", "3000-02-03T00:00:00.000Z")
-                .put("tld", "com")
-                .put("dnsWriter", "comWriter")
-                .put("domains", "domain1.com")
-                .put("domains", "domain2.com")
-                .put("domains", "domain3.com")
-                .put("lockIndex", "1")
-                .put("numPublishLocks", "1")
-                .build());
+                "enqueued", "3000-02-05T01:00:00.000Z",
+                "itemsCreated", "3000-02-03T00:00:00.000Z",
+                "tld", "com",
+                "dnsWriter", "comWriter",
+                "domains", "domain1.com,domain2.com,domain3.com",
+                "hosts", "",
+                "lockIndex", "1",
+                "numPublishLocks", "1");
   }
 
   @Test
@@ -411,43 +411,31 @@ public class ReadDnsQueueActionTest {
         new TaskMatcher().url(PublishDnsUpdatesAction.PATH).param("hosts", "ns1.domain.com"));
   }
 
+  private static String makeCommaSeparatedRange(int from, int to, String format) {
+    return IntStream.range(from, to)
+        .mapToObj(i -> String.format(format, i))
+        .collect(Collectors.joining(","));
+  }
+
   @Test
   public void testSuccess_manyDomainsAndHosts() throws Exception {
-    List<TaskMatcher> expectedTasks = new ArrayList<>();
-    for (String tld : ImmutableList.of("com", "net")) {
-      int refreshItemsInTask = 0;
-      TaskMatcher task = null;
+    for (int i = 0; i < 150; i++) {
       // 0: domain; 1: host 1; 2: host 2
       for (int thingType = 0; thingType < 3; thingType++) {
-        for (int i = 0; i < 150; i++) {
+        for (String tld : ImmutableList.of("com", "net")) {
           String domainName = String.format("domain%04d.%s", i, tld);
-          // If we don't have an existing task into which to dump new refreshes, create one.
-          if (task == null) {
-            task = new TaskMatcher().url(PublishDnsUpdatesAction.PATH);
-            expectedTasks.add(task);
-            refreshItemsInTask = 0;
-          }
           switch (thingType) {
             case 1:
               getQueue(DNS_PULL_QUEUE_NAME)
                   .add(createRefreshTask("ns1." + domainName, TargetType.HOST));
-              task.param("hosts", "ns1." + domainName);
               break;
             case 2:
               getQueue(DNS_PULL_QUEUE_NAME)
                   .add(createRefreshTask("ns2." + domainName, TargetType.HOST));
-              task.param("hosts", "ns2." + domainName);
               break;
             default:
               dnsQueue.addDomainRefreshTask(domainName);
-              task.param("domains", domainName);
               break;
-          }
-          // If this task is now full up, wash our hands of it, so that we'll start a new one the
-          // next time through the loop.
-          refreshItemsInTask++;
-          if (refreshItemsInTask >= TEST_TLD_UPDATE_BATCH_SIZE) {
-            task = null;
           }
         }
       }
@@ -456,7 +444,48 @@ public class ReadDnsQueueActionTest {
     run();
 
     assertNoTasksEnqueued(DNS_PULL_QUEUE_NAME);
-    assertTasksEnqueued(DNS_PUBLISH_PUSH_QUEUE_NAME, expectedTasks);
+    assertTasksEnqueued(
+        DNS_PUBLISH_PUSH_QUEUE_NAME,
+        new TaskMatcher()
+            .url(PublishDnsUpdatesAction.PATH)
+            .param("domains", makeCommaSeparatedRange(0, 100, "domain%04d.com"))
+            .param("hosts", ""),
+        new TaskMatcher()
+            .url(PublishDnsUpdatesAction.PATH)
+            .param("domains", makeCommaSeparatedRange(100, 150, "domain%04d.com"))
+            .param("hosts", makeCommaSeparatedRange(0, 50, "ns1.domain%04d.com")),
+        new TaskMatcher()
+            .url(PublishDnsUpdatesAction.PATH)
+            .param("domains", "")
+            .param("hosts", makeCommaSeparatedRange(50, 150, "ns1.domain%04d.com")),
+        new TaskMatcher()
+            .url(PublishDnsUpdatesAction.PATH)
+            .param("domains", "")
+            .param("hosts", makeCommaSeparatedRange(0, 100, "ns2.domain%04d.com")),
+        new TaskMatcher()
+            .url(PublishDnsUpdatesAction.PATH)
+            .param("domains", "")
+            .param("hosts", makeCommaSeparatedRange(100, 150, "ns2.domain%04d.com")),
+        new TaskMatcher()
+            .url(PublishDnsUpdatesAction.PATH)
+            .param("domains", makeCommaSeparatedRange(0, 100, "domain%04d.net"))
+            .param("hosts", ""),
+        new TaskMatcher()
+            .url(PublishDnsUpdatesAction.PATH)
+            .param("domains", makeCommaSeparatedRange(100, 150, "domain%04d.net"))
+            .param("hosts", makeCommaSeparatedRange(0, 50, "ns1.domain%04d.net")),
+        new TaskMatcher()
+            .url(PublishDnsUpdatesAction.PATH)
+            .param("domains", "")
+            .param("hosts", makeCommaSeparatedRange(50, 150, "ns1.domain%04d.net")),
+        new TaskMatcher()
+            .url(PublishDnsUpdatesAction.PATH)
+            .param("domains", "")
+            .param("hosts", makeCommaSeparatedRange(0, 100, "ns2.domain%04d.net")),
+        new TaskMatcher()
+            .url(PublishDnsUpdatesAction.PATH)
+            .param("domains", "")
+            .param("hosts", makeCommaSeparatedRange(100, 150, "ns2.domain%04d.net")));
   }
 
   @Test
@@ -481,8 +510,7 @@ public class ReadDnsQueueActionTest {
             .param("itemsCreated", "3000-01-01T00:00:00.000Z")
             .param("enqueued", "3000-01-01T01:00:00.000Z")
             .param("domains", "hello.multilock.uk")
-            .param("hosts", "ns1.abc.hello.multilock.uk")
-            .param("hosts", "ns2.hello.multilock.uk")
+            .param("hosts", "ns1.abc.hello.multilock.uk,ns2.hello.multilock.uk")
             .header("content-type", "application/x-www-form-urlencoded"),
         new TaskMatcher()
             .url(PublishDnsUpdatesAction.PATH)
@@ -491,8 +519,7 @@ public class ReadDnsQueueActionTest {
             .param("itemsCreated", "3000-01-01T00:00:00.000Z")
             .param("enqueued", "3000-01-01T01:00:00.000Z")
             .param("domains", "another.multilock.uk")
-            .param("hosts", "ns3.def.another.multilock.uk")
-            .param("hosts", "ns4.another.multilock.uk")
+            .param("hosts", "ns3.def.another.multilock.uk,ns4.another.multilock.uk")
             .header("content-type", "application/x-www-form-urlencoded"));
   }
 }

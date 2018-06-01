@@ -24,6 +24,13 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Iterables.getFirst;
 import static com.google.common.collect.Multimaps.filterKeys;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
+import static google.registry.cron.CronModule.ENDPOINT_PARAM;
+import static google.registry.cron.CronModule.EXCLUDE_PARAM;
+import static google.registry.cron.CronModule.FOR_EACH_REAL_TLD_PARAM;
+import static google.registry.cron.CronModule.FOR_EACH_TEST_TLD_PARAM;
+import static google.registry.cron.CronModule.JITTER_SECONDS_PARAM;
+import static google.registry.cron.CronModule.QUEUE_PARAM;
+import static google.registry.cron.CronModule.RUN_IN_EMPTY_PARAM;
 import static google.registry.model.registry.Registries.getTldsOfType;
 import static google.registry.model.registry.Registry.TldType.REAL;
 import static google.registry.model.registry.Registry.TldType.TEST;
@@ -80,14 +87,6 @@ import javax.inject.Inject;
 )
 public final class TldFanoutAction implements Runnable {
 
-  private static final String ENDPOINT_PARAM = "endpoint";
-  private static final String QUEUE_PARAM = "queue";
-  private static final String FOR_EACH_REAL_TLD_PARAM = "forEachRealTld";
-  private static final String FOR_EACH_TEST_TLD_PARAM = "forEachTestTld";
-  private static final String RUN_IN_EMPTY_PARAM = "runInEmpty";
-  private static final String EXCLUDE_PARAM = "exclude";
-  private static final String JITTER_SECONDS_PARAM = "jitterSeconds";
-
   /** A set of control params to TldFanoutAction that aren't passed down to the executing action. */
   private static final ImmutableSet<String> CONTROL_PARAMS =
       ImmutableSet.of(
@@ -127,12 +126,13 @@ public final class TldFanoutAction implements Runnable {
         !(runInEmpty && !excludes.isEmpty()),
         "Can't specify 'exclude' with 'runInEmpty'");
     ImmutableSet<String> tlds =
-        Streams.concat(
-                runInEmpty ? Stream.of("") : Stream.of(),
-                forEachRealTld ? getTldsOfType(REAL).stream() : Stream.of(),
-                forEachTestTld ? getTldsOfType(TEST).stream() : Stream.of())
-            .filter(not(in(excludes)))
-            .collect(toImmutableSet());
+        runInEmpty
+            ? ImmutableSet.of("")
+            : Streams.concat(
+                    forEachRealTld ? getTldsOfType(REAL).stream() : Stream.of(),
+                    forEachTestTld ? getTldsOfType(TEST).stream() : Stream.of())
+                .filter(not(in(excludes)))
+                .collect(toImmutableSet());
     Multimap<String, String> flowThruParams = filterKeys(params, not(in(CONTROL_PARAMS)));
     Queue taskQueue = getQueue(queue);
     StringBuilder outputPayload =

@@ -16,6 +16,12 @@ package google.registry.tools;
 
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 import static google.registry.model.registry.Registries.assertTldsExist;
+import static google.registry.rde.RdeModule.PARAM_DIRECTORY;
+import static google.registry.rde.RdeModule.PARAM_MANUAL;
+import static google.registry.rde.RdeModule.PARAM_MODE;
+import static google.registry.rde.RdeModule.PARAM_REVISION;
+import static google.registry.rde.RdeModule.PARAM_WATERMARKS;
+import static google.registry.request.RequestParameters.PARAM_TLDS;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
@@ -24,12 +30,11 @@ import com.google.appengine.api.modules.ModulesService;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import google.registry.model.rde.RdeMode;
-import google.registry.rde.RdeModule;
 import google.registry.rde.RdeStagingAction;
-import google.registry.request.RequestParameters;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.DateTimeParameter;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.joda.time.DateTime;
@@ -101,17 +106,15 @@ final class GenerateEscrowDepositCommand implements RemoteApiCommand {
     TaskOptions opts =
         withUrl(RdeStagingAction.PATH)
             .header("Host", hostname)
-            .param(RdeModule.PARAM_MANUAL, String.valueOf(true))
-            .param(RdeModule.PARAM_MODE, mode.toString())
-            .param(RdeModule.PARAM_DIRECTORY, outdir);
-    for (String tld : tlds) {
-      opts = opts.param(RequestParameters.PARAM_TLD, tld);
-    }
-    for (DateTime watermark : watermarks) {
-      opts = opts.param(RdeModule.PARAM_WATERMARK, watermark.toString());
-    }
+            .param(PARAM_MANUAL, String.valueOf(true))
+            .param(PARAM_MODE, mode.toString())
+            .param(PARAM_DIRECTORY, outdir)
+            .param(PARAM_TLDS, tlds.stream().collect(Collectors.joining(",")))
+            .param(
+                PARAM_WATERMARKS,
+                watermarks.stream().map(DateTime::toString).collect(Collectors.joining(",")));
     if (revision != null) {
-      opts = opts.param(RdeModule.PARAM_REVISION, String.valueOf(revision));
+      opts = opts.param(PARAM_REVISION, String.valueOf(revision));
     }
     queue.add(opts);
   }
