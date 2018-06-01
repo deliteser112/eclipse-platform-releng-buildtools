@@ -37,6 +37,15 @@
     <url-pattern>/check</url-pattern>
   </servlet-mapping>
 
+  <!--
+      Temporary end point for new implementation of availability checks
+      TODO(b/80417678): remove this stanza
+   -->
+  <servlet-mapping>
+    <servlet-name>pubapi-servlet</servlet-name>
+    <url-pattern>/check2</url-pattern>
+  </servlet-mapping>
+
   <!-- Security config -->
   <security-constraint>
     <web-resource-collection>

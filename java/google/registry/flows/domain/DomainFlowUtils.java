@@ -231,7 +231,7 @@ public class DomainFlowUtils {
    * @throws InvalidIdnDomainLabelException if IDN table or language validation failed
    * @see #validateDomainName(String)
    */
-  static String validateDomainNameWithIdnTables(InternetDomainName domainName)
+  public static String validateDomainNameWithIdnTables(InternetDomainName domainName)
       throws InvalidIdnDomainLabelException {
     Optional<String> idnTableName =
         findValidIdnTableForTld(domainName.parts().get(0), domainName.parent().toString());
@@ -856,7 +856,7 @@ public class DomainFlowUtils {
   }
 
   /** Check that the registry phase is not predelegation, during which some flows are forbidden. */
-  static void verifyNotInPredelegation(Registry registry, DateTime now)
+  public static void verifyNotInPredelegation(Registry registry, DateTime now)
       throws BadCommandForRegistryPhaseException {
     if (registry.getTldState(now) == TldState.PREDELEGATION) {
       throw new BadCommandForRegistryPhaseException();

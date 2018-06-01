@@ -17,6 +17,8 @@ package google.registry.module.frontend;
 import dagger.Module;
 import dagger.Subcomponent;
 import google.registry.dns.DnsModule;
+import google.registry.flows.CheckApi2Action;
+import google.registry.flows.CheckApi2Action.CheckApi2Module;
 import google.registry.flows.CheckApiAction;
 import google.registry.flows.CheckApiAction.CheckApiModule;
 import google.registry.flows.EppConsoleAction;
@@ -49,16 +51,18 @@ import google.registry.whois.WhoisModule;
 @RequestScope
 @Subcomponent(
     modules = {
-        CheckApiModule.class,
-        DnsModule.class,
-        EppTlsModule.class,
-        RdapModule.class,
-        RequestModule.class,
-        WhiteboxModule.class,
-        WhoisModule.class,
+      CheckApiModule.class,
+      CheckApi2Module.class,
+      DnsModule.class,
+      EppTlsModule.class,
+      RdapModule.class,
+      RequestModule.class,
+      WhiteboxModule.class,
+      WhoisModule.class,
     })
 interface FrontendRequestComponent {
   CheckApiAction checkApiAction();
+  CheckApi2Action checkApi2Action();
   ConsoleUiAction consoleUiAction();
   EppConsoleAction eppConsoleAction();
   EppTlsAction eppTlsAction();
