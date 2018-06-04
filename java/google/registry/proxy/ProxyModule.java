@@ -14,6 +14,7 @@
 
 package google.registry.proxy;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Suppliers.memoizeWithExpiration;
 import static google.registry.proxy.ProxyConfig.getProxyConfig;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -79,7 +80,11 @@ public class ProxyModule {
   @Parameter(names = "--env", description = "Environment to run the proxy in")
   private Environment env = Environment.LOCAL;
 
-  @Parameter(names = "--log", description = "Whether to log activities for debugging")
+  @Parameter(
+      names = "--log",
+      description =
+          "Whether to log activities for debugging. "
+              + "This cannot be enabled for production as logs contain PII.")
   boolean log;
 
   /**
@@ -134,6 +139,9 @@ public class ProxyModule {
       jCommander.usage();
       throw e;
     }
+    checkArgument(
+        !log || env != Environment.PRODUCTION,
+        "Logging cannot be enabled for production environment");
     configureLogging();
     return this;
   }

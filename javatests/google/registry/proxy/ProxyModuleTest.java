@@ -46,6 +46,20 @@ public class ProxyModuleTest {
   }
 
   @Test
+  public void testFailure_parseArgs_loggingInProduction() {
+    String[] args = {"--env", "production", "--log"};
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> {
+              proxyModule.parse(args);
+            });
+    assertThat(e)
+        .hasMessageThat()
+        .isEqualTo("Logging cannot be enabled for production environment");
+  }
+
+  @Test
   public void testFailure_parseArgs_wrongArguments() {
     String[] args = {"--wrong_flag", "some_value"};
     try {
