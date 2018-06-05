@@ -316,6 +316,16 @@ public class DatastoreHelper {
         newDomainResource(domainName).asBuilder().setCreationTimeForTest(creationTime).build());
   }
 
+  public static DomainResource persistActiveDomain(
+      String domainName, DateTime creationTime, DateTime expirationTime) {
+    return persistResource(
+        newDomainResource(domainName)
+            .asBuilder()
+            .setCreationTimeForTest(creationTime)
+            .setRegistrationExpirationTime(expirationTime)
+            .build());
+  }
+
   public static DomainApplication persistActiveDomainApplication(String domainName) {
     return persistResource(newDomainApplication(domainName));
   }

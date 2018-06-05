@@ -104,6 +104,7 @@ public final class RegistryTool {
           .put("registrar_activity_report", RegistrarActivityReportCommand.class)
           .put("registrar_contact", RegistrarContactCommand.class)
           .put("remove_ip_address", RemoveIpAddressCommand.class)
+          .put("renew_domain", RenewDomainCommand.class)
           .put("resave_entities", ResaveEntitiesCommand.class)
           .put("resave_environment_entities", ResaveEnvironmentEntitiesCommand.class)
           .put("resave_epp_resource", ResaveEppResourceCommand.class)
