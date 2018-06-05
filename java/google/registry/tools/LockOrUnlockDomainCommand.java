@@ -23,8 +23,10 @@ import static google.registry.util.CollectionUtils.findDuplicates;
 import com.beust.jcommander.Parameter;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import google.registry.config.RegistryConfig.Config;
 import google.registry.model.eppcommon.StatusValue;
 import java.util.List;
+import javax.inject.Inject;
 
 /** Shared base class for commands to registry lock or unlock a domain via EPP. */
 public abstract class LockOrUnlockDomainCommand extends MutatingEppToolCommand {
@@ -35,13 +37,16 @@ public abstract class LockOrUnlockDomainCommand extends MutatingEppToolCommand {
 
   @Parameter(
       names = {"-c", "--client"},
-      description = "Client identifier of the registrar to execute the command as",
-      required = true
-  )
+      description =
+          "Client ID of the requesting registrar if applicable, otherwise the registry registrar")
   String clientId;
 
   @Parameter(description = "Names of the domains", required = true)
   private List<String> mainParameters;
+
+  @Inject
+  @Config("registryAdminClientId")
+  String registryAdminClientId;
 
   protected ImmutableSet<String> getDomains() {
     return ImmutableSet.copyOf(mainParameters);
@@ -51,6 +56,11 @@ public abstract class LockOrUnlockDomainCommand extends MutatingEppToolCommand {
   protected void initEppToolCommand() throws Exception {
     // Superuser status is required to update registry lock statuses.
     superuser = true;
+
+    // Default clientId to the registry registrar account if otherwise unspecified.
+    if (clientId == null) {
+      clientId = registryAdminClientId;
+    }
     String duplicates = Joiner.on(", ").join(findDuplicates(mainParameters));
     checkArgument(duplicates.isEmpty(), "Duplicate domain arguments found: '%s'", duplicates);
     initMutatingEppToolCommand();

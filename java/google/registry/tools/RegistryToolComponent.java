@@ -91,12 +91,14 @@ interface RegistryToolComponent {
   void inject(GetKeyringSecretCommand command);
   void inject(GhostrydeCommand command);
   void inject(ListCursorsCommand command);
+  void inject(LockDomainCommand command);
   void inject(LoginCommand command);
   void inject(LogoutCommand command);
   void inject(PendingEscrowCommand command);
   void inject(RenewDomainCommand command);
   void inject(SendEscrowReportToIcannCommand command);
   void inject(SetupOteCommand command);
+  void inject(UnlockDomainCommand command);
   void inject(UpdateCursorsCommand command);
   void inject(UpdateDomainCommand command);
   void inject(UpdateKmsKeyringCommand command);

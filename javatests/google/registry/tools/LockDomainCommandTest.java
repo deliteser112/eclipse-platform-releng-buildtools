@@ -18,12 +18,14 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIBITED;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveDomain;
+import static google.registry.testing.DatastoreHelper.persistNewRegistrar;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.tools.LockOrUnlockDomainCommand.REGISTRY_LOCK_STATUSES;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import google.registry.model.registrar.Registrar.Type;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -35,6 +37,8 @@ public class LockDomainCommandTest extends EppToolCommandTestCase<LockDomainComm
   @Before
   public void before() {
     eppVerifier.expectSuperuser();
+    persistNewRegistrar("adminreg", "Admin Registrar", Type.REAL, 693L);
+    command.registryAdminClientId = "adminreg";
   }
 
   @Test
@@ -89,6 +93,15 @@ public class LockDomainCommandTest extends EppToolCommandTestCase<LockDomainComm
             .addStatusValues(REGISTRY_LOCK_STATUSES)
             .build());
     runCommandForced("--client=NewRegistrar", "example.tld");
+  }
+
+  @Test
+  public void testSuccess_defaultsToAdminRegistrar_ifUnspecified() throws Exception {
+    persistActiveDomain("example.tld");
+    runCommandForced("example.tld");
+    eppVerifier
+        .expectClientId("adminreg")
+        .verifySent("domain_lock.xml", ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   @Test
