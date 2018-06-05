@@ -39,6 +39,9 @@ abstract class WhoisResponseImpl implements WhoisResponse {
   /** ICANN problem reporting URL appended to all WHOIS responses. */
   private static final String ICANN_REPORTING_URL = "https://www.icann.org/wicf/";
 
+  /** Text to display when the field is redacted for privacy. */
+  static final String REDACT_TEXT = "REDACTED FOR PRIVACY";
+
   /** The time at which this response was created. */
   private final DateTime timestamp;
 
@@ -94,59 +97,105 @@ abstract class WhoisResponseImpl implements WhoisResponse {
       return emitList(title, values.stream().map(transform).sorted().collect(toImmutableList()));
     }
 
-    /** Helper method that loops over a list of values and calls {@link #emitField}. */
-    E emitList(String title, Iterable<String> values) {
+    /**
+     * Helper method that loops over a list of values and calls {@link #emitField}.
+     *
+     * <p>This method redacts the output unless {@code fullOutput} is {@code true}.
+     */
+    E emitList(String title, Iterable<String> values, boolean fullOutput) {
       for (String value : values) {
-        emitField(title, value);
+        emitField(title, value, fullOutput);
       }
       return thisCastToDerived();
     }
 
-    /** Emit the field name and value followed by a newline, but only if a value exists. */
-    E emitFieldIfDefined(String name, @Nullable String value) {
+    /** Helper method that loops over a list of values and calls {@link #emitField}. */
+    E emitList(String title, Iterable<String> values) {
+      return emitList(title, values, true);
+    }
+
+    /**
+     * Emit the field name and value followed by a newline, but only if a value exists.
+     *
+     * <p>This method redacts the output unless {@code fullOutput} is {@code true}.
+     */
+    E emitFieldIfDefined(String name, @Nullable String value, boolean fullOutput) {
       if (isNullOrEmpty(value)) {
         return thisCastToDerived();
       }
       stringBuilder.append(cleanse(name)).append(':');
-      stringBuilder.append(' ').append(cleanse(value));
+      stringBuilder.append(' ').append(fullOutput ? cleanse(value) : REDACT_TEXT);
+      return emitNewline();
+    }
+
+    /** Emit the field name and value followed by a newline, but only if a value exists. */
+    E emitFieldIfDefined(String name, @Nullable String value) {
+      return emitFieldIfDefined(name, value, true);
+    }
+
+    /**
+     * Emit a multi-part field name and value followed by a newline, but only if a value exists.
+     *
+     * <p>This method redacts the output unless {@code fullOutput} is {@code true}.
+     */
+    E emitFieldIfDefined(List<String> nameParts, String value, boolean fullOutput) {
+      if (isNullOrEmpty(value)) {
+        return thisCastToDerived();
+      }
+      return emitField(nameParts, value, fullOutput);
+    }
+
+    /** Emit a multi-part field name and value followed by a newline, but only if a value exists. */
+    E emitFieldIfDefined(List<String> nameParts, String value) {
+      return emitFieldIfDefined(nameParts, value, true);
+    }
+    /**
+     * Emit the field name and value followed by a newline. /*
+     *
+     * <p>This method redacts the output unless {@code fullOutput} is {@code true}.
+     */
+    E emitField(String name, @Nullable String value, boolean fullOutput) {
+      stringBuilder.append(cleanse(name)).append(':');
+      if (!isNullOrEmpty(value)) {
+        stringBuilder.append(' ').append(fullOutput ? cleanse(value) : REDACT_TEXT);
+      }
       return emitNewline();
     }
 
     /** Emit the field name and value followed by a newline. */
     E emitField(String name, @Nullable String value) {
-      stringBuilder.append(cleanse(name)).append(':');
-      if (!isNullOrEmpty(value)) {
-        stringBuilder.append(' ').append(cleanse(value));
-      }
-      return emitNewline();
+      return emitField(name, value, true);
     }
 
-    /** Emit a multi-part field name and value followed by a newline, but only if a value exists. */
-    E emitFieldIfDefined(List<String> nameParts, String value) {
-      if (isNullOrEmpty(value)) {
-        return thisCastToDerived();
-      }
-      return emitField(nameParts, value);
+    /**
+     * Emit a multi-part field name and value followed by a newline.
+     *
+     * <p>This method redacts the output unless {@code fullOutput} is {@code true}.
+     */
+    E emitField(List<String> nameParts, String value, boolean fullOutput) {
+      return emitField(Joiner.on(' ').join(nameParts), value, fullOutput);
     }
 
     /** Emit a multi-part field name and value followed by a newline. */
     E emitField(List<String> nameParts, String value) {
-      return emitField(Joiner.on(' ').join(nameParts), value);
+      return emitField(nameParts, value, true);
     }
 
     /** Emit a contact address. */
     E emitAddress(@Nullable String prefix, @Nullable Address address, boolean fullOutput) {
       prefix = isNullOrEmpty(prefix) ? "" : prefix + " ";
       if (address != null) {
-        if (fullOutput) {
-          emitList(prefix + "Street", address.getStreet());
-          emitField(prefix + "City", address.getCity());
-        }
-        emitField(prefix + "State/Province", address.getState());
-        if (fullOutput) {
-          emitField(prefix + "Postal Code", address.getZip());
-        }
-        emitField(prefix + "Country", address.getCountryCode());
+        emitList(prefix + "Street", address.getStreet(), fullOutput);
+        emitField(prefix + "City", address.getCity(), fullOutput);
+        emitField(
+            prefix + "State/Province",
+            address.getState(),
+            (fullOutput || prefix.equals("Registrant ")));
+        emitField(prefix + "Postal Code", address.getZip(), fullOutput);
+        emitField(
+            prefix + "Country",
+            address.getCountryCode(),
+            fullOutput || prefix.equals("Registrant "));
       }
       return thisCastToDerived();
     }

@@ -81,7 +81,7 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
             .stream()
             .filter(RegistrarContact::getVisibleInDomainWhoisAsAbuse)
             .findFirst();
-    DomainEmitter domainEmitter =
+    return WhoisResponseResults.create(
         new DomainEmitter()
             .emitField(
                 "Domain Name",
@@ -104,25 +104,22 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
                 "Registrar Abuse Contact Phone",
                 abuseContact.map(RegistrarContact::getPhoneNumber).orElse(null))
             .emitStatusValues(domain.getStatusValues(), domain.getGracePeriods())
-            .emitContact(
-                "Registrant", Optional.of(domain.getRegistrant()), preferUnicode, fullOutput);
-    if (fullOutput) {
-      domainEmitter
-          .emitContact("Admin", getContactReference(Type.ADMIN), preferUnicode, fullOutput)
-          .emitContact("Tech", getContactReference(Type.TECH), preferUnicode, fullOutput)
-          .emitContact("Billing", getContactReference(Type.BILLING), preferUnicode, fullOutput);
-    }
-    domainEmitter
-        .emitSet(
-            "Name Server",
-            domain.loadNameserverFullyQualifiedHostNames(),
-            hostName -> maybeFormatHostname(hostName, preferUnicode))
-        .emitField("DNSSEC", isNullOrEmpty(domain.getDsData()) ? "unsigned" : "signedDelegation")
-        .emitWicfLink()
-        .emitLastUpdated(getTimestamp())
-        .emitAwipMessage()
-        .emitFooter(disclaimer);
-    return WhoisResponseResults.create(domainEmitter.toString(), 1);
+            .emitContact("Registrant", Optional.of(domain.getRegistrant()), preferUnicode)
+            .emitContact("Admin", getContactReference(Type.ADMIN), preferUnicode)
+            .emitContact("Tech", getContactReference(Type.TECH), preferUnicode)
+            .emitContact("Billing", getContactReference(Type.BILLING), preferUnicode)
+            .emitSet(
+                "Name Server",
+                domain.loadNameserverFullyQualifiedHostNames(),
+                hostName -> maybeFormatHostname(hostName, preferUnicode))
+            .emitField(
+                "DNSSEC", isNullOrEmpty(domain.getDsData()) ? "unsigned" : "signedDelegation")
+            .emitWicfLink()
+            .emitLastUpdated(getTimestamp())
+            .emitAwipMessage()
+            .emitFooter(disclaimer)
+            .toString(),
+        1);
   }
 
   /** Returns the contact of the given type. */
@@ -139,17 +136,15 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
       if (phoneNumber == null) {
         return this;
       }
-      return emitFieldIfDefined(ImmutableList.of(contactType, title), phoneNumber.getPhoneNumber())
+      return emitFieldIfDefined(
+              ImmutableList.of(contactType, title), phoneNumber.getPhoneNumber(), fullOutput)
           .emitFieldIfDefined(
-              ImmutableList.of(contactType, title, "Ext"), phoneNumber.getExtension());
+              ImmutableList.of(contactType, title, "Ext"), phoneNumber.getExtension(), fullOutput);
     }
 
     /** Emit the contact entry of the given type. */
     DomainEmitter emitContact(
-        String contactType,
-        Optional<Key<ContactResource>> contact,
-        boolean preferUnicode,
-        boolean fullOutput) {
+        String contactType, Optional<Key<ContactResource>> contact, boolean preferUnicode) {
       if (!contact.isPresent()) {
         return this;
       }
@@ -168,24 +163,21 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
               preferUnicode,
               contactResource.getLocalizedPostalInfo(),
               contactResource.getInternationalizedPostalInfo());
-      if (fullOutput) {
-        // If the full output is to be displayed, show all fields for all contact types.
-        // ICANN Consistent Labeling & Display policy requires that this be the ROID.
-        emitField(ImmutableList.of("Registry", contactType, "ID"), contactResource.getRepoId());
-        if (postalInfo != null) {
-          emitFieldIfDefined(ImmutableList.of(contactType, "Name"), postalInfo.getName());
-          emitFieldIfDefined(ImmutableList.of(contactType, "Organization"), postalInfo.getOrg());
-          emitAddress(contactType, postalInfo.getAddress(), fullOutput);
-        }
-        emitPhone(contactType, "Phone", contactResource.getVoiceNumber());
-        emitPhone(contactType, "Fax", contactResource.getFaxNumber());
-        emitField(ImmutableList.of(contactType, "Email"), contactResource.getEmailAddress());
-      } else {
-        if (postalInfo != null) {
-          emitFieldIfDefined(ImmutableList.of(contactType, "Organization"), postalInfo.getOrg());
-          emitAddress(contactType, postalInfo.getAddress(), fullOutput);
-        }
+      // ICANN Consistent Labeling & Display policy requires that this be the ROID.
+      emitField(
+          ImmutableList.of("Registry", contactType, "ID"), contactResource.getRepoId(), fullOutput);
+      if (postalInfo != null) {
+        emitFieldIfDefined(ImmutableList.of(contactType, "Name"), postalInfo.getName(), fullOutput);
+        emitFieldIfDefined(
+            ImmutableList.of(contactType, "Organization"),
+            postalInfo.getOrg(),
+            fullOutput || contactType.equals("Registrant"));
+        emitAddress(contactType, postalInfo.getAddress(), fullOutput);
       }
+      emitPhone(contactType, "Phone", contactResource.getVoiceNumber());
+      emitPhone(contactType, "Fax", contactResource.getFaxNumber());
+      emitField(
+          ImmutableList.of(contactType, "Email"), contactResource.getEmailAddress(), fullOutput);
       return this;
     }
 
