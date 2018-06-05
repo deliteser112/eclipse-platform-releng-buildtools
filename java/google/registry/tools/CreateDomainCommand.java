@@ -16,23 +16,34 @@ package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static google.registry.pricing.PricingEngineProxy.getPricesForDomainName;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
+import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.template.soy.data.SoyMapData;
+import google.registry.model.pricing.PremiumPricingEngine.DomainPrices;
+import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.soy.DomainCreateSoyInfo;
 import google.registry.util.StringGenerator;
 import javax.inject.Inject;
+import org.joda.money.Money;
+import org.joda.time.DateTime;
 
 /** A command to create a new domain via EPP. */
 @Parameters(separators = " =", commandDescription = "Create a new domain via EPP.")
-final class CreateDomainCommand extends CreateOrUpdateDomainCommand {
+final class CreateDomainCommand extends CreateOrUpdateDomainCommand implements RemoteApiCommand {
 
   @Parameter(
       names = "--period",
       description = "Initial registration period, in years.")
-  private Integer period;
+  private int period = 1;
+
+  @Parameter(
+      names = "--force_premiums",
+      description = "Force the creation of premium domains.")
+  private boolean forcePremiums;
 
   @Inject
   StringGenerator passwordGenerator;
@@ -49,17 +60,36 @@ final class CreateDomainCommand extends CreateOrUpdateDomainCommand {
     }
 
     for (String domain : domains) {
+      String currency = null;
+      String cost = null;
+      DomainPrices prices = getPricesForDomainName(domain, DateTime.now(UTC));
+
+      // Check if the domain is premium and set the fee on the create command if so.
+      if (prices.isPremium()) {
+        checkArgument(
+            !force || forcePremiums,
+            "Forced creates on premium domain(s) require --force_premiums");
+        Money createCost = prices.getCreateCost();
+        currency = createCost.getCurrencyUnit().getCurrencyCode();
+        cost = createCost.multipliedBy(period).getAmount().toString();
+        System.out.printf(
+            "NOTE: %s is premium at %s per year; sending total cost for %d year(s) of %s %s.\n",
+            domain, createCost, period, currency, cost);
+      }
+
       setSoyTemplate(DomainCreateSoyInfo.getInstance(), DomainCreateSoyInfo.DOMAINCREATE);
       addSoyRecord(
           clientId,
           new SoyMapData(
               "domain", domain,
-              "period", period == null ? null : period.toString(),
+              "period", period,
               "nameservers", nameservers,
               "registrant", registrant,
               "admins", admins,
               "techs", techs,
               "password", password,
+              "currency", currency,
+              "price", cost,
               "dsRecords", DsRecord.convertToSoy(dsRecords)));
     }
   }

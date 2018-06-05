@@ -15,6 +15,7 @@
 package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.beust.jcommander.ParameterException;
@@ -60,6 +61,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
 
   @Test
   public void testSuccess_multipleDomains() throws Exception {
+    createTld("abc");
     runCommandForced(
         "--client=NewRegistrar",
         "--registrant=crr-admin",
@@ -70,6 +72,43 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
     eppVerifier
         .verifySent("domain_create_minimal.xml")
         .verifySent("domain_create_minimal_abc.xml");
+  }
+
+  @Test
+  public void testSuccess_premiumDomain() throws Exception {
+    runCommandForced(
+        "--client=NewRegistrar",
+        "--registrant=crr-admin",
+        "--admins=crr-admin",
+        "--techs=crr-tech",
+        "--period=3",
+        "--force_premiums",
+        "parajiumu.tld");
+    eppVerifier.verifySent("domain_create_parajiumu_3yrs.xml");
+    assertInStdout(
+        "parajiumu.tld is premium at JPY 96083 per year; "
+            + "sending total cost for 3 year(s) of JPY 288249.");
+  }
+
+  @Test
+  public void testSuccess_multipleDomainsWithPremium() throws Exception {
+    createTld("abc");
+    runCommandForced(
+        "--client=NewRegistrar",
+        "--registrant=crr-admin",
+        "--admins=crr-admin",
+        "--techs=crr-tech",
+        "--force_premiums",
+        "example.tld",
+        "palladium.tld",
+        "example.abc");
+    eppVerifier
+        .verifySent("domain_create_minimal.xml")
+        .verifySent("domain_create_palladium.xml")
+        .verifySent("domain_create_minimal_abc.xml");
+    assertInStdout(
+        "palladium.tld is premium at USD 877.00 per year; "
+            + "sending total cost for 1 year(s) of USD 877.00.");
   }
 
   @Test
@@ -287,5 +326,22 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
                     "--ds_records=1 2 3 abcde",
                     "example.tld"));
     assertThat(thrown).hasMessageThat().contains("length 5");
+  }
+
+  @Test
+  public void testFailure_cantForceCreatePremiumDomain_withoutForcePremiums() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--admins=crr-admin",
+                    "--techs=crr-tech",
+                    "gold.tld"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Forced creates on premium domain(s) require --force_premiums");
   }
 }
