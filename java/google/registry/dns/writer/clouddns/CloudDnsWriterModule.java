@@ -20,6 +20,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.DnsScopes;
 import com.google.common.util.concurrent.RateLimiter;
+import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
@@ -34,7 +35,7 @@ import javax.inject.Named;
 
 /** Dagger module for Google Cloud DNS service connection objects. */
 @Module
-public final class CloudDnsWriterModule {
+public abstract class CloudDnsWriterModule {
 
   @Provides
   static Dns provideDns(
@@ -54,12 +55,10 @@ public final class CloudDnsWriterModule {
     return builder.build();
   }
 
-  @Provides
+  @Binds
   @IntoMap
   @StringKey(CloudDnsWriter.NAME)
-  static DnsWriter provideWriter(CloudDnsWriter writer) {
-    return writer;
-  }
+  abstract DnsWriter provideWriter(CloudDnsWriter writer);
 
   @Provides
   @IntoSet
@@ -86,4 +85,6 @@ public final class CloudDnsWriterModule {
     // NOTE: any number below 2 will not use threading at all.
     return 10;
   }
+
+  private CloudDnsWriterModule() {}
 }
