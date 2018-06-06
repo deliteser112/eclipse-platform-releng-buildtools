@@ -45,7 +45,16 @@ FROM (
     SUM(amount) AS metricValue
   FROM (
     SELECT
-      entries.%CLIENT_ID% AS clientId,
+      CASE
+        -- Explicit transfer acks (approve) and nacks (reject) are done
+        -- by the opposing registrar. Thus, for these specific actions,
+        -- we swap the 'otherClientId' with the 'clientId' to properly
+        -- account for this reversal.
+        WHEN (entries.type = 'DOMAIN_TRANSFER_APPROVE'
+          OR entries.type = 'DOMAIN_TRANSFER_REJECT')
+          THEN entries.%OTHER_CLIENT_ID%
+        ELSE entries.%CLIENT_ID%
+      END AS clientId,
       entries.domainTransactionRecords.tld[SAFE_OFFSET(index)] AS tld,
       entries.domainTransactionRecords.reportingTime[SAFE_OFFSET(index)]
           AS reportingTime,

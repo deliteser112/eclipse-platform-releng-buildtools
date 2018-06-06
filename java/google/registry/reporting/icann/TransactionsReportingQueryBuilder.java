@@ -113,6 +113,7 @@ public final class TransactionsReportingQueryBuilder implements QueryBuilder {
             .put("EARLIEST_REPORT_TIME", timestampFormatter.print(earliestReportTime))
             .put("LATEST_REPORT_TIME", timestampFormatter.print(latestReportTime))
             .put("CLIENT_ID", "clientId")
+            .put("OTHER_CLIENT_ID", "otherClientId")
             .put("TRANSFER_SUCCESS_FIELD", "TRANSFER_GAINING_SUCCESSFUL")
             .put("TRANSFER_NACKED_FIELD", "TRANSFER_GAINING_NACKED")
             .put("DEFAULT_FIELD", "field")
@@ -127,7 +128,9 @@ public final class TransactionsReportingQueryBuilder implements QueryBuilder {
             .put("HISTORYENTRY_TABLE", "HistoryEntry")
             .put("EARLIEST_REPORT_TIME", timestampFormatter.print(earliestReportTime))
             .put("LATEST_REPORT_TIME", timestampFormatter.print(latestReportTime))
+            // Roles are reversed for losing queries
             .put("CLIENT_ID", "otherClientId")
+            .put("OTHER_CLIENT_ID", "clientId")
             .put("TRANSFER_SUCCESS_FIELD", "TRANSFER_LOSING_SUCCESSFUL")
             .put("TRANSFER_NACKED_FIELD", "TRANSFER_LOSING_NACKED")
             .put("DEFAULT_FIELD", "NULL")
