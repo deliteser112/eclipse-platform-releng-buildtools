@@ -25,7 +25,7 @@ java_library(
         "//java/google/registry/request/auth",
         "//java/google/registry/tools/server",
         "//java/google/registry/util",
-        "@com_google_appengine_api_1_0_sdk",
+        "//third_party/java/appengine:appengine-api",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_flogger",

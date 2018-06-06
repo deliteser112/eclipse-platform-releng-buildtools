@@ -16,10 +16,10 @@ java_library(
         "//java/google/registry/request/auth",
         "//java/google/registry/security",
         "//javatests/google/registry/testing",
+        "//third_party/java/appengine:appengine-api-testonly",
+        "//third_party/java/appengine:appengine-integration-testing",
+        "//third_party/java/appengine_gcs_client",
         "//third_party/objectify:objectify-v4_1",
-        "@com_google_appengine_api_1_0_sdk//:testonly",
-        "@com_google_appengine_tools_appengine_gcs_client",
-        "@com_google_appengine_tools_sdk",
         "@com_google_code_findbugs_jsr305",
         "@com_google_guava",
         "@com_google_truth",
@@ -27,7 +27,6 @@ java_library(
         "@javax_servlet_api",
         "@junit",
         "@org_mockito_all",
-        "@org_mortbay_jetty",
     ],
 )
 

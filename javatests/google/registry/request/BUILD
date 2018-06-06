@@ -15,7 +15,7 @@ java_library(
         "//java/google/registry/request/auth",
         "//java/google/registry/security",
         "//javatests/google/registry/testing",
-        "@com_google_appengine_api_1_0_sdk//:testonly",
+        "//third_party/java/appengine:appengine-api-testonly",
         "@com_google_guava",
         "@com_google_guava_testlib",
         "@com_google_truth",

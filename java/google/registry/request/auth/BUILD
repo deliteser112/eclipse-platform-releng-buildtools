@@ -10,7 +10,7 @@ java_library(
     deps = [
         "//java/google/registry/config",
         "//java/google/registry/security",
-        "@com_google_appengine_api_1_0_sdk",
+        "//third_party/java/appengine:appengine-api",
         "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",

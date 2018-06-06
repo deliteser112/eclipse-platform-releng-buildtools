@@ -10,10 +10,10 @@ java_library(
     deps = [
         "//java/google/registry/model",
         "//java/google/registry/util",
+        "//third_party/java/appengine:appengine-api",
+        "//third_party/java/appengine_mapreduce2:appengine_mapreduce",
+        "//third_party/java/appengine_pipeline",
         "//third_party/objectify:objectify-v4_1",
-        "@com_google_appengine_api_1_0_sdk",
-        "@com_google_appengine_tools_appengine_mapreduce",
-        "@com_google_appengine_tools_appengine_pipeline",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_flogger",

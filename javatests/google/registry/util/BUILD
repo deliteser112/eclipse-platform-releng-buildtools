@@ -14,7 +14,7 @@ java_library(
         "//java/google/registry/config",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
-        "@com_google_appengine_api_1_0_sdk",
+        "//third_party/java/appengine:appengine-api",
         "@com_google_code_findbugs_jsr305",
         "@com_google_flogger",
         "@com_google_flogger_system_backend",
