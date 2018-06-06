@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.flows.ResourceFlowTestCase;
 import google.registry.flows.ResourceFlowUtils.ResourceDoesNotExistException;
+import google.registry.flows.ResourceFlowUtils.ResourceNotOwnedException;
 import google.registry.model.contact.ContactAddress;
 import google.registry.model.contact.ContactAuthInfo;
 import google.registry.model.contact.ContactPhoneNumber;
@@ -135,13 +136,26 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
   }
 
   @Test
-  public void testSuccess_otherRegistrarWithoutAuthInfo_doesNotSeeAuthInfo() throws Exception {
+  public void testFailure_otherRegistrar_notAuthorized() throws Exception {
+    setClientIdForFlow("NewRegistrar");
+    persistContactResource(true);
+    // Check that the persisted contact info was returned.
+    assertTransactionalFlow(false);
+    ResourceNotOwnedException thrown = assertThrows(ResourceNotOwnedException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
+  }
+
+  @Test
+  public void testSuccess_otherRegistrarWithoutAuthInfoAsSuperuser_doesNotSeeAuthInfo()
+      throws Exception {
     setClientIdForFlow("NewRegistrar");
     setEppInput("contact_info_no_authinfo.xml");
     persistContactResource(true);
     // Check that the persisted contact info was returned.
     assertTransactionalFlow(false);
     runFlowAssertResponse(
+        CommitMode.LIVE,
+        UserPrivileges.SUPERUSER,
         loadFile("contact_info_response_no_authinfo.xml"),
         // We use a different roid scheme than the samples so ignore it.
         "epp.response.resData.infData.roid");
@@ -150,12 +164,14 @@ public class ContactInfoFlowTest extends ResourceFlowTestCase<ContactInfoFlow, C
   }
 
   @Test
-  public void testSuccess_otherRegistrarWithAuthInfo_seesAuthInfo() throws Exception {
+  public void testSuccess_otherRegistrarWithAuthInfoAsSuperuser_seesAuthInfo() throws Exception {
     setClientIdForFlow("NewRegistrar");
     persistContactResource(true);
     // Check that the persisted contact info was returned.
     assertTransactionalFlow(false);
     runFlowAssertResponse(
+        CommitMode.LIVE,
+        UserPrivileges.SUPERUSER,
         loadFile("contact_info_response.xml"),
         // We use a different roid scheme than the samples so ignore it.
         "epp.response.resData.infData.roid");

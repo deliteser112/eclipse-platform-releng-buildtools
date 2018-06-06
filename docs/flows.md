@@ -70,6 +70,8 @@ registrar that owns the contact or to a registrar that already supplied it.
 
 ### Errors
 
+*   2201
+    *   The specified resource belongs to another client.
 *   2303
     *   Resource with this id does not exist.
 
