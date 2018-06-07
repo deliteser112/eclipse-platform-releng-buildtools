@@ -130,7 +130,7 @@ public class LordnTask {
             domain.getSmdId(),
             getIanaIdentifier(domain.getCreationClientId()),
             transactionTime), // Used as creation time.
-        domain.getApplicationTime()); // This may be null for sunrise QLP domains.
+        domain.getApplicationTime()); // This may be null for start-date sunrise or QLP domains.
   }
 
   /** Returns the corresponding CSV LORDN line for a claims domain. */
@@ -145,7 +145,7 @@ public class LordnTask {
             getIanaIdentifier(domain.getCreationClientId()),
             transactionTime, // Used as creation time.
             domain.getLaunchNotice().getAcceptedTime()),
-        domain.getApplicationTime());  // This may be null if this wasn't from landrush.
+        domain.getApplicationTime());  // This is usually null except for landrush domains.
   }
 
   /** Retrieves the IANA identifier for a registrar based on the client id. */
