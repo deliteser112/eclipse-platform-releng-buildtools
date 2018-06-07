@@ -24,7 +24,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.rde.RdeMode.FULL;
 import static google.registry.request.Action.Method.POST;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Arrays.asList;
 
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.tools.cloudstorage.GcsFilename;
@@ -53,7 +52,6 @@ import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.Retrier;
 import google.registry.util.TaskQueueUtils;
-import google.registry.util.TeeOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -132,7 +130,8 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
 
   @Override
   public void runWithLock(final DateTime watermark) throws Exception {
-    logger.atInfo().log("Verifying readiness to upload the RDE deposit.");
+    logger.atInfo().log(
+        "Verifying readiness to upload the RDE deposit for tld=%s, watermark=%s.", tld, watermark);
     DateTime stagingCursorTime = getCursorTimeOrStartOfTime(
         ofy().load().key(Cursor.createKey(CursorType.RDE_STAGING, Registry.get(tld))).now());
     if (!stagingCursorTime.isAfter(watermark)) {
@@ -205,34 +204,46 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
   protected void upload(
       GcsFilename xmlFile, long xmlLength, DateTime watermark, String name) throws Exception {
     logger.atInfo().log("Uploading XML file '%s' to remote path '%s'.", xmlFile, uploadUrl);
+    byte[] signature;
+    String rydeFilename = name + ".ryde";
+    String sigFilename = name + ".sig";
+    GcsFilename rydeGcsFilename = new GcsFilename(bucket, rydeFilename);
+    // Encode and save the files to GCS
     try (InputStream gcsInput = gcsUtils.openInputStream(xmlFile);
         Ghostryde.Decryptor decryptor = ghostryde.openDecryptor(gcsInput, stagingDecryptionKey);
         Ghostryde.Decompressor decompressor = ghostryde.openDecompressor(decryptor);
         Ghostryde.Input xmlInput = ghostryde.openInput(decompressor)) {
-      try (JSchSshSession session = jschSshSessionFactory.create(lazyJsch.get(), uploadUrl);
-          JSchSftpChannel ftpChan = session.openSftpChannel()) {
-        byte[] signature;
-        String rydeFilename = name + ".ryde";
-        GcsFilename rydeGcsFilename = new GcsFilename(bucket, rydeFilename);
-        try (OutputStream ftpOutput = ftpChan.get().put(rydeFilename, OVERWRITE);
-            OutputStream gcsOutput = gcsUtils.openOutputStream(rydeGcsFilename);
-            TeeOutputStream teeOutput = new TeeOutputStream(asList(ftpOutput, gcsOutput));
-            RydePgpSigningOutputStream signer = pgpSigningFactory.create(teeOutput, signingKey)) {
-          try (OutputStream encryptLayer = pgpEncryptionFactory.create(signer, receiverKey);
-              OutputStream kompressor = pgpCompressionFactory.create(encryptLayer);
-              OutputStream fileLayer = pgpFileFactory.create(kompressor, watermark, name + ".tar");
-              OutputStream tarLayer =
-                  tarFactory.create(fileLayer, xmlLength, watermark, name + ".xml")) {
-            ByteStreams.copy(xmlInput, tarLayer);
-          }
-          signature = signer.getSignature();
-          logger.atInfo().log("uploaded %,d bytes: %s.ryde", signer.getBytesWritten(), name);
+      try (OutputStream gcsOutput = gcsUtils.openOutputStream(rydeGcsFilename);
+          RydePgpSigningOutputStream signer = pgpSigningFactory.create(gcsOutput, signingKey)) {
+        try (OutputStream encryptLayer = pgpEncryptionFactory.create(signer, receiverKey);
+            OutputStream kompressor = pgpCompressionFactory.create(encryptLayer);
+            OutputStream fileLayer = pgpFileFactory.create(kompressor, watermark, name + ".tar");
+            OutputStream tarLayer =
+                tarFactory.create(fileLayer, xmlLength, watermark, name + ".xml")) {
+          ByteStreams.copy(xmlInput, tarLayer);
         }
-        String sigFilename = name + ".sig";
-        gcsUtils.createFromBytes(new GcsFilename(bucket, sigFilename), signature);
-        ftpChan.get().put(new ByteArrayInputStream(signature), sigFilename);
-        logger.atInfo().log("uploaded %,d bytes: %s.sig", signature.length, name);
+        signature = signer.getSignature();
+        logger.atInfo().log(
+            "uploaded %,d bytes to gcs bucket %s, file %s",
+            signer.getBytesWritten(), bucket, rydeFilename);
       }
+      gcsUtils.createFromBytes(new GcsFilename(bucket, sigFilename), signature);
+      logger.atInfo().log(
+          "uploaded %,d bytes to gcs bucket %s, file %s", signature.length, bucket, sigFilename);
+    }
+    // Copy the file from GCS to the FTP server
+    try (JSchSshSession session = jschSshSessionFactory.create(lazyJsch.get(), uploadUrl);
+        JSchSftpChannel ftpChan = session.openSftpChannel()) {
+
+      try (OutputStream ftpOutput = ftpChan.get().put(rydeFilename, OVERWRITE);
+          InputStream gcsInput = gcsUtils.openInputStream(rydeGcsFilename)) {
+        long bytesCopied = ByteStreams.copy(gcsInput, ftpOutput);
+        logger.atInfo().log(
+            "uploaded %,d bytes to ftp path %s, file %s", bytesCopied, uploadUrl, rydeFilename);
+      }
+      ftpChan.get().put(new ByteArrayInputStream(signature), sigFilename);
+      logger.atInfo().log(
+          "uploaded %,d bytes to ftp path %s, file %s", signature.length, uploadUrl, sigFilename);
     }
   }
 

@@ -132,6 +132,8 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
     final int revision =
         Optional.ofNullable(key.revision())
             .orElse(RdeRevision.getNextRevision(tld, watermark, mode));
+    logger.atInfo().log(
+        "tld=%s watermark=%s mode=%s key=%s revision=%s", tld, watermark, mode, key, revision);
     String id = RdeUtil.timestampToId(watermark);
     String prefix = RdeNamingUtils.makeRydeFilename(tld, watermark, mode, 1, revision);
     if (key.manual()) {
@@ -245,7 +247,8 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
                   key);
               ofy().save().entity(Cursor.create(key.cursor(), newPosition, registry)).now();
               logger.atInfo().log(
-                  "Rolled forward %s on %s cursor to %s", key.cursor(), tld, newPosition);
+                  "Rolled forward %s on %s cursor to %s. Watermark=%s, mode=%s, revision=%s",
+                  key.cursor(), tld, newPosition, watermark, mode, revision);
               RdeRevision.saveRevision(tld, watermark, mode, revision);
               if (mode == RdeMode.FULL) {
                 taskQueueUtils.enqueue(
