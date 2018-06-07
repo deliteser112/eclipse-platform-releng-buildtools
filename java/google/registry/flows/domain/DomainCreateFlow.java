@@ -525,6 +525,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         .setReason(Reason.FEE_EARLY_ACCESS)
         .setTargetId(createBillingEvent.getTargetId())
         .setClientId(createBillingEvent.getClientId())
+        .setPeriodYears(1)
         .setCost(feesAndCredits.getEapCost())
         .setEventTime(createBillingEvent.getEventTime())
         .setBillingTime(createBillingEvent.getBillingTime())

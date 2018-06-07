@@ -304,13 +304,14 @@ public abstract class BillingEvent extends ImmutableObject
         ImmutableSet<Reason> reasonsWithPeriods =
             Sets.immutableEnumSet(
                 Reason.CREATE,
+                Reason.FEE_EARLY_ACCESS,
                 Reason.RENEW,
                 Reason.RESTORE,
                 Reason.TRANSFER);
         checkState(
             reasonsWithPeriods.contains(instance.reason) == (instance.periodYears != null),
             "Period years must be set if and only if reason is "
-                + "CREATE, RENEW, RESTORE or TRANSFER.");
+                + "CREATE, FEE_EARLY_ACCESS, RENEW, RESTORE or TRANSFER.");
         checkState(
             instance.getFlags().contains(Flag.SYNTHETIC)
                 == (instance.syntheticCreationTime != null),

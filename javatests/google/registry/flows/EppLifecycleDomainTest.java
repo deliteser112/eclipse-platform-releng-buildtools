@@ -305,6 +305,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
             .setReason(Reason.FEE_EARLY_ACCESS)
             .setTargetId("example.tld")
             .setClientId("NewRegistrar")
+            .setPeriodYears(1)
             .setCost(Money.parse("USD 100.00"))
             .setEventTime(createTime)
             .setBillingTime(createTime.plus(Registry.get("tld").getRenewGracePeriodLength()))

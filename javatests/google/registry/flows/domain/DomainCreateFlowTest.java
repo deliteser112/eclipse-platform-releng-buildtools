@@ -267,6 +267,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
               .setReason(Reason.FEE_EARLY_ACCESS)
               .setTargetId(getUniqueIdFromCommand())
               .setClientId("TheRegistrar")
+              .setPeriodYears(1)
               .setCost(eapFee)
               .setEventTime(clock.nowUtc())
               .setBillingTime(billingTime)
