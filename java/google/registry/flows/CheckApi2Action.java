@@ -21,6 +21,15 @@ import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWit
 import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
 import static google.registry.model.registry.label.ReservationType.getTypeOfHighestSeverity;
 import static google.registry.model.registry.label.ReservedList.getReservationTypes;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Availability.AVAILABLE;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Availability.REGISTERED;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Availability.RESERVED;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Status.INVALID_NAME;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Status.INVALID_REGISTRY_PHASE;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Status.SUCCESS;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Status.UNKNOWN_ERROR;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Tier.PREMINUM;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Tier.STANDARD;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
 import static org.json.simple.JSONValue.toJSONString;
@@ -33,10 +42,13 @@ import com.google.common.net.InternetDomainName;
 import com.google.common.net.MediaType;
 import dagger.Module;
 import google.registry.flows.domain.DomainFlowUtils.BadCommandForRegistryPhaseException;
+import google.registry.flows.domain.DomainFlowUtils.InvalidIdnDomainLabelException;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.ReservationType;
+import google.registry.monitoring.whitebox.CheckApiMetric;
+import google.registry.monitoring.whitebox.CheckApiMetric.Availability;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
@@ -66,17 +78,25 @@ public class CheckApi2Action implements Runnable {
 
   @Inject Response response;
   @Inject Clock clock;
+  @Inject CheckApiMetric.Builder metricBuilder;
+  @Inject CheckApiMetrics checkApiMetrics;
 
   @Inject
   CheckApi2Action() {}
 
   @Override
   public void run() {
-    response.setHeader("Content-Disposition", "attachment");
-    response.setHeader("X-Content-Type-Options", "nosniff");
-    response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-    response.setContentType(MediaType.JSON_UTF_8);
-    response.setPayload(toJSONString(doCheck()));
+    try {
+      response.setHeader("Content-Disposition", "attachment");
+      response.setHeader("X-Content-Type-Options", "nosniff");
+      response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+      response.setContentType(MediaType.JSON_UTF_8);
+      response.setPayload(toJSONString(doCheck()));
+    } finally {
+      CheckApiMetric metric = metricBuilder.build();
+      checkApiMetrics.incrementCheckApiRequest(metric);
+      checkApiMetrics.recordProcessingTime(metric);
+    }
   }
 
   private Map<String, Object> doCheck() {
@@ -86,6 +106,7 @@ public class CheckApi2Action implements Runnable {
       domainString = canonicalizeDomainName(nullToEmpty(domain));
       domainName = validateDomainName(domainString);
     } catch (IllegalArgumentException | EppException e) {
+      metricBuilder.status(INVALID_NAME);
       return fail("Must supply a valid domain name on an authoritative TLD");
     }
     try {
@@ -97,26 +118,37 @@ public class CheckApi2Action implements Runnable {
       try {
         verifyNotInPredelegation(registry, now);
       } catch (BadCommandForRegistryPhaseException e) {
+        metricBuilder.status(INVALID_REGISTRY_PHASE);
         return fail("Check in this TLD is not allowed in the current registry phase");
       }
 
-      String errorMsg =
-          checkExists(domainString, now)
-              ? "In use"
-              : checkReserved(domainName).orElse(null);
+      boolean isRegistered = checkExists(domainString, now);
+      Optional<String> reservedError = Optional.empty();
+      boolean isReserved = false;
+      if (!isRegistered) {
+        reservedError = checkReserved(domainName);
+        isReserved = reservedError.isPresent();
+      }
+      Availability availability = isRegistered ? REGISTERED : (isReserved ? RESERVED : AVAILABLE);
+      String errorMsg = isRegistered ? "In use" : (isReserved ? reservedError.get() : null);
 
-      boolean available = (errorMsg == null);
       ImmutableMap.Builder<String, Object> responseBuilder = new ImmutableMap.Builder<>();
-      responseBuilder.put("status", "success").put("available", available);
-      if (available) {
-        responseBuilder.put("tier", isDomainPremium(domainString, now) ? "premium" : "standard");
+      metricBuilder.status(SUCCESS).availability(availability);
+      responseBuilder.put("status", "success").put("available", availability.equals(AVAILABLE));
+
+      boolean isPremium = isDomainPremium(domainString, now);
+      metricBuilder.tier(isPremium ? PREMINUM : STANDARD);
+      if (availability.equals(AVAILABLE)) {
+        responseBuilder.put("tier", isPremium ? "premium" : "standard");
       } else {
         responseBuilder.put("reason", errorMsg);
       }
       return responseBuilder.build();
-    } catch (EppException e) {
+    } catch (InvalidIdnDomainLabelException e) {
+      metricBuilder.status(INVALID_NAME);
       return fail(e.getResult().getMsg());
     } catch (Exception e) {
+      metricBuilder.status(UNKNOWN_ERROR);
       logger.atWarning().withCause(e).log("Unknown error");
       return fail("Invalid request");
     }

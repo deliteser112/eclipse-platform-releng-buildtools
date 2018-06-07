@@ -1160,7 +1160,7 @@ public class DomainFlowUtils {
   }
 
   /** Domain label is not allowed by IDN table. */
-  static class InvalidIdnDomainLabelException extends ParameterValueRangeErrorException {
+  public static class InvalidIdnDomainLabelException extends ParameterValueRangeErrorException {
     public InvalidIdnDomainLabelException() {
       super("Domain label is not allowed by IDN table");
     }

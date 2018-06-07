@@ -72,6 +72,11 @@ public class WhiteboxModule {
   }
 
   @Provides
+  static CheckApiMetric.Builder provideCheckApiMetricBuilder(Clock clock) {
+    return CheckApiMetric.builder(clock);
+  }
+
+  @Provides
   @Named(QUEUE_BIGQUERY_STREAMING_METRICS)
   static Queue provideBigQueryStreamingMetricsQueue() {
     return getQueue(QUEUE_BIGQUERY_STREAMING_METRICS);
