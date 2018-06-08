@@ -15,7 +15,7 @@
 package google.registry.tools.server;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registries.assertTldsExist;
 import static google.registry.request.Action.Method.GET;
@@ -23,7 +23,10 @@ import static google.registry.request.Action.Method.POST;
 import static google.registry.request.RequestParameters.PARAM_TLDS;
 import static java.util.Comparator.comparing;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import google.registry.model.EppResource;
 import google.registry.model.EppResourceUtils;
 import google.registry.model.domain.DomainResource;
@@ -31,25 +34,35 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
+import google.registry.util.NonFinalForTesting;
+import java.util.List;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
 /** An action that lists domains, for use by the {@code nomulus list_domains} command. */
 @Action(
-  path = ListDomainsAction.PATH,
-  method = {GET, POST},
-  auth = Auth.AUTH_INTERNAL_OR_ADMIN
-)
+    path = ListDomainsAction.PATH,
+    method = {GET, POST},
+    auth = Auth.AUTH_INTERNAL_OR_ADMIN)
 public final class ListDomainsAction extends ListObjectsAction<DomainResource> {
 
   /** An App Engine limitation on how many subqueries can be used in a single query. */
-  private static final int MAX_NUM_SUBQUERIES = 30;
+  @VisibleForTesting @NonFinalForTesting static int maxNumSubqueries = 30;
+
   public static final String PATH = "/_dr/admin/list/domains";
 
-  @Inject @Parameter(PARAM_TLDS) ImmutableSet<String> tlds;
-  @Inject @Parameter("limit") int limit;
+  @Inject
+  @Parameter(PARAM_TLDS)
+  ImmutableSet<String> tlds;
+
+  @Inject
+  @Parameter("limit")
+  int limit;
+
   @Inject Clock clock;
-  @Inject ListDomainsAction() {}
+
+  @Inject
+  ListDomainsAction() {}
 
   @Override
   public ImmutableSet<String> getPrimaryKeyFields() {
@@ -59,27 +72,35 @@ public final class ListDomainsAction extends ListObjectsAction<DomainResource> {
   @Override
   public ImmutableSet<DomainResource> loadObjects() {
     checkArgument(!tlds.isEmpty(), "Must specify TLDs to query");
-    checkArgument(
-        tlds.size() <= MAX_NUM_SUBQUERIES,
-        "Cannot query more than %s TLDs simultaneously",
-        MAX_NUM_SUBQUERIES);
     assertTldsExist(tlds);
     DateTime now = clock.nowUtc();
-    return ofy()
-        .load()
-        .type(DomainResource.class)
-        .filter("tld in", tlds)
-        // Get the N most recently created domains (requires ordering in descending order).
-        .order("-creationTime")
-        .limit(limit)
-        .list()
-        .stream()
-        .map(EppResourceUtils.transformAtTime(now))
-        // Deleted entities must be filtered out post-query because queries don't allow ordering
-        // with two filters.
-        .filter(d -> d.getDeletionTime().isAfter(now))
-        // Sort back to ascending order for nicer display.
-        .sorted(comparing(EppResource::getCreationTime))
-        .collect(toImmutableSet());
+    ImmutableList.Builder<DomainResource> domainsBuilder = new ImmutableList.Builder<>();
+    for (List<String> tldsBatch : Lists.partition(tlds.asList(), maxNumSubqueries)) {
+      domainsBuilder.addAll(
+          ofy()
+              .load()
+              .type(DomainResource.class)
+              .filter("tld in", tldsBatch)
+              // Get the N most recently created domains (requires ordering in descending order).
+              .order("-creationTime")
+              .limit(limit)
+              .list()
+              .stream()
+              .map(EppResourceUtils.transformAtTime(now))
+              // Deleted entities must be filtered out post-query because queries don't allow
+              // ordering with two filters.
+              .filter(d -> d.getDeletionTime().isAfter(now))
+              .collect(toImmutableList()));
+    }
+    // Combine the batches together by sorting all domains together with newest first, applying the
+    // limit, and then reversing for display order.
+    return ImmutableSet.copyOf(
+        domainsBuilder
+            .build()
+            .stream()
+            .sorted(comparing(EppResource::getCreationTime).reversed())
+            .limit(limit)
+            .collect(toImmutableList())
+            .reverse());
   }
 }
