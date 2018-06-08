@@ -44,6 +44,8 @@ import static google.registry.model.index.DomainApplicationIndex.loadActiveAppli
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
 import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
+import static google.registry.model.registry.Registry.TldState.SUNRISE;
+import static google.registry.model.registry.Registry.TldState.SUNRUSH;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
@@ -125,6 +127,7 @@ import org.joda.time.Duration;
  * @error {@link DomainCreateFlow.DomainHasOpenApplicationsException}
  * @error {@link DomainCreateFlow.MustHaveSignedMarksInCurrentPhaseException}
  * @error {@link DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException}
+ * @error {@link DomainCreateFlow.SignedMarksOnlyDuringSunriseException}
  * @error {@link DomainFlowTmchUtils.NoMarksFoundMatchingDomainException}
  * @error {@link DomainFlowTmchUtils.FoundMarkNotYetValidException}
  * @error {@link DomainFlowTmchUtils.FoundMarkExpiredException}
@@ -183,8 +186,18 @@ import org.joda.time.Duration;
 @ReportingSpec(ActivityReportField.DOMAIN_CREATE)
 public class DomainCreateFlow implements TransactionalFlow {
 
+  /**
+   * States when the TLD is in sunrise.
+   *
+   * <p>Note that a TLD in SUNRUSH means sunrise is in effect, but not necessarily that the "create"
+   * command is a "sunrise create". It might be a landrush create. We must make sure there's a
+   * signed mark to know if the create is "sunrise" or "landrush" for verification purposes.
+   *
+   * <p>Note also that SUNRISE (start-date sunrise) and LANDRUSH can't "naturally" succeed in this
+   * flow. They can only succeed if sent as a superuser or anchor tenant.
+   */
   private static final ImmutableSet<TldState> SUNRISE_STATES =
-      Sets.immutableEnumSet(TldState.SUNRISE, TldState.SUNRUSH);
+      Sets.immutableEnumSet(SUNRISE, SUNRUSH, START_DATE_SUNRISE);
 
   /** Anchor tenant creates should always be for 2 years, since they get 2 years free. */
   private static final int ANCHOR_TENANT_CREATE_VALID_YEARS = 2;
@@ -245,7 +258,6 @@ public class DomainCreateFlow implements TransactionalFlow {
       validateLaunchCreateNotice(launchCreate.get().getNotice(), domainLabel, isSuperuser, now);
     }
     boolean isSunriseCreate = hasSignedMarks && SUNRISE_STATES.contains(tldState);
-    String signedMarkId = null;
     // Superusers can create reserved domains, force creations on domains that require a claims
     // notice without specifying a claims key, ignore the registry phase, and override blocks on
     // registering premium domains.
@@ -266,14 +278,16 @@ public class DomainCreateFlow implements TransactionalFlow {
       verifyPremiumNameIsNotBlocked(targetId, now, clientId);
       verifyNoOpenApplications(now);
       verifyIsGaOrIsSpecialCase(tldState, isAnchorTenant, hasSignedMarks);
-      if (hasSignedMarks) {
-        // If a signed mark was provided, then it must match the desired domain label. Get the mark
-        // at this point so that we can verify it before the "after validation" extension point.
-        signedMarkId =
-            tmchUtils
-                .verifySignedMarks(launchCreate.get().getSignedMarks(), domainLabel, now)
-                .getId();
-      }
+      verifySignedMarkOnlyInSunrise(hasSignedMarks, tldState);
+    }
+    String signedMarkId = null;
+    if (hasSignedMarks) {
+      // If a signed mark was provided, then it must match the desired domain label. Get the mark
+      // at this point so that we can verify it before the "after validation" extension point.
+      signedMarkId =
+          tmchUtils
+              .verifySignedMarks(launchCreate.get().getSignedMarks(), domainLabel, now)
+              .getId();
     }
     Optional<AllocationToken> allocationToken =
         verifyAllocationTokenIfPresent(command, registry, clientId, now);
@@ -348,7 +362,7 @@ public class DomainCreateFlow implements TransactionalFlow {
       entitiesToSave.add(
           prepareMarkedLrpTokenEntity(authInfo.getPw().getValue(), domainName, historyEntry));
     }
-    enqueueTasks(isSunriseCreate, hasClaimsNotice, newDomain);
+    enqueueTasks(newDomain, hasSignedMarks, hasClaimsNotice);
 
     EntityChanges entityChanges =
         flowCustomLogic.beforeSave(
@@ -378,6 +392,23 @@ public class DomainCreateFlow implements TransactionalFlow {
         eppInput.getSingleExtension(MetadataExtension.class);
     return matchesAnchorTenantReservation(domainName, authInfo.getPw().getValue())
         || (metadataExtension.isPresent() && metadataExtension.get().getIsAnchorTenant());
+  }
+
+  /**
+   * Verifies that signed marks are only sent during sunrise.
+   *
+   * <p>A trademarked domain name requires either a signed mark or a claims notice. We then need to
+   * send out a LORDN message - either a "sunrise" LORDN if we have a signed mark, or a "claims"
+   * LORDN if we have a claims notice.
+   *
+   * <p>This verification prevents us from either sending out a "sunrise" LORDN out of sunrise, or
+   * not sending out any LORDN, for a trademarked domain with a signed mark in GA.
+   */
+  static void verifySignedMarkOnlyInSunrise(boolean hasSignedMarks, TldState tldState)
+      throws EppException {
+    if (hasSignedMarks && !SUNRISE_STATES.contains(tldState)) {
+      throw new SignedMarksOnlyDuringSunriseException();
+    }
   }
 
   /**
@@ -539,11 +570,11 @@ public class DomainCreateFlow implements TransactionalFlow {
   }
 
   private void enqueueTasks(
-      boolean isSunriseCreate, boolean hasClaimsNotice, DomainResource newDomain) {
+      DomainResource newDomain, boolean hasSignedMarks, boolean hasClaimsNotice) {
     if (newDomain.shouldPublishToDns()) {
       dnsQueue.addDomainRefreshTask(newDomain.getFullyQualifiedDomainName());
     }
-    if (hasClaimsNotice || isSunriseCreate) {
+    if (hasClaimsNotice || hasSignedMarks) {
       LordnTask.enqueueDomainResourceTask(newDomain);
     }
   }
@@ -553,6 +584,13 @@ public class DomainCreateFlow implements TransactionalFlow {
     return feeCreate.isPresent()
         ? ImmutableList.of(createFeeCreateResponse(feeCreate.get(), feesAndCredits))
         : ImmutableList.of();
+  }
+
+  /** Signed marks are only allowed during sunrise. */
+  static class SignedMarksOnlyDuringSunriseException extends CommandUseErrorException {
+    public SignedMarksOnlyDuringSunriseException() {
+      super("Signed marks are only allowed during sunrise");
+    }
   }
 
   /** There is an open application for this domain. */

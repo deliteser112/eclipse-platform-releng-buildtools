@@ -522,6 +522,7 @@ An EPP flow that creates a new domain resource.
     *   Service extension(s) must be declared at login.
     *   The current registry phase allows registrations only with signed marks.
     *   The current registry phase does not allow for general registrations.
+    *   Signed marks are only allowed during sunrise.
 *   2003
     *   The provided mark does not match the desired domain label.
     *   Fees must be explicitly acknowledged when creating domains during the

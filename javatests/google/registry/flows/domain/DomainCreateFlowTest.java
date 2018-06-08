@@ -69,6 +69,7 @@ import google.registry.flows.domain.DomainCreateFlow.AnchorTenantCreatePeriodExc
 import google.registry.flows.domain.DomainCreateFlow.DomainHasOpenApplicationsException;
 import google.registry.flows.domain.DomainCreateFlow.MustHaveSignedMarksInCurrentPhaseException;
 import google.registry.flows.domain.DomainCreateFlow.NoGeneralRegistrationsInCurrentPhaseException;
+import google.registry.flows.domain.DomainCreateFlow.SignedMarksOnlyDuringSunriseException;
 import google.registry.flows.domain.DomainFlowTmchUtils.FoundMarkExpiredException;
 import google.registry.flows.domain.DomainFlowTmchUtils.FoundMarkNotYetValidException;
 import google.registry.flows.domain.DomainFlowTmchUtils.NoMarksFoundMatchingDomainException;
@@ -151,7 +152,6 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.util.Map;
-import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -297,16 +297,11 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   private void assertNoLordn() throws Exception {
-    assertNoLordn(null, null);
-  }
-
-  private void assertNoLordn(@Nullable String smdId, @Nullable LaunchNotice launchNotice)
-      throws Exception {
     assertAboutDomains()
         .that(reloadResourceByForeignKey())
-        .hasSmdId(smdId)
+        .hasSmdId(null)
         .and()
-        .hasLaunchNotice(launchNotice);
+        .hasLaunchNotice(null);
     assertNoTasksEnqueued(QUEUE_CLAIMS, QUEUE_SUNRISE);
   }
 
@@ -537,27 +532,30 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testSuccess_generalAvailability_ignoresEncodedSignedMark() throws Exception {
+  public void testFailure_generalAvailability_withEncodedSignedMark() throws Exception {
     createTld("tld", TldState.GENERAL_AVAILABILITY);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
-    setEppInput("domain_create_registration_encoded_signed_mark.xml");
-    eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
+    setEppInput(
+        "domain_create_registration_encoded_signed_mark.xml",
+        ImmutableMap.of("NAME", "test-validate.tld", "PHASE", "open"));
     persistContactsAndHosts();
-    runFlow();
-    assertSuccessfulCreate("tld", true);
-    assertNoLordn("0000001761376042759136-65535", null);
+    EppException thrown =
+        assertThrows(SignedMarksOnlyDuringSunriseException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
-  public void testSuccess_generalAvailability_ignoresEncodedSignedMarkMismatch() throws Exception {
+  public void testFailure_generalAvailability_superuserMismatchedEncodedSignedMark()
+      throws Exception {
     createTld("tld", TldState.GENERAL_AVAILABILITY);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
-    setEppInput("domain_create_registration_encoded_signed_mark_mismatched_label.xml");
-    eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
+    setEppInput(
+        "domain_create_registration_encoded_signed_mark.xml",
+        ImmutableMap.of("NAME", "wrong.tld", "PHASE", "open"));
     persistContactsAndHosts();
-    runFlowAsSuperuser();
-    assertSuccessfulCreate("tld", true);
-    assertNoLordn();
+    EppException thrown =
+        assertThrows(NoMarksFoundMatchingDomainException.class, this::runFlowAsSuperuser);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
@@ -1447,10 +1445,16 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
+  /**
+   * Tests that a sunrise registration fails with the correct error during end-date sunrise.
+   *
+   * <p>Makes sure that a sunrise registration without signed mark during end-date sunrise fails
+   * with the "wrong phase" error rather than the "missing signed mark" error.
+   */
   @Test
-  public void testFailure_signedMarkWithoutAnchorTenant() throws Exception {
+  public void testFailure_registrationDuringEndDateSunrise_wrongPhase() throws Exception {
     createTld("tld", TldState.SUNRISE);
-    setEppInput("domain_create_signed_mark.xml");
+    setEppInput("domain_create_registration_sunrise.xml");
     persistContactsAndHosts();
     EppException thrown =
         assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, this::runFlow);
@@ -1755,7 +1759,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testFailure_startDateSunriseRegistration_missingSignedMark() throws Exception {
     createTld("tld", TldState.START_DATE_SUNRISE);
-    setEppInput("domain_create_registration_start_date_sunrise.xml");
+    setEppInput("domain_create_registration_sunrise.xml");
     persistContactsAndHosts();
     EppException thrown =
         assertThrows(MustHaveSignedMarksInCurrentPhaseException.class, this::runFlow);
@@ -1765,7 +1769,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testSuccess_superuserStartDateSunriseRegistration_isSuperuser() throws Exception {
     createTld("tld", TldState.START_DATE_SUNRISE);
-    setEppInput("domain_create_registration_start_date_sunrise.xml");
+    setEppInput("domain_create_registration_sunrise.xml");
     persistContactsAndHosts();
     doSuccessfulTest("tld", "domain_create_response.xml", UserPrivileges.SUPERUSER);
   }
@@ -1785,11 +1789,13 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_startDateSunriseRegistration_withEncodedSignedMark() throws Exception {
     createTld("tld", TldState.START_DATE_SUNRISE);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
-    setEppInput("domain_create_registration_start_date_sunrise_encoded_signed_mark.xml");
+    setEppInput(
+        "domain_create_registration_encoded_signed_mark.xml",
+        ImmutableMap.of("NAME", "test-validate.tld", "PHASE", "sunrise"));
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_response_encoded_signed_mark_name.xml"));
     assertSuccessfulCreate("tld", false);
-    assertNoLordn("0000001761376042759136-65535", null);
+    assertSunriseLordn();
   }
 
   /**
@@ -1807,7 +1813,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_response_encoded_signed_mark_name.xml"));
     assertSuccessfulCreate("tld", false);
-    assertNoLordn("0000001761376042759136-65535", null);
+    assertSunriseLordn();
   }
 
 
@@ -1816,7 +1822,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testFail_sunriseRegistration_withEncodedSignedMark() throws Exception {
     createTld("tld", TldState.SUNRISE);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
-    setEppInput("domain_create_registration_start_date_sunrise_encoded_signed_mark.xml");
+    setEppInput(
+        "domain_create_registration_encoded_signed_mark.xml",
+        ImmutableMap.of("NAME", "test-validate.tld", "PHASE", "sunrise"));
     persistContactsAndHosts();
     EppException thrown =
         assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, this::runFlow);
@@ -1827,7 +1835,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testFail_startDateSunriseRegistration_wrongEncodedSignedMark() throws Exception {
     createTld("tld", TldState.START_DATE_SUNRISE);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
-    setEppInput("domain_create_registration_start_date_sunrise_wrong_encoded_signed_mark.xml");
+    setEppInput(
+        "domain_create_registration_encoded_signed_mark.xml",
+        ImmutableMap.of("NAME", "wrong.tld", "PHASE", "sunrise"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(NoMarksFoundMatchingDomainException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1838,7 +1848,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.START_DATE_SUNRISE);
     // If we move now back in time a bit, the mark will not have gone into effect yet.
     clock.setTo(DateTime.parse("2013-08-09T10:05:59Z").minusSeconds(1));
-    setEppInput("domain_create_registration_start_date_sunrise_encoded_signed_mark.xml");
+    setEppInput(
+        "domain_create_registration_encoded_signed_mark.xml",
+        ImmutableMap.of("NAME", "test-validate.tld", "PHASE", "sunrise"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(FoundMarkNotYetValidException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1849,7 +1861,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.START_DATE_SUNRISE);
     // Move time forward to the mark expiration time.
     clock.setTo(DateTime.parse("2017-07-23T22:00:00.000Z"));
-    setEppInput("domain_create_registration_start_date_sunrise_encoded_signed_mark.xml");
+    setEppInput(
+        "domain_create_registration_encoded_signed_mark.xml",
+        ImmutableMap.of("NAME", "test-validate.tld", "PHASE", "sunrise"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(FoundMarkExpiredException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1962,15 +1976,15 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testSuccess_qlpLandrushRegistration_ignoresEncodedSignedMark() throws Exception {
+  public void testFailure_qlpLandrushRegistration_withEncodedSignedMark() throws Exception {
     createTld("tld", TldState.LANDRUSH);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput("domain_create_registration_qlp_landrush_encoded_signed_mark.xml");
     eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlow();
-    assertSuccessfulCreate("tld", true);
-    assertNoLordn("0000001761376042759136-65535", null);
+    EppException thrown =
+        assertThrows(SignedMarksOnlyDuringSunriseException.class, this::runFlow);
+    assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
