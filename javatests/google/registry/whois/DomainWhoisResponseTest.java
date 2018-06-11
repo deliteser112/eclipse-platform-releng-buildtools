@@ -89,17 +89,17 @@ public class DomainWhoisResponseTest {
 
     hostResource1 = persistResource(new HostResource.Builder()
         .setFullyQualifiedHostName("ns01.exampleregistrar.tld")
-        .setRepoId("1-TLD")
+        .setRepoId("1-ROID")
         .build());
 
     hostResource2 = persistResource(new HostResource.Builder()
         .setFullyQualifiedHostName("ns02.exampleregistrar.tld")
-        .setRepoId("2-TLD")
+        .setRepoId("2-ROID")
         .build());
 
     registrant = persistResource(new ContactResource.Builder()
         .setContactId("5372808-ERL")
-        .setRepoId("4-TLD")
+        .setRepoId("4-ROID")
         .setLocalizedPostalInfo(
             new PostalInfo.Builder()
             .setType(PostalInfo.Type.LOCALIZED)
@@ -141,7 +141,7 @@ public class DomainWhoisResponseTest {
 
     adminContact = persistResource(new ContactResource.Builder()
         .setContactId("5372809-ERL")
-        .setRepoId("5-TLD")
+        .setRepoId("5-ROID")
         .setLocalizedPostalInfo(
             new PostalInfo.Builder()
             .setType(PostalInfo.Type.LOCALIZED)
@@ -182,7 +182,7 @@ public class DomainWhoisResponseTest {
 
     techContact = persistResource(new ContactResource.Builder()
         .setContactId("5372811-ERL")
-        .setRepoId("6-TLD")
+        .setRepoId("6-ROID")
         .setLocalizedPostalInfo(
             new PostalInfo.Builder()
             .setType(PostalInfo.Type.LOCALIZED)

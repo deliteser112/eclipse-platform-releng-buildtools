@@ -15,7 +15,7 @@ Domain Status: clientRenewProhibited https://icann.org/epp#clientRenewProhibited
 Domain Status: clientTransferProhibited https://icann.org/epp#clientTransferProhibited
 Domain Status: serverUpdateProhibited https://icann.org/epp#serverUpdateProhibited
 Domain Status: transferPeriod https://icann.org/epp#transferPeriod
-Registry Registrant ID: 4-TLD
+Registry Registrant ID: 4-ROID
 Registrant Name: EXAMPLE REGISTRANT
 Registrant Organization: Tom & Jerry Corp.
 Registrant Street: 123 EXAMPLE STREET
@@ -28,7 +28,7 @@ Registrant Phone Ext: 1234
 Registrant Fax: +1.5555551213
 Registrant Fax Ext: 4321
 Registrant Email: EMAIL@EXAMPLE.tld
-Registry Admin ID: 5-TLD
+Registry Admin ID: 5-ROID
 Admin Name: EXAMPLE REGISTRANT ADMINISTRATIVE
 Admin Organization: EXAMPLE REGISTRANT ORGANIZATION
 Admin Street: 123 EXAMPLE STREET
@@ -40,7 +40,7 @@ Admin Phone: +1.5555551212
 Admin Phone Ext: 1234
 Admin Fax: +1.5555551213
 Admin Email: EMAIL@EXAMPLE.tld
-Registry Tech ID: 6-TLD
+Registry Tech ID: 6-ROID
 Tech Name: EXAMPLE REGISTRAR TECHNICAL
 Tech Organization: EXAMPLE REGISTRAR LLC
 Tech Street: 123 EXAMPLE STREET
