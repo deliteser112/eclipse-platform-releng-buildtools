@@ -110,7 +110,7 @@ public class DeleteContactsAndHostsAction implements Runnable {
   static final String KIND_CONTACT = getKind(ContactResource.class);
   static final String KIND_HOST = getKind(HostResource.class);
 
-  private static final long LEASE_MINUTES = 20;
+  private static final long LEASE_MINUTES = 120;
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private static final int MAX_REDUCE_SHARDS = 50;
   private static final int DELETES_PER_SHARD = 5;
