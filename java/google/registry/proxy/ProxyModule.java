@@ -49,6 +49,7 @@ import io.netty.handler.ssl.SslProvider;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -249,7 +250,7 @@ public class ProxyModule {
           .objects()
           .get(config.gcs.bucket, config.gcs.sslPemFilename)
           .executeMediaAndDownloadTo(outputStream);
-      return outputStream.toByteArray();
+      return Base64.getMimeDecoder().decode(outputStream.toByteArray());
     } catch (IOException e) {
       throw new RuntimeException(
           String.format(

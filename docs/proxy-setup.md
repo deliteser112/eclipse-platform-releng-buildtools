@@ -176,8 +176,8 @@ created earlier:
 
 ```bash
 $ gcloud kms encrypt --plaintext-file <combined_secret.pem> \
---ciphertext-file <combined_secret.pem.enc> \
---key <key-name> --keyring <keyring-name> --location global
+--ciphertext-file - --key <key-name> --keyring <keyring-name> --location \
+global | base64 > <combined_secret.pem.enc>
 ```
 
 This encrypted file is then uploaded to a GCS bucket specified in the
