@@ -29,15 +29,6 @@
   </queue>
 
   <queue>
-    <name>delete-commits</name>
-    <rate>10/s</rate>
-    <bucket-size>100</bucket-size>
-    <retry-parameters>
-      <task-retry-limit>1</task-retry-limit>
-    </retry-parameters>
-  </queue>
-
-  <queue>
     <name>export-commits</name>
     <rate>10/s</rate>
     <bucket-size>100</bucket-size>

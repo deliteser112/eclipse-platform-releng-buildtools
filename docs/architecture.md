@@ -135,9 +135,6 @@ explicitly marked as otherwise.
     (BRDA) files to a location where they are available to ICANN. The
     `RdeStagingReducer` (part of the RDE MapReduce) creates these tasks at the
     end of generating an RDE dump.
-*   `delete-commits` -- Cron queue for tasks to regularly delete commit logs
-    that are more than thirty days stale. These tasks execute the
-    `DeleteOldCommitLogsAction`.
 *   `dns-pull` -- A pull queue to enqueue DNS modifications. Cron regularly runs
     `ReadDnsQueueAction`, which drains the queue, batches modifications by TLD,
     and writes the batches to `dns-publish` to be published to the configured
