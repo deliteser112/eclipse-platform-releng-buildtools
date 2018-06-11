@@ -310,7 +310,7 @@ public class DomainCreateFlow implements TransactionalFlow {
     // Bill for the create.
     BillingEvent.OneTime createBillingEvent =
         createOneTimeBillingEvent(
-            registry, isAnchorTenant, years, feesAndCredits, historyEntry, now);
+            registry, isAnchorTenant, isSunriseCreate, years, feesAndCredits, historyEntry, now);
     // Create a new autorenew billing event and poll message starting at the expiration time.
     BillingEvent.Recurring autorenewBillingEvent =
         createAutorenewBillingEvent(historyEntry, registrationExpirationTime);
@@ -502,10 +502,19 @@ public class DomainCreateFlow implements TransactionalFlow {
   private OneTime createOneTimeBillingEvent(
       Registry registry,
       boolean isAnchorTenant,
+      boolean isSunriseCreate,
       int years,
       FeesAndCredits feesAndCredits,
       HistoryEntry historyEntry,
       DateTime now) {
+    ImmutableSet.Builder<Flag> flagsBuilder = new ImmutableSet.Builder<>();
+    // Sunrise and anchor tenancy are orthogonal tags and thus both can be present together.
+    if (isSunriseCreate) {
+      flagsBuilder.add(Flag.SUNRISE);
+    }
+    if (isAnchorTenant) {
+      flagsBuilder.add(Flag.ANCHOR_TENANT);
+    }
     return new BillingEvent.OneTime.Builder()
         .setReason(Reason.CREATE)
         .setTargetId(targetId)
@@ -518,10 +527,7 @@ public class DomainCreateFlow implements TransactionalFlow {
                 isAnchorTenant
                     ? registry.getAnchorTenantAddGracePeriodLength()
                     : registry.getAddGracePeriodLength()))
-        .setFlags(
-            isAnchorTenant
-                ? ImmutableSet.of(BillingEvent.Flag.ANCHOR_TENANT)
-                : ImmutableSet.of())
+        .setFlags(flagsBuilder.build())
         .setParent(historyEntry)
         .build();
   }
