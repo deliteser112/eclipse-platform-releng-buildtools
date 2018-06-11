@@ -15,8 +15,6 @@
 package google.registry.flows;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static com.google.common.io.BaseEncoding.base64;
-import static google.registry.xml.XmlTransformer.prettyPrint;
 import static java.util.Collections.EMPTY_LIST;
 
 import com.google.common.base.Ascii;
@@ -38,13 +36,6 @@ import org.json.simple.JSONValue;
 public class FlowReporter {
 
   /**
-   * Log signature for recording flow EPP input data.
-   *
-   * <p><b>WARNING:<b/> DO NOT CHANGE this value unless you want to break reporting.
-   */
-  private static final String EPPINPUT_LOG_SIGNATURE = "FLOW-LOG-SIGNATURE-EPPINPUT";
-
-  /**
    * Log signature for recording flow metadata (anything beyond or derived from the raw EPP input).
    *
    * <p><b>WARNING:<b/> DO NOT CHANGE this value unless you want to break reporting.
@@ -62,15 +53,6 @@ public class FlowReporter {
 
   /** Records information about the current flow execution in the GAE request logs. */
   public void recordToLogs() {
-    // WARNING: These log statements are parsed by reporting pipelines - be careful when changing.
-    // It should be safe to add new keys, but be very cautious in changing existing keys.
-    logger.atInfo().log(
-        "%s: %s",
-        EPPINPUT_LOG_SIGNATURE,
-        JSONValue.toJSONString(
-            ImmutableMap.<String, Object>of(
-                "xml", prettyPrint(inputXmlBytes),
-                "xmlBytes", base64().encode(inputXmlBytes))));
     // Explicitly log flow metadata separately from the EPP XML itself so that it stays compact
     // enough to be sure to fit in a single log entry (the XML part in rare cases could be long
     // enough to overflow into multiple log entries, breaking routine parsing of the JSON format).

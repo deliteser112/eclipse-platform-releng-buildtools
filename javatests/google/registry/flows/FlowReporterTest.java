@@ -14,9 +14,7 @@
 
 package google.registry.flows;
 
-import static com.google.common.io.BaseEncoding.base64;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.testing.TestDataHelper.loadFile;
 import static google.registry.testing.TestLogHandlerUtils.findFirstLogMessageByPrefix;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.mock;
@@ -74,26 +72,6 @@ public class FlowReporterTest extends ShardableTestCase {
     when(flowReporter.eppInput.getResourceType()).thenReturn(Optional.of("domain"));
     when(flowReporter.eppInput.getSingleTargetId()).thenReturn(Optional.of("target.foo"));
     when(flowReporter.eppInput.getTargetIds()).thenReturn(ImmutableList.of("target.foo"));
-  }
-
-  @Test
-  public void testRecordToLogs_eppInput_basic() throws Exception {
-    flowReporter.recordToLogs();
-    assertThat(parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-EPPINPUT: ")))
-        .containsExactly(
-              "xml", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xml/>\n",
-              "xmlBytes", "PHhtbC8+"); // Base64-encoding of "<xml/>".
-  }
-
-  @Test
-  public void testRecordToLogs_eppInput_complex() throws Exception {
-    String domainCreateXml = loadFile(getClass(), "domain_create_prettyprinted.xml");
-    flowReporter.inputXmlBytes = domainCreateXml.getBytes(UTF_8);
-    flowReporter.recordToLogs();
-    assertThat(parseJsonMap(findFirstLogMessageByPrefix(handler, "FLOW-LOG-SIGNATURE-EPPINPUT: ")))
-        .containsExactly(
-              "xml", domainCreateXml,
-              "xmlBytes", base64().encode(domainCreateXml.getBytes(UTF_8)));
   }
 
   @Test
