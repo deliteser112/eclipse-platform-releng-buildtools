@@ -122,6 +122,11 @@ make sense. A master enumeration lists all the valid triplets. They are:
     authenticated user. The method is `INTERNAL`, the minimum level is `APP`,
     and the user policy is `IGNORED`.
 
+*  `AUTH_PUBLIC_OR_INTERNAL`: Allows anyone access, as long as they use OAuth to
+    authenticate. Also allows access from App Engine task-queue. Note that OAuth
+    client ID still needs to be whitelisted in the config file for OAuth-based
+    authentication to succeed. This is mainly used by the proxy.
+
 ### Action setting golden files
 
 To make sure that the authentication and authorization settings are correct for
