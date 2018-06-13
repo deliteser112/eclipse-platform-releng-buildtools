@@ -68,6 +68,7 @@ zip_file(
     name = "registry_default_war",
     srcs = [
         "env/common/default/WEB-INF/datastore-indexes.xml",
+        "env/common/default/WEB-INF/dispatch.xml",
         "env/common/default/WEB-INF/dos.xml",
         "env/common/default/WEB-INF/logging.properties",
         "env/common/default/WEB-INF/queue.xml",

@@ -17,25 +17,11 @@ package google.registry.module.frontend;
 import dagger.Module;
 import dagger.Subcomponent;
 import google.registry.dns.DnsModule;
-import google.registry.flows.CheckApi2Action;
-import google.registry.flows.CheckApi2Action.CheckApi2Module;
-import google.registry.flows.CheckApiAction;
-import google.registry.flows.CheckApiAction.CheckApiModule;
 import google.registry.flows.EppConsoleAction;
 import google.registry.flows.EppTlsAction;
 import google.registry.flows.FlowComponent;
 import google.registry.flows.TlsCredentials.EppTlsModule;
 import google.registry.monitoring.whitebox.WhiteboxModule;
-import google.registry.rdap.RdapAutnumAction;
-import google.registry.rdap.RdapDomainAction;
-import google.registry.rdap.RdapDomainSearchAction;
-import google.registry.rdap.RdapEntityAction;
-import google.registry.rdap.RdapEntitySearchAction;
-import google.registry.rdap.RdapHelpAction;
-import google.registry.rdap.RdapIpAction;
-import google.registry.rdap.RdapModule;
-import google.registry.rdap.RdapNameserverAction;
-import google.registry.rdap.RdapNameserverSearchAction;
 import google.registry.request.RequestComponentBuilder;
 import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
@@ -43,46 +29,24 @@ import google.registry.ui.server.registrar.ConsoleUiAction;
 import google.registry.ui.server.registrar.RegistrarPaymentAction;
 import google.registry.ui.server.registrar.RegistrarPaymentSetupAction;
 import google.registry.ui.server.registrar.RegistrarSettingsAction;
-import google.registry.whois.WhoisAction;
-import google.registry.whois.WhoisHttpAction;
-import google.registry.whois.WhoisModule;
 
 /** Dagger component with per-request lifetime for "default" App Engine module. */
 @RequestScope
 @Subcomponent(
     modules = {
-      CheckApiModule.class,
-      CheckApi2Module.class,
       DnsModule.class,
       EppTlsModule.class,
-      RdapModule.class,
       RequestModule.class,
       WhiteboxModule.class,
-      WhoisModule.class,
     })
 interface FrontendRequestComponent {
-  CheckApiAction checkApiAction();
-  CheckApi2Action checkApi2Action();
   ConsoleUiAction consoleUiAction();
   EppConsoleAction eppConsoleAction();
   EppTlsAction eppTlsAction();
   FlowComponent.Builder flowComponentBuilder();
-  RdapAutnumAction rdapAutnumAction();
   RegistrarPaymentAction registrarPaymentAction();
   RegistrarPaymentSetupAction registrarPaymentSetupAction();
   RegistrarSettingsAction registrarSettingsAction();
-  RdapDomainAction rdapDomainAction();
-  RdapDomainSearchAction rdapDomainSearchAction();
-  RdapEntityAction rdapEntityAction();
-  RdapEntitySearchAction rdapEntitySearchAction();
-  RdapHelpAction rdapHelpAction();
-  RdapIpAction rdapDefaultAction();
-  RdapNameserverAction rdapNameserverAction();
-  RdapNameserverSearchAction rdapNameserverSearchAction();
-
-  WhoisHttpAction whoisHttpAction();
-
-  WhoisAction whoisAction();
 
   @Subcomponent.Builder
   abstract class Builder implements RequestComponentBuilder<FrontendRequestComponent> {

@@ -47,7 +47,6 @@ import javax.inject.Singleton;
     ConfigModule.class,
     CustomLogicFactoryModule.class,
     google.registry.keyring.api.DummyKeyringModule.class,
-    PubApiMetricsModule.class,
     PubApiRequestComponentModule.class,
     GoogleCredentialModule.class,
     Jackson2Module.class,

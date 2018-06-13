@@ -50,7 +50,6 @@ import javax.inject.Singleton;
     ConsoleConfigModule.class,
     CustomLogicFactoryModule.class,
     google.registry.keyring.api.DummyKeyringModule.class,
-    FrontendMetricsModule.class,
     FrontendRequestComponentModule.class,
     GoogleCredentialModule.class,
     Jackson2Module.class,

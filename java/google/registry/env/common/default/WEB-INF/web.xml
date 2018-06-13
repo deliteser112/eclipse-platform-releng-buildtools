@@ -49,39 +49,6 @@
     <url-pattern>/registrar-settings</url-pattern>
   </servlet-mapping>
 
-  <!-- HTTP WHOIS. -->
-  <servlet-mapping>
-    <servlet-name>frontend-servlet</servlet-name>
-    <url-pattern>/whois/*</url-pattern>
-  </servlet-mapping>
-
-  <!-- Protocol WHOIS. -->
-  <servlet-mapping>
-    <servlet-name>frontend-servlet</servlet-name>
-    <url-pattern>/_dr/whois</url-pattern>
-  </servlet-mapping>
-
-  <!-- RDAP (new WHOIS). -->
-  <servlet-mapping>
-    <servlet-name>frontend-servlet</servlet-name>
-    <url-pattern>/rdap/*</url-pattern>
-  </servlet-mapping>
-
-  <!-- Public API to do availability checks -->
-  <servlet-mapping>
-    <servlet-name>frontend-servlet</servlet-name>
-    <url-pattern>/check</url-pattern>
-  </servlet-mapping>
-
-  <!--
-      Temporary end point for new implementation of availability checks
-      TODO(b/80417678): remove this stanza
-   -->
-  <servlet-mapping>
-    <servlet-name>frontend-servlet</servlet-name>
-    <url-pattern>/check2</url-pattern>
-  </servlet-mapping>
-
   <!-- Security config -->
   <security-constraint>
     <web-resource-collection>
