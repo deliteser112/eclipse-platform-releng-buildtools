@@ -41,7 +41,7 @@ public class ListTldsActionTest extends ListActionTestCase {
 
   @Test
   public void testRun_noParameters() throws Exception {
-    testRunSuccess(action, null, null, null, "xn--q9jyb4c");
+    testRunSuccess(action, Optional.empty(), Optional.empty(), Optional.empty(), "xn--q9jyb4c");
   }
 
   @Test
@@ -49,8 +49,8 @@ public class ListTldsActionTest extends ListActionTestCase {
     testRunSuccess(
         action,
         Optional.of("tldType"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "TLD          tldType",
         "-----------  -------",
         "xn--q9jyb4c  REAL   ");
@@ -61,8 +61,8 @@ public class ListTldsActionTest extends ListActionTestCase {
     testRunSuccess(
         action,
         Optional.of("*"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^TLD          .*tldType",
         "^-----------  .*-------",
         "^xn--q9jyb4c  .*REAL   ");
@@ -73,8 +73,8 @@ public class ListTldsActionTest extends ListActionTestCase {
     testRunError(
         action,
         Optional.of("badfield"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^Field 'badfield' not found - recognized fields are:");
   }
 }

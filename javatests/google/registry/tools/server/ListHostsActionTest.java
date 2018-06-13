@@ -56,8 +56,8 @@ public class ListHostsActionTest extends ListActionTestCase {
     testRunSuccess(
         action,
         Optional.of("repoId"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^fullyQualifiedHostName\\s+repoId\\s*$",
         "^-+\\s+-+\\s*$",
         "^example1.foo\\s+3-ROID\\s*$",
@@ -71,8 +71,8 @@ public class ListHostsActionTest extends ListActionTestCase {
     testRunSuccess(
         action,
         Optional.of("*"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^fullyQualifiedHostName\\s+.*repoId",
         "^-+\\s+-+",
         "^example1.foo\\s+.*2",
@@ -86,8 +86,8 @@ public class ListHostsActionTest extends ListActionTestCase {
     testRunSuccess(
         action,
         Optional.of("*,repoId"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^fullyQualifiedHostName\\s+.*repoId",
         "^-+\\s+-+",
         "^example1.foo\\s+.*2",
@@ -101,8 +101,8 @@ public class ListHostsActionTest extends ListActionTestCase {
     testRunError(
         action,
         Optional.of("badfield"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^Field 'badfield' not found - recognized fields are:");
   }
 }

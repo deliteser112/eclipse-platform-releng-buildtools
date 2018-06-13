@@ -47,9 +47,9 @@ public class ListReservedListsActionTest extends ListActionTestCase {
   public void testRun_noParameters() throws Exception {
     testRunSuccess(
         action,
-        null,
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty(),
         "^xn--q9jyb4c-private\\s*$",
         "^xn--q9jyb4c-published\\s*$");
   }
@@ -59,8 +59,8 @@ public class ListReservedListsActionTest extends ListActionTestCase {
     testRunSuccess(
         action,
         Optional.of("shouldPublish"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^name\\s+shouldPublish\\s*$",
         "^-+\\s+-+\\s*$",
         "^xn--q9jyb4c-private\\s+false\\s*$",
@@ -72,8 +72,8 @@ public class ListReservedListsActionTest extends ListActionTestCase {
     testRunSuccess(
         action,
         Optional.of("*"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^name\\s+.*shouldPublish.*",
         "^-+\\s+-+",
         "^xn--q9jyb4c-private\\s+.*false",
@@ -85,8 +85,8 @@ public class ListReservedListsActionTest extends ListActionTestCase {
     testRunError(
         action,
         Optional.of("badfield"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^Field 'badfield' not found - recognized fields are:");
   }
 }

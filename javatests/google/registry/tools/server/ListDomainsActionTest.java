@@ -44,13 +44,23 @@ public class ListDomainsActionTest extends ListActionTestCase {
   @Test
   public void testRun_invalidRequest_missingTlds() {
     action.tlds = ImmutableSet.of();
-    testRunError(action, null, null, null, "^Must specify TLDs to query$");
+    testRunError(
+        action,
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty(),
+        "^Must specify TLDs to query$");
   }
 
   @Test
   public void testRun_invalidRequest_invalidTld() {
     action.tlds = ImmutableSet.of("%%%badtld%%%");
-    testRunError(action, null, null, null, "^TLDs do not exist: %%%badtld%%%$");
+    testRunError(
+        action,
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty(),
+        "^TLDs do not exist: %%%badtld%%%$");
   }
 
   @Test
@@ -68,7 +78,13 @@ public class ListDomainsActionTest extends ListActionTestCase {
     persistActiveDomain("example2.foo", DateTime.parse("2015-02-16T15:15:15Z"));
     persistActiveDomain("notlistedaswell.sim", DateTime.parse("2015-02-17T15:15:15Z"));
     // Only list the two domains in .foo, not the .bar or .sim ones.
-    testRunSuccess(action, null, null, null, "^example1.foo$", "^example2.foo$");
+    testRunSuccess(
+        action,
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty(),
+        "^example1.foo$",
+        "^example2.foo$");
   }
 
   @Test
@@ -79,7 +95,14 @@ public class ListDomainsActionTest extends ListActionTestCase {
     persistActiveDomain("example1.foo", DateTime.parse("2015-02-15T15:15:15Z"));
     persistActiveDomain("example2.foo", DateTime.parse("2015-03-15T15:15:15Z"));
     persistActiveDomain("notlistedaswell.sim", DateTime.parse("2015-04-15T15:15:15Z"));
-    testRunSuccess(action, null, null, null, "^dolist.bar", "^example1.foo$", "^example2.foo$");
+    testRunSuccess(
+        action,
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty(),
+        "^dolist.bar",
+        "^example1.foo$",
+        "^example2.foo$");
   }
 
   @Test
@@ -96,9 +119,9 @@ public class ListDomainsActionTest extends ListActionTestCase {
     // Since the limit is 4, expect all but domain5.baa (the oldest), sorted by creationTime asc.
     testRunSuccess(
         action,
-        null,
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty(),
         "^domain2.bab$",
         "^domain1.baa$",
         "^domain4.bad$",
@@ -110,7 +133,13 @@ public class ListDomainsActionTest extends ListActionTestCase {
     action.tlds = ImmutableSet.of("foo");
     persistActiveDomain("example1.foo", DateTime.parse("2010-03-04T16:00:00Z"));
     persistActiveDomain("example2.foo", DateTime.parse("2011-03-04T16:00:00Z"));
-    testRunSuccess(action, null, Optional.of(false), null, "^example1.foo$", "^example2.foo$");
+    testRunSuccess(
+        action,
+        Optional.empty(),
+        Optional.of(false),
+        Optional.empty(),
+        "^example1.foo$",
+        "^example2.foo$");
   }
 
   @Test
@@ -120,9 +149,9 @@ public class ListDomainsActionTest extends ListActionTestCase {
     persistActiveDomain("example2.foo", DateTime.parse("2011-03-04T16:00:00Z"));
     testRunSuccess(
         action,
-        null,
+        Optional.empty(),
         Optional.of(true),
-        null,
+        Optional.empty(),
         "^fullyQualifiedDomainName$",
         "^-+\\s*$",
         "^example1.foo\\s*$",
@@ -137,8 +166,8 @@ public class ListDomainsActionTest extends ListActionTestCase {
     testRunSuccess(
         action,
         Optional.of("repoId"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^fullyQualifiedDomainName\\s+repoId\\s*$",
         "^-+\\s+-+\\s*$",
         "^example1.foo\\s+2-FOO\\s*$",
@@ -154,7 +183,7 @@ public class ListDomainsActionTest extends ListActionTestCase {
         action,
         Optional.of("repoId"),
         Optional.of(false),
-        null,
+        Optional.empty(),
         "^example1.foo  2-FOO$",
         "^example3.foo  4-FOO$");
   }
@@ -168,7 +197,7 @@ public class ListDomainsActionTest extends ListActionTestCase {
         action,
         Optional.of("repoId"),
         Optional.of(true),
-        null,
+        Optional.empty(),
         "^fullyQualifiedDomainName\\s+repoId\\s*$",
         "^-+\\s+-+\\s*$",
         "^example1.foo\\s+2-FOO\\s*$",
@@ -183,8 +212,8 @@ public class ListDomainsActionTest extends ListActionTestCase {
     testRunSuccess(
         action,
         Optional.of("*"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^fullyQualifiedDomainName\\s+.*repoId",
         "^-+\\s+-+",
         "^example1.foo\\s+.*2-FOO",
@@ -199,8 +228,8 @@ public class ListDomainsActionTest extends ListActionTestCase {
     testRunSuccess(
         action,
         Optional.of("*,repoId"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^fullyQualifiedDomainName\\s+.*repoId",
         "^-+\\s+-+",
         "^example1.foo\\s+.*2-FOO",
@@ -215,8 +244,8 @@ public class ListDomainsActionTest extends ListActionTestCase {
     testRunError(
         action,
         Optional.of("badfield"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^Field 'badfield' not found - recognized fields are:");
   }
 
@@ -230,6 +259,12 @@ public class ListDomainsActionTest extends ListActionTestCase {
     persistActiveDomain("example2.bar", DateTime.parse("2017-02-01TZ"));
     persistActiveDomain("example3.bar", DateTime.parse("2017-03-01TZ"));
     persistActiveDomain("example5.baz", DateTime.parse("2018-01-01TZ"));
-    testRunSuccess(action, null, null, null, "^example3.bar$", "^example4.foo$");
+    testRunSuccess(
+        action,
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty(),
+        "^example3.bar$",
+        "^example4.foo$");
   }
 }

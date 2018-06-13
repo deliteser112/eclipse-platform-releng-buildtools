@@ -55,9 +55,9 @@ public class ListRegistrarsActionTest extends ListActionTestCase {
   public void testRun_noParameters() throws Exception {
     testRunSuccess(
         action,
-        null,
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty(),
         "^NewRegistrar$",
         "^TheRegistrar$");
   }
@@ -67,8 +67,8 @@ public class ListRegistrarsActionTest extends ListActionTestCase {
     testRunSuccess(
         action,
         Optional.of("allowedTlds"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^clientId\\s+allowedTlds\\s*$",
         "-+\\s+-+\\s*$",
         "^NewRegistrar\\s+\\[xn--q9jyb4c\\]\\s*$",
@@ -80,8 +80,8 @@ public class ListRegistrarsActionTest extends ListActionTestCase {
     testRunSuccess(
         action,
         Optional.of("*"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^clientId\\s+.*allowedTlds",
         "^-+\\s+-+",
         "^NewRegistrar\\s+.*\\[xn--q9jyb4c\\]",
@@ -93,8 +93,8 @@ public class ListRegistrarsActionTest extends ListActionTestCase {
     testRunError(
         action,
         Optional.of("badfield"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^Field 'badfield' not found - recognized fields are:");
   }
 }

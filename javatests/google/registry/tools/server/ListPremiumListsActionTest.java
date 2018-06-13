@@ -41,9 +41,9 @@ public class ListPremiumListsActionTest extends ListActionTestCase {
   public void testRun_noParameters() throws Exception {
     testRunSuccess(
         action,
-        null,
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
+        Optional.empty(),
         "^how        $",
         "^xn--q9jyb4c$");
   }
@@ -53,8 +53,8 @@ public class ListPremiumListsActionTest extends ListActionTestCase {
     testRunSuccess(
         action,
         Optional.of("revisionKey,description"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^name\\s+revisionKey\\s+description\\s*$",
         "^-+\\s+-+\\s+-+\\s*$",
         "^how\\s+.*PremiumList.*$",
@@ -66,8 +66,8 @@ public class ListPremiumListsActionTest extends ListActionTestCase {
     testRunSuccess(
         action,
         Optional.of("*"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^name\\s+.*revisionKey",
         "^-+\\s+-+.*",
         "^how\\s+.*PremiumList",
@@ -79,8 +79,8 @@ public class ListPremiumListsActionTest extends ListActionTestCase {
     testRunError(
         action,
         Optional.of("badfield"),
-        null,
-        null,
+        Optional.empty(),
+        Optional.empty(),
         "^Field 'badfield' not found - recognized fields are:");
   }
 }
