@@ -230,7 +230,8 @@ public class RegistrarContact extends ImmutableObject implements Jsonifiable {
    *   Types: [ADMIN, WHOIS]
    *   Visible in WHOIS as Admin contact: Yes
    *   Visible in WHOIS as Technical contact: No
-   *   GAE-UserID: 1234567890}</pre>
+   *   GAE-UserID: 1234567890
+   *   Registrar-Console access: Yes}</pre>
    */
   public String toStringMultilinePlainText() {
     StringBuilder result = new StringBuilder(256);
@@ -246,17 +247,21 @@ public class RegistrarContact extends ImmutableObject implements Jsonifiable {
     result
         .append("Visible in registrar WHOIS query as Admin contact: ")
         .append(getVisibleInWhoisAsAdmin() ? "Yes" : "No")
-        .append("\n");
+        .append('\n');
     result
         .append("Visible in registrar WHOIS query as Technical contact: ")
         .append(getVisibleInWhoisAsTech() ? "Yes" : "No")
-        .append("\n");
+        .append('\n');
     result
         .append(
             "Phone number and email visible in domain WHOIS query as "
                 + "Registrar Abuse contact info: ")
         .append(getVisibleInDomainWhoisAsAbuse() ? "Yes" : "No")
-        .append("\n");
+        .append('\n');
+    result
+        .append("Registrar-Console access: ")
+        .append(getGaeUserId() != null ? "Yes" : "No")
+        .append('\n');
     if (getGaeUserId() != null) {
       result.append("GAE-UserID: ").append(getGaeUserId()).append('\n');
     }

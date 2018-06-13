@@ -207,6 +207,7 @@ public class SyncRegistrarsSheetTest {
                 + "Visible in registrar WHOIS query as Technical contact: No\n"
                 + "Phone number and email visible in domain WHOIS query as "
                 + "Registrar Abuse contact info: No\n"
+                + "Registrar-Console access: No\n"
                 + "\n"
                 + "John Doe\n"
                 + "john.doe@example.tld\n"
@@ -217,6 +218,7 @@ public class SyncRegistrarsSheetTest {
                 + "Visible in registrar WHOIS query as Technical contact: Yes\n"
                 + "Phone number and email visible in domain WHOIS query as "
                 + "Registrar Abuse contact info: No\n"
+                + "Registrar-Console access: Yes\n"
                 + "GAE-UserID: light\n");
     assertThat(row)
         .containsEntry(
@@ -228,7 +230,8 @@ public class SyncRegistrarsSheetTest {
                 + "Visible in registrar WHOIS query as Admin contact: No\n"
                 + "Visible in registrar WHOIS query as Technical contact: No\n"
                 + "Phone number and email visible in domain WHOIS query as "
-                + "Registrar Abuse contact info: No\n");
+                + "Registrar Abuse contact info: No\n"
+                + "Registrar-Console access: No\n");
     assertThat(row).containsEntry("marketingContacts", "");
     assertThat(row).containsEntry("abuseContacts", "");
     assertThat(row).containsEntry("whoisInquiryContacts", "");
@@ -244,7 +247,8 @@ public class SyncRegistrarsSheetTest {
                 + "Visible in registrar WHOIS query as Admin contact: No\n"
                 + "Visible in registrar WHOIS query as Technical contact: No\n"
                 + "Phone number and email visible in domain WHOIS query as "
-                + "Registrar Abuse contact info: No\n");
+                + "Registrar Abuse contact info: No\n"
+                + "Registrar-Console access: No\n");
     assertThat(row).containsEntry("contactsMarkedAsWhoisAdmin", "");
     assertThat(row)
         .containsEntry(
@@ -259,6 +263,7 @@ public class SyncRegistrarsSheetTest {
                 + "Visible in registrar WHOIS query as Technical contact: Yes\n"
                 + "Phone number and email visible in domain WHOIS query as "
                 + "Registrar Abuse contact info: No\n"
+                + "Registrar-Console access: Yes\n"
                 + "GAE-UserID: light\n");
     assertThat(row).containsEntry("emailAddress", "nowhere@example.org");
     assertThat(row).containsEntry(
