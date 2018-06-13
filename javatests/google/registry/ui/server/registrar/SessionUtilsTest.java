@@ -261,6 +261,28 @@ public class SessionUtilsTest {
   }
 
   /**
+   * If session clientId points to the adminClientId, and the user is an admin that doesn't have
+   * access to this registrar - it means this is the second (or later) visit of this admin and they
+   * were granted access to the default registrar because they aren't associated with any other
+   * registrar.
+   *
+   * We continue to grant the admin access.
+   */
+  @Test
+  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isAdmin_secondRequest()
+      throws Exception {
+    when(session.getAttribute("clientId")).thenReturn(ADMIN_CLIENT_ID);
+    assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_ADMIN)).isTrue();
+    assertAboutLogs()
+        .that(testLogHandler)
+        .hasLogAtLevelWithMessage(
+            Level.INFO,
+            String.format(
+                "Associating user %s with given registrar %s.",
+                UNAUTHORIZED_ADMIN.user().getUserId(), ADMIN_CLIENT_ID));
+  }
+
+  /**
    * If clientId does not exist in the session and the user is not associated with a registrar, then
    * access should not be granted.
    */
@@ -279,15 +301,35 @@ public class SessionUtilsTest {
   @Test
   public void testHasAccessToRegistrar_orphanedContact_returnsFalse() throws Exception {
     deleteResource(loadRegistrar(DEFAULT_CLIENT_ID));
-    assertThat(SessionUtils.hasAccessToRegistrar(DEFAULT_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID))
+    assertThat(
+            sessionUtils.hasAccessToRegistrar(DEFAULT_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID, false))
         .isFalse();
   }
 
   @Test
   public void testHasAccessToRegistrar_accessRevoked_returnsFalse() throws Exception {
     RegistrarContact.updateContacts(loadRegistrar(DEFAULT_CLIENT_ID), new java.util.HashSet<>());
-    assertThat(SessionUtils.hasAccessToRegistrar(DEFAULT_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID))
+    assertThat(
+            sessionUtils.hasAccessToRegistrar(DEFAULT_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID, false))
         .isFalse();
+  }
+
+  @Test
+  public void testHasAccessToRegistrar_orphanedAdmin_notAdminRegistrar_returnsFalse()
+      throws Exception {
+    RegistrarContact.updateContacts(loadRegistrar(DEFAULT_CLIENT_ID), new java.util.HashSet<>());
+    assertThat(
+            sessionUtils.hasAccessToRegistrar(DEFAULT_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID, true))
+        .isFalse();
+  }
+
+  @Test
+  public void testHasAccessToRegistrar_orphanedAdmin_onAdminRegistrar_returnsTrue()
+      throws Exception {
+    RegistrarContact.updateContacts(loadRegistrar(ADMIN_CLIENT_ID), new java.util.HashSet<>());
+    assertThat(
+            sessionUtils.hasAccessToRegistrar(ADMIN_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID, true))
+        .isTrue();
   }
 
   @Test

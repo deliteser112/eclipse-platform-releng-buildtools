@@ -42,7 +42,7 @@ public class SessionUtils {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  public static final String CLIENT_ID_ATTRIBUTE = "clientId";
+  private static final String CLIENT_ID_ATTRIBUTE = "clientId";
 
   @Inject
   @Config("registryAdminClientId")
@@ -101,7 +101,7 @@ public class SessionUtils {
 
     // Use the clientId if it exists
     if (clientId != null) {
-      if (!hasAccessToRegistrar(clientId, user.getUserId())) {
+      if (!hasAccessToRegistrar(clientId, user.getUserId(), userAuthInfo.isUserAdmin())) {
         logger.atInfo().log("Registrar Console access revoked: %s", clientId);
         session.invalidate();
         return false;
@@ -114,7 +114,7 @@ public class SessionUtils {
     // The clientId was null, so let's try and find a registrar this user is associated with
     Optional<Registrar> registrar = findRegistrarForUser(user.getUserId());
     if (registrar.isPresent()) {
-      verify(hasAccessToRegistrar(registrar.get(), user.getUserId()));
+      verify(isInAllowedContacts(registrar.get(), user.getUserId()));
       logger.atInfo().log(
           "Associating user %s with found registrar %s.",
           user.getUserId(), registrar.get().getClientId());
@@ -180,18 +180,27 @@ public class SessionUtils {
     return result;
   }
 
-  /** @see #hasAccessToRegistrar(Registrar, String) */
-  protected static boolean hasAccessToRegistrar(String clientId, final String gaeUserId) {
+  /** @see #isInAllowedContacts(Registrar, String) */
+  boolean hasAccessToRegistrar(String clientId, String gaeUserId, boolean isAdmin) {
     Optional<Registrar> registrar = Registrar.loadByClientIdCached(clientId);
     if (!registrar.isPresent()) {
       logger.atWarning().log("Registrar '%s' disappeared from Datastore!", clientId);
       return false;
     }
-    return hasAccessToRegistrar(registrar.get(), gaeUserId);
+    if (isAdmin && clientId.equals(registryAdminClientId)) {
+      return true;
+    }
+    return isInAllowedContacts(registrar.get(), gaeUserId);
   }
 
-  /** Returns {@code true} if {@code gaeUserId} is listed in contacts. */
-  private static boolean hasAccessToRegistrar(Registrar registrar, final String gaeUserId) {
+  /**
+   * Returns {@code true} if {@code gaeUserId} is listed in contacts with access to the registrar.
+   *
+   * <p>Each registrar contact can either have getGaeUserId equals null or the user's gaeUserId.
+   * Null means the contact doesn't have access to the registrar console. None-null means the
+   * contact has access.
+   */
+  private static boolean isInAllowedContacts(Registrar registrar, final String gaeUserId) {
     return registrar
         .getContacts()
         .stream()
