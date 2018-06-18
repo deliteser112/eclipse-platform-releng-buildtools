@@ -57,11 +57,20 @@ class KmsConnectionImpl implements KmsConnection {
   }
 
   @Override
-  public EncryptResponse encrypt(String cryptoKeyName, byte[] value) throws IOException {
+  public EncryptResponse encrypt(String cryptoKeyName, byte[] value) {
     checkArgument(
         value.length <= MAX_SECRET_SIZE_BYTES,
         "Value to encrypt was larger than %s bytes",
         MAX_SECRET_SIZE_BYTES);
+    try {
+      return attemptEncrypt(cryptoKeyName, value);
+    } catch (IOException e) {
+      throw new KeyringException(
+          String.format("CloudKMS encrypt operation failed for secret %s", cryptoKeyName), e);
+    }
+  }
+
+  private EncryptResponse attemptEncrypt(String cryptoKeyName, byte[] value) throws IOException {
     String fullKeyRingName = getKeyRingName(projectId, kmsKeyRingName);
     try {
       kms.projects().locations().keyRings().get(fullKeyRingName).execute();
@@ -143,7 +152,7 @@ class KmsConnectionImpl implements KmsConnection {
     }
   }
 
-  private byte[] attemptDecrypt(String cryptoKeyName, String encodedCiphertext) throws IOException{
+  private byte[] attemptDecrypt(String cryptoKeyName, String encodedCiphertext) throws IOException {
     return kms.projects()
         .locations()
         .keyRings()

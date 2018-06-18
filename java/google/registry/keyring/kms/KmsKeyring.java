@@ -192,7 +192,7 @@ public class KmsKeyring implements Keyring {
 
     try {
       return kmsConnection.decrypt(secret.getName(), encryptedData);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new KeyringException(
           String.format("CloudKMS decrypt operation failed for secret %s", keyName), e);
     }

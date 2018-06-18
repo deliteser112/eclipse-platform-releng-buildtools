@@ -15,7 +15,6 @@
 package google.registry.keyring.kms;
 
 import com.google.common.io.BaseEncoding;
-import java.io.IOException;
 import org.bouncycastle.util.Arrays;
 
 class FakeKmsConnection implements KmsConnection {
@@ -29,7 +28,7 @@ class FakeKmsConnection implements KmsConnection {
    * and the name of the cryptoKeyVersion is {@code cryptoKeyName + "/foo"}.
    */
   @Override
-  public EncryptResponse encrypt(String cryptoKeyName, byte[] plaintext) throws IOException {
+  public EncryptResponse encrypt(String cryptoKeyName, byte[] plaintext) {
     return EncryptResponse.create(
         BaseEncoding.base64().encode(Arrays.reverse(plaintext)), cryptoKeyName + "/foo");
   }
@@ -40,7 +39,7 @@ class FakeKmsConnection implements KmsConnection {
    * <p>The plaintext is the encodedCiphertext base64-decoded and then reversed.
    */
   @Override
-  public byte[] decrypt(String cryptoKeyName, String encodedCiphertext) throws IOException {
+  public byte[] decrypt(String cryptoKeyName, String encodedCiphertext) {
     return Arrays.reverse(BaseEncoding.base64().decode(encodedCiphertext));
   }
 }

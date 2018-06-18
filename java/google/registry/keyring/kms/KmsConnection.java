@@ -14,7 +14,7 @@
 
 package google.registry.keyring.kms;
 
-import java.io.IOException;
+import google.registry.keyring.api.KeyringException;
 
 /** An abstraction to simplify Cloud KMS operations. */
 interface KmsConnection {
@@ -34,9 +34,15 @@ interface KmsConnection {
    * {@code MAX_SECRET_SIZE_BYTES}.
    *
    * <p>If no applicable CryptoKey or CryptoKeyVersion exist, they will be created.
+   *
+   * @throws KeyringException on encryption failure.
    */
-  EncryptResponse encrypt(String cryptoKeyName, byte[] plaintext) throws IOException;
+  EncryptResponse encrypt(String cryptoKeyName, byte[] plaintext);
 
-  /** Decrypts a Cloud KMS encrypted and encoded value with CryptoKey {@code cryptoKeyName}. */
-  byte[] decrypt(String cryptoKeyName, String encodedCiphertext) throws IOException;
+  /**
+   * Decrypts a Cloud KMS encrypted and encoded value with CryptoKey {@code cryptoKeyName}.
+   *
+   * @throws KeyringException on decryption failure.
+   */
+  byte[] decrypt(String cryptoKeyName, String encodedCiphertext);
 }
