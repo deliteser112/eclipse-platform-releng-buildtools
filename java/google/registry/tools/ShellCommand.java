@@ -269,6 +269,9 @@ public class ShellCommand implements Command {
   @VisibleForTesting
   static class JCommanderCompletor implements Completor {
 
+    private static final ParamDoc DEFAULT_PARAM_DOC =
+        ParamDoc.create("[No documentation available]", ImmutableList.of());
+
     /**
      * Documentation for all the known command + argument combinations.
      *
@@ -503,26 +506,6 @@ public class ShellCommand implements Command {
               "%s: %s",
               isFlagParameter ? "Flag documentation" : "Main parameter", paramDoc.documentation());
       return ImmutableList.of("", documentation);
-    }
-
-    private static final ParamDoc DEFAULT_PARAM_DOC =
-        ParamDoc.create("[No documentation available]", ImmutableList.of());
-
-    private @Nullable ParamDoc getParamDoc(String command, @Nullable String previousArgument) {
-      // First, check if we want the documentation for a specific flag, or for the "main"
-      // parameters.
-      //
-      // We want documentation for a flag if the previous argument was a flag, but the value of the
-      // flag wasn't set. So if the previous argument is "--flag" then we want documentation of that
-      // flag, but if it's "--flag=value" then that flag is set and we want documentation of the
-      // main parameters.
-      boolean isFlagParameter =
-          previousArgument != null
-              && previousArgument.startsWith("-")
-              && previousArgument.indexOf('=') == -1;
-      return Optional.ofNullable(
-              commandFlagDocs.get(command, isFlagParameter ? previousArgument : ""))
-          .orElse(DEFAULT_PARAM_DOC);
     }
   }
 
