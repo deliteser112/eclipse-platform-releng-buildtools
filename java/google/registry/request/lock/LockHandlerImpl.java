@@ -18,12 +18,14 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Throwables.throwIfUnchecked;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import google.registry.model.server.Lock;
 import google.registry.util.AppEngineTimeLimiter;
+import google.registry.util.Clock;
 import google.registry.util.RequestStatusChecker;
 import java.util.HashSet;
 import java.util.Optional;
@@ -31,8 +33,10 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 /** Implementation of {@link LockHandler} that uses the datastore lock. */
@@ -45,6 +49,7 @@ public class LockHandlerImpl implements LockHandler {
   /** Fudge factor to make sure we kill threads before a lock actually expires. */
   private static final Duration LOCK_TIMEOUT_FUDGE = Duration.standardSeconds(5);
 
+  @Inject Clock clock;
   @Inject RequestStatusChecker requestStatusChecker;
 
   @Inject public LockHandlerImpl() {}
@@ -65,14 +70,27 @@ public class LockHandlerImpl implements LockHandler {
       @Nullable String tld,
       Duration leaseLength,
       String... lockNames) {
+    DateTime startTime = clock.nowUtc();
+    String sanitizedTld = Strings.emptyToNull(tld);
     try {
-      return AppEngineTimeLimiter.create().callWithTimeout(
-          new LockingCallable(callable, Strings.emptyToNull(tld), leaseLength, lockNames),
-          leaseLength.minus(LOCK_TIMEOUT_FUDGE).getMillis(),
-          TimeUnit.MILLISECONDS);
+      return AppEngineTimeLimiter.create()
+          .callWithTimeout(
+              new LockingCallable(callable, sanitizedTld, leaseLength, lockNames),
+              leaseLength.minus(LOCK_TIMEOUT_FUDGE).getMillis(),
+              TimeUnit.MILLISECONDS);
     } catch (ExecutionException | UncheckedExecutionException e) {
       // Unwrap the execution exception and throw its root cause.
       Throwable cause = e.getCause();
+      if (cause instanceof TimeoutException) {
+        throw new RuntimeException(
+            String.format(
+                "Execution on locks '%s' for TLD '%s' timed out after %s; started at %s",
+                Joiner.on(", ").join(lockNames),
+                Optional.ofNullable(sanitizedTld).orElse("(null)"),
+                new Duration(startTime, clock.nowUtc()),
+                startTime),
+            cause);
+      }
       throwIfUnchecked(cause);
       throw new RuntimeException(cause);
     } catch (Exception e) {

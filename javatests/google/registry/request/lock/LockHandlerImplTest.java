@@ -22,9 +22,12 @@ import static org.mockito.Mockito.verify;
 
 import google.registry.model.server.Lock;
 import google.registry.testing.AppEngineRule;
+import google.registry.testing.FakeClock;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,9 +41,9 @@ public final class LockHandlerImplTest {
 
   private static final Duration ONE_DAY = Duration.standardDays(1);
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .build();
+  private final FakeClock clock = new FakeClock(DateTime.parse("2001-08-29T12:20:00Z"));
+
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().build();
 
   private static class CountingCallable implements Callable<Void> {
     int numCalled = 0;
@@ -54,19 +57,22 @@ public final class LockHandlerImplTest {
 
   private static class ThrowingCallable implements Callable<Void> {
     Exception exception;
+    FakeClock clock;
 
-    ThrowingCallable(Exception exception) {
+    ThrowingCallable(Exception exception, FakeClock clock) {
       this.exception = exception;
+      this.clock = clock;
     }
 
     @Override
     public Void call() throws Exception {
+      clock.advanceBy(Duration.standardSeconds(77));
       throw exception;
     }
   }
 
   private boolean executeWithLocks(Callable<Void> callable, final @Nullable Lock acquiredLock) {
-    LockHandler lockHandler = new LockHandlerImpl() {
+    LockHandlerImpl lockHandler = new LockHandlerImpl() {
       private static final long serialVersionUID = 0L;
       @Override
       Optional<Lock> acquire(String resourceName, String tld, Duration leaseLength) {
@@ -76,6 +82,7 @@ public final class LockHandlerImplTest {
         return Optional.ofNullable(acquiredLock);
       }
     };
+    lockHandler.clock = clock;
 
     return lockHandler.executeWithLocks(callable, "tld", ONE_DAY, "resourceName");
   }
@@ -99,8 +106,25 @@ public final class LockHandlerImplTest {
     RuntimeException exception =
         assertThrows(
             RuntimeException.class,
-            () -> executeWithLocks(new ThrowingCallable(expectedException), lock));
+            () -> executeWithLocks(new ThrowingCallable(expectedException, clock), lock));
     assertThat(exception).isSameAs(expectedException);
+    verify(lock, times(1)).release();
+  }
+
+  @Test
+  public void testLockSucceeds_timeoutException() {
+    Lock lock = mock(Lock.class);
+    Exception expectedException = new TimeoutException("test");
+    RuntimeException thrown =
+        assertThrows(
+            RuntimeException.class,
+            () -> executeWithLocks(new ThrowingCallable(expectedException, clock), lock));
+    assertThat(thrown).hasCauseThat().isSameAs(expectedException);
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo(
+            "Execution on locks 'resourceName' for TLD 'tld'"
+                + " timed out after PT77S; started at 2001-08-29T12:20:00.000Z");
     verify(lock, times(1)).release();
   }
 
@@ -111,7 +135,7 @@ public final class LockHandlerImplTest {
     RuntimeException exception =
         assertThrows(
             RuntimeException.class,
-            () -> executeWithLocks(new ThrowingCallable(expectedException), lock));
+            () -> executeWithLocks(new ThrowingCallable(expectedException, clock), lock));
     assertThat(exception).hasCauseThat().isSameAs(expectedException);
     verify(lock, times(1)).release();
   }
