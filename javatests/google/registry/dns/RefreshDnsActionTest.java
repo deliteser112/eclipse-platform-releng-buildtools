@@ -63,7 +63,7 @@ public class RefreshDnsActionTest {
   }
 
   @Test
-  public void testSuccess_host() throws Exception {
+  public void testSuccess_host() {
     DomainResource domain = persistActiveDomain("example.xn--q9jyb4c");
     persistActiveSubordinateHost("ns1.example.xn--q9jyb4c", domain);
     run(TargetType.HOST, "ns1.example.xn--q9jyb4c");
@@ -72,7 +72,7 @@ public class RefreshDnsActionTest {
   }
 
   @Test
-  public void testSuccess_externalHostNotEnqueued() throws Exception {
+  public void testSuccess_externalHostNotEnqueued() {
     persistActiveDomain("example.xn--q9jyb4c");
     persistActiveHost("ns1.example.xn--q9jyb4c");
     BadRequestException thrown =
@@ -91,7 +91,7 @@ public class RefreshDnsActionTest {
   }
 
   @Test
-  public void testSuccess_domain() throws Exception {
+  public void testSuccess_domain() {
     persistActiveDomain("example.xn--q9jyb4c");
     run(TargetType.DOMAIN, "example.xn--q9jyb4c");
     verify(dnsQueue).addDomainRefreshTask("example.xn--q9jyb4c");
@@ -99,17 +99,17 @@ public class RefreshDnsActionTest {
   }
 
   @Test
-  public void testFailure_unqualifiedName() throws Exception {
+  public void testFailure_unqualifiedName() {
     assertThrows(BadRequestException.class, () -> run(TargetType.DOMAIN, "example"));
   }
 
   @Test
-  public void testFailure_hostDoesNotExist() throws Exception {
+  public void testFailure_hostDoesNotExist() {
     assertThrows(NotFoundException.class, () -> run(TargetType.HOST, "ns1.example.xn--q9jyb4c"));
   }
 
   @Test
-  public void testFailure_domainDoesNotExist() throws Exception {
+  public void testFailure_domainDoesNotExist() {
     assertThrows(NotFoundException.class, () -> run(TargetType.DOMAIN, "example.xn--q9jyb4c"));
   }
 }

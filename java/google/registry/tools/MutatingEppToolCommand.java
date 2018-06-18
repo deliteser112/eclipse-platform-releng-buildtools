@@ -30,7 +30,7 @@ public abstract class MutatingEppToolCommand extends EppToolCommand {
   boolean dryRun;
 
   @Override
-  protected boolean checkExecutionState() throws Exception {
+  protected boolean checkExecutionState() {
     checkArgument(!(force && isDryRun()), "--force and --dry_run are incompatible");
     return true;
   }

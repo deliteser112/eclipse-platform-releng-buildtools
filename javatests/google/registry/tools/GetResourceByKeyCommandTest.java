@@ -68,7 +68,7 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   }
 
   @Test
-  public void testFailure_domain_oneDoesNotExist() throws Exception {
+  public void testFailure_domain_oneDoesNotExist() {
     persistActiveDomain("example.tld");
     NullPointerException thrown =
         assertThrows(
@@ -117,7 +117,7 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   }
 
   @Test
-  public void testFailure_contact_oneDoesNotExist() throws Exception {
+  public void testFailure_contact_oneDoesNotExist() {
     persistActiveContact("sh8013");
     NullPointerException thrown =
         assertThrows(
@@ -166,7 +166,7 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   }
 
   @Test
-  public void testFailure_host_oneDoesNotExist() throws Exception {
+  public void testFailure_host_oneDoesNotExist() {
     persistActiveHost("ns1.example.tld");
     NullPointerException thrown =
         assertThrows(
@@ -203,7 +203,7 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   }
 
   @Test
-  public void testFailure_keyDoesNotExist() throws Exception {
+  public void testFailure_keyDoesNotExist() {
     NullPointerException thrown =
         assertThrows(
             NullPointerException.class,
@@ -214,7 +214,7 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   }
 
   @Test
-  public void testFailure_nonsenseKey() throws Exception {
+  public void testFailure_nonsenseKey() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class, () -> runCommand("agR0ZXN0chULEgpEb21haW5CYXN"));
@@ -222,7 +222,7 @@ public class GetResourceByKeyCommandTest extends CommandTestCase<GetResourceByKe
   }
 
   @Test
-  public void testFailure_noParameters() throws Exception {
+  public void testFailure_noParameters() {
     assertThrows(ParameterException.class, this::runCommand);
   }
 }

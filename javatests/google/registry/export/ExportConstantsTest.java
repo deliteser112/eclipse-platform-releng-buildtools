@@ -53,17 +53,17 @@ public class ExportConstantsTest {
       "");
 
   @Test
-  public void testBackupKinds_matchGoldenBackupKindsFile() throws Exception {
+  public void testBackupKinds_matchGoldenBackupKindsFile() {
     checkKindsMatchGoldenFile("backed-up", GOLDEN_BACKUP_KINDS_FILENAME, getBackupKinds());
   }
 
   @Test
-  public void testReportingKinds_matchGoldenReportingKindsFile() throws Exception {
+  public void testReportingKinds_matchGoldenReportingKindsFile() {
     checkKindsMatchGoldenFile("reporting", GOLDEN_REPORTING_KINDS_FILENAME, getReportingKinds());
   }
 
   @Test
-  public void testReportingKinds_areSubsetOfBackupKinds() throws Exception {
+  public void testReportingKinds_areSubsetOfBackupKinds() {
     assertThat(getBackupKinds()).containsAllIn(getReportingKinds());
   }
 

@@ -40,19 +40,19 @@ public class EntityClassesTest {
               clazz -> clazz.getCanonicalName().substring(clazz.getPackage().getName().length()));
 
   @Test
-  public void testEntityClasses_inAlphabeticalOrder() throws Exception {
+  public void testEntityClasses_inAlphabeticalOrder() {
     assertThat(ALL_CLASSES).isStrictlyOrdered(QUALIFIED_CLASS_NAME_ORDERING);
   }
 
   @Test
-  public void testEntityClasses_baseEntitiesHaveUniqueKinds() throws Exception {
+  public void testEntityClasses_baseEntitiesHaveUniqueKinds() {
     assertThat(ALL_CLASSES.stream().filter(hasAnnotation(Entity.class)).map(Key::getKind))
         .named("base entity kinds")
         .containsNoDuplicates();
   }
 
   @Test
-  public void testEntityClasses_entitySubclassesHaveKindsMatchingBaseEntities() throws Exception {
+  public void testEntityClasses_entitySubclassesHaveKindsMatchingBaseEntities() {
     Set<String> baseEntityKinds =
         ALL_CLASSES
             .stream()
@@ -69,7 +69,7 @@ public class EntityClassesTest {
   }
 
   @Test
-  public void testEntityClasses_eitherBaseEntityOrEntitySubclass() throws Exception {
+  public void testEntityClasses_eitherBaseEntityOrEntitySubclass() {
     for (Class<?> clazz : ALL_CLASSES) {
       boolean isEntityXorEntitySubclass =
           clazz.isAnnotationPresent(Entity.class) ^ clazz.isAnnotationPresent(EntitySubclass.class);

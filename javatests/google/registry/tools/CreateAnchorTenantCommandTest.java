@@ -83,7 +83,7 @@ public class CreateAnchorTenantCommandTest
   }
 
   @Test
-  public void testFailure_mainParameter() throws Exception {
+  public void testFailure_mainParameter() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -98,7 +98,7 @@ public class CreateAnchorTenantCommandTest
   }
 
   @Test
-  public void testFailure_missingClientId() throws Exception {
+  public void testFailure_missingClientId() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -110,7 +110,7 @@ public class CreateAnchorTenantCommandTest
   }
 
   @Test
-  public void testFailure_unknownFlag() throws Exception {
+  public void testFailure_unknownFlag() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -124,7 +124,7 @@ public class CreateAnchorTenantCommandTest
   }
 
   @Test
-  public void testFailure_missingDomainName() throws Exception {
+  public void testFailure_missingDomainName() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -137,7 +137,7 @@ public class CreateAnchorTenantCommandTest
   }
 
   @Test
-  public void testFailure_missingContact() throws Exception {
+  public void testFailure_missingContact() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -150,7 +150,7 @@ public class CreateAnchorTenantCommandTest
   }
 
   @Test
-  public void testFailure_notAsSuperuser() throws Exception {
+  public void testFailure_notAsSuperuser() {
     assertThrows(
         IllegalArgumentException.class,
         () ->

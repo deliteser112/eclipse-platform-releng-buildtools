@@ -21,8 +21,6 @@ import static org.mockito.Mockito.when;
 import com.google.api.services.dns.Dns;
 import com.google.api.services.dns.model.ManagedZone;
 import com.google.api.services.dns.model.ManagedZoneDnsSecConfig;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -49,7 +47,7 @@ public class CreateCdnsTldTest extends CommandTestCase<CreateCdnsTld> {
   /** Fake the command class so we can override createDnsService() */
   class CreateCdnsTldForTest extends CreateCdnsTld {
     @Override
-    Dns createDnsService() throws IOException, GeneralSecurityException {
+    Dns createDnsService() {
       return dnsService;
     }
   }

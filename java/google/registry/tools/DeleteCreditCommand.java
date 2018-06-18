@@ -41,7 +41,7 @@ final class DeleteCreditCommand extends MutatingCommand {
   private long creditId;
 
   @Override
-  protected void init() throws Exception {
+  protected void init() {
     Registrar registrar =
         checkArgumentPresent(
             Registrar.loadByClientId(clientId), "Registrar %s not found", clientId);

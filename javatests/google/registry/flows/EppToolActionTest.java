@@ -50,22 +50,22 @@ public class EppToolActionTest {
   }
 
   @Test
-  public void testDryRunAndSuperuser() throws Exception {
+  public void testDryRunAndSuperuser() {
     doTest(true, true);
   }
 
   @Test
-  public void testDryRun() throws Exception {
+  public void testDryRun() {
     doTest(true, false);
   }
 
   @Test
-  public void testSuperuser() throws Exception {
+  public void testSuperuser() {
     doTest(false, true);
   }
 
   @Test
-  public void testNeitherDryRunNorSuperuser() throws Exception {
+  public void testNeitherDryRunNorSuperuser() {
     doTest(false, false);
   }
 }

@@ -25,7 +25,7 @@ import org.junit.runners.JUnit4;
 public final class MarkContactTest {
 
   @Test
-  public void testDeadCodeWeDontWantToDelete() throws Exception {
+  public void testDeadCodeWeDontWantToDelete() {
     MarkContact mc = new MarkContact();
     mc.type = MarkContact.ContactType.OWNER;
     assertThat(mc.getType()).isEqualTo(MarkContact.ContactType.OWNER);

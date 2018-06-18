@@ -76,7 +76,7 @@ public final class SystemPropertyRule extends ExternalResource {
   }
 
   @Override
-  protected void before() throws Exception {
+  protected void before() {
     checkState(!isRunning);
     for (Property pending : pendings) {
       pending.set();

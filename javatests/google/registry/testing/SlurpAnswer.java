@@ -25,7 +25,7 @@ public final class SlurpAnswer implements Answer<Integer> {
   private final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
   @Override
-  public Integer answer(@SuppressWarnings("null") InvocationOnMock invocation) throws Exception {
+  public Integer answer(@SuppressWarnings("null") InvocationOnMock invocation) {
     ByteBuffer bytes = (ByteBuffer) invocation.getArguments()[0];
     int count = 0;
     while (bytes.hasRemaining()) {

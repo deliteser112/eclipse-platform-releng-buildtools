@@ -33,7 +33,7 @@ public class SchemaVersionTest {
   public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Test
-  public void testGoldenSchemaFile() throws Exception {
+  public void testGoldenSchemaFile() {
     GoldenFileTestHelper.assertThat(SchemaVersion.getSchema())
         .describedAs("Datastore schema")
         .createdByNomulusCommand("get_schema")

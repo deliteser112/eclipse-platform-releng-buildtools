@@ -30,88 +30,88 @@ public class DateTimeParameterTest {
   private final DateTimeParameter instance = new DateTimeParameter();
 
   @Test
-  public void testConvert_numeric_returnsMillisFromEpochUtc() throws Exception {
+  public void testConvert_numeric_returnsMillisFromEpochUtc() {
     assertThat(instance.convert("1234")).isEqualTo(new DateTime(1234L, UTC));
   }
 
   @Test
-  public void testConvert_iso8601_returnsSameAsDateTimeParse() throws Exception {
+  public void testConvert_iso8601_returnsSameAsDateTimeParse() {
     String exampleDate = "2014-01-01T01:02:03.004Z";
     assertThat(instance.convert(exampleDate))
         .isEqualTo(DateTime.parse(exampleDate));
   }
 
   @Test
-  public void testConvert_isoDateTimeWithMillis_returnsSameAsDateTimeParse() throws Exception {
+  public void testConvert_isoDateTimeWithMillis_returnsSameAsDateTimeParse() {
     String exampleDate = "2014-01-01T01:02:03.004Z";
     assertThat(instance.convert(exampleDate)).isEqualTo(DateTime.parse(exampleDate));
   }
 
   @Test
-  public void testConvert_weirdTimezone_convertsToUtc() throws Exception {
+  public void testConvert_weirdTimezone_convertsToUtc() {
     assertThat(instance.convert("1984-12-18T00:00:00-0520"))
         .isEqualTo(DateTime.parse("1984-12-18T05:20:00Z"));
   }
 
   @Test
-  public void testConvert_null_throwsException() throws Exception {
+  public void testConvert_null_throwsException() {
     assertThrows(NullPointerException.class, () -> instance.convert(null));
   }
 
   @Test
-  public void testConvert_empty_throwsException() throws Exception {
+  public void testConvert_empty_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert(""));
   }
 
   @Test
-  public void testConvert_sillyString_throwsException() throws Exception {
+  public void testConvert_sillyString_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("foo"));
   }
 
   @Test
-  public void testConvert_partialDate_throwsException() throws Exception {
+  public void testConvert_partialDate_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("2014-01"));
   }
 
   @Test
-  public void testConvert_onlyDate_throwsException() throws Exception {
+  public void testConvert_onlyDate_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("2014-01-01"));
   }
 
   @Test
-  public void testConvert_partialTime_throwsException() throws Exception {
+  public void testConvert_partialTime_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("T01:02"));
   }
 
   @Test
-  public void testConvert_onlyTime_throwsException() throws Exception {
+  public void testConvert_onlyTime_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("T01:02:03"));
   }
 
   @Test
-  public void testConvert_partialDateAndPartialTime_throwsException() throws Exception {
+  public void testConvert_partialDateAndPartialTime_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("9T9"));
   }
 
   @Test
-  public void testConvert_dateAndPartialTime_throwsException() throws Exception {
+  public void testConvert_dateAndPartialTime_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("2014-01-01T01:02"));
   }
 
   @Test
-  public void testConvert_noTimeZone_throwsException() throws Exception {
+  public void testConvert_noTimeZone_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("2014-01-01T01:02:03"));
   }
 
   @Test
-  public void testValidate_sillyString_throwsParameterException() throws Exception {
+  public void testValidate_sillyString_throwsParameterException() {
     ParameterException thrown =
         assertThrows(ParameterException.class, () -> instance.validate("--time", "foo"));
     assertThat(thrown).hasMessageThat().contains("--time=foo not an ISO");
   }
 
   @Test
-  public void testValidate_correctInput_doesntThrow() throws Exception {
+  public void testValidate_correctInput_doesntThrow() {
     instance.validate("--time", "123");
   }
 }

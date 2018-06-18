@@ -225,7 +225,7 @@ public final class RequestHandlerTest {
   }
 
   @After
-  public void after() throws Exception {
+  public void after() {
     verifyNoMoreInteractions(rsp, bumblebeeTask, slothTask, safeSlothTask);
   }
 

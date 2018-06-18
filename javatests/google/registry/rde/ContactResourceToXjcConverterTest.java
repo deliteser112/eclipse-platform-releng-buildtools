@@ -68,12 +68,12 @@ public class ContactResourceToXjcConverterTest {
       .build();
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     createTld("xn--q9jyb4c");
   }
 
   @Test
-  public void testConvertContact() throws Exception {
+  public void testConvertContact() {
     ContactResource contact = makeContactResource();
     XjcRdeContact bean = ContactResourceToXjcConverter.convertContact(contact);
 
@@ -234,7 +234,7 @@ public class ContactResourceToXjcConverterTest {
   }
 
   @Test
-  public void testConvertContact_absentVoiceAndFaxNumbers() throws Exception {
+  public void testConvertContact_absentVoiceAndFaxNumbers() {
     XjcRdeContact bean = ContactResourceToXjcConverter.convertContact(
         makeContactResource().asBuilder()
             .setVoiceNumber(null)
@@ -245,7 +245,7 @@ public class ContactResourceToXjcConverterTest {
   }
 
   @Test
-  public void testConvertContact_absentDisclose() throws Exception {
+  public void testConvertContact_absentDisclose() {
     XjcRdeContact bean = ContactResourceToXjcConverter.convertContact(
         makeContactResource().asBuilder()
             .setDisclose(null)
@@ -254,7 +254,7 @@ public class ContactResourceToXjcConverterTest {
   }
 
   @Test
-  public void testConvertContact_absentTransferData() throws Exception {
+  public void testConvertContact_absentTransferData() {
     XjcRdeContact bean = ContactResourceToXjcConverter.convertContact(
         makeContactResource().asBuilder()
             .setLastTransferTime(null)
@@ -270,7 +270,7 @@ public class ContactResourceToXjcConverterTest {
     wrapDeposit(bean).marshal(new ByteArrayOutputStream(), UTF_8);
   }
 
-  private static XjcRdeDeposit wrapDeposit(XjcRdeContact contact) throws Exception {
+  private static XjcRdeDeposit wrapDeposit(XjcRdeContact contact) {
     XjcRdeDeposit deposit = new XjcRdeDeposit();
     deposit.setId("984302");
     deposit.setType(XjcRdeDepositTypeType.FULL);

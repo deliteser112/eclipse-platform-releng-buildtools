@@ -73,19 +73,19 @@ public class EppResourceInputsTest {
   }
 
   @Test
-  public void testSuccess_keyInputType_polymorphicBaseType() throws Exception {
+  public void testSuccess_keyInputType_polymorphicBaseType() {
     createKeyInput(DomainBase.class);
   }
 
   @Test
-  public void testFailure_keyInputType_polymorphicSubclass() throws Exception {
+  public void testFailure_keyInputType_polymorphicSubclass() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> createKeyInput(DomainResource.class));
     assertThat(thrown).hasMessageThat().contains("non-polymorphic");
   }
 
   @Test
-  public void testFailure_keyInputType_noInheritanceBetweenTypes_eppResource() throws Exception {
+  public void testFailure_keyInputType_noInheritanceBetweenTypes_eppResource() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -94,14 +94,14 @@ public class EppResourceInputsTest {
   }
 
   @Test
-  public void testSuccess_entityInputTypesMayBePolymorphic() throws Exception {
+  public void testSuccess_entityInputTypesMayBePolymorphic() {
     // Both polymorphic and not should work.
     createEntityInput(DomainBase.class);
     createEntityInput(DomainResource.class);
   }
 
   @Test
-  public void testFailure_entityInputType_noInheritanceBetweenTypes_eppResource() throws Exception {
+  public void testFailure_entityInputType_noInheritanceBetweenTypes_eppResource() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -110,7 +110,7 @@ public class EppResourceInputsTest {
   }
 
   @Test
-  public void testFailure_entityInputType_noInheritanceBetweenTypes_subclasses() throws Exception {
+  public void testFailure_entityInputType_noInheritanceBetweenTypes_subclasses() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

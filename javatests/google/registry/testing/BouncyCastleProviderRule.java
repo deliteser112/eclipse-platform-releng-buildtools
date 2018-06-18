@@ -31,7 +31,7 @@ import org.junit.rules.ExternalResource;
 public class BouncyCastleProviderRule extends ExternalResource {
 
   @Override
-  protected void before() throws Exception {
+  protected void before() {
     Security.addProvider(new BouncyCastleProvider());
   }
 

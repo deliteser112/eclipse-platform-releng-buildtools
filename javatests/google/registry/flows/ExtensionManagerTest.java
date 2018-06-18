@@ -53,7 +53,7 @@ public class ExtensionManagerTest {
       .build();
 
   @Test
-  public void testDuplicateExtensionsForbidden() throws Exception {
+  public void testDuplicateExtensionsForbidden() {
     ExtensionManager manager =
         new TestInstanceBuilder()
             .setEppRequestSource(EppRequestSource.TOOL)
@@ -90,7 +90,7 @@ public class ExtensionManagerTest {
   }
 
   @Test
-  public void testBlacklistedExtensions_forbiddenWhenUndeclared() throws Exception {
+  public void testBlacklistedExtensions_forbiddenWhenUndeclared() {
     ExtensionManager manager =
         new TestInstanceBuilder()
             .setEppRequestSource(EppRequestSource.TOOL)
@@ -128,7 +128,7 @@ public class ExtensionManagerTest {
   }
 
   @Test
-  public void testMetadataExtension_forbiddenWhenNotToolSource() throws Exception {
+  public void testMetadataExtension_forbiddenWhenNotToolSource() {
     ExtensionManager manager =
         new TestInstanceBuilder()
             .setEppRequestSource(EppRequestSource.CONSOLE)
@@ -154,7 +154,7 @@ public class ExtensionManagerTest {
   }
 
   @Test
-  public void testSuperuserExtension_forbiddenWhenNotSuperuser() throws Exception {
+  public void testSuperuserExtension_forbiddenWhenNotSuperuser() {
     ExtensionManager manager =
         new TestInstanceBuilder()
             .setEppRequestSource(EppRequestSource.TOOL)
@@ -169,7 +169,7 @@ public class ExtensionManagerTest {
   }
 
   @Test
-  public void testSuperuserExtension_forbiddenWhenNotToolSource() throws Exception {
+  public void testSuperuserExtension_forbiddenWhenNotToolSource() {
     ExtensionManager manager =
         new TestInstanceBuilder()
             .setEppRequestSource(EppRequestSource.CONSOLE)
@@ -184,7 +184,7 @@ public class ExtensionManagerTest {
   }
 
   @Test
-  public void testUnimplementedExtensionsForbidden() throws Exception {
+  public void testUnimplementedExtensionsForbidden() {
     ExtensionManager manager =
         new TestInstanceBuilder()
             .setEppRequestSource(EppRequestSource.TOOL)

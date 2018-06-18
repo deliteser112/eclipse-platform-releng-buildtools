@@ -80,7 +80,7 @@ public class RdeHostLinkActionTest extends MapreduceTestCase<RdeHostLinkAction> 
   private final FakeClock clock = new FakeClock();
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     clock.setTo(DateTime.parse("2016-05-07T14:55:38Z"));
     inject.setStaticField(Ofy.class, "clock", clock);
     createTld("test");

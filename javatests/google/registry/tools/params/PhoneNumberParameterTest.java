@@ -27,22 +27,22 @@ public class PhoneNumberParameterTest {
   private final OptionalPhoneNumberParameter instance = new OptionalPhoneNumberParameter();
 
   @Test
-  public void testConvert_e164() throws Exception {
+  public void testConvert_e164() {
     assertThat(instance.convert("+1.2125550777")).hasValue("+1.2125550777");
   }
 
   @Test
-  public void testConvert_sillyString_throws() throws Exception {
+  public void testConvert_sillyString_throws() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("foo"));
   }
 
   @Test
-  public void testConvert_empty_returnsAbsent() throws Exception {
+  public void testConvert_empty_returnsAbsent() {
     assertThat(instance.convert("")).isEmpty();
   }
 
   @Test
-  public void testConvert_nullString_returnsAbsent() throws Exception {
+  public void testConvert_nullString_returnsAbsent() {
     assertThat(instance.convert("null")).isEmpty();
   }
 }

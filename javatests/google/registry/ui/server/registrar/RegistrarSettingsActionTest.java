@@ -94,7 +94,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
    * This is the default read test for the registrar settings actions.
    */
   @Test
-  public void testRead_authorized_returnsRegistrarJson() throws Exception {
+  public void testRead_authorized_returnsRegistrarJson() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of());
     assertThat(response).containsExactly(
         "status", "SUCCESS",
@@ -129,7 +129,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_emptyJsonObject_emailFieldNotRequiredWhenEmpty() throws Exception {
+  public void testUpdate_emptyJsonObject_emailFieldNotRequiredWhenEmpty() {
     persistResource(loadRegistrar(CLIENT_ID).asBuilder().setEmailAddress(null).build());
 
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
@@ -204,33 +204,33 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_premiumPriceAck() throws Exception {
+  public void testUpdate_premiumPriceAck() {
     doTestUpdate(
         Registrar::getPremiumPriceAckRequired, true, Registrar.Builder::setPremiumPriceAckRequired);
   }
 
   @Test
-  public void testUpdate_whoisServer() throws Exception {
+  public void testUpdate_whoisServer() {
     doTestUpdate(Registrar::getWhoisServer, "new-whois.example", Registrar.Builder::setWhoisServer);
   }
 
   @Test
-  public void testUpdate_phoneNumber() throws Exception {
+  public void testUpdate_phoneNumber() {
     doTestUpdate(Registrar::getPhoneNumber, "+1.2345678900", Registrar.Builder::setPhoneNumber);
   }
 
   @Test
-  public void testUpdate_faxNumber() throws Exception {
+  public void testUpdate_faxNumber() {
     doTestUpdate(Registrar::getFaxNumber, "+1.2345678900", Registrar.Builder::setFaxNumber);
   }
 
   @Test
-  public void testUpdate_url() throws Exception {
+  public void testUpdate_url() {
     doTestUpdate(Registrar::getUrl, "new-url.example", Registrar.Builder::setUrl);
   }
 
   @Test
-  public void testUpdate_ipAddressWhitelist() throws Exception {
+  public void testUpdate_ipAddressWhitelist() {
     doTestUpdate(
         Registrar::getIpAddressWhitelist,
         ImmutableList.of(CidrAddressBlock.create("1.1.1.0/24")),
@@ -238,7 +238,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_clientCertificate() throws Exception {
+  public void testUpdate_clientCertificate() {
     doTestUpdate(
         Registrar::getClientCertificate,
         CertificateSamples.SAMPLE_CERT,
@@ -246,7 +246,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_failoverClientCertificate() throws Exception {
+  public void testUpdate_failoverClientCertificate() {
     doTestUpdate(
         Registrar::getFailoverClientCertificate,
         CertificateSamples.SAMPLE_CERT,
@@ -254,7 +254,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_localizedAddress_city() throws Exception {
+  public void testUpdate_localizedAddress_city() {
     doTestUpdate(
         Registrar::getLocalizedAddress,
         loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setCity("newCity").build(),
@@ -262,7 +262,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_localizedAddress_countryCode() throws Exception {
+  public void testUpdate_localizedAddress_countryCode() {
     doTestUpdate(
         Registrar::getLocalizedAddress,
         loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setCountryCode("GB").build(),
@@ -270,7 +270,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_localizedAddress_state() throws Exception {
+  public void testUpdate_localizedAddress_state() {
     doTestUpdate(
         Registrar::getLocalizedAddress,
         loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setState("NJ").build(),
@@ -278,7 +278,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_localizedAddress_street() throws Exception {
+  public void testUpdate_localizedAddress_street() {
     doTestUpdate(
         Registrar::getLocalizedAddress,
         loadRegistrar(CLIENT_ID)
@@ -290,7 +290,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_localizedAddress_zip() throws Exception {
+  public void testUpdate_localizedAddress_zip() {
     doTestUpdate(
         Registrar::getLocalizedAddress,
         loadRegistrar(CLIENT_ID).getLocalizedAddress().asBuilder().setZip("new zip").build(),

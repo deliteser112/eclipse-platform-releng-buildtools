@@ -83,7 +83,7 @@ public class RdeMarshallerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testMarshalRegistrar_unicodeCharacters_dontGetMangled() throws Exception {
+  public void testMarshalRegistrar_unicodeCharacters_dontGetMangled() {
     DepositFragment fragment =
         new RdeMarshaller(STRICT).marshalRegistrar(loadRegistrar("TheRegistrar"));
     assertThat(fragment.xml()).contains("123 Example Bőulevard");

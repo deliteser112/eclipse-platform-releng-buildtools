@@ -65,7 +65,7 @@ class AppEngineConnection implements Connection {
       memoize(() -> xsrfTokenManager.generateToken(getUserId()));
 
   @Override
-  public void prefetchXsrfToken() throws IOException {
+  public void prefetchXsrfToken() {
     // Cause XSRF token to be fetched, and then stay resident in cache (since it's memoized).
     xsrfToken.get();
   }

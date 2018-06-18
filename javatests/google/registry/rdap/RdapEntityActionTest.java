@@ -93,7 +93,7 @@ public class RdapEntityActionTest {
   private ContactResource deletedContact;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     inject.setStaticField(Ofy.class, "clock", clock);
     // lol
     createTld("lol");
@@ -298,7 +298,7 @@ public class RdapEntityActionTest {
   }
 
   @Test
-  public void testInvalidEntity_returns400() throws Exception {
+  public void testInvalidEntity_returns400() {
     assertThat(generateActualJson("invalid/entity/handle")).isEqualTo(
         generateExpectedJson(
             "invalid/entity/handle is not a valid entity handle",
@@ -307,38 +307,38 @@ public class RdapEntityActionTest {
   }
 
   @Test
-  public void testUnknownEntity_notFound() throws Exception {
+  public void testUnknownEntity_notFound() {
     runNotFoundTest("_MISSING-ENTITY_");
   }
 
   @Test
-  public void testValidRegistrantContact_works() throws Exception {
+  public void testValidRegistrantContact_works() {
     login("evilregistrar");
     runSuccessfulTest(registrant.getRepoId(), "rdap_associated_contact.json");
   }
 
   @Test
-  public void testValidRegistrantContact_found_sameRegistrarRequested() throws Exception {
+  public void testValidRegistrantContact_found_sameRegistrarRequested() {
     login("evilregistrar");
     action.registrarParam = Optional.of("evilregistrar");
     runSuccessfulTest(registrant.getRepoId(), "rdap_associated_contact.json");
   }
 
   @Test
-  public void testValidRegistrantContact_notFound_differentRegistrarRequested() throws Exception {
+  public void testValidRegistrantContact_notFound_differentRegistrarRequested() {
     login("evilregistrar");
     action.registrarParam = Optional.of("idnregistrar");
     runNotFoundTest(registrant.getRepoId());
   }
 
   @Test
-  public void testValidRegistrantContact_found_asAdministrator() throws Exception {
+  public void testValidRegistrantContact_found_asAdministrator() {
     loginAsAdmin();
     runSuccessfulTest(registrant.getRepoId(), "rdap_associated_contact.json");
   }
 
   @Test
-  public void testValidRegistrantContact_found_notLoggedIn() throws Exception {
+  public void testValidRegistrantContact_found_notLoggedIn() {
     runSuccessfulTest(
         registrant.getRepoId(),
         "(◕‿◕)",
@@ -349,7 +349,7 @@ public class RdapEntityActionTest {
   }
 
   @Test
-  public void testValidRegistrantContact_found_loggedInAsOtherRegistrar() throws Exception {
+  public void testValidRegistrantContact_found_loggedInAsOtherRegistrar() {
     login("otherregistrar");
     runSuccessfulTest(
         registrant.getRepoId(),
@@ -361,49 +361,49 @@ public class RdapEntityActionTest {
   }
 
   @Test
-  public void testValidAdminContact_works() throws Exception {
+  public void testValidAdminContact_works() {
     login("evilregistrar");
     runSuccessfulTest(adminContact.getRepoId(), "rdap_associated_contact.json");
   }
 
   @Test
-  public void testValidTechContact_works() throws Exception {
+  public void testValidTechContact_works() {
     login("evilregistrar");
     runSuccessfulTest(techContact.getRepoId(), "rdap_associated_contact.json");
   }
 
   @Test
-  public void testValidDisconnectedContact_works() throws Exception {
+  public void testValidDisconnectedContact_works() {
     login("evilregistrar");
     runSuccessfulTest(disconnectedContact.getRepoId(), "rdap_contact.json");
   }
 
   @Test
-  public void testDeletedContact_notFound() throws Exception {
+  public void testDeletedContact_notFound() {
     runNotFoundTest(deletedContact.getRepoId());
   }
 
   @Test
-  public void testDeletedContact_notFound_includeDeletedSetFalse() throws Exception {
+  public void testDeletedContact_notFound_includeDeletedSetFalse() {
     action.includeDeletedParam = Optional.of(false);
     runNotFoundTest(deletedContact.getRepoId());
   }
 
   @Test
-  public void testDeletedContact_notFound_notLoggedIn() throws Exception {
+  public void testDeletedContact_notFound_notLoggedIn() {
     action.includeDeletedParam = Optional.of(true);
     runNotFoundTest(deletedContact.getRepoId());
   }
 
   @Test
-  public void testDeletedContact_notFound_loggedInAsDifferentRegistrar() throws Exception {
+  public void testDeletedContact_notFound_loggedInAsDifferentRegistrar() {
     login("idnregistrar");
     action.includeDeletedParam = Optional.of(true);
     runNotFoundTest(deletedContact.getRepoId());
   }
 
   @Test
-  public void testDeletedContact_found_loggedInAsCorrectRegistrar() throws Exception {
+  public void testDeletedContact_found_loggedInAsCorrectRegistrar() {
     login("evilregistrar");
     action.includeDeletedParam = Optional.of(true);
     runSuccessfulTest(
@@ -416,7 +416,7 @@ public class RdapEntityActionTest {
   }
 
   @Test
-  public void testDeletedContact_found_loggedInAsAdmin() throws Exception {
+  public void testDeletedContact_found_loggedInAsAdmin() {
     loginAsAdmin();
     action.includeDeletedParam = Optional.of(true);
     runSuccessfulTest(
@@ -429,45 +429,45 @@ public class RdapEntityActionTest {
   }
 
   @Test
-  public void testRegistrar_found() throws Exception {
+  public void testRegistrar_found() {
     runSuccessfulTest("101", "Yes Virginia <script>", "rdap_registrar.json");
   }
 
   @Test
-  public void testRegistrar102_works() throws Exception {
+  public void testRegistrar102_works() {
     runSuccessfulTest("102", "IDN Registrar", "rdap_registrar.json");
   }
 
   @Test
-  public void testRegistrar102_found_requestingSameRegistrar() throws Exception {
+  public void testRegistrar102_found_requestingSameRegistrar() {
     action.registrarParam = Optional.of("idnregistrar");
     runSuccessfulTest("102", "IDN Registrar", "rdap_registrar.json");
   }
 
   @Test
-  public void testRegistrar102_notFound_requestingOtherRegistrar() throws Exception {
+  public void testRegistrar102_notFound_requestingOtherRegistrar() {
     action.registrarParam = Optional.of("1tldregistrar");
     runNotFoundTest("102");
   }
 
   @Test
-  public void testRegistrar103_works() throws Exception {
+  public void testRegistrar103_works() {
     runSuccessfulTest("103", "Multilevel Registrar", "rdap_registrar.json");
   }
 
   @Test
-  public void testRegistrar104_notFound() throws Exception {
+  public void testRegistrar104_notFound() {
     runNotFoundTest("104");
   }
 
   @Test
-  public void testRegistrar104_notFound_deletedFlagWhenNotLoggedIn() throws Exception {
+  public void testRegistrar104_notFound_deletedFlagWhenNotLoggedIn() {
     action.includeDeletedParam = Optional.of(true);
     runNotFoundTest("104");
   }
 
   @Test
-  public void testRegistrar104_found_deletedFlagWhenLoggedIn() throws Exception {
+  public void testRegistrar104_found_deletedFlagWhenLoggedIn() {
     login("deletedregistrar");
     action.includeDeletedParam = Optional.of(true);
     runSuccessfulTest(
@@ -475,14 +475,14 @@ public class RdapEntityActionTest {
   }
 
   @Test
-  public void testRegistrar104_notFound_deletedFlagWhenLoggedInAsOther() throws Exception {
+  public void testRegistrar104_notFound_deletedFlagWhenLoggedInAsOther() {
     login("1tldregistrar");
     action.includeDeletedParam = Optional.of(true);
     runNotFoundTest("104");
   }
 
   @Test
-  public void testRegistrar104_found_deletedFlagWhenLoggedInAsAdmin() throws Exception {
+  public void testRegistrar104_found_deletedFlagWhenLoggedInAsAdmin() {
     loginAsAdmin();
     action.includeDeletedParam = Optional.of(true);
     runSuccessfulTest(
@@ -490,12 +490,12 @@ public class RdapEntityActionTest {
   }
 
   @Test
-  public void testRegistrar105_doesNotExist() throws Exception {
+  public void testRegistrar105_doesNotExist() {
     runNotFoundTest("105");
   }
 
   @Test
-  public void testQueryParameter_ignored() throws Exception {
+  public void testQueryParameter_ignored() {
     login("evilregistrar");
     assertThat(generateActualJson(techContact.getRepoId() + "?key=value")).isEqualTo(
         generateExpectedJsonWithTopLevelEntries(
@@ -504,7 +504,7 @@ public class RdapEntityActionTest {
   }
 
   @Test
-  public void testMetrics() throws Exception {
+  public void testMetrics() {
     generateActualJson(registrant.getRepoId());
     verify(rdapMetrics)
         .updateMetrics(

@@ -98,7 +98,7 @@ public class MapreduceEntityCleanupActionTest
     }
   }
 
-  private static String createMapreduce(String jobName) throws Exception {
+  private static String createMapreduce(String jobName) {
     MapReduceJob<String, String, String, String, List<List<String>>> mapReduceJob =
         new MapReduceJob<>(
             new MapReduceSpecification.Builder<String, String, String, String, List<List<String>>>()
@@ -215,7 +215,7 @@ public class MapreduceEntityCleanupActionTest
   }
 
   @Test
-  public void testNonexistentJobName_fails() throws Exception {
+  public void testNonexistentJobName_fails() {
     setJobName("nonexistent");
 
     action.run();
@@ -491,7 +491,7 @@ public class MapreduceEntityCleanupActionTest
   }
 
   @Test
-  public void testJobIdAndJobName_fails() throws Exception {
+  public void testJobIdAndJobName_fails() {
     setJobIdJobNameAndDaysOld(
         Optional.of("jobid"), Optional.of("jobname"), Optional.empty());
 
@@ -504,7 +504,7 @@ public class MapreduceEntityCleanupActionTest
   }
 
   @Test
-  public void testJobIdAndDaysOld_fails() throws Exception {
+  public void testJobIdAndDaysOld_fails() {
     setJobIdJobNameAndDaysOld(Optional.of("jobid"), Optional.empty(), Optional.of(0));
 
     action.run();
@@ -517,7 +517,7 @@ public class MapreduceEntityCleanupActionTest
   }
 
   @Test
-  public void testJobIdAndNumJobs_fails() throws Exception {
+  public void testJobIdAndNumJobs_fails() {
     action = new MapreduceEntityCleanupAction(
         Optional.of("jobid"),
         Optional.empty(), // jobName
@@ -539,7 +539,7 @@ public class MapreduceEntityCleanupActionTest
   }
 
   @Test
-  public void testDeleteZeroJobs_throwsUsageError() throws Exception {
+  public void testDeleteZeroJobs_throwsUsageError() {
     new MapreduceEntityCleanupAction(
             Optional.empty(), // jobId
             Optional.empty(), // jobName

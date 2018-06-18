@@ -49,7 +49,7 @@ public class ListCursorsCommandTest extends CommandTestCase<ListCursorsCommand> 
   }
 
   @Test
-  public void testListCursors_badCursor_throwsIae() throws Exception {
+  public void testListCursors_badCursor_throwsIae() {
     ParameterException thrown =
         assertThrows(ParameterException.class, () -> runCommand("--type=love"));
     assertThat(thrown).hasMessageThat().contains("Invalid value for --type parameter.");

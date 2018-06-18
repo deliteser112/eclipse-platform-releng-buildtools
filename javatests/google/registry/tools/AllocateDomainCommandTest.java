@@ -131,19 +131,19 @@ public class AllocateDomainCommandTest extends CommandTestCase<AllocateDomainCom
   }
 
   @Test
-  public void testFailure_notAsSuperuser() throws Exception {
+  public void testFailure_notAsSuperuser() {
     assertThrows(IllegalArgumentException.class, () -> runCommand("--ids=1-TLD", "--force"));
   }
 
   @Test
-  public void testFailure_forceAndDryRunIncompatible() throws Exception {
+  public void testFailure_forceAndDryRunIncompatible() {
     assertThrows(
         IllegalArgumentException.class,
         () -> runCommand("--ids=1-TLD", "--force", "--dry_run", "--superuser"));
   }
 
   @Test
-  public void testFailure_unknownFlag() throws Exception {
+  public void testFailure_unknownFlag() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--ids=1-TLD", "--force", "--unrecognized=foo", "--superuser"));

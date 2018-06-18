@@ -66,7 +66,7 @@ public class SyncRegistrarsSheetActionTest {
   }
 
   @Test
-  public void testPost_withoutParamsOrSystemProperty_dropsTask() throws Exception {
+  public void testPost_withoutParamsOrSystemProperty_dropsTask() {
     runAction(null, null);
     assertThat(response.getPayload()).startsWith("MISSINGNO");
     verifyZeroInteractions(syncRegistrarsSheet);
@@ -85,7 +85,7 @@ public class SyncRegistrarsSheetActionTest {
   }
 
   @Test
-  public void testPost_noModificationsToRegistrarEntities_doesNothing() throws Exception {
+  public void testPost_noModificationsToRegistrarEntities_doesNothing() {
     when(syncRegistrarsSheet.wereRegistrarsModified()).thenReturn(false);
     runAction("NewRegistrar", null);
     assertThat(response.getPayload()).startsWith("NOTMODIFIED");
@@ -102,7 +102,7 @@ public class SyncRegistrarsSheetActionTest {
   }
 
   @Test
-  public void testPost_failToAquireLock_servletDoesNothingAndReturns() throws Exception {
+  public void testPost_failToAquireLock_servletDoesNothingAndReturns() {
     action.lockHandler = new FakeLockHandler(false);
     runAction(null, "foobar");
     assertThat(response.getPayload()).startsWith("LOCKED");

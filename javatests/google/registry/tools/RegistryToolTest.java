@@ -47,7 +47,7 @@ public class RegistryToolTest {
   }
 
   @Test
-  public void test_commandMap_namesAreInAlphabeticalOrder() throws Exception {
+  public void test_commandMap_namesAreInAlphabeticalOrder() {
     assertThat(RegistryTool.COMMAND_MAP.keySet()).isStrictlyOrdered();
   }
 
@@ -67,7 +67,7 @@ public class RegistryToolTest {
   }
 
   @Test
-  public void test_commandMap_namesAreDerivedFromClassNames() throws Exception {
+  public void test_commandMap_namesAreDerivedFromClassNames() {
     for (Map.Entry<String, ? extends Class<? extends Command>> commandEntry :
         RegistryTool.COMMAND_MAP.entrySet()) {
       String className = commandEntry.getValue().getSimpleName();
@@ -78,7 +78,7 @@ public class RegistryToolTest {
   }
 
   @Test
-  public void test_commandMap_allCommandsHaveDescriptions() throws Exception {
+  public void test_commandMap_allCommandsHaveDescriptions() {
     for (Map.Entry<String, ? extends Class<? extends Command>> commandEntry :
         RegistryTool.COMMAND_MAP.entrySet()) {
       Parameters parameters = commandEntry.getValue().getAnnotation(Parameters.class);

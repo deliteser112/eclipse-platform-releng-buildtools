@@ -35,7 +35,7 @@ import org.junit.runners.JUnit4;
 public class PollMapreduceActionTest extends MapreduceTestCase<PollMapreduceAction> {
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     action = new PollMapreduceAction();
   }
 

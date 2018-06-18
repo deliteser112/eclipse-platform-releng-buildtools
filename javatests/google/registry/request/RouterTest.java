@@ -35,7 +35,7 @@ public final class RouterTest {
   public interface Empty {}
 
   @Test
-  public void testRoute_noRoutes_throws() throws Exception {
+  public void testRoute_noRoutes_throws() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> Router.create(Empty.class));
     assertThat(thrown)
@@ -56,7 +56,7 @@ public final class RouterTest {
   }
 
   @Test
-  public void testRoute_pathMatch_returnsRoute() throws Exception {
+  public void testRoute_pathMatch_returnsRoute() {
     Optional<Route> route = Router.create(SlothComponent.class).route("/sloth");
     assertThat(route).isPresent();
     assertThat(route.get().action().path()).isEqualTo("/sloth");
@@ -64,12 +64,12 @@ public final class RouterTest {
   }
 
   @Test
-  public void testRoute_pathMismatch_returnsAbsent() throws Exception {
+  public void testRoute_pathMismatch_returnsAbsent() {
     assertThat(Router.create(SlothComponent.class).route("/doge")).isEmpty();
   }
 
   @Test
-  public void testRoute_pathIsAPrefix_notAllowedByDefault() throws Exception {
+  public void testRoute_pathIsAPrefix_notAllowedByDefault() {
     assertThat(Router.create(SlothComponent.class).route("/sloth/extra")).isEmpty();
   }
 
@@ -86,13 +86,13 @@ public final class RouterTest {
   }
 
   @Test
-  public void testRoute_prefixMatches_returnsRoute() throws Exception {
+  public void testRoute_prefixMatches_returnsRoute() {
     assertThat(Router.create(PrefixComponent.class).route("/prefix")).isPresent();
     assertThat(Router.create(PrefixComponent.class).route("/prefix/extra")).isPresent();
   }
 
   @Test
-  public void testRoute_prefixDoesNotMatch_returnsAbsent() throws Exception {
+  public void testRoute_prefixDoesNotMatch_returnsAbsent() {
     assertThat(Router.create(PrefixComponent.class).route("")).isEmpty();
     assertThat(Router.create(PrefixComponent.class).route("/")).isEmpty();
     assertThat(Router.create(PrefixComponent.class).route("/ulysses")).isEmpty();
@@ -113,21 +113,21 @@ public final class RouterTest {
   }
 
   @Test
-  public void testRoute_prefixAndLongPathMatch_returnsLongerPath() throws Exception {
+  public void testRoute_prefixAndLongPathMatch_returnsLongerPath() {
     Optional<Route> route = Router.create(LongPathComponent.class).route("/prefix/long");
     assertThat(route).isPresent();
     assertThat(route.get().action().path()).isEqualTo("/prefix/long");
   }
 
   @Test
-  public void testRoute_prefixAndLongerPrefixMatch_returnsLongerPrefix() throws Exception {
+  public void testRoute_prefixAndLongerPrefixMatch_returnsLongerPrefix() {
     Optional<Route> route = Router.create(LongPathComponent.class).route("/prefix/longer");
     assertThat(route).isPresent();
     assertThat(route.get().action().path()).isEqualTo("/prefix/long");
   }
 
   @Test
-  public void testRoute_onlyShortPrefixMatches_returnsShortPrefix() throws Exception {
+  public void testRoute_onlyShortPrefixMatches_returnsShortPrefix() {
     Optional<Route> route = Router.create(LongPathComponent.class).route("/prefix/cat");
     assertThat(route).isPresent();
     assertThat(route.get().action().path()).isEqualTo("/prefix");
@@ -141,7 +141,7 @@ public final class RouterTest {
   }
 
   @Test
-  public void testRoute_methodsInComponentAreIgnored_throws() throws Exception {
+  public void testRoute_methodsInComponentAreIgnored_throws() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class, () -> Router.create(WeirdMethodsComponent.class));
@@ -171,7 +171,7 @@ public final class RouterTest {
   }
 
   @Test
-  public void testCreate_twoTasksWithSameMethodAndPath_resultsInError() throws Exception {
+  public void testCreate_twoTasksWithSameMethodAndPath_resultsInError() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> Router.create(DuplicateComponent.class));
     assertThat(thrown).hasMessageThat().contains("Multiple entries with same key");

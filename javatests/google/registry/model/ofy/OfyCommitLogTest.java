@@ -56,20 +56,20 @@ public class OfyCommitLogTest {
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     register(Root.class);
     register(Child.class);
     inject.setStaticField(Ofy.class, "clock", clock);
   }
 
   @Test
-  public void testTransact_doesNothing_noCommitLogIsSaved() throws Exception {
+  public void testTransact_doesNothing_noCommitLogIsSaved() {
     ofy().transact(() -> {});
     assertThat(ofy().load().type(CommitLogManifest.class)).isEmpty();
   }
 
   @Test
-  public void testTransact_savesDataAndCommitLog() throws Exception {
+  public void testTransact_savesDataAndCommitLog() {
     ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())).now());
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now().value)
         .isEqualTo("value");
@@ -78,7 +78,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testTransact_saveWithoutBackup_noCommitLogIsSaved() throws Exception {
+  public void testTransact_saveWithoutBackup_noCommitLogIsSaved() {
     ofy().transact(() -> ofy().saveWithoutBackup().entity(Root.create(1, getCrossTldKey())).now());
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now().value)
         .isEqualTo("value");
@@ -87,7 +87,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testTransact_deleteWithoutBackup_noCommitLogIsSaved() throws Exception {
+  public void testTransact_deleteWithoutBackup_noCommitLogIsSaved() {
     ofy().transact(() -> ofy().saveWithoutBackup().entity(Root.create(1, getCrossTldKey())).now());
     ofy().transact(() -> ofy().deleteWithoutBackup().key(Key.create(Root.class, 1)));
     assertThat(ofy().load().key(Key.create(Root.class, 1)).now()).isNull();
@@ -96,7 +96,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testTransact_savesEntity_itsProtobufFormIsStoredInCommitLog() throws Exception {
+  public void testTransact_savesEntity_itsProtobufFormIsStoredInCommitLog() {
     ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())).now());
     final byte[] entityProtoBytes =
         ofy().load().type(CommitLogMutation.class).first().now().entityProtoBytes;
@@ -112,7 +112,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testTransact_savesEntity_mutationIsChildOfManifest() throws Exception {
+  public void testTransact_savesEntity_mutationIsChildOfManifest() {
     ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())).now());
     assertThat(
             ofy()
@@ -123,7 +123,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testTransactNew_savesDataAndCommitLog() throws Exception {
+  public void testTransactNew_savesDataAndCommitLog() {
     ofy().transactNew(() -> ofy().save().entity(Root.create(1, getCrossTldKey())).now());
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now().value)
         .isEqualTo("value");
@@ -132,7 +132,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testTransact_multipleSaves_logsMultipleMutations() throws Exception {
+  public void testTransact_multipleSaves_logsMultipleMutations() {
     ofy()
         .transact(
             () -> {
@@ -144,7 +144,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testTransact_deletion_deletesAndLogsWithoutMutation() throws Exception {
+  public void testTransact_deletion_deletesAndLogsWithoutMutation() {
     ofy().transact(() -> ofy().saveWithoutBackup().entity(Root.create(1, getCrossTldKey())).now());
     clock.advanceOneMilli();
     final Key<Root> otherTldKey = Key.create(getCrossTldKey(), Root.class, 1);
@@ -157,7 +157,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testTransactNew_deleteNotBackedUpKind_throws() throws Exception {
+  public void testTransactNew_deleteNotBackedUpKind_throws() {
     final CommitLogManifest backupsArentAllowedOnMe =
         CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.of());
     IllegalArgumentException thrown =
@@ -168,7 +168,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testTransactNew_saveNotBackedUpKind_throws() throws Exception {
+  public void testTransactNew_saveNotBackedUpKind_throws() {
     final CommitLogManifest backupsArentAllowedOnMe =
         CommitLogManifest.create(getBucketKey(1), clock.nowUtc(), ImmutableSet.of());
     IllegalArgumentException thrown =
@@ -179,7 +179,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testTransactNew_deleteVirtualEntityKey_throws() throws Exception {
+  public void testTransactNew_deleteVirtualEntityKey_throws() {
     final Key<TestVirtualObject> virtualEntityKey = TestVirtualObject.createKey("virtual");
     IllegalArgumentException thrown =
         assertThrows(
@@ -189,7 +189,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testTransactNew_saveVirtualEntity_throws() throws Exception {
+  public void testTransactNew_saveVirtualEntity_throws() {
     final TestVirtualObject virtualEntity = TestVirtualObject.create("virtual");
     IllegalArgumentException thrown =
         assertThrows(
@@ -199,7 +199,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void test_deleteWithoutBackup_withVirtualEntityKey_throws() throws Exception {
+  public void test_deleteWithoutBackup_withVirtualEntityKey_throws() {
     final Key<TestVirtualObject> virtualEntityKey = TestVirtualObject.createKey("virtual");
     IllegalArgumentException thrown =
         assertThrows(
@@ -209,7 +209,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void test_saveWithoutBackup_withVirtualEntity_throws() throws Exception {
+  public void test_saveWithoutBackup_withVirtualEntity_throws() {
     final TestVirtualObject virtualEntity = TestVirtualObject.create("virtual");
     IllegalArgumentException thrown =
         assertThrows(
@@ -218,7 +218,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testTransact_twoSavesOnSameKey_throws() throws Exception {
+  public void testTransact_twoSavesOnSameKey_throws() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -233,7 +233,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testTransact_saveAndDeleteSameKey_throws() throws Exception {
+  public void testTransact_saveAndDeleteSameKey_throws() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -248,7 +248,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testSavingRootAndChild_updatesTimestampOnBackupGroupRoot() throws Exception {
+  public void testSavingRootAndChild_updatesTimestampOnBackupGroupRoot() {
     ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())));
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
@@ -266,7 +266,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testSavingOnlyChild_updatesTimestampOnBackupGroupRoot() throws Exception {
+  public void testSavingOnlyChild_updatesTimestampOnBackupGroupRoot() {
     ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())));
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
@@ -279,7 +279,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testDeletingChild_updatesTimestampOnBackupGroupRoot() throws Exception {
+  public void testDeletingChild_updatesTimestampOnBackupGroupRoot() {
     ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())));
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
@@ -293,7 +293,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testReadingRoot_doesntUpdateTimestamp() throws Exception {
+  public void testReadingRoot_doesntUpdateTimestamp() {
     ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())));
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
@@ -313,7 +313,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testReadingChild_doesntUpdateTimestampOnBackupGroupRoot() throws Exception {
+  public void testReadingChild_doesntUpdateTimestampOnBackupGroupRoot() {
     ofy().transact(() -> ofy().save().entity(Root.create(1, getCrossTldKey())));
     ofy().clearSessionCache();
     assertThat(ofy().load().key(Key.create(getCrossTldKey(), Root.class, 1)).now()
@@ -333,7 +333,7 @@ public class OfyCommitLogTest {
   }
 
   @Test
-  public void testSavingAcrossBackupGroupRoots_updatesCorrectTimestamps() throws Exception {
+  public void testSavingAcrossBackupGroupRoots_updatesCorrectTimestamps() {
     // Create three roots.
     ofy()
         .transact(

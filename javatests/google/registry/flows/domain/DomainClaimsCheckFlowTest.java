@@ -101,21 +101,21 @@ public class DomainClaimsCheckFlowTest
   }
 
   @Test
-  public void testFailure_TooManyIds() throws Exception {
+  public void testFailure_TooManyIds() {
     setEppInput("domain_check_claims_51.xml");
     EppException thrown = assertThrows(TooManyResourceChecksException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
-  public void testFailure_tldDoesntExist() throws Exception {
+  public void testFailure_tldDoesntExist() {
     setEppInput("domain_check_claims_bad_tld.xml");
     EppException thrown = assertThrows(TldDoesNotExistException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
-  public void testFailure_notAuthorizedForTld() throws Exception {
+  public void testFailure_notAuthorizedForTld() {
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     EppException thrown = assertThrows(NotAuthorizedForTldException.class, this::runFlow);
@@ -136,7 +136,7 @@ public class DomainClaimsCheckFlowTest
   }
 
   @Test
-  public void testFailure_predelgation() throws Exception {
+  public void testFailure_predelgation() {
     createTld("tld", TldState.PREDELEGATION);
     setEppInput("domain_check_claims.xml");
     EppException thrown = assertThrows(BadCommandForRegistryPhaseException.class, this::runFlow);
@@ -144,7 +144,7 @@ public class DomainClaimsCheckFlowTest
   }
 
   @Test
-  public void testFailure_sunrise() throws Exception {
+  public void testFailure_sunrise() {
     createTld("tld", TldState.SUNRISE);
     setEppInput("domain_check_claims.xml");
     EppException thrown = assertThrows(DomainClaimsCheckNotAllowedInSunrise.class, this::runFlow);
@@ -152,7 +152,7 @@ public class DomainClaimsCheckFlowTest
   }
 
   @Test
-  public void testFailure_allocationToken() throws Exception {
+  public void testFailure_allocationToken() {
     createTld("tld", TldState.SUNRISE);
     setEppInput("domain_check_claims_allocationtoken.xml");
     EppException thrown =
@@ -161,7 +161,7 @@ public class DomainClaimsCheckFlowTest
   }
 
   @Test
-  public void testFailure_multipleTlds_oneHasEndedClaims() throws Exception {
+  public void testFailure_multipleTlds_oneHasEndedClaims() {
     createTlds("tld1", "tld2");
     persistResource(
         Registry.get("tld2").asBuilder().setClaimsPeriodEnd(clock.nowUtc().minusMillis(1)).build());

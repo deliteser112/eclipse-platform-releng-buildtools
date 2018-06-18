@@ -133,7 +133,7 @@ public class DeleteContactsAndHostsActionTest
   }
 
   @Before
-  public void setup() throws Exception {
+  public void setup() {
     enqueuer =
         new AsyncFlowEnqueuer(
             getQueue(QUEUE_ASYNC_DELETE),

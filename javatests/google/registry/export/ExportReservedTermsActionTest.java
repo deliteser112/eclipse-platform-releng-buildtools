@@ -95,7 +95,7 @@ public class ExportReservedTermsActionTest {
   }
 
   @Test
-  public void test_uploadFileToDrive_doesNothingIfReservedListsNotConfigured() throws Exception {
+  public void test_uploadFileToDrive_doesNothingIfReservedListsNotConfigured() {
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -108,7 +108,7 @@ public class ExportReservedTermsActionTest {
   }
 
   @Test
-  public void test_uploadFileToDrive_doesNothingWhenDriveFolderIdIsNull() throws Exception {
+  public void test_uploadFileToDrive_doesNothingWhenDriveFolderIdIsNull() {
     persistResource(Registry.get("tld").asBuilder().setDriveFolderId(null).build());
     runAction("tld");
     verify(response).setStatus(SC_OK);
@@ -129,7 +129,7 @@ public class ExportReservedTermsActionTest {
   }
 
   @Test
-  public void test_uploadFileToDrive_failsWhenTldDoesntExist() throws Exception {
+  public void test_uploadFileToDrive_failsWhenTldDoesntExist() {
     RuntimeException thrown = assertThrows(RuntimeException.class, () -> runAction("fakeTld"));
     verify(response).setStatus(SC_INTERNAL_SERVER_ERROR);
     assertThat(thrown)

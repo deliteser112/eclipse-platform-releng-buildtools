@@ -32,7 +32,7 @@ public class OfyFilter implements Filter {
   }
 
   @Override
-  public void init(FilterConfig config) throws ServletException {
+  public void init(FilterConfig config) {
     // Make sure that we've registered all types before we do anything else with Objectify.
     ObjectifyService.initOfy();
   }

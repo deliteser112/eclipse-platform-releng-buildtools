@@ -29,19 +29,19 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public final class RequestModuleTest {
   @Test
-  public void testProvideJsonPayload() throws Exception {
+  public void testProvideJsonPayload() {
     assertThat(provideJsonPayload(MediaType.JSON_UTF_8, "{\"k\":\"v\"}"))
         .containsExactly("k", "v");
   }
 
   @Test
-  public void testProvideJsonPayload_contentTypeWithoutCharsetAllowed() throws Exception {
+  public void testProvideJsonPayload_contentTypeWithoutCharsetAllowed() {
     assertThat(provideJsonPayload(MediaType.JSON_UTF_8.withoutParameters(), "{\"k\":\"v\"}"))
         .containsExactly("k", "v");
   }
 
   @Test
-  public void testProvideJsonPayload_malformedInput_throws500() throws Exception {
+  public void testProvideJsonPayload_malformedInput_throws500() {
     BadRequestException thrown =
         assertThrows(
             BadRequestException.class, () -> provideJsonPayload(MediaType.JSON_UTF_8, "{\"k\":"));
@@ -49,21 +49,21 @@ public final class RequestModuleTest {
   }
 
   @Test
-  public void testProvideJsonPayload_emptyInput_throws500() throws Exception {
+  public void testProvideJsonPayload_emptyInput_throws500() {
     BadRequestException thrown =
         assertThrows(BadRequestException.class, () -> provideJsonPayload(MediaType.JSON_UTF_8, ""));
     assertThat(thrown).hasMessageThat().contains("Malformed JSON");
   }
 
   @Test
-  public void testProvideJsonPayload_nonJsonContentType_throws415() throws Exception {
+  public void testProvideJsonPayload_nonJsonContentType_throws415() {
     assertThrows(
         UnsupportedMediaTypeException.class,
         () -> provideJsonPayload(MediaType.PLAIN_TEXT_UTF_8, "{}"));
   }
 
   @Test
-  public void testProvideJsonPayload_contentTypeWithWeirdParam_throws415() throws Exception {
+  public void testProvideJsonPayload_contentTypeWithWeirdParam_throws415() {
     assertThrows(
         UnsupportedMediaTypeException.class,
         () -> provideJsonPayload(MediaType.JSON_UTF_8.withParameter("omg", "handel"), "{}"));

@@ -14,7 +14,6 @@
 
 package google.registry.flows.custom;
 
-import google.registry.flows.EppException;
 import google.registry.flows.FlowMetadata;
 import google.registry.flows.SessionMetadata;
 import google.registry.flows.domain.DomainPricingLogic;
@@ -39,7 +38,7 @@ public class TestDomainPricingCustomLogic extends DomainPricingCustomLogic {
 
   @Override
   public FeesAndCredits customizeApplicationUpdatePrice(
-      ApplicationUpdatePriceParameters priceParameters) throws EppException {
+      ApplicationUpdatePriceParameters priceParameters) {
     return (priceParameters
             .domainApplication()
             .getFullyQualifiedDomainName()
@@ -50,8 +49,7 @@ public class TestDomainPricingCustomLogic extends DomainPricingCustomLogic {
   }
 
   @Override
-  public FeesAndCredits customizeRenewPrice(RenewPriceParameters priceParameters)
-      throws EppException {
+  public FeesAndCredits customizeRenewPrice(RenewPriceParameters priceParameters) {
     return (priceParameters.domainName().toString().startsWith("costly-renew"))
         ? addCustomFee(
             priceParameters.feesAndCredits(), Fee.create(ONE_HUNDRED_BUCKS, FeeType.RENEW))
@@ -59,8 +57,7 @@ public class TestDomainPricingCustomLogic extends DomainPricingCustomLogic {
   }
 
   @Override
-  public FeesAndCredits customizeTransferPrice(TransferPriceParameters priceParameters)
-      throws EppException {
+  public FeesAndCredits customizeTransferPrice(TransferPriceParameters priceParameters) {
     return (priceParameters.domainName().toString().startsWith("expensive"))
         ? addCustomFee(
             priceParameters.feesAndCredits(), Fee.create(ONE_HUNDRED_BUCKS, FeeType.TRANSFER))

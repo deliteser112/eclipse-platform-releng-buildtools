@@ -62,7 +62,7 @@ public class GoogleJsonResponseExceptionHelper {
     }
 
     @Override
-    protected LowLevelHttpRequest buildRequest(String method, String url) throws IOException {
+    protected LowLevelHttpRequest buildRequest(String method, String url) {
       return new FakeLowLevelHttpRequest(statusCode, content);
     }
   }
@@ -77,12 +77,12 @@ public class GoogleJsonResponseExceptionHelper {
     }
 
     @Override
-    public void addHeader(String name, String value) throws IOException {
+    public void addHeader(String name, String value) {
       // Nothing!
     }
 
     @Override
-    public LowLevelHttpResponse execute() throws IOException {
+    public LowLevelHttpResponse execute() {
       return new FakeLowLevelHttpResponse(statusCode, content);
     }
   }
@@ -97,59 +97,59 @@ public class GoogleJsonResponseExceptionHelper {
     }
 
     @Override
-    public InputStream getContent() throws IOException {
+    public InputStream getContent() {
       return content;
     }
 
     @Override
-    public String getContentEncoding() throws IOException {
+    public String getContentEncoding() {
       return null;
     }
 
     @Override
-    public long getContentLength() throws IOException {
+    public long getContentLength() {
       return 0;
     }
 
     @Override
-    public String getContentType() throws IOException {
+    public String getContentType() {
       return "text/json";
     }
 
     @Override
-    public String getStatusLine() throws IOException {
+    public String getStatusLine() {
       return null;
     }
 
     @Override
-    public int getStatusCode() throws IOException {
+    public int getStatusCode() {
       return statusCode;
     }
 
     @Override
-    public String getReasonPhrase() throws IOException {
+    public String getReasonPhrase() {
       return null;
     }
 
     @Override
-    public int getHeaderCount() throws IOException {
+    public int getHeaderCount() {
       return 0;
     }
 
     @Override
-    public String getHeaderName(int index) throws IOException {
+    public String getHeaderName(int index) {
       return null;
     }
 
     @Override
-    public String getHeaderValue(int index) throws IOException {
+    public String getHeaderValue(int index) {
       return null;
     }
   }
 
   private static class EmptyHttpContent implements HttpContent {
     @Override
-    public long getLength() throws IOException {
+    public long getLength() {
       return 0;
     }
 
@@ -164,7 +164,7 @@ public class GoogleJsonResponseExceptionHelper {
     }
 
     @Override
-    public void writeTo(OutputStream out) throws IOException {
+    public void writeTo(OutputStream out) {
       // Nothing!
     }
   }

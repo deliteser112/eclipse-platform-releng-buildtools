@@ -145,7 +145,7 @@ public class XmlTestdataTest {
   }
 
   @Theory
-  public void testInvalid(Evil v) throws Exception {
+  public void testInvalid(Evil v) {
     Throwable thrown = assertThrows(Throwable.class, () -> unmarshal(XjcObject.class, v.xmlStream));
     assertThat(thrown).hasMessageThat().contains(v.error);
   }

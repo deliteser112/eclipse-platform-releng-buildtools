@@ -44,7 +44,7 @@ public class CreatePremiumListActionTest {
   FakeJsonResponse response;
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     createTlds("foo", "xn--q9jyb4c", "how");
     deletePremiumList(PremiumList.getUncached("foo").get());
     action = new CreatePremiumListAction();
@@ -53,14 +53,14 @@ public class CreatePremiumListActionTest {
   }
 
   @Test
-  public void test_invalidRequest_missingInput_returnsErrorStatus() throws Exception {
+  public void test_invalidRequest_missingInput_returnsErrorStatus() {
     action.name = "foo";
     action.run();
     assertThat(response.getResponseMap().get("status")).isEqualTo("error");
   }
 
   @Test
-  public void test_invalidRequest_listAlreadyExists_returnsErrorStatus() throws Exception {
+  public void test_invalidRequest_listAlreadyExists_returnsErrorStatus() {
     action.name = "how";
     action.inputData = "richer,JPY 5000";
     action.run();
@@ -72,7 +72,7 @@ public class CreatePremiumListActionTest {
   }
 
   @Test
-  public void test_nonExistentTld_successWithOverride() throws Exception {
+  public void test_nonExistentTld_successWithOverride() {
     action.name = "zanzibar";
     action.inputData = "zanzibar,USD 100";
     action.override = true;
@@ -82,7 +82,7 @@ public class CreatePremiumListActionTest {
   }
 
   @Test
-  public void test_success() throws Exception {
+  public void test_success() {
     action.name = "foo";
     action.inputData = "rich,USD 25\nricher,USD 1000\n";
     action.run();

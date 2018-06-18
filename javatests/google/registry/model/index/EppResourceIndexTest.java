@@ -35,14 +35,14 @@ public class EppResourceIndexTest extends EntityTestCase  {
   ContactResource contact;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     createTld("tld");
     // The DatastoreHelper here creates the EppResourceIndex for us.
     contact = persistActiveContact("abcd1357");
   }
 
   @Test
-  public void testPersistence() throws Exception {
+  public void testPersistence() {
     EppResourceIndex loadedIndex = Iterables.getOnlyElement(getEppResourceIndexObjects());
     assertThat(ofy().load().key(loadedIndex.reference).now()).isEqualTo(contact);
   }
@@ -53,7 +53,7 @@ public class EppResourceIndexTest extends EntityTestCase  {
   }
 
   @Test
-  public void testIdempotentOnUpdate() throws Exception {
+  public void testIdempotentOnUpdate() {
     contact = persistResource(contact.asBuilder().setEmailAddress("abc@def.fake").build());
     EppResourceIndex loadedIndex = Iterables.getOnlyElement(getEppResourceIndexObjects());
     assertThat(ofy().load().key(loadedIndex.reference).now()).isEqualTo(contact);

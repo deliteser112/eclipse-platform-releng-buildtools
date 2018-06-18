@@ -150,7 +150,7 @@ public class UniformRapidSuspensionCommandTest
   }
 
   @Test
-  public void testFailure_locksToPreserveWithoutUndo() throws Exception {
+  public void testFailure_locksToPreserveWithoutUndo() {
     persistActiveDomain("evil.tld");
     IllegalArgumentException thrown =
         assertThrows(
@@ -162,7 +162,7 @@ public class UniformRapidSuspensionCommandTest
   }
 
   @Test
-  public void testFailure_domainNameRequired() throws Exception {
+  public void testFailure_domainNameRequired() {
     persistActiveDomain("evil.tld");
     ParameterException thrown =
         assertThrows(
@@ -172,7 +172,7 @@ public class UniformRapidSuspensionCommandTest
   }
 
   @Test
-  public void testFailure_extraFieldInDsData() throws Exception {
+  public void testFailure_extraFieldInDsData() {
     persistActiveDomain("evil.tld");
     IllegalArgumentException thrown =
         assertThrows(
@@ -185,7 +185,7 @@ public class UniformRapidSuspensionCommandTest
   }
 
   @Test
-  public void testFailure_missingFieldInDsData() throws Exception {
+  public void testFailure_missingFieldInDsData() {
     persistActiveDomain("evil.tld");
     IllegalArgumentException thrown =
         assertThrows(
@@ -198,7 +198,7 @@ public class UniformRapidSuspensionCommandTest
   }
 
   @Test
-  public void testFailure_malformedDsData() throws Exception {
+  public void testFailure_malformedDsData() {
     persistActiveDomain("evil.tld");
     IllegalArgumentException thrown =
         assertThrows(

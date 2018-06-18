@@ -115,7 +115,7 @@ public class RdapActionBaseTest {
   private RdapTestAction action;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     createTld("thing");
     inject.setStaticField(Ofy.class, "clock", clock);
     action = new RdapTestAction();
@@ -146,7 +146,7 @@ public class RdapActionBaseTest {
   }
 
   @Test
-  public void testIllegalValue_showsReadableTypeName() throws Exception {
+  public void testIllegalValue_showsReadableTypeName() {
     assertThat(generateActualJson("IllegalArgumentException")).isEqualTo(JSONValue.parse(
         "{\"lang\":\"en\", \"errorCode\":400, \"title\":\"Bad Request\","
         + "\"rdapConformance\":[\"rdap_level_0\"],"
@@ -155,7 +155,7 @@ public class RdapActionBaseTest {
   }
 
   @Test
-  public void testRuntimeException_returns500Error() throws Exception {
+  public void testRuntimeException_returns500Error() {
     assertThat(generateActualJson("RuntimeException")).isEqualTo(JSONValue.parse(
         "{\"lang\":\"en\", \"errorCode\":500, \"title\":\"Internal Server Error\","
         + "\"rdapConformance\":[\"rdap_level_0\"],"
@@ -164,39 +164,39 @@ public class RdapActionBaseTest {
   }
 
   @Test
-  public void testValidName_works() throws Exception {
+  public void testValidName_works() {
     assertThat(generateActualJson("no.thing")).isEqualTo(JSONValue.parse(
         loadFile(this.getClass(), "rdapjson_toplevel.json")));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
-  public void testContentType_rdapjson_utf8() throws Exception {
+  public void testContentType_rdapjson_utf8() {
     generateActualJson("no.thing");
     assertThat(response.getContentType().toString())
         .isEqualTo("application/rdap+json; charset=utf-8");
   }
 
   @Test
-  public void testHeadRequest_returnsNoContent() throws Exception {
+  public void testHeadRequest_returnsNoContent() {
     assertThat(generateHeadPayload("no.thing")).isEmpty();
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
-  public void testHeadRequestIllegalValue_returnsNoContent() throws Exception {
+  public void testHeadRequestIllegalValue_returnsNoContent() {
     assertThat(generateHeadPayload("IllegalArgumentException")).isEmpty();
     assertThat(response.getStatus()).isEqualTo(400);
   }
 
   @Test
-  public void testRdapServer_allowsAllCrossOriginRequests() throws Exception {
+  public void testRdapServer_allowsAllCrossOriginRequests() {
     generateActualJson("no.thing");
     assertThat(response.getHeaders().get(ACCESS_CONTROL_ALLOW_ORIGIN)).isEqualTo("*");
   }
 
   @Test
-  public void testMetrics_onSuccess() throws Exception {
+  public void testMetrics_onSuccess() {
     generateActualJson("no.thing");
     verify(rdapMetrics)
         .updateMetrics(
@@ -215,7 +215,7 @@ public class RdapActionBaseTest {
   }
 
   @Test
-  public void testMetrics_onError() throws Exception {
+  public void testMetrics_onError() {
     generateActualJson("IllegalArgumentException");
     verify(rdapMetrics)
         .updateMetrics(
@@ -239,7 +239,7 @@ public class RdapActionBaseTest {
   }
 
   @Test
-  public void testUnformatted() throws Exception {
+  public void testUnformatted() {
     action.requestPath = RdapTestAction.PATH + "no.thing";
     action.fullServletPath = "http://myserver.example.com" + RdapTestAction.PATH;
     action.requestMethod = GET;
@@ -249,7 +249,7 @@ public class RdapActionBaseTest {
   }
 
   @Test
-  public void testFormatted() throws Exception {
+  public void testFormatted() {
     action.requestPath = RdapTestAction.PATH + "no.thing?formatOutput=true";
     action.fullServletPath = "http://myserver.example.com" + RdapTestAction.PATH;
     action.requestMethod = GET;

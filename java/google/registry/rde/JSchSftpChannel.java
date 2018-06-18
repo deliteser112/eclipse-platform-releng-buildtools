@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.jcraft.jsch.ChannelSftp;
 import java.io.Closeable;
-import java.io.IOException;
 
 /**
  * {@link ChannelSftp} wrapper that implements {@link Closeable}.
@@ -41,7 +40,7 @@ final class JSchSftpChannel implements Closeable {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     channel.disconnect();
   }
 }

@@ -43,7 +43,7 @@ final class DeletePremiumListCommand extends ConfirmingCommand implements Remote
   private String name;
 
   @Override
-  protected void init() throws Exception {
+  protected void init() {
     checkArgument(
         doesPremiumListExist(name),
         "Cannot delete the premium list %s because it doesn't exist.",
@@ -62,7 +62,7 @@ final class DeletePremiumListCommand extends ConfirmingCommand implements Remote
   }
 
   @Override
-  protected String execute() throws Exception {
+  protected String execute() {
     deletePremiumList(premiumList);
     return String.format("Deleted premium list '%s'.\n", premiumList.getName());
   }

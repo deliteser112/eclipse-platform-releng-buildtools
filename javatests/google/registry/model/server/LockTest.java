@@ -84,7 +84,7 @@ public class LockTest {
   }
 
   @Test
-  public void testReleasedExplicitly() throws Exception {
+  public void testReleasedExplicitly() {
     Optional<Lock> lock = acquire("", ONE_DAY, FREE);
     assertThat(lock).isPresent();
     // We can't get it again at the same time.
@@ -96,7 +96,7 @@ public class LockTest {
   }
 
   @Test
-  public void testReleasedAfterTimeout() throws Exception {
+  public void testReleasedAfterTimeout() {
     assertThat(acquire("", TWO_MILLIS, FREE)).isPresent();
     // We can't get it again at the same time.
     assertThat(acquire("", TWO_MILLIS, IN_USE)).isEmpty();
@@ -109,7 +109,7 @@ public class LockTest {
   }
 
   @Test
-  public void testReleasedAfterRequestFinish() throws Exception {
+  public void testReleasedAfterRequestFinish() {
     assertThat(acquire("", ONE_DAY, FREE)).isPresent();
     // We can't get it again while request is active
     assertThat(acquire("", ONE_DAY, IN_USE)).isEmpty();
@@ -119,7 +119,7 @@ public class LockTest {
   }
 
   @Test
-  public void testTldsAreIndependent() throws Exception {
+  public void testTldsAreIndependent() {
     Optional<Lock> lockA = acquire("a", ONE_DAY, FREE);
     assertThat(lockA).isPresent();
     // For a different tld we can still get a lock with the same name.
@@ -134,7 +134,7 @@ public class LockTest {
   }
 
   @Test
-  public void testFailure_emptyResourceName() throws Exception {
+  public void testFailure_emptyResourceName() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

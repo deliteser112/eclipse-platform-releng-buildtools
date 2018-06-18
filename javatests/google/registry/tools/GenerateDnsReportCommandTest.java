@@ -203,12 +203,12 @@ public class GenerateDnsReportCommandTest extends CommandTestCase<GenerateDnsRep
   }
 
   @Test
-  public void testFailure_tldDoesNotExist() throws Exception {
+  public void testFailure_tldDoesNotExist() {
     assertThrows(IllegalArgumentException.class, () -> runCommand("--tld=foobar"));
   }
 
   @Test
-  public void testFailure_missingTldParameter() throws Exception {
+  public void testFailure_missingTldParameter() {
     assertThrows(ParameterException.class, () -> runCommand(""));
   }
 }

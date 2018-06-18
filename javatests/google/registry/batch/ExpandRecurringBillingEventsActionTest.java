@@ -100,7 +100,7 @@ public class ExpandRecurringBillingEventsActionTest
         .build();
   }
 
-  void saveCursor(final DateTime cursorTime) throws Exception {
+  void saveCursor(final DateTime cursorTime) {
     ofy().transact(() -> ofy().save().entity(Cursor.createGlobal(RECURRING_BILLING, cursorTime)));
   }
 
@@ -111,7 +111,7 @@ public class ExpandRecurringBillingEventsActionTest
     ofy().clearSessionCache();
   }
 
-  void assertCursorAt(DateTime expectedCursorTime) throws Exception {
+  void assertCursorAt(DateTime expectedCursorTime) {
     Cursor cursor = ofy().load().key(Cursor.createGlobalKey(RECURRING_BILLING)).now();
     assertThat(cursor).isNotNull();
     assertThat(cursor.getCursorTime()).isEqualTo(expectedCursorTime);
@@ -643,7 +643,7 @@ public class ExpandRecurringBillingEventsActionTest
   }
 
   @Test
-  public void testFailure_cursorAfterExecutionTime() throws Exception {
+  public void testFailure_cursorAfterExecutionTime() {
     action.cursorTimeParam = Optional.of(clock.nowUtc().plusYears(1));
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, this::runMapreduce);
@@ -653,7 +653,7 @@ public class ExpandRecurringBillingEventsActionTest
   }
 
   @Test
-  public void testFailure_cursorAtExecutionTime() throws Exception {
+  public void testFailure_cursorAtExecutionTime() {
     // The clock advances one milli on runMapreduce.
     action.cursorTimeParam = Optional.of(clock.nowUtc().plusMillis(1));
     IllegalArgumentException thrown =

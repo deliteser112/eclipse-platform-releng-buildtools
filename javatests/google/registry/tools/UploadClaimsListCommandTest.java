@@ -146,17 +146,17 @@ public class UploadClaimsListCommandTest extends CommandTestCase<UploadClaimsLis
   }
 
   @Test
-  public void testFailure_fileDoesNotExist() throws Exception {
+  public void testFailure_fileDoesNotExist() {
     assertThrows(FileNotFoundException.class, () -> runCommand("--force", "nonexistent_file.csv"));
   }
 
   @Test
-  public void testFailure_noFileNamePassed() throws Exception {
+  public void testFailure_noFileNamePassed() {
     assertThrows(IllegalArgumentException.class, () -> runCommand("--force"));
   }
 
   @Test
-  public void testFailure_tooManyArguments() throws Exception {
+  public void testFailure_tooManyArguments() {
     assertThrows(IllegalArgumentException.class, () -> runCommand("--force", "foo", "bar"));
   }
 }

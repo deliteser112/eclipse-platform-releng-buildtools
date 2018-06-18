@@ -49,7 +49,7 @@ final class ListCursorsCommand implements RemoteApiCommand {
   private boolean filterEscrowEnabled;
 
   @Override
-  public void run() throws Exception {
+  public void run() {
     List<String> lines = new ArrayList<>();
     for (String tld : Registries.getTlds()) {
       Registry registry = Registry.get(tld);

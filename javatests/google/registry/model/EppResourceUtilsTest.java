@@ -52,13 +52,13 @@ public class EppResourceUtilsTest {
   private final FakeClock clock = new FakeClock(DateTime.now(UTC));
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     createTld("tld");
     inject.setStaticField(Ofy.class, "clock", clock);
   }
 
   @Test
-  public void testLoadAtPointInTime_beforeCreated_returnsNull() throws Exception {
+  public void testLoadAtPointInTime_beforeCreated_returnsNull() {
     clock.advanceOneMilli();
     // Don't save a commit log, we shouldn't need one.
     HostResource host = persistResource(
@@ -69,7 +69,7 @@ public class EppResourceUtilsTest {
   }
 
   @Test
-  public void testLoadAtPointInTime_atOrAfterLastAutoUpdateTime_returnsResource() throws Exception {
+  public void testLoadAtPointInTime_atOrAfterLastAutoUpdateTime_returnsResource() {
     clock.advanceOneMilli();
     // Don't save a commit log, we shouldn't need one.
     HostResource host = persistResource(
@@ -80,8 +80,7 @@ public class EppResourceUtilsTest {
   }
 
   @Test
-  public void testLoadAtPointInTime_usingIntactRevisionHistory_returnsMutationValue()
-      throws Exception {
+  public void testLoadAtPointInTime_usingIntactRevisionHistory_returnsMutationValue() {
     clock.advanceOneMilli();
     // Save resource with a commit log that we can read in later as a revisions map value.
     HostResource oldHost = persistResourceWithCommitLog(
@@ -102,8 +101,7 @@ public class EppResourceUtilsTest {
   }
 
   @Test
-  public void testLoadAtPointInTime_brokenRevisionHistory_returnsResourceAsIs()
-      throws Exception {
+  public void testLoadAtPointInTime_brokenRevisionHistory_returnsResourceAsIs() {
     // Don't save a commit log since we want to test the handling of a broken revisions key.
     HostResource oldHost = persistResource(
         newHostResource("ns1.cat.tld").asBuilder()
@@ -123,8 +121,7 @@ public class EppResourceUtilsTest {
   }
 
   @Test
-  public void testLoadAtPointInTime_fallback_returnsMutationValueForOldestRevision()
-      throws Exception {
+  public void testLoadAtPointInTime_fallback_returnsMutationValueForOldestRevision() {
     clock.advanceOneMilli();
     // Save a commit log that we can fall back to.
     HostResource oldHost = persistResourceWithCommitLog(
@@ -146,8 +143,7 @@ public class EppResourceUtilsTest {
   }
 
   @Test
-  public void testLoadAtPointInTime_ultimateFallback_onlyOneRevision_returnsCurrentResource()
-      throws Exception {
+  public void testLoadAtPointInTime_ultimateFallback_onlyOneRevision_returnsCurrentResource() {
     clock.advanceOneMilli();
     // Don't save a commit log; we want to test that we load from the current resource.
     HostResource host = persistResource(
@@ -162,7 +158,7 @@ public class EppResourceUtilsTest {
   }
 
   @Test
-  public void testLoadAtPointInTime_moreThanThirtyDaysInPast_historyIsPurged() throws Exception {
+  public void testLoadAtPointInTime_moreThanThirtyDaysInPast_historyIsPurged() {
     clock.advanceOneMilli();
     HostResource host =
         persistResourceWithCommitLog(newHostResource("ns1.example.net"));

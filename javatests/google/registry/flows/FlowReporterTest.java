@@ -44,7 +44,7 @@ public class FlowReporterTest extends ShardableTestCase {
 
   static class TestCommandFlow implements Flow {
     @Override
-    public ResponseOrGreeting run() throws EppException {
+    public ResponseOrGreeting run() {
       return mock(EppResponse.class);
     }
   }
@@ -52,7 +52,7 @@ public class FlowReporterTest extends ShardableTestCase {
   @ReportingSpec(ActivityReportField.CONTACT_CHECK)
   static class TestReportingSpecCommandFlow implements Flow {
     @Override
-    public ResponseOrGreeting run() throws EppException {
+    public ResponseOrGreeting run() {
       return mock(EppResponse.class);
     }
   }

@@ -102,7 +102,7 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   private EppMetric.Builder eppMetricBuilder;
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     sessionMetadata = new HttpSessionMetadata(new FakeHttpSession());
     sessionMetadata.setClientId("TheRegistrar");
     sessionMetadata.setServiceExtensionUris(ProtocolDefinition.getVisibleServiceExtensionUris());
@@ -167,11 +167,11 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     }
   }
 
-  protected void assertNoHistory() throws Exception {
+  protected void assertNoHistory() {
     assertThat(ofy().load().type(HistoryEntry.class)).isEmpty();
   }
 
-  public <T> T getOnlyGlobalResource(Class<T> clazz) throws Exception {
+  public <T> T getOnlyGlobalResource(Class<T> clazz) {
     return Iterables.getOnlyElement(ofy().load().type(clazz));
   }
 
@@ -262,8 +262,8 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
   }
 
   /** Assert that the list matches all the poll messages in the fake Datastore. */
-  public void assertPollMessagesHelper(Iterable<PollMessage> pollMessages, PollMessage... expected)
-      throws Exception {
+  public void assertPollMessagesHelper(
+      Iterable<PollMessage> pollMessages, PollMessage... expected) {
     // Ordering is irrelevant but duplicates should be considered independently.
     assertThat(
             Streams.stream(pollMessages).map(POLL_MESSAGE_ID_STRIPPER).collect(toImmutableList()))

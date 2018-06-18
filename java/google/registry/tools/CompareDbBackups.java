@@ -22,7 +22,7 @@ import java.io.File;
 /** Compare two database backups. */
 class CompareDbBackups {
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
     if (args.length != 2) {
       System.err.println("Usage: compare_db_backups <directory1> <directory2>");
       return;

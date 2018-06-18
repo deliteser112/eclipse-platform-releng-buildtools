@@ -47,7 +47,7 @@ final class UpdateCursorsCommand extends MutatingCommand {
   private DateTime newTimestamp;
 
   @Override
-  protected void init() throws Exception {
+  protected void init() {
     if (isNullOrEmpty(tlds)) {
       Cursor cursor = ofy().load().key(Cursor.createGlobalKey(cursorType)).now();
       stageEntityChange(cursor, Cursor.createGlobal(cursorType, newTimestamp));

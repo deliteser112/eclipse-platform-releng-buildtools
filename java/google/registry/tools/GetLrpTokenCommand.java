@@ -47,7 +47,7 @@ public final class GetLrpTokenCommand implements RemoteApiCommand {
   private boolean includeHistory = false;
 
   @Override
-  public void run() throws Exception {
+  public void run() {
     checkArgument(
         (tokenString == null) == (assignee != null),
         "Exactly one of either token or assignee must be specified.");

@@ -22,7 +22,6 @@ import com.google.common.io.Resources;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.util.ResourceUtils;
 import google.registry.util.SqlTemplate;
-import java.io.IOException;
 import java.net.URL;
 import javax.inject.Inject;
 import org.joda.time.LocalDate;
@@ -51,7 +50,7 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
 
   /** Returns the aggregate query which generates the activity report from the saved view. */
   @Override
-  public String getReportQuery() throws IOException {
+  public String getReportQuery() {
     return String.format(
         "#standardSQL\nSELECT * FROM `%s.%s.%s`",
         projectId,
@@ -61,7 +60,7 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
 
   /** Sets the month we're doing activity reporting for, and returns the view query map. */
   @Override
-  public ImmutableMap<String, String> getViewQueryMap() throws IOException {
+  public ImmutableMap<String, String> getViewQueryMap() {
     LocalDate firstDayOfMonth = yearMonth.toLocalDate(1);
     // The pattern-matching is inclusive, so we subtract 1 day to only report that month's data.
     LocalDate lastDayOfMonth = yearMonth.toLocalDate(1).plusMonths(1).minusDays(1);
@@ -70,7 +69,7 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
 
   /** Returns a map from view name to its associated SQL query. */
   private ImmutableMap<String, String> createQueryMap(
-      LocalDate firstDayOfMonth, LocalDate lastDayOfMonth) throws IOException {
+      LocalDate firstDayOfMonth, LocalDate lastDayOfMonth) {
 
     ImmutableMap.Builder<String, String> queriesBuilder = ImmutableMap.builder();
     String operationalRegistrarsQuery =
@@ -141,7 +140,7 @@ public final class ActivityReportingQueryBuilder implements QueryBuilder {
   }
 
   /** Returns {@link String} for file in {@code reporting/sql/} directory. */
-  private static String getQueryFromFile(String filename) throws IOException {
+  private static String getQueryFromFile(String filename) {
     return ResourceUtils.readResourceUtf8(getUrl(filename));
   }
 

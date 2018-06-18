@@ -143,7 +143,7 @@ public class ShellCommandTest {
     public ArrayList<ImmutableList<String>> calls = new ArrayList<>();
 
     @Override
-    public void run(String[] args) throws Exception {
+    public void run(String[] args) {
       calls.add(ImmutableList.copyOf(args));
     }
   }
@@ -166,7 +166,7 @@ public class ShellCommandTest {
   }
 
   @Test
-  public void testNonExistentCommand() throws Exception {
+  public void testNonExistentCommand() {
     try (RegistryCli cli =
         new RegistryCli("unittest", ImmutableMap.of("test_command", TestCommand.class))) {
 
@@ -194,7 +194,7 @@ public class ShellCommandTest {
   }
 
   @Test
-  public void testCompletion_commands() throws Exception {
+  public void testCompletion_commands() {
     performJCommanderCompletorTest("", 0, "testCommand ", "testAnotherCommand ", "help ");
     performJCommanderCompletorTest("n", 1);
     performJCommanderCompletorTest("test", 4, "testCommand ", "testAnotherCommand ");
@@ -204,7 +204,7 @@ public class ShellCommandTest {
   }
 
   @Test
-  public void testCompletion_help() throws Exception {
+  public void testCompletion_help() {
     performJCommanderCompletorTest("h", 1, "help ");
     performJCommanderCompletorTest("help ", 0, "testCommand ", "testAnotherCommand ", "help ");
     performJCommanderCompletorTest("help testC", 5, "testCommand ");
@@ -212,7 +212,7 @@ public class ShellCommandTest {
   }
 
   @Test
-  public void testCompletion_documentation() throws Exception {
+  public void testCompletion_documentation() {
     performJCommanderCompletorTest(
         "testCommand ",
         0,
@@ -232,7 +232,7 @@ public class ShellCommandTest {
   }
 
   @Test
-  public void testCompletion_arguments() throws Exception {
+  public void testCompletion_arguments() {
     performJCommanderCompletorTest("testCommand -", 1, "-x ", "--xparam ", "--xorg ");
     performJCommanderCompletorTest("testCommand --wrong", 7);
     performJCommanderCompletorTest("testCommand noise  --", 2, "--xparam ", "--xorg ");
@@ -240,7 +240,7 @@ public class ShellCommandTest {
   }
 
   @Test
-  public void testCompletion_enum() throws Exception {
+  public void testCompletion_enum() {
     performJCommanderCompletorTest("testCommand --xorg P", 1, "PRIVATE ", "PUBLIC ");
     performJCommanderCompletorTest("testCommand --xorg PU", 2, "PUBLIC ");
     performJCommanderCompletorTest(
@@ -248,7 +248,7 @@ public class ShellCommandTest {
   }
 
   @Test
-  public void testEncapsulatedOutputStream_basicFuncionality() throws Exception {
+  public void testEncapsulatedOutputStream_basicFuncionality() {
     ByteArrayOutputStream backing = new ByteArrayOutputStream();
     PrintStream out = new PrintStream(new ShellCommand.EncapsulatingOutputStream(backing, "out: "));
     out.println("first line");
@@ -259,7 +259,7 @@ public class ShellCommandTest {
   }
 
   @Test
-  public void testEncapsulatedOutputStream_emptyStream() throws Exception {
+  public void testEncapsulatedOutputStream_emptyStream() {
     ByteArrayOutputStream backing = new ByteArrayOutputStream();
     PrintStream out = new PrintStream(new ShellCommand.EncapsulatingOutputStream(backing, "out: "));
     out.flush();

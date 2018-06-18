@@ -25,7 +25,7 @@ import org.junit.runners.JUnit4;
 public final class IssuerInfoTest {
 
   @Test
-  public void testDeadCodeWeDontWantToDelete() throws Exception {
+  public void testDeadCodeWeDontWantToDelete() {
     IssuerInfo mp = new IssuerInfo();
     mp.issuerId = "sloth";
     assertThat(mp.getIssuerId()).isEqualTo("sloth");

@@ -24,7 +24,7 @@ import org.junit.runners.JUnit4;
 public class BackendRequestComponentTest {
 
   @Test
-  public void testRoutingMap() throws Exception {
+  public void testRoutingMap() {
     GoldenFileTestHelper.assertThatRoutesFromComponent(BackendRequestComponent.class)
         .describedAs("backend routing map")
         .isEqualToGolden(BackendRequestComponentTest.class, "backend_routing.txt");

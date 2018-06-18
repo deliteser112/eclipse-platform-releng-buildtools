@@ -63,7 +63,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testFailure_noPasscodeOnChangeToReal() throws Exception {
+  public void testFailure_noPasscodeOnChangeToReal() {
     persistResource(
         loadRegistrar("NewRegistrar")
             .asBuilder()
@@ -217,7 +217,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testFailure_billingAccountMap_doesNotContainEntryForTldAllowed() throws Exception {
+  public void testFailure_billingAccountMap_doesNotContainEntryForTldAllowed() {
     createTlds("foo");
     assertThat(loadRegistrar("NewRegistrar").getBillingAccountMap()).isEmpty();
     IllegalArgumentException thrown =
@@ -270,7 +270,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testFailure_changeBillingMethodWhenBalanceIsNonZero() throws Exception {
+  public void testFailure_changeBillingMethodWhenBalanceIsNonZero() {
     createTlds("xn--q9jyb4c");
     Registrar registrar = loadRegistrar("NewRegistrar");
     persistResource(
@@ -470,83 +470,83 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testFailure_invalidRegistrarType() throws Exception {
+  public void testFailure_invalidRegistrarType() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--registrar_type=INVALID_TYPE", "--force", "NewRegistrar"));
   }
 
   @Test
-  public void testFailure_invalidRegistrarState() throws Exception {
+  public void testFailure_invalidRegistrarState() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--registrar_state=INVALID_STATE", "--force", "NewRegistrar"));
   }
 
   @Test
-  public void testFailure_negativeIanaId() throws Exception {
+  public void testFailure_negativeIanaId() {
     assertThrows(
         IllegalArgumentException.class,
         () -> runCommand("--iana_id=-1", "--force", "NewRegistrar"));
   }
 
   @Test
-  public void testFailure_nonIntegerIanaId() throws Exception {
+  public void testFailure_nonIntegerIanaId() {
     assertThrows(
         ParameterException.class, () -> runCommand("--iana_id=ABC123", "--force", "NewRegistrar"));
   }
 
   @Test
-  public void testFailure_negativeBillingId() throws Exception {
+  public void testFailure_negativeBillingId() {
     assertThrows(
         IllegalArgumentException.class,
         () -> runCommand("--billing_id=-1", "--force", "NewRegistrar"));
   }
 
   @Test
-  public void testFailure_nonIntegerBillingId() throws Exception {
+  public void testFailure_nonIntegerBillingId() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--billing_id=ABC123", "--force", "NewRegistrar"));
   }
 
   @Test
-  public void testFailure_passcodeTooShort() throws Exception {
+  public void testFailure_passcodeTooShort() {
     assertThrows(
         IllegalArgumentException.class,
         () -> runCommand("--passcode=0123", "--force", "NewRegistrar"));
   }
 
   @Test
-  public void testFailure_passcodeTooLong() throws Exception {
+  public void testFailure_passcodeTooLong() {
     assertThrows(
         IllegalArgumentException.class,
         () -> runCommand("--passcode=012345", "--force", "NewRegistrar"));
   }
 
   @Test
-  public void testFailure_invalidPasscode() throws Exception {
+  public void testFailure_invalidPasscode() {
     assertThrows(
         IllegalArgumentException.class,
         () -> runCommand("--passcode=code1", "--force", "NewRegistrar"));
   }
 
   @Test
-  public void testFailure_allowedTldDoesNotExist() throws Exception {
+  public void testFailure_allowedTldDoesNotExist() {
     assertThrows(
         IllegalArgumentException.class,
         () -> runCommand("--allowed_tlds=foobar", "--force", "NewRegistrar"));
   }
 
   @Test
-  public void testFailure_addAllowedTldDoesNotExist() throws Exception {
+  public void testFailure_addAllowedTldDoesNotExist() {
     assertThrows(
         IllegalArgumentException.class,
         () -> runCommand("--add_allowed_tlds=foobar", "--force", "NewRegistrar"));
   }
 
   @Test
-  public void testFailure_allowedTldsAndAddAllowedTlds() throws Exception {
+  public void testFailure_allowedTldsAndAddAllowedTlds() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -554,21 +554,21 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testFailure_invalidIpWhitelist() throws Exception {
+  public void testFailure_invalidIpWhitelist() {
     assertThrows(
         IllegalArgumentException.class,
         () -> runCommand("--ip_whitelist=foobarbaz", "--force", "NewRegistrar"));
   }
 
   @Test
-  public void testFailure_invalidCertFileContents() throws Exception {
+  public void testFailure_invalidCertFileContents() {
     assertThrows(
         Exception.class,
         () -> runCommand("--cert_file=" + writeToTmpFile("ABCDEF"), "--force", "NewRegistrar"));
   }
 
   @Test
-  public void testFailure_certHashAndCertFile() throws Exception {
+  public void testFailure_certHashAndCertFile() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -580,12 +580,12 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testFailure_missingClientId() throws Exception {
+  public void testFailure_missingClientId() {
     assertThrows(ParameterException.class, () -> runCommand("--force"));
   }
 
   @Test
-  public void testFailure_missingStreetLines() throws Exception {
+  public void testFailure_missingStreetLines() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -599,7 +599,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testFailure_missingCity() throws Exception {
+  public void testFailure_missingCity() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -615,7 +615,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testFailure_missingState() throws Exception {
+  public void testFailure_missingState() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -631,7 +631,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testFailure_missingZip() throws Exception {
+  public void testFailure_missingZip() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -647,7 +647,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testFailure_missingCc() throws Exception {
+  public void testFailure_missingCc() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -663,7 +663,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testFailure_missingInvalidCc() throws Exception {
+  public void testFailure_missingInvalidCc() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -680,7 +680,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testFailure_tooManyStreetLines() throws Exception {
+  public void testFailure_tooManyStreetLines() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -698,7 +698,7 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testFailure_tooFewStreetLines() throws Exception {
+  public void testFailure_tooFewStreetLines() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -713,21 +713,21 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
   }
 
   @Test
-  public void testFailure_unknownFlag() throws Exception {
+  public void testFailure_unknownFlag() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--force", "--unrecognized_flag=foo", "NewRegistrar"));
   }
 
   @Test
-  public void testFailure_doesNotExist() throws Exception {
+  public void testFailure_doesNotExist() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> runCommand("--force", "ClientZ"));
     assertThat(thrown).hasMessageThat().contains("Registrar ClientZ not found");
   }
 
   @Test
-  public void testFailure_registrarNameSimilarToExisting() throws Exception {
+  public void testFailure_registrarNameSimilarToExisting() {
     // Note that "tHeRe GiStRaR" normalizes identically to "The Registrar", which is created by
     // AppEngineRule.
     assertThrows(

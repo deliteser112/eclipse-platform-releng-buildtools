@@ -75,7 +75,7 @@ public class RefreshDnsOnHostRenameActionTest
   private final FakeClock clock = new FakeClock(DateTime.parse("2015-01-15T11:22:33Z"));
 
   @Before
-  public void setup() throws Exception {
+  public void setup() {
     createTld("tld");
     enqueuer =
         new AsyncFlowEnqueuer(

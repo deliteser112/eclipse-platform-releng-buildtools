@@ -46,7 +46,7 @@ public class CheckApiActionTest {
   final CheckApiAction action = new CheckApiAction();
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     createTld("example");
     persistResource(
         Registry.get("example")
@@ -70,42 +70,42 @@ public class CheckApiActionTest {
   }
 
   @Test
-  public void testFailure_nullDomain() throws Exception {
+  public void testFailure_nullDomain() {
     assertThat(getCheckResponse(null)).containsExactly(
         "status", "error",
         "reason", "Must supply a valid domain name on an authoritative TLD");
   }
 
   @Test
-  public void testFailure_emptyDomain() throws Exception {
+  public void testFailure_emptyDomain() {
     assertThat(getCheckResponse("")).containsExactly(
         "status", "error",
         "reason", "Must supply a valid domain name on an authoritative TLD");
   }
 
   @Test
-  public void testFailure_invalidDomain() throws Exception {
+  public void testFailure_invalidDomain() {
     assertThat(getCheckResponse("@#$%^")).containsExactly(
         "status", "error",
         "reason", "Must supply a valid domain name on an authoritative TLD");
   }
 
   @Test
-  public void testFailure_singlePartDomain() throws Exception {
+  public void testFailure_singlePartDomain() {
     assertThat(getCheckResponse("foo")).containsExactly(
         "status", "error",
         "reason", "Must supply a valid domain name on an authoritative TLD");
   }
 
   @Test
-  public void testFailure_nonExistentTld() throws Exception {
+  public void testFailure_nonExistentTld() {
     assertThat(getCheckResponse("foo.bar")).containsExactly(
         "status", "error",
         "reason", "Must supply a valid domain name on an authoritative TLD");
   }
 
   @Test
-  public void testFailure_unauthorizedTld() throws Exception {
+  public void testFailure_unauthorizedTld() {
     createTld("foo");
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of("foo")).build());
@@ -115,7 +115,7 @@ public class CheckApiActionTest {
   }
 
   @Test
-  public void testSuccess_availableStandard() throws Exception {
+  public void testSuccess_availableStandard() {
     assertThat(getCheckResponse("somedomain.example")).containsExactly(
         "status", "success",
         "available", true,
@@ -123,7 +123,7 @@ public class CheckApiActionTest {
   }
 
   @Test
-  public void testSuccess_availableCapital() throws Exception {
+  public void testSuccess_availableCapital() {
     assertThat(getCheckResponse("SOMEDOMAIN.EXAMPLE")).containsExactly(
         "status", "success",
         "available", true,
@@ -131,7 +131,7 @@ public class CheckApiActionTest {
   }
 
   @Test
-  public void testSuccess_availableUnicode() throws Exception {
+  public void testSuccess_availableUnicode() {
     assertThat(getCheckResponse("ééé.example")).containsExactly(
         "status", "success",
         "available", true,
@@ -139,7 +139,7 @@ public class CheckApiActionTest {
   }
 
   @Test
-  public void testSuccess_availablePunycode() throws Exception {
+  public void testSuccess_availablePunycode() {
     assertThat(getCheckResponse("xn--9caaa.example")).containsExactly(
         "status", "success",
         "available", true,
@@ -147,7 +147,7 @@ public class CheckApiActionTest {
   }
 
   @Test
-  public void testSuccess_availablePremium() throws Exception {
+  public void testSuccess_availablePremium() {
     assertThat(getCheckResponse("rich.example")).containsExactly(
         "status", "success",
         "available", true,
@@ -155,7 +155,7 @@ public class CheckApiActionTest {
   }
 
   @Test
-  public void testSuccess_alreadyRegistered() throws Exception {
+  public void testSuccess_alreadyRegistered() {
     persistActiveDomain("somedomain.example");
     assertThat(getCheckResponse("somedomain.example")).containsExactly(
         "status", "success",
@@ -164,7 +164,7 @@ public class CheckApiActionTest {
   }
 
   @Test
-  public void testSuccess_reserved() throws Exception {
+  public void testSuccess_reserved() {
     assertThat(getCheckResponse("foo.example")).containsExactly(
         "status", "success",
         "available", false,

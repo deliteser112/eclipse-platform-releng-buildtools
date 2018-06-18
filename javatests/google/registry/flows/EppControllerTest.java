@@ -133,7 +133,7 @@ public class EppControllerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testHandleEppCommand_unmarshallableData_exportsMetric() throws Exception {
+  public void testHandleEppCommand_unmarshallableData_exportsMetric() {
     eppController.handleEppCommand(
         sessionMetadata,
         transportCredentials,
@@ -154,7 +154,7 @@ public class EppControllerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testHandleEppCommand_regularEppCommand_exportsBigQueryMetric() throws Exception {
+  public void testHandleEppCommand_regularEppCommand_exportsBigQueryMetric() {
     eppController.handleEppCommand(
         sessionMetadata,
         transportCredentials,
@@ -176,7 +176,7 @@ public class EppControllerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testHandleEppCommand_regularEppCommand_exportsEppMetrics() throws Exception {
+  public void testHandleEppCommand_regularEppCommand_exportsEppMetrics() {
     createTld("tld");
     // Note that some of the EPP metric fields, like # of attempts and command name, are set in
     // FlowRunner, not EppController, and since FlowRunner is mocked out for these tests they won't
@@ -202,7 +202,7 @@ public class EppControllerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testHandleEppCommand_dryRunEppCommand_doesNotExportMetric() throws Exception {
+  public void testHandleEppCommand_dryRunEppCommand_doesNotExportMetric() {
     eppController.handleEppCommand(
         sessionMetadata,
         transportCredentials,

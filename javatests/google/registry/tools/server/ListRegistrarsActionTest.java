@@ -34,7 +34,7 @@ public class ListRegistrarsActionTest extends ListActionTestCase {
   ListRegistrarsAction action;
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     action = new ListRegistrarsAction();
     createTlds("xn--q9jyb4c", "example");
     // Ensure that NewRegistrar only has access to xn--q9jyb4c and that TheRegistrar only has access
@@ -52,7 +52,7 @@ public class ListRegistrarsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_noParameters() throws Exception {
+  public void testRun_noParameters() {
     testRunSuccess(
         action,
         Optional.empty(),
@@ -63,7 +63,7 @@ public class ListRegistrarsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_withParameters() throws Exception {
+  public void testRun_withParameters() {
     testRunSuccess(
         action,
         Optional.of("allowedTlds"),
@@ -76,7 +76,7 @@ public class ListRegistrarsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_withWildcard() throws Exception {
+  public void testRun_withWildcard() {
     testRunSuccess(
         action,
         Optional.of("*"),
@@ -89,7 +89,7 @@ public class ListRegistrarsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_withBadField_returnsError() throws Exception {
+  public void testRun_withBadField_returnsError() {
     testRunError(
         action,
         Optional.of("badfield"),

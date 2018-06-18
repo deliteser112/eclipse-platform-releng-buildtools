@@ -26,7 +26,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class FormFieldExceptionTest {
   @Test
-  public void testGetFieldName_multiplePropagations_joinsUsingJsonNotation() throws Exception {
+  public void testGetFieldName_multiplePropagations_joinsUsingJsonNotation() {
     assertThat(
         new FormFieldException("This field is required.")
             .propagate("attack")
@@ -38,7 +38,7 @@ public class FormFieldExceptionTest {
   }
 
   @Test
-  public void testGetFieldName_singlePropagations_noFancyJoining() throws Exception {
+  public void testGetFieldName_singlePropagations_noFancyJoining() {
     assertThat(
         new FormFieldException("This field is required.")
             .propagate("cat")
@@ -47,7 +47,7 @@ public class FormFieldExceptionTest {
   }
 
   @Test
-  public void testGetFieldName_noPropagations_throwsIse() throws Exception {
+  public void testGetFieldName_noPropagations_throwsIse() {
     assertThrows(
         IllegalStateException.class,
         () -> new FormFieldException("This field is required.").getFieldName());

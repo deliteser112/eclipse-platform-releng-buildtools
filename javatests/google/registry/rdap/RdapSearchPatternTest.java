@@ -27,7 +27,7 @@ import org.junit.runners.JUnit4;
 public class RdapSearchPatternTest {
 
   @Test
-  public void testNoWildcards_ok() throws Exception {
+  public void testNoWildcards_ok() {
     RdapSearchPattern rdapSearchPattern = RdapSearchPattern.create("example.lol", true);
     assertThat(rdapSearchPattern.getInitialString()).isEqualTo("example.lol");
     assertThat(rdapSearchPattern.getHasWildcard()).isFalse();
@@ -35,7 +35,7 @@ public class RdapSearchPatternTest {
   }
 
   @Test
-  public void testWildcardNoTld_ok() throws Exception {
+  public void testWildcardNoTld_ok() {
     RdapSearchPattern rdapSearchPattern = RdapSearchPattern.create("exam*", true);
     assertThat(rdapSearchPattern.getInitialString()).isEqualTo("exam");
     assertThat(rdapSearchPattern.getHasWildcard()).isTrue();
@@ -43,7 +43,7 @@ public class RdapSearchPatternTest {
   }
 
   @Test
-  public void testWildcardTld_ok() throws Exception {
+  public void testWildcardTld_ok() {
     RdapSearchPattern rdapSearchPattern = RdapSearchPattern.create("exam*.lol", true);
     assertThat(rdapSearchPattern.getInitialString()).isEqualTo("exam");
     assertThat(rdapSearchPattern.getHasWildcard()).isTrue();
@@ -51,24 +51,24 @@ public class RdapSearchPatternTest {
   }
 
   @Test
-  public void testMultipleWildcards_unprocessable() throws Exception {
+  public void testMultipleWildcards_unprocessable() {
     assertThrows(
         UnprocessableEntityException.class, () -> RdapSearchPattern.create("ex*am*.lol", true));
   }
 
   @Test
-  public void testWildcardNotAtEnd_unprocessable() throws Exception {
+  public void testWildcardNotAtEnd_unprocessable() {
     assertThrows(UnprocessableEntityException.class, () -> RdapSearchPattern.create("ex*am", true));
   }
 
   @Test
-  public void testWildcardNotAtEndWithTld_unprocessable() throws Exception {
+  public void testWildcardNotAtEndWithTld_unprocessable() {
     assertThrows(
         UnprocessableEntityException.class, () -> RdapSearchPattern.create("ex*am.lol", true));
   }
 
   @Test
-  public void testShortString_ok() throws Exception {
+  public void testShortString_ok() {
     RdapSearchPattern rdapSearchPattern = RdapSearchPattern.create("e", true);
     assertThat(rdapSearchPattern.getInitialString()).isEqualTo("e");
     assertThat(rdapSearchPattern.getHasWildcard()).isFalse();
@@ -76,25 +76,25 @@ public class RdapSearchPatternTest {
   }
 
   @Test
-  public void testZeroLengthSuffix_unprocessable() throws Exception {
+  public void testZeroLengthSuffix_unprocessable() {
     assertThrows(
         UnprocessableEntityException.class, () -> RdapSearchPattern.create("exam*.", true));
   }
 
   @Test
-  public void testDisallowedSuffix_unprocessable() throws Exception {
+  public void testDisallowedSuffix_unprocessable() {
     assertThrows(
         UnprocessableEntityException.class, () -> RdapSearchPattern.create("exam*.lol", false));
   }
 
   @Test
-  public void testNextInitialString_alpha() throws Exception {
+  public void testNextInitialString_alpha() {
     RdapSearchPattern rdapSearchPattern = RdapSearchPattern.create("exam*.lol", true);
     assertThat(rdapSearchPattern.getNextInitialString()).isEqualTo("exan");
   }
 
   @Test
-  public void testNextInitialString_unicode() throws Exception {
+  public void testNextInitialString_unicode() {
     RdapSearchPattern rdapSearchPattern = RdapSearchPattern.create("cat.みんな", true);
     assertThat(rdapSearchPattern.getNextInitialString()).isEqualTo("cat.みんに");
   }

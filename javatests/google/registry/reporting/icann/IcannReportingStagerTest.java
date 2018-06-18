@@ -35,10 +35,8 @@ import google.registry.gcs.GcsUtils;
 import google.registry.reporting.icann.IcannReportingModule.ReportType;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeResponse;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.joda.time.YearMonth;
 import org.junit.Rule;
 import org.junit.Test;
@@ -198,13 +196,12 @@ public class IcannReportingStagerTest {
       }
 
       @Override
-      public DestinationTable get() throws InterruptedException, ExecutionException {
+      public DestinationTable get() {
         return null;
       }
 
       @Override
-      public DestinationTable get(long timeout, TimeUnit unit)
-          throws InterruptedException, ExecutionException, TimeoutException {
+      public DestinationTable get(long timeout, TimeUnit unit) {
         return null;
       }
     };

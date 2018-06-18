@@ -128,7 +128,7 @@ public class BillingEmailUtilsTest {
           private int count = 0;
 
           @Override
-          public Message answer(InvocationOnMock invocation) throws Throwable {
+          public Message answer(InvocationOnMock invocation) {
             // Once we've failed the retry limit for the original invoice, return a normal message
             // so we can properly check its contents.
             if (count < RETRY_COUNT) {

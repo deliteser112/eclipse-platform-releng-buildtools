@@ -79,7 +79,7 @@ public class GetContactCommandTest extends CommandTestCase<GetContactCommand> {
   }
 
   @Test
-  public void testFailure_noContact() throws Exception {
+  public void testFailure_noContact() {
     assertThrows(ParameterException.class, this::runCommand);
   }
 

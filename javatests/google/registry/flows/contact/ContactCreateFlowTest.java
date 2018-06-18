@@ -86,7 +86,7 @@ public class ContactCreateFlowTest
   }
 
   @Test
-  public void testFailure_nonAsciiInIntAddress() throws Exception {
+  public void testFailure_nonAsciiInIntAddress() {
     setEppInput("contact_create_hebrew_int.xml");
     EppException thrown =
         assertThrows(BadInternationalizedPostalInfoException.class, this::runFlow);
@@ -94,7 +94,7 @@ public class ContactCreateFlowTest
   }
 
   @Test
-  public void testFailure_declineDisclosure() throws Exception {
+  public void testFailure_declineDisclosure() {
     setEppInput("contact_create_decline_disclosure.xml");
     EppException thrown =
         assertThrows(DeclineContactDisclosureFieldDisallowedPolicyException.class, this::runFlow);

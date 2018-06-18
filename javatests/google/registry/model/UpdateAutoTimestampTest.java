@@ -45,7 +45,7 @@ public class UpdateAutoTimestampTest {
   }
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     ObjectifyService.register(TestObject.class);
   }
 
@@ -54,7 +54,7 @@ public class UpdateAutoTimestampTest {
   }
 
   @Test
-  public void testSaveSetsTime() throws Exception {
+  public void testSaveSetsTime() {
     DateTime transactionTime =
         ofy()
             .transact(
@@ -69,7 +69,7 @@ public class UpdateAutoTimestampTest {
   }
 
   @Test
-  public void testResavingOverwritesOriginalTime() throws Exception {
+  public void testResavingOverwritesOriginalTime() {
     DateTime transactionTime =
         ofy()
             .transact(

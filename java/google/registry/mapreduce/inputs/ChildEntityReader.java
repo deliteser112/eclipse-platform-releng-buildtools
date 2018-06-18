@@ -193,7 +193,7 @@ class ChildEntityReader<R extends EppResource, I extends ImmutableObject> extend
   }
 
   @Override
-  public void beginShard() throws IOException {
+  public void beginShard() {
     eppResourceEntityReader.beginShard();
   }
 

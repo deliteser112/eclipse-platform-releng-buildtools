@@ -34,7 +34,7 @@ public class CheckSnapshotCommand implements RemoteApiCommand {
   private String snapshotName;
 
   @Override
-  public void run() throws Exception {
+  public void run() {
     Iterable<DatastoreBackupInfo> backups =
         DatastoreBackupService.get().findAllByNamePrefix(snapshotName);
     if (Iterables.isEmpty(backups)) {

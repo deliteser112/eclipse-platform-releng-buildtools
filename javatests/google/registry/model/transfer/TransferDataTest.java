@@ -58,7 +58,7 @@ public class TransferDataTest {
   }
 
   @Test
-  public void test_copyConstantFieldsToBuilder() throws Exception {
+  public void test_copyConstantFieldsToBuilder() {
     TransferData constantTransferData =
         new TransferData.Builder()
             .setTransferRequestTrid(Trid.create("server-trid", "client-trid"))

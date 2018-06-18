@@ -43,7 +43,7 @@ import org.junit.runners.JUnit4;
 public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
 
   @Test
-  public void testPost_updateCert_success() throws Exception {
+  public void testPost_updateCert_success() {
     Registrar modified =
         loadRegistrar(CLIENT_ID)
             .asBuilder()
@@ -64,7 +64,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testPost_updateCert_failure() throws Exception {
+  public void testPost_updateCert_failure() {
     Map<String, Object> reqJson = loadRegistrar(CLIENT_ID).toJsonMap();
     reqJson.put("clientCertificate", "BLAH");
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
@@ -75,7 +75,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testChangeCertificates() throws Exception {
+  public void testChangeCertificates() {
     Map<String, Object> jsonMap = loadRegistrar(CLIENT_ID).toJsonMap();
     jsonMap.put("clientCertificate", SAMPLE_CERT);
     jsonMap.put("failoverClientCertificate", null);
@@ -90,7 +90,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testChangeFailoverCertificate() throws Exception {
+  public void testChangeFailoverCertificate() {
     Map<String, Object> jsonMap = loadRegistrar(CLIENT_ID).toJsonMap();
     jsonMap.put("failoverClientCertificate", SAMPLE_CERT2);
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
@@ -102,7 +102,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testEmptyOrNullCertificate_doesNotClearOutCurrentOne() throws Exception {
+  public void testEmptyOrNullCertificate_doesNotClearOutCurrentOne() {
     Registrar initialRegistrar =
         persistResource(
             loadRegistrar(CLIENT_ID)
@@ -126,7 +126,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testToJsonMap_containsCertificate() throws Exception {
+  public void testToJsonMap_containsCertificate() {
     Map<String, Object> jsonMap =
         loadRegistrar(CLIENT_ID)
             .asBuilder()
@@ -138,7 +138,7 @@ public class SecuritySettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testToJsonMap_containsFailoverCertificate() throws Exception {
+  public void testToJsonMap_containsFailoverCertificate() {
     Map<String, Object> jsonMap =
         loadRegistrar(CLIENT_ID)
             .asBuilder()

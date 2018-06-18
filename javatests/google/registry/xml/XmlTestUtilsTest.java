@@ -36,7 +36,7 @@ public class XmlTestUtilsTest {
   }
 
   @Test
-  public void testInequality() throws Exception {
+  public void testInequality() {
     assertThrows(
         AssertionError.class, () -> runTest("simple.xml", "twoextensions_feeThenLaunch.xml"));
   }
@@ -47,7 +47,7 @@ public class XmlTestUtilsTest {
   }
 
   @Test
-  public void testMultipleElementsInDifferentNamespaces_differentValues() throws Exception {
+  public void testMultipleElementsInDifferentNamespaces_differentValues() {
     assertThrows(
         AssertionError.class,
         () -> runTest("twoextensions_feeThenLaunch.xml", "twoextensions_feeThenLaunch2.xml"));

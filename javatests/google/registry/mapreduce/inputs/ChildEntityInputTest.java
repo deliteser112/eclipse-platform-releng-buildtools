@@ -187,7 +187,7 @@ public class ChildEntityInputTest {
   }
 
   @Test
-  public void testSuccess_childEntityInput_polymorphicBaseType() throws Exception {
+  public void testSuccess_childEntityInput_polymorphicBaseType() {
     createChildEntityInput(ImmutableSet.of(EppResource.class), ImmutableSet.of(BillingEvent.class));
   }
 

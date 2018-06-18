@@ -191,8 +191,7 @@ public class RdeContactReaderTest {
 
   /** Verifies that contact id and ROID match expected values */
   private void checkContact(
-      JaxbFragment<XjcRdeContactElement> fragment, String contactId, String repoId)
-      throws Exception {
+      JaxbFragment<XjcRdeContactElement> fragment, String contactId, String repoId) {
     assertThat(fragment).isNotNull();
     XjcRdeContact contact = fragment.getInstance().getValue();
     assertThat(contact.getId()).isEqualTo(contactId);

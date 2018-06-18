@@ -28,7 +28,7 @@ import org.junit.runners.JUnit4;
 public class HexDumperTest {
 
   @Test
-  public void testEmpty() throws Exception {
+  public void testEmpty() {
     String input = "";
     String output = "[0 bytes total]\n";
     assertThat(input).isEmpty();
@@ -36,7 +36,7 @@ public class HexDumperTest {
   }
 
   @Test
-  public void testOneLine() throws Exception {
+  public void testOneLine() {
     String input = "hello world";
     String output = "[11 bytes total]\n"
         + "00000000  68 65 6c 6c  6f 20 77 6f  72 6c 64                  hello world     \n";
@@ -45,7 +45,7 @@ public class HexDumperTest {
   }
 
   @Test
-  public void testMultiLine() throws Exception {
+  public void testMultiLine() {
     String input = ""
         + "\n"
         + "Maids heard the goblins cry:\n"
@@ -63,7 +63,7 @@ public class HexDumperTest {
   }
 
   @Test
-  public void testFullLine() throws Exception {
+  public void testFullLine() {
     String input = "hello worldddddd";
     String output = "[16 bytes total]\n"
         + "00000000  68 65 6c 6c  6f 20 77 6f  72 6c 64 64  64 64 64 64  hello worldddddd\n";
@@ -72,7 +72,7 @@ public class HexDumperTest {
   }
 
   @Test
-  public void testUnicode() throws Exception {
+  public void testUnicode() {
     String input = "(◕‿◕)";
     String output = "[11 bytes total]\n"
         + "00000000  28 e2 97 95  e2 80 bf e2  97 95 29                  (.........)     \n";
@@ -81,7 +81,7 @@ public class HexDumperTest {
   }
 
   @Test
-  public void testRainbow() throws Exception {
+  public void testRainbow() {
     byte[] input = new byte[256];
     for (int n = 0; n < 256; ++n) {
       input[n] = (byte) n;
@@ -151,7 +151,7 @@ public class HexDumperTest {
   }
 
   @Test
-  public void testPerLineIsOne() throws Exception {
+  public void testPerLineIsOne() {
     String input = "hello";
     String output = "[5 bytes total]\n"
         + "00000000  68  h\n"
@@ -163,32 +163,32 @@ public class HexDumperTest {
   }
 
   @Test
-  public void testBadArgumentPerLineZero() throws Exception {
+  public void testBadArgumentPerLineZero() {
     HexDumper.dumpHex(new byte[1], 1, 0);
     assertThrows(IllegalArgumentException.class, () -> HexDumper.dumpHex(new byte[1], 0, 0));
   }
 
   @Test
-  public void testBadArgumentPerLineNegative() throws Exception {
+  public void testBadArgumentPerLineNegative() {
     HexDumper.dumpHex(new byte[1], 1, 0);
     assertThrows(IllegalArgumentException.class, () -> HexDumper.dumpHex(new byte[1], -1, 0));
   }
 
   @Test
-  public void testBadArgumentPerGroupNegative() throws Exception {
+  public void testBadArgumentPerGroupNegative() {
     HexDumper.dumpHex(new byte[1], 1, 0);
     assertThrows(IllegalArgumentException.class, () -> HexDumper.dumpHex(new byte[1], 1, -1));
   }
 
   @Test
-  public void testBadArgumentPerGroupGreaterThanOrEqualToPerLine() throws Exception {
+  public void testBadArgumentPerGroupGreaterThanOrEqualToPerLine() {
     HexDumper.dumpHex(new byte[1], 1, 0);
     HexDumper.dumpHex(new byte[1], 2, 1);
     assertThrows(IllegalArgumentException.class, () -> HexDumper.dumpHex(new byte[1], 1, 1));
   }
 
   @Test
-  public void testBadArgumentBytesIsNull() throws Exception {
+  public void testBadArgumentBytesIsNull() {
     HexDumper.dumpHex(new byte[1]);
     assertThrows(NullPointerException.class, () -> HexDumper.dumpHex(null));
   }

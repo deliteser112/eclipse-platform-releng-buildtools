@@ -71,7 +71,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
   }
 
   @Test
-  public void test_verifyToken_failsOnNonexistentToken() throws Exception {
+  public void test_verifyToken_failsOnNonexistentToken() {
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
     EppException thrown =
@@ -88,7 +88,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
   }
 
   @Test
-  public void test_verifyToken_callsCustomLogic() throws Exception {
+  public void test_verifyToken_callsCustomLogic() {
     persistResource(new AllocationToken.Builder().setToken("tokeN").build());
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new FailingAllocationTokenCustomLogic());
@@ -106,7 +106,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
   }
 
   @Test
-  public void test_checkDomainsWithToken_successfullyVerifiesValidToken() throws Exception {
+  public void test_checkDomainsWithToken_successfullyVerifiesValidToken() {
     persistResource(new AllocationToken.Builder().setToken("tokeN").build());
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new AllocationTokenCustomLogic());
@@ -124,7 +124,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
   }
 
   @Test
-  public void test_checkDomainsWithToken_showsFailureMessageForRedeemedToken() throws Exception {
+  public void test_checkDomainsWithToken_showsFailureMessageForRedeemedToken() {
     persistResource(
         new AllocationToken.Builder()
             .setToken("tokeN")
@@ -149,7 +149,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
   }
 
   @Test
-  public void test_checkDomainsWithToken_callsCustomLogic() throws Exception {
+  public void test_checkDomainsWithToken_callsCustomLogic() {
     persistResource(new AllocationToken.Builder().setToken("tokeN").build());
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new FailingAllocationTokenCustomLogic());
@@ -167,7 +167,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
   }
 
   @Test
-  public void test_checkDomainsWithToken_resultsFromCustomLogicAreIntegrated() throws Exception {
+  public void test_checkDomainsWithToken_resultsFromCustomLogicAreIntegrated() {
     persistResource(new AllocationToken.Builder().setToken("tokeN").build());
     AllocationTokenFlowUtils flowUtils =
         new AllocationTokenFlowUtils(new CustomResultAllocationTokenCustomLogic());
@@ -202,8 +202,7 @@ public class AllocationTokenFlowUtilsTest extends ShardableTestCase {
         AllocationToken token,
         Registry registry,
         String clientId,
-        DateTime now)
-        throws EppException {
+        DateTime now) {
       throw new IllegalStateException("failed for tests");
     }
 

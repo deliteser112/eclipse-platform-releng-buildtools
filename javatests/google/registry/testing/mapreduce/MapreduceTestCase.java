@@ -80,7 +80,7 @@ public abstract class MapreduceTestCase<T> extends ShardableTestCase {
       .build();
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     taskQueue = LocalTaskQueueTestConfig.getLocalTaskQueue();
     ApiProxyLocal proxy = (ApiProxyLocal) ApiProxy.getDelegate();
     // Creating files is not allowed in some test execution environments, so don't.

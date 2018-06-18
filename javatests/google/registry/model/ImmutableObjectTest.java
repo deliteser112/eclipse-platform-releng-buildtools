@@ -71,7 +71,7 @@ public class ImmutableObjectTest {
   }
 
   @Test
-  public void testToString_simpleClass() throws Exception {
+  public void testToString_simpleClass() {
     SimpleObject object = new SimpleObject("foo", null);
     assertThat(object.toString()).isEqualTo(""
         + "SimpleObject (@" + System.identityHashCode(object) + "): {\n"
@@ -81,7 +81,7 @@ public class ImmutableObjectTest {
   }
 
   @Test
-  public void testToDiffableFieldMap_simpleClass() throws Exception {
+  public void testToDiffableFieldMap_simpleClass() {
     SimpleObject object = new SimpleObject("foo", null);
     assertThat(object.toDiffableFieldMap()).containsEntry("a", "foo");
     assertThat(object.toDiffableFieldMap()).containsEntry("b", null);
@@ -97,7 +97,7 @@ public class ImmutableObjectTest {
   }
 
   @Test
-  public void testToDiffableFieldMap_typesClass() throws Exception {
+  public void testToDiffableFieldMap_typesClass() {
     TypesObject object = new TypesObject();
     object.bool = true;
     object.boolObject = true;
@@ -121,7 +121,7 @@ public class ImmutableObjectTest {
   }
 
   @Test
-  public void testToDiffableFieldMap_nestedObjectClass() throws Exception {
+  public void testToDiffableFieldMap_nestedObjectClass() {
     SimpleObject innermostObject = new SimpleObject("foo", "bar");
     NestedObject innerObject = new NestedObject(innermostObject);
     NestedObject object = new NestedObject(innerObject);
@@ -140,7 +140,7 @@ public class ImmutableObjectTest {
   }
 
   @Test
-  public void testToDiffableFieldMap_nestedObjectCollectionsClass() throws Exception {
+  public void testToDiffableFieldMap_nestedObjectCollectionsClass() {
     SimpleObject obj1 = new SimpleObject("foo", "bar");
     SimpleObject obj2 = new SimpleObject("bax", "bar");
     Map<?, ?> obj1map = obj1.toDiffableFieldMap();
@@ -169,13 +169,13 @@ public class ImmutableObjectTest {
   }
 
   @Test
-  public void testToDiffableFieldMap_iterableField_notExpanded() throws Exception {
+  public void testToDiffableFieldMap_iterableField_notExpanded() {
     IterableObject iterableObject = new IterableObject(new CidrAddressBlock("127.0.0.1/32"));
     assertThat(iterableObject.toDiffableFieldMap()).containsEntry("iterable", "127.0.0.1/32");
   }
 
   @Test
-  public void testToDiffableFieldMap_infiniteIterableField_notExpanded() throws Exception {
+  public void testToDiffableFieldMap_infiniteIterableField_notExpanded() {
     IterableObject iterableObject = new IterableObject(Iterables.cycle("na"));
     assertThat(iterableObject.toDiffableFieldMap()).containsEntry("iterable", "[na] (cycled)");
   }

@@ -150,7 +150,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     setEppInput("domain_create_sunrise_encoded_signed_mark.xml");
     createTld("tld", TldState.SUNRISE);
     persistResource(Registry.get("tld").asBuilder().setReservedLists(createReservedList()).build());
@@ -250,7 +250,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_signedMarkCorrupt() throws Exception {
+  public void testFailure_signedMarkCorrupt() {
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_sunrush_encoded_signed_mark_corrupt.xml");
     persistContactsAndHosts();
@@ -260,7 +260,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_signedMarkCertificateRevoked() throws Exception {
+  public void testFailure_signedMarkCertificateRevoked() {
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_sunrush_encoded_signed_mark_revoked_cert.xml");
     persistContactsAndHosts();
@@ -270,7 +270,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_signedMarkCertificateExpired() throws Exception {
+  public void testFailure_signedMarkCertificateExpired() {
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_sunrush_encoded_signed_mark.xml");
     persistContactsAndHosts();
@@ -282,7 +282,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_signedMarkCertificateNotYetValid() throws Exception {
+  public void testFailure_signedMarkCertificateNotYetValid() {
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_sunrush_encoded_signed_mark.xml");
     persistContactsAndHosts();
@@ -294,7 +294,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_signedMarkCertificateCorrupt() throws Exception {
+  public void testFailure_signedMarkCertificateCorrupt() {
     useTmchProdCert();
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_sunrush_encoded_signed_mark_certificate_corrupt.xml");
@@ -314,7 +314,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_signedMarkCertificateSignature() throws Exception {
+  public void testFailure_signedMarkCertificateSignature() {
     useTmchProdCert();
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_sunrush_encoded_signed_mark.xml");
@@ -326,7 +326,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_signedMarkSignature() throws Exception {
+  public void testFailure_signedMarkSignature() {
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_sunrush_encoded_signed_mark_signature_corrupt.xml");
     persistContactsAndHosts();
@@ -408,7 +408,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushApplicationReservedAllowedInSunrise() throws Exception {
+  public void testFailure_landrushApplicationReservedAllowedInSunrise() {
     createTld("tld", TldState.SUNRUSH);
     persistResource(
         Registry.get("tld")
@@ -423,7 +423,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushApplicationPremiumBlocked() throws Exception {
+  public void testFailure_landrushApplicationPremiumBlocked() {
     createTld("example", TldState.SUNRUSH);
     setEppInput("domain_create_landrush_premium.xml");
     persistContactsAndHosts();
@@ -435,8 +435,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushFeeNotProvidedOnPremiumName_whenRegistryRequiresFeeAcking()
-      throws Exception {
+  public void testFailure_landrushFeeNotProvidedOnPremiumName_whenRegistryRequiresFeeAcking() {
     createTld("example", TldState.SUNRUSH);
     setEppInput("domain_create_landrush_premium.xml");
     persistContactsAndHosts();
@@ -446,8 +445,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushFeeNotProvidedOnPremiumName_whenRegistrarRequiresFeeAcking()
-      throws Exception {
+  public void testFailure_landrushFeeNotProvidedOnPremiumName_whenRegistrarRequiresFeeAcking() {
     createTld("example", TldState.SUNRUSH);
     persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
     persistResource(
@@ -561,7 +559,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushApplicationWithRefundableFee_v06() throws Exception {
+  public void testFailure_landrushApplicationWithRefundableFee_v06() {
     createTld("tld", TldState.LANDRUSH);
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -571,7 +569,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushApplicationWithRefundableFee_v11() throws Exception {
+  public void testFailure_landrushApplicationWithRefundableFee_v11() {
     createTld("tld", TldState.LANDRUSH);
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -582,7 +580,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushApplicationWithRefundableFee_v12() throws Exception {
+  public void testFailure_landrushApplicationWithRefundableFee_v12() {
     createTld("tld", TldState.LANDRUSH);
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -593,7 +591,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushApplicationWithGracePeriodFee_v06() throws Exception {
+  public void testFailure_landrushApplicationWithGracePeriodFee_v06() {
     createTld("tld", TldState.LANDRUSH);
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -604,7 +602,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushApplicationWithGracePeriodFee_v11() throws Exception {
+  public void testFailure_landrushApplicationWithGracePeriodFee_v11() {
     createTld("tld", TldState.LANDRUSH);
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -615,7 +613,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushApplicationWithGracePeriodFee_v12() throws Exception {
+  public void testFailure_landrushApplicationWithGracePeriodFee_v12() {
     createTld("tld", TldState.LANDRUSH);
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -626,7 +624,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushApplicationWithAppliedFee_v06() throws Exception {
+  public void testFailure_landrushApplicationWithAppliedFee_v06() {
     createTld("tld", TldState.LANDRUSH);
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -636,7 +634,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushApplicationWithAppliedFee_v11() throws Exception {
+  public void testFailure_landrushApplicationWithAppliedFee_v11() {
     createTld("tld", TldState.LANDRUSH);
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -646,7 +644,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushApplicationWithAppliedFee_v12() throws Exception {
+  public void testFailure_landrushApplicationWithAppliedFee_v12() {
     createTld("tld", TldState.LANDRUSH);
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -757,7 +755,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_missingMarks() throws Exception {
+  public void testFailure_missingMarks() {
     setEppInput("domain_create_sunrise_without_marks.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -767,7 +765,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_suspendedRegistrarCantCreateDomainApplication() throws Exception {
+  public void testFailure_suspendedRegistrarCantCreateDomainApplication() {
     setEppInput("domain_create_sunrise_encoded_signed_mark.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -784,7 +782,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_sunriseApplicationInLandrush() throws Exception {
+  public void testFailure_sunriseApplicationInLandrush() {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_landrush_signed_mark.xml");
     persistContactsAndHosts();
@@ -795,7 +793,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_smdRevoked() throws Exception {
+  public void testFailure_smdRevoked() {
     SignedMarkRevocationList.create(clock.nowUtc(), ImmutableMap.of(SMD_ID, clock.nowUtc())).save();
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -804,7 +802,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_tooManyNameservers() throws Exception {
+  public void testFailure_tooManyNameservers() {
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_sunrush_14_nameservers.xml");
     persistContactsAndHosts();
@@ -814,7 +812,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_secDnsMaxSigLife() throws Exception {
+  public void testFailure_secDnsMaxSigLife() {
     setEppInput("domain_create_sunrise_with_secdns_maxsiglife.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -823,7 +821,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_secDnsTooManyDsRecords() throws Exception {
+  public void testFailure_secDnsTooManyDsRecords() {
     setEppInput("domain_create_sunrise_signed_mark_with_secdns_9_records.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -832,7 +830,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_wrongExtension() throws Exception {
+  public void testFailure_wrongExtension() {
     setEppInput("domain_create_sunrise_wrong_extension.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -841,7 +839,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_reserved() throws Exception {
+  public void testFailure_reserved() {
     setEppInput("domain_create_sunrise_signed_mark_reserved.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -981,7 +979,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushLrpApplication_badToken() throws Exception {
+  public void testFailure_landrushLrpApplication_badToken() {
     createTld("tld", TldState.LANDRUSH);
     persistResource(
         Registry.get("tld")
@@ -1002,7 +1000,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushLrpApplication_tokenForWrongTld() throws Exception {
+  public void testFailure_landrushLrpApplication_tokenForWrongTld() {
     createTld("tld", TldState.LANDRUSH);
     persistResource(
         Registry.get("tld")
@@ -1026,7 +1024,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushLrpApplication_usedToken() throws Exception {
+  public void testFailure_landrushLrpApplication_usedToken() {
     createTld("tld", TldState.LANDRUSH);
     persistResource(
         Registry.get("tld")
@@ -1095,7 +1093,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrush_duringLrpWithMissingToken() throws Exception {
+  public void testFailure_landrush_duringLrpWithMissingToken() {
     createTld("tld", TldState.LANDRUSH);
     persistResource(
         Registry.get("tld")
@@ -1110,7 +1108,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_landrushWithPeriodInMonths() throws Exception {
+  public void testFailure_landrushWithPeriodInMonths() {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_landrush_months.xml");
     persistContactsAndHosts();
@@ -1120,7 +1118,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_missingHost() throws Exception {
+  public void testFailure_missingHost() {
     persistActiveHost("ns1.example.net");
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
@@ -1130,7 +1128,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_missingContact() throws Exception {
+  public void testFailure_missingContact() {
     persistActiveHost("ns1.example.net");
     persistActiveHost("ns2.example.net");
     persistActiveContact("jd1234");
@@ -1140,7 +1138,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_wrongTld() throws Exception {
+  public void testFailure_wrongTld() {
     deleteTld("tld");
     createTld("foo", TldState.SUNRISE);
     persistContactsAndHosts();
@@ -1150,7 +1148,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_predelegation() throws Exception {
+  public void testFailure_predelegation() {
     createTld("tld", TldState.PREDELEGATION);
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1159,7 +1157,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_notAuthorizedForTld() throws Exception {
+  public void testFailure_notAuthorizedForTld() {
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistContactsAndHosts();
@@ -1168,7 +1166,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_sunrush() throws Exception {
+  public void testFailure_sunrush() {
     createTld("tld", TldState.SUNRUSH);
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1177,7 +1175,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_quietPeriod() throws Exception {
+  public void testFailure_quietPeriod() {
     createTld("tld", TldState.QUIET_PERIOD);
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1186,7 +1184,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_generalAvailability() throws Exception {
+  public void testFailure_generalAvailability() {
     createTld("tld", TldState.GENERAL_AVAILABILITY);
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1195,7 +1193,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_startDateSunrise() throws Exception {
+  public void testFailure_startDateSunrise() {
     createTld("tld", TldState.START_DATE_SUNRISE);
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1204,7 +1202,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_wrongDeclaredPhase() throws Exception {
+  public void testFailure_wrongDeclaredPhase() {
     setEppInput("domain_create_landrush_signed_mark.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1270,7 +1268,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_duplicateContact() throws Exception {
+  public void testFailure_duplicateContact() {
     setEppInput("domain_create_sunrise_duplicate_contact.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1279,7 +1277,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_missingContactType() throws Exception {
+  public void testFailure_missingContactType() {
     setEppInput("domain_create_sunrise_missing_contact_type.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1289,7 +1287,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_noMatchingMarks() throws Exception {
+  public void testFailure_noMatchingMarks() {
     setEppInput("domain_create_sunrise_no_matching_marks.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1298,7 +1296,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_beforeMarkCreationTime() throws Exception {
+  public void testFailure_beforeMarkCreationTime() {
     // If we move now back in time a bit, the mark will not have gone into effect yet.
     clock.setTo(DateTime.parse("2013-08-09T10:05:59Z").minusSeconds(1));
     persistContactsAndHosts();
@@ -1308,7 +1306,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_atMarkExpirationTime() throws Exception {
+  public void testFailure_atMarkExpirationTime() {
     // Move time forward to the mark expiration time.
     clock.setTo(DateTime.parse("2017-07-23T22:00:00.000Z"));
     persistContactsAndHosts();
@@ -1318,7 +1316,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_hexEncoding() throws Exception {
+  public void testFailure_hexEncoding() {
     setEppInput("domain_create_sunrise_hex_encoding.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1328,7 +1326,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_badEncoding() throws Exception {
+  public void testFailure_badEncoding() {
     setEppInput("domain_create_sunrise_bad_encoding.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1337,7 +1335,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_badEncodedXml() throws Exception {
+  public void testFailure_badEncodedXml() {
     setEppInput("domain_create_sunrise_bad_encoded_xml.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1346,7 +1344,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_badIdn() throws Exception {
+  public void testFailure_badIdn() {
     createTld("xn--q9jyb4c", TldState.SUNRUSH);
     setEppInput("domain_create_sunrush_bad_idn_minna.xml");
     persistContactsAndHosts();
@@ -1356,7 +1354,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_badValidatorId() throws Exception {
+  public void testFailure_badValidatorId() {
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_sunrush_bad_validator_id.xml");
     persistClaimsList(ImmutableMap.of("exampleone", CLAIMS_KEY));
@@ -1367,7 +1365,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_signedMark() throws Exception {
+  public void testFailure_signedMark() {
     setEppInput("domain_create_sunrise_signed_mark.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1376,7 +1374,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_codeMark() throws Exception {
+  public void testFailure_codeMark() {
     setEppInput("domain_create_sunrise_code_with_mark.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1385,7 +1383,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_emptyEncodedMarkData() throws Exception {
+  public void testFailure_emptyEncodedMarkData() {
     setEppInput("domain_create_sunrise_empty_encoded_signed_mark.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1394,7 +1392,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_signedMarkAndNotice() throws Exception {
+  public void testFailure_signedMarkAndNotice() {
     setEppInput("domain_create_sunrise_signed_mark_and_notice.xml");
     persistClaimsList(ImmutableMap.of("exampleone", CLAIMS_KEY));
     persistContactsAndHosts();
@@ -1405,7 +1403,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_twoSignedMarks() throws Exception {
+  public void testFailure_twoSignedMarks() {
     setEppInput("domain_create_sunrise_two_signed_marks.xml");
     persistContactsAndHosts();
     clock.advanceOneMilli();
@@ -1414,7 +1412,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_missingClaimsNotice() throws Exception {
+  public void testFailure_missingClaimsNotice() {
     createTld("tld", TldState.SUNRUSH);
     persistClaimsList(ImmutableMap.of("test-validate", CLAIMS_KEY));
     setEppInput("domain_create_sunrush.xml");
@@ -1425,7 +1423,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_claimsNoticeProvided_nameNotOnClaimsList() throws Exception {
+  public void testFailure_claimsNoticeProvided_nameNotOnClaimsList() {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_landrush_claim_notice.xml");
     persistContactsAndHosts();
@@ -1435,7 +1433,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_claimsNoticeProvided_claimsPeriodEnded() throws Exception {
+  public void testFailure_claimsNoticeProvided_claimsPeriodEnded() {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_landrush_claim_notice.xml");
     persistClaimsList(ImmutableMap.of("example-one", CLAIMS_KEY));
@@ -1446,7 +1444,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_expiredClaim() throws Exception {
+  public void testFailure_expiredClaim() {
     createTld("tld", TldState.SUNRUSH);
     clock.setTo(DateTime.parse("2010-08-17T09:00:00.0Z"));
     setEppInput("domain_create_sunrush_claim_notice.xml");
@@ -1458,7 +1456,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_expiredAcceptance() throws Exception {
+  public void testFailure_expiredAcceptance() {
     createTld("tld", TldState.SUNRUSH);
     clock.setTo(DateTime.parse("2009-09-16T09:00:00.0Z"));
     setEppInput("domain_create_sunrush_claim_notice.xml");
@@ -1470,7 +1468,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_malformedTcnIdWrongLength() throws Exception {
+  public void testFailure_malformedTcnIdWrongLength() {
     createTld("tld", TldState.SUNRUSH);
     persistClaimsList(ImmutableMap.of("example-one", CLAIMS_KEY));
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
@@ -1482,7 +1480,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_malformedTcnIdBadChar() throws Exception {
+  public void testFailure_malformedTcnIdBadChar() {
     createTld("tld", TldState.SUNRUSH);
     persistClaimsList(ImmutableMap.of("example-one", CLAIMS_KEY));
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
@@ -1494,7 +1492,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_badTcnIdChecksum() throws Exception {
+  public void testFailure_badTcnIdChecksum() {
     createTld("tld", TldState.SUNRUSH);
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
     setEppInput("domain_create_sunrush_bad_checksum_claim_notice.xml");
@@ -1506,7 +1504,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_wrongFeeLandrushApplication_v06() throws Exception {
+  public void testFailure_wrongFeeLandrushApplication_v06() {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_landrush_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistResource(
@@ -1518,7 +1516,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_wrongFeeLandrushApplication_v11() throws Exception {
+  public void testFailure_wrongFeeLandrushApplication_v11() {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_landrush_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistResource(
@@ -1530,7 +1528,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_wrongFeeLandrushApplication_v12() throws Exception {
+  public void testFailure_wrongFeeLandrushApplication_v12() {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_landrush_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
     persistResource(
@@ -1542,7 +1540,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_wrongCurrency_v06() throws Exception {
+  public void testFailure_wrongCurrency_v06() {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_landrush_fee.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistResource(
@@ -1562,7 +1560,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_wrongCurrency_v11() throws Exception {
+  public void testFailure_wrongCurrency_v11() {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_landrush_fee.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistResource(
@@ -1582,7 +1580,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_wrongCurrency_v12() throws Exception {
+  public void testFailure_wrongCurrency_v12() {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_landrush_fee.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
     persistResource(
@@ -1602,7 +1600,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_feeGivenInWrongScale_v06() throws Exception {
+  public void testFailure_feeGivenInWrongScale_v06() {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_landrush_fee_bad_scale.xml", ImmutableMap.of("FEE_VERSION", "0.6"));
     persistContactsAndHosts();
@@ -1612,7 +1610,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_feeGivenInWrongScale_v11() throws Exception {
+  public void testFailure_feeGivenInWrongScale_v11() {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_landrush_fee_bad_scale.xml", ImmutableMap.of("FEE_VERSION", "0.11"));
     persistContactsAndHosts();
@@ -1622,7 +1620,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_feeGivenInWrongScale_v12() throws Exception {
+  public void testFailure_feeGivenInWrongScale_v12() {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_landrush_fee_bad_scale.xml", ImmutableMap.of("FEE_VERSION", "0.12"));
     persistContactsAndHosts();
@@ -1647,7 +1645,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_registrantNotWhitelisted() throws Exception {
+  public void testFailure_registrantNotWhitelisted() {
     persistActiveContact("someone");
     persistContactsAndHosts();
     persistResource(
@@ -1661,7 +1659,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_nameserverNotWhitelisted() throws Exception {
+  public void testFailure_nameserverNotWhitelisted() {
     persistContactsAndHosts();
     persistResource(
         Registry.get("tld")
@@ -1695,7 +1693,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_emptyNameserverFailsWhitelist() throws Exception {
+  public void testFailure_emptyNameserverFailsWhitelist() {
     setEppInput("domain_create_sunrise_encoded_signed_mark_no_hosts.xml");
     persistResource(
         Registry.get("tld")
@@ -1731,7 +1729,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_domainNameserverRestricted_someNameserversDisallowed() throws Exception {
+  public void testFailure_domainNameserverRestricted_someNameserversDisallowed() {
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -1748,7 +1746,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_domainNameserverRestricted_noNameserversAllowed() throws Exception {
+  public void testFailure_domainNameserverRestricted_noNameserversAllowed() {
     setEppInput("domain_create_sunrise_encoded_signed_mark_no_hosts.xml");
     persistResource(
         Registry.get("tld")
@@ -1789,7 +1787,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_domainNameserversDisallowed_tldNameserversAllowed() throws Exception {
+  public void testFailure_domainNameserversDisallowed_tldNameserversAllowed() {
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -1809,7 +1807,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_domainNameserversAllowed_tldNameserversDisallowed() throws Exception {
+  public void testFailure_domainNameserversAllowed_tldNameserversDisallowed() {
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -1829,7 +1827,7 @@ public class DomainApplicationCreateFlowTest
   }
 
   @Test
-  public void testFailure_max10Years() throws Exception {
+  public void testFailure_max10Years() {
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_landrush_11_years.xml");
     persistContactsAndHosts();
@@ -1838,8 +1836,7 @@ public class DomainApplicationCreateFlowTest
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
-  private void doFailingDomainNameTest(String domainName, Class<? extends EppException> exception)
-      throws Exception {
+  private void doFailingDomainNameTest(String domainName, Class<? extends EppException> exception) {
     setEppInput("domain_create_sunrise_signed_mark_uppercase.xml");
     eppLoader.replaceAll("TEST-VALIDATE.tld", domainName);
     persistContactsAndHosts();

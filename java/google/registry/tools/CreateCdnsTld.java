@@ -62,7 +62,7 @@ class CreateCdnsTld extends ConfirmingCommand {
   private ManagedZone managedZone;
 
   @Override
-  protected void init() throws IOException, GeneralSecurityException {
+  protected void init() {
     managedZone =
         new ManagedZone()
             .setDescription(description)

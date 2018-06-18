@@ -91,7 +91,7 @@ public final class LockHandlerImplTest {
   }
 
   @Test
-  public void testLockSucceeds() throws Exception {
+  public void testLockSucceeds() {
     Lock lock = mock(Lock.class);
     CountingCallable countingCallable = new CountingCallable();
     assertThat(executeWithLocks(countingCallable, lock)).isTrue();
@@ -100,7 +100,7 @@ public final class LockHandlerImplTest {
   }
 
   @Test
-  public void testLockSucceeds_uncheckedException() throws Exception {
+  public void testLockSucceeds_uncheckedException() {
     Lock lock = mock(Lock.class);
     Exception expectedException = new RuntimeException("test");
     RuntimeException exception =
@@ -129,7 +129,7 @@ public final class LockHandlerImplTest {
   }
 
   @Test
-  public void testLockSucceeds_checkedException() throws Exception {
+  public void testLockSucceeds_checkedException() {
     Lock lock = mock(Lock.class);
     Exception expectedException = new Exception("test");
     RuntimeException exception =
@@ -141,7 +141,7 @@ public final class LockHandlerImplTest {
   }
 
   @Test
-  public void testLockFailed() throws Exception {
+  public void testLockFailed() {
     Lock lock = null;
     CountingCallable countingCallable = new CountingCallable();
     assertThat(executeWithLocks(countingCallable, lock)).isFalse();

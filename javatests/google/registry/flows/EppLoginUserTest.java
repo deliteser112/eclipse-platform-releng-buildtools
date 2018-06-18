@@ -41,7 +41,7 @@ public class EppLoginUserTest extends EppTestCase {
       .build();
 
   @Before
-  public void initTest() throws Exception {
+  public void initTest() {
     User user = getUserService().getCurrentUser();
     persistResource(
         new RegistrarContact.Builder()

@@ -226,7 +226,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   }
 
   @Test
-  public void testFailure_missingAssigneeOrFile() throws Exception {
+  public void testFailure_missingAssigneeOrFile() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> runCommand("--tlds=tld"));
     assertThat(thrown)
@@ -235,7 +235,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   }
 
   @Test
-  public void testFailure_bothAssigneeAndFile() throws Exception {
+  public void testFailure_bothAssigneeAndFile() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -246,7 +246,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   }
 
   @Test
-  public void testFailure_bothMetadataAndFile() throws Exception {
+  public void testFailure_bothMetadataAndFile() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -257,7 +257,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   }
 
   @Test
-  public void testFailure_bothAssigneeAndMetadataColumns() throws Exception {
+  public void testFailure_bothAssigneeAndMetadataColumns() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -268,7 +268,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
   }
 
   @Test
-  public void testFailure_badTld() throws Exception {
+  public void testFailure_badTld() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -292,7 +292,7 @@ public class CreateLrpTokensCommandTest extends CommandTestCase<CreateLrpTokensC
         .contains("Entry for domain.tld does not have a value for key2 (index 2)");
   }
 
-  private void assertLrpTokens(LrpTokenEntity... expected) throws Exception {
+  private void assertLrpTokens(LrpTokenEntity... expected) {
     // Using ImmutableObject comparison here is tricky because updateTimestamp is not set on the
     // expected LrpToken objects and will cause the assert to fail.
     Iterable<LrpTokenEntity> actual = ofy().load().type(LrpTokenEntity.class);

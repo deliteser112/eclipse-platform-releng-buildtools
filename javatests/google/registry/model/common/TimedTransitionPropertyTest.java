@@ -72,12 +72,12 @@ public class TimedTransitionPropertyTest {
   }
 
   @Test
-  public void testSuccess_toValueMap() throws Exception {
+  public void testSuccess_toValueMap() {
     assertThat(timedString.toValueMap()).isEqualTo(values);
   }
 
   private static void testGetValueAtTime(
-      TimedTransitionProperty<String, StringTimedTransition> timedString) throws Exception {
+      TimedTransitionProperty<String, StringTimedTransition> timedString) {
     assertThat(timedString.getValueAtTime(A_LONG_TIME_AGO)).isEqualTo("0");
     assertThat(timedString.getValueAtTime(START_OF_TIME.minusMillis(1))).isEqualTo("0");
     assertThat(timedString.getValueAtTime(START_OF_TIME)).isEqualTo("0");
@@ -99,7 +99,7 @@ public class TimedTransitionPropertyTest {
   }
 
   @Test
-  public void testSuccess_getNextTransitionAfter() throws Exception {
+  public void testSuccess_getNextTransitionAfter() {
     assertThat(timedString.getNextTransitionAfter(A_LONG_TIME_AGO)).isEqualTo(DATE_1);
     assertThat(timedString.getNextTransitionAfter(START_OF_TIME.plusMillis(1))).isEqualTo(DATE_1);
     assertThat(timedString.getNextTransitionAfter(DATE_1.minusMillis(1))).isEqualTo(DATE_1);
@@ -124,7 +124,7 @@ public class TimedTransitionPropertyTest {
   }
 
   @Test
-  public void testFailure_valueMapNotChronologicallyOrdered() throws Exception {
+  public void testFailure_valueMapNotChronologicallyOrdered() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -134,7 +134,7 @@ public class TimedTransitionPropertyTest {
   }
 
   @Test
-  public void testFailure_transitionTimeBeforeStartOfTime() throws Exception {
+  public void testFailure_transitionTimeBeforeStartOfTime() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -143,7 +143,7 @@ public class TimedTransitionPropertyTest {
   }
 
   @Test
-  public void testFailure_noValues() throws Exception {
+  public void testFailure_noValues() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -152,7 +152,7 @@ public class TimedTransitionPropertyTest {
   }
 
   @Test
-  public void testFailure_noValueAtStartOfTime() throws Exception {
+  public void testFailure_noValueAtStartOfTime() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -161,7 +161,7 @@ public class TimedTransitionPropertyTest {
   }
 
   @Test
-  public void testFailure_noValuesAfterSimulatedEmptyLoad() throws Exception {
+  public void testFailure_noValuesAfterSimulatedEmptyLoad() {
     timedString = forMapify("0", StringTimedTransition.class);
     // Simulate a load from Datastore by clearing, but don't insert any transitions.
     timedString.clear();
@@ -169,7 +169,7 @@ public class TimedTransitionPropertyTest {
   }
 
   @Test
-  public void testFailure_noValueAtStartOfTimeAfterSimulatedLoad() throws Exception {
+  public void testFailure_noValueAtStartOfTimeAfterSimulatedLoad() {
     // Just for testing, don't extract transitions from a TimedTransitionProperty in real code.
     StringTimedTransition transition1 = timedString.get(DATE_1);
     timedString = forMapify("0", StringTimedTransition.class);

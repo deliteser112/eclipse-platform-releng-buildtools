@@ -198,7 +198,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_cantUpdateRegistryLockedDomainEvenAsSuperuser() throws Exception {
+  public void testFailure_cantUpdateRegistryLockedDomainEvenAsSuperuser() {
     HostResource host = persistActiveHost("ns1.zdns.google");
     ImmutableSet<Key<HostResource>> nameservers = ImmutableSet.of(Key.create(host));
     persistResource(
@@ -223,7 +223,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_duplicateDomains() throws Exception {
+  public void testFailure_duplicateDomains() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -238,7 +238,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_missingDomain() throws Exception {
+  public void testFailure_missingDomain() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -249,7 +249,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_missingClientId() throws Exception {
+  public void testFailure_missingClientId() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -258,7 +258,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_addTooManyNameServers() throws Exception {
+  public void testFailure_addTooManyNameServers() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -277,7 +277,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_providedNameserversAndAddNameservers() throws Exception {
+  public void testFailure_providedNameserversAndAddNameservers() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -295,7 +295,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_providedNameserversAndRemoveNameservers() throws Exception {
+  public void testFailure_providedNameserversAndRemoveNameservers() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -313,7 +313,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_providedAdminsAndAddAdmins() throws Exception {
+  public void testFailure_providedAdminsAndAddAdmins() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -331,7 +331,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_providedAdminsAndRemoveAdmins() throws Exception {
+  public void testFailure_providedAdminsAndRemoveAdmins() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -349,7 +349,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_providedTechsAndAddTechs() throws Exception {
+  public void testFailure_providedTechsAndAddTechs() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -366,7 +366,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_providedTechsAndRemoveTechs() throws Exception {
+  public void testFailure_providedTechsAndRemoveTechs() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -383,7 +383,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_providedStatusesAndAddStatuses() throws Exception {
+  public void testFailure_providedStatusesAndAddStatuses() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -401,7 +401,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_providedStatusesAndRemoveStatuses() throws Exception {
+  public void testFailure_providedStatusesAndRemoveStatuses() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -419,7 +419,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_provideDsRecordsAndAddDsRecords() throws Exception {
+  public void testFailure_provideDsRecordsAndAddDsRecords() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -437,7 +437,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_provideDsRecordsAndRemoveDsRecords() throws Exception {
+  public void testFailure_provideDsRecordsAndRemoveDsRecords() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -455,7 +455,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_clearDsRecordsAndAddDsRecords() throws Exception {
+  public void testFailure_clearDsRecordsAndAddDsRecords() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -473,7 +473,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   }
 
   @Test
-  public void testFailure_clearDsRecordsAndRemoveDsRecords() throws Exception {
+  public void testFailure_clearDsRecordsAndRemoveDsRecords() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

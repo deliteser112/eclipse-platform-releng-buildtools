@@ -173,7 +173,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   }
 
   @Test
-  public void testImportNewDomain() throws Exception {
+  public void testImportNewDomain() {
     final DomainResource newDomain = buildNewDomain();
     importResourceInTransaction(newDomain);
 
@@ -191,7 +191,7 @@ public class RdeImportUtilsTest extends ShardableTestCase {
   }
 
   @Test
-  public void testImportExistingDomain() throws Exception {
+  public void testImportExistingDomain() {
     DomainResource newDomain = buildNewDomain();
     persistResource(newDomain);
     final DomainResource updatedDomain =

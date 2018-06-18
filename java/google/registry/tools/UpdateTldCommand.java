@@ -127,7 +127,7 @@ class UpdateTldCommand extends CreateOrUpdateTldCommand {
   }
 
   @Override
-  protected void initTldCommand() throws Exception {
+  protected void initTldCommand() {
     // Due to per-instance caching on Registry, different instances can end up in different TLD
     // states at the same time, so --set_current_tld_state should never be used in production.
     checkArgument(

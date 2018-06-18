@@ -58,7 +58,7 @@ public class UpdateServerLocksCommandTest extends EppToolCommandTestCase<UpdateS
   }
 
   @Test
-  public void testFailure_applyAllRemoveOne_failsDueToOverlap() throws Exception {
+  public void testFailure_applyAllRemoveOne_failsDueToOverlap() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -72,7 +72,7 @@ public class UpdateServerLocksCommandTest extends EppToolCommandTestCase<UpdateS
   }
 
   @Test
-  public void testFailure_illegalStatus() throws Exception {
+  public void testFailure_illegalStatus() {
     // The EPP status is a valid one by RFC, but invalid for this command.
     assertThrows(
         IllegalArgumentException.class,
@@ -86,7 +86,7 @@ public class UpdateServerLocksCommandTest extends EppToolCommandTestCase<UpdateS
   }
 
   @Test
-  public void testFailure_unrecognizedStatus() throws Exception {
+  public void testFailure_unrecognizedStatus() {
     // Handles a status passed to the command that doesn't correspond to any
     // EPP-valid status.
     assertThrows(
@@ -101,7 +101,7 @@ public class UpdateServerLocksCommandTest extends EppToolCommandTestCase<UpdateS
   }
 
   @Test
-  public void testFailure_mainParameter() throws Exception {
+  public void testFailure_mainParameter() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -115,7 +115,7 @@ public class UpdateServerLocksCommandTest extends EppToolCommandTestCase<UpdateS
   }
 
   @Test
-  public void testFailure_noOp() throws Exception {
+  public void testFailure_noOp() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -130,7 +130,7 @@ public class UpdateServerLocksCommandTest extends EppToolCommandTestCase<UpdateS
   }
 
   @Test
-  public void testFailure_missingClientId() throws Exception {
+  public void testFailure_missingClientId() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -142,7 +142,7 @@ public class UpdateServerLocksCommandTest extends EppToolCommandTestCase<UpdateS
   }
 
   @Test
-  public void testFailure_unknownFlag() throws Exception {
+  public void testFailure_unknownFlag() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -156,7 +156,7 @@ public class UpdateServerLocksCommandTest extends EppToolCommandTestCase<UpdateS
   }
 
   @Test
-  public void testFailure_noReasonWhenNotRegistrarRequested() throws Exception {
+  public void testFailure_noReasonWhenNotRegistrarRequested() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -168,7 +168,7 @@ public class UpdateServerLocksCommandTest extends EppToolCommandTestCase<UpdateS
   }
 
   @Test
-  public void testFailure_missingRegistrarRequest() throws Exception {
+  public void testFailure_missingRegistrarRequest() {
     assertThrows(
         ParameterException.class,
         () ->

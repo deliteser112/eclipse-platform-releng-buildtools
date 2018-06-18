@@ -21,7 +21,7 @@ import google.registry.model.SchemaVersion;
 @Parameters(commandDescription = "Generate a model schema file")
 final class GetSchemaCommand implements Command {
   @Override
-  public void run() throws Exception {
+  public void run() {
     System.out.println(SchemaVersion.getSchema());
   }
 }

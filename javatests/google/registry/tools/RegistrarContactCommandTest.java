@@ -183,7 +183,7 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
   }
 
   @Test
-  public void testUpdate_cannotUnsetOnlyWhoisAbuseContact() throws Exception {
+  public void testUpdate_cannotUnsetOnlyWhoisAbuseContact() {
     Registrar registrar = loadRegistrar("NewRegistrar");
     persistSimpleResource(
         new RegistrarContact.Builder()
@@ -322,7 +322,7 @@ public class RegistrarContactCommandTest extends CommandTestCase<RegistrarContac
   }
 
   @Test
-  public void testDelete_failsOnDomainWhoisAbuseContact() throws Exception {
+  public void testDelete_failsOnDomainWhoisAbuseContact() {
     RegistrarContact registrarContact = loadRegistrar("NewRegistrar").getContacts().asList().get(0);
     persistSimpleResource(
         registrarContact.asBuilder().setVisibleInDomainWhoisAsAbuse(true).build());

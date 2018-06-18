@@ -67,7 +67,7 @@ public class RdeHostImportActionTest extends MapreduceTestCase<RdeHostImportActi
   private final Optional<Integer> mapShards = Optional.empty();
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     response = new FakeResponse();
     mrRunner = new MapreduceRunner(Optional.empty(), Optional.empty());
     action = new RdeHostImportAction(

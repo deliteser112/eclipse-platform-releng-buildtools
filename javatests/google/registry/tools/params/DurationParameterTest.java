@@ -30,57 +30,57 @@ public class DurationParameterTest {
   private final DurationParameter instance = new DurationParameter();
 
   @Test
-  public void testConvert_isoHours() throws Exception {
+  public void testConvert_isoHours() {
     assertThat(instance.convert("PT36H")).isEqualTo(Duration.standardHours(36));
   }
 
   @Test
-  public void testConvert_isoDaysAndHours() throws Exception {
+  public void testConvert_isoDaysAndHours() {
     assertThat(instance.convert("P1DT12H")).isEqualTo(Duration.standardHours(36));
   }
 
   @Test
-  public void testConvert_isoLowercase_isAllowed() throws Exception {
+  public void testConvert_isoLowercase_isAllowed() {
     assertThat(instance.convert("pt36h")).isEqualTo(Duration.standardHours(36));
   }
 
   @Test
-  public void testIsoMissingP_notAllowed() throws Exception {
+  public void testIsoMissingP_notAllowed() {
     assertThrows(IllegalArgumentException.class, () -> Period.parse("T36H"));
   }
 
   @Test
-  public void testIsoMissingPT_notAllowed() throws Exception {
+  public void testIsoMissingPT_notAllowed() {
     assertThrows(IllegalArgumentException.class, () -> Period.parse("36H"));
   }
 
   @Test
-  public void testConvert_isoMissingP_notAllowed() throws Exception {
+  public void testConvert_isoMissingP_notAllowed() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("T36H"));
   }
 
   @Test
-  public void testConvert_null_throws() throws Exception {
+  public void testConvert_null_throws() {
     assertThrows(NullPointerException.class, () -> instance.convert(null));
   }
 
   @Test
-  public void testConvert_empty_throws() throws Exception {
+  public void testConvert_empty_throws() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert(""));
   }
 
   @Test
-  public void testConvert_numeric_throws() throws Exception {
+  public void testConvert_numeric_throws() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("1234"));
   }
 
   @Test
-  public void testConvert_sillyString_throws() throws Exception {
+  public void testConvert_sillyString_throws() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("foo"));
   }
 
   @Test
-  public void testValidate_sillyString_throws() throws Exception {
+  public void testValidate_sillyString_throws() {
     ParameterException thrown =
         assertThrows(ParameterException.class, () -> instance.validate("--time", "foo"));
     assertThat(thrown).hasMessageThat().contains("--time=foo not an");

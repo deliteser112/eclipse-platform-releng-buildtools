@@ -41,7 +41,7 @@ public class GenerateEscrowDepositCommandTest
   @Mock ModulesService modulesService;
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     createTld("tld");
     createTld("anothertld");
     command = new GenerateEscrowDepositCommand();
@@ -52,7 +52,7 @@ public class GenerateEscrowDepositCommandTest
   }
 
   @Test
-  public void testCommand_missingTld() throws Exception {
+  public void testCommand_missingTld() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -62,7 +62,7 @@ public class GenerateEscrowDepositCommandTest
   }
 
   @Test
-  public void testCommand_emptyTld() throws Exception {
+  public void testCommand_emptyTld() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -77,7 +77,7 @@ public class GenerateEscrowDepositCommandTest
   }
 
   @Test
-  public void testCommand_invalidTld() throws Exception {
+  public void testCommand_invalidTld() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -92,7 +92,7 @@ public class GenerateEscrowDepositCommandTest
   }
 
   @Test
-  public void testCommand_missingWatermark() throws Exception {
+  public void testCommand_missingWatermark() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -103,7 +103,7 @@ public class GenerateEscrowDepositCommandTest
   }
 
   @Test
-  public void testCommand_emptyWatermark() throws Exception {
+  public void testCommand_emptyWatermark() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -112,7 +112,7 @@ public class GenerateEscrowDepositCommandTest
   }
 
   @Test
-  public void testCommand_missingOutdir() throws Exception {
+  public void testCommand_missingOutdir() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -123,7 +123,7 @@ public class GenerateEscrowDepositCommandTest
   }
 
   @Test
-  public void testCommand_emptyOutdir() throws Exception {
+  public void testCommand_emptyOutdir() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -138,7 +138,7 @@ public class GenerateEscrowDepositCommandTest
   }
 
   @Test
-  public void testCommand_invalidWatermark() throws Exception {
+  public void testCommand_invalidWatermark() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -153,7 +153,7 @@ public class GenerateEscrowDepositCommandTest
   }
 
   @Test
-  public void testCommand_invalidMode() throws Exception {
+  public void testCommand_invalidMode() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -170,7 +170,7 @@ public class GenerateEscrowDepositCommandTest
   }
 
   @Test
-  public void testCommand_invalidRevision() throws Exception {
+  public void testCommand_invalidRevision() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,

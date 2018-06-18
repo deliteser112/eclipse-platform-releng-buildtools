@@ -39,7 +39,7 @@ import org.mockito.stubbing.Answer;
 public class FailAnswer<T> implements Answer<T> {
 
   @Override
-  public T answer(@SuppressWarnings("null") InvocationOnMock args) throws Throwable {
+  public T answer(@SuppressWarnings("null") InvocationOnMock args) {
     StringBuilder msg = new StringBuilder();
     boolean first = true;
     for (Object arg : args.getArguments()) {

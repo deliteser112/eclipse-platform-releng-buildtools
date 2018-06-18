@@ -104,7 +104,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResource() throws Exception {
+  public void testConvertDomainResource() {
     final ContactResource jd1234 = persistActiveContact("jd1234");
     final ContactResource sh8013 = persistActiveContact("sh8013");
     ImmutableSet<DesignatedContact> expectedContacts =
@@ -135,7 +135,7 @@ public class XjcToDomainResourceConverterTest {
 
   /** Verifies that uppercase domain names are converted to lowercase */
   @Test
-  public void testConvertDomainResourceUpperCase() throws Exception {
+  public void testConvertDomainResourceUpperCase() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_ucase.xml");
@@ -144,7 +144,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceAddPeriod() throws Exception {
+  public void testConvertDomainResourceAddPeriod() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_addPeriod.xml");
@@ -157,7 +157,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceAutoRenewPeriod() throws Exception {
+  public void testConvertDomainResourceAutoRenewPeriod() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_autoRenewPeriod.xml");
@@ -170,7 +170,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceRedemptionPeriod() throws Exception {
+  public void testConvertDomainResourceRedemptionPeriod() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_redemptionPeriod.xml");
@@ -183,7 +183,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceRenewPeriod() throws Exception {
+  public void testConvertDomainResourceRenewPeriod() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_renewPeriod.xml");
@@ -196,7 +196,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourcePendingDeletePeriod() throws Exception {
+  public void testConvertDomainResourcePendingDeletePeriod() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_pendingDeletePeriod.xml");
@@ -209,7 +209,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourcePendingRestorePeriodUnsupported() throws Exception {
+  public void testConvertDomainResourcePendingRestorePeriodUnsupported() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_pendingRestorePeriod.xml");
@@ -221,7 +221,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceTransferPeriod() throws Exception {
+  public void testConvertDomainResourceTransferPeriod() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_transferPeriod.xml");
@@ -243,7 +243,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceEppUpdateRegistrar() throws Exception {
+  public void testConvertDomainResourceEppUpdateRegistrar() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_up_rr.xml");
@@ -252,7 +252,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceWithHostObjs() throws Exception {
+  public void testConvertDomainResourceWithHostObjs() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     HostResource host1 = persistActiveHost("ns1.example.net");
@@ -263,7 +263,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceWithHostAttrs() throws Exception {
+  public void testConvertDomainResourceWithHostAttrs() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     persistActiveHost("ns1.example.net");
@@ -275,7 +275,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceHostNotFound() throws Exception {
+  public void testConvertDomainResourceHostNotFound() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     persistActiveHost("ns1.example.net");
@@ -288,7 +288,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceRegistrantNotFound() throws Exception {
+  public void testConvertDomainResourceRegistrantNotFound() {
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment.xml");
     IllegalStateException thrown =
@@ -297,7 +297,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceRegistrantMissing() throws Exception {
+  public void testConvertDomainResourceRegistrantMissing() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_registrant_missing.xml");
@@ -309,7 +309,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceAdminNotFound() throws Exception {
+  public void testConvertDomainResourceAdminNotFound() {
     persistActiveContact("jd1234");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment.xml");
     IllegalStateException thrown =
@@ -318,7 +318,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceSecDnsData() throws Exception {
+  public void testConvertDomainResourceSecDnsData() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_secdns.xml");
@@ -354,7 +354,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceAutoRenewBillingEvent() throws Exception {
+  public void testConvertDomainResourceAutoRenewBillingEvent() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment.xml");
@@ -372,7 +372,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourceAutoRenewPollMessage() throws Exception {
+  public void testConvertDomainResourceAutoRenewPollMessage() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment.xml");
@@ -388,7 +388,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourcePendingTransfer() throws Exception {
+  public void testConvertDomainResourcePendingTransfer() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain = loadDomainFromRdeXml("domain_fragment_pending_transfer.xml");
@@ -404,7 +404,7 @@ public class XjcToDomainResourceConverterTest {
   }
 
   @Test
-  public void testConvertDomainResourcePendingTransferRegistrationCap() throws Exception {
+  public void testConvertDomainResourcePendingTransferRegistrationCap() {
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");
     final XjcRdeDomain xjcDomain =

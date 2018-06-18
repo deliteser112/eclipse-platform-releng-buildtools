@@ -53,7 +53,7 @@ public class BillingEventTest extends EntityTestCase {
   BillingEvent.Modification modification;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     createTld("tld");
     domain = persistActiveDomain("foo.tld");
     historyEntry = persistResource(
@@ -126,7 +126,7 @@ public class BillingEventTest extends EntityTestCase {
   }
 
   @Test
-  public void testPersistence() throws Exception {
+  public void testPersistence() {
     assertThat(ofy().load().entity(oneTime).now()).isEqualTo(oneTime);
     assertThat(ofy().load().entity(oneTimeSynthetic).now()).isEqualTo(oneTimeSynthetic);
     assertThat(ofy().load().entity(recurring).now()).isEqualTo(recurring);
@@ -136,7 +136,7 @@ public class BillingEventTest extends EntityTestCase {
   }
 
   @Test
-  public void testParenting() throws Exception {
+  public void testParenting() {
     // Note that these are all tested separately because BillingEvent is an abstract base class that
     // lacks the @Entity annotation, and thus we cannot call .type(BillingEvent.class)
     assertThat(ofy().load().type(BillingEvent.OneTime.class).ancestor(domain).list())
@@ -158,7 +158,7 @@ public class BillingEventTest extends EntityTestCase {
   }
 
   @Test
-  public void testCancellationMatching() throws Exception {
+  public void testCancellationMatching() {
     Key<?> recurringKey = ofy().load().entity(oneTimeSynthetic).now()
         .getCancellationMatchingBillingEvent();
     assertThat(ofy().load().key(recurringKey).now()).isEqualTo(recurring);
@@ -306,7 +306,7 @@ public class BillingEventTest extends EntityTestCase {
   }
 
   @Test
-  public void testDeadCodeThatDeletedScrapCommandsReference() throws Exception {
+  public void testDeadCodeThatDeletedScrapCommandsReference() {
     assertThat(recurring.getParentKey()).isEqualTo(Key.create(historyEntry));
     new BillingEvent.OneTime.Builder().setParent(Key.create(historyEntry));
   }

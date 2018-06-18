@@ -320,17 +320,17 @@ public class GenerateAuctionDataCommandTest extends CommandTestCase<GenerateAuct
   }
 
   @Test
-  public void testFailure_missingTldName() throws Exception {
+  public void testFailure_missingTldName() {
     assertThrows(ParameterException.class, this::runCommand);
   }
 
   @Test
-  public void testFailure_tooManyParameters() throws Exception {
+  public void testFailure_tooManyParameters() {
     assertThrows(IllegalArgumentException.class, () -> runCommand("xn--q9jyb4c", "foobar"));
   }
 
   @Test
-  public void testFailure_nonexistentTld() throws Exception {
+  public void testFailure_nonexistentTld() {
     assertThrows(IllegalArgumentException.class, () -> runCommand("foobarbaz"));
   }
 }

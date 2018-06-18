@@ -35,7 +35,7 @@ public class ListReservedListsActionTest extends ListActionTestCase {
   ListReservedListsAction action;
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     ReservedList rl1 = persistReservedList("xn--q9jyb4c-published", true, "blah,FULLY_BLOCKED");
     ReservedList rl2 = persistReservedList("xn--q9jyb4c-private", false, "dugong,FULLY_BLOCKED");
     createTld("xn--q9jyb4c");
@@ -44,7 +44,7 @@ public class ListReservedListsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_noParameters() throws Exception {
+  public void testRun_noParameters() {
     testRunSuccess(
         action,
         Optional.empty(),
@@ -55,7 +55,7 @@ public class ListReservedListsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_withParameters() throws Exception {
+  public void testRun_withParameters() {
     testRunSuccess(
         action,
         Optional.of("shouldPublish"),
@@ -68,7 +68,7 @@ public class ListReservedListsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_withWildcard() throws Exception {
+  public void testRun_withWildcard() {
     testRunSuccess(
         action,
         Optional.of("*"),
@@ -81,7 +81,7 @@ public class ListReservedListsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_withBadField_returnsError() throws Exception {
+  public void testRun_withBadField_returnsError() {
     testRunError(
         action,
         Optional.of("badfield"),

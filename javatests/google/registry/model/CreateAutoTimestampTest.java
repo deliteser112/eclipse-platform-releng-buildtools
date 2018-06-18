@@ -45,7 +45,7 @@ public class CreateAutoTimestampTest {
   }
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     ObjectifyService.register(TestObject.class);
   }
 
@@ -54,7 +54,7 @@ public class CreateAutoTimestampTest {
   }
 
   @Test
-  public void testSaveSetsTime() throws Exception {
+  public void testSaveSetsTime() {
     DateTime transactionTime =
         ofy()
             .transact(
@@ -69,7 +69,7 @@ public class CreateAutoTimestampTest {
   }
 
   @Test
-  public void testResavingRespectsOriginalTime() throws Exception {
+  public void testResavingRespectsOriginalTime() {
     final DateTime oldCreateTime = DateTime.now(UTC).minusDays(1);
     ofy()
         .transact(

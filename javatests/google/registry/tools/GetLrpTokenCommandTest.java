@@ -80,7 +80,7 @@ public class GetLrpTokenCommandTest extends CommandTestCase<GetLrpTokenCommand> 
   }
 
   @Test
-  public void testFailure_noArgs() throws Exception {
+  public void testFailure_noArgs() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, this::runCommand);
     assertThat(thrown)

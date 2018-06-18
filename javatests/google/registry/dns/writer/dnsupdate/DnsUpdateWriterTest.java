@@ -121,7 +121,7 @@ public class DnsUpdateWriterTest {
   }
 
   @Test
-  public void testPublishAtomic_noCommit() throws Exception {
+  public void testPublishAtomic_noCommit() {
     HostResource host1 = persistActiveHost("ns.example1.tld");
     DomainResource domain1 =
         persistActiveDomain("example1.tld")

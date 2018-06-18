@@ -94,12 +94,12 @@ public class DomainResourceToXjcConverterTest {
   private final FakeClock clock = new FakeClock(now);
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     createTld("xn--q9jyb4c");
   }
 
   @Test
-  public void testConvertThick() throws Exception {
+  public void testConvertThick() {
     XjcRdeDomain bean =
         DomainResourceToXjcConverter.convertDomain(makeDomainResource(clock), RdeMode.FULL);
 
@@ -182,7 +182,7 @@ public class DomainResourceToXjcConverterTest {
   }
 
   @Test
-  public void testConvertThin() throws Exception {
+  public void testConvertThin() {
     XjcRdeDomain bean =
         DomainResourceToXjcConverter.convertDomain(makeDomainResource(clock), RdeMode.THIN);
     assertThat(bean.getRegistrant()).isNull();
@@ -204,7 +204,7 @@ public class DomainResourceToXjcConverterTest {
     wrapDeposit(bean).marshal(new ByteArrayOutputStream(), UTF_8);
   }
 
-  public XjcRdeDeposit wrapDeposit(XjcRdeDomain domain) throws Exception {
+  public XjcRdeDeposit wrapDeposit(XjcRdeDomain domain) {
     XjcRdeDeposit deposit = new XjcRdeDeposit();
     deposit.setId("984302");
     deposit.setType(XjcRdeDepositTypeType.FULL);

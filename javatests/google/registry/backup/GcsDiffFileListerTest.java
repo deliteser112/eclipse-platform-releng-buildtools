@@ -119,7 +119,7 @@ public class GcsDiffFileListerTest {
   }
 
   @Test
-  public void testList_patchesHoles() throws Exception {
+  public void testList_patchesHoles() {
     // Fake out the GCS list() method to return only the first and last file.
     // We can't use Mockito.spy() because GcsService's impl is final.
     diffLister.gcsService = (GcsService) newProxyInstance(
@@ -135,7 +135,7 @@ public class GcsDiffFileListerTest {
                 boolean called = false;
 
                 @Override
-                public Iterator<ListItem> call() throws Exception {
+                public Iterator<ListItem> call() {
                   try {
                     return called ? null : Iterators.forArray(
                         new ListItem.Builder()
@@ -181,7 +181,7 @@ public class GcsDiffFileListerTest {
   }
 
   @Test
-  public void testList_boundaries() throws Exception {
+  public void testList_boundaries() {
     assertThat(listDiffFiles(now.minusMinutes(4), now))
         .containsExactly(
             now.minusMinutes(4),

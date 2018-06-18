@@ -47,17 +47,17 @@ public class PathParameterTest {
   private final PathParameter vanilla = new PathParameter();
 
   @Test
-  public void testConvert_etcPasswd_returnsPath() throws Exception {
+  public void testConvert_etcPasswd_returnsPath() {
     assertThat((Object) vanilla.convert("/etc/passwd")).isEqualTo(Paths.get("/etc/passwd"));
   }
 
   @Test
-  public void testConvert_null_throws() throws Exception {
+  public void testConvert_null_throws() {
     assertThrows(NullPointerException.class, () -> vanilla.convert(null));
   }
 
   @Test
-  public void testConvert_empty_throws() throws Exception {
+  public void testConvert_empty_throws() {
     assertThrows(IllegalArgumentException.class, () -> vanilla.convert(""));
   }
 
@@ -79,7 +79,7 @@ public class PathParameterTest {
   }
 
   @Test
-  public void testConvert_uriNotProvided() throws Exception {
+  public void testConvert_uriNotProvided() {
     assertThrows(FileSystemNotFoundException.class, () -> vanilla.convert("bog://bucket/lolcat"));
   }
 
@@ -93,7 +93,7 @@ public class PathParameterTest {
   }
 
   @Test
-  public void testInputFileValidate_missingFile_throws() throws Exception {
+  public void testInputFileValidate_missingFile_throws() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -102,7 +102,7 @@ public class PathParameterTest {
   }
 
   @Test
-  public void testInputFileValidate_directory_throws() throws Exception {
+  public void testInputFileValidate_directory_throws() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -129,18 +129,18 @@ public class PathParameterTest {
   }
 
   @Test
-  public void testInputFileValidate_characterDeviceBehindSymbolicLinks_works() throws Exception {
+  public void testInputFileValidate_characterDeviceBehindSymbolicLinks_works() {
     assumeTrue(Files.exists(Paths.get("/dev/stdin")));
     outputFile.validate("input", "/dev/stdin");
   }
 
   @Test
-  public void testOutputFileValidate_missingFile_works() throws Exception {
+  public void testOutputFileValidate_missingFile_works() {
     outputFile.validate("input", new File(folder.getRoot(), "foo").toString());
   }
 
   @Test
-  public void testOutputFileValidate_directory_throws() throws Exception {
+  public void testOutputFileValidate_directory_throws() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -158,7 +158,7 @@ public class PathParameterTest {
   }
 
   @Test
-  public void testOutputFileValidate_parentDirMissing_throws() throws Exception {
+  public void testOutputFileValidate_parentDirMissing_throws() {
     Path file = Paths.get(folder.getRoot().toString(), "MISSINGNO", "foo.txt");
     ParameterException thrown =
         assertThrows(ParameterException.class, () -> outputFile.validate("input", file.toString()));

@@ -35,7 +35,7 @@ public class LoadTestCommandTest extends CommandTestCase<LoadTestCommand> {
   Connection connection = mock(Connection.class);
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     command.setConnection(connection);
     createTld("example");
     persistNewRegistrar("acme", "ACME", Registrar.Type.REAL, 99L);

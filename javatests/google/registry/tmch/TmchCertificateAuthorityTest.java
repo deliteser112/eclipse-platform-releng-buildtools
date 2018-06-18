@@ -54,12 +54,12 @@ public class TmchCertificateAuthorityTest {
   private FakeClock clock = new FakeClock(DateTime.parse("2014-01-01T00:00:00Z"));
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     inject.setStaticField(TmchCertificateAuthority.class, "clock", clock);
   }
 
   @Test
-  public void testFailure_prodRootExpired() throws Exception {
+  public void testFailure_prodRootExpired() {
     TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PRODUCTION);
     clock.setTo(DateTime.parse("2024-01-01T00:00:00Z"));
     CertificateExpiredException e =
@@ -68,7 +68,7 @@ public class TmchCertificateAuthorityTest {
   }
 
   @Test
-  public void testFailure_prodRootNotYetValid() throws Exception {
+  public void testFailure_prodRootNotYetValid() {
     TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PRODUCTION);
     clock.setTo(DateTime.parse("2000-01-01T00:00:00Z"));
     CertificateNotYetValidException e =
@@ -77,7 +77,7 @@ public class TmchCertificateAuthorityTest {
   }
 
   @Test
-  public void testFailure_crlDoesntMatchCerts() throws Exception {
+  public void testFailure_crlDoesntMatchCerts() {
     // Use the prod cl, which won't match our test certificate.
     TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PILOT);
     TmchCrl.set(
@@ -96,7 +96,7 @@ public class TmchCertificateAuthorityTest {
   }
 
   @Test
-  public void testFailure_verifySignatureDoesntMatch() throws Exception {
+  public void testFailure_verifySignatureDoesntMatch() {
     TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PRODUCTION);
     SignatureException e =
         assertThrows(
@@ -106,7 +106,7 @@ public class TmchCertificateAuthorityTest {
   }
 
   @Test
-  public void testFailure_verifyRevoked() throws Exception {
+  public void testFailure_verifyRevoked() {
     TmchCertificateAuthority tmchCertificateAuthority = new TmchCertificateAuthority(PILOT);
     CertificateRevokedException thrown =
         assertThrows(

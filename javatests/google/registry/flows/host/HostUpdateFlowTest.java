@@ -888,14 +888,14 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   }
 
   @Test
-  public void testFailure_referToNonLowerCaseHostname() throws Exception {
+  public void testFailure_referToNonLowerCaseHostname() {
     setEppHostUpdateInput("ns1.EXAMPLE.tld", "ns2.example.tld", null, null);
     EppException thrown = assertThrows(HostNameNotLowerCaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
-  public void testFailure_renameToNonLowerCaseHostname() throws Exception {
+  public void testFailure_renameToNonLowerCaseHostname() {
     persistActiveHost("ns1.example.tld");
     setEppHostUpdateInput("ns1.example.tld", "ns2.EXAMPLE.tld", null, null);
     EppException thrown = assertThrows(HostNameNotLowerCaseException.class, this::runFlow);
@@ -903,7 +903,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   }
 
   @Test
-  public void testFailure_referToNonPunyCodedHostname() throws Exception {
+  public void testFailure_referToNonPunyCodedHostname() {
     setEppHostUpdateInput("ns1.çauçalito.tld", "ns1.sausalito.tld", null, null);
     HostNameNotPunyCodedException thrown =
         assertThrows(HostNameNotPunyCodedException.class, this::runFlow);
@@ -911,7 +911,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   }
 
   @Test
-  public void testFailure_renameToNonPunyCodedHostname() throws Exception {
+  public void testFailure_renameToNonPunyCodedHostname() {
     persistActiveHost("ns1.sausalito.tld");
     setEppHostUpdateInput("ns1.sausalito.tld", "ns1.çauçalito.tld", null, null);
     HostNameNotPunyCodedException thrown =
@@ -920,7 +920,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   }
 
   @Test
-  public void testFailure_referToNonCanonicalHostname() throws Exception {
+  public void testFailure_referToNonCanonicalHostname() {
     persistActiveHost("ns1.example.tld.");
     setEppHostUpdateInput("ns1.example.tld.", "ns2.example.tld", null, null);
     EppException thrown = assertThrows(HostNameNotNormalizedException.class, this::runFlow);
@@ -928,7 +928,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   }
 
   @Test
-  public void testFailure_renameToNonCanonicalHostname() throws Exception {
+  public void testFailure_renameToNonCanonicalHostname() {
     persistActiveHost("ns1.example.tld");
     setEppHostUpdateInput("ns1.example.tld", "ns2.example.tld.", null, null);
     EppException thrown = assertThrows(HostNameNotNormalizedException.class, this::runFlow);
@@ -1074,7 +1074,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   }
 
   @Test
-  public void testFailure_unauthorizedClient() throws Exception {
+  public void testFailure_unauthorizedClient() {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveHost("ns1.example.tld");
     EppException thrown = assertThrows(ResourceNotOwnedException.class, this::runFlow);
@@ -1114,7 +1114,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   }
 
   @Test
-  public void testFailure_unauthorizedClientReadFromSuperordinate() throws Exception {
+  public void testFailure_unauthorizedClientReadFromSuperordinate() {
     sessionMetadata.setClientId("NewRegistrar");
     createTld("tld");
     DomainResource domain =
@@ -1154,7 +1154,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   }
 
   @Test
-  public void testFailure_unauthorizedClientReadFromTransferredSuperordinate() throws Exception {
+  public void testFailure_unauthorizedClientReadFromTransferredSuperordinate() {
     sessionMetadata.setClientId("TheRegistrar");
     createTld("tld");
     // Create a domain that will belong to NewRegistrar after cloneProjectedAtTime is called.

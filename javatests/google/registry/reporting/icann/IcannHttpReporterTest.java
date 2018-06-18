@@ -55,7 +55,7 @@ public class IcannHttpReporterTest {
   private MockHttpTransport createMockTransport (final ByteSource iirdeaResponse) {
     return new MockHttpTransport() {
       @Override
-      public LowLevelHttpRequest buildRequest(String method, String url) throws IOException {
+      public LowLevelHttpRequest buildRequest(String method, String url) {
         mockRequest = new MockLowLevelHttpRequest() {
           @Override
           public LowLevelHttpResponse execute() throws IOException {
@@ -123,7 +123,7 @@ public class IcannHttpReporterTest {
   }
 
   @Test
-  public void testFail_invalidFilename_nonSixDigitYearMonth() throws Exception {
+  public void testFail_invalidFilename_nonSixDigitYearMonth() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -139,7 +139,7 @@ public class IcannHttpReporterTest {
   }
 
   @Test
-  public void testFail_invalidFilename_notActivityOrTransactions() throws Exception {
+  public void testFail_invalidFilename_notActivityOrTransactions() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -154,7 +154,7 @@ public class IcannHttpReporterTest {
   }
 
   @Test
-  public void testFail_invalidFilename_invalidTldName() throws Exception {
+  public void testFail_invalidFilename_invalidTldName() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -170,7 +170,7 @@ public class IcannHttpReporterTest {
   }
 
   @Test
-  public void testFail_invalidFilename_tldDoesntExist() throws Exception {
+  public void testFail_invalidFilename_tldDoesntExist() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

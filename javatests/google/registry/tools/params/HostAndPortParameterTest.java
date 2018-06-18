@@ -27,25 +27,25 @@ public class HostAndPortParameterTest {
   private final HostAndPortParameter instance = new HostAndPortParameter();
 
   @Test
-  public void testConvert_hostOnly() throws Exception {
+  public void testConvert_hostOnly() {
     assertThat(instance.convert("foo.bar").getHost()).isEqualTo("foo.bar");
     assertThat(instance.convert("foo.bar").getPortOrDefault(31337)).isEqualTo(31337);
   }
 
   @Test
-  public void testConvert_hostAndPort() throws Exception {
+  public void testConvert_hostAndPort() {
     assertThat(instance.convert("foo.bar:1234").getHost()).isEqualTo("foo.bar");
     assertThat(instance.convert("foo.bar:1234").getPortOrDefault(31337)).isEqualTo(1234);
   }
 
   @Test
-  public void testConvert_ipv6_hostOnly() throws Exception {
+  public void testConvert_ipv6_hostOnly() {
     assertThat(instance.convert("[feed:a:bee]").getHost()).isEqualTo("feed:a:bee");
     assertThat(instance.convert("[feed:a:bee]").getPortOrDefault(31337)).isEqualTo(31337);
   }
 
   @Test
-  public void testConvert_ipv6_hostAndPort() throws Exception {
+  public void testConvert_ipv6_hostAndPort() {
     assertThat(instance.convert("[feed:a:bee]:1234").getHost()).isEqualTo("feed:a:bee");
     assertThat(instance.convert("[feed:a:bee]:1234").getPortOrDefault(31337)).isEqualTo(1234);
   }

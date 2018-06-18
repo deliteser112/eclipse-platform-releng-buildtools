@@ -40,7 +40,7 @@ public class BigqueryUtilsTest {
   private static final DateTime DATE_3 = DateTime.parse("2014-07-17T20:35:42.123Z");
 
   @Test
-  public void test_toBigqueryTimestampString() throws Exception {
+  public void test_toBigqueryTimestampString() {
     assertThat(toBigqueryTimestampString(START_OF_TIME)).isEqualTo("1970-01-01 00:00:00.000");
     assertThat(toBigqueryTimestampString(DATE_0)).isEqualTo("2014-07-17 20:35:42.000");
     assertThat(toBigqueryTimestampString(DATE_1)).isEqualTo("2014-07-17 20:35:42.100");
@@ -50,7 +50,7 @@ public class BigqueryUtilsTest {
   }
 
   @Test
-  public void test_toBigqueryTimestampString_convertsToUtc() throws Exception {
+  public void test_toBigqueryTimestampString_convertsToUtc() {
     assertThat(toBigqueryTimestampString(START_OF_TIME.withZone(DateTimeZone.forOffsetHours(5))))
         .isEqualTo("1970-01-01 00:00:00.000");
     assertThat(toBigqueryTimestampString(DateTime.parse("1970-01-01T00:00:00-0500")))
@@ -58,13 +58,13 @@ public class BigqueryUtilsTest {
   }
 
   @Test
-  public void test_fromBigqueryTimestampString_startAndEndOfTime() throws Exception {
+  public void test_fromBigqueryTimestampString_startAndEndOfTime() {
     assertThat(fromBigqueryTimestampString("1970-01-01 00:00:00 UTC")).isEqualTo(START_OF_TIME);
     assertThat(fromBigqueryTimestampString("294247-01-10 04:00:54.775 UTC")).isEqualTo(END_OF_TIME);
   }
 
   @Test
-  public void test_fromBigqueryTimestampString_trailingZerosOkay() throws Exception {
+  public void test_fromBigqueryTimestampString_trailingZerosOkay() {
     assertThat(fromBigqueryTimestampString("2014-07-17 20:35:42 UTC")).isEqualTo(DATE_0);
     assertThat(fromBigqueryTimestampString("2014-07-17 20:35:42.0 UTC")).isEqualTo(DATE_0);
     assertThat(fromBigqueryTimestampString("2014-07-17 20:35:42.00 UTC")).isEqualTo(DATE_0);
@@ -78,27 +78,27 @@ public class BigqueryUtilsTest {
   }
 
   @Test
-  public void testFailure_fromBigqueryTimestampString_nonUtcTimeZone() throws Exception {
+  public void testFailure_fromBigqueryTimestampString_nonUtcTimeZone() {
     assertThrows(
         IllegalArgumentException.class,
         () -> fromBigqueryTimestampString("2014-01-01 01:01:01 +05:00"));
   }
 
   @Test
-  public void testFailure_fromBigqueryTimestampString_noTimeZone() throws Exception {
+  public void testFailure_fromBigqueryTimestampString_noTimeZone() {
     assertThrows(
         IllegalArgumentException.class, () -> fromBigqueryTimestampString("2014-01-01 01:01:01"));
   }
 
   @Test
-  public void testFailure_fromBigqueryTimestampString_tooManyMillisecondDigits() throws Exception {
+  public void testFailure_fromBigqueryTimestampString_tooManyMillisecondDigits() {
     assertThrows(
         IllegalArgumentException.class,
         () -> fromBigqueryTimestampString("2014-01-01 01:01:01.1234 UTC"));
   }
 
   @Test
-  public void test_toBigqueryTimestamp_timeunitConversion() throws Exception {
+  public void test_toBigqueryTimestamp_timeunitConversion() {
     assertThat(toBigqueryTimestamp(1234567890L, TimeUnit.SECONDS))
         .isEqualTo("1234567890.000000");
     assertThat(toBigqueryTimestamp(1234567890123L, TimeUnit.MILLISECONDS))
@@ -110,14 +110,14 @@ public class BigqueryUtilsTest {
   }
 
   @Test
-  public void test_toBigqueryTimestamp_timeunitConversionForZero() throws Exception {
+  public void test_toBigqueryTimestamp_timeunitConversionForZero() {
     assertThat(toBigqueryTimestamp(0L, TimeUnit.SECONDS)).isEqualTo("0.000000");
     assertThat(toBigqueryTimestamp(0L, TimeUnit.MILLISECONDS)).isEqualTo("0.000000");
     assertThat(toBigqueryTimestamp(0L, TimeUnit.MICROSECONDS)).isEqualTo("0.000000");
   }
 
   @Test
-  public void test_toBigqueryTimestamp_datetimeConversion() throws Exception {
+  public void test_toBigqueryTimestamp_datetimeConversion() {
     assertThat(toBigqueryTimestamp(START_OF_TIME)).isEqualTo("0.000000");
     assertThat(toBigqueryTimestamp(DATE_0)).isEqualTo("1405629342.000000");
     assertThat(toBigqueryTimestamp(DATE_1)).isEqualTo("1405629342.100000");
@@ -127,18 +127,18 @@ public class BigqueryUtilsTest {
   }
 
   @Test
-  public void test_toJobReferenceString_normalSucceeds() throws Exception {
+  public void test_toJobReferenceString_normalSucceeds() {
     assertThat(toJobReferenceString(new JobReference().setProjectId("foo").setJobId("bar")))
         .isEqualTo("foo:bar");
   }
 
   @Test
-  public void test_toJobReferenceString_emptyReferenceSucceeds() throws Exception {
+  public void test_toJobReferenceString_emptyReferenceSucceeds() {
     assertThat(toJobReferenceString(new JobReference())).isEqualTo("null:null");
   }
 
   @Test
-  public void test_toJobReferenceString_nullThrowsNpe() throws Exception {
+  public void test_toJobReferenceString_nullThrowsNpe() {
     assertThrows(NullPointerException.class, () -> toJobReferenceString(null));
   }
 }

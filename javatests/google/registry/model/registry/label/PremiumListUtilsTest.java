@@ -63,7 +63,7 @@ public class PremiumListUtilsTest {
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     // createTld() overwrites the premium list, so call it first.
     PremiumList.cachePremiumListEntries =
         PremiumList.createCachePremiumListEntries(standardMinutes(1));
@@ -80,8 +80,8 @@ public class PremiumListUtilsTest {
     premiumListProcessingTime.reset();
   }
 
-  void assertMetricOutcomeCount(int checkCount, DomainLabelMetrics.PremiumListCheckOutcome outcome)
-      throws Exception {
+  void assertMetricOutcomeCount(
+      int checkCount, DomainLabelMetrics.PremiumListCheckOutcome outcome) {
     assertThat(premiumListChecks)
         .hasValueForLabels(checkCount, "tld", "tld", outcome.toString())
         .and()
@@ -93,7 +93,7 @@ public class PremiumListUtilsTest {
   }
 
   @Test
-  public void testGetPremiumPrice_returnsNoPriceWhenNoPremiumListConfigured() throws Exception {
+  public void testGetPremiumPrice_returnsNoPriceWhenNoPremiumListConfigured() {
     createTld("ghost");
     persistResource(
         new Registry.Builder()
@@ -108,8 +108,7 @@ public class PremiumListUtilsTest {
   }
 
   @Test
-  public void testGetPremiumPrice_throwsExceptionWhenNonExistentPremiumListConfigured()
-      throws Exception {
+  public void testGetPremiumPrice_throwsExceptionWhenNonExistentPremiumListConfigured() {
     deletePremiumList(PremiumList.getUncached("tld").get());
     IllegalStateException thrown =
         assertThrows(
@@ -126,7 +125,7 @@ public class PremiumListUtilsTest {
   }
 
   @Test
-  public void testSave_updateTime_isUpdatedOnEverySave() throws Exception {
+  public void testSave_updateTime_isUpdatedOnEverySave() {
     PremiumList pl =
         savePremiumListAndEntries(
             new PremiumList.Builder().setName("tld3").build(), ImmutableList.of("slime,USD 10"));
@@ -138,14 +137,14 @@ public class PremiumListUtilsTest {
   }
 
   @Test
-  public void testSave_creationTime_onlyUpdatedOnFirstCreation() throws Exception {
+  public void testSave_creationTime_onlyUpdatedOnFirstCreation() {
     PremiumList pl = persistPremiumList("tld3", "sludge,JPY 1000");
     PremiumList newPl = savePremiumListAndEntries(pl, ImmutableList.of("sleighbells,CHF 2000"));
     assertThat(newPl.creationTime).isEqualTo(pl.creationTime);
   }
 
   @Test
-  public void testExists() throws Exception {
+  public void testExists() {
     assertThat(doesPremiumListExist("tld")).isTrue();
     assertThat(doesPremiumListExist("nonExistentPremiumList")).isFalse();
   }
@@ -172,7 +171,7 @@ public class PremiumListUtilsTest {
   }
 
   @Test
-  public void testGetPremiumPrice_cachedSecondTime() throws Exception {
+  public void testGetPremiumPrice_cachedSecondTime() {
     assertThat(getPremiumPrice("rich", Registry.get("tld"))).hasValue(Money.parse("USD 1999"));
     assertThat(getPremiumPrice("rich", Registry.get("tld"))).hasValue(Money.parse("USD 1999"));
     assertThat(premiumListChecks)
@@ -190,7 +189,7 @@ public class PremiumListUtilsTest {
   }
 
   @Test
-  public void testGetPremiumPrice_bloomFilterFalsePositive() throws Exception {
+  public void testGetPremiumPrice_bloomFilterFalsePositive() {
     // Remove one of the premium list entries from behind the Bloom filter's back.
     ofy()
         .transactNew(
@@ -226,7 +225,7 @@ public class PremiumListUtilsTest {
   }
 
   @Test
-  public void testSave_removedPremiumListEntries_areNoLongerInDatastore() throws Exception {
+  public void testSave_removedPremiumListEntries_areNoLongerInDatastore() {
     Registry registry = Registry.get("tld");
     PremiumList pl = persistPremiumList("tld", "genius,USD 10", "dolt,JPY 1000");
     assertThat(getPremiumPrice("genius", registry)).hasValue(Money.parse("USD 10"));
@@ -266,7 +265,7 @@ public class PremiumListUtilsTest {
   }
 
   @Test
-  public void testSave_simple() throws Exception {
+  public void testSave_simple() {
     PremiumList pl =
         savePremiumListAndEntries(
             new PremiumList.Builder().setName("tld2").build(),
@@ -298,7 +297,7 @@ public class PremiumListUtilsTest {
   }
 
   @Test
-  public void test_saveAndUpdateEntriesTwice() throws Exception {
+  public void test_saveAndUpdateEntriesTwice() {
     PremiumList pl =
         savePremiumListAndEntries(
             new PremiumList.Builder().setName("pl").build(), ImmutableList.of("test,USD 1"));
@@ -316,7 +315,7 @@ public class PremiumListUtilsTest {
   }
 
   @Test
-  public void testDelete() throws Exception {
+  public void testDelete() {
     persistPremiumList("gtld1", "trombone,USD 10");
     assertThat(PremiumList.getUncached("gtld1")).isPresent();
     Key<PremiumListRevision> parent = PremiumList.getUncached("gtld1").get().getRevisionKey();

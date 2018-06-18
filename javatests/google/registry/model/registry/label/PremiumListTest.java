@@ -42,7 +42,7 @@ public class PremiumListTest {
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     // createTld() overwrites the premium list, so call it first.
     createTld("tld");
     PremiumList pl =
@@ -56,20 +56,20 @@ public class PremiumListTest {
   }
 
   @Test
-  public void testSave_badSyntax() throws Exception {
+  public void testSave_badSyntax() {
     assertThrows(
         IllegalArgumentException.class,
         () -> persistPremiumList("gtld1", "lol,nonsense USD,e,e # yup"));
   }
 
   @Test
-  public void testSave_invalidCurrencySymbol() throws Exception {
+  public void testSave_invalidCurrencySymbol() {
     assertThrows(
         IllegalArgumentException.class, () -> persistReservedList("gtld1", "lol,XBTC 200"));
   }
 
   @Test
-  public void testProbablePremiumLabels() throws Exception {
+  public void testProbablePremiumLabels() {
     PremiumList pl = PremiumList.getUncached("tld").get();
     PremiumListRevision revision = ofy().load().key(pl.getRevisionKey()).now();
     assertThat(revision.getProbablePremiumLabels().mightContain("notpremium")).isFalse();

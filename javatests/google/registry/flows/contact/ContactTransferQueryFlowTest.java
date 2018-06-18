@@ -136,7 +136,7 @@ public class ContactTransferQueryFlowTest
   }
 
   @Test
-  public void testFailure_badContactPassword() throws Exception {
+  public void testFailure_badContactPassword() {
     // Change the contact's password so it does not match the password in the file.
     contact =
         persistResource(
@@ -152,7 +152,7 @@ public class ContactTransferQueryFlowTest
   }
 
   @Test
-  public void testFailure_badContactRoid() throws Exception {
+  public void testFailure_badContactRoid() {
     // Set the contact to a different ROID, but don't persist it; this is just so the substitution
     // code above will write the wrong ROID into the file.
     contact = contact.asBuilder().setRepoId("DEADBEEF_TLD-ROID").build();
@@ -164,7 +164,7 @@ public class ContactTransferQueryFlowTest
   }
 
   @Test
-  public void testFailure_neverBeenTransferred() throws Exception {
+  public void testFailure_neverBeenTransferred() {
     changeTransferStatus(null);
     EppException thrown =
         assertThrows(
@@ -174,7 +174,7 @@ public class ContactTransferQueryFlowTest
   }
 
   @Test
-  public void testFailure_unrelatedClient() throws Exception {
+  public void testFailure_unrelatedClient() {
     setClientIdForFlow("ClientZ");
     EppException thrown =
         assertThrows(

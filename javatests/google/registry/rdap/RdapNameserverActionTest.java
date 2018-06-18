@@ -77,7 +77,7 @@ public class RdapNameserverActionTest {
   private final RdapMetrics rdapMetrics = mock(RdapMetrics.class);
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     inject.setStaticField(Ofy.class, "clock", clock);
     // normal
     createTld("lol");
@@ -190,7 +190,7 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testInvalidNameserver_returns400() throws Exception {
+  public void testInvalidNameserver_returns400() {
     assertThat(generateActualJson("invalid/host/name"))
         .isEqualTo(
             generateExpectedJson(
@@ -201,14 +201,14 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testUnknownNameserver_returns404() throws Exception {
+  public void testUnknownNameserver_returns404() {
     assertThat(generateActualJson("ns1.missing.com")).isEqualTo(
         generateExpectedJson("ns1.missing.com not found", null, "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
-  public void testValidNameserver_works() throws Exception {
+  public void testValidNameserver_works() {
     assertThat(generateActualJson("ns1.cat.lol"))
         .isEqualTo(generateExpectedJsonWithTopLevelEntries(
             "ns1.cat.lol",
@@ -222,7 +222,7 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testTrailingDot_getsIgnored() throws Exception {
+  public void testTrailingDot_getsIgnored() {
     assertThat(generateActualJson("ns1.cat.lol."))
         .isEqualTo(generateExpectedJsonWithTopLevelEntries(
             "ns1.cat.lol",
@@ -236,7 +236,7 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testUpperCase_getsCanonicalized() throws Exception {
+  public void testUpperCase_getsCanonicalized() {
     assertThat(generateActualJson("Ns1.CaT.lOl."))
         .isEqualTo(generateExpectedJsonWithTopLevelEntries(
             "ns1.cat.lol",
@@ -250,7 +250,7 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testQueryParameter_getsIgnored() throws Exception {
+  public void testQueryParameter_getsIgnored() {
     assertThat(generateActualJson("ns1.cat.lol?key=value"))
         .isEqualTo(generateExpectedJsonWithTopLevelEntries(
             "ns1.cat.lol",
@@ -264,7 +264,7 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testIdnNameserver_works() throws Exception {
+  public void testIdnNameserver_works() {
     assertThat(generateActualJson("ns1.cat.みんな"))
         .isEqualTo(generateExpectedJsonWithTopLevelEntries(
             "ns1.cat.みんな",
@@ -279,7 +279,7 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testPunycodeNameserver_works() throws Exception {
+  public void testPunycodeNameserver_works() {
     assertThat(generateActualJson("ns1.cat.xn--q9jyb4c"))
         .isEqualTo(generateExpectedJsonWithTopLevelEntries(
             "ns1.cat.みんな",
@@ -294,7 +294,7 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testMultilevelNameserver_works() throws Exception {
+  public void testMultilevelNameserver_works() {
     assertThat(generateActualJson("ns1.domain.1.tld"))
         .isEqualTo(generateExpectedJsonWithTopLevelEntries(
             "ns1.domain.1.tld",
@@ -308,7 +308,7 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testExternalNameserver_works() throws Exception {
+  public void testExternalNameserver_works() {
     assertThat(generateActualJson("ns1.domain.external"))
         .isEqualTo(generateExpectedJsonWithTopLevelEntries(
             "ns1.domain.external",
@@ -322,7 +322,7 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testNameserver_found_sameRegistrarRequested() throws Exception {
+  public void testNameserver_found_sameRegistrarRequested() {
     assertThat(
             generateActualJson(
                 "ns1.cat.lol", Optional.of("TheRegistrar"), Optional.empty()))
@@ -339,32 +339,32 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testNameserver_notFound_differentRegistrarRequested() throws Exception {
+  public void testNameserver_notFound_differentRegistrarRequested() {
     generateActualJson("ns1.cat.lol", Optional.of("otherregistrar"), Optional.of(false));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
-  public void testDeletedNameserver_notFound_includeDeletedNotSpecified() throws Exception {
+  public void testDeletedNameserver_notFound_includeDeletedNotSpecified() {
     generateActualJson("nsdeleted.cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
-  public void testDeletedNameserver_notFound_includeDeletedSetFalse() throws Exception {
+  public void testDeletedNameserver_notFound_includeDeletedSetFalse() {
     generateActualJson("nsdeleted.cat.lol", Optional.empty(), Optional.of(false));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
-  public void testDeletedNameserver_notFound_notLoggedIn() throws Exception {
+  public void testDeletedNameserver_notFound_notLoggedIn() {
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(false);
     generateActualJson("nsdeleted.cat.lol", Optional.empty(), Optional.of(true));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
-  public void testDeletedNameserver_notFound_loggedInAsDifferentRegistrar() throws Exception {
+  public void testDeletedNameserver_notFound_loggedInAsDifferentRegistrar() {
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("otherregistrar");
     generateActualJson("nsdeleted.cat.lol", Optional.empty(), Optional.of(true));
@@ -372,7 +372,7 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testDeletedNameserver_found_loggedInAsCorrectRegistrar() throws Exception {
+  public void testDeletedNameserver_found_loggedInAsCorrectRegistrar() {
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
     assertThat(
@@ -390,7 +390,7 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testDeletedNameserver_found_loggedInAsAdmin() throws Exception {
+  public void testDeletedNameserver_found_loggedInAsAdmin() {
     when(sessionUtils.checkRegistrarConsoleLogin(request, adminUserAuthInfo)).thenReturn(true);
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("irrelevant");
     newRdapNameserverAction(
@@ -413,7 +413,7 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testDeletedNameserver_found_sameRegistrarRequested() throws Exception {
+  public void testDeletedNameserver_found_sameRegistrarRequested() {
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
     assertThat(
@@ -431,7 +431,7 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testDeletedNameserver_notFound_differentRegistrarRequested() throws Exception {
+  public void testDeletedNameserver_notFound_differentRegistrarRequested() {
     when(sessionUtils.checkRegistrarConsoleLogin(request, userAuthInfo)).thenReturn(true);
     when(sessionUtils.getRegistrarClientId(request)).thenReturn("TheRegistrar");
     generateActualJson("ns1.cat.lol", Optional.of("otherregistrar"), Optional.of(false));
@@ -439,7 +439,7 @@ public class RdapNameserverActionTest {
   }
 
   @Test
-  public void testMetrics() throws Exception {
+  public void testMetrics() {
     generateActualJson("ns1.cat.lol");
     verify(rdapMetrics)
         .updateMetrics(

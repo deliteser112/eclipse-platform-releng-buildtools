@@ -83,7 +83,7 @@ public class CommitLogCheckpointStrategyTest {
   }
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     strategy.clock = clock;
     strategy.ofy = ofy;
 
@@ -100,13 +100,13 @@ public class CommitLogCheckpointStrategyTest {
   }
 
   @Test
-  public void test_readBucketTimestamps_noCommitLogs() throws Exception {
+  public void test_readBucketTimestamps_noCommitLogs() {
     assertThat(strategy.readBucketTimestamps())
         .containsExactly(1, START_OF_TIME, 2, START_OF_TIME, 3, START_OF_TIME);
   }
 
   @Test
-  public void test_readBucketTimestamps_withSomeCommitLogs() throws Exception {
+  public void test_readBucketTimestamps_withSomeCommitLogs() {
     DateTime startTime = clock.nowUtc();
     writeCommitLogToBucket(1);
     clock.advanceOneMilli();
@@ -116,7 +116,7 @@ public class CommitLogCheckpointStrategyTest {
   }
 
   @Test
-  public void test_readBucketTimestamps_againAfterUpdate_reflectsUpdate() throws Exception {
+  public void test_readBucketTimestamps_againAfterUpdate_reflectsUpdate() {
     DateTime firstTime = clock.nowUtc();
     writeCommitLogToBucket(1);
     writeCommitLogToBucket(2);

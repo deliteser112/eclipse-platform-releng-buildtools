@@ -123,7 +123,7 @@ public class BrdaCopyActionTest extends ShardableTestCase {
   }
 
   @Test
-  public void testRun() throws Exception {
+  public void testRun() {
     action.run();
     assertThat(gcsUtils.existsAndNotEmpty(STAGE_FILE)).isTrue();
     assertThat(gcsUtils.existsAndNotEmpty(RYDE_FILE)).isTrue();

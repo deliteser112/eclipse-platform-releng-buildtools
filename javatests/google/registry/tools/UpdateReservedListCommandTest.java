@@ -90,7 +90,7 @@ public class UpdateReservedListCommandTest extends
   }
 
   @Test
-  public void testFailure_reservedListDoesntExist() throws Exception {
+  public void testFailure_reservedListDoesntExist() {
     String errorMessage =
         "Could not update reserved list xn--q9jyb4c_poobah because it doesn't exist.";
     IllegalArgumentException thrown =

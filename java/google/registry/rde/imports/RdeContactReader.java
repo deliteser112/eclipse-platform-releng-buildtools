@@ -82,7 +82,7 @@ public class RdeContactReader extends InputReader<JaxbFragment<XjcRdeContactElem
   }
 
   @Override
-  public JaxbFragment<XjcRdeContactElement> next() throws IOException {
+  public JaxbFragment<XjcRdeContactElement> next() {
     if (count < maxResults) {
       if (parser == null) {
         parser = newParser();

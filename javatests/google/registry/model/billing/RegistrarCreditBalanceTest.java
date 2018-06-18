@@ -48,7 +48,7 @@ public class RegistrarCreditBalanceTest extends EntityTestCase {
   Map<DateTime, ? extends Map<DateTime, Money>> rawBalanceMap;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     createTld("tld");
     theRegistrar = loadRegistrar("TheRegistrar");
     unpersistedCredit = makeCredit(theRegistrar, clock.nowUtc());
@@ -79,7 +79,7 @@ public class RegistrarCreditBalanceTest extends EntityTestCase {
   }
 
   @Test
-  public void testPersistence() throws Exception {
+  public void testPersistence() {
     assertThat(ofy().load().entity(balance).now()).isEqualTo(balance);
   }
 
@@ -89,19 +89,19 @@ public class RegistrarCreditBalanceTest extends EntityTestCase {
     verifyIndexing(balance);
   }
   @Test
-  public void testSuccess_balanceWithUnpersistedCredit() throws Exception {
+  public void testSuccess_balanceWithUnpersistedCredit() {
     balance.asBuilder().setParent(unpersistedCredit).build();
   }
 
   @Test
-  public void testFailure_balanceNotInCreditCurrency() throws Exception {
+  public void testFailure_balanceNotInCreditCurrency() {
     assertThrows(
         IllegalStateException.class,
         () -> balance.asBuilder().setAmount(Money.parse("JPY 1")).build());
   }
 
   @Test
-  public void testFailure_balanceNotInCreditCurrencyWithUnpersistedCredit() throws Exception {
+  public void testFailure_balanceNotInCreditCurrencyWithUnpersistedCredit() {
     assertThrows(
         IllegalStateException.class,
         () ->
@@ -113,17 +113,17 @@ public class RegistrarCreditBalanceTest extends EntityTestCase {
   }
 
   @Test
-  public void testSuccess_balanceMap_createForCredit() throws Exception {
+  public void testSuccess_balanceMap_createForCredit() {
     assertThat(BalanceMap.createForCredit(credit)).isEqualTo(rawBalanceMap);
   }
 
   @Test
-  public void testSuccess_balanceMap_createForEmptyCredit() throws Exception {
+  public void testSuccess_balanceMap_createForEmptyCredit() {
     assertThat(BalanceMap.createForCredit(makeCredit(theRegistrar, clock.nowUtc()))).isEmpty();
   }
 
   @Test
-  public void testSuccess_balanceMap_getActiveBalance_emptyMap() throws Exception {
+  public void testSuccess_balanceMap_getActiveBalance_emptyMap() {
     BalanceMap map = new BalanceMap(ImmutableMap.of());
     assertThat(map.getActiveBalanceAtTime(START_OF_TIME)).isEmpty();
     assertThat(map.getActiveBalanceAtTime(clock.nowUtc())).isEmpty();
@@ -134,7 +134,7 @@ public class RegistrarCreditBalanceTest extends EntityTestCase {
   }
 
   @Test
-  public void testSuccess_balanceMap_getActiveBalanceAtTime() throws Exception {
+  public void testSuccess_balanceMap_getActiveBalanceAtTime() {
     BalanceMap map = new BalanceMap(rawBalanceMap);
     assertThat(map.getActiveBalanceAtTime(START_OF_TIME)).isEmpty();
     assertThat(map.getActiveBalanceAtTime(clock.nowUtc().minusMillis(1))).isEmpty();
@@ -150,7 +150,7 @@ public class RegistrarCreditBalanceTest extends EntityTestCase {
   }
 
   @Test
-  public void testSuccess_balanceMap_getActiveBalanceBeforeTime() throws Exception {
+  public void testSuccess_balanceMap_getActiveBalanceBeforeTime() {
     BalanceMap map = new BalanceMap(rawBalanceMap);
     assertThat(map.getActiveBalanceBeforeTime(START_OF_TIME)).isEmpty();
     assertThat(map.getActiveBalanceBeforeTime(clock.nowUtc().minusMillis(1))).isEmpty();

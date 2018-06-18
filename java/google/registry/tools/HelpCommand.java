@@ -36,7 +36,7 @@ final class HelpCommand implements Command {
   private List<String> mainParameters = new ArrayList<>();
 
   @Override
-  public void run() throws Exception {
+  public void run() {
     String target = getOnlyElement(mainParameters, null);
     if (target == null) {
       jcommander.usage();

@@ -98,7 +98,7 @@ public class SyncGroupMembersActionTest {
   }
 
   @Test
-  public void test_doPost_noneModified() throws Exception {
+  public void test_doPost_noneModified() {
     persistResource(
         loadRegistrar("NewRegistrar").asBuilder().setContactsRequireSyncing(false).build());
     persistResource(

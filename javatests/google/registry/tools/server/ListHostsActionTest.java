@@ -34,14 +34,14 @@ public class ListHostsActionTest extends ListActionTestCase {
   ListHostsAction action;
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     createTld("foo");
     action = new ListHostsAction();
     action.clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
   }
 
   @Test
-  public void testRun_noParameters() throws Exception {
+  public void testRun_noParameters() {
     testRunSuccess(
         action,
         null,
@@ -50,7 +50,7 @@ public class ListHostsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_twoLinesWithRepoId() throws Exception {
+  public void testRun_twoLinesWithRepoId() {
     persistActiveHost("example2.foo");
     persistActiveHost("example1.foo");
     testRunSuccess(
@@ -65,7 +65,7 @@ public class ListHostsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_twoLinesWithWildcard() throws Exception {
+  public void testRun_twoLinesWithWildcard() {
     persistActiveHost("example2.foo");
     persistActiveHost("example1.foo");
     testRunSuccess(
@@ -80,7 +80,7 @@ public class ListHostsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_twoLinesWithWildcardAndAnotherField() throws Exception {
+  public void testRun_twoLinesWithWildcardAndAnotherField() {
     persistActiveHost("example2.foo");
     persistActiveHost("example1.foo");
     testRunSuccess(
@@ -95,7 +95,7 @@ public class ListHostsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_withBadField_returnsError() throws Exception {
+  public void testRun_withBadField_returnsError() {
     persistActiveHost("example2.foo");
     persistActiveHost("example1.foo");
     testRunError(

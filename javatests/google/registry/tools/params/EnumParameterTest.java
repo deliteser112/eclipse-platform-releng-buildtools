@@ -31,12 +31,12 @@ public class EnumParameterTest {
   private final TldStateParameter instance = new TldStateParameter();
 
   @Test
-  public void testSuccess_convertEnum() throws Exception {
+  public void testSuccess_convertEnum() {
     assertThat(instance.convert("PREDELEGATION")).isEqualTo(TldState.PREDELEGATION);
   }
 
   @Test
-  public void testFailure_badValue() throws Exception {
+  public void testFailure_badValue() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> instance.convert("GENERAL_SUNRUSH"));
     assertThat(thrown)

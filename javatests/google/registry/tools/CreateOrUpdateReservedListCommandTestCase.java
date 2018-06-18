@@ -50,7 +50,7 @@ public abstract class CreateOrUpdateReservedListCommandTestCase
   }
 
   @Test
-  public void testFailure_fileDoesntExist() throws Exception {
+  public void testFailure_fileDoesntExist() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -59,7 +59,7 @@ public abstract class CreateOrUpdateReservedListCommandTestCase
   }
 
   @Test
-  public void testFailure_fileDoesntParse() throws Exception {
+  public void testFailure_fileDoesntParse() {
     assertThrows(
         IllegalArgumentException.class,
         () -> runCommandForced("--name=xn--q9jyb4c-blork", "--input=" + invalidReservedTermsPath));

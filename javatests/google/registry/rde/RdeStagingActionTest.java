@@ -125,7 +125,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Before
-  public void setup() throws Exception {
+  public void setup() {
     inject.setStaticField(Ofy.class, "clock", clock);
     action = new RdeStagingAction();
     action.clock = clock;
@@ -155,7 +155,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testRun_modeInNonManualMode_throwsException() throws Exception {
+  public void testRun_modeInNonManualMode_throwsException() {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.modeStrings = ImmutableSet.of("full");
@@ -163,7 +163,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testRun_tldInNonManualMode_throwsException() throws Exception {
+  public void testRun_tldInNonManualMode_throwsException() {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.tlds = ImmutableSet.of("tld");
@@ -171,7 +171,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testRun_watermarkInNonManualMode_throwsException() throws Exception {
+  public void testRun_watermarkInNonManualMode_throwsException() {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.watermarks = ImmutableSet.of(clock.nowUtc());
@@ -179,7 +179,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testRun_revisionInNonManualMode_throwsException() throws Exception {
+  public void testRun_revisionInNonManualMode_throwsException() {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.revision = Optional.of(42);
@@ -233,7 +233,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testManualRun_emptyMode_throwsException() throws Exception {
+  public void testManualRun_emptyMode_throwsException() {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.manual = true;
@@ -245,7 +245,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testManualRun_invalidMode_throwsException() throws Exception {
+  public void testManualRun_invalidMode_throwsException() {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.manual = true;
@@ -257,7 +257,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testManualRun_emptyTld_throwsException() throws Exception {
+  public void testManualRun_emptyTld_throwsException() {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.manual = true;
@@ -269,7 +269,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testManualRun_emptyWatermark_throwsException() throws Exception {
+  public void testManualRun_emptyWatermark_throwsException() {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.manual = true;
@@ -281,7 +281,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testManualRun_nonDayStartWatermark_throwsException() throws Exception {
+  public void testManualRun_nonDayStartWatermark_throwsException() {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.manual = true;
@@ -293,7 +293,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testManualRun_invalidRevision_throwsException() throws Exception {
+  public void testManualRun_invalidRevision_throwsException() {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.manual = true;

@@ -91,7 +91,7 @@ public class ReadDnsQueueActionTest {
       .build();
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     // Because of b/73372999 - the FakeClock can't be in the past, or the TaskQueues stop working.
     // To make sure it's never in the past, we set the date far-far into the future
     clock.setTo(DateTime.parse("3000-01-01TZ"));
@@ -115,7 +115,7 @@ public class ReadDnsQueueActionTest {
     dnsQueue = DnsQueue.createForTesting(clock);
   }
 
-  private void run() throws Exception {
+  private void run() {
     ReadDnsQueueAction action = new ReadDnsQueueAction();
     action.tldUpdateBatchSize = TEST_TLD_UPDATE_BATCH_SIZE;
     action.requestedMaximumDuration = Duration.standardSeconds(10);

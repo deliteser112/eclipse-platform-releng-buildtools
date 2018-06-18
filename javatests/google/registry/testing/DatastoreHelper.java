@@ -692,12 +692,12 @@ public class DatastoreHelper {
   }
 
   /** Assert that the expected billing events are exactly the ones found in the fake Datastore. */
-  public static void assertBillingEvents(BillingEvent... expected) throws Exception {
+  public static void assertBillingEvents(BillingEvent... expected) {
     assertBillingEventsEqual(getBillingEvents(), Arrays.asList(expected));
   }
 
   /** Assert that the expected billing events set is exactly the one found in the fake Datastore. */
-  public static void assertBillingEvents(Set<BillingEvent> expected) throws Exception {
+  public static void assertBillingEvents(Set<BillingEvent> expected) {
     assertBillingEventsEqual(getBillingEvents(), expected);
   }
 
@@ -705,7 +705,7 @@ public class DatastoreHelper {
    * Assert that the expected billing events are exactly the ones found for the given EppResource.
    */
   public static void assertBillingEventsForResource(
-      EppResource resource, BillingEvent... expected) throws Exception {
+      EppResource resource, BillingEvent... expected) {
     assertThat(
             Streams.stream(getBillingEvents(resource))
                 .map(DatastoreHelper::stripBillingEventId)
@@ -740,8 +740,7 @@ public class DatastoreHelper {
             Streams.stream(expected).map(POLL_MESSAGE_ID_STRIPPER).collect(toImmutableList()));
   }
 
-  public static void assertPollMessagesForResource(EppResource resource, PollMessage... expected)
-      throws Exception {
+  public static void assertPollMessagesForResource(EppResource resource, PollMessage... expected) {
     assertThat(
             getPollMessages(resource)
                 .stream()

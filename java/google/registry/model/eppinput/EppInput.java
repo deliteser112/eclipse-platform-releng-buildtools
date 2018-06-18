@@ -434,7 +434,7 @@ public class EppInput extends ImmutableObject {
     }
 
     @Override
-    public String marshal(String ignored) throws Exception {
+    public String marshal(String ignored) {
       throw new UnsupportedOperationException();
     }
   }

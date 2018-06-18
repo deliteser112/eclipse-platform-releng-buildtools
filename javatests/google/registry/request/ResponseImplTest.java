@@ -35,14 +35,14 @@ public class ResponseImplTest {
   private final HttpServletResponse rsp = mock(HttpServletResponse.class);
 
   @Test
-  public void testSetStatus() throws Exception {
+  public void testSetStatus() {
     new ResponseImpl(rsp).setStatus(666);
     verify(rsp).setStatus(666);
     verifyNoMoreInteractions(rsp);
   }
 
   @Test
-  public void testSetContentType() throws Exception {
+  public void testSetContentType() {
     new ResponseImpl(rsp).setContentType(PLAIN_TEXT_UTF_8);
     verify(rsp).setContentType("text/plain; charset=utf-8");
     verifyNoMoreInteractions(rsp);

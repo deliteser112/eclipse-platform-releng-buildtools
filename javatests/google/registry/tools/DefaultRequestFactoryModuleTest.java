@@ -21,7 +21,6 @@ import com.google.api.client.http.HttpRequest;
 import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.common.net.HostAndPort;
-import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +32,7 @@ public class DefaultRequestFactoryModuleTest {
   private static final Credential FAKE_CREDENTIAL = new Credential(
       new Credential.AccessMethod() {
         @Override
-        public void intercept(HttpRequest request, String accessToken) throws IOException {}
+        public void intercept(HttpRequest request, String accessToken) {}
 
         @Override
         public String getAccessTokenFromRequest(HttpRequest request) {
@@ -49,7 +48,7 @@ public class DefaultRequestFactoryModuleTest {
   }
 
   @Test
-  public void test_provideHttpRequestFactory_localhost() throws Exception {
+  public void test_provideHttpRequestFactory_localhost() {
     // Make sure that localhost creates a request factory with an initializer.
     HttpRequestFactory factory =
         module.provideHttpRequestFactory(
@@ -61,7 +60,7 @@ public class DefaultRequestFactoryModuleTest {
   }
 
   @Test
-  public void test_provideHttpRequestFactory_remote() throws Exception {
+  public void test_provideHttpRequestFactory_remote() {
     // Make sure that example.com creates a request factory with the UNITTEST client id but no
     // initializer.
     HttpRequestFactory factory =

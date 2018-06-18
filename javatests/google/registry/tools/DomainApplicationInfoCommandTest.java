@@ -39,7 +39,7 @@ public class DomainApplicationInfoCommandTest
   }
 
   @Test
-  public void testFailure_invalidPhase() throws Exception {
+  public void testFailure_invalidPhase() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -51,21 +51,21 @@ public class DomainApplicationInfoCommandTest
   }
 
   @Test
-  public void testFailure_missingClientId() throws Exception {
+  public void testFailure_missingClientId() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--domain_name=example.tld", "--phase=sunrush", "--id=123"));
   }
 
   @Test
-  public void testFailure_missingPhase() throws Exception {
+  public void testFailure_missingPhase() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--client=NewRegistrar", "--domain_name=example.tld", "--id=123"));
   }
 
   @Test
-  public void testFailure_missingApplicationId() throws Exception {
+  public void testFailure_missingApplicationId() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -74,7 +74,7 @@ public class DomainApplicationInfoCommandTest
   }
 
   @Test
-  public void testFailure_mainParameter() throws Exception {
+  public void testFailure_mainParameter() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -87,7 +87,7 @@ public class DomainApplicationInfoCommandTest
   }
 
   @Test
-  public void testFailure_unknownFlag() throws Exception {
+  public void testFailure_unknownFlag() {
     assertThrows(
         ParameterException.class,
         () ->

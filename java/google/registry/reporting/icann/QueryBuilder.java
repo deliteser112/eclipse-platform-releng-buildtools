@@ -15,14 +15,13 @@
 package google.registry.reporting.icann;
 
 import com.google.common.collect.ImmutableMap;
-import java.io.IOException;
 
 /** Interface defining the necessary methods to construct ICANN reporting SQL queries. */
 public interface QueryBuilder {
 
   /** Returns a map from an intermediary view's table name to the query that generates it. */
-  ImmutableMap<String, String> getViewQueryMap() throws IOException;
+  ImmutableMap<String, String> getViewQueryMap();
 
   /** Returns a query that retrieves the overall report from the previously generated view. */
-  String getReportQuery() throws IOException;
+  String getReportQuery();
 }

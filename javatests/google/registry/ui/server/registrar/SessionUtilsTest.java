@@ -77,7 +77,7 @@ public class SessionUtilsTest {
   }
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     LoggerConfig.getConfig(SessionUtils.class).addHandler(testLogHandler);
     sessionUtils = new SessionUtils();
     sessionUtils.registryAdminClientId = ADMIN_CLIENT_ID;
@@ -86,14 +86,13 @@ public class SessionUtilsTest {
   }
 
   @After
-  public void after() throws Exception {
+  public void after() {
     LoggerConfig.getConfig(SessionUtils.class).removeHandler(testLogHandler);
   }
 
   /** User needs to be logged in before calling checkRegistrarConsoleLogin */
   @Test
-  public void testCheckRegistrarConsoleLogin_notLoggedIn_throwsIllegalStateException()
-      throws Exception {
+  public void testCheckRegistrarConsoleLogin_notLoggedIn_throwsIllegalStateException() {
     assertThrows(
         IllegalStateException.class,
         () -> {
@@ -107,7 +106,7 @@ public class SessionUtilsTest {
    * access should be granted.
    */
   @Test
-  public void testCheckRegistrarConsoleLogin_hasSession_noAccess_isNotAdmin() throws Exception {
+  public void testCheckRegistrarConsoleLogin_hasSession_noAccess_isNotAdmin() {
     when(session.getAttribute("clientId")).thenReturn(DEFAULT_CLIENT_ID);
     assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_USER)).isFalse();
     verify(session).invalidate();
@@ -121,7 +120,7 @@ public class SessionUtilsTest {
    * access should be revoked. The admin flag should be ignored.
    */
   @Test
-  public void testCheckRegistrarConsoleLogin_hasSession_noAccess_isAdmin() throws Exception {
+  public void testCheckRegistrarConsoleLogin_hasSession_noAccess_isAdmin() {
     when(session.getAttribute("clientId")).thenReturn(DEFAULT_CLIENT_ID);
     assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_ADMIN)).isFalse();
     verify(session).invalidate();
@@ -135,7 +134,7 @@ public class SessionUtilsTest {
    * should be allowed.
    */
   @Test
-  public void testCheckRegistrarConsoleLogin_hasSession_hasAccess_isNotAdmin() throws Exception {
+  public void testCheckRegistrarConsoleLogin_hasSession_hasAccess_isNotAdmin() {
     when(session.getAttribute("clientId")).thenReturn(DEFAULT_CLIENT_ID);
     assertThat(sessionUtils.checkRegistrarConsoleLogin(req, AUTHORIZED_USER)).isTrue();
     verify(session).getAttribute("clientId");
@@ -154,7 +153,7 @@ public class SessionUtilsTest {
    * should be allowed. The admin flag should be ignored.
    */
   @Test
-  public void testCheckRegistrarConsoleLogin_hasSession_hasAccess_isAdmin() throws Exception {
+  public void testCheckRegistrarConsoleLogin_hasSession_hasAccess_isAdmin() {
     when(session.getAttribute("clientId")).thenReturn(DEFAULT_CLIENT_ID);
     assertThat(sessionUtils.checkRegistrarConsoleLogin(req, AUTHORIZED_ADMIN)).isTrue();
     verify(session).getAttribute("clientId");
@@ -173,7 +172,7 @@ public class SessionUtilsTest {
    * should be granted to that registrar.
    */
   @Test
-  public void testCheckRegistrarConsoleLogin_noSession_hasAccess_isNotAdmin() throws Exception {
+  public void testCheckRegistrarConsoleLogin_noSession_hasAccess_isNotAdmin() {
     assertThat(sessionUtils.checkRegistrarConsoleLogin(req, AUTHORIZED_USER)).isTrue();
     verify(session).setAttribute(eq("clientId"), eq(DEFAULT_CLIENT_ID));
     assertAboutLogs()
@@ -190,7 +189,7 @@ public class SessionUtilsTest {
    * should be granted to that registrar. The admin flag should be ignored.
    */
   @Test
-  public void testCheckRegistrarConsoleLogin_noSession_hasAccess_isAdmin() throws Exception {
+  public void testCheckRegistrarConsoleLogin_noSession_hasAccess_isAdmin() {
     assertThat(sessionUtils.checkRegistrarConsoleLogin(req, AUTHORIZED_ADMIN)).isTrue();
     verify(session).setAttribute(eq("clientId"), eq(DEFAULT_CLIENT_ID));
     assertAboutLogs()
@@ -208,8 +207,7 @@ public class SessionUtilsTest {
    * configured adminClientId is empty or null, no access is granted.
    */
   @Test
-  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isAdmin_adminClientIdEmpty()
-      throws Exception {
+  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isAdmin_adminClientIdEmpty() {
     sessionUtils.registryAdminClientId = "";
     assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_ADMIN)).isFalse();
     assertAboutLogs()
@@ -228,8 +226,7 @@ public class SessionUtilsTest {
    * configured adminClientId does not reference a registry, then no access is granted.
    */
   @Test
-  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isAdmin_adminClientIdInvalid()
-      throws Exception {
+  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isAdmin_adminClientIdInvalid() {
     sessionUtils.registryAdminClientId = "NonexistentRegistry";
     assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_ADMIN)).isFalse();
     assertAboutLogs()
@@ -247,7 +244,7 @@ public class SessionUtilsTest {
    * user is an admin, then grant the user access to the validated configured adminClientId.
    */
   @Test
-  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isAdmin() throws Exception {
+  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isAdmin() {
     assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_ADMIN)).isTrue();
     verify(session).setAttribute(eq("clientId"), eq(ADMIN_CLIENT_ID));
     assertAboutLogs()
@@ -269,8 +266,7 @@ public class SessionUtilsTest {
    * We continue to grant the admin access.
    */
   @Test
-  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isAdmin_secondRequest()
-      throws Exception {
+  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isAdmin_secondRequest() {
     when(session.getAttribute("clientId")).thenReturn(ADMIN_CLIENT_ID);
     assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_ADMIN)).isTrue();
     assertAboutLogs()
@@ -287,7 +283,7 @@ public class SessionUtilsTest {
    * access should not be granted.
    */
   @Test
-  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isNotAdmin() throws Exception {
+  public void testCheckRegistrarConsoleLogin_noSession_noAccess_isNotAdmin() {
     assertThat(sessionUtils.checkRegistrarConsoleLogin(req, UNAUTHORIZED_USER)).isFalse();
     assertAboutLogs()
         .that(testLogHandler)
@@ -299,7 +295,7 @@ public class SessionUtilsTest {
   }
 
   @Test
-  public void testHasAccessToRegistrar_orphanedContact_returnsFalse() throws Exception {
+  public void testHasAccessToRegistrar_orphanedContact_returnsFalse() {
     deleteResource(loadRegistrar(DEFAULT_CLIENT_ID));
     assertThat(
             sessionUtils.hasAccessToRegistrar(DEFAULT_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID, false))
@@ -307,7 +303,7 @@ public class SessionUtilsTest {
   }
 
   @Test
-  public void testHasAccessToRegistrar_accessRevoked_returnsFalse() throws Exception {
+  public void testHasAccessToRegistrar_accessRevoked_returnsFalse() {
     RegistrarContact.updateContacts(loadRegistrar(DEFAULT_CLIENT_ID), new java.util.HashSet<>());
     assertThat(
             sessionUtils.hasAccessToRegistrar(DEFAULT_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID, false))
@@ -315,8 +311,7 @@ public class SessionUtilsTest {
   }
 
   @Test
-  public void testHasAccessToRegistrar_orphanedAdmin_notAdminRegistrar_returnsFalse()
-      throws Exception {
+  public void testHasAccessToRegistrar_orphanedAdmin_notAdminRegistrar_returnsFalse() {
     RegistrarContact.updateContacts(loadRegistrar(DEFAULT_CLIENT_ID), new java.util.HashSet<>());
     assertThat(
             sessionUtils.hasAccessToRegistrar(DEFAULT_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID, true))
@@ -324,8 +319,7 @@ public class SessionUtilsTest {
   }
 
   @Test
-  public void testHasAccessToRegistrar_orphanedAdmin_onAdminRegistrar_returnsTrue()
-      throws Exception {
+  public void testHasAccessToRegistrar_orphanedAdmin_onAdminRegistrar_returnsTrue() {
     RegistrarContact.updateContacts(loadRegistrar(ADMIN_CLIENT_ID), new java.util.HashSet<>());
     assertThat(
             sessionUtils.hasAccessToRegistrar(ADMIN_CLIENT_ID, THE_REGISTRAR_GAE_USER_ID, true))
@@ -333,7 +327,7 @@ public class SessionUtilsTest {
   }
 
   @Test
-  public void testNullness() throws Exception {
+  public void testNullness() {
     new NullPointerTester()
         .setDefault(HttpServletRequest.class, req)
         .setDefault(HttpServletResponse.class, rsp)

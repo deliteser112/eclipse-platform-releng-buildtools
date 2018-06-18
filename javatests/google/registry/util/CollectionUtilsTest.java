@@ -70,7 +70,7 @@ public class CollectionUtilsTest {
   }
 
   @Test
-  public void testDeadCodeWeDontWantToDelete() throws Exception {
+  public void testDeadCodeWeDontWantToDelete() {
     CollectionUtils.nullToEmpty(HashMultimap.create());
   }
 }

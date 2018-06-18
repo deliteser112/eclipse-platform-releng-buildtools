@@ -104,22 +104,21 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   }
 
   @Test
-  public void testFailure_neverExisted() throws Exception {
+  public void testFailure_neverExisted() {
     ResourceDoesNotExistException thrown =
         assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("(ns1.example.tld)");
   }
 
   @Test
-  public void testFailure_existedButWasDeleted() throws Exception {
+  public void testFailure_existedButWasDeleted() {
     persistDeletedHost("ns1.example.tld", clock.nowUtc().minusDays(1));
     ResourceDoesNotExistException thrown =
         assertThrows(ResourceDoesNotExistException.class, this::runFlow);
     assertThat(thrown).hasMessageThat().contains("(ns1.example.tld)");
   }
 
-  private void doFailingStatusTest(StatusValue statusValue, Class<? extends Exception> exception)
-      throws Exception {
+  private void doFailingStatusTest(StatusValue statusValue, Class<? extends Exception> exception) {
     persistResource(
         newHostResource("ns1.example.tld")
             .asBuilder()
@@ -148,7 +147,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   }
 
   @Test
-  public void testFailure_unauthorizedClient() throws Exception {
+  public void testFailure_unauthorizedClient() {
     sessionMetadata.setClientId("NewRegistrar");
     persistActiveHost("ns1.example.tld");
     EppException thrown = assertThrows(ResourceNotOwnedException.class, this::runFlow);
@@ -195,7 +194,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   }
 
   @Test
-  public void testFailure_unauthorizedClientReadFromSuperordinate() throws Exception {
+  public void testFailure_unauthorizedClientReadFromSuperordinate() {
     sessionMetadata.setClientId("TheRegistrar");
     createTld("tld");
     DomainResource domain =
@@ -248,7 +247,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   }
 
   @Test
-  public void testFailure_unauthorizedClientReadFromTransferredSuperordinate() throws Exception {
+  public void testFailure_unauthorizedClientReadFromTransferredSuperordinate() {
     sessionMetadata.setClientId("NewRegistrar");
     createTld("tld");
     // Setup a transfer that should have been server approved a day ago.
@@ -281,7 +280,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   }
 
   @Test
-  public void testFailure_failfastWhenLinkedToDomain() throws Exception {
+  public void testFailure_failfastWhenLinkedToDomain() {
     createTld("tld");
     persistResource(
         newDomainResource("example.tld")
@@ -293,7 +292,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   }
 
   @Test
-  public void testFailure_failfastWhenLinkedToApplication() throws Exception {
+  public void testFailure_failfastWhenLinkedToApplication() {
     createTld("tld");
     persistResource(
         newDomainApplication("example.tld")
@@ -305,14 +304,14 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   }
 
   @Test
-  public void testFailure_nonLowerCaseHostname() throws Exception {
+  public void testFailure_nonLowerCaseHostname() {
     setEppInput("host_delete.xml", ImmutableMap.of("HOSTNAME", "NS1.EXAMPLE.NET"));
     EppException thrown = assertThrows(HostNameNotLowerCaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
-  public void testFailure_nonPunyCodedHostname() throws Exception {
+  public void testFailure_nonPunyCodedHostname() {
     setEppInput("host_delete.xml", ImmutableMap.of("HOSTNAME", "ns1.çauçalito.tld"));
     HostNameNotPunyCodedException thrown =
         assertThrows(HostNameNotPunyCodedException.class, this::runFlow);
@@ -320,7 +319,7 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   }
 
   @Test
-  public void testFailure_nonCanonicalHostname() throws Exception {
+  public void testFailure_nonCanonicalHostname() {
     setEppInput("host_delete.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld."));
     EppException thrown = assertThrows(HostNameNotNormalizedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();

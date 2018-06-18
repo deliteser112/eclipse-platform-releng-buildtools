@@ -71,7 +71,7 @@ public abstract class ConfirmingCommand implements Command {
    * Perform any post-execution steps (e.g. verifying the result), and return a description String
    * to be printed if non-empty.
    */
-  protected String postExecute() throws Exception {
+  protected String postExecute() {
     return "";
   }
 

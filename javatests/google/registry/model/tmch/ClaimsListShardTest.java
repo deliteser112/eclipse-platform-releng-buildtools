@@ -50,12 +50,12 @@ public class ClaimsListShardTest {
   public final InjectRule inject = new InjectRule();
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     inject.setStaticField(ClaimsListShard.class, "shardSize", 10);
   }
 
   @Test
-  public void test_unshardedSaveFails() throws Exception {
+  public void test_unshardedSaveFails() {
     assertThrows(
         UnshardedSaveException.class,
         () ->
@@ -72,13 +72,13 @@ public class ClaimsListShardTest {
   }
 
   @Test
-  public void testGet_safelyLoadsEmptyClaimsList_whenNoShardsExist() throws Exception {
+  public void testGet_safelyLoadsEmptyClaimsList_whenNoShardsExist() {
     assertThat(ClaimsListShard.get().labelsToKeys).isEmpty();
     assertThat(ClaimsListShard.get().creationTime).isEqualTo(START_OF_TIME);
   }
 
   @Test
-  public void test_savesAndGets_withSharding() throws Exception {
+  public void test_savesAndGets_withSharding() {
     // Create a ClaimsList that will need 4 shards to save.
     Map<String, String> labelsToKeys = new HashMap<>();
     for (int i = 0; i <= ClaimsListShard.shardSize * 3; i++) {

@@ -75,13 +75,13 @@ public class TmchXmlSignatureTest {
   private TmchXmlSignature tmchXmlSignature;
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     inject.setStaticField(TmchCertificateAuthority.class, "clock", clock);
     tmchXmlSignature = new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PILOT));
   }
 
   @Test
-  public void testWrongCertificateAuthority() throws Exception {
+  public void testWrongCertificateAuthority() {
     tmchXmlSignature = new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PRODUCTION));
     smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
     CertificateSignatureException e =
@@ -90,14 +90,14 @@ public class TmchXmlSignatureTest {
   }
 
   @Test
-  public void testTimeTravelBeforeCertificateWasCreated() throws Exception {
+  public void testTimeTravelBeforeCertificateWasCreated() {
     smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
     clock.setTo(DateTime.parse("2013-05-01T00:00:00Z"));
     assertThrows(CertificateNotYetValidException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test
-  public void testTimeTravelAfterCertificateHasExpired() throws Exception {
+  public void testTimeTravelAfterCertificateHasExpired() {
     smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
     clock.setTo(DateTime.parse("2023-06-01T00:00:00Z"));
     assertThrows(CertificateExpiredException.class, () -> tmchXmlSignature.verify(smdData));
@@ -284,37 +284,37 @@ public class TmchXmlSignatureTest {
   }
 
   @Test
-  public void testInvalidInvalidsignatureCourtAgentFrenchActive() throws Exception {
+  public void testInvalidInvalidsignatureCourtAgentFrenchActive() {
     smdData = loadSmd("invalid/InvalidSignature-Court-Agent-French-Active.smd");
     assertThrows(XMLSignatureException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test
-  public void testInvalidInvalidsignatureTrademarkAgentEnglishActive() throws Exception {
+  public void testInvalidInvalidsignatureTrademarkAgentEnglishActive() {
     smdData = loadSmd("invalid/InvalidSignature-Trademark-Agent-English-Active.smd");
     assertThrows(XMLSignatureException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test
-  public void testInvalidInvalidsignatureTrademarkAgentRussianActive() throws Exception {
+  public void testInvalidInvalidsignatureTrademarkAgentRussianActive() {
     smdData = loadSmd("invalid/InvalidSignature-Trademark-Agent-Russian-Active.smd");
     assertThrows(XMLSignatureException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test
-  public void testInvalidInvalidsignatureTreatystatuteAgentChineseActive() throws Exception {
+  public void testInvalidInvalidsignatureTreatystatuteAgentChineseActive() {
     smdData = loadSmd("invalid/InvalidSignature-TreatyStatute-Agent-Chinese-Active.smd");
     assertThrows(XMLSignatureException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test
-  public void testInvalidInvalidsignatureTreatystatuteAgentEnglishActive() throws Exception {
+  public void testInvalidInvalidsignatureTreatystatuteAgentEnglishActive() {
     smdData = loadSmd("invalid/InvalidSignature-TreatyStatute-Agent-English-Active.smd");
     assertThrows(XMLSignatureException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test
-  public void testRevokedTmvTmvrevokedCourtAgentFrenchActive() throws Exception {
+  public void testRevokedTmvTmvrevokedCourtAgentFrenchActive() {
     smdData = loadSmd("revoked/tmv/TMVRevoked-Court-Agent-French-Active.smd");
     CertificateRevokedException e =
         assertThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
@@ -322,7 +322,7 @@ public class TmchXmlSignatureTest {
   }
 
   @Test
-  public void testRevokedTmvTmvrevokedTrademarkAgentEnglishActive() throws Exception {
+  public void testRevokedTmvTmvrevokedTrademarkAgentEnglishActive() {
     smdData = loadSmd("revoked/tmv/TMVRevoked-Trademark-Agent-English-Active.smd");
     CertificateRevokedException e =
         assertThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
@@ -330,7 +330,7 @@ public class TmchXmlSignatureTest {
   }
 
   @Test
-  public void testRevokedTmvTmvrevokedTrademarkAgentRussianActive() throws Exception {
+  public void testRevokedTmvTmvrevokedTrademarkAgentRussianActive() {
     smdData = loadSmd("revoked/tmv/TMVRevoked-Trademark-Agent-Russian-Active.smd");
     CertificateRevokedException e =
         assertThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
@@ -338,7 +338,7 @@ public class TmchXmlSignatureTest {
   }
 
   @Test
-  public void testRevokedTmvTmvrevokedTreatystatuteAgentChineseActive() throws Exception {
+  public void testRevokedTmvTmvrevokedTreatystatuteAgentChineseActive() {
     smdData = loadSmd("revoked/tmv/TMVRevoked-TreatyStatute-Agent-Chinese-Active.smd");
     CertificateRevokedException e =
         assertThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
@@ -346,7 +346,7 @@ public class TmchXmlSignatureTest {
   }
 
   @Test
-  public void testRevokedTmvTmvrevokedTreatystatuteAgentEnglishActive() throws Throwable {
+  public void testRevokedTmvTmvrevokedTreatystatuteAgentEnglishActive() {
     smdData = loadSmd("revoked/tmv/TMVRevoked-TreatyStatute-Agent-English-Active.smd");
     CertificateRevokedException e =
         assertThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));

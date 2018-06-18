@@ -48,7 +48,7 @@ public class DomainApplicationTest extends EntityTestCase {
   DomainApplication domainApplication;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     createTld("com");
     // Set up a new persisted domain application entity.
     domainApplication = persistResource(cloneAndSetAutoTimestamps(
@@ -86,7 +86,7 @@ public class DomainApplicationTest extends EntityTestCase {
   }
 
   @Test
-  public void testPersistence() throws Exception {
+  public void testPersistence() {
     assertThat(loadDomainApplication(domainApplication.getForeignKey(), clock.nowUtc()))
         .isEqualTo(domainApplication);
   }

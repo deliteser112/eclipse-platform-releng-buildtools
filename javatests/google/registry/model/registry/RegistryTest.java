@@ -49,20 +49,20 @@ public class RegistryTest extends EntityTestCase {
   Registry registry;
 
   @Before
-  public void setup() throws Exception {
+  public void setup() {
     createTld("tld");
     registry = Registry.get("tld");
   }
 
   @Test
-  public void testPersistence() throws Exception {
+  public void testPersistence() {
     assertWithMessage("Registry not found").that(Registry.get("tld")).isNotNull();
     assertThat(ofy().load().type(Registry.class).parent(getCrossTldKey()).id("tld").now())
         .isEqualTo(Registry.get("tld"));
   }
 
   @Test
-  public void testFailure_registryNotFound() throws Exception {
+  public void testFailure_registryNotFound() {
     createTld("foo");
     assertThrows(RegistryNotFoundException.class, () -> Registry.get("baz"));
   }
@@ -135,7 +135,7 @@ public class RegistryTest extends EntityTestCase {
   }
 
   @Test
-  public void testGetReservedLists_doesntReturnNullWhenUninitialized() throws Exception {
+  public void testGetReservedLists_doesntReturnNullWhenUninitialized() {
     Registry registry = newRegistry("foo", "FOO");
     assertThat(registry.getReservedLists()).isNotNull();
     assertThat(registry.getReservedLists()).isEmpty();
@@ -305,7 +305,7 @@ public class RegistryTest extends EntityTestCase {
   }
 
   @Test
-  public void testQuietPeriodCanAppearMultipleTimesAnywhere() throws Exception {
+  public void testQuietPeriodCanAppearMultipleTimesAnywhere() {
     Registry.get("tld").asBuilder()
         .setTldStateTransitions(ImmutableSortedMap.<DateTime, TldState>naturalOrder()
             .put(START_OF_TIME, TldState.PREDELEGATION)

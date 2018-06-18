@@ -124,7 +124,7 @@ public class FakeOAuthService implements OAuthService {
 
   @Deprecated
   @Override
-  public String getOAuthConsumerKey() throws OAuthRequestException {
+  public String getOAuthConsumerKey() {
     throw new UnsupportedOperationException();
   }
 }

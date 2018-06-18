@@ -82,7 +82,7 @@ public class SmdrlCsvParserTest {
   }
 
   @Test
-  public void testOneRow() throws Exception {
+  public void testOneRow() {
     SignedMarkRevocationList smdrl = SmdrlCsvParser.parse(ImmutableList.of(
         "1,2013-11-24T23:30:04.3Z",
         "smd-id,insertion-datetime",
@@ -94,7 +94,7 @@ public class SmdrlCsvParserTest {
   }
 
   @Test
-  public void testEmpty() throws Exception {
+  public void testEmpty() {
     SignedMarkRevocationList smdrl = SmdrlCsvParser.parse(ImmutableList.of(
         "1,2014-11-24T23:30:04.3Z",
         "smd-id,insertion-datetime"));
@@ -105,7 +105,7 @@ public class SmdrlCsvParserTest {
   }
 
   @Test
-  public void testFail_badVersion() throws Exception {
+  public void testFail_badVersion() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -119,7 +119,7 @@ public class SmdrlCsvParserTest {
   }
 
   @Test
-  public void testFail_badHeader() throws Exception {
+  public void testFail_badHeader() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -133,7 +133,7 @@ public class SmdrlCsvParserTest {
   }
 
   @Test
-  public void testFail_tooManyColumns() throws Exception {
+  public void testFail_tooManyColumns() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

@@ -66,14 +66,14 @@ public class VerifyOteCommandTest extends CommandTestCase<VerifyOteCommand> {
   }
 
   @Test
-  public void testFailure_registrarDoesntExist() throws Exception {
+  public void testFailure_registrarDoesntExist() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> runCommand("blobio"));
     assertThat(thrown).hasMessageThat().contains("Registrar blobio does not exist.");
   }
 
   @Test
-  public void testFailure_noRegistrarsNoCheckAll() throws Exception {
+  public void testFailure_noRegistrarsNoCheckAll() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> runCommand(""));
     assertThat(thrown)

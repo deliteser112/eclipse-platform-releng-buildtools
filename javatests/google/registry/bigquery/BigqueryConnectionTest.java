@@ -23,7 +23,7 @@ import org.junit.runners.JUnit4;
 public class BigqueryConnectionTest {
 
   @Test
-  public void testNothing() throws Exception {
+  public void testNothing() {
     // Placeholder test class for now.
     // TODO(b/16569089): figure out a good way for testing our Bigquery usage overall - maybe unit
     // tests here, maybe end-to-end testing.

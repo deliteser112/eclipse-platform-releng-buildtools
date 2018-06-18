@@ -62,7 +62,7 @@ public class DomainResourceTest extends EntityTestCase {
   DomainResource domain;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     createTld("com");
     Key<DomainResource> domainKey = Key.create(null, DomainResource.class, "4-COM");
     Key<HostResource> hostKey = Key.create(persistResource(
@@ -144,7 +144,7 @@ public class DomainResourceTest extends EntityTestCase {
   }
 
   @Test
-  public void testPersistence() throws Exception {
+  public void testPersistence() {
     assertThat(loadByForeignKey(DomainResource.class, domain.getForeignKey(), clock.nowUtc()))
         .isEqualTo(domain);
   }
@@ -211,7 +211,7 @@ public class DomainResourceTest extends EntityTestCase {
   }
 
   @Test
-  public void testEmptyTransferDataBecomesNull() throws Exception {
+  public void testEmptyTransferDataBecomesNull() {
     DomainResource withNull =
         newDomainResource("example.com").asBuilder().setTransferData(null).build();
     DomainResource withEmpty = withNull.asBuilder().setTransferData(TransferData.EMPTY).build();

@@ -48,7 +48,7 @@ public class HostResourceTest extends EntityTestCase {
   HostResource host;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     createTld("com");
     // Set up a new persisted registrar entity.
     domain =
@@ -85,7 +85,7 @@ public class HostResourceTest extends EntityTestCase {
   }
 
   @Test
-  public void testPersistence() throws Exception {
+  public void testPersistence() {
     assertThat(loadByForeignKey(
         HostResource.class, host.getForeignKey(), clock.nowUtc()))
             .isEqualTo(host);
@@ -118,7 +118,7 @@ public class HostResourceTest extends EntityTestCase {
   }
 
   @Test
-  public void testEmptySetsBecomeNull() throws Exception {
+  public void testEmptySetsBecomeNull() {
     assertThat(new HostResource.Builder().setInetAddresses(null).build().inetAddresses).isNull();
     assertThat(new HostResource.Builder().setInetAddresses(ImmutableSet.of()).build().inetAddresses)
         .isNull();

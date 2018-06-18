@@ -29,44 +29,44 @@ public class YearMonthParameterTest {
   private final YearMonthParameter instance = new YearMonthParameter();
 
   @Test
-  public void testConvert_awfulMonth() throws Exception {
+  public void testConvert_awfulMonth() {
     assertThat(instance.convert("1984-12")).isEqualTo(new YearMonth(1984, 12));
   }
 
   @Test
-  public void testConvert_null_throwsException() throws Exception {
+  public void testConvert_null_throwsException() {
     assertThrows(NullPointerException.class, () -> instance.convert(null));
   }
 
   @Test
-  public void testConvert_empty_throwsException() throws Exception {
+  public void testConvert_empty_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert(""));
   }
 
   @Test
-  public void testConvert_sillyString_throwsException() throws Exception {
+  public void testConvert_sillyString_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("foo"));
   }
 
   @Test
-  public void testConvert_wrongOrder() throws Exception {
+  public void testConvert_wrongOrder() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("12-1984"));
   }
 
   @Test
-  public void testConvert_noHyphen() throws Exception {
+  public void testConvert_noHyphen() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("198412"));
   }
 
   @Test
-  public void testValidate_sillyString_throwsParameterException() throws Exception {
+  public void testValidate_sillyString_throwsParameterException() {
     ParameterException thrown =
         assertThrows(ParameterException.class, () -> instance.validate("--time", "foo"));
     assertThat(thrown).hasMessageThat().contains("--time=foo not a valid");
   }
 
   @Test
-  public void testValidate_correctInput_doesntThrow() throws Exception {
+  public void testValidate_correctInput_doesntThrow() {
     instance.validate("--time", "1984-12");
   }
 }

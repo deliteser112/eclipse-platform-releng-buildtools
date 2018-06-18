@@ -396,7 +396,7 @@ public class BigqueryConnection implements AutoCloseable {
   public ListenableFuture<DestinationTable> load(
       DestinationTable dest,
       SourceFormat sourceFormat,
-      Iterable<String> sourceUris) throws Exception {
+      Iterable<String> sourceUris) {
     Job job = new Job()
         .setConfiguration(new JobConfiguration()
             .setLoad(new JobConfigurationLoad()
@@ -441,7 +441,7 @@ public class BigqueryConnection implements AutoCloseable {
    * <p>Returns a ListenableFuture that holds the ImmutableTable on success.
    */
   public ListenableFuture<ImmutableTable<Integer, TableFieldSchema, Object>>
-      queryToLocalTable(String querySql) throws Exception {
+      queryToLocalTable(String querySql) {
     Job job = new Job()
         .setConfiguration(new JobConfiguration()
             .setQuery(new JobConfigurationQuery()
@@ -459,8 +459,7 @@ public class BigqueryConnection implements AutoCloseable {
    *
    * <p>Returns the results of the query in an ImmutableTable on success.
    */
-  public ImmutableTable<Integer, TableFieldSchema, Object> queryToLocalTableSync(String querySql)
-      throws Exception {
+  public ImmutableTable<Integer, TableFieldSchema, Object> queryToLocalTableSync(String querySql) {
     Job job = new Job()
         .setConfiguration(new JobConfiguration()
             .setQuery(new JobConfigurationQuery()

@@ -113,7 +113,7 @@ public class IcannHttpReporter {
     return success;
   }
 
-  private XjcIirdeaResult parseResult(byte[] content) throws XmlException, IOException {
+  private XjcIirdeaResult parseResult(byte[] content) throws XmlException {
     XjcIirdeaResponseElement response =
         XjcXmlTransformer.unmarshal(
             XjcIirdeaResponseElement.class, new ByteArrayInputStream(content));

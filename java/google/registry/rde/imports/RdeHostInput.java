@@ -29,7 +29,6 @@ import google.registry.model.host.HostResource;
 import google.registry.rde.imports.RdeParser.RdeHeader;
 import google.registry.xjc.JaxbFragment;
 import google.registry.xjc.rdehost.XjcRdeHostElement;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
@@ -74,8 +73,7 @@ public class RdeHostInput extends Input<JaxbFragment<XjcRdeHostElement>> {
   }
 
   @Override
-  public List<? extends InputReader<JaxbFragment<XjcRdeHostElement>>> createReaders()
-      throws IOException {
+  public List<? extends InputReader<JaxbFragment<XjcRdeHostElement>>> createReaders() {
     int numReaders = this.numReaders;
     RdeHeader header = createParser().getHeader();
     int numberOfHosts = header.getHostCount().intValue();

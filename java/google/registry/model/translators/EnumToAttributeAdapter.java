@@ -43,12 +43,12 @@ public class EnumToAttributeAdapter<E extends Enum<E> & EnumToAttributeAdapter.E
 
   // Enums that can be unmarshalled from input can override this.
   @Override
-  public E unmarshal(EnumShim shim) throws Exception {
+  public E unmarshal(EnumShim shim) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public final EnumShim marshal(E enumeration) throws Exception {
+  public final EnumShim marshal(E enumeration) {
     EnumShim shim = new EnumShim();
     shim.s = enumeration.getXmlName();
     return shim;

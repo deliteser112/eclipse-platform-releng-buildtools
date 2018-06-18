@@ -130,7 +130,7 @@ public class UpdateClaimsNoticeCommandTest extends CommandTestCase<UpdateClaimsN
   }
 
   @Test
-  public void testFailure_badClaimsNotice() throws Exception {
+  public void testFailure_badClaimsNotice() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -142,7 +142,7 @@ public class UpdateClaimsNoticeCommandTest extends CommandTestCase<UpdateClaimsN
   }
 
   @Test
-  public void testFailure_claimsNoticeForWrongLabel() throws Exception {
+  public void testFailure_claimsNoticeForWrongLabel() {
     persistResource(newDomainApplication("bad-label.xn--q9jyb4c"));
     Exception e =
         assertThrows(
@@ -157,7 +157,7 @@ public class UpdateClaimsNoticeCommandTest extends CommandTestCase<UpdateClaimsN
   }
 
   @Test
-  public void testFailure_sunriseApplication() throws Exception {
+  public void testFailure_sunriseApplication() {
     // Add an encoded signed mark to the application to make it a sunrise application.
     domainApplication = persistResource(domainApplication.asBuilder()
         .setEncodedSignedMarks(ImmutableList.of(EncodedSignedMark.create("base64", "AAAAA")))

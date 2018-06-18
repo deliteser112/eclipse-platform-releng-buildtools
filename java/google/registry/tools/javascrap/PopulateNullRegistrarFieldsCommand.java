@@ -38,7 +38,7 @@ import java.util.Objects;
 public class PopulateNullRegistrarFieldsCommand extends MutatingCommand {
 
   @Override
-  protected void init() throws Exception {
+  protected void init() {
     for (Registrar registrar : ofy().load().type(Registrar.class).ancestor(getCrossTldKey())) {
       Builder changeBuilder = registrar.asBuilder();
       changeBuilder.setRegistrarName(

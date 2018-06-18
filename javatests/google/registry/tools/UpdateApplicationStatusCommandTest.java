@@ -249,7 +249,7 @@ public class UpdateApplicationStatusCommandTest
   }
 
   @Test
-  public void testFailure_applicationAlreadyAllocated() throws Exception {
+  public void testFailure_applicationAlreadyAllocated() {
     persistResource(reloadResource(domainApplication).asBuilder()
         .setApplicationStatus(ALLOCATED)
         .build());
@@ -269,7 +269,7 @@ public class UpdateApplicationStatusCommandTest
   }
 
   @Test
-  public void testFailure_applicationDoesNotExist() throws Exception {
+  public void testFailure_applicationDoesNotExist() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -278,7 +278,7 @@ public class UpdateApplicationStatusCommandTest
   }
 
   @Test
-  public void testFailure_historyClientIdDoesNotExist() throws Exception {
+  public void testFailure_historyClientIdDoesNotExist() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

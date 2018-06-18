@@ -34,7 +34,7 @@ public class PollMessageTest extends EntityTestCase {
   HistoryEntry historyEntry;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     createTld("foobar");
     historyEntry = persistResource(new HistoryEntry.Builder()
       .setParent(persistActiveDomain("foo.foobar"))
@@ -51,7 +51,7 @@ public class PollMessageTest extends EntityTestCase {
   }
 
   @Test
-  public void testPersistenceOneTime() throws Exception {
+  public void testPersistenceOneTime() {
     PollMessage.OneTime pollMessage = persistResource(
         new PollMessage.OneTime.Builder()
             .setClientId("TheRegistrar")
@@ -63,7 +63,7 @@ public class PollMessageTest extends EntityTestCase {
   }
 
   @Test
-  public void testPersistenceAutorenew() throws Exception {
+  public void testPersistenceAutorenew() {
     PollMessage.Autorenew pollMessage = persistResource(
         new PollMessage.Autorenew.Builder()
             .setClientId("TheRegistrar")

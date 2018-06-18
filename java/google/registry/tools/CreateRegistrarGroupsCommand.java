@@ -49,7 +49,7 @@ public class CreateRegistrarGroupsCommand extends ConfirmingCommand
   }
 
   @Override
-  protected void init() throws IOException {
+  protected void init() {
     for (String clientId : clientIds) {
       Registrar registrar =
           checkArgumentPresent(

@@ -139,7 +139,7 @@ public class KeySerializerTest {
     }
   }
 
-  @Test public void serializeString() throws Exception {
+  @Test public void serializeString() {
     String result = KeySerializer.deserializeString(KeySerializer.serializeString("value\n"));
     assertThat(result).isEqualTo("value\n");
   }

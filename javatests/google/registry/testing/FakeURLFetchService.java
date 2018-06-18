@@ -18,7 +18,6 @@ import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.common.collect.ImmutableList;
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
@@ -36,7 +35,7 @@ public class FakeURLFetchService extends ForwardingURLFetchService {
   }
 
   @Override
-  public HTTPResponse fetch(HTTPRequest request) throws IOException {
+  public HTTPResponse fetch(HTTPRequest request) {
     URL requestURL = request.getURL();
     if (backingMap.containsKey(requestURL)) {
       return backingMap.get(requestURL);

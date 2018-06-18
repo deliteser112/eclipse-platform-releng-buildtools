@@ -180,7 +180,7 @@ public class LoadSnapshotActionTest {
   }
 
   @Test
-  public void testFailure_doPost_badGcsFilename() throws Exception {
+  public void testFailure_doPost_badGcsFilename() {
     action.snapshotFile = "gs://bucket/snapshot";
     BadRequestException thrown = assertThrows(BadRequestException.class, action::run);
     assertThat(thrown)

@@ -91,7 +91,7 @@ public class RdapJsonFormatterTest {
   private static final String WHOIS_SERVER = null;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     inject.setStaticField(Ofy.class, "clock", clock);
 
     rdapJsonFormatter = RdapTestHelper.getTestRdapJsonFormatter();
@@ -264,21 +264,21 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testRegistrar() throws Exception {
+  public void testRegistrar() {
     assertThat(rdapJsonFormatter.makeRdapJsonForRegistrar(
             registrar, false, LINK_BASE, WHOIS_SERVER, clock.nowUtc(), OutputDataType.FULL))
         .isEqualTo(loadJson("rdapjson_registrar.json"));
   }
 
   @Test
-  public void testRegistrar_summary() throws Exception {
+  public void testRegistrar_summary() {
     assertThat(rdapJsonFormatter.makeRdapJsonForRegistrar(
             registrar, false, LINK_BASE, WHOIS_SERVER, clock.nowUtc(), OutputDataType.SUMMARY))
         .isEqualTo(loadJson("rdapjson_registrar_summary.json"));
   }
 
   @Test
-  public void testHost_ipv4() throws Exception {
+  public void testHost_ipv4() {
     assertThat(rdapJsonFormatter.makeRdapJsonForHost(
             hostResourceIpv4,
             false,
@@ -290,7 +290,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testHost_ipv6() throws Exception {
+  public void testHost_ipv6() {
     assertThat(rdapJsonFormatter.makeRdapJsonForHost(
             hostResourceIpv6,
             false,
@@ -302,7 +302,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testHost_both() throws Exception {
+  public void testHost_both() {
     assertThat(rdapJsonFormatter.makeRdapJsonForHost(
             hostResourceBoth,
             false,
@@ -314,7 +314,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testHost_both_summary() throws Exception {
+  public void testHost_both_summary() {
     assertThat(rdapJsonFormatter.makeRdapJsonForHost(
             hostResourceBoth,
             false,
@@ -326,7 +326,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testHost_noAddresses() throws Exception {
+  public void testHost_noAddresses() {
     assertThat(rdapJsonFormatter.makeRdapJsonForHost(
             hostResourceNoAddresses,
             false,
@@ -338,7 +338,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testHost_notLinked() throws Exception {
+  public void testHost_notLinked() {
     assertThat(rdapJsonFormatter.makeRdapJsonForHost(
             hostResourceNotLinked,
             false,
@@ -350,7 +350,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testHost_superordinateHasPendingTransfer() throws Exception {
+  public void testHost_superordinateHasPendingTransfer() {
     assertThat(rdapJsonFormatter.makeRdapJsonForHost(
         hostResourceSuperordinatePendingTransfer,
         false,
@@ -362,7 +362,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testRegistrant() throws Exception {
+  public void testRegistrant() {
     assertThat(
             rdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceRegistrant,
@@ -377,7 +377,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testRegistrant_summary() throws Exception {
+  public void testRegistrant_summary() {
     assertThat(
             rdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceRegistrant,
@@ -392,7 +392,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testRegistrant_loggedOut() throws Exception {
+  public void testRegistrant_loggedOut() {
     assertThat(
             rdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceRegistrant,
@@ -407,7 +407,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testRegistrant_baseHasNoTrailingSlash() throws Exception {
+  public void testRegistrant_baseHasNoTrailingSlash() {
     assertThat(
             rdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceRegistrant,
@@ -422,7 +422,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testRegistrant_noBase() throws Exception {
+  public void testRegistrant_noBase() {
     assertThat(
             rdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceRegistrant,
@@ -437,7 +437,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testAdmin() throws Exception {
+  public void testAdmin() {
     assertThat(
             rdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceAdmin,
@@ -452,7 +452,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testTech() throws Exception {
+  public void testTech() {
     assertThat(
             rdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceTech,
@@ -467,7 +467,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testRolelessContact() throws Exception {
+  public void testRolelessContact() {
     assertThat(
             rdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceTech,
@@ -482,7 +482,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testUnlinkedContact() throws Exception {
+  public void testUnlinkedContact() {
     assertThat(
             rdapJsonFormatter.makeRdapJsonForContact(
                 contactResourceNotLinked,
@@ -497,7 +497,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testDomain_full() throws Exception {
+  public void testDomain_full() {
     assertThat(rdapJsonFormatter.makeRdapJsonForDomain(
             domainResourceFull,
             false,
@@ -510,7 +510,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testDomain_summary() throws Exception {
+  public void testDomain_summary() {
     assertThat(rdapJsonFormatter.makeRdapJsonForDomain(
             domainResourceFull,
             false,
@@ -523,7 +523,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testDomain_logged_out() throws Exception {
+  public void testDomain_logged_out() {
     assertThat(rdapJsonFormatter.makeRdapJsonForDomain(
             domainResourceFull,
             false,
@@ -536,7 +536,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testDomain_noNameservers() throws Exception {
+  public void testDomain_noNameservers() {
     assertThat(rdapJsonFormatter.makeRdapJsonForDomain(
             domainResourceNoNameservers,
             false,
@@ -549,7 +549,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testError() throws Exception {
+  public void testError() {
     assertThat(
             rdapJsonFormatter
                 .makeError(SC_BAD_REQUEST, "Invalid Domain Name", "Not a valid domain name"))
@@ -557,7 +557,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testHelp_absoluteHtmlUrl() throws Exception {
+  public void testHelp_absoluteHtmlUrl() {
     assertThat(RdapJsonFormatter.makeRdapJsonNotice(
             RdapNoticeDescriptor.builder()
                 .setTitle("RDAP Help")
@@ -573,7 +573,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testHelp_relativeHtmlUrlWithStartingSlash() throws Exception {
+  public void testHelp_relativeHtmlUrlWithStartingSlash() {
     assertThat(RdapJsonFormatter.makeRdapJsonNotice(
             RdapNoticeDescriptor.builder()
                 .setTitle("RDAP Help")
@@ -589,7 +589,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testHelp_relativeHtmlUrlWithoutStartingSlash() throws Exception {
+  public void testHelp_relativeHtmlUrlWithoutStartingSlash() {
     assertThat(RdapJsonFormatter.makeRdapJsonNotice(
             RdapNoticeDescriptor.builder()
                 .setTitle("RDAP Help")
@@ -605,7 +605,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testHelp_noHtmlUrl() throws Exception {
+  public void testHelp_noHtmlUrl() {
     assertThat(RdapJsonFormatter.makeRdapJsonNotice(
             RdapNoticeDescriptor.builder()
                 .setTitle("RDAP Help")
@@ -620,7 +620,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testTopLevel() throws Exception {
+  public void testTopLevel() {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("key", "value");
     rdapJsonFormatter.addTopLevelEntries(
@@ -633,7 +633,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testTopLevel_withTermsOfService() throws Exception {
+  public void testTopLevel_withTermsOfService() {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("key", "value");
     rdapJsonFormatter.addTopLevelEntries(
@@ -646,7 +646,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testTopLevel_domain() throws Exception {
+  public void testTopLevel_domain() {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("key", "value");
     rdapJsonFormatter.addTopLevelEntries(
@@ -659,7 +659,7 @@ public class RdapJsonFormatterTest {
   }
 
   @Test
-  public void testTopLevel_domainWithTermsOfService() throws Exception {
+  public void testTopLevel_domainWithTermsOfService() {
     ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
     builder.put("key", "value");
     rdapJsonFormatter.addTopLevelEntries(

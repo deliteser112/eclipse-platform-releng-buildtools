@@ -61,7 +61,7 @@ public class GetApplicationIdsCommandTest extends CommandTestCase<GetApplication
   }
 
   @Test
-  public void testFailure_tldDoesNotExist() throws Exception {
+  public void testFailure_tldDoesNotExist() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> runCommand("example.foo"));
     assertThat(thrown).hasMessageThat().contains("Domain name is not under a recognized TLD");
@@ -76,7 +76,7 @@ public class GetApplicationIdsCommandTest extends CommandTestCase<GetApplication
   }
 
   @Test
-  public void testFailure_noDomainName() throws Exception {
+  public void testFailure_noDomainName() {
     assertThrows(ParameterException.class, this::runCommand);
   }
 

@@ -77,7 +77,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_multipleArguments() throws Exception {
+  public void testFailure_multipleArguments() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -88,7 +88,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_multipleDuplicateArguments() throws Exception {
+  public void testFailure_multipleDuplicateArguments() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -310,7 +310,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_invalidAddGracePeriod() throws Exception {
+  public void testFailure_invalidAddGracePeriod() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -324,7 +324,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_invalidSunrushAddGracePeriod() throws Exception {
+  public void testFailure_invalidSunrushAddGracePeriod() {
     Exception e =
         assertThrows(
             IllegalArgumentException.class,
@@ -338,7 +338,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_invalidRedemptionGracePeriod() throws Exception {
+  public void testFailure_invalidRedemptionGracePeriod() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -352,7 +352,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_invalidPendingDeleteLength() throws Exception {
+  public void testFailure_invalidPendingDeleteLength() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -366,7 +366,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_invalidTldState() throws Exception {
+  public void testFailure_invalidTldState() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -380,7 +380,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_bothTldStateFlags() throws Exception {
+  public void testFailure_bothTldStateFlags() {
     DateTime now = DateTime.now(UTC);
     IllegalArgumentException thrown =
         assertThrows(
@@ -399,7 +399,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_negativeInitialRenewBillingCost() throws Exception {
+  public void testFailure_negativeInitialRenewBillingCost() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -413,7 +413,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_invalidEapCurrency() throws Exception {
+  public void testFailure_invalidEapCurrency() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -429,7 +429,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_noTldName() throws Exception {
+  public void testFailure_noTldName() {
     ParameterException thrown = assertThrows(ParameterException.class, this::runCommandForced);
     assertThat(thrown)
         .hasMessageThat()
@@ -437,7 +437,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_noDnsWriter() throws Exception {
+  public void testFailure_noDnsWriter() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -446,7 +446,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_alreadyExists() throws Exception {
+  public void testFailure_alreadyExists() {
     createTld("xn--q9jyb4c");
     IllegalStateException thrown =
         assertThrows(
@@ -458,7 +458,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_tldStartsWithDigit() throws Exception {
+  public void testFailure_tldStartsWithDigit() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -598,7 +598,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_setPremiumListThatDoesntExist() throws Exception {
+  public void testFailure_setPremiumListThatDoesntExist() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -612,7 +612,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_addLrpPeriod_backwardsInterval() throws Exception {
+  public void testFailure_addLrpPeriod_backwardsInterval() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -629,7 +629,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_addLrpPeriod_badInterval() throws Exception {
+  public void testFailure_addLrpPeriod_badInterval() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -643,7 +643,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_specifiedDnsWriters_dontExist() throws Exception {
+  public void testFailure_specifiedDnsWriters_dontExist() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -675,8 +675,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   private void runFailureReservedListsTest(
-      String reservedLists, Class<? extends Exception> errorClass, String errorMsg)
-      throws Exception {
+      String reservedLists, Class<? extends Exception> errorClass, String errorMsg) {
     Exception e =
         assertThrows(
             errorClass,

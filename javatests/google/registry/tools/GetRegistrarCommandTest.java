@@ -36,19 +36,19 @@ public class GetRegistrarCommandTest extends CommandTestCase<GetRegistrarCommand
   }
 
   @Test
-  public void testFailure_registrarDoesNotExist() throws Exception {
+  public void testFailure_registrarDoesNotExist() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> runCommand("ClientZ"));
     assertThat(thrown).hasMessageThat().contains("Registrar with id ClientZ does not exist");
   }
 
   @Test
-  public void testFailure_noRegistrarName() throws Exception {
+  public void testFailure_noRegistrarName() {
     assertThrows(ParameterException.class, this::runCommand);
   }
 
   @Test
-  public void testFailure_oneRegistrarDoesNotExist() throws Exception {
+  public void testFailure_oneRegistrarDoesNotExist() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> runCommand("NewRegistrar", "ClientZ"));
     assertThat(thrown).hasMessageThat().contains("Registrar with id ClientZ does not exist");

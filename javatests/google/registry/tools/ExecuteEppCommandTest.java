@@ -77,19 +77,19 @@ public class ExecuteEppCommandTest extends EppToolCommandTestCase<ExecuteEppComm
   }
 
   @Test
-  public void testFailure_missingClientId() throws Exception {
+  public void testFailure_missingClientId() {
     assertThrows(ParameterException.class, () -> runCommand("--force", "foo.xml"));
   }
 
   @Test
-  public void testFailure_forceAndDryRunIncompatible() throws Exception {
+  public void testFailure_forceAndDryRunIncompatible() {
     assertThrows(
         IllegalArgumentException.class,
         () -> runCommand("--client=NewRegistrar", "--force", "--dry_run", eppFile));
   }
 
   @Test
-  public void testFailure_unknownFlag() throws Exception {
+  public void testFailure_unknownFlag() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--client=NewRegistrar", "--unrecognized=foo", "--force", "foo.xml"));

@@ -23,7 +23,7 @@ import org.junit.runners.JUnit4;
 public class RegistryEnvironmentTest {
 
   @Test
-  public void testGet() throws Exception {
+  public void testGet() {
     RegistryEnvironment.get();
   }
 }

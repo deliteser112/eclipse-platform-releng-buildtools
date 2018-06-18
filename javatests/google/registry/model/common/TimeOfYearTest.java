@@ -34,14 +34,14 @@ public class TimeOfYearTest {
   private static final DateTime march1 = DateTime.parse("2012-03-01T01:02:03.0Z");
 
   @Test
-  public void testSuccess_fromDateTime() throws Exception {
+  public void testSuccess_fromDateTime() {
     // We intentionally don't allow leap years in TimeOfYear, so February 29 should be February 28.
     assertThat(TimeOfYear.fromDateTime(february28)).isEqualTo(TimeOfYear.fromDateTime(february29));
     assertThat(TimeOfYear.fromDateTime(february29)).isNotEqualTo(TimeOfYear.fromDateTime(march1));
   }
 
   @Test
-  public void testSuccess_nextAfter() throws Exception {
+  public void testSuccess_nextAfter() {
     // This should be lossless because atOrAfter includes an exact match.
     assertThat(TimeOfYear.fromDateTime(march1).getNextInstanceAtOrAfter(march1)).isEqualTo(march1);
     // This should be a year later because we stepped forward a millisecond
@@ -50,7 +50,7 @@ public class TimeOfYearTest {
   }
 
   @Test
-  public void testSuccess_nextBefore() throws Exception {
+  public void testSuccess_nextBefore() {
     // This should be lossless because beforeOrAt includes an exact match.
     assertThat(TimeOfYear.fromDateTime(march1).getLastInstanceBeforeOrAt(march1)).isEqualTo(march1);
     // This should be a year earlier because we stepped backward a millisecond

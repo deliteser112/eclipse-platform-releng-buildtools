@@ -47,7 +47,7 @@ public class UpdatePremiumListActionTest {
   FakeJsonResponse response;
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     createTlds("foo", "xn--q9jyb4c", "how");
     action = new UpdatePremiumListAction();
     response = new FakeJsonResponse();
@@ -55,14 +55,14 @@ public class UpdatePremiumListActionTest {
   }
 
   @Test
-  public void test_invalidRequest_missingInput_returnsErrorStatus() throws Exception {
+  public void test_invalidRequest_missingInput_returnsErrorStatus() {
     action.name = "foo";
     action.run();
     assertThat(response.getResponseMap().get("status")).isEqualTo("error");
   }
 
   @Test
-  public void test_invalidRequest_listDoesNotExist_returnsErrorStatus() throws Exception {
+  public void test_invalidRequest_listDoesNotExist_returnsErrorStatus() {
     action.name = "bamboozle";
     action.inputData = "richer,JPY 5000";
     action.run();
@@ -74,7 +74,7 @@ public class UpdatePremiumListActionTest {
   }
 
   @Test
-  public void test_success() throws Exception {
+  public void test_success() {
     action.name = "foo";
     action.inputData = "rich,USD 75\nricher,USD 5000\npoor, USD 0.99";
     action.run();

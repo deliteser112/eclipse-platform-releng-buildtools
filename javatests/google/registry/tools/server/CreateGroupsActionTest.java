@@ -61,7 +61,7 @@ public class CreateGroupsActionTest {
   }
 
   @Test
-  public void test_invalidRequest_missingClientId() throws Exception {
+  public void test_invalidRequest_missingClientId() {
     BadRequestException thrown = assertThrows(BadRequestException.class, () -> runAction(null));
     assertThat(thrown)
         .hasMessageThat()
@@ -69,7 +69,7 @@ public class CreateGroupsActionTest {
   }
 
   @Test
-  public void test_invalidRequest_invalidClientId() throws Exception {
+  public void test_invalidRequest_invalidClientId() {
     BadRequestException thrown =
         assertThrows(BadRequestException.class, () -> runAction("completelyMadeUpClientId"));
     assertThat(thrown)

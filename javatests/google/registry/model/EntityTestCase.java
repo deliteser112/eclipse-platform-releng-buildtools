@@ -60,7 +60,7 @@ public class EntityTestCase {
   protected FakeClock clock = new FakeClock(DateTime.now(UTC));
 
   @Before
-  public void injectClock() throws Exception {
+  public void injectClock() {
     inject.setStaticField(Ofy.class, "clock", clock);
   }
 

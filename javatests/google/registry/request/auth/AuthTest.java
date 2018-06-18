@@ -23,7 +23,7 @@ import org.junit.runners.JUnit4;
 public final class AuthTest {
 
   @Test
-  public void testAuthValues_validConfig() throws Exception {
+  public void testAuthValues_validConfig() {
     for (Auth auth : Auth.values()) {
       RequestAuthenticator.checkAuthConfig(auth.authSettings());
     }

@@ -30,32 +30,32 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class RdeNamingUtilsTest {
   @Test
-  public void testMakeRydeFilename_rdeDeposit() throws Exception {
+  public void testMakeRydeFilename_rdeDeposit() {
     assertThat(makeRydeFilename("numbness", DateTime.parse("1984-12-18TZ"), FULL, 1, 0))
         .isEqualTo("numbness_1984-12-18_full_S1_R0");
   }
 
   @Test
-  public void testMakeRydeFilename_brdaDeposit() throws Exception {
+  public void testMakeRydeFilename_brdaDeposit() {
     assertThat(makeRydeFilename("dreary", DateTime.parse("2000-12-18TZ"), THIN, 1, 0))
         .isEqualTo("dreary_2000-12-18_thin_S1_R0");
   }
 
   @Test
-  public void testMakeRydeFilename_revisionNumber() throws Exception {
+  public void testMakeRydeFilename_revisionNumber() {
     assertThat(makeRydeFilename("wretched", DateTime.parse("2000-12-18TZ"), THIN, 1, 123))
         .isEqualTo("wretched_2000-12-18_thin_S1_R123");
   }
 
   @Test
-  public void testMakeRydeFilename_timestampNotAtTheWitchingHour_throwsIae() throws Exception {
+  public void testMakeRydeFilename_timestampNotAtTheWitchingHour_throwsIae() {
     assertThrows(
         IllegalArgumentException.class,
         () -> makeRydeFilename("wretched", DateTime.parse("2000-12-18T04:20Z"), THIN, 1, 0));
   }
 
   @Test
-  public void testMakePartialName() throws Exception {
+  public void testMakePartialName() {
     assertThat(makePartialName("unholy", DateTime.parse("2000-12-18TZ"), THIN))
         .isEqualTo("unholy_2000-12-18_thin");
   }

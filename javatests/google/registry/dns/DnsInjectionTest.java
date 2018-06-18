@@ -92,7 +92,7 @@ public final class DnsInjectionTest {
   }
 
   @Test
-  public void testRefreshDns_missingDomain_throwsNotFound() throws Exception {
+  public void testRefreshDns_missingDomain_throwsNotFound() {
     when(req.getParameter("type")).thenReturn("domain");
     when(req.getParameter("name")).thenReturn("example.lol");
     NotFoundException thrown =
@@ -110,7 +110,7 @@ public final class DnsInjectionTest {
   }
 
   @Test
-  public void testRefreshDns_missingHost_throwsNotFound() throws Exception {
+  public void testRefreshDns_missingHost_throwsNotFound() {
     when(req.getParameter("type")).thenReturn("host");
     when(req.getParameter("name")).thenReturn("ns1.example.lol");
     NotFoundException thrown =

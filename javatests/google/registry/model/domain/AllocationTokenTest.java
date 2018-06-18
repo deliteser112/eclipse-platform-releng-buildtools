@@ -30,7 +30,7 @@ import org.junit.Test;
 public class AllocationTokenTest extends EntityTestCase {
 
   @Test
-  public void testPersistence() throws Exception {
+  public void testPersistence() {
     AllocationToken token =
         persistResource(
             new AllocationToken.Builder()
@@ -52,7 +52,7 @@ public class AllocationTokenTest extends EntityTestCase {
   }
 
   @Test
-  public void testCreationTime_autoPopulates() throws Exception {
+  public void testCreationTime_autoPopulates() {
     AllocationToken tokenBeforePersisting =
         new AllocationToken.Builder().setToken("abc123").build();
     assertThat(tokenBeforePersisting.getCreationTime()).isEmpty();
@@ -61,7 +61,7 @@ public class AllocationTokenTest extends EntityTestCase {
   }
 
   @Test
-  public void testSetCreationTime_cantCallMoreThanOnce() throws Exception {
+  public void testSetCreationTime_cantCallMoreThanOnce() {
     AllocationToken.Builder builder =
         new AllocationToken.Builder()
             .setToken("foobar")
@@ -74,7 +74,7 @@ public class AllocationTokenTest extends EntityTestCase {
   }
 
   @Test
-  public void testSetToken_cantCallMoreThanOnce() throws Exception {
+  public void testSetToken_cantCallMoreThanOnce() {
     AllocationToken.Builder builder = new AllocationToken.Builder().setToken("foobar");
     IllegalStateException thrown =
         assertThrows(IllegalStateException.class, () -> builder.setToken("barfoo"));

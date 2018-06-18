@@ -62,17 +62,17 @@ public class CheckDomainCommandTest extends EppToolCommandTestCase<CheckDomainCo
   }
 
   @Test
-  public void testFailure_missingClientId() throws Exception {
+  public void testFailure_missingClientId() {
     assertThrows(ParameterException.class, () -> runCommand("example.tld"));
   }
 
   @Test
-  public void testFailure_NoMainParameter() throws Exception {
+  public void testFailure_NoMainParameter() {
     assertThrows(ParameterException.class, () -> runCommand("--client=NewRegistrar"));
   }
 
   @Test
-  public void testFailure_unknownFlag() throws Exception {
+  public void testFailure_unknownFlag() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--client=NewRegistrar", "--unrecognized=foo", "example.tld"));

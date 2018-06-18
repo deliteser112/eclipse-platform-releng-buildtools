@@ -48,7 +48,7 @@ public class DeleteOldCommitLogsActionTest
   public final InjectRule inject = new InjectRule();
 
   @Before
-  public void setup() throws Exception {
+  public void setup() {
     inject.setStaticField(Ofy.class, "clock", clock);
     action = new DeleteOldCommitLogsAction();
     action.mrRunner = makeDefaultRunner();

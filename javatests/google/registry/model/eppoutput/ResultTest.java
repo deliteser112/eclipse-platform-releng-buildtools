@@ -25,7 +25,7 @@ import org.junit.runners.JUnit4;
 public final class ResultTest {
 
   @Test
-  public void testDeadCodeWeDontWantToDelete() throws Exception {
+  public void testDeadCodeWeDontWantToDelete() {
     Result result = new Result();
     result.msg = "hello";
     assertThat(result.getMsg()).isEqualTo("hello");

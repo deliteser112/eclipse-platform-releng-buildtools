@@ -40,14 +40,14 @@ public class ServerSecretTest {
   }
 
   @Test
-  public void testGet_bootstrapping_savesSecretToDatastore() throws Exception {
+  public void testGet_bootstrapping_savesSecretToDatastore() {
     ServerSecret secret = ServerSecret.get();
     assertThat(secret).isNotNull();
     assertThat(ofy().load().entity(new ServerSecret()).now()).isEqualTo(secret);
   }
 
   @Test
-  public void testGet_existingSecret_returned() throws Exception {
+  public void testGet_existingSecret_returned() {
     ServerSecret secret = ServerSecret.create(123, 456);
     ofy().saveWithoutBackup().entity(secret).now();
     assertThat(ServerSecret.get()).isEqualTo(secret);
@@ -55,7 +55,7 @@ public class ServerSecretTest {
   }
 
   @Test
-  public void testGet_cachedSecret_returnedWithoutDatastoreRead() throws Exception {
+  public void testGet_cachedSecret_returnedWithoutDatastoreRead() {
     int numInitialReads = RequestCapturingAsyncDatastoreService.getReads().size();
     ServerSecret secret = ServerSecret.get();
     int numReads = RequestCapturingAsyncDatastoreService.getReads().size();
@@ -65,14 +65,14 @@ public class ServerSecretTest {
   }
 
   @Test
-  public void testAsUuid() throws Exception {
+  public void testAsUuid() {
     UUID uuid = ServerSecret.create(123, 456).asUuid();
     assertThat(uuid.getMostSignificantBits()).isEqualTo(123);
     assertThat(uuid.getLeastSignificantBits()).isEqualTo(456);
   }
 
   @Test
-  public void testAsBytes() throws Exception {
+  public void testAsBytes() {
     byte[] bytes = ServerSecret.create(123, 0x456).asBytes();
     assertThat(bytes)
         .isEqualTo(new byte[] {0, 0, 0, 0, 0, 0, 0, 123, 0, 0, 0, 0, 0, 0, 0x4, 0x56});

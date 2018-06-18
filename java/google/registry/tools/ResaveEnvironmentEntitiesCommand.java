@@ -37,7 +37,7 @@ final class ResaveEnvironmentEntitiesCommand implements RemoteApiCommand {
   private static final int BATCH_SIZE = 10;
 
   @Override
-  public void run() throws Exception {
+  public void run() {
     batchSave(Registry.class);
     batchSave(Registrar.class);
     batchSave(RegistrarContact.class);

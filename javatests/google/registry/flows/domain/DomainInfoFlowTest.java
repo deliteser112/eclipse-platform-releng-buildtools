@@ -428,7 +428,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   }
 
   @Test
-  public void testFailure_differentRegistrarWrongAuthInfo() throws Exception {
+  public void testFailure_differentRegistrarWrongAuthInfo() {
     persistTestEntities(false);
     // Change the password of the domain so that it does not match the file.
     persistResource(
@@ -443,7 +443,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   }
 
   @Test
-  public void testFailure_wrongAuthInfo() throws Exception {
+  public void testFailure_wrongAuthInfo() {
     persistTestEntities(false);
     // Change the password of the domain so that it does not match the file.
     persistResource(
@@ -457,7 +457,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   }
 
   @Test
-  public void testFailure_differentRegistrarWrongRegistrantAuthInfo() throws Exception {
+  public void testFailure_differentRegistrarWrongRegistrantAuthInfo() {
     persistTestEntities(false);
     // Change the password of the registrant so that it does not match the file.
     registrant =
@@ -475,7 +475,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   }
 
   @Test
-  public void testFailure_wrongRegistrantAuthInfo() throws Exception {
+  public void testFailure_wrongRegistrantAuthInfo() {
     persistTestEntities(false);
     // Change the password of the registrant so that it does not match the file.
     registrant =
@@ -492,7 +492,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   }
 
   @Test
-  public void testFailure_differentRegistrarWrongContactAuthInfo() throws Exception {
+  public void testFailure_differentRegistrarWrongContactAuthInfo() {
     persistTestEntities(false);
     // Change the password of the contact so that it does not match the file.
     contact =
@@ -510,7 +510,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   }
 
   @Test
-  public void testFailure_wrongContactAuthInfo() throws Exception {
+  public void testFailure_wrongContactAuthInfo() {
     persistTestEntities(false);
     // Change the password of the contact so that it does not match the file.
     contact =
@@ -527,7 +527,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   }
 
   @Test
-  public void testFailure_differentRegistrarUnrelatedContactAuthInfo() throws Exception {
+  public void testFailure_differentRegistrarUnrelatedContactAuthInfo() {
     persistTestEntities(false);
     ContactResource unrelatedContact = persistActiveContact("foo1234");
     sessionMetadata.setClientId("ClientZ");
@@ -539,7 +539,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   }
 
   @Test
-  public void testFailure_unrelatedContactAuthInfo() throws Exception {
+  public void testFailure_unrelatedContactAuthInfo() {
     persistTestEntities(false);
     ContactResource unrelatedContact = persistActiveContact("foo1234");
     setEppInput("domain_info_with_contact_auth.xml");
@@ -622,7 +622,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
 
   /** Test setting the currency explicitly to a wrong value. */
   @Test
-  public void testFeeExtension_wrongCurrency() throws Exception {
+  public void testFeeExtension_wrongCurrency() {
     setEppInput("domain_info_fee_create_euro.xml");
     persistTestEntities(false);
     EppException thrown = assertThrows(CurrencyUnitMismatchException.class, this::runFlow);
@@ -631,7 +631,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
 
   /** Test requesting a period that isn't in years. */
   @Test
-  public void testFeeExtension_periodNotInYears() throws Exception {
+  public void testFeeExtension_periodNotInYears() {
     setEppInput("domain_info_fee_bad_period.xml");
     persistTestEntities(false);
     EppException thrown = assertThrows(BadPeriodUnitException.class, this::runFlow);
@@ -640,7 +640,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
 
   /** Test a command that specifies a phase. */
   @Test
-  public void testFeeExtension_commandPhase() throws Exception {
+  public void testFeeExtension_commandPhase() {
     setEppInput("domain_info_fee_command_phase.xml");
     persistTestEntities(false);
     EppException thrown = assertThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
@@ -649,7 +649,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
 
   /** Test a command that specifies a subphase. */
   @Test
-  public void testFeeExtension_commandSubphase() throws Exception {
+  public void testFeeExtension_commandSubphase() {
     setEppInput("domain_info_fee_command_subphase.xml");
     persistTestEntities(false);
     EppException thrown = assertThrows(FeeChecksDontSupportPhasesException.class, this::runFlow);
@@ -658,7 +658,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
 
   /** Test a restore for more than one year. */
   @Test
-  public void testFeeExtension_multiyearRestore() throws Exception {
+  public void testFeeExtension_multiyearRestore() {
     setEppInput("domain_info_fee_multiyear_restore.xml");
     persistTestEntities(false);
     EppException thrown = assertThrows(RestoresAreAlwaysForOneYearException.class, this::runFlow);
@@ -667,7 +667,7 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
 
   /** Test a transfer for more than one year. */
   @Test
-  public void testFeeExtension_multiyearTransfer() throws Exception {
+  public void testFeeExtension_multiyearTransfer() {
     setEppInput("domain_info_fee_multiyear_transfer.xml");
     persistTestEntities(false);
     EppException thrown = assertThrows(TransfersAreAlwaysForOneYearException.class, this::runFlow);

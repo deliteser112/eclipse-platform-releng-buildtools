@@ -85,7 +85,7 @@ public class RdeDomainImportActionTest extends MapreduceTestCase<RdeDomainImport
   private Response response;
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     createTld("test");
     persistActiveContact("jd1234");
     persistActiveContact("sh8013");

@@ -84,7 +84,7 @@ class LoadTestCommand extends ConfirmingCommand implements ServerSideCommand {
   }
 
   @Override
-  protected boolean checkExecutionState() throws Exception {
+  protected boolean checkExecutionState() {
     if (RegistryToolEnvironment.get() == RegistryToolEnvironment.PRODUCTION) {
       System.err.println("You may not run a load test against production.");
       return false;

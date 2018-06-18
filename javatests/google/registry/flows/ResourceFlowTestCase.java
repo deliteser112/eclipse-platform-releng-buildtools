@@ -134,7 +134,7 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
   }
 
   @Test
-  public void testRequiresLogin() throws Exception {
+  public void testRequiresLogin() {
     sessionMetadata.setClientId(null);
     EppException thrown = assertThrows(NotLoggedInException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();

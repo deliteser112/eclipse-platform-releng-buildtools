@@ -123,7 +123,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   }
 
   @Test
-  public void testFailure_multipartTLDsAndInvalidHost() throws Exception {
+  public void testFailure_multipartTLDsAndInvalidHost() {
     createTlds("bar.tld", "tld");
 
     setEppHostCreateInputWithIps("ns1.bar.tld");
@@ -152,7 +152,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   }
 
   @Test
-  public void testFailure_subordinateNeedsIps() throws Exception {
+  public void testFailure_subordinateNeedsIps() {
     setEppHostCreateInput("ns1.example.tld", null);
     createTld("tld");
     persistActiveDomain("example.tld");
@@ -161,7 +161,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   }
 
   @Test
-  public void testFailure_externalMustNotHaveIps() throws Exception {
+  public void testFailure_externalMustNotHaveIps() {
     setEppHostCreateInputWithIps("ns1.example.external");
     createTld("tld");
     persistActiveDomain("example.tld");
@@ -170,7 +170,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   }
 
   @Test
-  public void testFailure_superordinateMissing() throws Exception {
+  public void testFailure_superordinateMissing() {
     setEppHostCreateInput("ns1.example.tld", null);
     createTld("tld");
     SuperordinateDomainDoesNotExistException thrown =
@@ -179,7 +179,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   }
 
   @Test
-  public void testFailure_superordinateInPendingDelete() throws Exception {
+  public void testFailure_superordinateInPendingDelete() {
     setEppHostCreateInputWithIps("ns1.example.tld");
     createTld("tld");
     persistResource(
@@ -209,14 +209,14 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   }
 
   @Test
-  public void testFailure_nonLowerCaseHostname() throws Exception {
+  public void testFailure_nonLowerCaseHostname() {
     setEppHostCreateInput("ns1.EXAMPLE.tld", null);
     EppException thrown = assertThrows(HostNameNotLowerCaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
-  public void testFailure_nonPunyCodedHostname() throws Exception {
+  public void testFailure_nonPunyCodedHostname() {
     setEppHostCreateInput("ns1.çauçalito.みんな", null);
     HostNameNotPunyCodedException thrown =
         assertThrows(HostNameNotPunyCodedException.class, this::runFlow);
@@ -224,21 +224,21 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   }
 
   @Test
-  public void testFailure_nonCanonicalHostname() throws Exception {
+  public void testFailure_nonCanonicalHostname() {
     setEppHostCreateInput("ns1.example.tld.", null);
     EppException thrown = assertThrows(HostNameNotNormalizedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
-  public void testFailure_longHostName() throws Exception {
+  public void testFailure_longHostName() {
     setEppHostCreateInputWithIps("a" + Strings.repeat(".labelpart", 25) + ".tld");
     EppException thrown = assertThrows(HostNameTooLongException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
-  public void testFailure_ip4AddressWithIp6Declaration() throws Exception {
+  public void testFailure_ip4AddressWithIp6Declaration() {
     setEppHostCreateInput(
         "ns1.example.tld",
         "<host:addr ip=\"v4\">192.0.2.2</host:addr>\n"
@@ -248,8 +248,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
-  private void doFailingHostNameTest(String hostName, Class<? extends EppException> exception)
-      throws Exception {
+  private void doFailingHostNameTest(String hostName, Class<? extends EppException> exception) {
     setEppHostCreateInputWithIps(hostName);
     EppException thrown = assertThrows(exception, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -286,7 +285,7 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   }
 
   @Test
-  public void testFailure_ccTldInBailiwick() throws Exception {
+  public void testFailure_ccTldInBailiwick() {
     createTld("co.uk");
     setEppHostCreateInputWithIps("foo.co.uk");
     EppException thrown = assertThrows(HostNameTooShallowException.class, this::runFlow);

@@ -51,7 +51,7 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
   }
 
   @Test
-  public void testGetters() throws Exception {
+  public void testGetters() {
     RegistrarBillingEntry entry =
         new RegistrarBillingEntry.Builder()
             .setPrevious(null)
@@ -71,7 +71,7 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
   }
 
   @Test
-  public void testToJsonMap() throws Exception {
+  public void testToJsonMap() {
     assertThat(
             new RegistrarBillingEntry.Builder()
                 .setPrevious(null)
@@ -95,7 +95,7 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
   }
 
   @Test
-  public void testBadTimeOrdering_causesError() throws Exception {
+  public void testBadTimeOrdering_causesError() {
     IllegalStateException thrown =
         assertThrows(
             IllegalStateException.class,
@@ -119,7 +119,7 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
   }
 
   @Test
-  public void testRegistrarMismatch_causesError() throws Exception {
+  public void testRegistrarMismatch_causesError() {
     IllegalStateException thrown =
         assertThrows(
             IllegalStateException.class,
@@ -143,7 +143,7 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
   }
 
   @Test
-  public void testCurrencyMismatch_causesError() throws Exception {
+  public void testCurrencyMismatch_causesError() {
     assertThrows(
         CurrencyMismatchException.class,
         () ->
@@ -165,7 +165,7 @@ public final class RegistrarBillingEntryTest extends EntityTestCase {
   }
 
   @Test
-  public void testZeroAmount_causesError() throws Exception {
+  public void testZeroAmount_causesError() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

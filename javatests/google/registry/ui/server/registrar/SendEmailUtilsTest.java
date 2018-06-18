@@ -53,7 +53,7 @@ public class SendEmailUtilsTest {
   private SendEmailUtils sendEmailUtils;
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     inject.setStaticField(SendEmailUtils.class, "emailService", emailService);
     message = new MimeMessage(Session.getDefaultInstance(new Properties(), null));
     when(emailService.createMessage()).thenReturn(message);

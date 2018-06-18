@@ -30,7 +30,7 @@ public class IntervalParameterTest {
   private final IntervalParameter instance = new IntervalParameter();
 
   @Test
-  public void testConvert() throws Exception {
+  public void testConvert() {
     assertThat(instance.convert("2004-06-09T12:30:00Z/2004-07-10T13:30:00Z"))
         .isEqualTo(new Interval(
             DateTime.parse("2004-06-09T12:30:00Z"),
@@ -38,34 +38,34 @@ public class IntervalParameterTest {
   }
 
   @Test
-  public void testConvert_singleDate() throws Exception {
+  public void testConvert_singleDate() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("2004-06-09T12:30:00Z"));
   }
 
   @Test
-  public void testConvert_backwardsInterval() throws Exception {
+  public void testConvert_backwardsInterval() {
     assertThrows(
         IllegalArgumentException.class,
         () -> instance.convert("2004-07-10T13:30:00Z/2004-06-09T12:30:00Z"));
   }
 
   @Test
-  public void testConvert_empty_throws() throws Exception {
+  public void testConvert_empty_throws() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert(""));
   }
 
   @Test
-  public void testConvert_null_throws() throws Exception {
+  public void testConvert_null_throws() {
     assertThrows(NullPointerException.class, () -> instance.convert(null));
   }
 
   @Test
-  public void testConvert_sillyString_throws() throws Exception {
+  public void testConvert_sillyString_throws() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("foo"));
   }
 
   @Test
-  public void testValidate_sillyString_throws() throws Exception {
+  public void testValidate_sillyString_throws() {
     ParameterException thrown =
         assertThrows(ParameterException.class, () -> instance.validate("--time", "foo"));
     assertThat(thrown).hasMessageThat().contains("--time=foo not an");

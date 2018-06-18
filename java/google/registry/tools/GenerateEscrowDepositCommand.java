@@ -79,7 +79,7 @@ final class GenerateEscrowDepositCommand implements RemoteApiCommand {
   @Inject @Named("rde-report") Queue queue;
 
   @Override
-  public void run() throws Exception {
+  public void run() {
 
     if (tlds.isEmpty()) {
       throw new ParameterException("At least one TLD must be specified");

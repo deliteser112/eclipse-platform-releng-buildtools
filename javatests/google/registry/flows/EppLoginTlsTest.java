@@ -45,7 +45,7 @@ public class EppLoginTlsTest extends EppTestCase {
   }
 
   @Before
-  public void initTest() throws Exception {
+  public void initTest() {
     persistResource(
         loadRegistrar("NewRegistrar")
             .asBuilder()

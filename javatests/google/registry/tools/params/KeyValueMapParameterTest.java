@@ -35,64 +35,64 @@ public class KeyValueMapParameterTest {
   private final CurrencyUnitToStringMap currencyUnitToStringMap = new CurrencyUnitToStringMap();
 
   @Test
-  public void testSuccess_convertStringToString_singleEntry() throws Exception {
+  public void testSuccess_convertStringToString_singleEntry() {
     assertThat(stringToStringInstance.convert("key=foo"))
         .isEqualTo(ImmutableMap.of("key", "foo"));
   }
 
   @Test
-  public void testSuccess_convertStringToInteger_singleEntry() throws Exception {
+  public void testSuccess_convertStringToInteger_singleEntry() {
     assertThat(stringToIntegerInstance.convert("key=1"))
         .isEqualTo(ImmutableMap.of("key", 1));
   }
 
   @Test
-  public void testSuccess_convertCurrencyUnitToString_singleEntry() throws Exception {
+  public void testSuccess_convertCurrencyUnitToString_singleEntry() {
     assertThat(currencyUnitToStringMap.convert("USD=123abc"))
         .isEqualTo(ImmutableMap.of(CurrencyUnit.USD, "123abc"));
   }
 
   @Test
-  public void testSuccess_convertStringToString() throws Exception {
+  public void testSuccess_convertStringToString() {
     assertThat(stringToStringInstance.convert("key=foo,key2=bar"))
         .isEqualTo(ImmutableMap.of("key", "foo", "key2", "bar"));
   }
 
   @Test
-  public void testSuccess_convertStringToInteger() throws Exception {
+  public void testSuccess_convertStringToInteger() {
     assertThat(stringToIntegerInstance.convert("key=1,key2=2"))
         .isEqualTo(ImmutableMap.of("key", 1, "key2", 2));
   }
 
   @Test
-  public void testSuccess_convertCurrencyUnitToString() throws Exception {
+  public void testSuccess_convertCurrencyUnitToString() {
     assertThat(currencyUnitToStringMap.convert("USD=123abc,JPY=xyz789"))
         .isEqualTo(ImmutableMap.of(CurrencyUnit.USD, "123abc", CurrencyUnit.JPY, "xyz789"));
   }
 
   @Test
-  public void testSuccess_convertStringToString_empty() throws Exception {
+  public void testSuccess_convertStringToString_empty() {
     assertThat(stringToStringInstance.convert("")).isEmpty();
   }
 
   @Test
-  public void testSuccess_convertStringToInteger_empty() throws Exception {
+  public void testSuccess_convertStringToInteger_empty() {
     assertThat(stringToIntegerInstance.convert("")).isEmpty();
   }
 
   @Test
-  public void testSuccess_convertCurrencyUnitToString_empty() throws Exception {
+  public void testSuccess_convertCurrencyUnitToString_empty() {
     assertThat(currencyUnitToStringMap.convert("")).isEmpty();
   }
 
   @Test
-  public void testFailure_convertStringToInteger_badType() throws Exception {
+  public void testFailure_convertStringToInteger_badType() {
     assertThrows(
         NumberFormatException.class, () -> stringToIntegerInstance.convert("key=1,key2=foo"));
   }
 
   @Test
-  public void testFailure_convertCurrencyUnitToString_badType() throws Exception {
+  public void testFailure_convertCurrencyUnitToString_badType() {
     IllegalCurrencyException thrown =
         assertThrows(
             IllegalCurrencyException.class,
@@ -101,36 +101,36 @@ public class KeyValueMapParameterTest {
   }
 
   @Test
-  public void testFailure_convertStringToString_badSeparator() throws Exception {
+  public void testFailure_convertStringToString_badSeparator() {
     assertThrows(
         IllegalArgumentException.class, () -> stringToStringInstance.convert("key=foo&key2=bar"));
   }
 
   @Test
-  public void testFailure_convertStringToInteger_badSeparator() throws Exception {
+  public void testFailure_convertStringToInteger_badSeparator() {
     assertThrows(
         IllegalArgumentException.class, () -> stringToIntegerInstance.convert("key=1&key2=2"));
   }
 
   @Test
-  public void testFailure_convertCurrencyUnitToString_badSeparator() throws Exception {
+  public void testFailure_convertCurrencyUnitToString_badSeparator() {
     assertThrows(
         IllegalArgumentException.class,
         () -> currencyUnitToStringMap.convert("USD=123abc&JPY=xyz789"));
   }
 
   @Test
-  public void testFailure_convertStringToString_badFormat() throws Exception {
+  public void testFailure_convertStringToString_badFormat() {
     assertThrows(IllegalArgumentException.class, () -> stringToStringInstance.convert("foo"));
   }
 
   @Test
-  public void testFailure_convertStringToInteger_badFormat() throws Exception {
+  public void testFailure_convertStringToInteger_badFormat() {
     assertThrows(IllegalArgumentException.class, () -> stringToIntegerInstance.convert("foo"));
   }
 
   @Test
-  public void testFailure_convertCurrencyUnitToString_badFormat() throws Exception {
+  public void testFailure_convertCurrencyUnitToString_badFormat() {
     assertThrows(IllegalArgumentException.class, () -> currencyUnitToStringMap.convert("foo"));
   }
 }

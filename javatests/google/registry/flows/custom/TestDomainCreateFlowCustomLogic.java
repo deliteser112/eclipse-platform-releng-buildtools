@@ -16,7 +16,6 @@ package google.registry.flows.custom;
 
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
-import google.registry.flows.EppException;
 import google.registry.flows.FlowMetadata;
 import google.registry.flows.SessionMetadata;
 import google.registry.model.eppinput.EppInput;
@@ -31,7 +30,7 @@ public class TestDomainCreateFlowCustomLogic extends DomainCreateFlowCustomLogic
   }
 
   @Override
-  public EntityChanges beforeSave(BeforeSaveParameters parameters) throws EppException {
+  public EntityChanges beforeSave(BeforeSaveParameters parameters) {
     if (parameters.newDomain().getFullyQualifiedDomainName().startsWith("custom-logic-test")) {
       PollMessage extraPollMessage =
           new PollMessage.OneTime.Builder()

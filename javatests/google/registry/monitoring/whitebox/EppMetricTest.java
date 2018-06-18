@@ -38,7 +38,7 @@ public class EppMetricTest {
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Test
-  public void test_invalidTld_isRecordedAsInvalid() throws Exception {
+  public void test_invalidTld_isRecordedAsInvalid() {
     EppMetric metric =
         EppMetric.builderForRequest("request-id-1", new FakeClock())
             .setTlds(ImmutableSet.of("notarealtld"))
@@ -47,7 +47,7 @@ public class EppMetricTest {
   }
 
   @Test
-  public void test_validTld_isRecorded() throws Exception {
+  public void test_validTld_isRecorded() {
     createTld("example");
     EppMetric metric =
         EppMetric.builderForRequest("request-id-1", new FakeClock())
@@ -57,7 +57,7 @@ public class EppMetricTest {
   }
 
   @Test
-  public void test_multipleTlds_areRecordedAsVarious() throws Exception {
+  public void test_multipleTlds_areRecordedAsVarious() {
     createTlds("foo", "bar");
     EppMetric metric =
         EppMetric.builderForRequest("request-id-1", new FakeClock())
@@ -67,7 +67,7 @@ public class EppMetricTest {
   }
 
   @Test
-  public void test_zeroTlds_areRecordedAsAbsent() throws Exception {
+  public void test_zeroTlds_areRecordedAsAbsent() {
     EppMetric metric =
         EppMetric.builderForRequest("request-id-1", new FakeClock())
             .setTlds(ImmutableSet.of())
@@ -76,7 +76,7 @@ public class EppMetricTest {
   }
 
   @Test
-  public void testGetBigQueryRowEncoding_encodesCorrectly() throws Exception {
+  public void testGetBigQueryRowEncoding_encodesCorrectly() {
     EppMetric metric =
         EppMetric.builder()
             .setRequestId("request-id-1")
@@ -108,7 +108,7 @@ public class EppMetricTest {
   }
 
   @Test
-  public void testGetBigQueryRowEncoding_hasAllSchemaFields() throws Exception {
+  public void testGetBigQueryRowEncoding_hasAllSchemaFields() {
     EppMetric metric =
         EppMetric.builder()
             .setRequestId("request-id-1")

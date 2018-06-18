@@ -115,7 +115,7 @@ public class EppTestCase extends ShardableTestCase {
     return new CommandAsserter(inputFilename, inputSubstitutions);
   }
 
-  CommandAsserter assertThatLogin(String clientId, String password) throws Exception {
+  CommandAsserter assertThatLogin(String clientId, String password) {
     return assertThatCommand("login.xml", ImmutableMap.of("CLID", clientId, "PW", password));
   }
 

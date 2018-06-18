@@ -195,7 +195,7 @@ public class TaskQueueHelper {
   public static void assertTasksEnqueuedWithProperty(
       String queueName,
       Function<TaskStateInfo, String> propertyGetter,
-      String... expectedTaskProperties) throws Exception {
+      String... expectedTaskProperties) {
     // Ordering is irrelevant but duplicates should be considered independently.
     assertThat(getQueueInfo(queueName).getTaskInfo().stream().map(propertyGetter))
         .containsExactly((Object[]) expectedTaskProperties);
@@ -230,8 +230,7 @@ public class TaskQueueHelper {
    * Ensures that the only tasks in the named queue are exactly those that match the expected
    * matchers.
    */
-  public static void assertTasksEnqueued(String queueName, Collection<TaskMatcher> taskMatchers)
-      throws Exception {
+  public static void assertTasksEnqueued(String queueName, Collection<TaskMatcher> taskMatchers) {
     QueueStateInfo qsi = getQueueInfo(queueName);
     assertThat(qsi.getTaskInfo()).hasSize(taskMatchers.size());
     List<TaskStateInfo> taskInfos = new ArrayList<>(qsi.getTaskInfo());
@@ -269,17 +268,17 @@ public class TaskQueueHelper {
   }
 
   /** Empties the task queue. */
-  public static void clearTaskQueue(String queueName) throws Exception {
+  public static void clearTaskQueue(String queueName) {
     getLocalTaskQueue().flushQueue(queueName);
   }
 
   /** Asserts at least one task exists in {@code queue}. */
-  public static void assertAtLeastOneTaskIsEnqueued(String queue) throws Exception {
+  public static void assertAtLeastOneTaskIsEnqueued(String queue) {
     assertThat(getQueueInfo(queue).getCountTasks()).isGreaterThan(0);
   }
 
   /** Ensures that the named queue contains no tasks. */
-  public static void assertNoTasksEnqueued(String ... queueNames) throws Exception {
+  public static void assertNoTasksEnqueued(String ... queueNames) {
     for (String queueName : queueNames) {
       assertThat(getQueueInfo(queueName).getCountTasks()).isEqualTo(0);
     }

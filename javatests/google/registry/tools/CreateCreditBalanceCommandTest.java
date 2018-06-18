@@ -80,7 +80,7 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
   }
 
   @Test
-  public void testFailure_nonexistentParentRegistrar() throws Exception {
+  public void testFailure_nonexistentParentRegistrar() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -94,7 +94,7 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
   }
 
   @Test
-  public void testFailure_nonexistentCreditId() throws Exception {
+  public void testFailure_nonexistentCreditId() {
     long badId = creditId + 1;
     NullPointerException thrown =
         assertThrows(
@@ -109,7 +109,7 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
   }
 
   @Test
-  public void testFailure_negativeBalance() throws Exception {
+  public void testFailure_negativeBalance() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -123,7 +123,7 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
   }
 
   @Test
-  public void testFailure_noRegistrar() throws Exception {
+  public void testFailure_noRegistrar() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -136,7 +136,7 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
   }
 
   @Test
-  public void testFailure_noCreditId() throws Exception {
+  public void testFailure_noCreditId() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -149,7 +149,7 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
   }
 
   @Test
-  public void testFailure_noBalance() throws Exception {
+  public void testFailure_noBalance() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -162,7 +162,7 @@ public class CreateCreditBalanceCommandTest extends CommandTestCase<CreateCredit
   }
 
   @Test
-  public void testFailure_noEffectiveTime() throws Exception {
+  public void testFailure_noEffectiveTime() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,

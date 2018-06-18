@@ -41,20 +41,20 @@ public class RequestParametersTest {
   private final HttpServletRequest req = mock(HttpServletRequest.class);
 
   @Test
-  public void testExtractRequiredParameter_valuePresent_returnsValue() throws Exception {
+  public void testExtractRequiredParameter_valuePresent_returnsValue() {
     when(req.getParameter("spin")).thenReturn("bog");
     assertThat(extractRequiredParameter(req, "spin")).isEqualTo("bog");
   }
 
   @Test
-  public void testExtractRequiredParameter_notPresent_throwsBadRequest() throws Exception {
+  public void testExtractRequiredParameter_notPresent_throwsBadRequest() {
     BadRequestException thrown =
         assertThrows(BadRequestException.class, () -> extractRequiredParameter(req, "spin"));
     assertThat(thrown).hasMessageThat().contains("spin");
   }
 
   @Test
-  public void testExtractRequiredParameter_empty_throwsBadRequest() throws Exception {
+  public void testExtractRequiredParameter_empty_throwsBadRequest() {
     when(req.getParameter("spin")).thenReturn("");
     BadRequestException thrown =
         assertThrows(BadRequestException.class, () -> extractRequiredParameter(req, "spin"));
@@ -62,63 +62,63 @@ public class RequestParametersTest {
   }
 
   @Test
-  public void testExtractOptionalParameter_valuePresent_returnsValue() throws Exception {
+  public void testExtractOptionalParameter_valuePresent_returnsValue() {
     when(req.getParameter("spin")).thenReturn("bog");
     assertThat(extractOptionalParameter(req, "spin")).hasValue("bog");
   }
 
   @Test
-  public void testExtractOptionalParameter_notPresent_returnsAbsent() throws Exception {
+  public void testExtractOptionalParameter_notPresent_returnsAbsent() {
     assertThat(extractOptionalParameter(req, "spin")).isEmpty();
   }
 
   @Test
-  public void testExtractOptionalParameter_empty_returnsAbsent() throws Exception {
+  public void testExtractOptionalParameter_empty_returnsAbsent() {
     when(req.getParameter("spin")).thenReturn("");
     assertThat(extractOptionalParameter(req, "spin")).isEmpty();
   }
 
   @Test
-  public void testExtractBooleanParameter_notPresent_returnsFalse() throws Exception {
+  public void testExtractBooleanParameter_notPresent_returnsFalse() {
     assertThat(extractBooleanParameter(req, "love")).isFalse();
   }
 
   @Test
-  public void testExtractBooleanParameter_presentWithoutValue_returnsTrue() throws Exception {
+  public void testExtractBooleanParameter_presentWithoutValue_returnsTrue() {
     when(req.getParameterMap()).thenReturn(ImmutableMap.of("love", ""));
     assertThat(extractBooleanParameter(req, "love")).isTrue();
   }
 
   @Test
-  public void testExtractBooleanParameter_empty_returnsTrue() throws Exception {
+  public void testExtractBooleanParameter_empty_returnsTrue() {
     when(req.getParameterMap()).thenReturn(ImmutableMap.of("love", ""));
     when(req.getParameter("love")).thenReturn("");
     assertThat(extractBooleanParameter(req, "love")).isTrue();
   }
 
   @Test
-  public void testExtractBooleanParameter_presentStringArbitrary_returnsTrue() throws Exception {
+  public void testExtractBooleanParameter_presentStringArbitrary_returnsTrue() {
     when(req.getParameterMap()).thenReturn(ImmutableMap.of("love", "lol"));
     when(req.getParameter("love")).thenReturn("lol");
     assertThat(extractBooleanParameter(req, "love")).isTrue();
   }
 
   @Test
-  public void testExtractBooleanParameter_presentStringTrue_returnsTrue() throws Exception {
+  public void testExtractBooleanParameter_presentStringTrue_returnsTrue() {
     when(req.getParameterMap()).thenReturn(ImmutableMap.of("love", "true"));
     when(req.getParameter("love")).thenReturn("true");
     assertThat(extractBooleanParameter(req, "love")).isTrue();
   }
 
   @Test
-  public void testExtractBooleanParameter_presentStringFalse_returnsFalse() throws Exception {
+  public void testExtractBooleanParameter_presentStringFalse_returnsFalse() {
     when(req.getParameterMap()).thenReturn(ImmutableMap.of("love", "false"));
     when(req.getParameter("love")).thenReturn("false");
     assertThat(extractBooleanParameter(req, "love")).isFalse();
   }
 
   @Test
-  public void testExtractBooleanParameter_presentStringFalse_caseInsensitive() throws Exception {
+  public void testExtractBooleanParameter_presentStringFalse_caseInsensitive() {
     when(req.getParameterMap()).thenReturn(ImmutableMap.of("love", "FaLsE"));
     when(req.getParameter("love")).thenReturn("FaLsE");
     assertThat(extractBooleanParameter(req, "love")).isFalse();
@@ -127,19 +127,19 @@ public class RequestParametersTest {
   enum Club { DANCE, FLOOR }
 
   @Test
-  public void testExtractEnumValue_correctValue_works() throws Exception {
+  public void testExtractEnumValue_correctValue_works() {
     when(req.getParameter("spin")).thenReturn("DANCE");
     assertThat(extractEnumParameter(req, Club.class, "spin")).isEqualTo(Club.DANCE);
   }
 
   @Test
-  public void testExtractEnumValue_weirdCasing_isCaseInsensitive() throws Exception {
+  public void testExtractEnumValue_weirdCasing_isCaseInsensitive() {
     when(req.getParameter("spin")).thenReturn("DaNcE");
     assertThat(extractEnumParameter(req, Club.class, "spin")).isEqualTo(Club.DANCE);
   }
 
   @Test
-  public void testExtractEnumValue_nonExistentValue_throwsBadRequest() throws Exception {
+  public void testExtractEnumValue_nonExistentValue_throwsBadRequest() {
     when(req.getParameter("spin")).thenReturn("sing");
     BadRequestException thrown =
         assertThrows(
@@ -148,19 +148,19 @@ public class RequestParametersTest {
   }
 
   @Test
-  public void testOptionalExtractEnumValue_givenValue_returnsValue() throws Exception {
+  public void testOptionalExtractEnumValue_givenValue_returnsValue() {
     when(req.getParameter("spin")).thenReturn("DANCE");
     assertThat(extractOptionalEnumParameter(req, Club.class, "spin")).hasValue(Club.DANCE);
   }
 
   @Test
-  public void testOptionalExtractEnumValue_noValue_returnsAbsent() throws Exception {
+  public void testOptionalExtractEnumValue_noValue_returnsAbsent() {
     when(req.getParameter("spin")).thenReturn("");
     assertThat(extractOptionalEnumParameter(req, Club.class, "spin")).isEmpty();
   }
 
   @Test
-  public void testOptionalExtractEnumValue_nonExistentValue_throwsBadRequest() throws Exception {
+  public void testOptionalExtractEnumValue_nonExistentValue_throwsBadRequest() {
     when(req.getParameter("spin")).thenReturn("sing");
     BadRequestException thrown =
         assertThrows(
@@ -169,14 +169,14 @@ public class RequestParametersTest {
   }
 
   @Test
-  public void testExtractRequiredDatetimeParameter_correctValue_works() throws Exception {
+  public void testExtractRequiredDatetimeParameter_correctValue_works() {
     when(req.getParameter("timeParam")).thenReturn("2015-08-27T13:25:34.123Z");
     assertThat(extractRequiredDatetimeParameter(req, "timeParam"))
         .isEqualTo(DateTime.parse("2015-08-27T13:25:34.123Z"));
   }
 
   @Test
-  public void testExtractRequiredDatetimeParameter_badValue_throwsBadRequest() throws Exception {
+  public void testExtractRequiredDatetimeParameter_badValue_throwsBadRequest() {
     when(req.getParameter("timeParam")).thenReturn("Tuesday at three o'clock");
     BadRequestException thrown =
         assertThrows(
@@ -185,14 +185,14 @@ public class RequestParametersTest {
   }
 
   @Test
-  public void testExtractOptionalDatetimeParameter_correctValue_works() throws Exception {
+  public void testExtractOptionalDatetimeParameter_correctValue_works() {
     when(req.getParameter("timeParam")).thenReturn("2015-08-27T13:25:34.123Z");
     assertThat(extractOptionalDatetimeParameter(req, "timeParam"))
         .hasValue(DateTime.parse("2015-08-27T13:25:34.123Z"));
   }
 
   @Test
-  public void testExtractOptionalDatetimeParameter_badValue_throwsBadRequest() throws Exception {
+  public void testExtractOptionalDatetimeParameter_badValue_throwsBadRequest() {
     when(req.getParameter("timeParam")).thenReturn("Tuesday at three o'clock");
     BadRequestException thrown =
         assertThrows(
@@ -201,13 +201,13 @@ public class RequestParametersTest {
   }
 
   @Test
-  public void testExtractOptionalDatetimeParameter_empty_returnsAbsent() throws Exception {
+  public void testExtractOptionalDatetimeParameter_empty_returnsAbsent() {
     when(req.getParameter("timeParam")).thenReturn("");
     assertThat(extractOptionalDatetimeParameter(req, "timeParam")).isEmpty();
   }
 
   @Test
-  public void testExtractRequiredDatetimeParameter_noValue_throwsBadRequest() throws Exception {
+  public void testExtractRequiredDatetimeParameter_noValue_throwsBadRequest() {
     BadRequestException thrown =
         assertThrows(
             BadRequestException.class, () -> extractRequiredDatetimeParameter(req, "timeParam"));

@@ -54,7 +54,7 @@ public class DatastoreBackupInfoTest {
   private Entity backupEntity;  // Can't initialize until AppEngineRule has set up Datastore.
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     inject.setStaticField(DatastoreBackupInfo.class, "clock", clock);
     backupEntity = new Entity("_unused_");
     backupEntity.setProperty("name", "backup1");
@@ -101,28 +101,28 @@ public class DatastoreBackupInfoTest {
   }
 
   @Test
-  public void testFailure_missingName() throws Exception {
+  public void testFailure_missingName() {
     backupEntity.removeProperty("name");
     assertThrows(
         NullPointerException.class, () -> new DatastoreBackupInfo(persistEntity(backupEntity)));
   }
 
   @Test
-  public void testFailure_missingKinds() throws Exception {
+  public void testFailure_missingKinds() {
     backupEntity.removeProperty("kinds");
     assertThrows(
         NullPointerException.class, () -> new DatastoreBackupInfo(persistEntity(backupEntity)));
   }
 
   @Test
-  public void testFailure_missingStartTime() throws Exception {
+  public void testFailure_missingStartTime() {
     backupEntity.removeProperty("start_time");
     assertThrows(
         NullPointerException.class, () -> new DatastoreBackupInfo(persistEntity(backupEntity)));
   }
 
   @Test
-  public void testFailure_badGcsFilenameFormat() throws Exception {
+  public void testFailure_badGcsFilenameFormat() {
     backupEntity.setProperty("gs_handle", new Text("foo"));
     assertThrows(
         IllegalArgumentException.class, () -> new DatastoreBackupInfo(persistEntity(backupEntity)));

@@ -440,7 +440,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_billingAccountMap_doesNotContainEntryForTldAllowed() throws Exception {
+  public void testFailure_billingAccountMap_doesNotContainEntryForTldAllowed() {
     createTlds("foo");
 
     IllegalArgumentException thrown =
@@ -699,7 +699,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_badPhoneNumber() throws Exception {
+  public void testFailure_badPhoneNumber() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -722,7 +722,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_badPhoneNumber2() throws Exception {
+  public void testFailure_badPhoneNumber2() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -789,7 +789,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_missingRegistrarType() throws Exception {
+  public void testFailure_missingRegistrarType() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -809,7 +809,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_invalidRegistrarType() throws Exception {
+  public void testFailure_invalidRegistrarType() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -827,7 +827,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_invalidRegistrarState() throws Exception {
+  public void testFailure_invalidRegistrarState() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -848,7 +848,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_allowedTldDoesNotExist() throws Exception {
+  public void testFailure_allowedTldDoesNotExist() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -869,7 +869,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_invalidIpWhitelistFlag() throws Exception {
+  public void testFailure_invalidIpWhitelistFlag() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -890,7 +890,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testSuccess_ipWhitelistFlagWithNull() throws Exception {
+  public void testSuccess_ipWhitelistFlagWithNull() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -911,7 +911,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_invalidCertFileContents() throws Exception {
+  public void testFailure_invalidCertFileContents() {
     assertThrows(
         Exception.class,
         () ->
@@ -932,7 +932,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_invalidFailoverCertFileContents() throws Exception {
+  public void testFailure_invalidFailoverCertFileContents() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -953,7 +953,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_certHashAndCertFile() throws Exception {
+  public void testFailure_certHashAndCertFile() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -975,7 +975,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_certHashNotBase64() throws Exception {
+  public void testFailure_certHashNotBase64() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -998,7 +998,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_certHashNotA256BitValue() throws Exception {
+  public void testFailure_certHashNotA256BitValue() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -1021,7 +1021,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_missingName() throws Exception {
+  public void testFailure_missingName() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -1042,7 +1042,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_missingPassword() throws Exception {
+  public void testFailure_missingPassword() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -1063,7 +1063,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_emptyPassword() throws Exception {
+  public void testFailure_emptyPassword() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -1085,7 +1085,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_clientIdTooShort() throws Exception {
+  public void testFailure_clientIdTooShort() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1105,7 +1105,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_clientIdTooLong() throws Exception {
+  public void testFailure_clientIdTooLong() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1125,7 +1125,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_missingClientId() throws Exception {
+  public void testFailure_missingClientId() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -1145,7 +1145,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_missingStreetLines() throws Exception {
+  public void testFailure_missingStreetLines() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1164,7 +1164,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_missingCity() throws Exception {
+  public void testFailure_missingCity() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1186,7 +1186,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
 
 
   @Test
-  public void testFailure_missingState() throws Exception {
+  public void testFailure_missingState() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1207,7 +1207,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_missingZip() throws Exception {
+  public void testFailure_missingZip() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1228,7 +1228,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_missingCc() throws Exception {
+  public void testFailure_missingCc() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1249,7 +1249,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_invalidCc() throws Exception {
+  public void testFailure_invalidCc() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1271,7 +1271,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_tooManyStreetLines() throws Exception {
+  public void testFailure_tooManyStreetLines() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1294,7 +1294,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_tooFewStreetLines() throws Exception {
+  public void testFailure_tooFewStreetLines() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1314,7 +1314,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_missingIanaIdForRealRegistrar() throws Exception {
+  public void testFailure_missingIanaIdForRealRegistrar() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1333,7 +1333,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_negativeIanaId() throws Exception {
+  public void testFailure_negativeIanaId() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1353,7 +1353,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_nonIntegerIanaId() throws Exception {
+  public void testFailure_nonIntegerIanaId() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -1373,7 +1373,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_negativeBillingId() throws Exception {
+  public void testFailure_negativeBillingId() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1394,7 +1394,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_nonIntegerBillingId() throws Exception {
+  public void testFailure_nonIntegerBillingId() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -1415,7 +1415,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_missingPhonePasscode() throws Exception {
+  public void testFailure_missingPhonePasscode() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1434,7 +1434,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_missingIcannReferralEmail() throws Exception {
+  public void testFailure_missingIcannReferralEmail() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -1455,7 +1455,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_passcodeTooShort() throws Exception {
+  public void testFailure_passcodeTooShort() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1475,7 +1475,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_passcodeTooLong() throws Exception {
+  public void testFailure_passcodeTooLong() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1495,7 +1495,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_invalidPasscode() throws Exception {
+  public void testFailure_invalidPasscode() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1515,7 +1515,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_twoClientsSpecified() throws Exception {
+  public void testFailure_twoClientsSpecified() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -1536,7 +1536,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_unknownFlag() throws Exception {
+  public void testFailure_unknownFlag() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -1557,7 +1557,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_alreadyExists() throws Exception {
+  public void testFailure_alreadyExists() {
     persistNewRegistrar("existing", "Existing Registrar", Registrar.Type.REAL, 1L);
     IllegalStateException thrown =
         assertThrows(
@@ -1580,7 +1580,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_registrarNameSimilarToExisting() throws Exception {
+  public void testFailure_registrarNameSimilarToExisting() {
     // Note that "tHeRe GiStRaR" normalizes identically to "The Registrar", which is created by
     // AppEngineRule.
     IllegalArgumentException thrown =
@@ -1608,7 +1608,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_clientIdNormalizesToExisting() throws Exception {
+  public void testFailure_clientIdNormalizesToExisting() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -1634,7 +1634,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_clientIdIsInvalidFormat() throws Exception {
+  public void testFailure_clientIdIsInvalidFormat() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -1659,7 +1659,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_phone() throws Exception {
+  public void testFailure_phone() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -1680,7 +1680,7 @@ public class CreateRegistrarCommandTest extends CommandTestCase<CreateRegistrarC
   }
 
   @Test
-  public void testFailure_fax() throws Exception {
+  public void testFailure_fax() {
     assertThrows(
         ParameterException.class,
         () ->

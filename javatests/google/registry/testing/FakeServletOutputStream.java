@@ -35,7 +35,7 @@ public final class FakeServletOutputStream extends ServletOutputStream {
 
   /** @see java.io.OutputStream#write(int) */
   @Override
-  public void write(int b) throws IOException {
+  public void write(int b) {
     out.write(b);
   }
 
@@ -47,8 +47,7 @@ public final class FakeServletOutputStream extends ServletOutputStream {
 
   /** @see java.io.OutputStream#write(byte[], int, int) */
   @Override
-  public void write(@Nonnull @SuppressWarnings("null") byte[] b, int off, int len)
-      throws IOException {
+  public void write(@Nonnull @SuppressWarnings("null") byte[] b, int off, int len) {
     out.write(b, off, len);
   }
 

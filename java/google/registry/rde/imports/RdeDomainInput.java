@@ -31,7 +31,6 @@ import google.registry.model.domain.DomainResource;
 import google.registry.rde.imports.RdeParser.RdeHeader;
 import google.registry.xjc.JaxbFragment;
 import google.registry.xjc.rdedomain.XjcRdeDomainElement;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
@@ -74,8 +73,7 @@ public class RdeDomainInput extends Input<JaxbFragment<XjcRdeDomainElement>> {
   }
 
   @Override
-  public List<? extends InputReader<JaxbFragment<XjcRdeDomainElement>>> createReaders()
-      throws IOException {
+  public List<? extends InputReader<JaxbFragment<XjcRdeDomainElement>>> createReaders() {
     int numReaders = this.numReaders;
     RdeHeader header = newParser().getHeader();
     int numberOfDomains = header.getDomainCount().intValue();

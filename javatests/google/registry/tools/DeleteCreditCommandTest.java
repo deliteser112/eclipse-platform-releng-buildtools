@@ -111,7 +111,7 @@ public class DeleteCreditCommandTest extends CommandTestCase<DeleteCreditCommand
   }
 
   @Test
-  public void testFailure_nonexistentParentRegistrar() throws Exception {
+  public void testFailure_nonexistentParentRegistrar() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -120,7 +120,7 @@ public class DeleteCreditCommandTest extends CommandTestCase<DeleteCreditCommand
   }
 
   @Test
-  public void testFailure_nonexistentCreditId() throws Exception {
+  public void testFailure_nonexistentCreditId() {
     long badId = creditAId + creditBId + 1;
     NullPointerException thrown =
         assertThrows(
@@ -130,14 +130,14 @@ public class DeleteCreditCommandTest extends CommandTestCase<DeleteCreditCommand
   }
 
   @Test
-  public void testFailure_noRegistrar() throws Exception {
+  public void testFailure_noRegistrar() {
     ParameterException thrown =
         assertThrows(ParameterException.class, () -> runCommandForced("--credit_id=" + creditAId));
     assertThat(thrown).hasMessageThat().contains("--registrar");
   }
 
   @Test
-  public void testFailure_noCreditId() throws Exception {
+  public void testFailure_noCreditId() {
     ParameterException thrown =
         assertThrows(ParameterException.class, () -> runCommandForced("--registrar=TheRegistrar"));
     assertThat(thrown).hasMessageThat().contains("--credit_id");

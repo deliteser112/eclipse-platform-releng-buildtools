@@ -64,7 +64,7 @@ public class CheckApi2ActionTest {
   private DateTime endTime;
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     createTld("example");
     persistResource(
         Registry.get("example")

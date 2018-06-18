@@ -48,7 +48,6 @@ import com.google.api.services.groupssettings.model.Groups;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.groups.GroupsConnection.Role;
-import java.io.IOException;
 import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
@@ -248,10 +247,10 @@ public class DirectoryGroupsConnectionTest {
       final String message) throws Exception {
     HttpTransport transport = new MockHttpTransport() {
       @Override
-      public LowLevelHttpRequest buildRequest(String method, String url) throws IOException {
+      public LowLevelHttpRequest buildRequest(String method, String url) {
         return new MockLowLevelHttpRequest() {
           @Override
-          public LowLevelHttpResponse execute() throws IOException {
+          public LowLevelHttpResponse execute() {
             MockLowLevelHttpResponse response = new MockLowLevelHttpResponse();
             response.setStatusCode(statusCode);
             response.setContentType(Json.MEDIA_TYPE);

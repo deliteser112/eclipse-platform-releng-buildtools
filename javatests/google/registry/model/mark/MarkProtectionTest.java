@@ -26,7 +26,7 @@ import org.junit.runners.JUnit4;
 public final class MarkProtectionTest {
 
   @Test
-  public void testDeadCodeWeDontWantToDelete() throws Exception {
+  public void testDeadCodeWeDontWantToDelete() {
     MarkProtection mp = new MarkProtection();
     mp.countryCode = "US";
     assertThat(mp.getCountryCode()).isEqualTo("US");

@@ -55,7 +55,7 @@ public class CreateRegistrarGroupsCommandTest extends
   }
 
   @Test
-  public void test_throwsExceptionForNonExistentRegistrar() throws Exception {
+  public void test_throwsExceptionForNonExistentRegistrar() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

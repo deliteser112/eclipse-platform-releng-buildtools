@@ -76,7 +76,7 @@ public class TldFanoutActionTest {
     return params.build();
   }
 
-  private void run(ImmutableListMultimap<String, String> params) throws Exception {
+  private void run(ImmutableListMultimap<String, String> params) {
     TldFanoutAction action = new TldFanoutAction();
     action.params = params;
     action.endpoint = getLast(params.get("endpoint"));
@@ -94,7 +94,7 @@ public class TldFanoutActionTest {
   }
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     createTlds("com", "net", "org", "example");
     persistResource(Registry.get("example").asBuilder().setTldType(TldType.TEST).build());
   }
@@ -126,7 +126,7 @@ public class TldFanoutActionTest {
   }
 
   @Test
-  public void testFailure_noTlds() throws Exception {
+  public void testFailure_noTlds() {
     assertThrows(IllegalArgumentException.class, () -> run(getParamsMap()));
   }
 
@@ -188,7 +188,7 @@ public class TldFanoutActionTest {
   }
 
   @Test
-  public void testFailure_runInEmptyAndTest() throws Exception {
+  public void testFailure_runInEmptyAndTest() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -199,7 +199,7 @@ public class TldFanoutActionTest {
   }
 
   @Test
-  public void testFailure_runInEmptyAndReal() throws Exception {
+  public void testFailure_runInEmptyAndReal() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -210,7 +210,7 @@ public class TldFanoutActionTest {
   }
 
   @Test
-  public void testFailure_runInEmptyAndExclude() throws Exception {
+  public void testFailure_runInEmptyAndExclude() {
     assertThrows(
         IllegalArgumentException.class,
         () ->

@@ -130,7 +130,7 @@ public class RdeReportActionTest {
   }
 
   @Test
-  public void testRun() throws Exception {
+  public void testRun() {
     createTld("lol");
     RdeReportAction action = createAction();
     action.tld = "lol";

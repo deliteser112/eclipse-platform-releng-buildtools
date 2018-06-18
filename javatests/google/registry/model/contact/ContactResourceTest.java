@@ -44,7 +44,7 @@ public class ContactResourceTest extends EntityTestCase {
   ContactResource contactResource;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     createTld("foobar");
     // Set up a new persisted ContactResource entity.
     contactResource = persistResource(cloneAndSetAutoTimestamps(
@@ -109,7 +109,7 @@ public class ContactResourceTest extends EntityTestCase {
   }
 
   @Test
-  public void testPersistence() throws Exception {
+  public void testPersistence() {
     assertThat(
         loadByForeignKey(ContactResource.class, contactResource.getForeignKey(), clock.nowUtc()))
         .isEqualTo(contactResource);
@@ -154,7 +154,7 @@ public class ContactResourceTest extends EntityTestCase {
   }
 
   @Test
-  public void testEmptyTransferDataBecomesNull() throws Exception {
+  public void testEmptyTransferDataBecomesNull() {
     ContactResource withNull = new ContactResource.Builder().setTransferData(null).build();
     ContactResource withEmpty = withNull.asBuilder().setTransferData(TransferData.EMPTY).build();
     assertThat(withNull).isEqualTo(withEmpty);

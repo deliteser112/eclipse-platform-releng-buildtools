@@ -70,7 +70,7 @@ public class OfyFilterTest {
    * the bug occurs, were it not for OfyFilter.
    */
   @Test
-  public void testFilterRegistersTypes() throws Exception {
+  public void testFilterRegistersTypes() {
     UnregisteredEntity entity = new UnregisteredEntity(5L);
     IllegalStateException e = assertThrows(IllegalStateException.class, () -> Key.create(entity));
     assertThat(e)

@@ -125,7 +125,7 @@ public class DomainApplicationUpdateFlowTest
             .build());
   }
 
-  private Builder newApplicationBuilder() throws Exception {
+  private Builder newApplicationBuilder() {
     return newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD");
   }
 
@@ -430,7 +430,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_wrongExtension() throws Exception {
+  public void testFailure_wrongExtension() {
     setEppInput("domain_update_sunrise_wrong_extension.xml");
     EppException thrown = assertThrows(UnimplementedExtensionException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -908,7 +908,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_customPricingLogic_feeMismatch() throws Exception {
+  public void testFailure_customPricingLogic_feeMismatch() {
     persistReferencedEntities();
     persistResource(
         newDomainApplication("non-free-update.tld").asBuilder().setRepoId("1-ROID").build());

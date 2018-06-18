@@ -58,28 +58,28 @@ public class DeleteHostCommandTest extends EppToolCommandTestCase<DeleteHostComm
   }
 
   @Test
-  public void testFailure_noReason() throws Exception {
+  public void testFailure_noReason() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--client=NewRegistrar", "--host=ns1.example.tld", "--force"));
   }
 
   @Test
-  public void testFailure_missingClientId() throws Exception {
+  public void testFailure_missingClientId() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--host=ns1.example.tld", "--force", "--reason=Test"));
   }
 
   @Test
-  public void testFailure_missingHostName() throws Exception {
+  public void testFailure_missingHostName() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--client=NewRegistrar", "--force", "--reason=Test"));
   }
 
   @Test
-  public void testFailure_unknownFlag() throws Exception {
+  public void testFailure_unknownFlag() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -92,7 +92,7 @@ public class DeleteHostCommandTest extends EppToolCommandTestCase<DeleteHostComm
   }
 
   @Test
-  public void testFailure_mainParameter() throws Exception {
+  public void testFailure_mainParameter() {
     assertThrows(
         ParameterException.class,
         () ->

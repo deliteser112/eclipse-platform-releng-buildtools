@@ -54,42 +54,41 @@ public class HostFlowUtilsTest {
   }
 
   @Test
-  public void test_validExternalHostNameOnRegistrySuffixList_multipartTLD_tooShallow()
-      throws Exception {
+  public void test_validExternalHostNameOnRegistrySuffixList_multipartTLD_tooShallow() {
     assertThrows(
         HostNameTooShallowException.class, () -> validateHostName("host.co.uk").toString());
   }
 
   @Test
-  public void test_validateHostName_hostNameTooLong() throws Exception {
+  public void test_validateHostName_hostNameTooLong() {
     assertThrows(
         HostNameTooLongException.class,
         () -> validateHostName(Strings.repeat("na", 200) + ".wat.man"));
   }
 
   @Test
-  public void test_validateHostName_hostNameNotLowerCase() throws Exception {
+  public void test_validateHostName_hostNameNotLowerCase() {
     assertThrows(HostNameNotLowerCaseException.class, () -> validateHostName("NA.CAPS.TLD"));
   }
 
   @Test
-  public void test_validateHostName_hostNameNotPunyCoded() throws Exception {
+  public void test_validateHostName_hostNameNotPunyCoded() {
     assertThrows(
         HostNameNotPunyCodedException.class, () -> validateHostName("motörhead.death.metal"));
   }
 
   @Test
-  public void test_validateHostName_hostNameNotNormalized() throws Exception {
+  public void test_validateHostName_hostNameNotNormalized() {
     assertThrows(HostNameNotNormalizedException.class, () -> validateHostName("root.node.yeah."));
   }
 
   @Test
-  public void test_validateHostName_hostNameHasLeadingHyphen() throws Exception {
+  public void test_validateHostName_hostNameHasLeadingHyphen() {
     assertThrows(InvalidHostNameException.class, () -> validateHostName("-giga.mega.tld"));
   }
 
   @Test
-  public void test_validateHostName_hostNameTooShallow() throws Exception {
+  public void test_validateHostName_hostNameTooShallow() {
     assertThrows(HostNameTooShallowException.class, () -> validateHostName("domain.tld"));
   }
 }

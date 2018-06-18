@@ -51,7 +51,7 @@ final class GetSchemaTreeCommand implements Command {
   private Multimap<Class<?>, Class<?>> superclassToSubclasses;
 
   @Override
-  public void run() throws Exception {
+  public void run() {
     // Get the @Parent type for each class.
     Map<Class<?>, Class<?>> entityToParentType = new HashMap<>();
     for (Class<?> clazz : ALL_CLASSES) {

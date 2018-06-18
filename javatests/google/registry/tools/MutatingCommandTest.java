@@ -282,7 +282,7 @@ public class MutatingCommandTest {
   }
 
   @Test
-  public void testFailure_nullEntityChange() throws Exception {
+  public void testFailure_nullEntityChange() {
     MutatingCommand command = new MutatingCommand() {
       @Override
       protected void init() {
@@ -293,7 +293,7 @@ public class MutatingCommandTest {
   }
 
   @Test
-  public void testFailure_updateSameEntityTwice() throws Exception {
+  public void testFailure_updateSameEntityTwice() {
     MutatingCommand command =
         new MutatingCommand() {
           @Override
@@ -310,7 +310,7 @@ public class MutatingCommandTest {
   }
 
   @Test
-  public void testFailure_updateDifferentLongId() throws Exception {
+  public void testFailure_updateDifferentLongId() {
     MutatingCommand command = new MutatingCommand() {
       @Override
       protected void init() {
@@ -324,7 +324,7 @@ public class MutatingCommandTest {
   }
 
   @Test
-  public void testFailure_updateDifferentStringId() throws Exception {
+  public void testFailure_updateDifferentStringId() {
     MutatingCommand command =
         new MutatingCommand() {
           @Override
@@ -339,7 +339,7 @@ public class MutatingCommandTest {
   }
 
   @Test
-  public void testFailure_updateDifferentKind() throws Exception {
+  public void testFailure_updateDifferentKind() {
     MutatingCommand command =
         new MutatingCommand() {
           @Override

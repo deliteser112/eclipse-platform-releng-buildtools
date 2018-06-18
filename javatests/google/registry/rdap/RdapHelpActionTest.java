@@ -60,7 +60,7 @@ public class RdapHelpActionTest {
   private RdapHelpAction action;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     inject.setStaticField(Ofy.class, "clock", clock);
 
     action = new RdapHelpAction();
@@ -90,7 +90,7 @@ public class RdapHelpActionTest {
   }
 
   @Test
-  public void testHelpActionMaliciousPath_notFound() throws Exception {
+  public void testHelpActionMaliciousPath_notFound() {
     assertThat(generateActualJson("../passwd")).isEqualTo(
         generateExpectedJson(
             "no help found for ../passwd", "rdap_error_404.json"));
@@ -98,35 +98,35 @@ public class RdapHelpActionTest {
   }
 
   @Test
-  public void testHelpActionUnknownPath_notFound() throws Exception {
+  public void testHelpActionUnknownPath_notFound() {
     assertThat(generateActualJson("hlarg")).isEqualTo(
         generateExpectedJson("no help found for hlarg", "rdap_error_404.json"));
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
-  public void testHelpActionDefault_getsIndex() throws Exception {
+  public void testHelpActionDefault_getsIndex() {
     assertThat(generateActualJson(""))
         .isEqualTo(generateExpectedJson("", "rdap_help_index.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
-  public void testHelpActionSlash_getsIndex() throws Exception {
+  public void testHelpActionSlash_getsIndex() {
     assertThat(generateActualJson("/"))
         .isEqualTo(generateExpectedJson("", "rdap_help_index.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
-  public void testHelpActionTos_works() throws Exception {
+  public void testHelpActionTos_works() {
     assertThat(generateActualJson("/tos"))
         .isEqualTo(generateExpectedJson("", "rdap_help_tos.json"));
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
   @Test
-  public void testHelpActionMetrics() throws Exception {
+  public void testHelpActionMetrics() {
     generateActualJson("/tos");
     verify(rdapMetrics)
         .updateMetrics(

@@ -77,7 +77,7 @@ public class ContactCheckFlowTest
   }
 
   @Test
-  public void testTooManyIds() throws Exception {
+  public void testTooManyIds() {
     setEppInput("contact_check_51.xml");
     EppException thrown = assertThrows(TooManyResourceChecksException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();

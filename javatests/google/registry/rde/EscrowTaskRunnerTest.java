@@ -58,7 +58,7 @@ public class EscrowTaskRunnerTest {
   private Registry registry;
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     createTld("lol");
     registry = Registry.get("lol");
     runner = new EscrowTaskRunner();
@@ -92,7 +92,7 @@ public class EscrowTaskRunnerTest {
   }
 
   @Test
-  public void testRun_cursorInTheFuture_doesNothing() throws Exception {
+  public void testRun_cursorInTheFuture_doesNothing() {
     clock.setTo(DateTime.parse("2006-06-06T00:30:00Z"));
     persistResource(
         Cursor.create(CursorType.RDE_STAGING, DateTime.parse("2006-06-07TZ"), registry));
@@ -106,7 +106,7 @@ public class EscrowTaskRunnerTest {
   }
 
   @Test
-  public void testRun_lockIsntAvailable_throws503() throws Exception {
+  public void testRun_lockIsntAvailable_throws503() {
     String lockName = "EscrowTaskRunner " + task.getClass().getSimpleName();
     clock.setTo(DateTime.parse("2006-06-06T00:30:00Z"));
     persistResource(

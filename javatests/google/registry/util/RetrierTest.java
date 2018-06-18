@@ -70,7 +70,7 @@ public class RetrierTest {
   }
 
   @Test
-  public void testRetryableException() throws Exception {
+  public void testRetryableException() {
     CountingException thrown =
         assertThrows(
             CountingException.class,
@@ -79,7 +79,7 @@ public class RetrierTest {
   }
 
   @Test
-  public void testUnretryableException() throws Exception {
+  public void testUnretryableException() {
     CountingException thrown =
         assertThrows(
             CountingException.class,
@@ -88,13 +88,13 @@ public class RetrierTest {
   }
 
   @Test
-  public void testRetrySucceeded() throws Exception {
+  public void testRetrySucceeded() {
     assertThat(retrier.callWithRetry(new CountingThrower(2), CountingException.class))
         .isEqualTo(2);
   }
 
   @Test
-  public void testRetryFailed_withReporter() throws Exception {
+  public void testRetryFailed_withReporter() {
     CountingException thrown =
         assertThrows(
             CountingException.class,
@@ -111,7 +111,7 @@ public class RetrierTest {
   }
 
   @Test
-  public void testRetrySucceeded_withReporter() throws Exception {
+  public void testRetrySucceeded_withReporter() {
     TestReporter reporter = new TestReporter();
     assertThat(retrier.callWithRetry(new CountingThrower(2), reporter, CountingException.class))
         .isEqualTo(2);
@@ -119,7 +119,7 @@ public class RetrierTest {
   }
 
   @Test
-  public void testFirstTrySucceeded_withReporter() throws Exception {
+  public void testFirstTrySucceeded_withReporter() {
     TestReporter reporter = new TestReporter();
     assertThat(retrier.callWithRetry(new CountingThrower(0), reporter, CountingException.class))
         .isEqualTo(0);

@@ -141,7 +141,7 @@ public class IcannReportingUploadActionTest {
                 + "a-activity-201706.csv - FAILURE");
   }
   @Test
-  public void testFail_FileNotFound() throws Exception {
+  public void testFail_FileNotFound() {
     IcannReportingUploadAction action = createAction();
     action.subdir = "somewhere/else";
     IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, action::run);

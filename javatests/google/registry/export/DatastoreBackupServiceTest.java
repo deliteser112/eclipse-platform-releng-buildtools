@@ -57,7 +57,7 @@ public class DatastoreBackupServiceTest {
   private final DatastoreBackupService backupService = DatastoreBackupService.get();
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     inject.setStaticField(DatastoreBackupService.class, "modulesService", modulesService);
     when(modulesService.getVersionHostname("default", "ah-builtin-python-bundle"))
         .thenReturn("ah-builtin-python-bundle.default.localhost");
@@ -95,7 +95,7 @@ public class DatastoreBackupServiceTest {
   }
 
   @Test
-  public void testSuccess_findAllByNamePrefix() throws Exception {
+  public void testSuccess_findAllByNamePrefix() {
     assertThat(
             transform(backupService.findAllByNamePrefix("backupA"), DatastoreBackupInfo::getName))
         .containsExactly("backupA1", "backupA2", "backupA3");
@@ -109,18 +109,18 @@ public class DatastoreBackupServiceTest {
   }
 
   @Test
-  public void testSuccess_findByName() throws Exception {
+  public void testSuccess_findByName() {
     assertThat(backupService.findByName("backupA1").getName()).isEqualTo("backupA1");
     assertThat(backupService.findByName("backupB4").getName()).isEqualTo("backupB42");
   }
 
   @Test
-  public void testFailure_findByName_multipleMatchingBackups() throws Exception {
+  public void testFailure_findByName_multipleMatchingBackups() {
     assertThrows(IllegalArgumentException.class, () -> backupService.findByName("backupA"));
   }
 
   @Test
-  public void testFailure_findByName_noMatchingBackups() throws Exception {
+  public void testFailure_findByName_noMatchingBackups() {
     assertThrows(IllegalArgumentException.class, () -> backupService.findByName("backupX"));
   }
 }

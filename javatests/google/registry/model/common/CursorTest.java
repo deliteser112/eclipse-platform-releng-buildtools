@@ -65,7 +65,7 @@ public class CursorTest extends EntityTestCase {
   }
 
   @Test
-  public void testFailure_invalidScopeOnCreate() throws Exception {
+  public void testFailure_invalidScopeOnCreate() {
     createTld("tld");
     clock.advanceOneMilli();
     final DateTime time = DateTime.parse("2012-07-12T03:30:00.000Z");
@@ -81,7 +81,7 @@ public class CursorTest extends EntityTestCase {
   }
 
   @Test
-  public void testFailure_invalidScopeOnKeyCreate() throws Exception {
+  public void testFailure_invalidScopeOnKeyCreate() {
     createTld("tld");
     IllegalArgumentException thrown =
         assertThrows(
@@ -93,14 +93,14 @@ public class CursorTest extends EntityTestCase {
   }
 
   @Test
-  public void testFailure_createGlobalKeyForScopedCursorType() throws Exception {
+  public void testFailure_createGlobalKeyForScopedCursorType() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> Cursor.createGlobalKey(RDE_UPLOAD));
     assertThat(thrown).hasMessageThat().contains("Cursor type is not a global cursor");
   }
 
   @Test
-  public void testFailure_invalidScopeOnGlobalKeyCreate() throws Exception {
+  public void testFailure_invalidScopeOnGlobalKeyCreate() {
     createTld("tld");
     IllegalArgumentException thrown =
         assertThrows(
@@ -112,7 +112,7 @@ public class CursorTest extends EntityTestCase {
   }
 
   @Test
-  public void testFailure_nullScope() throws Exception {
+  public void testFailure_nullScope() {
     NullPointerException thrown =
         assertThrows(
             NullPointerException.class,
@@ -121,7 +121,7 @@ public class CursorTest extends EntityTestCase {
   }
 
   @Test
-  public void testFailure_nullCursorType() throws Exception {
+  public void testFailure_nullCursorType() {
     createTld("tld");
     NullPointerException thrown =
         assertThrows(
@@ -131,7 +131,7 @@ public class CursorTest extends EntityTestCase {
   }
 
   @Test
-  public void testFailure_nullTime() throws Exception {
+  public void testFailure_nullTime() {
     createTld("tld");
     NullPointerException thrown =
         assertThrows(

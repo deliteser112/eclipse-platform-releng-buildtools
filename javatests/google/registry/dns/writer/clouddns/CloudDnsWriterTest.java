@@ -159,7 +159,7 @@ public class CloudDnsWriterTest {
             });
   }
 
-  private void verifyZone(ImmutableSet<ResourceRecordSet> expectedRecords) throws Exception {
+  private void verifyZone(ImmutableSet<ResourceRecordSet> expectedRecords) {
     // Trigger zone changes
     writer.commit();
 
@@ -425,7 +425,7 @@ public class CloudDnsWriterTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void retryMutateZoneOnError() throws Exception {
+  public void retryMutateZoneOnError() {
     CloudDnsWriter spyWriter = spy(writer);
     // First call - throw. Second call - do nothing.
     doThrow(ZoneStateException.class).doNothing().when(spyWriter).mutateZone(Matchers.any());

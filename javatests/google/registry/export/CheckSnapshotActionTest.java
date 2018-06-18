@@ -62,7 +62,7 @@ public class CheckSnapshotActionTest {
   private final CheckSnapshotAction action = new CheckSnapshotAction();
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     inject.setStaticField(DatastoreBackupInfo.class, "clock", clock);
     action.requestMethod = Method.POST;
     action.snapshotName = "some_backup";
@@ -119,7 +119,7 @@ public class CheckSnapshotActionTest {
   }
 
   @Test
-  public void testPost_forPendingBackup_returnsNotModified() throws Exception {
+  public void testPost_forPendingBackup_returnsNotModified() {
     setPendingBackup();
 
     NotModifiedException thrown = assertThrows(NotModifiedException.class, action::run);
@@ -127,7 +127,7 @@ public class CheckSnapshotActionTest {
   }
 
   @Test
-  public void testPost_forStalePendingBackupBackup_returnsNoContent() throws Exception {
+  public void testPost_forStalePendingBackupBackup_returnsNoContent() {
     setPendingBackup();
 
     when(backupService.findByName("some_backup")).thenReturn(backupInfo);
@@ -182,7 +182,7 @@ public class CheckSnapshotActionTest {
   }
 
   @Test
-  public void testPost_forBadBackup_returnsBadRequest() throws Exception {
+  public void testPost_forBadBackup_returnsBadRequest() {
     when(backupService.findByName("some_backup"))
         .thenThrow(new IllegalArgumentException("No backup found"));
 
@@ -191,7 +191,7 @@ public class CheckSnapshotActionTest {
   }
 
   @Test
-  public void testGet_returnsInformation() throws Exception {
+  public void testGet_returnsInformation() {
     action.requestMethod = Method.GET;
 
     action.run();
@@ -211,7 +211,7 @@ public class CheckSnapshotActionTest {
   }
 
   @Test
-  public void testGet_forBadBackup_returnsError() throws Exception {
+  public void testGet_forBadBackup_returnsError() {
     action.requestMethod = Method.GET;
     when(backupService.findByName("some_backup"))
         .thenThrow(new IllegalArgumentException("No backup found"));

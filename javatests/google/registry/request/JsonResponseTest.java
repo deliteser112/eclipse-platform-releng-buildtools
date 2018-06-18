@@ -33,13 +33,13 @@ public class JsonResponseTest {
   JsonResponse jsonResponse = new JsonResponse(fakeResponse);
 
   @Test
-  public void testSetStatus() throws Exception {
+  public void testSetStatus() {
     jsonResponse.setStatus(666);
     assertThat(fakeResponse.getStatus()).isEqualTo(666);
   }
 
   @Test
-  public void testSetResponseValue() throws Exception {
+  public void testSetResponseValue() {
     ImmutableMap<String, String> responseValues = ImmutableMap.of(
         "hello", "world",
         "goodbye", "cruel world");
@@ -53,7 +53,7 @@ public class JsonResponseTest {
   }
 
   @Test
-  public void testSetHeader() throws Exception {
+  public void testSetHeader() {
     jsonResponse.setHeader("header", "value");
     Map<String, Object> headerMap = fakeResponse.getHeaders();
     assertThat(headerMap.size()).isEqualTo(1);

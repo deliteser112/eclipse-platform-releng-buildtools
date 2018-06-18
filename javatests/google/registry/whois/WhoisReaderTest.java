@@ -140,17 +140,17 @@ public class WhoisReaderTest {
   }
 
   @Test
-  public void testTooManyArgsDomainLookup() throws Exception {
+  public void testTooManyArgsDomainLookup() {
     assertThrows(WhoisException.class, () -> readCommand("domain example.tld foo.bar"));
   }
 
   @Test
-  public void testTooFewArgsDomainLookup() throws Exception {
+  public void testTooFewArgsDomainLookup() {
     assertThrows(WhoisException.class, () -> readCommand("domain"));
   }
 
   @Test
-  public void testIllegalArgDomainLookup() throws Exception {
+  public void testIllegalArgDomainLookup() {
     assertThrows(WhoisException.class, () -> readCommand("domain 1.1"));
   }
 
@@ -212,17 +212,17 @@ public class WhoisReaderTest {
   }
 
   @Test
-  public void testTooManyArgsNameserverLookup() throws Exception {
+  public void testTooManyArgsNameserverLookup() {
     assertThrows(WhoisException.class, () -> readCommand("nameserver ns.example.tld foo.bar"));
   }
 
   @Test
-  public void testTooFewArgsNameserverLookup() throws Exception {
+  public void testTooFewArgsNameserverLookup() {
     assertThrows(WhoisException.class, () -> readCommand("nameserver"));
   }
 
   @Test
-  public void testIllegalArgNameserverLookup() throws Exception {
+  public void testIllegalArgNameserverLookup() {
     assertThrows(WhoisException.class, () -> readCommand("nameserver 1.1"));
   }
 
@@ -252,7 +252,7 @@ public class WhoisReaderTest {
   }
 
   @Test
-  public void testRegistrarLookupNoArgs() throws Exception {
+  public void testRegistrarLookupNoArgs() {
     assertThrows(WhoisException.class, () -> readCommand("registrar"));
   }
 
@@ -302,7 +302,7 @@ public class WhoisReaderTest {
   }
 
   @Test
-  public void testNameserverLookupByIpTooManyArgs() throws Exception {
+  public void testNameserverLookupByIpTooManyArgs() {
     assertThrows(WhoisException.class, () -> readCommand("nameserver 43.34.12.213 43.34.12.213"));
   }
 
@@ -331,7 +331,7 @@ public class WhoisReaderTest {
   }
 
   @Test
-  public void testNoArgs() throws Exception {
+  public void testNoArgs() {
     assertThrows(WhoisException.class, () -> readCommand(""));
   }
 

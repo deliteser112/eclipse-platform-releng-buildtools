@@ -68,7 +68,7 @@ final class CreateCreditCommand extends MutatingCommand {
   private DateTime effectiveTime;
 
   @Override
-  protected void init() throws Exception {
+  protected void init() {
     DateTime now = DateTime.now(UTC);
     Registrar registrar =
         checkArgumentPresent(

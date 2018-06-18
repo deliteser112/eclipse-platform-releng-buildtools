@@ -70,7 +70,7 @@ public class PublishDnsUpdatesActionTest {
   private PublishDnsUpdatesAction action;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     inject.setStaticField(Ofy.class, "clock", clock);
     createTld("xn--q9jyb4c");
     persistResource(
@@ -86,7 +86,7 @@ public class PublishDnsUpdatesActionTest {
     clock.advanceOneMilli();
   }
 
-  private PublishDnsUpdatesAction createAction(String tld) throws Exception {
+  private PublishDnsUpdatesAction createAction(String tld) {
     PublishDnsUpdatesAction action = new PublishDnsUpdatesAction();
     action.timeout = Duration.standardSeconds(10);
     action.tld = tld;

@@ -95,7 +95,7 @@ public class RegistrarToXjcConverterTest extends ShardableTestCase {
   }
 
   @Test
-  public void testConvert() throws Exception {
+  public void testConvert() {
     XjcRdeRegistrar bean = RegistrarToXjcConverter.convertRegistrar(registrar);
 
     assertThat(bean.getId()).isEqualTo("GoblinMarket");

@@ -66,7 +66,7 @@ public class ReservedListTest {
   FakeClock clock = new FakeClock(DateTime.parse("2010-01-01T10:00:00Z"));
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     inject.setStaticField(Ofy.class, "clock", clock);
     createTld("tld");
     reservedListChecks.reset();
@@ -87,8 +87,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testGetReservationTypes_allLabelsAreUnreserved_withNoReservedLists()
-      throws Exception {
+  public void testGetReservationTypes_allLabelsAreUnreserved_withNoReservedLists() {
     assertThat(Registry.get("tld").getReservedLists()).isEmpty();
     assertThat(getReservationTypes("doodle", "tld")).isEmpty();
     assertThat(getReservationTypes("access", "tld")).isEmpty();
@@ -97,7 +96,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testZeroReservedLists_doesNotCauseError() throws Exception {
+  public void testZeroReservedLists_doesNotCauseError() {
     assertThat(getReservationTypes("doodle", "tld")).isEmpty();
     verifyUnreservedCheckCount(1);
   }
@@ -120,7 +119,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testMatchesAnchorTenantReservation() throws Exception {
+  public void testMatchesAnchorTenantReservation() {
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -161,7 +160,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testGetAllowedNameservers() throws Exception {
+  public void testGetAllowedNameservers() {
     ReservedList rl1 =
         persistReservedList(
             "reserved1",
@@ -193,7 +192,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testMatchesAnchorTenantReservation_falseOnOtherReservationTypes() throws Exception {
+  public void testMatchesAnchorTenantReservation_falseOnOtherReservationTypes() {
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -256,7 +255,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testMatchesAnchorTenantReservation_duplicatingAuthCodes() throws Exception {
+  public void testMatchesAnchorTenantReservation_duplicatingAuthCodes() {
     ReservedList rl1 = persistReservedList("reserved1", "lol,RESERVED_FOR_ANCHOR_TENANT,foo");
     ReservedList rl2 = persistReservedList("reserved2", "lol,RESERVED_FOR_ANCHOR_TENANT,foo");
     createTld("tld");
@@ -274,7 +273,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testGetReservationTypes_concatsMultipleListsCorrectly() throws Exception {
+  public void testGetReservationTypes_concatsMultipleListsCorrectly() {
     ReservedList rl1 = persistReservedList(
         "reserved1",
         "lol,FULLY_BLOCKED # yup",
@@ -316,8 +315,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testGetReservationTypes_returnsAllReservationTypesFromMultipleListsForTheSameLabel()
-      throws Exception {
+  public void testGetReservationTypes_returnsAllReservationTypesFromMultipleListsForTheSameLabel() {
     ReservedList rl1 =
         persistReservedList("reserved1", "lol,NAME_COLLISION # yup", "cat,FULLY_BLOCKED");
     ReservedList rl2 =
@@ -333,7 +331,7 @@ public class ReservedListTest {
 
 
   @Test
-  public void testGetReservationTypes_worksAfterReservedListRemovedUsingSet() throws Exception {
+  public void testGetReservationTypes_worksAfterReservedListRemovedUsingSet() {
     ReservedList rl1 = persistReservedList(
         "reserved1", "lol,FULLY_BLOCKED", "cat,FULLY_BLOCKED");
     ReservedList rl2 = persistReservedList(
@@ -366,7 +364,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testGetReservationTypes_combinesMultipleLists() throws Exception {
+  public void testGetReservationTypes_combinesMultipleLists() {
     ReservedList rl1 = persistReservedList(
         "reserved1", "lol,NAME_COLLISION", "roflcopter,ALLOWED_IN_SUNRISE");
     ReservedList rl2 = persistReservedList("reserved2", "lol,FULLY_BLOCKED");
@@ -397,7 +395,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testSave() throws Exception {
+  public void testSave() {
     ReservedList rl = persistReservedList("tld-reserved", "lol,FULLY_BLOCKED # yup");
     createTld("tld");
     persistResource(Registry.get("tld").asBuilder().setReservedLists(rl).build());
@@ -405,7 +403,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testSave_commentsArePersistedCorrectly() throws Exception {
+  public void testSave_commentsArePersistedCorrectly() {
     ReservedList reservedList = persistReservedList(
         "reserved",
         "trombone,FULLY_BLOCKED  # yup",
@@ -430,20 +428,20 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testIsInUse_returnsTrueWhenInUse() throws Exception {
+  public void testIsInUse_returnsTrueWhenInUse() {
     ReservedList rl = persistReservedList("reserved", "trombone,FULLY_BLOCKED");
     persistResource(Registry.get("tld").asBuilder().setReservedLists(ImmutableSet.of(rl)).build());
     assertThat(rl.isInUse()).isTrue();
   }
 
   @Test
-  public void testIsInUse_returnsFalseWhenNotInUse() throws Exception {
+  public void testIsInUse_returnsFalseWhenNotInUse() {
     ReservedList rl = persistReservedList("reserved", "trombone,FULLY_BLOCKED");
     assertThat(rl.isInUse()).isFalse();
   }
 
   @Test
-  public void testSetFromInputLines() throws Exception {
+  public void testSetFromInputLines() {
     ReservedList reservedList = persistReservedList("reserved", "trombone,FULLY_BLOCKED");
     assertThat(ReservedList.get("reserved").get().getReservedListEntries()).hasSize(1);
     reservedList = reservedList.asBuilder()
@@ -454,7 +452,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testAsBuilderReturnsIdenticalReservedList() throws Exception {
+  public void testAsBuilderReturnsIdenticalReservedList() {
     ReservedList original = persistReservedList("tld-reserved-cloning", "trombone,FULLY_BLOCKED");
     ReservedList clone = original.asBuilder().build();
     assertThat(clone.getName()).isEqualTo("tld-reserved-cloning");
@@ -466,7 +464,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testSave_badSyntax() throws Exception {
+  public void testSave_badSyntax() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -475,13 +473,13 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testSave_badReservationType() throws Exception {
+  public void testSave_badReservationType() {
     assertThrows(
         IllegalArgumentException.class, () -> persistReservedList("tld", "lol,FULLY_BLOCKZ # yup"));
   }
 
   @Test
-  public void testSave_additionalRestrictionWithIncompatibleReservationType() throws Exception {
+  public void testSave_additionalRestrictionWithIncompatibleReservationType() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -501,7 +499,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testSave_badNameservers_invalidSyntax() throws Exception {
+  public void testSave_badNameservers_invalidSyntax() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -514,7 +512,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testSave_badNameservers_tooFewPartsForHostname() throws Exception {
+  public void testSave_badNameservers_tooFewPartsForHostname() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -527,7 +525,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testSave_noPasswordWithAnchorTenantReservation() throws Exception {
+  public void testSave_noPasswordWithAnchorTenantReservation() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -545,7 +543,7 @@ public class ReservedListTest {
   }
 
   @Test
-  public void testSave_noNameserversWithNameserverRestrictedReservation() throws Exception {
+  public void testSave_noNameserversWithNameserverRestrictedReservation() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

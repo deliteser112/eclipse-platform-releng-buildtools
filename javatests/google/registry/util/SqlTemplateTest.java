@@ -26,7 +26,7 @@ import org.junit.runners.JUnit4;
 public class SqlTemplateTest {
 
   @Test
-  public void testFillSqlTemplate() throws Exception {
+  public void testFillSqlTemplate() {
     assertThat(
         SqlTemplate.create("%TEST%")
             .put("TEST", "hello world")
@@ -47,7 +47,7 @@ public class SqlTemplateTest {
   }
 
   @Test
-  public void testFillSqlTemplate_substitutionButNoVariables() throws Exception {
+  public void testFillSqlTemplate_substitutionButNoVariables() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class, () -> SqlTemplate.create("").put("ONE", "1").build());
@@ -55,7 +55,7 @@ public class SqlTemplateTest {
   }
 
   @Test
-  public void testFillSqlTemplate_substitutionButMissingVariables() throws Exception {
+  public void testFillSqlTemplate_substitutionButMissingVariables() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -64,7 +64,7 @@ public class SqlTemplateTest {
   }
 
   @Test
-  public void testFillSqlTemplate_sameKeyTwice_failsEarly() throws Exception {
+  public void testFillSqlTemplate_sameKeyTwice_failsEarly() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -73,7 +73,7 @@ public class SqlTemplateTest {
   }
 
   @Test
-  public void testFillSqlTemplate_variablesButNotEnoughSubstitutions() throws Exception {
+  public void testFillSqlTemplate_variablesButNotEnoughSubstitutions() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -82,7 +82,7 @@ public class SqlTemplateTest {
   }
 
   @Test
-  public void testFillSqlTemplate_mismatchedVariableAndSubstitution() throws Exception {
+  public void testFillSqlTemplate_mismatchedVariableAndSubstitution() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -91,14 +91,14 @@ public class SqlTemplateTest {
   }
 
   @Test
-  public void testFillSqlTemplate_missingKeyVals_whatsThePoint() throws Exception {
+  public void testFillSqlTemplate_missingKeyVals_whatsThePoint() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> SqlTemplate.create("%TWO%").build());
     assertThat(thrown).hasMessageThat().contains("%TWO% found in template but no substitution");
   }
 
   @Test
-  public void testFillSqlTemplate_lowercaseKey_notAllowed() throws Exception {
+  public void testFillSqlTemplate_lowercaseKey_notAllowed() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -107,7 +107,7 @@ public class SqlTemplateTest {
   }
 
   @Test
-  public void testFillSqlTemplate_substitution_disallowsSingleQuotes() throws Exception {
+  public void testFillSqlTemplate_substitution_disallowsSingleQuotes() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -116,7 +116,7 @@ public class SqlTemplateTest {
   }
 
   @Test
-  public void testFillSqlTemplate_substitution_disallowsDoubleQuotes() throws Exception {
+  public void testFillSqlTemplate_substitution_disallowsDoubleQuotes() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -125,7 +125,7 @@ public class SqlTemplateTest {
   }
 
   @Test
-  public void testFillSqlTemplate_quoteMismatch_throwsError() throws Exception {
+  public void testFillSqlTemplate_quoteMismatch_throwsError() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -135,7 +135,7 @@ public class SqlTemplateTest {
   }
 
   @Test
-  public void testFillSqlTemplate_extendedQuote_throwsError() throws Exception {
+  public void testFillSqlTemplate_extendedQuote_throwsError() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

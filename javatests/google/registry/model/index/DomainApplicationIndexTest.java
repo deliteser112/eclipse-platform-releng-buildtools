@@ -38,7 +38,7 @@ import org.junit.Test;
 /** Unit tests for {@link DomainApplicationIndex}. */
 public class DomainApplicationIndexTest extends EntityTestCase {
   @Before
-  public void init() throws Exception {
+  public void init() {
     createTld("com");
   }
 

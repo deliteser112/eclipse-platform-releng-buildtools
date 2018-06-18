@@ -61,7 +61,7 @@ public class BigqueryTemplatePipelineTest {
   }
 
   @Test
-  public void testEndToEndPipeline() throws Exception {
+  public void testEndToEndPipeline() {
     ImmutableList<TableRow> inputRows =
         ImmutableList.of(
             new TableRow(),

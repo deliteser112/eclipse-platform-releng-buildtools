@@ -56,7 +56,7 @@ public class ConsoleUiActionTest {
   private final User user = new User("marla.singer@example.com", "gmail.com", "12345");
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     action.enabled = true;
     action.logoFilename = "logo.png";
     action.productName = "Nomulus";
@@ -77,39 +77,39 @@ public class ConsoleUiActionTest {
   }
 
   @Test
-  public void testWebPage_disallowsIframe() throws Exception {
+  public void testWebPage_disallowsIframe() {
     action.run();
     assertThat(response.getHeaders()).containsEntry("X-Frame-Options", "SAMEORIGIN");
   }
 
   @Test
-  public void testWebPage_setsHtmlUtf8ContentType() throws Exception {
+  public void testWebPage_setsHtmlUtf8ContentType() {
     action.run();
     assertThat(response.getContentType()).isEqualTo(MediaType.HTML_UTF_8);
   }
 
   @Test
-  public void testWebPage_containsUserNickname() throws Exception {
+  public void testWebPage_containsUserNickname() {
     action.run();
     assertThat(response.getPayload()).contains("marla.singer");
   }
 
   @Test
-  public void testUserHasAccessAsTheRegistrar_showsRegistrarConsole() throws Exception {
+  public void testUserHasAccessAsTheRegistrar_showsRegistrarConsole() {
     action.run();
     assertThat(response.getPayload()).contains("Registrar Console");
     assertThat(response.getPayload()).contains("reg-content-and-footer");
   }
 
   @Test
-  public void testConsoleDisabled_showsDisabledPage() throws Exception {
+  public void testConsoleDisabled_showsDisabledPage() {
     action.enabled = false;
     action.run();
     assertThat(response.getPayload()).contains("<h1>Console is disabled</h1>");
   }
 
   @Test
-  public void testUserDoesntHaveAccessToAnyRegistrar_showsWhoAreYouPage() throws Exception {
+  public void testUserDoesntHaveAccessToAnyRegistrar_showsWhoAreYouPage() {
     when(sessionUtils.checkRegistrarConsoleLogin(
             any(HttpServletRequest.class), any(UserAuthInfo.class)))
         .thenReturn(false);
@@ -118,7 +118,7 @@ public class ConsoleUiActionTest {
   }
 
   @Test
-  public void testNoUser_redirect() throws Exception {
+  public void testNoUser_redirect() {
     when(request.getRequestURI()).thenReturn("/test");
     action.authResult = AuthResult.NOT_AUTHENTICATED;
     action.run();
@@ -127,7 +127,7 @@ public class ConsoleUiActionTest {
   }
 
   @Test
-  public void testNoUserInformationAtAll_redirectToRoot() throws Exception {
+  public void testNoUserInformationAtAll_redirectToRoot() {
     when(request.getRequestURI()).thenThrow(new IllegalArgumentException());
     action.authResult = AuthResult.NOT_AUTHENTICATED;
     action.run();

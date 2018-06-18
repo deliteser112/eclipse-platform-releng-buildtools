@@ -69,7 +69,7 @@ public final class WhoisInjectionTest {
   }
 
   @Test
-  public void testWhoisHttpAction_injectsAndWorks() throws Exception {
+  public void testWhoisHttpAction_injectsAndWorks() {
     createTld("lol");
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     when(req.getRequestURI()).thenReturn("/whois/ns1.cat.lol");

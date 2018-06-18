@@ -25,7 +25,7 @@ interface ServerSideCommand extends RemoteApiCommand {
   /** An http connection to AppEngine. */
   interface Connection {
 
-    void prefetchXsrfToken() throws IOException;
+    void prefetchXsrfToken();
 
     String send(String endpoint, Map<String, ?> params, MediaType contentType, byte[] payload)
         throws IOException;

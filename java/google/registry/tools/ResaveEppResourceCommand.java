@@ -47,7 +47,7 @@ public final class ResaveEppResourceCommand extends MutatingCommand {
   protected String uniqueId;
 
   @Override
-  protected void init() throws Exception {
+  protected void init() {
     Key<? extends EppResource> resourceKey = checkArgumentNotNull(
         type.getKey(uniqueId, DateTime.now(UTC)),
         "Could not find active resource of type %s: %s", type, uniqueId);

@@ -37,7 +37,7 @@ import org.junit.runners.JUnit4;
 public class WhoisSettingsTest extends RegistrarSettingsActionTestCase {
 
   @Test
-  public void testPost_update_success() throws Exception {
+  public void testPost_update_success() {
     Registrar modified =
         loadRegistrar(CLIENT_ID)
             .asBuilder()
@@ -63,7 +63,7 @@ public class WhoisSettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testPost_badUsStateCode_returnsFormFieldError() throws Exception {
+  public void testPost_badUsStateCode_returnsFormFieldError() {
     Registrar modified =
         loadRegistrar(CLIENT_ID)
             .asBuilder()
@@ -88,7 +88,7 @@ public class WhoisSettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testPost_badAddress_returnsFormFieldError() throws Exception {
+  public void testPost_badAddress_returnsFormFieldError() {
     Registrar modified =
         loadRegistrar(CLIENT_ID)
             .asBuilder()
@@ -114,7 +114,7 @@ public class WhoisSettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testPost_badWhoisServer_returnsFormFieldError() throws Exception {
+  public void testPost_badWhoisServer_returnsFormFieldError() {
     Registrar modified =
         loadRegistrar(CLIENT_ID).asBuilder().setWhoisServer("tears@dry.tragical.lol").build();
     Map<String, Object> response =

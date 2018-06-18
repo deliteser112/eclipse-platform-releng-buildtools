@@ -46,7 +46,7 @@ public class ExportSnapshotActionTest {
   private final ExportSnapshotAction action = new ExportSnapshotAction();
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     action.clock = clock;
     action.backupService = backupService;
     action.response = response;

@@ -248,7 +248,7 @@ public class ShellCommand implements Command {
    *
    * <p>Dumps the last line of output prior to doing this.
    */
-  private void emitSuccess() throws IOException {
+  private void emitSuccess() {
     System.out.println(SUCCESS);
     System.out.flush();
   }
@@ -258,7 +258,7 @@ public class ShellCommand implements Command {
    *
    * <p>Dumps the last line of output prior to doing this.
    */
-  private void emitFailure(Throwable e) throws IOException {
+  private void emitFailure(Throwable e) {
     System.out.println(
         FAILURE
             + e.getClass().getName()

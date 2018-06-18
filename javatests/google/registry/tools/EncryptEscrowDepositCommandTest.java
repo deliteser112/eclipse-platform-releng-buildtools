@@ -54,7 +54,7 @@ public class EncryptEscrowDepositCommandTest
   }
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     command.encryptor = createEncryptor();
   }
 

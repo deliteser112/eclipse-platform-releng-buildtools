@@ -24,28 +24,26 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/**
- * Unit tests for {@link ListTldsAction}.
- */
+/** Unit tests for {@link ListTldsAction}. */
 @RunWith(JUnit4.class)
 public class ListTldsActionTest extends ListActionTestCase {
 
   ListTldsAction action;
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     createTld("xn--q9jyb4c");
     action = new ListTldsAction();
     action.clock = new FakeClock(DateTime.parse("2000-01-01TZ"));
   }
 
   @Test
-  public void testRun_noParameters() throws Exception {
+  public void testRun_noParameters() {
     testRunSuccess(action, Optional.empty(), Optional.empty(), Optional.empty(), "xn--q9jyb4c");
   }
 
   @Test
-  public void testRun_withParameters() throws Exception {
+  public void testRun_withParameters() {
     testRunSuccess(
         action,
         Optional.of("tldType"),
@@ -57,7 +55,7 @@ public class ListTldsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_withWildcard() throws Exception {
+  public void testRun_withWildcard() {
     testRunSuccess(
         action,
         Optional.of("*"),
@@ -69,7 +67,7 @@ public class ListTldsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_withBadField_returnsError() throws Exception {
+  public void testRun_withBadField_returnsError() {
     testRunError(
         action,
         Optional.of("badfield"),

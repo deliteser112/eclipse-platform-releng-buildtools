@@ -40,12 +40,12 @@ import org.junit.Test;
 public class ForeignKeyIndexTest extends EntityTestCase {
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     createTld("com");
   }
 
   @Test
-  public void testPersistence() throws Exception {
+  public void testPersistence() {
     // Persist a host and implicitly persist a ForeignKeyIndex for it.
     HostResource host = persistActiveHost("ns1.example.com");
     ForeignKeyIndex<HostResource> fki =
@@ -78,7 +78,7 @@ public class ForeignKeyIndexTest extends EntityTestCase {
   }
 
   @Test
-  public void testLoad_newerKeyHasBeenSoftDeleted() throws Exception {
+  public void testLoad_newerKeyHasBeenSoftDeleted() {
     HostResource host1 = persistActiveHost("ns1.example.com");
     clock.advanceOneMilli();
     ForeignKeyHostIndex fki = new ForeignKeyHostIndex();
@@ -103,7 +103,7 @@ public class ForeignKeyIndexTest extends EntityTestCase {
   }
 
   @Test
-  public void testDeadCodeThatDeletedScrapCommandsReference() throws Exception {
+  public void testDeadCodeThatDeletedScrapCommandsReference() {
     persistActiveHost("omg");
     assertThat(ForeignKeyIndex.load(HostResource.class, "omg", clock.nowUtc()).getForeignKey())
         .isEqualTo("omg");
@@ -118,7 +118,7 @@ public class ForeignKeyIndexTest extends EntityTestCase {
   }
 
   @Test
-  public void test_loadCached_cachesNonexistenceOfHosts() throws Exception {
+  public void test_loadCached_cachesNonexistenceOfHosts() {
     setNonZeroCachingInterval();
     assertThat(
             ForeignKeyIndex.loadCached(
@@ -139,7 +139,7 @@ public class ForeignKeyIndexTest extends EntityTestCase {
   }
 
   @Test
-  public void test_loadCached_cachesExistenceOfHosts() throws Exception {
+  public void test_loadCached_cachesExistenceOfHosts() {
     setNonZeroCachingInterval();
     HostResource host1 = persistActiveHost("ns1.example.com");
     HostResource host2 = persistActiveHost("ns2.example.com");
@@ -165,7 +165,7 @@ public class ForeignKeyIndexTest extends EntityTestCase {
   }
 
   @Test
-  public void test_loadCached_doesntSeeHostChangesWhileCacheIsValid() throws Exception {
+  public void test_loadCached_doesntSeeHostChangesWhileCacheIsValid() {
     setNonZeroCachingInterval();
     HostResource originalHost = persistActiveHost("ns1.example.com");
     ForeignKeyIndex<HostResource> originalFki = loadHostFki("ns1.example.com");
@@ -191,7 +191,7 @@ public class ForeignKeyIndexTest extends EntityTestCase {
   }
 
   @Test
-  public void test_loadCached_filtersOutSoftDeletedHosts() throws Exception {
+  public void test_loadCached_filtersOutSoftDeletedHosts() {
     setNonZeroCachingInterval();
     persistActiveHost("ns1.example.com");
     persistDeletedHost("ns2.example.com", clock.nowUtc().minusDays(1));
@@ -204,7 +204,7 @@ public class ForeignKeyIndexTest extends EntityTestCase {
   }
 
   @Test
-  public void test_loadCached_cachesContactFkis() throws Exception {
+  public void test_loadCached_cachesContactFkis() {
     setNonZeroCachingInterval();
     persistActiveContact("contactid1");
     ForeignKeyIndex<ContactResource> fki1 = loadContactFki("contactid1");

@@ -66,7 +66,7 @@ public class RdeContactImportActionTest extends MapreduceTestCase<RdeContactImpo
   private Response response;
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     response = new FakeResponse();
     mrRunner = makeDefaultRunner();
     action = new RdeContactImportAction(

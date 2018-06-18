@@ -56,7 +56,7 @@ public final class RegistrarBillingUtilsTest {
   private Registrar registrar;
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     inject.setStaticField(Ofy.class, "clock", clock);
     registrar = loadRegistrar("NewRegistrar");
     createTlds("xn--q9jyb4c", "com", "net");

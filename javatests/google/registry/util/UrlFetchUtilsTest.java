@@ -53,7 +53,7 @@ public class UrlFetchUtilsTest {
   public final InjectRule inject = new InjectRule();
 
   @Before
-  public void setupRandomZeroes() throws Exception {
+  public void setupRandomZeroes() {
     Random random = mock(Random.class);
     inject.setStaticField(UrlFetchUtils.class, "random", random);
     doAnswer(
@@ -66,7 +66,7 @@ public class UrlFetchUtilsTest {
   }
 
   @Test
-  public void testSetPayloadMultipart() throws Exception {
+  public void testSetPayloadMultipart() {
     HTTPRequest request = mock(HTTPRequest.class);
     setPayloadMultipart(
         request, "lol", "cat", CSV_UTF_8, "The nice people at the store say hello. ヘ(◕。◕ヘ)");
@@ -91,7 +91,7 @@ public class UrlFetchUtilsTest {
   }
 
   @Test
-  public void testSetPayloadMultipart_boundaryInPayload() throws Exception {
+  public void testSetPayloadMultipart_boundaryInPayload() {
     HTTPRequest request = mock(HTTPRequest.class);
     String payload = "I screamed------------------------------AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHH";
     IllegalStateException thrown =

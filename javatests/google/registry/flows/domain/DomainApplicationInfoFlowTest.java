@@ -315,7 +315,7 @@ public class DomainApplicationInfoFlowTest
   }
 
   @Test
-  public void testFailure_applicationIdForDifferentDomain() throws Exception {
+  public void testFailure_applicationIdForDifferentDomain() {
     persistResource(
         new DomainApplication.Builder()
             .setRepoId("123-TLD")

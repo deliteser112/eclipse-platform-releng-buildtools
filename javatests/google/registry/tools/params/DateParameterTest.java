@@ -29,59 +29,59 @@ public class DateParameterTest {
   private final DateParameter instance = new DateParameter();
 
   @Test
-  public void testConvert_onlyDate() throws Exception {
+  public void testConvert_onlyDate() {
     String exampleDate = "2014-01-01";
     assertThat(instance.convert(exampleDate)).isEqualTo(DateTime.parse("2014-01-01T00:00:00Z"));
   }
 
   @Test
-  public void testConvert_numeric_throwsException() throws Exception {
+  public void testConvert_numeric_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("1234"));
   }
 
   @Test
-  public void testConvert_validDateAndTime_throwsException() throws Exception {
+  public void testConvert_validDateAndTime_throwsException() {
     assertThrows(
         IllegalArgumentException.class, () -> instance.convert("2014-01-01T01:02:03.004Z"));
   }
 
   @Test
-  public void testConvert_invalidDate_throwsException() throws Exception {
+  public void testConvert_invalidDate_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("2014-13-33"));
   }
 
   @Test
-  public void testConvert_null_throwsException() throws Exception {
+  public void testConvert_null_throwsException() {
     assertThrows(NullPointerException.class, () -> instance.convert(null));
   }
 
   @Test
-  public void testConvert_empty_throwsException() throws Exception {
+  public void testConvert_empty_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert(""));
   }
 
   @Test
-  public void testConvert_sillyString_throwsException() throws Exception {
+  public void testConvert_sillyString_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("foo"));
   }
 
   @Test
-  public void testConvert_partialDate_throwsException() throws Exception {
+  public void testConvert_partialDate_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("2014-01"));
   }
 
   @Test
-  public void testConvert_onlyTime_throwsException() throws Exception {
+  public void testConvert_onlyTime_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("T01:02:03"));
   }
 
   @Test
-  public void testConvert_partialDateAndPartialTime_throwsException() throws Exception {
+  public void testConvert_partialDateAndPartialTime_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("9T9"));
   }
 
   @Test
-  public void testConvert_dateAndPartialTime_throwsException() throws Exception {
+  public void testConvert_dateAndPartialTime_throwsException() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("2014-01-01T01:02"));
   }
 }

@@ -63,7 +63,7 @@ public class ValidateLoginCredentialsCommandTest
   }
 
   @Test
-  public void testFailure_loginWithBadPassword() throws Exception {
+  public void testFailure_loginWithBadPassword() {
     EppException thrown =
         assertThrows(
             BadRegistrarPasswordException.class,
@@ -77,7 +77,7 @@ public class ValidateLoginCredentialsCommandTest
   }
 
   @Test
-  public void testFailure_loginWithBadCertificateHash() throws Exception {
+  public void testFailure_loginWithBadCertificateHash() {
     EppException thrown =
         assertThrows(
             EppException.class,
@@ -91,7 +91,7 @@ public class ValidateLoginCredentialsCommandTest
   }
 
   @Test
-  public void testFailure_loginWithBadIp() throws Exception {
+  public void testFailure_loginWithBadIp() {
     EppException thrown =
         assertThrows(
             EppException.class,
@@ -105,7 +105,7 @@ public class ValidateLoginCredentialsCommandTest
   }
 
   @Test
-  public void testFailure_missingClientId() throws Exception {
+  public void testFailure_missingClientId() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -114,7 +114,7 @@ public class ValidateLoginCredentialsCommandTest
   }
 
   @Test
-  public void testFailure_missingPassword() throws Exception {
+  public void testFailure_missingPassword() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -123,7 +123,7 @@ public class ValidateLoginCredentialsCommandTest
   }
 
   @Test
-  public void testFailure_unknownFlag() throws Exception {
+  public void testFailure_unknownFlag() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -136,7 +136,7 @@ public class ValidateLoginCredentialsCommandTest
   }
 
   @Test
-  public void testFailure_certHashAndCertFile() throws Exception {
+  public void testFailure_certHashAndCertFile() {
     assertThrows(
         IllegalArgumentException.class,
         () ->

@@ -70,7 +70,7 @@ public class RegistrarPaymentActionTest {
   private final RegistrarPaymentAction paymentAction = new RegistrarPaymentAction();
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     paymentAction.sessionUtils = sessionUtils;
     paymentAction.authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
     paymentAction.accountIds =
@@ -144,7 +144,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testAmountNotPresent_returnsErrorOnAmountField() throws Exception {
+  public void testAmountNotPresent_returnsErrorOnAmountField() {
     assertThat(
             paymentAction.handleJsonRequest(
                 ImmutableMap.of(
@@ -158,7 +158,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testAmountNotNumber_returnsErrorOnAmountField() throws Exception {
+  public void testAmountNotNumber_returnsErrorOnAmountField() {
     assertThat(
             paymentAction.handleJsonRequest(
                 ImmutableMap.of(
@@ -173,7 +173,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testNegativeAmount_returnsErrorOnAmountField() throws Exception {
+  public void testNegativeAmount_returnsErrorOnAmountField() {
     assertThat(
             paymentAction.handleJsonRequest(
                 ImmutableMap.of(
@@ -188,7 +188,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testZeroAmount_returnsErrorOnAmountField() throws Exception {
+  public void testZeroAmount_returnsErrorOnAmountField() {
     assertThat(
             paymentAction.handleJsonRequest(
                 ImmutableMap.of(
@@ -203,7 +203,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testAmountHasMorePrecisionThanUsdCurrencyAllows_returnsError() throws Exception {
+  public void testAmountHasMorePrecisionThanUsdCurrencyAllows_returnsError() {
     assertThat(
             paymentAction.handleJsonRequest(
                 ImmutableMap.of(
@@ -218,7 +218,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testAmountHasMorePrecisionThanJpyCurrencyAllows_returnsError() throws Exception {
+  public void testAmountHasMorePrecisionThanJpyCurrencyAllows_returnsError() {
     assertThat(
             paymentAction.handleJsonRequest(
                 ImmutableMap.of(
@@ -233,7 +233,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testCurrencyValidButNotSupported_returnsErrorOnCurrencyField() throws Exception {
+  public void testCurrencyValidButNotSupported_returnsErrorOnCurrencyField() {
     assertThat(
             paymentAction.handleJsonRequest(
                 ImmutableMap.of(
@@ -248,7 +248,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testCurrencyBogus_returnsErrorOnCurrencyField() throws Exception {
+  public void testCurrencyBogus_returnsErrorOnCurrencyField() {
     assertThat(
             paymentAction.handleJsonRequest(
                 ImmutableMap.of(
@@ -263,7 +263,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testCurrencyCodeNotAssigned_returnsErrorOnCurrencyField() throws Exception {
+  public void testCurrencyCodeNotAssigned_returnsErrorOnCurrencyField() {
     assertThat(
             paymentAction.handleJsonRequest(
                 ImmutableMap.of(
@@ -278,7 +278,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testCurrencyMissing_returnsErrorOnCurrencyField() throws Exception {
+  public void testCurrencyMissing_returnsErrorOnCurrencyField() {
     assertThat(
             paymentAction.handleJsonRequest(
                 ImmutableMap.of(
@@ -292,7 +292,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testPaymentMethodMissing_returnsErrorOnPaymentMethodField() throws Exception {
+  public void testPaymentMethodMissing_returnsErrorOnPaymentMethodField() {
     assertThat(
             paymentAction.handleJsonRequest(
                 ImmutableMap.of(
@@ -306,7 +306,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testProcessorDeclined_returnsErrorResponse() throws Exception {
+  public void testProcessorDeclined_returnsErrorResponse() {
     when(result.isSuccess()).thenReturn(false);
     when(result.getTransaction()).thenReturn(transaction);
     when(transaction.getStatus()).thenReturn(Transaction.Status.PROCESSOR_DECLINED);
@@ -325,7 +325,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testGatewayRejectedDueToCvv_returnsErrorResponse() throws Exception {
+  public void testGatewayRejectedDueToCvv_returnsErrorResponse() {
     when(result.isSuccess()).thenReturn(false);
     when(result.getTransaction()).thenReturn(transaction);
     when(transaction.getStatus()).thenReturn(Transaction.Status.GATEWAY_REJECTED);
@@ -343,7 +343,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testGatewayRejectedDueToAddress_returnsErrorResponse() throws Exception {
+  public void testGatewayRejectedDueToAddress_returnsErrorResponse() {
     when(result.isSuccess()).thenReturn(false);
     when(result.getTransaction()).thenReturn(transaction);
     when(transaction.getStatus()).thenReturn(Transaction.Status.GATEWAY_REJECTED);
@@ -361,7 +361,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testSettlementDeclined_returnsErrorResponse() throws Exception {
+  public void testSettlementDeclined_returnsErrorResponse() {
     when(result.isSuccess()).thenReturn(false);
     when(result.getTransaction()).thenReturn(transaction);
     when(transaction.getStatus()).thenReturn(Transaction.Status.SETTLEMENT_DECLINED);
@@ -380,7 +380,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testHasTransactionObjectWithWeirdStatus_returnsErrorResponse() throws Exception {
+  public void testHasTransactionObjectWithWeirdStatus_returnsErrorResponse() {
     when(result.isSuccess()).thenReturn(false);
     when(result.getTransaction()).thenReturn(transaction);
     when(transaction.getStatus()).thenReturn(Transaction.Status.UNRECOGNIZED);
@@ -400,7 +400,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testFailedWithWeirdStatusButNoHelpfulText_usesWeirdStatusAsMsg() throws Exception {
+  public void testFailedWithWeirdStatusButNoHelpfulText_usesWeirdStatusAsMsg() {
     when(result.isSuccess()).thenReturn(false);
     when(result.getTransaction()).thenReturn(transaction);
     when(transaction.getStatus()).thenReturn(Transaction.Status.FAILED);
@@ -417,7 +417,7 @@ public class RegistrarPaymentActionTest {
   }
 
   @Test
-  public void testRemoteValidationError_showsErrorOnlyOnFirstFormField() throws Exception {
+  public void testRemoteValidationError_showsErrorOnlyOnFirstFormField() {
     when(result.isSuccess()).thenReturn(false);
     when(result.getErrors()).thenReturn(validationErrors);
     when(validationErrors.getAllDeepValidationErrors())

@@ -115,7 +115,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   }
 
   @Before
-  public void initDomainTest() throws Exception {
+  public void initDomainTest() {
     createTld("tld");
     // For flags extension tests.
   }
@@ -151,7 +151,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             new HistoryEntry.Builder().setType(DOMAIN_CREATE).setParent(domain).build());
   }
 
-  private void setUpGracePeriods(GracePeriod... gracePeriods) throws Exception {
+  private void setUpGracePeriods(GracePeriod... gracePeriods) {
     domain =
         persistResource(
             domain.asBuilder().setGracePeriods(ImmutableSet.copyOf(gracePeriods)).build());
@@ -1080,7 +1080,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   }
 
   @Test
-  public void testFailure_allocationTokenNotSupportedOnDelete() throws Exception {
+  public void testFailure_allocationTokenNotSupportedOnDelete() {
     setEppInput("domain_delete_allocationtoken.xml");
     EppException thrown = assertThrows(UnimplementedExtensionException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();

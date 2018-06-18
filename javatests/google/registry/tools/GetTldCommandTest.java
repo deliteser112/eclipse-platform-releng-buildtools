@@ -38,17 +38,17 @@ public class GetTldCommandTest extends CommandTestCase<GetTldCommand> {
 
 
   @Test
-  public void testFailure_tldDoesNotExist() throws Exception {
+  public void testFailure_tldDoesNotExist() {
     assertThrows(IllegalArgumentException.class, () -> runCommand("xn--q9jyb4c"));
   }
 
   @Test
-  public void testFailure_noTldName() throws Exception {
+  public void testFailure_noTldName() {
     assertThrows(ParameterException.class, this::runCommand);
   }
 
   @Test
-  public void testFailure_oneTldDoesNotExist() throws Exception {
+  public void testFailure_oneTldDoesNotExist() {
     createTld("xn--q9jyb4c");
     assertThrows(IllegalArgumentException.class, () -> runCommand("xn--q9jyb4c", "example"));
   }

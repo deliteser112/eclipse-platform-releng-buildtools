@@ -25,7 +25,7 @@ import org.junit.runners.JUnit4;
 public final class MarkHolderTest {
 
   @Test
-  public void testDeadCodeWeDontWantToDelete() throws Exception {
+  public void testDeadCodeWeDontWantToDelete() {
     MarkHolder mc = new MarkHolder();
     mc.entitlement = MarkHolder.EntitlementType.OWNER;
     assertThat(mc.getEntitlementType()).isEqualTo(MarkHolder.EntitlementType.OWNER);

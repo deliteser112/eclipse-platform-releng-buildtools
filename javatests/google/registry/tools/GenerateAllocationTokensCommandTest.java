@@ -33,7 +33,6 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
 import google.registry.util.Retrier;
 import google.registry.util.StringGenerator.Alphabets;
-import java.io.IOException;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -46,7 +45,7 @@ public class GenerateAllocationTokensCommandTest
     extends CommandTestCase<GenerateAllocationTokensCommand> {
 
   @Before
-  public void init() throws IOException {
+  public void init() {
     command.stringGenerator = new DeterministicStringGenerator(Alphabets.BASE_58);
     command.retrier =
         new Retrier(new FakeSleeper(new FakeClock(DateTime.parse("2000-01-01TZ"))), 3);
@@ -117,13 +116,13 @@ public class GenerateAllocationTokensCommandTest
   }
 
   @Test
-  public void testFailure_mustSpecifyNumberOfTokens() throws Exception {
+  public void testFailure_mustSpecifyNumberOfTokens() {
     ParameterException thrown =
         assertThrows(ParameterException.class, () -> runCommand("--prefix", "FEET"));
     assertThat(thrown).hasMessageThat().contains("The following option is required: -n, --number");
   }
 
-  private void assertAllocationTokens(AllocationToken... expectedTokens) throws Exception {
+  private void assertAllocationTokens(AllocationToken... expectedTokens) {
     // Using ImmutableObject comparison here is tricky because the creation/updated timestamps are
     // neither easy nor valuable to test here.
     ImmutableMap<String, AllocationToken> actualTokens =

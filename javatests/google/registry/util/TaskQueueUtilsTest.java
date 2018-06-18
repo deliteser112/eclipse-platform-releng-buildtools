@@ -63,7 +63,7 @@ public final class TaskQueueUtilsTest {
   }
 
   @Test
-  public void testEnqueue_worksOnFirstTry_doesntSleep() throws Exception {
+  public void testEnqueue_worksOnFirstTry_doesntSleep() {
     when(queue.add(ImmutableList.of(task))).thenReturn(ImmutableList.of(handle));
     assertThat(taskQueueUtils.enqueue(queue, task)).isSameAs(handle);
     verify(queue).add(ImmutableList.of(task));
@@ -71,7 +71,7 @@ public final class TaskQueueUtilsTest {
   }
 
   @Test
-  public void testEnqueue_twoTransientErrorsThenSuccess_stillWorksAfterSleeping() throws Exception {
+  public void testEnqueue_twoTransientErrorsThenSuccess_stillWorksAfterSleeping() {
     when(queue.add(ImmutableList.of(task)))
         .thenThrow(new TransientFailureException(""))
         .thenThrow(new TransientFailureException(""))
@@ -82,7 +82,7 @@ public final class TaskQueueUtilsTest {
   }
 
   @Test
-  public void testEnqueue_multiple() throws Exception {
+  public void testEnqueue_multiple() {
     TaskOptions taskA = withUrl("a").taskName("a");
     TaskOptions taskB = withUrl("b").taskName("b");
     ImmutableList<TaskHandle> handles =
@@ -93,7 +93,7 @@ public final class TaskQueueUtilsTest {
   }
 
   @Test
-  public void testEnqueue_maxRetries_givesUp() throws Exception {
+  public void testEnqueue_maxRetries_givesUp() {
     when(queue.add(ImmutableList.of(task)))
         .thenThrow(new TransientFailureException("one"))
         .thenThrow(new TransientFailureException("two"))
@@ -105,7 +105,7 @@ public final class TaskQueueUtilsTest {
   }
 
   @Test
-  public void testEnqueue_transientErrorThenInterrupt_throwsTransientError() throws Exception {
+  public void testEnqueue_transientErrorThenInterrupt_throwsTransientError() {
     when(queue.add(ImmutableList.of(task))).thenThrow(new TransientFailureException(""));
     try {
       Thread.currentThread().interrupt();

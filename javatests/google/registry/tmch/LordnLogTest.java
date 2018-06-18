@@ -46,7 +46,7 @@ public class LordnLogTest {
           "1580e26-roid,3610");
 
   @Test
-  public void testSuccess_parseFirstLine() throws Exception {
+  public void testSuccess_parseFirstLine() {
     LordnLog log = LordnLog.parse(EXAMPLE_FROM_RFC);
     assertThat(log.getStatus()).isEqualTo(LordnLog.Status.ACCEPTED);
     assertThat(log.getLogCreation()).isEqualTo(DateTime.parse("2012-08-16T02:15:00.0Z"));
@@ -57,7 +57,7 @@ public class LordnLogTest {
   }
 
   @Test
-  public void testSuccess_parseDnLines() throws Exception {
+  public void testSuccess_parseDnLines() {
     LordnLog log = LordnLog.parse(EXAMPLE_FROM_RFC);
     Result result = log.getResult("SH8013-REP");
     assertThat(result).isNotNull();
@@ -67,7 +67,7 @@ public class LordnLogTest {
   }
 
   @Test
-  public void testSuccess_iterate() throws Exception {
+  public void testSuccess_iterate() {
     for (Entry<String, Result> result : LordnLog.parse(EXAMPLE_FROM_RFC)) {
       assertThat(result.getKey()).isEqualTo("SH8013-REP");
       assertThat(result.getValue().getCode()).isEqualTo(2000);
@@ -77,14 +77,14 @@ public class LordnLogTest {
   }
 
   @Test
-  public void testSuccess_noDnLines() throws Exception {
+  public void testSuccess_noDnLines() {
     LordnLog.parse(ImmutableList.of(
         "1,2012-08-16T02:15:00.0Z,2012-08-16T00:00:00.0Z,lolcat,accepted,no-warnings,0",
         "roid,result-code"));
   }
 
   @Test
-  public void testFailure_noDnLineMismatch() throws Exception {
+  public void testFailure_noDnLineMismatch() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -95,17 +95,17 @@ public class LordnLogTest {
   }
 
   @Test
-  public void testFailure_parseNull() throws Exception {
+  public void testFailure_parseNull() {
     assertThrows(NullPointerException.class, () -> LordnLog.parse(null));
   }
 
   @Test
-  public void testFailure_parseEmpty() throws Exception {
+  public void testFailure_parseEmpty() {
     assertThrows(Exception.class, () -> LordnLog.parse(ImmutableList.of()));
   }
 
   @Test
-  public void testFailure_parseMissingHeaderLine() throws Exception {
+  public void testFailure_parseMissingHeaderLine() {
     assertThrows(
         Exception.class,
         () ->
@@ -115,7 +115,7 @@ public class LordnLogTest {
   }
 
   @Test
-  public void testSuccess_toString() throws Exception {
+  public void testSuccess_toString() {
     assertThat(LordnLog.parse(EXAMPLE_WITH_WARNINGS).toString()).isEqualTo(
         "LordnLog{"
         + "logId=0000000000000004799, "
@@ -132,14 +132,14 @@ public class LordnLogTest {
   }
 
   @Test
-  public void testSuccess_resultToString() throws Exception {
+  public void testSuccess_resultToString() {
     assertThat(
         LordnLog.parse(EXAMPLE_FROM_RFC).iterator().next().toString())
             .isEqualTo("SH8013-REP=Result{code=2000, outcome=OK, description=OK}");
   }
 
   @Test
-  public void testSuccess_withWarnings() throws Exception {
+  public void testSuccess_withWarnings() {
     LordnLog log = LordnLog.parse(EXAMPLE_WITH_WARNINGS);
     assertThat(log.getStatus()).isEqualTo(LordnLog.Status.ACCEPTED);
     assertThat(log.getLogCreation()).isEqualTo(DateTime.parse("2014-03-21T15:40:08.4Z"));

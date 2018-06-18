@@ -37,19 +37,19 @@ public class ConcurrentTest {
       .build();
 
   @Test
-  public void testTransform_emptyList_returnsEmptyList() throws Exception {
+  public void testTransform_emptyList_returnsEmptyList() {
     assertThat(Concurrent.transform(ImmutableList.of(), x -> x)).isEmpty();
   }
 
   @Test
-  public void testTransform_addIntegers() throws Exception {
+  public void testTransform_addIntegers() {
     assertThat(Concurrent.transform(ImmutableList.of(1, 2, 3), input -> input + 1))
         .containsExactly(2, 3, 4)
         .inOrder();
   }
 
   @Test
-  public void testTransform_throwsException_isSinglyWrappedByUee() throws Exception {
+  public void testTransform_throwsException_isSinglyWrappedByUee() {
     UncheckedExecutionException e =
         assertThrows(
             UncheckedExecutionException.class,
@@ -64,7 +64,7 @@ public class ConcurrentTest {
   }
 
   @Test
-  public void testNullness() throws Exception {
+  public void testNullness() {
     NullPointerTester tester = new NullPointerTester().setDefault(Function.class, x -> x);
     tester.testAllPublicStaticMethods(Concurrent.class);
   }

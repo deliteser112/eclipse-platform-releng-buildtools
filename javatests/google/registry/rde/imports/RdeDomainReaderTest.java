@@ -204,8 +204,7 @@ public class RdeDomainReaderTest {
 
   /** Verifies that domain name and ROID match expected values */
   private void checkDomain(
-      JaxbFragment<XjcRdeDomainElement> fragment, String domainName, String repoId)
-      throws Exception {
+      JaxbFragment<XjcRdeDomainElement> fragment, String domainName, String repoId) {
     assertThat(fragment).isNotNull();
     XjcRdeDomain domain = fragment.getInstance().getValue();
     assertThat(domain.getName()).isEqualTo(domainName);

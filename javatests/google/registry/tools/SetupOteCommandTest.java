@@ -387,7 +387,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_missingIpWhitelist() throws Exception {
+  public void testFailure_missingIpWhitelist() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -400,7 +400,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_missingRegistrar() throws Exception {
+  public void testFailure_missingRegistrar() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -413,7 +413,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_missingCertificateFileAndCertificateHash() throws Exception {
+  public void testFailure_missingCertificateFileAndCertificateHash() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -427,7 +427,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_suppliedCertificateFileAndCertificateHash() throws Exception {
+  public void testFailure_suppliedCertificateFileAndCertificateHash() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -445,7 +445,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_missingDnsWriter() throws Exception {
+  public void testFailure_missingDnsWriter() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -458,7 +458,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_invalidCert() throws Exception {
+  public void testFailure_invalidCert() {
     CertificateParsingException thrown =
         assertThrows(
             CertificateParsingException.class,
@@ -472,7 +472,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_invalidRegistrar() throws Exception {
+  public void testFailure_invalidRegistrar() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -486,7 +486,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_invalidDnsWriter() throws Exception {
+  public void testFailure_invalidDnsWriter() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -502,7 +502,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_registrarTooShort() throws Exception {
+  public void testFailure_registrarTooShort() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -516,7 +516,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_registrarTooLong() throws Exception {
+  public void testFailure_registrarTooLong() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -530,7 +530,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_registrarInvalidCharacter() throws Exception {
+  public void testFailure_registrarInvalidCharacter() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -544,7 +544,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_invalidPremiumList() throws Exception {
+  public void testFailure_invalidPremiumList() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -559,7 +559,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_tldExists() throws Exception {
+  public void testFailure_tldExists() {
     createTld("blobio-sunrise");
     IllegalStateException thrown =
         assertThrows(
@@ -574,7 +574,7 @@ public class SetupOteCommandTest extends CommandTestCase<SetupOteCommand> {
   }
 
   @Test
-  public void testFailure_registrarExists() throws Exception {
+  public void testFailure_registrarExists() {
     Registrar registrar = loadRegistrar("TheRegistrar").asBuilder()
         .setClientId("blobio-1")
         .setRegistrarName("blobio-1")

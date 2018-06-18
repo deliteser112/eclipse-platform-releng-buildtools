@@ -60,7 +60,7 @@ public class CommitLogRevisionsTranslatorFactoryTest {
   private final FakeClock clock = new FakeClock(START_TIME);
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     ObjectifyService.register(TestObject.class);
     inject.setStaticField(Ofy.class, "clock", clock);
   }
@@ -75,7 +75,7 @@ public class CommitLogRevisionsTranslatorFactoryTest {
   }
 
   @Test
-  public void testSave_doesNotMutateOriginalResource() throws Exception {
+  public void testSave_doesNotMutateOriginalResource() {
      TestObject object = new TestObject();
      save(object);
      assertThat(object.revisions).isEmpty();
@@ -83,7 +83,7 @@ public class CommitLogRevisionsTranslatorFactoryTest {
    }
 
   @Test
-  public void testSave_translatorAddsKeyToCommitLogToField() throws Exception {
+  public void testSave_translatorAddsKeyToCommitLogToField() {
     save(new TestObject());
     TestObject object = reload();
     assertThat(object.revisions).hasSize(1);
@@ -93,7 +93,7 @@ public class CommitLogRevisionsTranslatorFactoryTest {
   }
 
   @Test
-  public void testSave_twoVersionsOnOneDay_keyToLastCommitLogsGetsStored() throws Exception {
+  public void testSave_twoVersionsOnOneDay_keyToLastCommitLogsGetsStored() {
     save(new TestObject());
     clock.advanceBy(standardHours(1));
     save(reload());
@@ -103,7 +103,7 @@ public class CommitLogRevisionsTranslatorFactoryTest {
   }
 
   @Test
-  public void testSave_twoVersionsOnTwoDays_keyToBothCommitLogsGetsStored() throws Exception {
+  public void testSave_twoVersionsOnTwoDays_keyToBothCommitLogsGetsStored() {
     save(new TestObject());
     clock.advanceBy(standardDays(1));
     save(reload());
@@ -114,7 +114,7 @@ public class CommitLogRevisionsTranslatorFactoryTest {
   }
 
   @Test
-  public void testSave_moreThanThirtyDays_truncatedAtThirtyPlusOne() throws Exception {
+  public void testSave_moreThanThirtyDays_truncatedAtThirtyPlusOne() {
     save(new TestObject());
     for (int i = 0; i < 35; i++) {
       clock.advanceBy(standardDays(1));
@@ -126,7 +126,7 @@ public class CommitLogRevisionsTranslatorFactoryTest {
   }
 
   @Test
-  public void testSave_moreThanThirtySparse_keepsOneEntryPrecedingThirtyDays() throws Exception {
+  public void testSave_moreThanThirtySparse_keepsOneEntryPrecedingThirtyDays() {
     save(new TestObject());
     assertThat(reload().revisions).hasSize(1);
     assertThat(reload().revisions.firstKey()).isEqualTo(clock.nowUtc().minusDays(0));
@@ -146,7 +146,7 @@ public class CommitLogRevisionsTranslatorFactoryTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testRawEntityLayout() throws Exception {
+  public void testRawEntityLayout() {
     save(new TestObject());
     clock.advanceBy(standardDays(1));
     com.google.appengine.api.datastore.Entity entity =
@@ -160,12 +160,12 @@ public class CommitLogRevisionsTranslatorFactoryTest {
   }
 
   @Test
-  public void testLoad_neverSaved_returnsNull() throws Exception {
+  public void testLoad_neverSaved_returnsNull() {
     assertThat(ofy().load().entity(new TestObject()).now()).isNull();
   }
 
   @Test
-  public void testLoad_missingRevisionRawProperties_createsEmptyObject() throws Exception {
+  public void testLoad_missingRevisionRawProperties_createsEmptyObject() {
     com.google.appengine.api.datastore.Entity entity =
         ofy().transactNewReadOnly(() -> ofy().save().toEntity(new TestObject()));
     entity.removeProperty("revisions.key");

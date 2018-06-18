@@ -21,7 +21,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Ascii;
 import google.registry.util.Idn;
-import java.io.IOException;
 import java.util.List;
 
 /** Command to convert IDN labels to/from punycode. */
@@ -34,7 +33,7 @@ final class ConvertIdnCommand implements Command {
   private List<String> mainParameters;
 
   @Override
-  public void run() throws IOException {
+  public void run() {
     for (String label : mainParameters) {
       if (label.startsWith(ACE_PREFIX)) {
         System.out.println(Idn.toUnicode(Ascii.toLowerCase(label)));

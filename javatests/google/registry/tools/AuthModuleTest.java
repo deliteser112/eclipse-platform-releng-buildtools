@@ -27,7 +27,6 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.AbstractDataStoreFactory;
 import com.google.api.client.util.store.DataStore;
 import com.google.common.collect.ImmutableSet;
-import java.io.IOException;
 import java.io.Serializable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +40,7 @@ public class AuthModuleTest {
   private static final Credential FAKE_CREDENTIAL = new Credential(
       new Credential.AccessMethod() {
         @Override
-        public void intercept(HttpRequest request, String accessToken) throws IOException {}
+        public void intercept(HttpRequest request, String accessToken) {}
 
         @Override
         public String getAccessTokenFromRequest(HttpRequest request) {

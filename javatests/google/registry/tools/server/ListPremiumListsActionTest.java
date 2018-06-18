@@ -31,14 +31,14 @@ public class ListPremiumListsActionTest extends ListActionTestCase {
   ListPremiumListsAction action;
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     persistPremiumList("xn--q9jyb4c", "rich,USD 100");
     persistPremiumList("how", "richer,JPY 5000");
     action = new ListPremiumListsAction();
   }
 
   @Test
-  public void testRun_noParameters() throws Exception {
+  public void testRun_noParameters() {
     testRunSuccess(
         action,
         Optional.empty(),
@@ -49,7 +49,7 @@ public class ListPremiumListsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_withParameters() throws Exception {
+  public void testRun_withParameters() {
     testRunSuccess(
         action,
         Optional.of("revisionKey,description"),
@@ -62,7 +62,7 @@ public class ListPremiumListsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_withWildcard() throws Exception {
+  public void testRun_withWildcard() {
     testRunSuccess(
         action,
         Optional.of("*"),
@@ -75,7 +75,7 @@ public class ListPremiumListsActionTest extends ListActionTestCase {
   }
 
   @Test
-  public void testRun_withBadField_returnsError() throws Exception {
+  public void testRun_withBadField_returnsError() {
     testRunError(
         action,
         Optional.of("badfield"),

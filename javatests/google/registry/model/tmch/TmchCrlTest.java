@@ -29,7 +29,7 @@ public class TmchCrlTest {
   @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
   @Test
-  public void testSuccess() throws Exception {
+  public void testSuccess() {
     assertThat(TmchCrl.get()).isNull();
     TmchCrl.set("lolcat", "http://lol.cat");
     assertThat(TmchCrl.get().getCrl()).isEqualTo("lolcat");

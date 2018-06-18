@@ -272,7 +272,7 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
   @Nullable
   abstract Registrar getOldRegistrar(String clientId);
 
-  protected void initRegistrarCommand() throws Exception {}
+  protected void initRegistrarCommand() {}
 
   @Override
   protected final void init() throws Exception {

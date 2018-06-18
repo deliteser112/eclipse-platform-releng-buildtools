@@ -57,7 +57,7 @@ public class RegistrarPaymentSetupActionTest {
   private final RegistrarPaymentSetupAction action = new RegistrarPaymentSetupAction();
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     action.sessionUtils = sessionUtils;
     action.authResult = AuthResult.create(AuthLevel.USER, UserAuthInfo.create(user, false));
     action.braintreeGateway = braintreeGateway;
@@ -74,7 +74,7 @@ public class RegistrarPaymentSetupActionTest {
   }
 
   @Test
-  public void testTokenGeneration() throws Exception {
+  public void testTokenGeneration() {
     action.brainframe = "/doodle";
     action.accountIds =
         ImmutableMap.of(
@@ -95,7 +95,7 @@ public class RegistrarPaymentSetupActionTest {
   }
 
   @Test
-  public void testNonEmptyRequestObject_returnsError() throws Exception {
+  public void testNonEmptyRequestObject_returnsError() {
     assertThat(action.handleJsonRequest(ImmutableMap.of("oh", "no")))
         .containsExactly(
             "status", "ERROR",
@@ -104,7 +104,7 @@ public class RegistrarPaymentSetupActionTest {
   }
 
   @Test
-  public void testNotOnCreditCardBillingTerms_showsErrorPage() throws Exception {
+  public void testNotOnCreditCardBillingTerms_showsErrorPage() {
     Registrar registrar = persistResource(
         loadRegistrar("TheRegistrar")
             .asBuilder()

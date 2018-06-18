@@ -38,7 +38,7 @@ public class EppXmlTransformerTest extends ShardableTestCase {
   }
 
   @Test
-  public void testUnmarshalingWrongClassThrows() throws Exception {
+  public void testUnmarshalingWrongClassThrows() {
     assertThrows(
         ClassCastException.class,
         () ->

@@ -42,12 +42,12 @@ public class DeleteEntityActionTest {
   DeleteEntityAction action = new DeleteEntityAction();
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     action.response = response;
   }
 
   @Test
-  public void test_deleteSingleRawEntitySuccessfully() throws Exception {
+  public void test_deleteSingleRawEntitySuccessfully() {
     Entity entity = new Entity("single", "raw");
     getDatastoreService().put(entity);
     action.rawKeys = KeyFactory.keyToString(entity.getKey());
@@ -57,7 +57,7 @@ public class DeleteEntityActionTest {
   }
 
   @Test
-  public void test_deleteSingleRegisteredEntitySuccessfully() throws Exception {
+  public void test_deleteSingleRegisteredEntitySuccessfully() {
     ReservedList ofyEntity = new ReservedList.Builder().setName("foo").build();
     ofy().saveWithoutBackup().entity(ofyEntity).now();
     action.rawKeys = KeyFactory.keyToString(create(ofyEntity).getRaw());
@@ -67,7 +67,7 @@ public class DeleteEntityActionTest {
   }
 
   @Test
-  public void test_deleteOneRawEntityAndOneRegisteredEntitySuccessfully() throws Exception {
+  public void test_deleteOneRawEntityAndOneRegisteredEntitySuccessfully() {
     Entity entity = new Entity("first", "raw");
     getDatastoreService().put(entity);
     String rawKey = KeyFactory.keyToString(entity.getKey());
@@ -81,7 +81,7 @@ public class DeleteEntityActionTest {
   }
 
   @Test
-  public void test_deleteNonExistentEntityRepliesWithError() throws Exception {
+  public void test_deleteNonExistentEntityRepliesWithError() {
     Entity entity = new Entity("not", "here");
     String rawKey = KeyFactory.keyToString(entity.getKey());
     action.rawKeys = rawKey;
@@ -90,7 +90,7 @@ public class DeleteEntityActionTest {
   }
 
   @Test
-  public void test_deleteOneEntityAndNonExistentEntityRepliesWithError() throws Exception {
+  public void test_deleteOneEntityAndNonExistentEntityRepliesWithError() {
     ReservedList ofyEntity = new ReservedList.Builder().setName("first_registered").build();
     ofy().saveWithoutBackup().entity(ofyEntity).now();
     String ofyKey = KeyFactory.keyToString(create(ofyEntity).getRaw());

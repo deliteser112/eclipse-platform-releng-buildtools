@@ -112,7 +112,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
-  public void testFailure_duplicateDomains() throws Exception {
+  public void testFailure_duplicateDomains() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -128,7 +128,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
-  public void testFailure_missingDomain() throws Exception {
+  public void testFailure_missingDomain() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -142,7 +142,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
-  public void testFailure_missingClientId() throws Exception {
+  public void testFailure_missingClientId() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -156,7 +156,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
-  public void testFailure_missingRegistrant() throws Exception {
+  public void testFailure_missingRegistrant() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -170,7 +170,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
-  public void testFailure_missingAdmins() throws Exception {
+  public void testFailure_missingAdmins() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -184,7 +184,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
-  public void testFailure_missingTechs() throws Exception {
+  public void testFailure_missingTechs() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -198,7 +198,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
-  public void testFailure_tooManyNameServers() throws Exception {
+  public void testFailure_tooManyNameServers() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -217,7 +217,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
-  public void testFailure_badPeriod() throws Exception {
+  public void testFailure_badPeriod() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,
@@ -233,7 +233,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
-  public void testFailure_dsRecordsNot4Parts() throws Exception {
+  public void testFailure_dsRecordsNot4Parts() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -249,7 +249,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
-  public void testFailure_keyTagNotNumber() throws Exception {
+  public void testFailure_keyTagNotNumber() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -265,7 +265,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
-  public void testFailure_algNotNumber() throws Exception {
+  public void testFailure_algNotNumber() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -281,7 +281,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
-  public void testFailure_digestTypeNotNumber() throws Exception {
+  public void testFailure_digestTypeNotNumber() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -297,7 +297,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
-  public void testFailure_digestNotHex() throws Exception {
+  public void testFailure_digestNotHex() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -313,7 +313,7 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
-  public void testFailure_digestNotEvenLengthed() throws Exception {
+  public void testFailure_digestNotEvenLengthed() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

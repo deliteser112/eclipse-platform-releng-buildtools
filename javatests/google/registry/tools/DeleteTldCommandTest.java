@@ -62,24 +62,24 @@ public class DeleteTldCommandTest extends CommandTestCase<DeleteTldCommand> {
   }
 
   @Test
-  public void testFailure_whenTldDoesNotExist() throws Exception {
+  public void testFailure_whenTldDoesNotExist() {
     assertThrows(RegistryNotFoundException.class, () -> runCommandForced("--tld=nonexistenttld"));
   }
 
   @Test
-  public void testFailure_whenTldIsReal() throws Exception {
+  public void testFailure_whenTldIsReal() {
     assertThrows(IllegalStateException.class, () -> runCommandForced("--tld=" + TLD_REAL));
   }
 
   @Test
-  public void testFailure_whenDomainsArePresent() throws Exception {
+  public void testFailure_whenDomainsArePresent() {
     persistDeletedDomain("domain." + TLD_TEST, DateTime.parse("2000-01-01TZ"));
 
     assertThrows(IllegalStateException.class, () -> runCommandForced("--tld=" + TLD_TEST));
   }
 
   @Test
-  public void testFailure_whenRegistrarLinksToTld() throws Exception {
+  public void testFailure_whenRegistrarLinksToTld() {
     allowRegistrarAccess("TheRegistrar", TLD_TEST);
 
     assertThrows(IllegalStateException.class, () -> runCommandForced("--tld=" + TLD_TEST));

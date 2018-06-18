@@ -81,7 +81,7 @@ abstract class CreateOrUpdatePremiumListCommand extends ConfirmingCommand
   }
 
   @Override
-  protected String prompt() throws Exception {
+  protected String prompt() {
     return String.format(
         "You are about to save the premium list %s with %d items: ", name, inputLineCount);
   }

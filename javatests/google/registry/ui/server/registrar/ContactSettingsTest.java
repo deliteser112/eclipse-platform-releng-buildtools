@@ -42,7 +42,7 @@ import org.junit.runners.JUnit4;
 public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
 
   @Test
-  public void testPost_readContacts_success() throws Exception {
+  public void testPost_readContacts_success() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "read",
         "args", ImmutableMap.of()));
@@ -53,7 +53,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testPost_loadSaveRegistrar_success() throws Exception {
+  public void testPost_loadSaveRegistrar_success() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "args", loadRegistrar(CLIENT_ID).toJsonMap()));
@@ -61,7 +61,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testPost_updateContacts_success() throws Exception {
+  public void testPost_updateContacts_success() {
     // Remove all the contacts but the first by updating with list of
     // just it.
     Map<String, /* @Nullable */ Object> adminContact1 = new HashMap<>();
@@ -89,7 +89,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testPost_updateContacts_requiredTypes_error() throws Exception {
+  public void testPost_updateContacts_requiredTypes_error() {
     Map<String, Object> reqJson = loadRegistrar(CLIENT_ID).toJsonMap();
     reqJson.put("contacts",
         ImmutableList.of(AppEngineRule.makeRegistrarContact2()
@@ -105,7 +105,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testPost_updateContacts_requireTechPhone_error() throws Exception {
+  public void testPost_updateContacts_requireTechPhone_error() {
     // First make the contact a tech contact as well.
     Registrar registrar = loadRegistrar(CLIENT_ID);
     RegistrarContact rc = AppEngineRule.makeRegistrarContact2()
@@ -130,7 +130,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testPost_updateContacts_cannotRemoveWhoisAbuseContact_error() throws Exception {
+  public void testPost_updateContacts_cannotRemoveWhoisAbuseContact_error() {
     // First make the contact's info visible in whois as abuse contact info.
     Registrar registrar = loadRegistrar(CLIENT_ID);
     RegistrarContact rc =
@@ -156,8 +156,7 @@ public class ContactSettingsTest extends RegistrarSettingsActionTestCase {
   }
 
   @Test
-  public void testPost_updateContacts_whoisAbuseContactMustHavePhoneNumber_error()
-      throws Exception {
+  public void testPost_updateContacts_whoisAbuseContactMustHavePhoneNumber_error() {
     // First make the contact's info visible in whois as abuse contact info.
     Registrar registrar = loadRegistrar(CLIENT_ID);
     RegistrarContact rc =

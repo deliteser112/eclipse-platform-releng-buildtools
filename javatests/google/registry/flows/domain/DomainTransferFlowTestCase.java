@@ -105,7 +105,7 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
   }
 
   /** Adds a domain with no pending transfer on it. */
-  protected void setupDomain(String label, String tld) throws Exception {
+  protected void setupDomain(String label, String tld) {
     createTld(tld);
     contact = persistActiveContact("jd1234");
     domain = new DomainResource.Builder()

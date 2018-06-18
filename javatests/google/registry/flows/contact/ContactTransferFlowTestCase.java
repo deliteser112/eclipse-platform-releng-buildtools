@@ -63,7 +63,7 @@ public class ContactTransferFlowTestCase<F extends Flow, R extends EppResource>
   }
 
   /** Adds a contact that has a pending transfer on it from TheRegistrar to NewRegistrar. */
-  protected void setupContactWithPendingTransfer() throws Exception {
+  protected void setupContactWithPendingTransfer() {
     contact = persistContactWithPendingTransfer(
         newContactResource("sh8013"),
         TRANSFER_REQUEST_TIME,

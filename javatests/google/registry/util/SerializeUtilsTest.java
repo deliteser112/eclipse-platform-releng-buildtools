@@ -34,29 +34,29 @@ public class SerializeUtilsTest {
     }
   }
   @Test
-  public void testSerialize_nullValue_returnsNull() throws Exception {
+  public void testSerialize_nullValue_returnsNull() {
     assertThat(serialize(null)).isNull();
   }
 
   @Test
-  public void testDeserialize_nullValue_returnsNull() throws Exception {
+  public void testDeserialize_nullValue_returnsNull() {
     assertThat(deserialize(Object.class, null)).isNull();
   }
 
   @Test
-  public void testSerializeDeserialize_stringValue_maintainsValue() throws Exception {
+  public void testSerializeDeserialize_stringValue_maintainsValue() {
     assertThat(deserialize(String.class, serialize("hello"))).isEqualTo("hello");
   }
 
   @Test
-  public void testSerialize_objectDoesntImplementSerialize_hasInformativeError() throws Exception {
+  public void testSerialize_objectDoesntImplementSerialize_hasInformativeError() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> serialize(new Lol()));
     assertThat(thrown).hasMessageThat().contains("Unable to serialize: LOL_VALUE");
   }
 
   @Test
-  public void testDeserialize_badValue_hasInformativeError() throws Exception {
+  public void testDeserialize_badValue_hasInformativeError() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

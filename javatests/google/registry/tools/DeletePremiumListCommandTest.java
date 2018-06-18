@@ -47,7 +47,7 @@ public class DeletePremiumListCommandTest extends CommandTestCase<DeletePremiumL
   }
 
   @Test
-  public void testFailure_whenPremiumListDoesNotExist() throws Exception {
+  public void testFailure_whenPremiumListDoesNotExist() {
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, () -> runCommandForced("--name=foo"));
     assertThat(thrown)
@@ -56,7 +56,7 @@ public class DeletePremiumListCommandTest extends CommandTestCase<DeletePremiumL
   }
 
   @Test
-  public void testFailure_whenPremiumListIsInUse() throws Exception {
+  public void testFailure_whenPremiumListIsInUse() {
     PremiumList premiumList = persistPremiumList("xn--q9jyb4c", "blah,USD 100");
     createTld("xn--q9jyb4c");
     persistResource(Registry.get("xn--q9jyb4c").asBuilder().setPremiumList(premiumList).build());

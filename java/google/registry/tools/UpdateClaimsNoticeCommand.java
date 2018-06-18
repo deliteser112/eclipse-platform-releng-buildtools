@@ -62,7 +62,7 @@ final class UpdateClaimsNoticeCommand implements RemoteApiCommand {
   private String acceptedTime;
 
   @Override
-  public void run() throws Exception {
+  public void run() {
     final LaunchNotice launchNotice = LaunchNotice.create(
         tcnId, validatorId, DateTime.parse(expirationTime), DateTime.parse(acceptedTime));
 

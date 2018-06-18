@@ -58,7 +58,7 @@ final class CreateRegistrarCommand extends CreateOrUpdateRegistrarCommand
   }
 
   @Override
-  protected void initRegistrarCommand() throws Exception {
+  protected void initRegistrarCommand() {
     checkArgument(mainParameters.size() == 1, "Must specify exactly one client identifier.");
     checkArgumentNotNull(emptyToNull(password), "--password is a required field");
     checkArgumentNotNull(registrarName, "--name is a required field");
@@ -95,7 +95,7 @@ final class CreateRegistrarCommand extends CreateOrUpdateRegistrarCommand
   }
 
   @Override
-  protected String postExecute() throws Exception {
+  protected String postExecute() {
     if (!createGoogleGroups) {
       return "";
     }

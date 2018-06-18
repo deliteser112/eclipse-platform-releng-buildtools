@@ -52,7 +52,7 @@ final class DeleteTldCommand extends ConfirmingCommand implements RemoteApiComma
    * accidental deletion of established TLDs with domains on them.
    */
   @Override
-  protected void init() throws Exception {
+  protected void init() {
     registry = Registry.get(tld);
     checkState(registry.getTldType().equals(TldType.TEST), "Cannot delete a real TLD");
 
@@ -77,7 +77,7 @@ final class DeleteTldCommand extends ConfirmingCommand implements RemoteApiComma
   }
 
   @Override
-  protected String execute() throws Exception {
+  protected String execute() {
     ofy().transactNew(new VoidWork() {
       @Override
       public void vrun() {

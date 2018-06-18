@@ -23,7 +23,6 @@ import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
 import google.registry.config.RegistryConfig.Config;
 import java.io.Closeable;
-import java.io.IOException;
 import java.net.URI;
 import javax.inject.Inject;
 import org.joda.time.Duration;
@@ -118,7 +117,7 @@ final class JSchSshSession implements Closeable {
 
   /** @see com.jcraft.jsch.Session#disconnect() */
   @Override
-  public void close() throws IOException {
+  public void close() {
     session.disconnect();
   }
 }

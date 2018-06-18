@@ -192,7 +192,7 @@ public class NordnUploadActionTest {
   }
 
   @Test
-  public void testFailure_nullRegistryUser() throws Exception {
+  public void testFailure_nullRegistryUser() {
     persistClaimsModeDomain();
     persistResource(Registry.get("tld").asBuilder().setLordnUsername(null).build());
     VerifyException thrown = assertThrows(VerifyException.class, action::run);
@@ -200,7 +200,7 @@ public class NordnUploadActionTest {
   }
 
   @Test
-  public void testFetchFailure() throws Exception {
+  public void testFetchFailure() {
     persistClaimsModeDomain();
     when(httpResponse.getResponseCode()).thenReturn(SC_INTERNAL_SERVER_ERROR);
     assertThrows(UrlFetchException.class, action::run);

@@ -102,7 +102,7 @@ public class DomainAllocateFlowTest
   private HistoryEntry historyEntry;
 
   @Before
-  public void initAllocateTest() throws Exception {
+  public void initAllocateTest() {
     setEppInput(
         "domain_allocate.xml",
         ImmutableMap.of("APPLICATIONID", "2-TLD", "DOMAIN", "example-one.tld"));

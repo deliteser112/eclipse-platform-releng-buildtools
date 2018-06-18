@@ -89,7 +89,7 @@ public class UnlockDomainCommandTest extends EppToolCommandTestCase<UnlockDomain
   }
 
   @Test
-  public void testFailure_domainDoesntExist() throws Exception {
+  public void testFailure_domainDoesntExist() {
     IllegalArgumentException e =
         assertThrows(
             IllegalArgumentException.class,
@@ -113,7 +113,7 @@ public class UnlockDomainCommandTest extends EppToolCommandTestCase<UnlockDomain
   }
 
   @Test
-  public void testFailure_duplicateDomainsAreSpecified() throws Exception {
+  public void testFailure_duplicateDomainsAreSpecified() {
     IllegalArgumentException e =
         assertThrows(
             IllegalArgumentException.class,

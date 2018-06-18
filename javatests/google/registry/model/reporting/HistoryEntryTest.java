@@ -35,7 +35,7 @@ public class HistoryEntryTest extends EntityTestCase {
   HistoryEntry historyEntry;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     createTld("foobar");
     DomainTransactionRecord transactionRecord =
         new DomainTransactionRecord.Builder()
@@ -64,7 +64,7 @@ public class HistoryEntryTest extends EntityTestCase {
   }
 
   @Test
-  public void testPersistence() throws Exception {
+  public void testPersistence() {
     assertThat(ofy().load().entity(historyEntry).now()).isEqualTo(historyEntry);
   }
 

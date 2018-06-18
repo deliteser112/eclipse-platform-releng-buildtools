@@ -63,7 +63,7 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
   private final List<Key<DomainApplication>> applicationKeys = new ArrayList<>();
 
   @Override
-  protected String postExecute() throws Exception {
+  protected String postExecute() {
     return ofy()
         .transactNewReadOnly(
             () -> {

@@ -60,7 +60,7 @@ public class HostResourceToXjcConverterTest {
   }
 
   @Test
-  public void testConvertSubordinateHost() throws Exception {
+  public void testConvertSubordinateHost() {
     DomainResource domain = newDomainResource("love.foobar").asBuilder()
         .setPersistedCurrentSponsorClientId("LeisureDog")
         .setLastTransferTime(DateTime.parse("2010-01-01T00:00:00Z"))
@@ -120,7 +120,7 @@ public class HostResourceToXjcConverterTest {
   }
 
   @Test
-  public void testConvertExternalHost() throws Exception {
+  public void testConvertExternalHost() {
     XjcRdeHost bean = HostResourceToXjcConverter.convertExternalHost(
         new HostResource.Builder()
             .setCreationClientId("LawyerCat")
@@ -168,7 +168,7 @@ public class HostResourceToXjcConverterTest {
   }
 
   @Test
-  public void testConvertExternalHost_ipv6() throws Exception {
+  public void testConvertExternalHost_ipv6() {
     XjcRdeHost bean = HostResourceToXjcConverter.convertExternalHost(
         new HostResource.Builder()
             .setCreationClientId("LawyerCat")
@@ -188,7 +188,7 @@ public class HostResourceToXjcConverterTest {
   }
 
   @Test
-  public void testHostStatusValueIsInvalid() throws Exception {
+  public void testHostStatusValueIsInvalid() {
     assertThrows(
         IllegalArgumentException.class,
         () ->

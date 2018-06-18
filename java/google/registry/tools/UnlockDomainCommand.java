@@ -41,7 +41,7 @@ public class UnlockDomainCommand extends LockOrUnlockDomainCommand {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Override
-  protected void initMutatingEppToolCommand() throws Exception {
+  protected void initMutatingEppToolCommand() {
     // Project all domains as of the same time so that argument order doesn't affect behavior.
     DateTime now = DateTime.now(UTC);
     for (String domain : getDomains()) {

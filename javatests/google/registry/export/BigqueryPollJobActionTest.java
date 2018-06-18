@@ -93,7 +93,7 @@ public class BigqueryPollJobActionTest {
     LoggerConfig.getConfig(BigqueryPollJobAction.class).addHandler(logHandler);
   }
 
-  private static TaskMatcher newPollJobTaskMatcher(String method) throws Exception {
+  private static TaskMatcher newPollJobTaskMatcher(String method) {
     return new TaskMatcher()
         .method(method)
         .url(BigqueryPollJobAction.PATH)

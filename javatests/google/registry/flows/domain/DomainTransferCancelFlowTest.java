@@ -214,7 +214,7 @@ public class DomainTransferCancelFlowTest
   }
 
   @Test
-  public void testFailure_badContactPassword() throws Exception {
+  public void testFailure_badContactPassword() {
     // Change the contact's password so it does not match the password in the file.
     contact =
         persistResource(
@@ -230,7 +230,7 @@ public class DomainTransferCancelFlowTest
   }
 
   @Test
-  public void testFailure_badDomainPassword() throws Exception {
+  public void testFailure_badDomainPassword() {
     // Change the domain's password so it does not match the password in the file.
     domain =
         persistResource(
@@ -246,7 +246,7 @@ public class DomainTransferCancelFlowTest
   }
 
   @Test
-  public void testFailure_neverBeenTransferred() throws Exception {
+  public void testFailure_neverBeenTransferred() {
     changeTransferStatus(null);
     EppException thrown =
         assertThrows(
@@ -255,7 +255,7 @@ public class DomainTransferCancelFlowTest
   }
 
   @Test
-  public void testFailure_clientApproved() throws Exception {
+  public void testFailure_clientApproved() {
     changeTransferStatus(TransferStatus.CLIENT_APPROVED);
     EppException thrown =
         assertThrows(
@@ -264,7 +264,7 @@ public class DomainTransferCancelFlowTest
   }
 
   @Test
-  public void testFailure_clientRejected() throws Exception {
+  public void testFailure_clientRejected() {
     changeTransferStatus(TransferStatus.CLIENT_REJECTED);
     EppException thrown =
         assertThrows(
@@ -273,7 +273,7 @@ public class DomainTransferCancelFlowTest
   }
 
   @Test
-  public void testFailure_clientCancelled() throws Exception {
+  public void testFailure_clientCancelled() {
     changeTransferStatus(TransferStatus.CLIENT_CANCELLED);
     EppException thrown =
         assertThrows(
@@ -282,7 +282,7 @@ public class DomainTransferCancelFlowTest
   }
 
   @Test
-  public void testFailure_serverApproved() throws Exception {
+  public void testFailure_serverApproved() {
     changeTransferStatus(TransferStatus.SERVER_APPROVED);
     EppException thrown =
         assertThrows(
@@ -291,7 +291,7 @@ public class DomainTransferCancelFlowTest
   }
 
   @Test
-  public void testFailure_serverCancelled() throws Exception {
+  public void testFailure_serverCancelled() {
     changeTransferStatus(TransferStatus.SERVER_CANCELLED);
     EppException thrown =
         assertThrows(
@@ -300,7 +300,7 @@ public class DomainTransferCancelFlowTest
   }
 
   @Test
-  public void testFailure_sponsoringClient() throws Exception {
+  public void testFailure_sponsoringClient() {
     setClientIdForFlow("TheRegistrar");
     EppException thrown =
         assertThrows(
@@ -309,7 +309,7 @@ public class DomainTransferCancelFlowTest
   }
 
   @Test
-  public void testFailure_unrelatedClient() throws Exception {
+  public void testFailure_unrelatedClient() {
     setClientIdForFlow("ClientZ");
     EppException thrown =
         assertThrows(
@@ -337,7 +337,7 @@ public class DomainTransferCancelFlowTest
   }
 
   @Test
-  public void testFailure_notAuthorizedForTld() throws Exception {
+  public void testFailure_notAuthorizedForTld() {
     persistResource(
         loadRegistrar("NewRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     EppException thrown =

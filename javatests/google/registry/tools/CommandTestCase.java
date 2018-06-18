@@ -161,30 +161,30 @@ public abstract class CommandTestCase<C extends Command> {
    * Asserts whether standard out matches an expected string, allowing for differences in
    * ImmutableObject hash codes (i.e. "(@1234567)").
    */
-  protected void assertStdoutForImmutableObjectIs(String expected) throws Exception {
+  protected void assertStdoutForImmutableObjectIs(String expected) {
     assertThat(stripImmutableObjectHashCodes(getStdoutAsString()).trim())
         .isEqualTo(stripImmutableObjectHashCodes(expected).trim());
   }
 
-  protected void assertStdoutIs(String expected) throws Exception {
+  protected void assertStdoutIs(String expected) {
     assertThat(getStdoutAsString()).isEqualTo(expected);
   }
 
-  protected void assertInStdout(String... expected) throws Exception {
+  protected void assertInStdout(String... expected) {
     String stdout = getStdoutAsString();
     for (String line : expected) {
       assertThat(stdout).contains(line);
     }
   }
 
-  protected void assertInStderr(String... expected) throws Exception {
+  protected void assertInStderr(String... expected) {
     String stderror = new String(stderr.toByteArray(), UTF_8);
     for (String line : expected) {
       assertThat(stderror).contains(line);
     }
   }
 
-  protected void assertNotInStdout(String expected) throws Exception {
+  protected void assertNotInStdout(String expected) {
     assertThat(getStdoutAsString()).doesNotContain(expected);
   }
 

@@ -269,7 +269,7 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
   /** Subclasses can override this to assert that the command can be run in this environment. */
   void assertAllowedEnvironment() {}
 
-  protected abstract void initTldCommand() throws Exception;
+  protected abstract void initTldCommand();
 
   @Override
   protected final void init() throws Exception {

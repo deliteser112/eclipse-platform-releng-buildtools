@@ -128,7 +128,7 @@ public class DomainTransferRequestFlowTest
           .build();
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     setEppInput("domain_transfer_request.xml");
     setClientIdForFlow("NewRegistrar");
   }
@@ -1158,7 +1158,7 @@ public class DomainTransferRequestFlowTest
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
-  private void runWrongFeeAmountTest(Map<String, String> substitutions) throws Exception {
+  private void runWrongFeeAmountTest(Map<String, String> substitutions) {
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -1378,7 +1378,7 @@ public class DomainTransferRequestFlowTest
   }
 
   @Test
-  public void testFailure_nonexistentDomain() throws Exception {
+  public void testFailure_nonexistentDomain() {
     createTld("tld");
     contact = persistActiveContact("jd1234");
     ResourceDoesNotExistException thrown =

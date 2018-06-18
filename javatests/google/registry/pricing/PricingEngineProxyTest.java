@@ -50,7 +50,7 @@ public class PricingEngineProxyTest {
   private Clock clock;
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     PremiumList premiumList = persistPremiumList(
         "rich,USD 100",
         "richer,USD 999",
@@ -85,7 +85,7 @@ public class PricingEngineProxyTest {
   }
 
   @Test
-  public void testIsPremiumDomain() throws Exception {
+  public void testIsPremiumDomain() {
     createTld("example");
     assertThat(isDomainPremium("poor.example", clock.nowUtc())).isFalse();
     assertThat(isDomainPremium("rich.example", clock.nowUtc())).isTrue();
@@ -93,7 +93,7 @@ public class PricingEngineProxyTest {
   }
 
   @Test
-  public void testGetDomainCreateCost() throws Exception {
+  public void testGetDomainCreateCost() {
     // The example tld has a premium price for "rich".
     createTld("example");
     // The default value of 17 is set in createTld().
@@ -108,7 +108,7 @@ public class PricingEngineProxyTest {
   }
 
   @Test
-  public void testGetDomainRenewCost() throws Exception {
+  public void testGetDomainRenewCost() {
     // The example tld has a premium price for "rich".
     createTld("example");
     persistResource(
@@ -137,7 +137,7 @@ public class PricingEngineProxyTest {
   }
 
   @Test
-  public void testFailure_cantLoadPricingEngine() throws Exception {
+  public void testFailure_cantLoadPricingEngine() {
     createTld("example");
     persistResource(
         Registry.get("example")

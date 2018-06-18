@@ -44,12 +44,12 @@ public class CreateHostCommandTest extends EppToolCommandTestCase<CreateHostComm
   }
 
   @Test
-  public void testFailure_missingHost() throws Exception {
+  public void testFailure_missingHost() {
     assertThrows(ParameterException.class, () -> runCommandForced("--client=NewRegistrar"));
   }
 
   @Test
-  public void testFailure_invalidIpAddress() throws Exception {
+  public void testFailure_invalidIpAddress() {
     createTld("tld");
     IllegalArgumentException thrown =
         assertThrows(

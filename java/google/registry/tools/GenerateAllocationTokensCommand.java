@@ -72,7 +72,7 @@ public class GenerateAllocationTokensCommand implements RemoteApiCommand {
   private static final int BATCH_SIZE = 20;
 
   @Override
-  public void run() throws Exception {
+  public void run() {
     int tokensSaved = 0;
     do {
       ImmutableSet<AllocationToken> tokens =

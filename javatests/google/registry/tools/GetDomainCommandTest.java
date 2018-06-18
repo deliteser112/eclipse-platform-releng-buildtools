@@ -95,7 +95,7 @@ public class GetDomainCommandTest extends CommandTestCase<GetDomainCommand> {
   }
 
   @Test
-  public void testFailure_noDomainName() throws Exception {
+  public void testFailure_noDomainName() {
     assertThrows(ParameterException.class, this::runCommand);
   }
 

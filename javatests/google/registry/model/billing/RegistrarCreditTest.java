@@ -37,7 +37,7 @@ public class RegistrarCreditTest extends EntityTestCase {
   private RegistrarCredit promoCredit;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     createTld("tld");
     Registrar theRegistrar = ofy().load()
         .type(Registrar.class)
@@ -62,7 +62,7 @@ public class RegistrarCreditTest extends EntityTestCase {
   }
 
   @Test
-  public void testPersistence() throws Exception {
+  public void testPersistence() {
     assertThat(ofy().load().entity(auctionCredit).now()).isEqualTo(auctionCredit);
     assertThat(ofy().load().entity(promoCredit).now()).isEqualTo(promoCredit);
   }
@@ -75,7 +75,7 @@ public class RegistrarCreditTest extends EntityTestCase {
   }
 
   @Test
-  public void testFailure_missingTld() throws Exception {
+  public void testFailure_missingTld() {
     NullPointerException thrown =
         assertThrows(
             NullPointerException.class, () -> promoCredit.asBuilder().setTld(null).build());
@@ -83,7 +83,7 @@ public class RegistrarCreditTest extends EntityTestCase {
   }
 
   @Test
-  public void testFailure_NonexistentTld() throws Exception {
+  public void testFailure_NonexistentTld() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -92,7 +92,7 @@ public class RegistrarCreditTest extends EntityTestCase {
   }
 
   @Test
-  public void testFailure_CurrencyDoesNotMatchTldCurrency() throws Exception {
+  public void testFailure_CurrencyDoesNotMatchTldCurrency() {
     assertThat(Registry.get("tld").getCurrency()).isEqualTo(USD);
     IllegalArgumentException thrown =
         assertThrows(

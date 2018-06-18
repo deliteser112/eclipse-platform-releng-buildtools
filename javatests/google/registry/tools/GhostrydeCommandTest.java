@@ -64,7 +64,7 @@ public class GhostrydeCommandTest extends CommandTestCase<GhostrydeCommand> {
   private Keyring keyring;
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     keyring = new FakeKeyringModule().get();
     command.ghostryde = new Ghostryde(1024);
     command.rdeStagingDecryptionKey = keyring::getRdeStagingDecryptionKey;

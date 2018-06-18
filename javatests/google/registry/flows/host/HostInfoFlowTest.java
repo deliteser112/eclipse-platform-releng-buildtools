@@ -164,14 +164,14 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   }
 
   @Test
-  public void testFailure_nonLowerCaseHostname() throws Exception {
+  public void testFailure_nonLowerCaseHostname() {
     setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "NS1.EXAMPLE.NET"));
     EppException thrown = assertThrows(HostNameNotLowerCaseException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
   }
 
   @Test
-  public void testFailure_nonPunyCodedHostname() throws Exception {
+  public void testFailure_nonPunyCodedHostname() {
     setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "ns1.çauçalito.tld"));
     HostNameNotPunyCodedException thrown =
         assertThrows(HostNameNotPunyCodedException.class, this::runFlow);
@@ -179,7 +179,7 @@ public class HostInfoFlowTest extends ResourceFlowTestCase<HostInfoFlow, HostRes
   }
 
   @Test
-  public void testFailure_nonCanonicalHostname() throws Exception {
+  public void testFailure_nonCanonicalHostname() {
     setEppInput("host_info.xml", ImmutableMap.of("HOSTNAME", "ns1.example.tld."));
     EppException thrown = assertThrows(HostNameNotNormalizedException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();

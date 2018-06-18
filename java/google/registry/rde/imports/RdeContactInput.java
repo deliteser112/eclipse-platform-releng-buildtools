@@ -31,7 +31,6 @@ import google.registry.model.contact.ContactResource;
 import google.registry.rde.imports.RdeParser.RdeHeader;
 import google.registry.xjc.JaxbFragment;
 import google.registry.xjc.rdecontact.XjcRdeContactElement;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
@@ -74,8 +73,7 @@ public class RdeContactInput extends Input<JaxbFragment<XjcRdeContactElement>> {
   }
 
   @Override
-  public List<? extends InputReader<JaxbFragment<XjcRdeContactElement>>> createReaders()
-      throws IOException {
+  public List<? extends InputReader<JaxbFragment<XjcRdeContactElement>>> createReaders() {
     int numReaders = this.numReaders;
     RdeHeader header = newParser().getHeader();
     int numberOfContacts = header.getContactCount().intValue();

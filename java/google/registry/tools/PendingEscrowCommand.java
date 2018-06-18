@@ -43,7 +43,7 @@ final class PendingEscrowCommand implements RemoteApiCommand {
   PendingDepositChecker checker;
 
   @Override
-  public void run() throws Exception {
+  public void run() {
     System.out.println(
         SORTER
             .sortedCopy(checker.getTldsAndWatermarksPendingDepositForRdeAndBrda().values())

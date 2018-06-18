@@ -129,7 +129,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
   }
 
   @Test
-  public void testFail_givenNonTestTld() throws Exception {
+  public void testFail_givenNonTestTld() {
     action.tlds = ImmutableSet.of("not-test.test");
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, this::runMapreduce);
@@ -139,7 +139,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
   }
 
   @Test
-  public void testFail_givenNonExistentTld() throws Exception {
+  public void testFail_givenNonExistentTld() {
     action.tlds = ImmutableSet.of("non-existent.test");
     IllegalArgumentException thrown =
         assertThrows(IllegalArgumentException.class, this::runMapreduce);
@@ -149,7 +149,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
   }
 
   @Test
-  public void testFail_givenNonDotTestTldOnProd() throws Exception {
+  public void testFail_givenNonDotTestTldOnProd() {
     action.tlds = ImmutableSet.of("example");
     action.registryEnvironment = RegistryEnvironment.PRODUCTION;
     IllegalArgumentException thrown =
@@ -256,7 +256,7 @@ public class DeleteProberDataActionTest extends MapreduceTestCase<DeleteProberDa
   }
 
   @Test
-  public void testFailure_registryAdminClientId_isRequiredForSoftDeletion() throws Exception {
+  public void testFailure_registryAdminClientId_isRequiredForSoftDeletion() {
     persistResource(
         newDomainResource("blah.ib-any.test")
             .asBuilder()

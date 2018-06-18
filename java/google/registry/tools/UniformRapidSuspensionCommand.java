@@ -100,7 +100,7 @@ final class UniformRapidSuspensionCommand extends MutatingEppToolCommand {
   ImmutableSortedSet<String> existingDsData;
 
   @Override
-  protected void initMutatingEppToolCommand() throws ParseException {
+  protected void initMutatingEppToolCommand() {
     superuser = true;
     DateTime now = DateTime.now(UTC);
     ImmutableSet<String> newHostsSet = ImmutableSet.copyOf(newHosts);
@@ -176,7 +176,7 @@ final class UniformRapidSuspensionCommand extends MutatingEppToolCommand {
   }
 
   @Override
-  protected String postExecute() throws Exception {
+  protected String postExecute() {
     if (undo) {
       return "";
     }

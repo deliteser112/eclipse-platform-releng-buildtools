@@ -146,7 +146,7 @@ public class VerifyOteActionTest {
   }
 
   @Test
-  public void testSuccess_summarize_allPass() throws Exception {
+  public void testSuccess_summarize_allPass() {
     Map<String, Object> response =
         action.handleJsonRequest(
             ImmutableMap.of("summarize", "true", "registrars", ImmutableList.of("blobio")));
@@ -156,7 +156,7 @@ public class VerifyOteActionTest {
   }
 
   @Test
-  public void testSuccess_summarize_someFailures() throws Exception {
+  public void testSuccess_summarize_someFailures() {
     deleteResource(hostDeleteHistoryEntry);
     deleteResource(domainCreateHistoryEntry);
     deleteResource(domainRestoreHistoryEntry);
@@ -169,7 +169,7 @@ public class VerifyOteActionTest {
   }
 
   @Test
-  public void testSuccess_passNotSummarized() throws Exception {
+  public void testSuccess_passNotSummarized() {
     Map<String, Object> response =
         action.handleJsonRequest(
             ImmutableMap.of("summarize", "false", "registrars", ImmutableList.of("blobio")));
@@ -205,7 +205,7 @@ public class VerifyOteActionTest {
   }
 
   @Test
-  public void testFailure_missingHostDelete() throws Exception {
+  public void testFailure_missingHostDelete() {
     deleteResource(hostDeleteHistoryEntry);
 
     Map<String, Object> response =

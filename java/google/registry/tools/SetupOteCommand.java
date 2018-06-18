@@ -221,7 +221,7 @@ final class SetupOteCommand extends ConfirmingCommand implements RemoteApiComman
   }
 
   @Override
-  protected String prompt() throws Exception {
+  protected String prompt() {
     // Each underlying command will confirm its own operation as well, so just provide
     // a summary of the steps in this command.
     if (eapOnly) {

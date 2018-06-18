@@ -56,7 +56,7 @@ final class CreateCreditBalanceCommand extends MutatingCommand {
   private DateTime effectiveTime;
 
   @Override
-  public void init() throws Exception {
+  public void init() {
     Registrar registrar =
         checkArgumentPresent(
             Registrar.loadByClientId(clientId), "Registrar %s not found", clientId);

@@ -66,7 +66,7 @@ public class ContactTransferRequestFlowTest
   }
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     setEppInput("contact_transfer_request.xml");
     setClientIdForFlow("NewRegistrar");
     contact = persistActiveContact("sh8013");
@@ -156,7 +156,7 @@ public class ContactTransferRequestFlowTest
   }
 
   @Test
-  public void testFailure_noAuthInfo() throws Exception {
+  public void testFailure_noAuthInfo() {
     EppException thrown =
         assertThrows(
             MissingTransferRequestAuthInfoException.class,
@@ -165,7 +165,7 @@ public class ContactTransferRequestFlowTest
   }
 
   @Test
-  public void testFailure_badPassword() throws Exception {
+  public void testFailure_badPassword() {
     // Change the contact's password so it does not match the password in the file.
     contact =
         persistResource(
@@ -211,7 +211,7 @@ public class ContactTransferRequestFlowTest
   }
 
   @Test
-  public void testFailure_pending() throws Exception {
+  public void testFailure_pending() {
     contact =
         persistResource(
             contact
@@ -232,7 +232,7 @@ public class ContactTransferRequestFlowTest
   }
 
   @Test
-  public void testFailure_sponsoringClient() throws Exception {
+  public void testFailure_sponsoringClient() {
     setClientIdForFlow("TheRegistrar");
     EppException thrown =
         assertThrows(
@@ -265,7 +265,7 @@ public class ContactTransferRequestFlowTest
   }
 
   @Test
-  public void testFailure_clientTransferProhibited() throws Exception {
+  public void testFailure_clientTransferProhibited() {
     contact =
         persistResource(
             contact.asBuilder().addStatusValue(StatusValue.CLIENT_TRANSFER_PROHIBITED).build());
@@ -278,7 +278,7 @@ public class ContactTransferRequestFlowTest
   }
 
   @Test
-  public void testFailure_serverTransferProhibited() throws Exception {
+  public void testFailure_serverTransferProhibited() {
     contact =
         persistResource(
             contact.asBuilder().addStatusValue(StatusValue.SERVER_TRANSFER_PROHIBITED).build());
@@ -291,7 +291,7 @@ public class ContactTransferRequestFlowTest
   }
 
   @Test
-  public void testFailure_pendingDelete() throws Exception {
+  public void testFailure_pendingDelete() {
     contact =
         persistResource(contact.asBuilder().addStatusValue(StatusValue.PENDING_DELETE).build());
     ResourceStatusProhibitsOperationException thrown =

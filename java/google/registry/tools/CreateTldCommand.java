@@ -53,7 +53,7 @@ class CreateTldCommand extends CreateOrUpdateTldCommand {
   private Money initialRenewBillingCost;
 
   @Override
-  protected void initTldCommand() throws Exception {
+  protected void initTldCommand() {
     checkArgument(initialTldState == null || tldStateTransitions.isEmpty(),
         "Don't pass both --initial_tld_state and --tld_state_transitions");
     checkArgument(initialRenewBillingCost == null || renewBillingCostTransitions.isEmpty(),

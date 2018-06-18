@@ -65,7 +65,7 @@ final class UpdateApplicationStatusCommand extends MutatingCommand {
   private String clientId = "CharlestonRoad";
 
   @Override
-  protected void init() throws Exception {
+  protected void init() {
     checkArgumentPresent(
         Registrar.loadByClientId(clientId), "Registrar with client ID %s not found", clientId);
     for (final String applicationId : ids) {

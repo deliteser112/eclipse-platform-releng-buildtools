@@ -25,7 +25,7 @@ import org.junit.runners.JUnit4;
 public class PubApiRequestComponentTest {
 
   @Test
-  public void testRoutingMap() throws Exception {
+  public void testRoutingMap() {
     GoldenFileTestHelper.assertThatRoutesFromComponent(PubApiRequestComponent.class)
         .describedAs("pubapi routing map")
         .isEqualToGolden(PubApiRequestComponentTest.class, "pubapi_routing.txt");

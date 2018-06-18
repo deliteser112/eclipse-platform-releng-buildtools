@@ -29,54 +29,54 @@ public class MoneyParameterTest {
   private final MoneyParameter instance = new MoneyParameter();
 
   @Test
-  public void testConvert_withCurrency() throws Exception {
+  public void testConvert_withCurrency() {
     assertThat(instance.convert("USD 777.99")).isEqualTo(Money.parse("USD 777.99"));
   }
 
   @Test
-  public void testConvert_negative() throws Exception {
+  public void testConvert_negative() {
     assertThat(instance.convert("USD -777.99")).isEqualTo(Money.parse("USD -777.99"));
   }
 
   @Test
-  public void testConvert_missingSpace_isForgiving() throws Exception {
+  public void testConvert_missingSpace_isForgiving() {
     assertThat(instance.convert("USD777.99")).isEqualTo(Money.parse("USD 777.99"));
   }
 
   @Test
-  public void testConvert_lowercase_isForgiving() throws Exception {
+  public void testConvert_lowercase_isForgiving() {
     assertThat(instance.convert("usd777.99")).isEqualTo(Money.parse("USD 777.99"));
   }
 
   @Test
-  public void testConvert_badCurrency_throws() throws Exception {
+  public void testConvert_badCurrency_throws() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("FOO 1337"));
   }
 
   @Test
-  public void testConvert_null_throws() throws Exception {
+  public void testConvert_null_throws() {
     assertThrows(NullPointerException.class, () -> instance.convert(null));
   }
 
   @Test
-  public void testConvert_empty_throws() throws Exception {
+  public void testConvert_empty_throws() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert(""));
   }
 
   @Test
-  public void testConvert_sillyString_throws() throws Exception {
+  public void testConvert_sillyString_throws() {
     assertThrows(IllegalArgumentException.class, () -> instance.convert("foo"));
   }
 
   @Test
-  public void testValidate_sillyString_throws() throws Exception {
+  public void testValidate_sillyString_throws() {
     ParameterException thrown =
         assertThrows(ParameterException.class, () -> instance.validate("--money", "foo"));
     assertThat(thrown).hasMessageThat().contains("--money=foo not valid");
   }
 
   @Test
-  public void testValidate_correctInput() throws Exception {
+  public void testValidate_correctInput() {
     instance.validate("--money", "USD 777");
   }
 }

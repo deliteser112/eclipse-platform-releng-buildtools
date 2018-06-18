@@ -82,7 +82,7 @@ public class RdeHostReader extends InputReader<JaxbFragment<XjcRdeHostElement>>
   }
 
   @Override
-  public JaxbFragment<XjcRdeHostElement> next() throws IOException {
+  public JaxbFragment<XjcRdeHostElement> next() {
     if (count < maxResults) {
       if (parser == null) {
         parser = newParser();

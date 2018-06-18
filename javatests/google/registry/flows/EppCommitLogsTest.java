@@ -60,7 +60,7 @@ public class EppCommitLogsTest extends ShardableTestCase {
   private EppLoader eppLoader;
 
   @Before
-  public void init() throws Exception {
+  public void init() {
     createTld("tld");
     inject.setStaticField(Ofy.class, "clock", clock);
   }

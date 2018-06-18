@@ -79,7 +79,7 @@ public class RdeDomainReader extends InputReader<JaxbFragment<XjcRdeDomainElemen
   }
 
   @Override
-  public JaxbFragment<XjcRdeDomainElement> next() throws IOException {
+  public JaxbFragment<XjcRdeDomainElement> next() {
     if (count < maxResults) {
       if (parser == null) {
         parser = newParser();

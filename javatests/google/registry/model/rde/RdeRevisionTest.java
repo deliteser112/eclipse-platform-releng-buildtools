@@ -37,20 +37,20 @@ public class RdeRevisionTest {
   @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
   @Test
-  public void testGetNextRevision_objectDoesntExist_returnsZero() throws Exception {
+  public void testGetNextRevision_objectDoesntExist_returnsZero() {
     assertThat(getNextRevision("torment", DateTime.parse("1984-12-18TZ"), FULL))
         .isEqualTo(0);
   }
 
   @Test
-  public void testGetNextRevision_objectExistsAtZero_returnsOne() throws Exception {
+  public void testGetNextRevision_objectExistsAtZero_returnsOne() {
     save("sorrow", DateTime.parse("1984-12-18TZ"), FULL, 0);
     assertThat(getNextRevision("sorrow", DateTime.parse("1984-12-18TZ"), FULL))
         .isEqualTo(1);
   }
 
   @Test
-  public void testSaveRevision_objectDoesntExist_newRevisionIsZero_nextRevIsOne() throws Exception {
+  public void testSaveRevision_objectDoesntExist_newRevisionIsZero_nextRevIsOne() {
     ofy().transact(new VoidWork() {
       @Override
       public void vrun() {
@@ -65,7 +65,7 @@ public class RdeRevisionTest {
   }
 
   @Test
-  public void testSaveRevision_objectDoesntExist_newRevisionIsOne_throwsVe() throws Exception {
+  public void testSaveRevision_objectDoesntExist_newRevisionIsOne_throwsVe() {
     VerifyException thrown =
         assertThrows(
             VerifyException.class,
@@ -82,7 +82,7 @@ public class RdeRevisionTest {
   }
 
   @Test
-  public void testSaveRevision_objectExistsAtZero_newRevisionIsZero_throwsVe() throws Exception {
+  public void testSaveRevision_objectExistsAtZero_newRevisionIsZero_throwsVe() {
     save("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 0);
     VerifyException thrown =
         assertThrows(
@@ -100,7 +100,7 @@ public class RdeRevisionTest {
   }
 
   @Test
-  public void testSaveRevision_objectExistsAtZero_newRevisionIsOne_nextRevIsTwo() throws Exception {
+  public void testSaveRevision_objectExistsAtZero_newRevisionIsOne_nextRevIsTwo() {
     save("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 0);
     ofy().transact(new VoidWork() {
       @Override
@@ -116,7 +116,7 @@ public class RdeRevisionTest {
   }
 
   @Test
-  public void testSaveRevision_objectExistsAtZero_newRevisionIsTwo_throwsVe() throws Exception {
+  public void testSaveRevision_objectExistsAtZero_newRevisionIsTwo_throwsVe() {
     save("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 0);
     VerifyException thrown =
         assertThrows(
@@ -134,7 +134,7 @@ public class RdeRevisionTest {
   }
 
   @Test
-  public void testSaveRevision_negativeRevision_throwsIae() throws Exception {
+  public void testSaveRevision_negativeRevision_throwsIae() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -151,7 +151,7 @@ public class RdeRevisionTest {
   }
 
   @Test
-  public void testSaveRevision_callerNotInTransaction_throwsIse() throws Exception {
+  public void testSaveRevision_callerNotInTransaction_throwsIse() {
     IllegalStateException thrown =
         assertThrows(
             IllegalStateException.class,

@@ -35,7 +35,7 @@ public class LrpTokenEntityTest extends EntityTestCase {
   LrpTokenEntity redeemedToken;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     createTld("tld");
     DomainApplication lrpApplication = persistActiveDomainApplication("domain.tld");
     HistoryEntry applicationCreateHistoryEntry = persistResource(new HistoryEntry.Builder()
@@ -60,24 +60,24 @@ public class LrpTokenEntityTest extends EntityTestCase {
   }
 
   @Test
-  public void testPersistence() throws Exception {
+  public void testPersistence() {
     assertThat(ofy().load().entity(redeemedToken).now()).isEqualTo(redeemedToken);
   }
 
   @Test
-  public void testSuccess_loadByToken() throws Exception {
+  public void testSuccess_loadByToken() {
     assertThat(ofy().load().key(Key.create(LrpTokenEntity.class, "a0b1c2d3e4f5g6")).now())
         .isEqualTo(unredeemedToken);
   }
 
   @Test
-  public void testSuccess_loadByAssignee() throws Exception {
+  public void testSuccess_loadByAssignee() {
     assertThat(
             ofy().load().type(LrpTokenEntity.class).filter("assignee", "1:1020304").first().now())
         .isEqualTo(unredeemedToken);
   }
   @Test
-  public void testSuccess_isRedeemed() throws Exception {
+  public void testSuccess_isRedeemed() {
     assertThat(redeemedToken.isRedeemed()).isTrue();
     assertThat(unredeemedToken.isRedeemed()).isFalse();
   }

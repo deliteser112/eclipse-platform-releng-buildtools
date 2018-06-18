@@ -96,7 +96,7 @@ public class WhoisActionTest {
   }
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     createTlds("lol", "xn--q9jyb4c", "1.test");
     inject.setStaticField(Ofy.class, "clock", clock);
 
@@ -106,7 +106,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_badRequest_stillSends200() throws Exception {
+  public void testRun_badRequest_stillSends200() {
     newWhoisAction("\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload()).isEqualTo(loadFile("whois_action_no_command.txt"));
@@ -168,7 +168,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_idnDomain_works() throws Exception {
+  public void testRun_idnDomain_works() {
     Registrar registrar = persistResource(makeRegistrar(
         "evilregistrar", "Yes Virginia", ACTIVE));
     persistResource(makeDomainResource(
@@ -186,7 +186,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_punycodeDomain_works() throws Exception {
+  public void testRun_punycodeDomain_works() {
     Registrar registrar = persistResource(makeRegistrar(
         "evilregistrar", "Yes Virginia", ACTIVE));
     persistResource(makeDomainResource(
@@ -224,7 +224,7 @@ public class WhoisActionTest {
   // todo (b/27378695): reenable or delete this test
   @Ignore
   @Test
-  public void testRun_domainInTestTld_isConsideredNotFound() throws Exception {
+  public void testRun_domainInTestTld_isConsideredNotFound() {
     persistResource(Registry.get("lol").asBuilder().setTldType(Registry.TldType.TEST).build());
     Registrar registrar = persistResource(makeRegistrar(
         "evilregistrar", "Yes Virginia", ACTIVE));
@@ -243,7 +243,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_domainFlaggedAsDeletedInDatastore_isConsideredNotFound() throws Exception {
+  public void testRun_domainFlaggedAsDeletedInDatastore_isConsideredNotFound() {
     Registrar registrar;
     persistResource(makeDomainResource("cat.lol",
         persistResource(
@@ -268,7 +268,7 @@ public class WhoisActionTest {
    * active one is returned.
    */
   @Test
-  public void testRun_domainDeletedThenRecreated_isFound() throws Exception {
+  public void testRun_domainDeletedThenRecreated_isFound() {
     Registrar registrar;
     DomainResource domain1 = persistResource(makeDomainResource("cat.lol",
         persistResource(
@@ -304,7 +304,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_nameserverQuery_works() throws Exception {
+  public void testRun_nameserverQuery_works() {
     persistResource(loadRegistrar("TheRegistrar").asBuilder().setUrl("http://my.fake.url").build());
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     newWhoisAction("nameserver ns1.cat.lol\r\n").run();
@@ -313,7 +313,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_ipv6_displaysInCollapsedReadableFormat() throws Exception {
+  public void testRun_ipv6_displaysInCollapsedReadableFormat() {
     persistResource(makeHostResource("ns1.cat.lol", "bad:f00d:cafe::15:beef"));
     newWhoisAction("nameserver ns1.cat.lol\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
@@ -350,7 +350,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_punycodeNameserver_works() throws Exception {
+  public void testRun_punycodeNameserver_works() {
     persistResource(makeHostResource("ns1.cat.みんな", "1.2.3.4"));
     newWhoisAction("nameserver ns1.cat.xn--q9jyb4c\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
@@ -359,7 +359,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_nameserverNotFound_returns200AndText() throws Exception {
+  public void testRun_nameserverNotFound_returns200AndText() {
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     newWhoisAction("nameserver ns1.cat.lulz\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
@@ -367,7 +367,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_nameserverFlaggedAsDeletedInDatastore_doesntGetLeaked() throws Exception {
+  public void testRun_nameserverFlaggedAsDeletedInDatastore_doesntGetLeaked() {
     persistResource(
         makeHostResource("ns1.cat.lol", "1.2.3.4").asBuilder()
             .setDeletionTime(clock.nowUtc().minusDays(1)).build());
@@ -377,7 +377,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_ipNameserverLookup_works() throws Exception {
+  public void testRun_ipNameserverLookup_works() {
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     newWhoisAction("nameserver 1.2.3.4").run();
     assertThat(response.getStatus()).isEqualTo(200);
@@ -385,7 +385,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_ipMapsToMultipleNameservers_theyAllGetReturned() throws Exception {
+  public void testRun_ipMapsToMultipleNameservers_theyAllGetReturned() {
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     persistResource(makeHostResource("ns2.cat.lol", "1.2.3.4"));
     newWhoisAction("nameserver 1.2.3.4").run();
@@ -395,7 +395,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_ipMapsToMultipleNameserverInDifferentTlds_showsThemAll() throws Exception {
+  public void testRun_ipMapsToMultipleNameserverInDifferentTlds_showsThemAll() {
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     persistResource(
         makeHostResource("ns1.cat.xn--q9jyb4c", "1.2.3.4"));
@@ -406,14 +406,14 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_ipNameserverEntityDoesNotExist_returns200NotFound() throws Exception {
+  public void testRun_ipNameserverEntityDoesNotExist_returns200NotFound() {
     newWhoisAction("nameserver feed:a:bee::acab\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
     assertThat(response.getPayload()).isEqualTo(loadFile("whois_action_ip_not_found.txt"));
   }
 
   @Test
-  public void testRun_ipMapsToNameserverUnderNonAuthoritativeTld_notFound() throws Exception {
+  public void testRun_ipMapsToNameserverUnderNonAuthoritativeTld_notFound() {
     assertThat(getTlds()).doesNotContain("com");
     persistResource(makeHostResource("ns1.google.com", "1.2.3.4"));
     newWhoisAction("nameserver 1.2.3.4").run();
@@ -422,7 +422,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_nameserverUnderNonAuthoritativeTld_notFound() throws Exception {
+  public void testRun_nameserverUnderNonAuthoritativeTld_notFound() {
     assertThat(getTlds()).doesNotContain("com");
     persistResource(makeHostResource("ns1.google.com", "1.2.3.4"));
     newWhoisAction("nameserver ns1.google.com").run();
@@ -433,7 +433,7 @@ public class WhoisActionTest {
   // todo (b/27378695): reenable or delete this test
   @Ignore
   @Test
-  public void testRun_nameserverInTestTld_notFound() throws Exception {
+  public void testRun_nameserverInTestTld_notFound() {
     persistResource(Registry.get("lol").asBuilder().setTldType(Registry.TldType.TEST).build());
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     newWhoisAction("nameserver ns1.cat.lol").run();
@@ -442,7 +442,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_registrarLookup_works() throws Exception {
+  public void testRun_registrarLookup_works() {
     Registrar registrar = persistResource(
         makeRegistrar("example", "Example Registrar, Inc.", ACTIVE));
     persistSimpleResources(makeRegistrarContacts(registrar));
@@ -453,7 +453,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_pdtRegistrarLookup_works() throws Exception {
+  public void testRun_pdtRegistrarLookup_works() {
     Registrar registrar =
         persistResource(
             makeRegistrar("example", "Example Registrar, Inc.", ACTIVE)
@@ -469,7 +469,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_registrarLookupInPendingState_returnsNotFound() throws Exception {
+  public void testRun_registrarLookupInPendingState_returnsNotFound() {
     Registrar registrar = persistResource(
         makeRegistrar("example", "Example Registrar, Inc.", Registrar.State.PENDING));
     persistSimpleResources(makeRegistrarContacts(registrar));
@@ -479,7 +479,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_registrarLookupWithTestType_returnsNotFound() throws Exception {
+  public void testRun_registrarLookupWithTestType_returnsNotFound() {
     Registrar registrar = persistResource(
         makeRegistrar("example", "Example Registrar, Inc.", ACTIVE)
             .asBuilder()
@@ -493,7 +493,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_multilevelDomain_isNotConsideredAHostname() throws Exception {
+  public void testRun_multilevelDomain_isNotConsideredAHostname() {
     Registrar registrar =
         persistResource(makeRegistrar("example", "Example Registrar", ACTIVE));
     persistResource(makeDomainResource("cat.1.test",
@@ -511,7 +511,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_hostnameWithMultilevelTld_isStillConsideredHostname() throws Exception {
+  public void testRun_hostnameWithMultilevelTld_isStillConsideredHostname() {
     persistResource(makeHostResource("ns1.cat.1.test", "1.2.3.4"));
     newWhoisAction("nameserver ns1.cat.1.test\r\n").run();
     assertThat(response.getStatus()).isEqualTo(200);
@@ -520,7 +520,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_metricsLoggedForSuccessfulCommand() throws Exception {
+  public void testRun_metricsLoggedForSuccessfulCommand() {
     persistResource(makeHostResource("ns1.cat.lol", "1.2.3.4"));
     persistResource(makeHostResource("ns2.cat.lol", "1.2.3.4"));
     WhoisAction action = newWhoisAction("nameserver 1.2.3.4");
@@ -536,7 +536,7 @@ public class WhoisActionTest {
   }
 
   @Test
-  public void testRun_metricsLoggedForUnsuccessfulCommand() throws Exception {
+  public void testRun_metricsLoggedForUnsuccessfulCommand() {
     WhoisAction action = newWhoisAction("domain cat.lol\r\n");
     action.whoisMetrics = mock(WhoisMetrics.class);
     action.run();

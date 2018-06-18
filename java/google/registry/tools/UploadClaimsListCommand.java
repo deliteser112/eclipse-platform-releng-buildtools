@@ -51,12 +51,12 @@ final class UploadClaimsListCommand extends ConfirmingCommand implements RemoteA
   }
 
   @Override
-  protected String prompt() throws Exception {
+  protected String prompt() {
     return String.format("\nNew claims list:\n%s", claimsList);
   }
 
   @Override
-  public String execute() throws IOException {
+  public String execute() {
     claimsList.save();
     return String.format("Successfully uploaded claims list %s", claimsListFilename);
   }

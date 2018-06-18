@@ -62,7 +62,7 @@ public class DnsQueueTest {
   }
 
   @Test
-  public void test_addHostRefreshTask_failsOnUnknownTld() throws Exception {
+  public void test_addHostRefreshTask_failsOnUnknownTld() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
@@ -92,7 +92,7 @@ public class DnsQueueTest {
   }
 
   @Test
-  public void test_addDomainRefreshTask_failsOnUnknownTld() throws Exception {
+  public void test_addDomainRefreshTask_failsOnUnknownTld() {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

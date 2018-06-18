@@ -25,7 +25,7 @@ public class DeployInvoicingPipelineCommand implements Command {
   @Inject InvoicingPipeline invoicingPipeline;
 
   @Override
-  public void run() throws Exception {
+  public void run() {
     invoicingPipeline.deploy();
   }
 }

@@ -61,7 +61,7 @@ public class FlowRunnerTest extends ShardableTestCase {
 
   static class TestCommandFlow implements Flow {
     @Override
-    public ResponseOrGreeting run() throws EppException {
+    public ResponseOrGreeting run() {
       return mock(EppResponse.class);
     }
   }

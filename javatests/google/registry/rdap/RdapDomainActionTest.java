@@ -93,7 +93,7 @@ public class RdapDomainActionTest {
   private RdapDomainAction action;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     inject.setStaticField(Ofy.class, "clock", clock);
     // lol
     createTld("lol");
@@ -434,7 +434,7 @@ public class RdapDomainActionTest {
   }
 
   @Test
-  public void testInvalidDomain_returns400() throws Exception {
+  public void testInvalidDomain_returns400() {
     assertJsonEqual(
         generateActualJson("invalid/domain/name"),
         generateExpectedJson(
@@ -447,7 +447,7 @@ public class RdapDomainActionTest {
   }
 
   @Test
-  public void testUnknownDomain_returns400() throws Exception {
+  public void testUnknownDomain_returns400() {
     assertJsonEqual(
         generateActualJson("missingdomain.com"),
         generateExpectedJson(
@@ -460,59 +460,59 @@ public class RdapDomainActionTest {
   }
 
   @Test
-  public void testValidDomain_works() throws Exception {
+  public void testValidDomain_works() {
     login("evilregistrar");
     assertProperResponseForCatLol("cat.lol", "rdap_domain.json");
   }
 
   @Test
-  public void testValidDomain_works_sameRegistrarRequested() throws Exception {
+  public void testValidDomain_works_sameRegistrarRequested() {
     action.registrarParam = Optional.of("evilregistrar");
     login("evilregistrar");
     assertProperResponseForCatLol("cat.lol", "rdap_domain.json");
   }
 
   @Test
-  public void testValidDomain_notFound_differentRegistrarRequested() throws Exception {
+  public void testValidDomain_notFound_differentRegistrarRequested() {
     action.registrarParam = Optional.of("idnregistrar");
     generateActualJson("cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
-  public void testValidDomain_asAdministrator_works() throws Exception {
+  public void testValidDomain_asAdministrator_works() {
     loginAsAdmin();
     assertProperResponseForCatLol("cat.lol", "rdap_domain.json");
   }
 
   @Test
-  public void testValidDomain_notLoggedIn_noContacts() throws Exception {
+  public void testValidDomain_notLoggedIn_noContacts() {
     assertProperResponseForCatLol("cat.lol", "rdap_domain_no_contacts.json");
   }
 
   @Test
-  public void testValidDomain_loggedInAsOtherRegistrar_noContacts() throws Exception {
+  public void testValidDomain_loggedInAsOtherRegistrar_noContacts() {
     login("idnregistrar");
     assertProperResponseForCatLol("cat.lol", "rdap_domain_no_contacts.json");
   }
 
   @Test
-  public void testUpperCase_ignored() throws Exception {
+  public void testUpperCase_ignored() {
     assertProperResponseForCatLol("CaT.lOl", "rdap_domain_no_contacts.json");
   }
 
   @Test
-  public void testTrailingDot_ignored() throws Exception {
+  public void testTrailingDot_ignored() {
     assertProperResponseForCatLol("cat.lol.", "rdap_domain_no_contacts.json");
   }
 
   @Test
-  public void testQueryParameter_ignored() throws Exception {
+  public void testQueryParameter_ignored() {
     assertProperResponseForCatLol("cat.lol?key=value", "rdap_domain_no_contacts.json");
   }
 
   @Test
-  public void testIdnDomain_works() throws Exception {
+  public void testIdnDomain_works() {
     login("idnregistrar");
     assertJsonEqual(
         generateActualJson("cat.みんな"),
@@ -528,7 +528,7 @@ public class RdapDomainActionTest {
   }
 
   @Test
-  public void testIdnDomainWithPercentEncoding_works() throws Exception {
+  public void testIdnDomainWithPercentEncoding_works() {
     login("idnregistrar");
     assertJsonEqual(
         generateActualJson("cat.%E3%81%BF%E3%82%93%E3%81%AA"),
@@ -544,7 +544,7 @@ public class RdapDomainActionTest {
   }
 
   @Test
-  public void testPunycodeDomain_works() throws Exception {
+  public void testPunycodeDomain_works() {
     login("idnregistrar");
     assertJsonEqual(
         generateActualJson("cat.xn--q9jyb4c"),
@@ -560,7 +560,7 @@ public class RdapDomainActionTest {
   }
 
   @Test
-  public void testMultilevelDomain_works() throws Exception {
+  public void testMultilevelDomain_works() {
     login("1tldregistrar");
     assertJsonEqual(
         generateActualJson("cat.1.tld"),
@@ -578,14 +578,14 @@ public class RdapDomainActionTest {
   // todo (b/27378695): reenable or delete this test
   @Ignore
   @Test
-  public void testDomainInTestTld_notFound() throws Exception {
+  public void testDomainInTestTld_notFound() {
     persistResource(Registry.get("lol").asBuilder().setTldType(Registry.TldType.TEST).build());
     generateActualJson("cat.lol");
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
-  public void testDeletedDomain_notFound() throws Exception {
+  public void testDeletedDomain_notFound() {
     assertJsonEqual(
         generateActualJson("dodo.lol"),
         generateExpectedJson("dodo.lol not found", null, "1", "rdap_error_404.json"));
@@ -593,21 +593,21 @@ public class RdapDomainActionTest {
   }
 
   @Test
-  public void testDeletedDomain_notFound_includeDeletedSetFalse() throws Exception {
+  public void testDeletedDomain_notFound_includeDeletedSetFalse() {
     action.includeDeletedParam = Optional.of(true);
     generateActualJson("dodo.lol");
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
-  public void testDeletedDomain_notFound_notLoggedIn() throws Exception {
+  public void testDeletedDomain_notFound_notLoggedIn() {
     action.includeDeletedParam = Optional.of(true);
     generateActualJson("dodo.lol");
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
-  public void testDeletedDomain_notFound_loggedInAsDifferentRegistrar() throws Exception {
+  public void testDeletedDomain_notFound_loggedInAsDifferentRegistrar() {
     login("1tldregistrar");
     action.includeDeletedParam = Optional.of(true);
     generateActualJson("dodo.lol");
@@ -615,7 +615,7 @@ public class RdapDomainActionTest {
   }
 
   @Test
-  public void testDeletedDomain_works_loggedInAsCorrectRegistrar() throws Exception {
+  public void testDeletedDomain_works_loggedInAsCorrectRegistrar() {
     login("evilregistrar");
     action.includeDeletedParam = Optional.of(true);
     assertJsonEqual(
@@ -633,7 +633,7 @@ public class RdapDomainActionTest {
   }
 
   @Test
-  public void testDeletedDomain_works_loggedInAsAdmin() throws Exception {
+  public void testDeletedDomain_works_loggedInAsAdmin() {
     loginAsAdmin();
     action.includeDeletedParam = Optional.of(true);
     assertJsonEqual(
@@ -651,7 +651,7 @@ public class RdapDomainActionTest {
   }
 
   @Test
-  public void testMetrics() throws Exception {
+  public void testMetrics() {
     generateActualJson("cat.lol");
     verify(rdapMetrics)
         .updateMetrics(

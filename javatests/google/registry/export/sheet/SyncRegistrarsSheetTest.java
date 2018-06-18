@@ -74,7 +74,7 @@ public class SyncRegistrarsSheetTest {
   }
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     inject.setStaticField(Ofy.class, "clock", clock);
     createTld("example");
     // Remove Registrar entities created by AppEngineRule.
@@ -82,12 +82,12 @@ public class SyncRegistrarsSheetTest {
   }
 
   @Test
-  public void test_wereRegistrarsModified_noRegistrars_returnsFalse() throws Exception {
+  public void test_wereRegistrarsModified_noRegistrars_returnsFalse() {
     assertThat(newSyncRegistrarsSheet().wereRegistrarsModified()).isFalse();
   }
 
   @Test
-  public void test_wereRegistrarsModified_atDifferentCursorTimes() throws Exception {
+  public void test_wereRegistrarsModified_atDifferentCursorTimes() {
     persistNewRegistrar("SomeRegistrar", "Some Registrar Inc.", Registrar.Type.REAL, 8L);
     persistResource(Cursor.createGlobal(SYNC_REGISTRAR_SHEET, clock.nowUtc().minusHours(1)));
     assertThat(newSyncRegistrarsSheet().wereRegistrarsModified()).isTrue();

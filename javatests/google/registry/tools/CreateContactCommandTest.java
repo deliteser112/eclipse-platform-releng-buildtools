@@ -59,12 +59,12 @@ public class CreateContactCommandTest extends EppToolCommandTestCase<CreateConta
   }
 
   @Test
-  public void testFailure_missingClientId() throws Exception {
+  public void testFailure_missingClientId() {
     assertThrows(ParameterException.class, this::runCommandForced);
   }
 
   @Test
-  public void testFailure_tooManyStreetLines() throws Exception {
+  public void testFailure_tooManyStreetLines() {
     assertThrows(
         IllegalArgumentException.class,
         () ->
@@ -77,13 +77,13 @@ public class CreateContactCommandTest extends EppToolCommandTestCase<CreateConta
   }
 
   @Test
-  public void testFailure_badPhone() throws Exception {
+  public void testFailure_badPhone() {
     assertThrows(
         ParameterException.class, () -> runCommandForced("--client=NewRegistrar", "--phone=3"));
   }
 
   @Test
-  public void testFailure_badFax() throws Exception {
+  public void testFailure_badFax() {
     assertThrows(
         ParameterException.class, () -> runCommandForced("--client=NewRegistrar", "--fax=3"));
   }

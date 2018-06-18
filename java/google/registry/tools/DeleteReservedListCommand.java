@@ -36,7 +36,7 @@ final class DeleteReservedListCommand extends MutatingCommand {
   private String name;
 
   @Override
-  protected void init() throws Exception {
+  protected void init() {
     checkArgument(
         ReservedList.get(name).isPresent(),
         "Cannot delete the reserved list %s because it doesn't exist.",

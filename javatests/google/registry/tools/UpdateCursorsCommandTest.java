@@ -110,14 +110,14 @@ public class UpdateCursorsCommandTest extends CommandTestCase<UpdateCursorsComma
   }
 
   @Test
-  public void testFailure_badTld() throws Exception {
+  public void testFailure_badTld() {
     assertThrows(
         RegistryNotFoundException.class,
         () -> runCommandForced("--type=brda", "--timestamp=1984-12-18T00:00:00Z", "bar"));
   }
 
   @Test
-  public void testFailure_badCursorType() throws Exception {
+  public void testFailure_badCursorType() {
     ParameterException thrown =
         assertThrows(
             ParameterException.class,

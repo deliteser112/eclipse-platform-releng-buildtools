@@ -59,28 +59,28 @@ public class DeleteDomainCommandTest extends EppToolCommandTestCase<DeleteDomain
   }
 
   @Test
-  public void testFailure_noReason() throws Exception {
+  public void testFailure_noReason() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--client=NewRegistrar", "--domain_name=example.tld", "--force"));
   }
 
   @Test
-  public void testFailure_missingClientId() throws Exception {
+  public void testFailure_missingClientId() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--domain_name=example.tld", "--force", "--reason=Test"));
   }
 
   @Test
-  public void testFailure_missingDomainName() throws Exception {
+  public void testFailure_missingDomainName() {
     assertThrows(
         ParameterException.class,
         () -> runCommand("--client=NewRegistrar", "--force", "--reason=Test"));
   }
 
   @Test
-  public void testFailure_unknownFlag() throws Exception {
+  public void testFailure_unknownFlag() {
     assertThrows(
         ParameterException.class,
         () ->
@@ -93,7 +93,7 @@ public class DeleteDomainCommandTest extends EppToolCommandTestCase<DeleteDomain
   }
 
   @Test
-  public void testFailure_mainParameter() throws Exception {
+  public void testFailure_mainParameter() {
     assertThrows(
         ParameterException.class,
         () ->

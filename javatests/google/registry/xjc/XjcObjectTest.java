@@ -88,7 +88,7 @@ public class XjcObjectTest {
   }
 
   @Test
-  public void testUnmarshalValidation() throws Exception {
+  public void testUnmarshalValidation() {
     Throwable thrown =
         assertThrows(
             Throwable.class,

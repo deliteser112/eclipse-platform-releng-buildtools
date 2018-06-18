@@ -116,7 +116,7 @@ public class PosixTarHeaderTest {
   }
 
   @Test
-  public void testFields() throws Exception {
+  public void testFields() {
     PosixTarHeader header = new PosixTarHeader.Builder()
         .setType(PosixTarHeader.Type.REGULAR)
         .setName("(◕‿◕).txt")
@@ -142,7 +142,7 @@ public class PosixTarHeaderTest {
   }
 
   @Test
-  public void testFieldsSomeMoar() throws Exception {
+  public void testFieldsSomeMoar() {
     PosixTarHeader header = new PosixTarHeader.Builder()
         .setType(PosixTarHeader.Type.DIRECTORY)
         .setName("Black lung full of fumes, choke on memories")
@@ -166,7 +166,7 @@ public class PosixTarHeaderTest {
   }
 
   @Test
-  public void testLoad() throws Exception {
+  public void testLoad() {
     PosixTarHeader header = new PosixTarHeader.Builder()
         .setType(PosixTarHeader.Type.REGULAR)
         .setName("(◕‿◕).txt")
@@ -193,7 +193,7 @@ public class PosixTarHeaderTest {
   }
 
   @Test
-  public void testBadChecksum() throws Exception {
+  public void testBadChecksum() {
     PosixTarHeader header = new PosixTarHeader.Builder()
         .setName("(◕‿◕).txt")
         .setSize(31337)
@@ -207,7 +207,7 @@ public class PosixTarHeaderTest {
   }
 
   @Test
-  public void testHashEquals() throws Exception {
+  public void testHashEquals() {
     new EqualsTester()
         .addEqualityGroup(
             new PosixTarHeader.Builder()

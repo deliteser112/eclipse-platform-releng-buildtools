@@ -35,7 +35,7 @@ public class CreateReservedListCommandTest extends
     CreateOrUpdateReservedListCommandTestCase<CreateReservedListCommand> {
 
   @Before
-  public void initTest() throws Exception {
+  public void initTest() {
     createTlds("xn--q9jyb4c", "soy");
   }
 
@@ -87,7 +87,7 @@ public class CreateReservedListCommandTest extends
   }
 
   @Test
-  public void testFailure_reservedListWithThatNameAlreadyExists() throws Exception {
+  public void testFailure_reservedListWithThatNameAlreadyExists() {
     ReservedList rl = persistReservedList("xn--q9jyb4c_foo", "jones,FULLY_BLOCKED");
     persistResource(Registry.get("xn--q9jyb4c").asBuilder().setReservedLists(rl).build());
     IllegalArgumentException thrown =
@@ -173,7 +173,7 @@ public class CreateReservedListCommandTest extends
     runNameTestExpectedFailure("soy_$oy", INVALID_FORMAT_ERROR_MESSAGE);
   }
 
-  private void runNameTestExpectedFailure(String name, String expectedErrorMsg) throws Exception {
+  private void runNameTestExpectedFailure(String name, String expectedErrorMsg) {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,

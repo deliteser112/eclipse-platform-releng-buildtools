@@ -44,7 +44,7 @@ public class DeleteReservedListCommandTest extends CommandTestCase<DeleteReserve
   }
 
   @Test
-  public void testFailure_whenReservedListDoesNotExist() throws Exception {
+  public void testFailure_whenReservedListDoesNotExist() {
     String expectedError =
         "Cannot delete the reserved list doesntExistReservedList because it doesn't exist.";
     IllegalArgumentException thrown =
@@ -55,7 +55,7 @@ public class DeleteReservedListCommandTest extends CommandTestCase<DeleteReserve
   }
 
   @Test
-  public void testFailure_whenReservedListIsInUse() throws Exception {
+  public void testFailure_whenReservedListIsInUse() {
     createTld("xn--q9jyb4c");
     persistResource(Registry.get("xn--q9jyb4c").asBuilder().setReservedLists(reservedList).build());
     IllegalArgumentException thrown =

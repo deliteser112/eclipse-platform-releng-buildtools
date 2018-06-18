@@ -378,7 +378,7 @@ public class RdeUploadActionTest {
   }
 
   @Test
-  public void testRunWithLock_stagingNotFinished_throws503() throws Exception {
+  public void testRunWithLock_stagingNotFinished_throws503() {
     DateTime stagingCursor = DateTime.parse("2010-10-17TZ");
     DateTime uploadCursor = DateTime.parse("2010-10-17TZ");
     persistResource(

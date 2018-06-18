@@ -68,14 +68,14 @@ public class LordnTaskTest {
   public final InjectRule inject = new InjectRule();
 
   @Before
-  public void before() throws Exception {
+  public void before() {
     createTld("example");
     inject.setStaticField(Ofy.class, "clock", clock);
     inject.setStaticField(LordnTask.class, "backOffMillis", 1L);
   }
 
   @Test
-  public void test_convertTasksToCsv() throws Exception {
+  public void test_convertTasksToCsv() {
     List<TaskHandle> tasks = ImmutableList.of(
         makeTaskHandle("task1", "example", "csvLine1", "lordn-sunrise"),
         makeTaskHandle("task2", "example", "csvLine2", "lordn-sunrise"),
@@ -85,14 +85,14 @@ public class LordnTaskTest {
   }
 
   @Test
-  public void test_convertTasksToCsv_doesntFailOnEmptyTasks() throws Exception {
+  public void test_convertTasksToCsv_doesntFailOnEmptyTasks() {
     assertThat(
         LordnTask.convertTasksToCsv(ImmutableList.of(), clock.nowUtc(), "col1,col2"))
             .isEqualTo("1,2010-05-01T10:11:12.000Z,0\ncol1,col2\n");
   }
 
   @Test
-  public void test_convertTasksToCsv_throwsNpeOnNullTasks() throws Exception {
+  public void test_convertTasksToCsv_throwsNpeOnNullTasks() {
     assertThrows(
         NullPointerException.class,
         () -> LordnTask.convertTasksToCsv(null, clock.nowUtc(), "header"));
@@ -156,7 +156,7 @@ public class LordnTaskTest {
   }
 
   @Test
-  public void test_enqueueDomainResourceTask_throwsExceptionOnInvalidRegistrar() throws Exception {
+  public void test_enqueueDomainResourceTask_throwsExceptionOnInvalidRegistrar() {
     DateTime time = DateTime.parse("2010-05-01T10:11:12Z");
     DomainResource domain =
         newDomainBuilder(time)
@@ -171,7 +171,7 @@ public class LordnTaskTest {
   }
 
   @Test
-  public void test_enqueueDomainResourceTask_throwsNpeOnNullDomain() throws Exception {
+  public void test_enqueueDomainResourceTask_throwsNpeOnNullDomain() {
     assertThrows(
         NullPointerException.class,
         () ->
@@ -187,7 +187,7 @@ public class LordnTaskTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void test_loadAllTasks_retryLogic_thirdTrysTheCharm() throws Exception {
+  public void test_loadAllTasks_retryLogic_thirdTrysTheCharm() {
     Queue queue = mock(Queue.class);
     TaskHandle task = new TaskHandle(TaskOptions.Builder.withTaskName("blah"), "blah");
     when(queue.leaseTasks(any(LeaseOptions.class)))
@@ -199,7 +199,7 @@ public class LordnTaskTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void test_loadAllTasks_retryLogic_allFailures() throws Exception {
+  public void test_loadAllTasks_retryLogic_allFailures() {
     Queue queue = mock(Queue.class);
     when(queue.leaseTasks(any(LeaseOptions.class))).thenThrow(TransientFailureException.class);
     RuntimeException thrown =
