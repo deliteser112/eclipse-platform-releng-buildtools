@@ -129,19 +129,19 @@ public class HostDeleteFlowTest extends ResourceFlowTestCase<HostDeleteFlow, Hos
   }
 
   @Test
-  public void testFailure_existedButWasClientDeleteProhibited() throws Exception {
+  public void testFailure_existedButWasClientDeleteProhibited() {
     doFailingStatusTest(
         StatusValue.CLIENT_DELETE_PROHIBITED, ResourceStatusProhibitsOperationException.class);
   }
 
   @Test
-  public void testFailure_existedButWasServerDeleteProhibited() throws Exception {
+  public void testFailure_existedButWasServerDeleteProhibited() {
     doFailingStatusTest(
         StatusValue.SERVER_DELETE_PROHIBITED, ResourceStatusProhibitsOperationException.class);
   }
 
   @Test
-  public void testFailure_existedButWasPendingDelete() throws Exception {
+  public void testFailure_existedButWasPendingDelete() {
     doFailingStatusTest(
         StatusValue.PENDING_DELETE, ResourceStatusProhibitsOperationException.class);
   }

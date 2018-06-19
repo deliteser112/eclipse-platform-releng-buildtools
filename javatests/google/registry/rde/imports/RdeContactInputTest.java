@@ -213,7 +213,7 @@ public class RdeContactInputTest {
       Optional<Integer> numberOfShards,
       int whichReader,
       int expectedOffset,
-      int expectedMaxResults) throws Exception {
+      int expectedMaxResults) {
     RdeContactInput input = getInput(numberOfShards);
     List<?> readers = input.createReaders();
     RdeContactReader reader = (RdeContactReader) readers.get(whichReader);
@@ -238,7 +238,7 @@ public class RdeContactInputTest {
    * @param expectedNumberOfReaders Expected size of the list returned
    */
   private void assertNumberOfReaders(Optional<Integer> numberOfShards,
-      int expectedNumberOfReaders) throws Exception {
+      int expectedNumberOfReaders) {
     RdeContactInput input = getInput(numberOfShards);
     List<?> readers = input.createReaders();
     assertThat(readers).hasSize(expectedNumberOfReaders);

@@ -41,7 +41,7 @@ public class ContactTransferQueryFlowTest
     extends ContactTransferFlowTestCase<ContactTransferQueryFlow, ContactResource> {
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     setEppInput("contact_transfer_query.xml");
     clock.setTo(DateTime.parse("2000-06-10T22:00:00.0Z"));
     setClientIdForFlow("NewRegistrar");

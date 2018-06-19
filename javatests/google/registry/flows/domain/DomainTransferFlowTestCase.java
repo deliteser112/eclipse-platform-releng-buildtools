@@ -220,7 +220,7 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
   }
 
   /** Adds a domain that has a pending transfer on it from TheRegistrar to NewRegistrar. */
-  protected void setupDomainWithPendingTransfer(String label, String tld) throws Exception {
+  protected void setupDomainWithPendingTransfer(String label, String tld) {
     setupDomain(label, tld);
     domain = persistWithPendingTransfer(domain);
   }

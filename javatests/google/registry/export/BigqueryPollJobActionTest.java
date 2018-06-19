@@ -102,7 +102,7 @@ public class BigqueryPollJobActionTest {
   }
 
   @Test
-  public void testSuccess_enqueuePollTask() throws Exception {
+  public void testSuccess_enqueuePollTask() {
     new BigqueryPollJobEnqueuer(TASK_QUEUE_UTILS).enqueuePollTask(
         new JobReference().setProjectId(PROJECT_ID).setJobId(JOB_ID));
     assertTasksEnqueued(BigqueryPollJobAction.QUEUE, newPollJobTaskMatcher("GET"));

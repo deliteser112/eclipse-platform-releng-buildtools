@@ -70,7 +70,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testFailure_updateRegistrarInfo_duplicateContacts() throws Exception {
+  public void testFailure_updateRegistrarInfo_duplicateContacts() {
     Map<String, Object> response = action.handleJsonRequest(
         readJsonFromFile("update_registrar_duplicate_contacts.json", getLastUpdateTime()));
     assertThat(response).containsExactly(
@@ -82,7 +82,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testRead_notAuthorized_failure() throws Exception {
+  public void testRead_notAuthorized_failure() {
     when(sessionUtils.getRegistrarForAuthResult(
             any(HttpServletRequest.class), any(AuthResult.class)))
         .thenThrow(new ForbiddenException("Not authorized to access Registrar Console"));
@@ -103,7 +103,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_emptyJsonObject_errorLastUpdateTimeFieldRequired() throws Exception {
+  public void testUpdate_emptyJsonObject_errorLastUpdateTimeFieldRequired() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "args", ImmutableMap.of()));
@@ -116,7 +116,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_noEmail_errorEmailFieldRequired() throws Exception {
+  public void testUpdate_noEmail_errorEmailFieldRequired() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "args", ImmutableMap.of("lastUpdateTime", getLastUpdateTime())));
@@ -142,7 +142,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testUpdate_badEmail_errorEmailField() throws Exception {
+  public void testUpdate_badEmail_errorEmailField() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "args", ImmutableMap.of(
@@ -157,7 +157,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testPost_nonParsableTime_getsAngry() throws Exception {
+  public void testPost_nonParsableTime_getsAngry() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "args", ImmutableMap.of("lastUpdateTime", "cookies")));
@@ -170,7 +170,7 @@ public class RegistrarSettingsActionTest extends RegistrarSettingsActionTestCase
   }
 
   @Test
-  public void testPost_nonAsciiCharacters_getsAngry() throws Exception {
+  public void testPost_nonAsciiCharacters_getsAngry() {
     Map<String, Object> response = action.handleJsonRequest(ImmutableMap.of(
         "op", "update",
         "args", ImmutableMap.of(

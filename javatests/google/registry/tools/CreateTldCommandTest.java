@@ -514,7 +514,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_setReservedListFromOtherTld() throws Exception {
+  public void testFailure_setReservedListFromOtherTld() {
     runFailureReservedListsTest(
         "tld_banned",
         IllegalArgumentException.class,
@@ -527,7 +527,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_setCommonAndReservedListFromOtherTld() throws Exception {
+  public void testFailure_setCommonAndReservedListFromOtherTld() {
     runFailureReservedListsTest(
         "common_abuse,tld_banned",
         IllegalArgumentException.class,
@@ -547,7 +547,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_setMultipleReservedListsFromOtherTld() throws Exception {
+  public void testFailure_setMultipleReservedListsFromOtherTld() {
     runFailureReservedListsTest(
         "tld_banned,soy_expurgated",
         IllegalArgumentException.class,
@@ -560,7 +560,7 @@ public class CreateTldCommandTest extends CommandTestCase<CreateTldCommand> {
   }
 
   @Test
-  public void testFailure_setNonExistentReservedLists() throws Exception {
+  public void testFailure_setNonExistentReservedLists() {
     runFailureReservedListsTest(
         "xn--q9jyb4c_asdf,common_asdsdgh",
         IllegalArgumentException.class,

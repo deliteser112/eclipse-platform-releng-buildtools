@@ -202,14 +202,12 @@ public class TaskQueueHelper {
   }
 
   /** Ensures that the tasks in the named queue are exactly those with the expected names. */
-  public static void assertTasksEnqueued(String queueName, String... expectedTaskNames)
-      throws Exception {
+  public static void assertTasksEnqueued(String queueName, String... expectedTaskNames) {
     Function<TaskStateInfo, String> nameGetter = TaskStateInfo::getTaskName;
     assertTasksEnqueuedWithProperty(queueName, nameGetter, expectedTaskNames);
   }
 
-  public static void assertTasksEnqueued(String queueName, Iterable<TaskStateInfo> taskStateInfos)
-      throws Exception {
+  public static void assertTasksEnqueued(String queueName, Iterable<TaskStateInfo> taskStateInfos) {
     ImmutableList.Builder<TaskMatcher> taskMatchers = new ImmutableList.Builder<>();
     for (TaskStateInfo taskStateInfo : taskStateInfos) {
       taskMatchers.add(new TaskMatcher(taskStateInfo));
@@ -221,8 +219,7 @@ public class TaskQueueHelper {
    * Ensures that the only tasks in the named queue are exactly those that match the expected
    * matchers.
    */
-  public static void assertTasksEnqueued(String queueName, TaskMatcher... taskMatchers)
-      throws Exception {
+  public static void assertTasksEnqueued(String queueName, TaskMatcher... taskMatchers) {
     assertTasksEnqueued(queueName, Arrays.asList(taskMatchers));
   }
 
@@ -290,7 +287,7 @@ public class TaskQueueHelper {
   }
 
   /** Ensures that the DNS queue tasks are exactly those for the expected target names. */
-  public static void assertDnsTasksEnqueued(String... expectedTaskTargetNames) throws Exception {
+  public static void assertDnsTasksEnqueued(String... expectedTaskTargetNames) {
     assertTasksEnqueuedWithProperty(
         DnsConstants.DNS_PULL_QUEUE_NAME,
         taskStateInfo -> getParamFromTaskInfo(taskStateInfo, DnsConstants.DNS_TARGET_NAME_PARAM),
@@ -298,7 +295,7 @@ public class TaskQueueHelper {
   }
 
   /** Ensures that the DNS queue does not contain any tasks. */
-  public static void assertNoDnsTasksEnqueued() throws Exception {
+  public static void assertNoDnsTasksEnqueued() {
     assertNoTasksEnqueued(DnsConstants.DNS_PULL_QUEUE_NAME);
   }
 

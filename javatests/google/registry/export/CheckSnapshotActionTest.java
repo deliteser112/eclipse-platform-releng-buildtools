@@ -93,8 +93,7 @@ public class CheckSnapshotActionTest {
     when(backupService.findByName("some_backup")).thenReturn(backupInfo);
   }
 
-  private static void assertLoadTaskEnqueued(String id, String file, String kinds)
-      throws Exception {
+  private static void assertLoadTaskEnqueued(String id, String file, String kinds) {
     assertTasksEnqueued(
         "export-snapshot",
         new TaskMatcher()
@@ -106,7 +105,7 @@ public class CheckSnapshotActionTest {
   }
 
   @Test
-  public void testSuccess_enqueuePollTask() throws Exception {
+  public void testSuccess_enqueuePollTask() {
     CheckSnapshotAction.enqueuePollTask(
         "some_snapshot_name", ImmutableSet.of("one", "two", "three"));
     assertTasksEnqueued(
@@ -147,7 +146,7 @@ public class CheckSnapshotActionTest {
   }
 
   @Test
-  public void testPost_forCompleteBackup_enqueuesLoadTask() throws Exception {
+  public void testPost_forCompleteBackup_enqueuesLoadTask() {
 
     action.run();
     assertLoadTaskEnqueued(
@@ -155,7 +154,7 @@ public class CheckSnapshotActionTest {
   }
 
   @Test
-  public void testPost_forCompleteAutoBackup_enqueuesLoadTask_usingBackupName() throws Exception {
+  public void testPost_forCompleteAutoBackup_enqueuesLoadTask_usingBackupName() {
     action.snapshotName = "auto_snapshot_somestring";
     when(backupService.findByName("auto_snapshot_somestring")).thenReturn(backupInfo);
 
@@ -165,7 +164,7 @@ public class CheckSnapshotActionTest {
   }
 
   @Test
-  public void testPost_forCompleteBackup_withExtraKindsToLoad_enqueuesLoadTask() throws Exception {
+  public void testPost_forCompleteBackup_withExtraKindsToLoad_enqueuesLoadTask() {
     action.kindsToLoadParam = "one,foo";
 
     action.run();
@@ -174,7 +173,7 @@ public class CheckSnapshotActionTest {
   }
 
   @Test
-  public void testPost_forCompleteBackup_withEmptyKindsToLoad_skipsLoadTask() throws Exception {
+  public void testPost_forCompleteBackup_withEmptyKindsToLoad_skipsLoadTask() {
     action.kindsToLoadParam = "";
 
     action.run();

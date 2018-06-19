@@ -84,7 +84,7 @@ public class UpdateSnapshotViewActionTest {
   }
 
   @Test
-  public void testSuccess_createViewUpdateTask() throws Exception {
+  public void testSuccess_createViewUpdateTask() {
     getQueue(QUEUE).add(createViewUpdateTask("some_dataset", "12345_fookind", "fookind"));
     assertTasksEnqueued(QUEUE,
         new TaskMatcher()

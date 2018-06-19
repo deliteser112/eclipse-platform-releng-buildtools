@@ -88,28 +88,28 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
   }
 
   @Test
-  public void testFailure_incorrectClientCertificateHash() throws Exception {
+  public void testFailure_incorrectClientCertificateHash() {
     persistResource(getRegistrarBuilder().build());
     credentials = new TlsCredentials(BAD_CERT, GOOD_IP, "goo.example");
     doFailingTest("login_valid.xml", BadRegistrarCertificateException.class);
   }
 
   @Test
-  public void testFailure_missingClientCertificateHash() throws Exception {
+  public void testFailure_missingClientCertificateHash() {
     persistResource(getRegistrarBuilder().build());
     credentials = new TlsCredentials(null, GOOD_IP, "goo.example");
     doFailingTest("login_valid.xml", MissingRegistrarCertificateException.class);
   }
 
   @Test
-  public void testFailure_noSniAndCertRequired() throws Exception {
+  public void testFailure_noSniAndCertRequired() {
     persistResource(getRegistrarBuilder().build());
     credentials = new TlsCredentials(null, GOOD_IP, null);
     doFailingTest("login_valid.xml", NoSniException.class);
   }
 
   @Test
-  public void testFailure_missingClientIpAddress() throws Exception {
+  public void testFailure_missingClientIpAddress() {
     persistResource(
         getRegistrarBuilder()
             .setIpAddressWhitelist(ImmutableList.of(
@@ -121,7 +121,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
   }
 
   @Test
-  public void testFailure_incorrectClientIpv4Address() throws Exception {
+  public void testFailure_incorrectClientIpv4Address() {
     persistResource(
         getRegistrarBuilder()
             .setIpAddressWhitelist(ImmutableList.of(
@@ -133,7 +133,7 @@ public class LoginFlowViaTlsTest extends LoginFlowTestCase {
   }
 
   @Test
-  public void testFailure_incorrectClientIpv6Address() throws Exception {
+  public void testFailure_incorrectClientIpv6Address() {
     persistResource(
         getRegistrarBuilder()
             .setIpAddressWhitelist(ImmutableList.of(

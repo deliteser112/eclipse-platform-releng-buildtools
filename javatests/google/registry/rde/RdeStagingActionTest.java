@@ -187,14 +187,14 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testRun_noTlds_returns204() throws Exception {
+  public void testRun_noTlds_returns204() {
     action.run();
     assertThat(response.getStatus()).isEqualTo(204);
     assertNoTasksEnqueued("mapreduce");
   }
 
   @Test
-  public void testRun_tldWithoutEscrowEnabled_returns204() throws Exception {
+  public void testRun_tldWithoutEscrowEnabled_returns204() {
     createTld("lol");
     persistResource(Registry.get("lol").asBuilder().setEscrowEnabled(false).build());
     clock.setTo(DateTime.parse("2000-01-01TZ"));
@@ -204,7 +204,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testRun_tldWithEscrowEnabled_runsMapReduce() throws Exception {
+  public void testRun_tldWithEscrowEnabled_runsMapReduce() {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.run();
@@ -214,7 +214,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testRun_withinTransactionCooldown_getsExcludedAndReturns204() throws Exception {
+  public void testRun_withinTransactionCooldown_getsExcludedAndReturns204() {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01T00:04:59Z"));
     action.transactionCooldown = Duration.standardMinutes(5);
@@ -224,7 +224,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testRun_afterTransactionCooldown_runsMapReduce() throws Exception {
+  public void testRun_afterTransactionCooldown_runsMapReduce() {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01T00:05:00Z"));
     action.transactionCooldown = Duration.standardMinutes(5);
@@ -306,7 +306,7 @@ public class RdeStagingActionTest extends MapreduceTestCase<RdeStagingAction> {
   }
 
   @Test
-  public void testManualRun_validParameters_runsMapReduce() throws Exception {
+  public void testManualRun_validParameters_runsMapReduce() {
     createTldWithEscrowEnabled("lol");
     clock.setTo(DateTime.parse("2000-01-01TZ"));
     action.manual = true;

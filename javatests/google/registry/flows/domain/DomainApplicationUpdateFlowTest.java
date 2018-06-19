@@ -111,7 +111,7 @@ public class DomainApplicationUpdateFlowTest
     unusedContact = persistActiveContact("unused");
   }
 
-  private DomainApplication persistApplication() throws Exception {
+  private DomainApplication persistApplication() {
     return persistResource(
         newApplicationBuilder()
             .setContacts(
@@ -129,7 +129,7 @@ public class DomainApplicationUpdateFlowTest
     return newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD");
   }
 
-  private DomainApplication persistNewApplication() throws Exception {
+  private DomainApplication persistNewApplication() {
     return persistResource(newApplicationBuilder().build());
   }
 
@@ -360,7 +360,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   private void doSecDnsFailingTest(
-      Class<? extends EppException> expectedException, String xmlFilename) throws Exception {
+      Class<? extends EppException> expectedException, String xmlFilename) {
     setEppInput(xmlFilename);
     persistReferencedEntities();
     persistNewApplication();
@@ -369,30 +369,30 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_secDnsAllCannotBeFalse() throws Exception {
+  public void testFailure_secDnsAllCannotBeFalse() {
     doSecDnsFailingTest(
         SecDnsAllUsageException.class, "domain_update_sunrise_dsdata_rem_all_false.xml");
   }
 
   @Test
-  public void testFailure_secDnsEmptyNotAllowed() throws Exception {
+  public void testFailure_secDnsEmptyNotAllowed() {
     doSecDnsFailingTest(EmptySecDnsUpdateException.class, "domain_update_sunrise_dsdata_empty.xml");
   }
 
   @Test
-  public void testFailure_secDnsUrgentNotSupported() throws Exception {
+  public void testFailure_secDnsUrgentNotSupported() {
     doSecDnsFailingTest(
         UrgentAttributeNotSupportedException.class, "domain_update_sunrise_dsdata_urgent.xml");
   }
 
   @Test
-  public void testFailure_secDnsChangeNotSupported() throws Exception {
+  public void testFailure_secDnsChangeNotSupported() {
     doSecDnsFailingTest(
         MaxSigLifeChangeNotSupportedException.class, "domain_update_sunrise_maxsiglife.xml");
   }
 
   @Test
-  public void testFailure_secDnsTooManyDsRecords() throws Exception {
+  public void testFailure_secDnsTooManyDsRecords() {
     ImmutableSet.Builder<DelegationSignerData> builder = new ImmutableSet.Builder<>();
     for (int i = 0; i < 8; ++i) {
       builder.add(DelegationSignerData.create(i, 2, 3, new byte[] {0, 1, 2}));
@@ -437,7 +437,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_applicationDomainNameMismatch() throws Exception {
+  public void testFailure_applicationDomainNameMismatch() {
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setFullyQualifiedDomainName("something.tld").build());
     EppException thrown = assertThrows(ApplicationDomainNameMismatchException.class, this::runFlow);
@@ -462,7 +462,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_clientUpdateProhibited() throws Exception {
+  public void testFailure_clientUpdateProhibited() {
     setEppInput("domain_update_sunrise_authinfo.xml");
     persistReferencedEntities();
     persistResource(
@@ -475,7 +475,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_serverUpdateProhibited() throws Exception {
+  public void testFailure_serverUpdateProhibited() {
     persistReferencedEntities();
     persistResource(
         newApplicationBuilder()
@@ -486,7 +486,7 @@ public class DomainApplicationUpdateFlowTest
     assertThat(thrown).hasMessageThat().contains("serverUpdateProhibited");
   }
 
-  private void doIllegalApplicationStatusTest(ApplicationStatus status) throws Exception {
+  private void doIllegalApplicationStatusTest(ApplicationStatus status) {
     persistReferencedEntities();
     persistResource(newApplicationBuilder().setApplicationStatus(status).build());
     EppException thrown =
@@ -495,22 +495,22 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_allocatedApplicationStatus() throws Exception {
+  public void testFailure_allocatedApplicationStatus() {
     doIllegalApplicationStatusTest(ApplicationStatus.ALLOCATED);
   }
 
   @Test
-  public void testFailure_invalidApplicationStatus() throws Exception {
+  public void testFailure_invalidApplicationStatus() {
     doIllegalApplicationStatusTest(ApplicationStatus.INVALID);
   }
 
   @Test
-  public void testFailure_rejectedApplicationStatus() throws Exception {
+  public void testFailure_rejectedApplicationStatus() {
     doIllegalApplicationStatusTest(ApplicationStatus.REJECTED);
   }
 
   @Test
-  public void testFailure_missingHost() throws Exception {
+  public void testFailure_missingHost() {
     persistActiveHost("ns1.example.tld");
     persistActiveContact("sh8013");
     persistActiveContact("mak21");
@@ -521,7 +521,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_missingContact() throws Exception {
+  public void testFailure_missingContact() {
     persistActiveHost("ns1.example.tld");
     persistActiveHost("ns2.example.tld");
     persistActiveContact("mak21");
@@ -553,7 +553,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_clientProhibitedStatusValue() throws Exception {
+  public void testFailure_clientProhibitedStatusValue() {
     setEppInput("domain_update_sunrise_prohibited_status.xml");
     persistReferencedEntities();
     persistNewApplication();
@@ -572,7 +572,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_duplicateContactInCommand() throws Exception {
+  public void testFailure_duplicateContactInCommand() {
     setEppInput("domain_update_sunrise_duplicate_contact.xml");
     persistReferencedEntities();
     persistNewApplication();
@@ -581,7 +581,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_missingContactType() throws Exception {
+  public void testFailure_missingContactType() {
     setEppInput("domain_update_sunrise_missing_contact_type.xml");
     persistReferencedEntities();
     persistNewApplication();
@@ -591,7 +591,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_unauthorizedClient() throws Exception {
+  public void testFailure_unauthorizedClient() {
     sessionMetadata.setClientId("NewRegistrar");
     persistReferencedEntities();
     persistApplication();
@@ -610,7 +610,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_notAuthorizedForTld() throws Exception {
+  public void testFailure_notAuthorizedForTld() {
     persistResource(
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     persistReferencedEntities();
@@ -631,7 +631,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_sameNameserverAddedAndRemoved() throws Exception {
+  public void testFailure_sameNameserverAddedAndRemoved() {
     setEppInput("domain_update_sunrise_add_remove_same_host.xml");
     persistReferencedEntities();
     persistResource(
@@ -646,7 +646,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_sameContactAddedAndRemoved() throws Exception {
+  public void testFailure_sameContactAddedAndRemoved() {
     setEppInput("domain_update_sunrise_add_remove_same_contact.xml");
     persistReferencedEntities();
     persistResource(
@@ -663,7 +663,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_removeAdmin() throws Exception {
+  public void testFailure_removeAdmin() {
     setEppInput("domain_update_sunrise_remove_admin.xml");
     persistReferencedEntities();
     persistResource(
@@ -678,7 +678,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_removeTech() throws Exception {
+  public void testFailure_removeTech() {
     setEppInput("domain_update_sunrise_remove_tech.xml");
     persistReferencedEntities();
     persistResource(
@@ -693,7 +693,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_newRegistrantNotWhitelisted() throws Exception {
+  public void testFailure_newRegistrantNotWhitelisted() {
     persistReferencedEntities();
     persistApplication();
     persistResource(
@@ -707,7 +707,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_newNameserverNotWhitelisted() throws Exception {
+  public void testFailure_newNameserverNotWhitelisted() {
     persistReferencedEntities();
     persistApplication();
     persistResource(
@@ -734,7 +734,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_tldWithNameserverWhitelist_removeLastNameserver() throws Exception {
+  public void testFailure_tldWithNameserverWhitelist_removeLastNameserver() {
     setEppInput("domain_update_sunrise_remove_nameserver.xml");
     persistReferencedEntities();
     persistApplication();
@@ -790,7 +790,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_domainNameserverRestricted_addedNameserverDisallowed() throws Exception {
+  public void testFailure_domainNameserverRestricted_addedNameserverDisallowed() {
     persistReferencedEntities();
     persistApplication();
     persistResource(
@@ -807,7 +807,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_domainNameserverRestricted_removeLastNameserver() throws Exception {
+  public void testFailure_domainNameserverRestricted_removeLastNameserver() {
     setEppInput("domain_update_sunrise_remove_nameserver.xml");
     persistReferencedEntities();
     persistApplication();
@@ -868,8 +868,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_addedNameserversAllowedInTld_disallowedInDomainNameserversWhitelists()
-      throws Exception {
+  public void testFailure_addedNameserversAllowedInTld_disallowedInDomainNameserversWhitelists() {
     persistReferencedEntities();
     persistApplication();
     persistResource(
@@ -888,8 +887,7 @@ public class DomainApplicationUpdateFlowTest
   }
 
   @Test
-  public void testFailure_addedNameserversDisallowedInTld_AllowedInDomainNameserversWhitelists()
-      throws Exception {
+  public void testFailure_addedNameserversDisallowedInTld_AllowedInDomainNameserversWhitelists() {
     persistReferencedEntities();
     persistApplication();
     persistResource(

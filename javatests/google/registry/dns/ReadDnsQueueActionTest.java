@@ -147,8 +147,7 @@ public class ReadDnsQueueActionTest {
         .param(DNS_TARGET_TYPE_PARAM, TargetType.DOMAIN.toString());
   }
 
-  private void assertTldsEnqueuedInPushQueue(ImmutableMultimap<String, String> tldsToDnsWriters)
-      throws Exception {
+  private void assertTldsEnqueuedInPushQueue(ImmutableMultimap<String, String> tldsToDnsWriters) {
     // By default, the publishDnsUpdates tasks will be enqueued one hour after the update items were
     // created in the pull queue. This is because of the clock.advanceBy in run()
     assertTasksEnqueued(
@@ -169,7 +168,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_methodPostIsDefault() throws Exception {
+  public void testSuccess_methodPostIsDefault() {
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.net");
     dnsQueue.addDomainRefreshTask("domain.example");
@@ -185,7 +184,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_allSingleLockTlds() throws Exception {
+  public void testSuccess_allSingleLockTlds() {
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.net");
     dnsQueue.addDomainRefreshTask("domain.example");
@@ -198,7 +197,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_moreUpdatesThanQueueBatchSize() throws Exception {
+  public void testSuccess_moreUpdatesThanQueueBatchSize() {
     // The task queue has a batch size of 1000 (that's the maximum number of items you can lease at
     // once).
     ImmutableList<String> domains =
@@ -225,7 +224,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_twoDnsWriters() throws Exception {
+  public void testSuccess_twoDnsWriters() {
     persistResource(
         Registry.get("com")
             .asBuilder()
@@ -240,7 +239,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_differentUpdateTimes_usesMinimum() throws Exception {
+  public void testSuccess_differentUpdateTimes_usesMinimum() {
     clock.setTo(DateTime.parse("3000-02-03TZ"));
     dnsQueue.addDomainRefreshTask("domain1.com");
     clock.setTo(DateTime.parse("3000-02-04TZ"));
@@ -265,7 +264,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_oneTldPaused_returnedToQueue() throws Exception {
+  public void testSuccess_oneTldPaused_returnedToQueue() {
     persistResource(Registry.get("net").asBuilder().setDnsPaused(true).build());
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.net");
@@ -279,7 +278,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_oneTldUnknown_returnedToQueue() throws Exception {
+  public void testSuccess_oneTldUnknown_returnedToQueue() {
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.example");
     QueueFactory.getQueue(DNS_PULL_QUEUE_NAME)
@@ -299,7 +298,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_corruptTaskTldMismatch_published() throws Exception {
+  public void testSuccess_corruptTaskTldMismatch_published() {
     // TODO(mcilwain): what's the correct action to take in this case?
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.example");
@@ -320,7 +319,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_corruptTaskNoTld_discarded() throws Exception {
+  public void testSuccess_corruptTaskNoTld_discarded() {
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.example");
     QueueFactory.getQueue(DNS_PULL_QUEUE_NAME)
@@ -339,7 +338,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_corruptTaskNoName_discarded() throws Exception {
+  public void testSuccess_corruptTaskNoName_discarded() {
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.example");
     QueueFactory.getQueue(DNS_PULL_QUEUE_NAME)
@@ -358,7 +357,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_corruptTaskNoType_discarded() throws Exception {
+  public void testSuccess_corruptTaskNoType_discarded() {
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.example");
     QueueFactory.getQueue(DNS_PULL_QUEUE_NAME)
@@ -377,7 +376,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_corruptTaskWrongType_discarded() throws Exception {
+  public void testSuccess_corruptTaskWrongType_discarded() {
     dnsQueue.addDomainRefreshTask("domain.com");
     dnsQueue.addDomainRefreshTask("domain.example");
     QueueFactory.getQueue(DNS_PULL_QUEUE_NAME)
@@ -397,7 +396,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_zone_getsIgnored() throws Exception {
+  public void testSuccess_zone_getsIgnored() {
     dnsQueue.addHostRefreshTask("ns1.domain.com");
     dnsQueue.addDomainRefreshTask("domain.net");
     dnsQueue.addZoneRefreshTask("example");
@@ -418,7 +417,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_manyDomainsAndHosts() throws Exception {
+  public void testSuccess_manyDomainsAndHosts() {
     for (int i = 0; i < 150; i++) {
       // 0: domain; 1: host 1; 2: host 2
       for (int thingType = 0; thingType < 3; thingType++) {
@@ -489,7 +488,7 @@ public class ReadDnsQueueActionTest {
   }
 
   @Test
-  public void testSuccess_lockGroupsHostBySuperordinateDomain() throws Exception {
+  public void testSuccess_lockGroupsHostBySuperordinateDomain() {
     dnsQueue.addDomainRefreshTask("hello.multilock.uk");
     dnsQueue.addHostRefreshTask("ns1.abc.hello.multilock.uk");
     dnsQueue.addHostRefreshTask("ns2.hello.multilock.uk");

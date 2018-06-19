@@ -84,7 +84,7 @@ public class DomainTransferApproveFlowTest
     extends DomainTransferFlowTestCase<DomainTransferApproveFlow, DomainResource> {
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     setEppInput("domain_transfer_approve.xml");
     // Change the registry so that the renew price changes a day minus 1 millisecond before the
     // transfer (right after there will be an autorenew in the test case that has one) and then

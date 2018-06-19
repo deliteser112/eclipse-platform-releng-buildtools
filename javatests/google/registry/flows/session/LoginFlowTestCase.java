@@ -87,50 +87,50 @@ public abstract class LoginFlowTestCase extends FlowTestCase<LoginFlow> {
   }
 
   @Test
-  public void testFailure_invalidVersion() throws Exception {
+  public void testFailure_invalidVersion() {
     doFailingTest("login_invalid_version.xml", UnimplementedProtocolVersionException.class);
   }
 
   @Test
-  public void testFailure_invalidLanguage() throws Exception {
+  public void testFailure_invalidLanguage() {
     doFailingTest("login_invalid_language.xml", UnsupportedLanguageException.class);
   }
 
   @Test
-  public void testFailure_invalidExtension() throws Exception {
+  public void testFailure_invalidExtension() {
     doFailingTest("login_invalid_extension.xml", UnimplementedExtensionException.class);
   }
 
   @Test
-  public void testFailure_invalidTypes() throws Exception {
+  public void testFailure_invalidTypes() {
     doFailingTest("login_invalid_types.xml", UnimplementedObjectServiceException.class);
   }
 
   @Test
-  public void testFailure_newPassword() throws Exception {
+  public void testFailure_newPassword() {
     doFailingTest("login_invalid_newpw.xml", PasswordChangesNotSupportedException.class);
   }
 
   @Test
-  public void testFailure_unknownRegistrar() throws Exception {
+  public void testFailure_unknownRegistrar() {
     deleteResource(getRegistrarBuilder().build());
     doFailingTest("login_valid.xml", BadRegistrarClientIdException.class);
   }
 
   @Test
-  public void testFailure_pendingRegistrar() throws Exception {
+  public void testFailure_pendingRegistrar() {
     persistResource(getRegistrarBuilder().setState(State.PENDING).build());
     doFailingTest("login_valid.xml", RegistrarAccountNotActiveException.class);
   }
 
   @Test
-  public void testFailure_incorrectPassword() throws Exception {
+  public void testFailure_incorrectPassword() {
     persistResource(getRegistrarBuilder().setPassword("diff password").build());
     doFailingTest("login_valid.xml", BadRegistrarPasswordException.class);
   }
 
   @Test
-  public void testFailure_tooManyFailedLogins() throws Exception {
+  public void testFailure_tooManyFailedLogins() {
     persistResource(getRegistrarBuilder().setPassword("diff password").build());
     doFailingTest("login_valid.xml", BadRegistrarPasswordException.class);
     doFailingTest("login_valid.xml", BadRegistrarPasswordException.class);
@@ -139,7 +139,7 @@ public abstract class LoginFlowTestCase extends FlowTestCase<LoginFlow> {
   }
 
   @Test
-  public void testFailure_alreadyLoggedIn() throws Exception {
+  public void testFailure_alreadyLoggedIn() {
     sessionMetadata.setClientId("something");
     doFailingTest("login_valid.xml", AlreadyLoggedInException.class);
   }

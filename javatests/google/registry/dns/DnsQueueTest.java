@@ -49,7 +49,7 @@ public class DnsQueueTest {
   }
 
   @Test
-  public void test_addHostRefreshTask_success() throws Exception {
+  public void test_addHostRefreshTask_success() {
     createTld("tld");
     dnsQueue.addHostRefreshTask("octopus.tld");
     assertTasksEnqueued(
@@ -79,7 +79,7 @@ public class DnsQueueTest {
   }
 
   @Test
-  public void test_addDomainRefreshTask_success() throws Exception {
+  public void test_addDomainRefreshTask_success() {
     createTld("tld");
     dnsQueue.addDomainRefreshTask("octopus.tld");
     assertTasksEnqueued(

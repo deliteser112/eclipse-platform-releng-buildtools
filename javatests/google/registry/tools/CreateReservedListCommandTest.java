@@ -109,7 +109,7 @@ public class CreateReservedListCommandTest extends
   }
 
   @Test
-  public void testNamingRules_tldThatDoesNotExist_failsWithoutOverride() throws Exception {
+  public void testNamingRules_tldThatDoesNotExist_failsWithoutOverride() {
     runNameTestExpectedFailure("footld_reserved-list", "TLD footld does not exist");
   }
 
@@ -119,7 +119,7 @@ public class CreateReservedListCommandTest extends
   }
 
   @Test
-  public void testNamingRules_underscoreIsMissing_failsWithoutOverride() throws Exception {
+  public void testNamingRules_underscoreIsMissing_failsWithoutOverride() {
     runNameTestExpectedFailure("random-reserved-list", INVALID_FORMAT_ERROR_MESSAGE);
   }
 
@@ -129,7 +129,7 @@ public class CreateReservedListCommandTest extends
   }
 
   @Test
-  public void testNamingRules_secondHalfOfNameIsMissing_failsWithoutOverride() throws Exception {
+  public void testNamingRules_secondHalfOfNameIsMissing_failsWithoutOverride() {
     runNameTestExpectedFailure("soy_", INVALID_FORMAT_ERROR_MESSAGE);
   }
 
@@ -139,7 +139,7 @@ public class CreateReservedListCommandTest extends
   }
 
   @Test
-  public void testNamingRules_onlyTldIsSpecifiedAsName_failsWithoutOverride() throws Exception {
+  public void testNamingRules_onlyTldIsSpecifiedAsName_failsWithoutOverride() {
     runNameTestExpectedFailure("soy", INVALID_FORMAT_ERROR_MESSAGE);
   }
 
@@ -149,7 +149,7 @@ public class CreateReservedListCommandTest extends
   }
 
   @Test
-  public void testNamingRules_commonAsListName_failsWithoutOverride() throws Exception {
+  public void testNamingRules_commonAsListName_failsWithoutOverride() {
     runNameTestExpectedFailure("invalidtld_common", "TLD invalidtld does not exist");
   }
 
@@ -159,7 +159,7 @@ public class CreateReservedListCommandTest extends
   }
 
   @Test
-  public void testNamingRules_too_many_underscores_failsWithoutOverride() throws Exception {
+  public void testNamingRules_too_many_underscores_failsWithoutOverride() {
     runNameTestExpectedFailure("soy_buffalo_buffalo_buffalo", INVALID_FORMAT_ERROR_MESSAGE);
   }
 
@@ -169,7 +169,7 @@ public class CreateReservedListCommandTest extends
   }
 
   @Test
-  public void testNamingRules_withWeirdCharacters_failsWithoutOverride() throws Exception {
+  public void testNamingRules_withWeirdCharacters_failsWithoutOverride() {
     runNameTestExpectedFailure("soy_$oy", INVALID_FORMAT_ERROR_MESSAGE);
   }
 

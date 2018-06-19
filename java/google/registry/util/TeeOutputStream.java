@@ -61,7 +61,7 @@ public final class TeeOutputStream extends OutputStream {
 
   /** Closes the stream.  Any calls to a {@code write()} method after this will throw. */
   @Override
-  public void close() throws IOException {
+  public void close() {
     isClosed = true;
   }
 }

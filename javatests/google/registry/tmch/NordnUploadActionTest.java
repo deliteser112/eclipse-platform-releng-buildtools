@@ -165,7 +165,7 @@ public class NordnUploadActionTest {
   }
 
   @Test
-  public void testRun_claimsMode_verifyTaskGetsEnqueuedWithClaimsCsv() throws Exception {
+  public void testRun_claimsMode_verifyTaskGetsEnqueuedWithClaimsCsv() {
     persistClaimsModeDomain();
     action.run();
     assertTasksEnqueued(NordnVerifyAction.QUEUE, new TaskMatcher()
@@ -182,7 +182,7 @@ public class NordnUploadActionTest {
   }
 
   @Test
-  public void testRun_sunriseMode_verifyTaskGetsEnqueuedWithSunriseCsv() throws Exception {
+  public void testRun_sunriseMode_verifyTaskGetsEnqueuedWithSunriseCsv() {
     persistSunriseModeDomain();
     action.run();
     assertTasksEnqueued(NordnVerifyAction.QUEUE, new TaskMatcher()

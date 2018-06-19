@@ -82,7 +82,7 @@ public class OfyFilterTest {
 
   /** The filter should register all types for us. */
   @Test
-  public void testKeyCreateAfterFilter() throws Exception {
+  public void testKeyCreateAfterFilter() {
     new OfyFilter().init(null);
     ContactResource contact = newContactResource("contact1234");
     Key.create(contact);

@@ -94,7 +94,7 @@ public class TimedTransitionPropertyTest {
   }
 
   @Test
-  public void testSuccess_getValueAtTime() throws Exception {
+  public void testSuccess_getValueAtTime() {
     testGetValueAtTime(timedString);
   }
 
@@ -110,7 +110,7 @@ public class TimedTransitionPropertyTest {
   }
 
   @Test
-  public void testSuccess_simulatedLoad() throws Exception {
+  public void testSuccess_simulatedLoad() {
     // Just for testing, don't extract transitions from a TimedTransitionProperty in real code.
     Set<Map.Entry<DateTime, StringTimedTransition>> transitions = timedString.entrySet();
     timedString = forMapify("0", StringTimedTransition.class);

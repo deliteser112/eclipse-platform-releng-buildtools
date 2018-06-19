@@ -68,7 +68,7 @@ public class CommitLogCheckpointActionTest {
   }
 
   @Test
-  public void testRun_noCheckpointEverWritten_writesCheckpointAndEnqueuesTask() throws Exception {
+  public void testRun_noCheckpointEverWritten_writesCheckpointAndEnqueuesTask() {
     task.run();
     assertTasksEnqueued(
         QUEUE_NAME,
@@ -80,8 +80,7 @@ public class CommitLogCheckpointActionTest {
   }
 
   @Test
-  public void testRun_checkpointWrittenBeforeNow_writesCheckpointAndEnqueuesTask()
-      throws Exception {
+  public void testRun_checkpointWrittenBeforeNow_writesCheckpointAndEnqueuesTask() {
     DateTime oneMinuteAgo = now.minusMinutes(1);
     persistResource(CommitLogCheckpointRoot.create(oneMinuteAgo));
     task.run();
@@ -95,7 +94,7 @@ public class CommitLogCheckpointActionTest {
   }
 
   @Test
-  public void testRun_checkpointWrittenAfterNow_doesntOverwrite_orEnqueueTask() throws Exception {
+  public void testRun_checkpointWrittenAfterNow_doesntOverwrite_orEnqueueTask() {
     DateTime oneMinuteFromNow = now.plusMinutes(1);
     persistResource(CommitLogCheckpointRoot.create(oneMinuteFromNow));
     task.run();

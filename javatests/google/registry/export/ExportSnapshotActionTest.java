@@ -53,7 +53,7 @@ public class ExportSnapshotActionTest {
   }
 
   @Test
-  public void testPost_launchesBackup_andEnqueuesPollTask() throws Exception {
+  public void testPost_launchesBackup_andEnqueuesPollTask() {
     action.run();
     verify(backupService)
         .launchNewBackup(

@@ -127,7 +127,7 @@ public final class KmsUpdater {
    * <p>The operations in this method are organized so that existing {@link KmsSecretRevision}
    * entities remain primary and decryptable if a failure occurs.
    */
-  public void update() throws IOException {
+  public void update() {
     checkState(!secretValues.isEmpty(), "At least one Keyring value must be persisted");
 
     persistEncryptedValues(encryptValues(secretValues));
@@ -139,8 +139,7 @@ public final class KmsUpdater {
    *
    * @see google.registry.config.RegistryConfigSettings#kms
    */
-  private ImmutableMap<String, EncryptResponse> encryptValues(Map<String, byte[]> keyValues)
-      throws IOException {
+  private ImmutableMap<String, EncryptResponse> encryptValues(Map<String, byte[]> keyValues) {
     ImmutableMap.Builder<String, EncryptResponse> encryptedValues = new ImmutableMap.Builder<>();
     for (Map.Entry<String, byte[]> entry : keyValues.entrySet()) {
       String secretName = entry.getKey();

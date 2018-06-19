@@ -48,7 +48,7 @@ public class ContactTransferRejectFlowTest
     extends ContactTransferFlowTestCase<ContactTransferRejectFlow, ContactResource> {
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     setEppInput("contact_transfer_reject.xml");
     setClientIdForFlow("TheRegistrar");
     setupContactWithPendingTransfer();

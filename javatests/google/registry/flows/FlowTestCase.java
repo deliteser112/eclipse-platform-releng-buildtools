@@ -246,18 +246,18 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
 
   public void assertPollMessages(
       String clientId,
-      PollMessage... expected) throws Exception {
+      PollMessage... expected) {
     assertPollMessagesHelper(getPollMessages(clientId), expected);
   }
 
   public void assertPollMessages(
       String clientId,
       DateTime now,
-      PollMessage... expected) throws Exception {
+      PollMessage... expected) {
     assertPollMessagesHelper(getPollMessages(clientId, now), expected);
   }
 
-  public void assertPollMessages(PollMessage... expected) throws Exception {
+  public void assertPollMessages(PollMessage... expected) {
     assertPollMessagesHelper(getPollMessages(), expected);
   }
 

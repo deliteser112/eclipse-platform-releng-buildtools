@@ -52,7 +52,7 @@ public class CommitLogFanoutActionTest {
       .build();
 
   @Test
-  public void testSuccess() throws Exception {
+  public void testSuccess() {
     CommitLogFanoutAction action = new CommitLogFanoutAction();
     action.taskQueueUtils = new TaskQueueUtils(new Retrier(null, 1));
     action.endpoint = ENDPOINT;

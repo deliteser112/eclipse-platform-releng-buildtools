@@ -99,7 +99,7 @@ public class TldFanoutActionTest {
     persistResource(Registry.get("example").asBuilder().setTldType(TldType.TEST).build());
   }
 
-  private static void assertTasks(String... tasks) throws Exception {
+  private static void assertTasks(String... tasks) {
     assertTasksEnqueued(
         QUEUE,
         Stream.of(tasks).map(
@@ -111,7 +111,7 @@ public class TldFanoutActionTest {
         .collect(toImmutableList()));
   }
 
-  private static void assertTaskWithoutTld() throws Exception {
+  private static void assertTaskWithoutTld() {
     assertTasksEnqueued(
         QUEUE,
         new TaskMatcher()
@@ -120,7 +120,7 @@ public class TldFanoutActionTest {
   }
 
   @Test
-  public void testSuccess_methodPostIsDefault() throws Exception {
+  public void testSuccess_methodPostIsDefault() {
     run(getParamsMap("runInEmpty", ""));
     assertTasksEnqueued(QUEUE, new TaskMatcher().method("POST"));
   }
@@ -131,25 +131,25 @@ public class TldFanoutActionTest {
   }
 
   @Test
-  public void testSuccess_runInEmpty() throws Exception {
+  public void testSuccess_runInEmpty() {
     run(getParamsMap("runInEmpty", ""));
     assertTaskWithoutTld();
   }
 
   @Test
-  public void testSuccess_forEachRealTld() throws Exception {
+  public void testSuccess_forEachRealTld() {
     run(getParamsMap("forEachRealTld", ""));
     assertTasks("com", "net", "org");
   }
 
   @Test
-  public void testSuccess_forEachTestTld() throws Exception {
+  public void testSuccess_forEachTestTld() {
     run(getParamsMap("forEachTestTld", ""));
     assertTasks("example");
   }
 
   @Test
-  public void testSuccess_forEachTestTldAndForEachRealTld() throws Exception {
+  public void testSuccess_forEachTestTldAndForEachRealTld() {
     run(getParamsMap(
         "forEachTestTld", "",
         "forEachRealTld", ""));
@@ -157,13 +157,13 @@ public class TldFanoutActionTest {
   }
 
   @Test
-  public void testSuccess_runEverywhere() throws Exception {
+  public void testSuccess_runEverywhere() {
     run(getParamsMap("forEachTestTld", "", "forEachRealTld", ""));
     assertTasks("com", "net", "org", "example");
   }
 
   @Test
-  public void testSuccess_excludeRealTlds() throws Exception {
+  public void testSuccess_excludeRealTlds() {
     run(getParamsMap(
         "forEachRealTld", "",
         "exclude", "com,net"));
@@ -171,7 +171,7 @@ public class TldFanoutActionTest {
   }
 
   @Test
-  public void testSuccess_excludeTestTlds() throws Exception {
+  public void testSuccess_excludeTestTlds() {
     run(getParamsMap(
         "forEachTestTld", "",
         "exclude", "example"));
@@ -179,7 +179,7 @@ public class TldFanoutActionTest {
   }
 
   @Test
-  public void testSuccess_excludeNonexistentTlds() throws Exception {
+  public void testSuccess_excludeNonexistentTlds() {
     run(getParamsMap(
         "forEachTestTld", "",
         "forEachRealTld", "",
@@ -221,14 +221,14 @@ public class TldFanoutActionTest {
   }
 
   @Test
-  public void testSuccess_additionalArgsFlowThroughToPostParams() throws Exception {
+  public void testSuccess_additionalArgsFlowThroughToPostParams() {
     run(getParamsMap("forEachTestTld", "", "newkey", "newval"));
     assertTasksEnqueued(QUEUE,
         new TaskMatcher().url("/the/servlet").param("newkey", "newval"));
   }
 
   @Test
-  public void testSuccess_returnHttpResponse() throws Exception {
+  public void testSuccess_returnHttpResponse() {
     run(getParamsMap("forEachRealTld", "", "endpoint", "/the/servlet"));
 
     List<TaskStateInfo> taskList =
@@ -247,7 +247,7 @@ public class TldFanoutActionTest {
   }
 
   @Test
-  public void testSuccess_returnHttpResponse_runInEmpty() throws Exception {
+  public void testSuccess_returnHttpResponse_runInEmpty() {
     run(getParamsMap("runInEmpty", "", "endpoint", "/the/servlet"));
 
     List<TaskStateInfo> taskList =

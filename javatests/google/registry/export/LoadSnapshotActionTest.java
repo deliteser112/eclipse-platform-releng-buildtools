@@ -96,7 +96,7 @@ public class LoadSnapshotActionTest {
   }
 
   @Test
-  public void testSuccess_enqueueLoadTask() throws Exception {
+  public void testSuccess_enqueueLoadTask() {
     enqueueLoadSnapshotTask(
         "id12345", "gs://bucket/snapshot.backup_info", ImmutableSet.of("one", "two", "three"));
     assertTasksEnqueued(

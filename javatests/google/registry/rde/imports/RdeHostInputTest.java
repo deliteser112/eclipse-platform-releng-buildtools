@@ -220,8 +220,10 @@ public class RdeHostInputTest {
    * @param expectedMaxResults Expected maxResults of the reader
    */
   private void assertReaderConfigurations(
-      Optional<Integer> numberOfShards, int whichReader, int expectedOffset, int expectedMaxResults)
-      throws Exception {
+      Optional<Integer> numberOfShards,
+      int whichReader,
+      int expectedOffset,
+      int expectedMaxResults) {
     RdeHostInput input = getInput(numberOfShards);
     List<?> readers = input.createReaders();
     RdeHostReader reader = (RdeHostReader) readers.get(whichReader);
@@ -245,8 +247,8 @@ public class RdeHostInputTest {
    * @param numberOfShards Number of desired shards ({@link Optional#empty} uses default of 50)
    * @param expectedNumberOfReaders Expected size of the list returned
    */
-  private void assertNumberOfReaders(Optional<Integer> numberOfShards, int expectedNumberOfReaders)
-      throws Exception {
+  private void assertNumberOfReaders(
+      Optional<Integer> numberOfShards, int expectedNumberOfReaders) {
     RdeHostInput input = getInput(numberOfShards);
     List<?> readers = input.createReaders();
     assertThat(readers).hasSize(expectedNumberOfReaders);

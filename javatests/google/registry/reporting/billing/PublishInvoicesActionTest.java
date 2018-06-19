@@ -76,7 +76,7 @@ public class PublishInvoicesActionTest {
   }
 
   @Test
-  public void testJobDone_enqueuesCopyAction_emailsResults() throws Exception {
+  public void testJobDone_enqueuesCopyAction_emailsResults() {
     expectedJob.setCurrentState("JOB_STATE_DONE");
     uploadAction.run();
     assertThat(response.getStatus()).isEqualTo(SC_OK);

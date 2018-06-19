@@ -106,7 +106,7 @@ public class PublishDnsUpdatesActionTest {
   }
 
   @Test
-  public void testHost_published() throws Exception {
+  public void testHost_published() {
     action = createAction("xn--q9jyb4c");
     action.hosts = ImmutableSet.of("ns1.example.xn--q9jyb4c");
 
@@ -132,7 +132,7 @@ public class PublishDnsUpdatesActionTest {
   }
 
   @Test
-  public void testDomain_published() throws Exception {
+  public void testDomain_published() {
     action = createAction("xn--q9jyb4c");
     action.domains = ImmutableSet.of("example.xn--q9jyb4c");
 
@@ -158,7 +158,7 @@ public class PublishDnsUpdatesActionTest {
   }
 
   @Test
-  public void testAction_acquiresCorrectLock() throws Exception {
+  public void testAction_acquiresCorrectLock() {
     persistResource(Registry.get("xn--q9jyb4c").asBuilder().setNumDnsPublishLocks(4).build());
     action = createAction("xn--q9jyb4c");
     action.lockIndex = 2;
@@ -176,7 +176,7 @@ public class PublishDnsUpdatesActionTest {
   }
 
   @Test
-  public void testPublish_commitFails() throws Exception {
+  public void testPublish_commitFails() {
     action = createAction("xn--q9jyb4c");
     action.domains = ImmutableSet.of("example.xn--q9jyb4c", "example2.xn--q9jyb4c");
     action.hosts =
@@ -203,7 +203,7 @@ public class PublishDnsUpdatesActionTest {
   }
 
   @Test
-  public void testHostAndDomain_published() throws Exception {
+  public void testHostAndDomain_published() {
     action = createAction("xn--q9jyb4c");
     action.domains = ImmutableSet.of("example.xn--q9jyb4c", "example2.xn--q9jyb4c");
     action.hosts = ImmutableSet.of(
@@ -235,7 +235,7 @@ public class PublishDnsUpdatesActionTest {
   }
 
   @Test
-  public void testWrongTld_notPublished() throws Exception {
+  public void testWrongTld_notPublished() {
     action = createAction("xn--q9jyb4c");
     action.domains = ImmutableSet.of("example.com", "example2.com");
     action.hosts = ImmutableSet.of("ns1.example.com", "ns2.example.com", "ns1.example2.com");
@@ -261,7 +261,7 @@ public class PublishDnsUpdatesActionTest {
   }
 
   @Test
-  public void testLockIsntAvailable() throws Exception {
+  public void testLockIsntAvailable() {
     action = createAction("xn--q9jyb4c");
     action.domains = ImmutableSet.of("example.com", "example2.com");
     action.hosts = ImmutableSet.of("ns1.example.com", "ns2.example.com", "ns1.example2.com");
@@ -284,7 +284,7 @@ public class PublishDnsUpdatesActionTest {
   }
 
   @Test
-  public void testParam_invalidLockIndex() throws Exception {
+  public void testParam_invalidLockIndex() {
     persistResource(Registry.get("xn--q9jyb4c").asBuilder().setNumDnsPublishLocks(4).build());
     action = createAction("xn--q9jyb4c");
     action.domains = ImmutableSet.of("example.com");
@@ -309,7 +309,7 @@ public class PublishDnsUpdatesActionTest {
   }
 
   @Test
-  public void testRegistryParam_mismatchedMaxLocks() throws Exception {
+  public void testRegistryParam_mismatchedMaxLocks() {
     persistResource(Registry.get("xn--q9jyb4c").asBuilder().setNumDnsPublishLocks(4).build());
     action = createAction("xn--q9jyb4c");
     action.domains = ImmutableSet.of("example.com");
@@ -334,7 +334,7 @@ public class PublishDnsUpdatesActionTest {
   }
 
   @Test
-  public void testWrongDnsWriter() throws Exception {
+  public void testWrongDnsWriter() {
     action = createAction("xn--q9jyb4c");
     action.domains = ImmutableSet.of("example.com", "example2.com");
     action.hosts = ImmutableSet.of("ns1.example.com", "ns2.example.com", "ns1.example2.com");

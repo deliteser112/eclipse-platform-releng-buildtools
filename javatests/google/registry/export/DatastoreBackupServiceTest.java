@@ -78,7 +78,7 @@ public class DatastoreBackupServiceTest {
   }
 
   @Test
-  public void testSuccess_launchBackup() throws Exception {
+  public void testSuccess_launchBackup() {
     backupService.launchNewBackup(
         "export-snapshot", "backup1", "somebucket", ImmutableSet.of("foo", "bar"));
     assertTasksEnqueued("export-snapshot",

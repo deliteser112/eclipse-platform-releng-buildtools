@@ -44,27 +44,27 @@ public class LoginFlowViaConsoleTest extends LoginFlowTestCase {
   }
 
   @Test
-  public void testFailure_withoutLoginAndLinkedAccount() throws Exception {
+  public void testFailure_withoutLoginAndLinkedAccount() {
     persistLinkedAccount("person@example.com", GAE_USER_ID1);
     credentials = GaeUserCredentials.forLoggedOutUser();
     doFailingTest("login_valid.xml", UserNotLoggedInException.class);
   }
 
   @Test
-  public void testFailure_withoutLoginAndWithoutLinkedAccount() throws Exception {
+  public void testFailure_withoutLoginAndWithoutLinkedAccount() {
     credentials = GaeUserCredentials.forLoggedOutUser();
     doFailingTest("login_valid.xml", UserNotLoggedInException.class);
   }
 
   @Test
-  public void testFailure_withLoginAndWithoutLinkedAccount() throws Exception {
+  public void testFailure_withLoginAndWithoutLinkedAccount() {
     credentials =
         GaeUserCredentials.forTestingUser(new User("person", "example.com", GAE_USER_ID1), false);
     doFailingTest("login_valid.xml", BadGaeUserIdException.class);
   }
 
   @Test
-  public void testFailure_withLoginAndNoMatchingLinkedAccount() throws Exception {
+  public void testFailure_withLoginAndNoMatchingLinkedAccount() {
     persistLinkedAccount("joe@example.com", GAE_USER_ID2);
     credentials =
         GaeUserCredentials.forTestingUser(new User("person", "example.com", GAE_USER_ID1), false);

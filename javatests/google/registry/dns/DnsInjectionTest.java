@@ -73,7 +73,7 @@ public final class DnsInjectionTest {
   }
 
   @Test
-  public void testReadDnsQueueAction_injectsAndWorks() throws Exception {
+  public void testReadDnsQueueAction_injectsAndWorks() {
     persistActiveSubordinateHost("ns1.example.lol", persistActiveDomain("example.lol"));
     clock.advanceOneMilli();
     dnsQueue.addDomainRefreshTask("example.lol");
@@ -83,7 +83,7 @@ public final class DnsInjectionTest {
   }
 
   @Test
-  public void testRefreshDns_domain_injectsAndWorks() throws Exception {
+  public void testRefreshDns_domain_injectsAndWorks() {
     persistActiveDomain("example.lol");
     when(req.getParameter("type")).thenReturn("domain");
     when(req.getParameter("name")).thenReturn("example.lol");
@@ -101,7 +101,7 @@ public final class DnsInjectionTest {
   }
 
   @Test
-  public void testRefreshDns_host_injectsAndWorks() throws Exception {
+  public void testRefreshDns_host_injectsAndWorks() {
     persistActiveSubordinateHost("ns1.example.lol", persistActiveDomain("example.lol"));
     when(req.getParameter("type")).thenReturn("host");
     when(req.getParameter("name")).thenReturn("ns1.example.lol");

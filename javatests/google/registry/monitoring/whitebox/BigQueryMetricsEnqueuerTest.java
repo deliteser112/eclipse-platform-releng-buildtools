@@ -67,7 +67,7 @@ public class BigQueryMetricsEnqueuerTest {
   }
 
   @Test
-  public void testExport() throws Exception {
+  public void testExport() {
     TestMetric metric =
         TestMetric.create(
             DateTime.parse("1984-12-18TZ"), DateTime.parse("1984-12-18TZ").plusMillis(1));

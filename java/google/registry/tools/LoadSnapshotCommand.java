@@ -66,8 +66,7 @@ final class LoadSnapshotCommand extends BigqueryCommand {
    * Starts load jobs for the given snapshot kinds, and returns a map of kind name to
    * ListenableFuture representing the result of the load job for that kind.
    */
-  private Map<String, ListenableFuture<?>> loadSnapshotKinds(List<String> kindNames)
-      throws Exception {
+  private Map<String, ListenableFuture<?>> loadSnapshotKinds(List<String> kindNames) {
     ImmutableMap.Builder<String, ListenableFuture<?>> builder = new ImmutableMap.Builder<>();
     for (String kind : kindNames) {
       String filename = String.format(
@@ -79,7 +78,7 @@ final class LoadSnapshotCommand extends BigqueryCommand {
   }
 
   /** Starts a load job for the specified kind name, sourcing data from the given GCS file. */
-  private ListenableFuture<?> loadSnapshotFile(String filename, String kindName) throws Exception {
+  private ListenableFuture<?> loadSnapshotFile(String filename, String kindName) {
     return bigquery().load(
         bigquery().buildDestinationTable(kindName)
             .description("Datastore snapshot import for " + kindName + ".")

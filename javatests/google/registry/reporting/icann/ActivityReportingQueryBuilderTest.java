@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.io.IOException;
 import org.joda.time.YearMonth;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +35,7 @@ public class ActivityReportingQueryBuilderTest {
   }
 
   @Test
-  public void testAggregateQueryMatch() throws IOException {
+  public void testAggregateQueryMatch() {
     ActivityReportingQueryBuilder queryBuilder = getQueryBuilder();
     assertThat(queryBuilder.getReportQuery())
         .isEqualTo(
@@ -45,7 +44,7 @@ public class ActivityReportingQueryBuilderTest {
   }
 
   @Test
-  public void testIntermediaryQueryMatch() throws IOException {
+  public void testIntermediaryQueryMatch() {
     ImmutableList<String> expectedQueryNames =
         ImmutableList.of(
             ActivityReportingQueryBuilder.REGISTRAR_OPERATING_STATUS,

@@ -24,7 +24,6 @@ import google.registry.model.server.KmsSecretRevision;
 import google.registry.model.server.KmsSecretRevision.Builder;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.BouncyCastleProviderRule;
-import java.io.IOException;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
@@ -112,7 +111,7 @@ public class KmsKeyringTest {
   }
 
   @Test
-  public void test_getRdeSshClientPublicKey() throws Exception {
+  public void test_getRdeSshClientPublicKey() {
     saveCleartextSecret("rde-ssh-client-public-string");
 
     String rdeSshClientPublicKey = keyring.getRdeSshClientPublicKey();
@@ -121,7 +120,7 @@ public class KmsKeyringTest {
   }
 
   @Test
-  public void test_getRdeSshClientPrivateKey() throws Exception {
+  public void test_getRdeSshClientPrivateKey() {
     saveCleartextSecret("rde-ssh-client-private-string");
 
     String rdeSshClientPrivateKey = keyring.getRdeSshClientPrivateKey();
@@ -130,7 +129,7 @@ public class KmsKeyringTest {
   }
 
   @Test
-  public void test_getIcannReportingPassword() throws Exception {
+  public void test_getIcannReportingPassword() {
     saveCleartextSecret("icann-reporting-password-string");
 
     String icannReportingPassword = keyring.getIcannReportingPassword();
@@ -139,7 +138,7 @@ public class KmsKeyringTest {
   }
 
   @Test
-  public void test_getMarksdbDnlLogin() throws Exception {
+  public void test_getMarksdbDnlLogin() {
     saveCleartextSecret("marksdb-dnl-login-string");
 
     String marksdbDnlLogin = keyring.getMarksdbDnlLogin();
@@ -148,7 +147,7 @@ public class KmsKeyringTest {
   }
 
   @Test
-  public void test_getMarksdbLordnPassword() throws Exception {
+  public void test_getMarksdbLordnPassword() {
     saveCleartextSecret("marksdb-lordn-password-string");
 
     String marksdbLordnPassword = keyring.getMarksdbLordnPassword();
@@ -157,7 +156,7 @@ public class KmsKeyringTest {
   }
 
   @Test
-  public void test_getMarksdbSmdrlLogin() throws Exception {
+  public void test_getMarksdbSmdrlLogin() {
     saveCleartextSecret("marksdb-smdrl-login-string");
 
     String marksdbSmdrlLogin = keyring.getMarksdbSmdrlLogin();
@@ -167,7 +166,7 @@ public class KmsKeyringTest {
   }
 
   @Test
-  public void test_getJsonCredential() throws Exception {
+  public void test_getJsonCredential() {
     saveCleartextSecret("json-credential-string");
 
     String jsonCredential = keyring.getJsonCredential();
@@ -176,7 +175,7 @@ public class KmsKeyringTest {
   }
 
   @Test
-  public void test_getBraintreePrivateKey() throws Exception {
+  public void test_getBraintreePrivateKey() {
     saveCleartextSecret("braintree-private-key-string");
 
     String braintreePrivateKey = keyring.getBraintreePrivateKey();
@@ -184,7 +183,7 @@ public class KmsKeyringTest {
     assertThat(braintreePrivateKey).isEqualTo("braintree-private-key-stringmoo");
   }
 
-  private static void persistSecret(String secretName, byte[] secretValue) throws IOException {
+  private static void persistSecret(String secretName, byte[] secretValue) {
     KmsConnection kmsConnection = new FakeKmsConnection();
 
     KmsSecretRevision secretRevision =
@@ -197,7 +196,7 @@ public class KmsKeyringTest {
     persistResources(ImmutableList.of(secretRevision, secret));
   }
 
-  private static void saveCleartextSecret(String secretName) throws Exception {
+  private static void saveCleartextSecret(String secretName) {
     persistSecret(secretName, KeySerializer.serializeString(secretName + "moo"));
   }
 

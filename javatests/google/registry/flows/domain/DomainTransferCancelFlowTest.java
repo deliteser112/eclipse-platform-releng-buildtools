@@ -63,7 +63,7 @@ public class DomainTransferCancelFlowTest
     extends DomainTransferFlowTestCase<DomainTransferCancelFlow, DomainResource> {
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     setEppInput("domain_transfer_cancel.xml");
     setClientIdForFlow("NewRegistrar");
     setupDomainWithPendingTransfer("example", "tld");

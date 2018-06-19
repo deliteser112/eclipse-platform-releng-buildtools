@@ -883,7 +883,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testFailure_missingClaimsNotice() throws Exception {
+  public void testFailure_missingClaimsNotice() {
     persistClaimsList(ImmutableMap.of("example", CLAIMS_KEY));
     setEppInput("domain_create.xml");
     persistContactsAndHosts();
@@ -1634,68 +1634,68 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
-  public void testFailure_uppercase() throws Exception {
+  public void testFailure_uppercase() {
     doFailingDomainNameTest("Example.tld", BadDomainNameCharacterException.class);
   }
 
   @Test
-  public void testFailure_badCharacter() throws Exception {
+  public void testFailure_badCharacter() {
     doFailingDomainNameTest("test_example.tld", BadDomainNameCharacterException.class);
   }
 
   @Test
-  public void testFailure_leadingDash() throws Exception {
+  public void testFailure_leadingDash() {
     doFailingDomainNameTest("-example.tld", LeadingDashException.class);
   }
 
   @Test
-  public void testFailure_trailingDash() throws Exception {
+  public void testFailure_trailingDash() {
     doFailingDomainNameTest("example-.tld", TrailingDashException.class);
   }
 
   @Test
-  public void testFailure_tooLong() throws Exception {
+  public void testFailure_tooLong() {
     doFailingDomainNameTest(Strings.repeat("a", 64) + ".tld", DomainLabelTooLongException.class);
   }
 
   @Test
-  public void testFailure_leadingDot() throws Exception {
+  public void testFailure_leadingDot() {
     doFailingDomainNameTest(".example.tld", EmptyDomainNamePartException.class);
   }
 
   @Test
-  public void testFailure_leadingDotTld() throws Exception {
+  public void testFailure_leadingDotTld() {
     doFailingDomainNameTest("foo..tld", EmptyDomainNamePartException.class);
   }
 
   @Test
-  public void testFailure_tooManyParts() throws Exception {
+  public void testFailure_tooManyParts() {
     doFailingDomainNameTest("foo.example.tld", BadDomainNamePartsCountException.class);
   }
 
   @Test
-  public void testFailure_tooFewParts() throws Exception {
+  public void testFailure_tooFewParts() {
     doFailingDomainNameTest("tld", BadDomainNamePartsCountException.class);
   }
 
   @Test
-  public void testFailure_invalidPunycode() throws Exception {
+  public void testFailure_invalidPunycode() {
     // You don't want to know what this string (might?) mean.
     doFailingDomainNameTest("xn--uxa129t5ap4f1h1bc3p.tld", InvalidPunycodeException.class);
   }
 
   @Test
-  public void testFailure_dashesInThirdAndFourthPosition() throws Exception {
+  public void testFailure_dashesInThirdAndFourthPosition() {
     doFailingDomainNameTest("ab--cdefg.tld", DashesInThirdAndFourthException.class);
   }
 
   @Test
-  public void testFailure_tldDoesNotExist() throws Exception {
+  public void testFailure_tldDoesNotExist() {
     doFailingDomainNameTest("foo.nosuchtld", TldDoesNotExistException.class);
   }
 
   @Test
-  public void testFailure_invalidIdnCodePoints() throws Exception {
+  public void testFailure_invalidIdnCodePoints() {
     // ❤☀☆☂☻♞☯.tld
     doFailingDomainNameTest("xn--k3hel9n7bxlu1e.tld", InvalidIdnDomainLabelException.class);
   }

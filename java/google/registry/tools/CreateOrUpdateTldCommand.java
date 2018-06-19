@@ -272,7 +272,7 @@ abstract class CreateOrUpdateTldCommand extends MutatingCommand {
   protected abstract void initTldCommand();
 
   @Override
-  protected final void init() throws Exception {
+  protected final void init() {
     assertAllowedEnvironment();
     initTldCommand();
     String duplicates = Joiner.on(", ").join(findDuplicates(mainParameters));

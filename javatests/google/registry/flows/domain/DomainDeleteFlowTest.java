@@ -195,8 +195,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   }
 
   private void assertAutorenewClosedAndCancellationCreatedFor(
-      BillingEvent.OneTime graceBillingEvent, HistoryEntry historyEntryDomainDelete)
-      throws Exception {
+      BillingEvent.OneTime graceBillingEvent, HistoryEntry historyEntryDomainDelete) {
     DateTime eventTime = clock.nowUtc();
     assertBillingEvents(
         createAutorenewBillingEvent("TheRegistrar").setRecurrenceEndTime(eventTime).build(),
@@ -212,7 +211,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .build());
   }
 
-  private void assertOnlyBillingEventIsClosedAutorenew(String clientId) throws Exception {
+  private void assertOnlyBillingEventIsClosedAutorenew(String clientId) {
     // There should be no billing events (even timed to when the transfer would have expired) except
     // for the now closed autorenew one.
     assertBillingEvents(

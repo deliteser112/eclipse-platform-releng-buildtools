@@ -264,7 +264,7 @@ public class RdeUploadActionTest {
   }
 
   @Test
-  public void testRun() throws Exception {
+  public void testRun() {
     createTld("lol");
     RdeUploadAction action = createAction(null);
     action.tld = "lol";

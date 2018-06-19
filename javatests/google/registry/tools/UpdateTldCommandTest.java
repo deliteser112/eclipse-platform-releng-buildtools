@@ -940,7 +940,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   }
 
   @Test
-  public void testFailure_setReservedListFromOtherTld() throws Exception {
+  public void testFailure_setReservedListFromOtherTld() {
     runFailureReservedListsTest("tld_banned",
         IllegalArgumentException.class,
         "The reserved list(s) tld_banned cannot be applied to the tld xn--q9jyb4c");
@@ -952,7 +952,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   }
 
   @Test
-  public void testFailure_setCommonAndReservedListFromOtherTld() throws Exception {
+  public void testFailure_setCommonAndReservedListFromOtherTld() {
     runFailureReservedListsTest("common_abuse,tld_banned",
         IllegalArgumentException.class,
         "The reserved list(s) tld_banned cannot be applied to the tld xn--q9jyb4c");
@@ -971,7 +971,7 @@ public class UpdateTldCommandTest extends CommandTestCase<UpdateTldCommand> {
   }
 
   @Test
-  public void testFailure_setMultipleReservedListsFromOtherTld() throws Exception {
+  public void testFailure_setMultipleReservedListsFromOtherTld() {
     runFailureReservedListsTest("tld_banned,soy_expurgated",
         IllegalArgumentException.class,
         "The reserved list(s) tld_banned, soy_expurgated cannot be applied to the tld xn--q9jyb4c");

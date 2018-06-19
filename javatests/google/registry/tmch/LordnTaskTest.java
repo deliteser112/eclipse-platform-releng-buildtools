@@ -108,7 +108,7 @@ public class LordnTaskTest {
   }
 
   @Test
-  public void test_enqueueDomainResourceTask_sunrise() throws Exception {
+  public void test_enqueueDomainResourceTask_sunrise() {
     DomainResource domain = newDomainBuilder(DateTime.parse("2010-05-01T10:11:12Z"))
         .setRepoId("A-EXAMPLE")
         .build();
@@ -120,7 +120,7 @@ public class LordnTaskTest {
   }
 
   @Test
-  public void test_enqueueDomainResourceTask_claims() throws Exception {
+  public void test_enqueueDomainResourceTask_claims() {
     DateTime time = DateTime.parse("2010-05-01T10:11:12Z");
     DomainResource domain = newDomainBuilder(time)
         .setRepoId("11-EXAMPLE")
@@ -134,7 +134,7 @@ public class LordnTaskTest {
   }
 
   @Test
-  public void test_oteRegistrarWithNullIanaId() throws Exception {
+  public void test_oteRegistrarWithNullIanaId() {
     ofy()
         .transact(
             () ->

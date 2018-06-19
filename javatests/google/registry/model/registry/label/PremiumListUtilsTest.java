@@ -117,7 +117,7 @@ public class PremiumListUtilsTest {
   }
 
   @Test
-  public void testSave_largeNumberOfEntries_succeeds() throws Exception {
+  public void testSave_largeNumberOfEntries_succeeds() {
     PremiumList premiumList = persistHumongousPremiumList("tld", 2500);
     assertThat(loadPremiumListEntries(premiumList)).hasSize(2500);
     assertThat(getPremiumPrice("7", Registry.get("tld"))).hasValue(Money.parse("USD 100"));
@@ -258,7 +258,7 @@ public class PremiumListUtilsTest {
   }
 
   @Test
-  public void testGetPremiumPrice_allLabelsAreNonPremium_whenNotInList() throws Exception {
+  public void testGetPremiumPrice_allLabelsAreNonPremium_whenNotInList() {
     assertThat(getPremiumPrice("blah", Registry.get("tld"))).isEmpty();
     assertThat(getPremiumPrice("slinge", Registry.get("tld"))).isEmpty();
     assertMetricOutcomeCount(2, BLOOM_FILTER_NEGATIVE);

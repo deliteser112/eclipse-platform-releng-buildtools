@@ -42,7 +42,7 @@ public class DomainTransferQueryFlowTest
     extends DomainTransferFlowTestCase<DomainTransferQueryFlow, DomainResource> {
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     setEppInput("domain_transfer_query.xml");
     setClientIdForFlow("NewRegistrar");
     setupDomainWithPendingTransfer("example", "tld");

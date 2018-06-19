@@ -162,7 +162,7 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
 
   /** Asserts the presence of a single enqueued async contact or host deletion */
   protected <T extends EppResource> void assertAsyncDeletionTaskEnqueued(
-      T resource, String requestingClientId, Trid trid, boolean isSuperuser) throws Exception {
+      T resource, String requestingClientId, Trid trid, boolean isSuperuser) {
     TaskMatcher expected = new TaskMatcher()
         .etaDelta(Duration.standardSeconds(75), Duration.standardSeconds(105)) // expected: 90
         .param("resourceKey", Key.create(resource).getString())

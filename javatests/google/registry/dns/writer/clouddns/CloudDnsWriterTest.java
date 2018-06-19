@@ -310,14 +310,14 @@ public class CloudDnsWriterTest {
   }
 
   @Test
-  public void testLoadDomain_nonExistentDomain() throws Exception {
+  public void testLoadDomain_nonExistentDomain() {
     writer.publishDomain("example.tld");
 
     verifyZone(ImmutableSet.of());
   }
 
   @Test
-  public void testLoadDomain_noDsDataOrNameservers() throws Exception {
+  public void testLoadDomain_noDsDataOrNameservers() {
     persistResource(fakeDomain("example.tld", ImmutableSet.of(), 0));
     writer.publishDomain("example.tld");
 
@@ -325,7 +325,7 @@ public class CloudDnsWriterTest {
   }
 
   @Test
-  public void testLoadDomain_deleteOldData() throws Exception {
+  public void testLoadDomain_deleteOldData() {
     stubZone = fakeDomainRecords("example.tld", 2, 2, 2, 2);
     persistResource(fakeDomain("example.tld", ImmutableSet.of(), 0));
     writer.publishDomain("example.tld");
@@ -334,7 +334,7 @@ public class CloudDnsWriterTest {
   }
 
   @Test
-  public void testLoadDomain_withExternalNs() throws Exception {
+  public void testLoadDomain_withExternalNs() {
     persistResource(
         fakeDomain("example.tld", ImmutableSet.of(persistResource(fakeHost("0.external"))), 0));
     writer.publishDomain("example.tld");
@@ -343,7 +343,7 @@ public class CloudDnsWriterTest {
   }
 
   @Test
-  public void testLoadDomain_withDsData() throws Exception {
+  public void testLoadDomain_withDsData() {
     persistResource(
         fakeDomain("example.tld", ImmutableSet.of(persistResource(fakeHost("0.external"))), 1));
     writer.publishDomain("example.tld");
@@ -352,7 +352,7 @@ public class CloudDnsWriterTest {
   }
 
   @Test
-  public void testLoadDomain_withInBailiwickNs_IPv4() throws Exception {
+  public void testLoadDomain_withInBailiwickNs_IPv4() {
     persistResource(
         fakeDomain(
                 "example.tld",
@@ -367,7 +367,7 @@ public class CloudDnsWriterTest {
   }
 
   @Test
-  public void testLoadDomain_withInBailiwickNs_IPv6() throws Exception {
+  public void testLoadDomain_withInBailiwickNs_IPv6() {
     persistResource(
         fakeDomain(
                 "example.tld",
@@ -382,7 +382,7 @@ public class CloudDnsWriterTest {
   }
 
   @Test
-  public void testLoadDomain_withNameserveThatEndsWithDomainName() throws Exception {
+  public void testLoadDomain_withNameserveThatEndsWithDomainName() {
     persistResource(
         fakeDomain(
             "example.tld",
@@ -394,7 +394,7 @@ public class CloudDnsWriterTest {
   }
 
   @Test
-  public void testLoadHost_externalHost() throws Exception {
+  public void testLoadHost_externalHost() {
     writer.publishHost("ns1.example.com");
 
     // external hosts should not be published in our zone
@@ -402,7 +402,7 @@ public class CloudDnsWriterTest {
   }
 
   @Test
-  public void testLoadHost_removeStaleNsRecords() throws Exception {
+  public void testLoadHost_removeStaleNsRecords() {
     // Initialize the zone with both NS records
     stubZone = fakeDomainRecords("example.tld", 2, 0, 0, 0);
 
@@ -435,7 +435,7 @@ public class CloudDnsWriterTest {
   }
 
   @Test
-  public void testLoadDomain_withClientHold() throws Exception {
+  public void testLoadDomain_withClientHold() {
     persistResource(
         fakeDomain(
                 "example.tld",
@@ -450,7 +450,7 @@ public class CloudDnsWriterTest {
   }
 
   @Test
-  public void testLoadDomain_withServerHold() throws Exception {
+  public void testLoadDomain_withServerHold() {
     persistResource(
         fakeDomain(
                 "example.tld",
@@ -466,7 +466,7 @@ public class CloudDnsWriterTest {
   }
 
   @Test
-  public void testLoadDomain_withPendingDelete() throws Exception {
+  public void testLoadDomain_withPendingDelete() {
     persistResource(
         fakeDomain(
                 "example.tld",
@@ -481,7 +481,7 @@ public class CloudDnsWriterTest {
   }
 
   @Test
-  public void testDuplicateRecords() throws Exception {
+  public void testDuplicateRecords() {
     // In publishing DNS records, we can end up publishing information on the same host twice
     // (through a domain change and a host change), so this scenario needs to work.
     persistResource(

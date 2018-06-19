@@ -255,32 +255,32 @@ public class HostCreateFlowTest extends ResourceFlowTestCase<HostCreateFlow, Hos
   }
 
   @Test
-  public void testFailure_badCharacter() throws Exception {
+  public void testFailure_badCharacter() {
     doFailingHostNameTest("foo bar", InvalidHostNameException.class);
   }
 
   @Test
-  public void testFailure_tooShallowPublicSuffix() throws Exception {
+  public void testFailure_tooShallowPublicSuffix() {
     doFailingHostNameTest("example.tld", HostNameTooShallowException.class);
   }
 
   @Test
-  public void testFailure_tooShallowCcTld() throws Exception {
+  public void testFailure_tooShallowCcTld() {
     doFailingHostNameTest("foo.co.uk", HostNameTooShallowException.class);
   }
 
   @Test
-  public void testFailure_barePublicSuffix() throws Exception {
+  public void testFailure_barePublicSuffix() {
     doFailingHostNameTest("com", HostNameTooShallowException.class);
   }
 
   @Test
-  public void testFailure_bareCcTld() throws Exception {
+  public void testFailure_bareCcTld() {
     doFailingHostNameTest("co.uk", HostNameTooShallowException.class);
   }
 
   @Test
-  public void testFailure_tooShallowNewTld() throws Exception {
+  public void testFailure_tooShallowNewTld() {
     doFailingHostNameTest("example.lol", HostNameTooShallowException.class);
   }
 

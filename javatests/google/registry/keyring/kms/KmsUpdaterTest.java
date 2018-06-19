@@ -48,7 +48,7 @@ public class KmsUpdaterTest {
   }
 
   @Test
-  public void test_setMultipleSecrets() throws Exception {
+  public void test_setMultipleSecrets() {
     updater
         .setBraintreePrivateKey("value1")
         .setIcannReportingPassword("value2")
@@ -68,7 +68,7 @@ public class KmsUpdaterTest {
   }
 
   @Test
-  public void test_setBraintreePrivateKey() throws Exception {
+  public void test_setBraintreePrivateKey() {
     updater.setBraintreePrivateKey("value1").update();
 
     verifySecretAndSecretRevisionWritten(
@@ -102,7 +102,7 @@ public class KmsUpdaterTest {
   }
 
   @Test
-  public void test_setIcannReportingPassword() throws Exception {
+  public void test_setIcannReportingPassword() {
     updater.setIcannReportingPassword("value1").update();
 
     verifySecretAndSecretRevisionWritten(
@@ -112,7 +112,7 @@ public class KmsUpdaterTest {
   }
 
   @Test
-  public void test_setJsonCredential() throws Exception {
+  public void test_setJsonCredential() {
     updater.setJsonCredential("value1").update();
 
     verifySecretAndSecretRevisionWritten(
@@ -120,7 +120,7 @@ public class KmsUpdaterTest {
   }
 
   @Test
-  public void test_setMarksdbDnlLogin() throws Exception {
+  public void test_setMarksdbDnlLogin() {
     updater.setMarksdbDnlLogin("value1").update();
 
     verifySecretAndSecretRevisionWritten(
@@ -128,7 +128,7 @@ public class KmsUpdaterTest {
   }
 
   @Test
-  public void test_setMarksdbLordnPassword() throws Exception {
+  public void test_setMarksdbLordnPassword() {
     updater.setMarksdbLordnPassword("value1").update();
 
     verifySecretAndSecretRevisionWritten(
@@ -138,7 +138,7 @@ public class KmsUpdaterTest {
   }
 
   @Test
-  public void test_setMarksdbSmdrlLogin() throws Exception {
+  public void test_setMarksdbSmdrlLogin() {
     updater.setMarksdbSmdrlLogin("value1").update();
 
     verifySecretAndSecretRevisionWritten(
@@ -171,7 +171,7 @@ public class KmsUpdaterTest {
   }
 
   @Test
-  public void test_setRdeSshClientPrivateKey() throws Exception {
+  public void test_setRdeSshClientPrivateKey() {
     updater.setRdeSshClientPrivateKey("value1").update();
 
     verifySecretAndSecretRevisionWritten(
@@ -181,7 +181,7 @@ public class KmsUpdaterTest {
   }
 
   @Test
-  public void test_setRdeSshClientPublicKey() throws Exception {
+  public void test_setRdeSshClientPublicKey() {
     updater.setRdeSshClientPublicKey("value1").update();
 
     verifySecretAndSecretRevisionWritten(
@@ -215,11 +215,11 @@ public class KmsUpdaterTest {
     assertThat(secretRevision.getEncryptedValue()).isEqualTo(expectedEncryptedValue);
   }
 
-  private static String getCiphertext(byte[] plaintext) throws IOException {
+  private static String getCiphertext(byte[] plaintext) {
     return new FakeKmsConnection().encrypt("blah", plaintext).ciphertext();
   }
 
-  private static String getCiphertext(String plaintext) throws IOException {
+  private static String getCiphertext(String plaintext) {
     return getCiphertext(KeySerializer.serializeString(plaintext));
   }
 

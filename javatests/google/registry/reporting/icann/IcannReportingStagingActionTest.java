@@ -60,7 +60,7 @@ public class IcannReportingStagingActionTest {
     when(stager.stageReports(ReportType.TRANSACTIONS)).thenReturn(ImmutableList.of("c", "d"));
   }
 
-  private static void assertUploadTaskEnqueued(String subDir) throws Exception {
+  private static void assertUploadTaskEnqueued(String subDir) {
     TaskMatcher matcher =
         new TaskMatcher()
             .url("/_dr/task/icannReportingUpload")

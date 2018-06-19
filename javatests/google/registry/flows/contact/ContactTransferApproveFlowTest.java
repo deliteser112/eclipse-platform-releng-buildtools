@@ -49,7 +49,7 @@ public class ContactTransferApproveFlowTest
     extends ContactTransferFlowTestCase<ContactTransferApproveFlow, ContactResource> {
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     setEppInput("contact_transfer_approve.xml");
     setClientIdForFlow("TheRegistrar");
     setupContactWithPendingTransfer();
