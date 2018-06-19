@@ -24,6 +24,8 @@ import static google.registry.request.RequestParameters.extractSetOfParameters;
 
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.common.collect.ImmutableSet;
+import com.jcraft.jsch.SftpProgressMonitor;
+import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import google.registry.request.Parameter;
@@ -38,7 +40,7 @@ import org.joda.time.DateTime;
  * @see "google.registry.module.backend.BackendRequestComponent"
  */
 @Module
-public final class RdeModule {
+public abstract class RdeModule {
 
   public static final String PARAM_WATERMARK = "watermark";
   public static final String PARAM_WATERMARKS = "watermarks";
@@ -101,4 +103,10 @@ public final class RdeModule {
   static Queue provideQueueRdeReport() {
     return getQueue("rde-report");
   }
+
+  @Binds
+  abstract SftpProgressMonitor provideSftpProgressMonitor(
+      LoggingSftpProgressMonitor loggingSftpProgressMonitor);
+
+  private RdeModule() {}
 }

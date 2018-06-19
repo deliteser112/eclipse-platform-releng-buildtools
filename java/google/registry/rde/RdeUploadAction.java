@@ -33,6 +33,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.SftpProgressMonitor;
 import dagger.Lazy;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
@@ -108,6 +109,7 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
   @Inject RydePgpFileOutputStreamFactory pgpFileFactory;
   @Inject RydePgpSigningOutputStreamFactory pgpSigningFactory;
   @Inject RydeTarOutputStreamFactory tarFactory;
+  @Inject SftpProgressMonitor sftpProgressMonitor;
   @Inject TaskQueueUtils taskQueueUtils;
   @Inject Retrier retrier;
   @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
@@ -202,8 +204,8 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
    *   }</pre>
    */
   @VisibleForTesting
-  protected void upload(
-      GcsFilename xmlFile, long xmlLength, DateTime watermark, String name) throws Exception {
+  protected void upload(GcsFilename xmlFile, long xmlLength, DateTime watermark, String name)
+      throws Exception {
     logger.atInfo().log("Uploading XML file '%s' to remote path '%s'.", xmlFile, uploadUrl);
     try (InputStream gcsInput = gcsUtils.openInputStream(xmlFile);
         Ghostryde.Decryptor decryptor = ghostryde.openDecryptor(gcsInput, stagingDecryptionKey);
@@ -214,7 +216,8 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
         byte[] signature;
         String rydeFilename = name + ".ryde";
         GcsFilename rydeGcsFilename = new GcsFilename(bucket, rydeFilename);
-        try (OutputStream ftpOutput = ftpChan.get().put(rydeFilename, OVERWRITE);
+        try (OutputStream ftpOutput =
+                ftpChan.get().put(rydeFilename, sftpProgressMonitor, OVERWRITE);
             OutputStream gcsOutput = gcsUtils.openOutputStream(rydeGcsFilename);
             TeeOutputStream teeOutput = new TeeOutputStream(asList(ftpOutput, gcsOutput));
             RydePgpSigningOutputStream signer = pgpSigningFactory.create(teeOutput, signingKey)) {
