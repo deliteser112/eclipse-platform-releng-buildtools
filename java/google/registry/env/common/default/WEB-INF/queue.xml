@@ -100,7 +100,8 @@
 
   <queue>
     <name>rde-upload</name>
-    <rate>5/m</rate>
+    <rate>10/m</rate>
+    <bucket-size>50</bucket-size>
     <max-concurrent-requests>5</max-concurrent-requests>
     <retry-parameters>
       <task-age-limit>4h</task-age-limit>
