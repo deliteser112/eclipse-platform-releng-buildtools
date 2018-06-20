@@ -42,9 +42,7 @@ public class ListCursorsCommandTest extends CommandTestCase<ListCursorsCommand> 
         Cursor.create(CursorType.BRDA, DateTime.parse("1984-12-18TZ"), Registry.get("bar")));
     runCommand("--type=BRDA");
     assertThat(getStdoutAsLines())
-        .containsExactly(
-            "1984-12-18T00:00:00.000Z bar",
-            "absent                   foo")
+        .containsExactly("(absent)                 foo", "1984-12-18T00:00:00.000Z bar")
         .inOrder();
   }
 
@@ -65,6 +63,6 @@ public class ListCursorsCommandTest extends CommandTestCase<ListCursorsCommand> 
     createTlds("foo", "bar");
     persistResource(Registry.get("bar").asBuilder().setEscrowEnabled(true).build());
     runCommand("--type=BRDA", "--escrow_enabled");
-    assertThat(getStdoutAsLines()).containsExactly("absent                   bar");
+    assertThat(getStdoutAsLines()).containsExactly("(absent)                 bar");
   }
 }

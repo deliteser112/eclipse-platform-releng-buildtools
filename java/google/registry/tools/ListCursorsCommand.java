@@ -14,56 +14,59 @@
 
 package google.registry.tools;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.common.collect.Ordering;
+import com.googlecode.objectify.Key;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registries;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.tools.Command.RemoteApiCommand;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 /** Lists {@link Cursor} timestamps used by locking rolling cursor tasks, like in RDE. */
 @Parameters(separators = " =", commandDescription = "Lists cursor timestamps used by LRC tasks")
 final class ListCursorsCommand implements RemoteApiCommand {
 
-  @Parameter(
-      names = "--type",
-      description = "Which cursor to list.",
-      required = true)
+  @Parameter(names = "--type", description = "Which cursor to list.", required = true)
   private CursorType cursorType;
 
   @Parameter(
       names = "--tld_type",
-      description = "Filter TLDs of a certain type (REAL or TEST.)")
+      description = "Filter TLDs of a certain type (REAL or TEST; defaults to REAL).")
   private TldType filterTldType = TldType.REAL;
 
   @Parameter(
       names = "--escrow_enabled",
-      description = "Filter TLDs to only include those with RDE escrow enabled.")
-  private boolean filterEscrowEnabled;
+      description = "Filter TLDs to only include those with RDE escrow enabled; defaults to false.")
+  private boolean filterEscrowEnabled = false;
 
   @Override
   public void run() {
-    List<String> lines = new ArrayList<>();
-    for (String tld : Registries.getTlds()) {
-      Registry registry = Registry.get(tld);
-      if (filterTldType != registry.getTldType()) {
-        continue;
-      }
-      if (filterEscrowEnabled && !registry.getEscrowEnabled()) {
-        continue;
-      }
-      Cursor cursor = ofy().load().key(Cursor.createKey(cursorType, registry)).now();
-      lines.add(String.format("%-25s%s", cursor != null ? cursor.getCursorTime() : "absent", tld));
-    }
-    for (String line : Ordering.natural().sortedCopy(lines)) {
-      System.out.println(line);
-    }
+    Map<Registry, Key<Cursor>> registries =
+        Registries.getTlds()
+            .stream()
+            .map(Registry::get)
+            .filter(r -> r.getTldType() == filterTldType)
+            .filter(r -> !filterEscrowEnabled || r.getEscrowEnabled())
+            .collect(toImmutableMap(r -> r, r -> Cursor.createKey(cursorType, r)));
+    Map<Key<Cursor>, Cursor> cursors = ofy().load().keys(registries.values());
+    registries
+        .entrySet()
+        .stream()
+        .map(e -> renderLine(e.getKey().getTldStr(), e.getValue(), cursors))
+        .sorted()
+        .forEach(System.out::println);
+  }
+
+  private static String renderLine(
+      String tld, Key<Cursor> cursorKey, Map<Key<Cursor>, Cursor> cursors) {
+    return String.format(
+        "%-25s%s",
+        cursors.containsKey(cursorKey) ? cursors.get(cursorKey).getCursorTime() : "(absent)", tld);
   }
 }
