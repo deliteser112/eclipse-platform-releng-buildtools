@@ -17,6 +17,8 @@ package google.registry.rde;
 import static com.google.appengine.api.urlfetch.HTTPMethod.PUT;
 import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.model.common.Cursor.CursorType.RDE_REPORT;
+import static google.registry.model.common.Cursor.CursorType.RDE_UPLOAD;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.persistResource;
@@ -45,9 +47,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
 import google.registry.gcs.GcsUtils;
 import google.registry.model.common.Cursor;
-import google.registry.model.common.Cursor.CursorType;
 import google.registry.model.registry.Registry;
 import google.registry.request.HttpException.InternalServerErrorException;
+import google.registry.request.HttpException.NoContentException;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.FakeClock;
@@ -120,9 +122,9 @@ public class RdeReportActionTest {
     PGPPublicKey encryptKey = new FakeKeyringModule().get().getRdeStagingEncryptionKey();
     createTld("test");
     persistResource(
-        Cursor.create(CursorType.RDE_REPORT, DateTime.parse("2006-06-06TZ"), Registry.get("test")));
+        Cursor.create(RDE_REPORT, DateTime.parse("2006-06-06TZ"), Registry.get("test")));
     persistResource(
-        Cursor.create(CursorType.RDE_UPLOAD, DateTime.parse("2006-06-07TZ"), Registry.get("test")));
+        Cursor.create(RDE_UPLOAD, DateTime.parse("2006-06-07TZ"), Registry.get("test")));
     writeGcsFile(
         gcsService,
         reportFile,
@@ -136,7 +138,7 @@ public class RdeReportActionTest {
     action.tld = "lol";
     action.run();
     verify(runner).lockRunAndRollForward(
-        action, Registry.get("lol"), standardSeconds(30), CursorType.RDE_REPORT, standardDays(1));
+        action, Registry.get("lol"), standardSeconds(30), RDE_REPORT, standardDays(1));
     verifyNoMoreInteractions(runner);
   }
 
@@ -164,6 +166,20 @@ public class RdeReportActionTest {
     assertThat(report.getId()).isEqualTo("20101017001");
     assertThat(report.getCrDate()).isEqualTo(DateTime.parse("2010-10-17T00:15:00.0Z"));
     assertThat(report.getWatermark()).isEqualTo(DateTime.parse("2010-10-17T00:00:00Z"));
+  }
+
+  @Test
+  public void testRunWithLock_uploadNotFinished_throws204() {
+    persistResource(
+        Cursor.create(RDE_UPLOAD, DateTime.parse("2006-06-06TZ"), Registry.get("test")));
+    NoContentException thrown =
+        assertThrows(
+            NoContentException.class, () -> createAction().runWithLock(loadRdeReportCursor()));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo(
+            "Waiting on RdeUploadAction for TLD test to send 2006-06-06T00:00:00.000Z report; "
+                + "last upload completion was at 2006-06-06T00:00:00.000Z");
   }
 
   @Test
@@ -202,7 +218,7 @@ public class RdeReportActionTest {
   private DateTime loadRdeReportCursor() {
     return ofy()
         .load()
-        .key(Cursor.createKey(CursorType.RDE_REPORT, Registry.get("test")))
+        .key(Cursor.createKey(RDE_REPORT, Registry.get("test")))
         .now()
         .getCursorTime();
   }

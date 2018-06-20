@@ -20,6 +20,7 @@ import static google.registry.model.common.Cursor.getCursorTimeOrStartOfTime;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.rde.RdeMode.FULL;
 import static google.registry.request.Action.Method.POST;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.flogger.FluentLogger;
@@ -82,9 +83,12 @@ public final class RdeReportAction implements Runnable, EscrowTask {
     DateTime cursorTime =
         getCursorTimeOrStartOfTime(
             ofy().load().key(Cursor.createKey(CursorType.RDE_UPLOAD, Registry.get(tld))).now());
-    if (!cursorTime.isAfter(watermark)) {
-      logger.atInfo().log("tld=%s reportCursor=%s uploadCursor=%s", tld, watermark, cursorTime);
-      throw new NoContentException("Waiting for RdeUploadAction to complete");
+    if (isBeforeOrAt(cursorTime, watermark)) {
+      throw new NoContentException(
+          String.format(
+              "Waiting on RdeUploadAction for TLD %s to send %s report; "
+                  + "last upload completion was at %s",
+              tld, watermark, cursorTime));
     }
     String prefix = RdeNamingUtils.makeRydeFilename(tld, watermark, FULL, 1, 0);
     GcsFilename reportFilename = new GcsFilename(bucket, prefix + "-report.xml.ghostryde");

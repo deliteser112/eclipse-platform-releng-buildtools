@@ -94,15 +94,11 @@ class EscrowTaskRunner {
           if (nextRequiredRun.isAfter(startOfToday)) {
             throw new NoContentException("Already completed");
           }
-          logger.atInfo().log("Cursor: %s", nextRequiredRun);
+          logger.atInfo().log("Current cursor is: %s", nextRequiredRun);
           task.runWithLock(nextRequiredRun);
-          ofy()
-              .transact(
-                  () ->
-                      ofy()
-                          .save()
-                          .entity(
-                              Cursor.create(cursorType, nextRequiredRun.plus(interval), registry)));
+          DateTime nextRun = nextRequiredRun.plus(interval);
+          logger.atInfo().log("Rolling cursor forward to %s.", nextRun);
+          ofy().transact(() -> ofy().save().entity(Cursor.create(cursorType, nextRun, registry)));
           return null;
         };
     String lockName = String.format("EscrowTaskRunner %s", task.getClass().getSimpleName());
