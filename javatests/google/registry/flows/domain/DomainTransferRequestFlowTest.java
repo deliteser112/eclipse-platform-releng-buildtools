@@ -18,6 +18,10 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PATH_RESAVE_ENTITY;
+import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.reporting.DomainTransactionRecord.TransactionReportField.TRANSFER_SUCCESSFUL;
 import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_CREATE;
@@ -37,9 +41,11 @@ import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptio
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 import static google.registry.testing.HostResourceSubject.assertAboutHosts;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.EUR;
 import static org.joda.money.CurrencyUnit.USD;
+import static org.joda.time.Duration.standardSeconds;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -89,6 +95,7 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferStatus;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -481,6 +488,18 @@ public class DomainTransferRequestFlowTest
     assertPollMessagesEmitted(expectedExpirationTime, implicitTransferTime);
     assertAboutDomainAfterAutomaticTransfer(
         expectedExpirationTime, implicitTransferTime, Period.create(1, Unit.YEARS));
+    assertTasksEnqueued(
+        QUEUE_ASYNC_ACTIONS,
+        new TaskMatcher()
+            .url(PATH_RESAVE_ENTITY)
+            .method("POST")
+            .header("Host", "backend.hostname.fake")
+            .header("content-type", "application/x-www-form-urlencoded")
+            .param(PARAM_RESOURCE_KEY, Key.create(domain).getString())
+            .param(PARAM_REQUESTED_TIME, clock.nowUtc().toString())
+            .etaDelta(
+                registry.getAutomaticTransferLength().minus(standardSeconds(30)),
+                registry.getAutomaticTransferLength().plus(standardSeconds(30))));
   }
 
   private void doSuccessfulTest(
@@ -1111,19 +1130,16 @@ public class DomainTransferRequestFlowTest
 
   @Test
   public void testFailure_wrongCurrency_v06() {
-    setupDomain("example", "tld");
     runWrongCurrencyTest(FEE_06_MAP);
   }
 
   @Test
   public void testFailure_wrongCurrency_v11() {
-    setupDomain("example", "tld");
     runWrongCurrencyTest(FEE_11_MAP);
   }
 
   @Test
   public void testFailure_wrongCurrency_v12() {
-    setupDomain("example", "tld");
     runWrongCurrencyTest(FEE_12_MAP);
   }
 

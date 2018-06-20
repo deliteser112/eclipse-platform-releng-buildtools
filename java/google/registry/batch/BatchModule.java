@@ -14,19 +14,26 @@
 
 package google.registry.batch;
 
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
 import static google.registry.request.RequestParameters.extractOptionalBooleanParameter;
 import static google.registry.request.RequestParameters.extractOptionalIntParameter;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
+import static google.registry.request.RequestParameters.extractRequiredDatetimeParameter;
+import static google.registry.request.RequestParameters.extractRequiredParameter;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.common.collect.ImmutableList;
+import com.googlecode.objectify.Key;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
 import dagger.multibindings.StringKey;
+import google.registry.model.ImmutableObject;
 import google.registry.request.Parameter;
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.DateTime;
 
 /**
  * Dagger module for injecting common settings for batch actions.
@@ -69,5 +76,17 @@ public class BatchModule {
   @Parameter("force")
   static Optional<Boolean> provideForce(HttpServletRequest req) {
     return extractOptionalBooleanParameter(req, "force");
+  }
+
+  @Provides
+  @Parameter(PARAM_RESOURCE_KEY)
+  static Key<ImmutableObject> provideResourceKey(HttpServletRequest req) {
+    return Key.create(extractRequiredParameter(req, PARAM_RESOURCE_KEY));
+  }
+
+  @Provides
+  @Parameter(PARAM_REQUESTED_TIME)
+  static DateTime provideRequestedTime(HttpServletRequest req) {
+    return extractRequiredDatetimeParameter(req, PARAM_REQUESTED_TIME);
   }
 }

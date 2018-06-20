@@ -42,6 +42,7 @@ import google.registry.flows.FlowModule.Superuser;
 import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
+import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.exceptions.AlreadyPendingTransferException;
 import google.registry.flows.exceptions.InvalidTransferPeriodValueException;
 import google.registry.flows.exceptions.ObjectAlreadySponsoredException;
@@ -125,6 +126,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
   @Inject @Superuser boolean isSuperuser;
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject Trid trid;
+  @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainPricingLogic pricingLogic;
   @Inject DomainTransferRequestFlow() {}
@@ -224,6 +226,7 @@ public final class DomainTransferRequestFlow implements TransactionalFlow {
         .setTransferData(pendingTransferData)
         .addStatusValue(StatusValue.PENDING_TRANSFER)
         .build();
+    asyncFlowEnqueuer.enqueueAsyncResave(newDomain, now, automaticTransferTime);
     ofy().save()
         .entities(new ImmutableSet.Builder<>()
             .add(newDomain, historyEntry, requestPollMessage)

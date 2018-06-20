@@ -18,6 +18,7 @@ import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.flows.async.AsyncFlowMetrics.OperationResult.STALE;
@@ -57,6 +58,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import com.google.appengine.api.modules.ModulesService;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.collect.ImmutableList;
@@ -136,9 +138,11 @@ public class DeleteContactsAndHostsActionTest
   public void setup() {
     enqueuer =
         new AsyncFlowEnqueuer(
+            getQueue(QUEUE_ASYNC_ACTIONS),
             getQueue(QUEUE_ASYNC_DELETE),
             getQueue(QUEUE_ASYNC_HOST_RENAME),
             Duration.ZERO,
+            mock(ModulesService.class),
             new Retrier(new FakeSleeper(clock), 1));
     AsyncFlowMetrics asyncFlowMetricsMock = mock(AsyncFlowMetrics.class);
     action = new DeleteContactsAndHostsAction();

@@ -14,7 +14,13 @@
 
 package google.registry.flows;
 
+import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
+import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
+import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
+import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.modules.ModulesService;
 import dagger.Component;
@@ -24,6 +30,7 @@ import dagger.Subcomponent;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.config.RegistryConfig.ConfigModule.TmchCaMode;
 import google.registry.dns.DnsQueue;
+import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.custom.CustomLogicFactory;
 import google.registry.flows.custom.TestCustomLogicFactory;
 import google.registry.flows.domain.DomainFlowTmchUtils;
@@ -37,8 +44,10 @@ import google.registry.testing.FakeSleeper;
 import google.registry.tmch.TmchCertificateAuthority;
 import google.registry.tmch.TmchXmlSignature;
 import google.registry.util.Clock;
+import google.registry.util.Retrier;
 import google.registry.util.Sleeper;
 import javax.inject.Singleton;
+import org.joda.time.Duration;
 
 /** Dagger component for running EPP tests. */
 @Singleton
@@ -55,6 +64,7 @@ interface EppTestComponent {
   @Module
   class FakesAndMocksModule {
 
+    private AsyncFlowEnqueuer asyncFlowEnqueuer;
     private BigQueryMetricsEnqueuer metricsEnqueuer;
     private DnsQueue dnsQueue;
     private DomainFlowTmchUtils domainFlowTmchUtils;
@@ -81,15 +91,31 @@ interface EppTestComponent {
         EppMetric.Builder eppMetricBuilder,
         TmchXmlSignature tmchXmlSignature) {
       FakesAndMocksModule instance = new FakesAndMocksModule();
+      ModulesService modulesService = mock(ModulesService.class);
+      when(modulesService.getVersionHostname(any(String.class), any(String.class)))
+          .thenReturn("backend.hostname.fake");
+      instance.asyncFlowEnqueuer =
+          new AsyncFlowEnqueuer(
+              getQueue(QUEUE_ASYNC_ACTIONS),
+              getQueue(QUEUE_ASYNC_DELETE),
+              getQueue(QUEUE_ASYNC_HOST_RENAME),
+              Duration.standardSeconds(90),
+              modulesService,
+              new Retrier(new FakeSleeper(clock), 1));
       instance.clock = clock;
       instance.domainFlowTmchUtils = new DomainFlowTmchUtils(tmchXmlSignature);
       instance.sleeper = new FakeSleeper(clock);
       instance.dnsQueue = DnsQueue.create();
       instance.metricBuilder = eppMetricBuilder;
-      instance.modulesService = mock(ModulesService.class);
+      instance.modulesService = modulesService;
       instance.metricsEnqueuer = mock(BigQueryMetricsEnqueuer.class);
       instance.lockHandler = new FakeLockHandler(true);
       return instance;
+    }
+
+    @Provides
+    AsyncFlowEnqueuer provideAsyncFlowEnqueuer() {
+      return asyncFlowEnqueuer;
     }
 
     @Provides

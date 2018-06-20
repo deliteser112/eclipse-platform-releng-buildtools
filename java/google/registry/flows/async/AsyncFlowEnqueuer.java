@@ -14,6 +14,10 @@
 
 package google.registry.flows.async;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static google.registry.util.DateTimeUtils.isBeforeOrAt;
+
+import com.google.appengine.api.modules.ModulesService;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
@@ -23,6 +27,7 @@ import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.model.EppResource;
+import google.registry.model.ImmutableObject;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
 import google.registry.util.Retrier;
@@ -44,27 +49,60 @@ public final class AsyncFlowEnqueuer {
   public static final String PARAM_REQUESTED_TIME = "requestedTime";
 
   /** The task queue names used by async flows. */
+  public static final String QUEUE_ASYNC_ACTIONS = "async-actions";
   public static final String QUEUE_ASYNC_DELETE = "async-delete-pull";
   public static final String QUEUE_ASYNC_HOST_RENAME = "async-host-rename-pull";
 
+  public static final String PATH_RESAVE_ENTITY = "/_dr/task/resaveEntity";
+
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  private static final Duration MAX_ASYNC_ETA = Duration.standardDays(30);
 
   private final Duration asyncDeleteDelay;
+  private final Queue asyncActionsPushQueue;
   private final Queue asyncDeletePullQueue;
   private final Queue asyncDnsRefreshPullQueue;
+  private final ModulesService modulesService;
   private final Retrier retrier;
 
   @VisibleForTesting
   @Inject
   public AsyncFlowEnqueuer(
+      @Named(QUEUE_ASYNC_ACTIONS) Queue asyncActionsPushQueue,
       @Named(QUEUE_ASYNC_DELETE) Queue asyncDeletePullQueue,
       @Named(QUEUE_ASYNC_HOST_RENAME) Queue asyncDnsRefreshPullQueue,
       @Config("asyncDeleteFlowMapreduceDelay") Duration asyncDeleteDelay,
+      ModulesService modulesService,
       Retrier retrier) {
+    this.asyncActionsPushQueue = asyncActionsPushQueue;
     this.asyncDeletePullQueue = asyncDeletePullQueue;
     this.asyncDnsRefreshPullQueue = asyncDnsRefreshPullQueue;
     this.asyncDeleteDelay = asyncDeleteDelay;
+    this.modulesService = modulesService;
     this.retrier = retrier;
+  }
+
+  /** Enqueues a task to asynchronously re-save an entity at some point in the future. */
+  public void enqueueAsyncResave(
+      ImmutableObject entityToResave, DateTime now, DateTime whenToResave) {
+    checkArgument(isBeforeOrAt(now, whenToResave), "Can't enqueue a resave to run in the past");
+    Key<ImmutableObject> entityKey = Key.create(entityToResave);
+    Duration etaDuration = new Duration(now, whenToResave);
+    if (etaDuration.isLongerThan(MAX_ASYNC_ETA)) {
+      logger.atInfo().log("Ignoring async re-save of %s; %s is past the ETA threshold of %s.",
+          entityKey, whenToResave, MAX_ASYNC_ETA);
+      return;
+    }
+    logger.atInfo().log("Enqueuing async re-save of %s to run at %s.", entityKey, whenToResave);
+    String backendHostname = modulesService.getVersionHostname("backend", null);
+    TaskOptions task =
+        TaskOptions.Builder.withUrl(PATH_RESAVE_ENTITY)
+            .method(Method.POST)
+            .header("Host", backendHostname)
+            .countdownMillis(etaDuration.getMillis())
+            .param(PARAM_RESOURCE_KEY, entityKey.getString())
+            .param(PARAM_REQUESTED_TIME, now.toString());
+    addTaskToQueueWithRetry(asyncActionsPushQueue, task);
   }
 
   /** Enqueues a task to asynchronously delete a contact or host, by key. */

@@ -14,8 +14,12 @@
 
 package google.registry.testing;
 
+import static com.google.common.truth.Truth.assert_;
+
 import com.google.common.collect.Iterables;
 import com.google.common.testing.TestLogHandler;
+import google.registry.util.CapturingLogHandler;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 /** Utility methods for working with Guava's {@link TestLogHandler}. */
@@ -37,5 +41,14 @@ public final class TestLogHandlerUtils {
       TestLogHandler handler, final String prefix) {
     return Iterables.find(
         handler.getStoredLogRecords(), logRecord -> logRecord.getMessage().startsWith(prefix));
+  }
+
+  public static void assertLogMessage(CapturingLogHandler handler, Level level, String message) {
+    for (LogRecord logRecord : handler.getRecords()) {
+      if (logRecord.getLevel().equals(level) && logRecord.getMessage().contains(message)) {
+        return;
+      }
+    }
+    assert_().fail(String.format("Log message \"%s\" not found", message));
   }
 }

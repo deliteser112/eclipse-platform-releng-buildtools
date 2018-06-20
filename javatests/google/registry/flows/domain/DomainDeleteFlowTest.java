@@ -16,6 +16,10 @@ package google.registry.flows.domain;
 
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PATH_RESAVE_ENTITY;
+import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
 import static google.registry.flows.domain.DomainTransferFlowTestCase.persistWithPendingTransfer;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -45,9 +49,12 @@ import static google.registry.testing.EppExceptionSubject.assertAboutEppExceptio
 import static google.registry.testing.HistoryEntrySubject.assertAboutHistoryEntries;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertDnsTasksEnqueued;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.money.CurrencyUnit.USD;
+import static org.joda.time.Duration.standardDays;
+import static org.joda.time.Duration.standardSeconds;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -85,6 +92,7 @@ import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferStatus;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import java.util.Map;
 import org.joda.money.Money;
 import org.joda.time.DateTime;
@@ -117,7 +125,6 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   @Before
   public void initDomainTest() {
     createTld("tld");
-    // For flags extension tests.
   }
 
   private void setUpSuccessfulTest() throws Exception {
@@ -161,9 +168,9 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     persistResource(
         Registry.get("tld")
             .asBuilder()
-            .setAddGracePeriodLength(Duration.standardDays(3))
-            .setRenewGracePeriodLength(Duration.standardDays(2))
-            .setAutoRenewGracePeriodLength(Duration.standardDays(1))
+            .setAddGracePeriodLength(standardDays(3))
+            .setRenewGracePeriodLength(standardDays(2))
+            .setAutoRenewGracePeriodLength(standardDays(1))
             .setRedemptionGracePeriodLength(Duration.standardHours(1))
             .setPendingDeleteLength(Duration.standardHours(2))
             .build());
@@ -249,6 +256,35 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
         .setEventTime(A_MONTH_FROM_NOW)
         .setAutorenewEndTime(END_OF_TIME)
         .setParent(earlierHistoryEntry);
+  }
+
+  @Test
+  public void testSuccess_asyncActionsAreEnqueued() throws Exception {
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setRedemptionGracePeriodLength(standardDays(3))
+            .setPendingDeleteLength(standardDays(2))
+            .build());
+    setUpSuccessfulTest();
+    clock.advanceOneMilli();
+    runFlowAssertResponse(loadFile("domain_delete_response_pending.xml"));
+    // This seems like it's too long.
+    assertTasksEnqueued(
+        QUEUE_ASYNC_ACTIONS,
+        createExpectedResaveTask(standardDays(3)),
+        createExpectedResaveTask(standardDays(5)));
+  }
+
+  private TaskMatcher createExpectedResaveTask(Duration when) {
+    return new TaskMatcher()
+        .url(PATH_RESAVE_ENTITY)
+        .method("POST")
+        .header("Host", "backend.hostname.fake")
+        .header("content-type", "application/x-www-form-urlencoded")
+        .param(PARAM_RESOURCE_KEY, Key.create(domain).getString())
+        .param(PARAM_REQUESTED_TIME, clock.nowUtc().toString())
+        .etaDelta(when.minus(standardSeconds(30)), when.plus(standardSeconds(30)));
   }
 
   @Test
@@ -1009,12 +1045,12 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
         .that(resource)
         .hasExactlyStatusValues(StatusValue.INACTIVE, StatusValue.PENDING_DELETE)
         .and()
-        .hasDeletionTime(clock.nowUtc().plus(Duration.standardDays(19)));
+        .hasDeletionTime(clock.nowUtc().plus(standardDays(19)));
     assertThat(resource.getGracePeriods())
         .containsExactly(
             GracePeriod.create(
                 GracePeriodStatus.REDEMPTION,
-                clock.nowUtc().plus(Duration.standardDays(15)),
+                clock.nowUtc().plus(standardDays(15)),
                 "TheRegistrar",
                 null));
   }
@@ -1035,7 +1071,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
         .that(resource)
         .hasExactlyStatusValues(StatusValue.INACTIVE, StatusValue.PENDING_DELETE)
         .and()
-        .hasDeletionTime(clock.nowUtc().plus(Duration.standardDays(4)));
+        .hasDeletionTime(clock.nowUtc().plus(standardDays(4)));
     assertThat(resource.getGracePeriods()).isEmpty();
   }
 
@@ -1055,12 +1091,12 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
         .that(resource)
         .hasExactlyStatusValues(StatusValue.INACTIVE, StatusValue.PENDING_DELETE)
         .and()
-        .hasDeletionTime(clock.nowUtc().plus(Duration.standardDays(15)));
+        .hasDeletionTime(clock.nowUtc().plus(standardDays(15)));
     assertThat(resource.getGracePeriods())
         .containsExactly(
             GracePeriod.create(
                 GracePeriodStatus.REDEMPTION,
-                clock.nowUtc().plus(Duration.standardDays(15)),
+                clock.nowUtc().plus(standardDays(15)),
                 "TheRegistrar",
                 null));
   }

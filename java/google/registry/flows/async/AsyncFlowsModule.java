@@ -14,11 +14,12 @@
 
 package google.registry.flows.async;
 
+import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
+import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
 
 import com.google.appengine.api.taskqueue.Queue;
-import com.google.appengine.api.taskqueue.QueueFactory;
 import dagger.Module;
 import dagger.Provides;
 import javax.inject.Named;
@@ -28,14 +29,20 @@ import javax.inject.Named;
 public final class AsyncFlowsModule {
 
   @Provides
+  @Named(QUEUE_ASYNC_ACTIONS)
+  static Queue provideAsyncActionsPushQueue() {
+    return getQueue(QUEUE_ASYNC_ACTIONS);
+  }
+
+  @Provides
   @Named(QUEUE_ASYNC_DELETE)
   static Queue provideAsyncDeletePullQueue() {
-    return QueueFactory.getQueue(QUEUE_ASYNC_DELETE);
+    return getQueue(QUEUE_ASYNC_DELETE);
   }
 
   @Provides
   @Named(QUEUE_ASYNC_HOST_RENAME)
   static Queue provideAsyncHostRenamePullQueue() {
-    return QueueFactory.getQueue(QUEUE_ASYNC_HOST_RENAME);
+    return getQueue(QUEUE_ASYNC_HOST_RENAME);
   }
 }

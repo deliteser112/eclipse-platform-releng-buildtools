@@ -17,9 +17,9 @@ package google.registry.export;
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.collect.Iterables.getOnlyElement;
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static google.registry.testing.TestLogHandlerUtils.assertLogMessage;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.SEVERE;
@@ -51,8 +51,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -127,22 +125,13 @@ public class BigqueryPollJobActionTest {
     assertThat(taskOptions).isEqualTo(chainedTask);
   }
 
-  private void assertLogMessage(Level level, String message) {
-    for (LogRecord logRecord : logHandler.getRecords()) {
-      if (logRecord.getLevel().equals(level) && logRecord.getMessage().contains(message)) {
-        return;
-      }
-    }
-    assert_().fail(String.format("Log message \"%s\" not found", message));
-  }
-
   @Test
   public void testSuccess_jobCompletedSuccessfully() throws Exception {
     when(bigqueryJobsGet.execute()).thenReturn(
         new Job().setStatus(new JobStatus().setState("DONE")));
     action.run();
-    assertLogMessage(INFO,
-        String.format("Bigquery job succeeded - %s:%s", PROJECT_ID, JOB_ID));
+    assertLogMessage(
+        logHandler, INFO, String.format("Bigquery job succeeded - %s:%s", PROJECT_ID, JOB_ID));
   }
 
   @Test
@@ -150,28 +139,31 @@ public class BigqueryPollJobActionTest {
     when(bigqueryJobsGet.execute()).thenReturn(
         new Job().setStatus(new JobStatus().setState("DONE")));
 
-    TaskOptions chainedTask = TaskOptions.Builder
-        .withUrl("/_dr/something")
-        .method(Method.POST)
-        .header("X-Testing", "foo")
-        .param("testing", "bar")
-        .taskName("my_task_name");
+    TaskOptions chainedTask =
+        TaskOptions.Builder.withUrl("/_dr/something")
+            .method(Method.POST)
+            .header("X-Testing", "foo")
+            .param("testing", "bar")
+            .taskName("my_task_name");
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
     new ObjectOutputStream(bytes).writeObject(chainedTask);
     action.payload = bytes.toByteArray();
 
     action.run();
-    assertLogMessage(INFO,
-        String.format("Bigquery job succeeded - %s:%s", PROJECT_ID, JOB_ID));
     assertLogMessage(
+        logHandler, INFO, String.format("Bigquery job succeeded - %s:%s", PROJECT_ID, JOB_ID));
+    assertLogMessage(
+        logHandler,
         INFO,
         "Added chained task my_task_name for /_dr/something to queue " + CHAINED_QUEUE_NAME);
-    assertTasksEnqueued(CHAINED_QUEUE_NAME, new TaskMatcher()
-        .url("/_dr/something")
-        .method("POST")
-        .header("X-Testing", "foo")
-        .param("testing", "bar")
-        .taskName("my_task_name"));
+    assertTasksEnqueued(
+        CHAINED_QUEUE_NAME,
+        new TaskMatcher()
+            .url("/_dr/something")
+            .method("POST")
+            .header("X-Testing", "foo")
+            .param("testing", "bar")
+            .taskName("my_task_name"));
   }
 
   @Test
@@ -181,7 +173,8 @@ public class BigqueryPollJobActionTest {
             .setState("DONE")
             .setErrorResult(new ErrorProto().setMessage("Job failed"))));
     action.run();
-    assertLogMessage(SEVERE, String.format("Bigquery job failed - %s:%s", PROJECT_ID, JOB_ID));
+    assertLogMessage(
+        logHandler, SEVERE, String.format("Bigquery job failed - %s:%s", PROJECT_ID, JOB_ID));
   }
 
   @Test

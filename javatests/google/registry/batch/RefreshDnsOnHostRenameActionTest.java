@@ -15,6 +15,7 @@
 package google.registry.batch;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
+import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.flows.async.AsyncFlowMetrics.OperationType.DNS_REFRESH;
@@ -39,6 +40,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import com.google.appengine.api.modules.ModulesService;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.batch.RefreshDnsOnHostRenameAction.RefreshDnsOnHostRenameReducer;
@@ -79,9 +81,11 @@ public class RefreshDnsOnHostRenameActionTest
     createTld("tld");
     enqueuer =
         new AsyncFlowEnqueuer(
+            getQueue(QUEUE_ASYNC_ACTIONS),
             getQueue(QUEUE_ASYNC_DELETE),
             getQueue(QUEUE_ASYNC_HOST_RENAME),
             Duration.ZERO,
+            mock(ModulesService.class),
             new Retrier(new FakeSleeper(clock), 1));
     AsyncFlowMetrics asyncFlowMetricsMock = mock(AsyncFlowMetrics.class);
     action = new RefreshDnsOnHostRenameAction();

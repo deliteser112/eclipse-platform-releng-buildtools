@@ -16,11 +16,12 @@ package google.registry.flows.domain;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.model.EppResourceUtils.loadByForeignKey;
+import static google.registry.model.reporting.HistoryEntry.Type.DOMAIN_CREATE;
 import static google.registry.testing.DatastoreHelper.createBillingEventForTransfer;
 import static google.registry.testing.DatastoreHelper.createTld;
 import static google.registry.testing.DatastoreHelper.getOnlyHistoryEntryOfType;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
+import static google.registry.testing.DatastoreHelper.persistDomainWithDependentResources;
 import static google.registry.testing.DatastoreHelper.persistDomainWithPendingTransfer;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainResourceSubject.assertAboutDomains;
@@ -36,16 +37,9 @@ import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.contact.ContactResource;
-import google.registry.model.domain.DesignatedContact;
-import google.registry.model.domain.DesignatedContact.Type;
-import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
-import google.registry.model.domain.GracePeriod;
-import google.registry.model.domain.rgp.GracePeriodStatus;
-import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.host.HostResource;
-import google.registry.model.poll.PollMessage;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.transfer.TransferData;
@@ -108,50 +102,14 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
   protected void setupDomain(String label, String tld) {
     createTld(tld);
     contact = persistActiveContact("jd1234");
-    domain = new DomainResource.Builder()
-        .setRepoId("1-".concat(Ascii.toUpperCase(tld)))
-        .setFullyQualifiedDomainName(label + "." + tld)
-        .setPersistedCurrentSponsorClientId("TheRegistrar")
-        .setCreationClientId("TheRegistrar")
-        .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))
-        .setRegistrationExpirationTime(REGISTRATION_EXPIRATION_TIME)
-        .setRegistrant(
-            Key.create(loadByForeignKey(ContactResource.class, "jd1234", clock.nowUtc())))
-        .setContacts(ImmutableSet.of(
-            DesignatedContact.create(
-                Type.ADMIN,
-                Key.create(loadByForeignKey(ContactResource.class, "jd1234", clock.nowUtc()))),
-            DesignatedContact.create(
-                Type.TECH,
-                Key.create(loadByForeignKey(ContactResource.class, "jd1234", clock.nowUtc())))))
-        .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("fooBAR")))
-        .addGracePeriod(GracePeriod.create(
-            GracePeriodStatus.ADD, clock.nowUtc().plusDays(10), "foo", null))
-        .build();
-    historyEntryDomainCreate = persistResource(
-        new HistoryEntry.Builder()
-            .setType(HistoryEntry.Type.DOMAIN_CREATE)
-            .setParent(domain)
-            .build());
-    BillingEvent.Recurring autorenewEvent = persistResource(
-        new BillingEvent.Recurring.Builder()
-            .setReason(Reason.RENEW)
-            .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
-            .setTargetId(label + "." + tld)
-            .setClientId("TheRegistrar")
-            .setEventTime(REGISTRATION_EXPIRATION_TIME)
-            .setRecurrenceEndTime(END_OF_TIME)
-            .setParent(historyEntryDomainCreate)
-            .build());
-    PollMessage.Autorenew autorenewPollMessage = persistResource(
-        new PollMessage.Autorenew.Builder()
-            .setTargetId(label + "." + tld)
-            .setClientId("TheRegistrar")
-            .setEventTime(REGISTRATION_EXPIRATION_TIME)
-            .setAutorenewEndTime(END_OF_TIME)
-            .setMsg("Domain was auto-renewed.")
-            .setParent(historyEntryDomainCreate)
-            .build());
+    domain =
+        persistDomainWithDependentResources(
+            label,
+            tld,
+            contact,
+            clock.nowUtc(),
+            DateTime.parse("1999-04-03T22:00:00.0Z"),
+            REGISTRATION_EXPIRATION_TIME);
     subordinateHost = persistResource(
         new HostResource.Builder()
             .setRepoId("2-".concat(Ascii.toUpperCase(tld)))
@@ -161,11 +119,13 @@ public class DomainTransferFlowTestCase<F extends Flow, R extends EppResource>
             .setCreationTimeForTest(DateTime.parse("1999-04-03T22:00:00.0Z"))
             .setSuperordinateDomain(Key.create(domain))
             .build());
-    domain = persistResource(domain.asBuilder()
-        .setAutorenewBillingEvent(Key.create(autorenewEvent))
-        .setAutorenewPollMessage(Key.create(autorenewPollMessage))
-        .addSubordinateHost(subordinateHost.getFullyQualifiedHostName())
-        .build());
+    domain =
+        persistResource(
+            domain
+                .asBuilder()
+                .addSubordinateHost(subordinateHost.getFullyQualifiedHostName())
+                .build());
+    historyEntryDomainCreate = getOnlyHistoryEntryOfType(domain, DOMAIN_CREATE);
   }
 
   protected BillingEvent.OneTime getBillingEventForImplicitTransfer() {

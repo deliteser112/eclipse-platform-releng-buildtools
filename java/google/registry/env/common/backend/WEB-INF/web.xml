@@ -298,6 +298,12 @@
     <url-pattern>/_dr/task/resaveAllEppResources</url-pattern>
   </servlet-mapping>
 
+  <!--  Action to re-save a given entity. -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/resaveEntity</url-pattern>
+  </servlet-mapping>
+
   <!--
     Deletes contacts and hosts enqueued for asynchronous deletion if they are
     not referenced by any domain.

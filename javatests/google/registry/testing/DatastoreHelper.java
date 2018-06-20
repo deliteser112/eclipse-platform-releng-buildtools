@@ -70,7 +70,9 @@ import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.domain.DomainAuthInfo;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.GracePeriod;
 import google.registry.model.domain.launch.LaunchPhase;
+import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.eppcommon.AuthInfo.PasswordAuth;
 import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppcommon.Trid;
@@ -549,6 +551,66 @@ public class DatastoreHelper {
                             null)))))
                 .setTransferRequestTrid(Trid.create("transferClient-trid", "transferServer-trid"))
                 .build())
+            .build());
+  }
+
+  public static DomainResource persistDomainWithDependentResources(
+      String label,
+      String tld,
+      ContactResource contact,
+      DateTime now,
+      DateTime creationTime,
+      DateTime expirationTime) {
+    String domainName = String.format("%s.%s", label, tld);
+    DomainResource domain =
+        new DomainResource.Builder()
+            .setRepoId("1-".concat(Ascii.toUpperCase(tld)))
+            .setFullyQualifiedDomainName(domainName)
+            .setPersistedCurrentSponsorClientId("TheRegistrar")
+            .setCreationClientId("TheRegistrar")
+            .setCreationTimeForTest(creationTime)
+            .setRegistrationExpirationTime(expirationTime)
+            .setRegistrant(Key.create(contact))
+            .setContacts(
+                ImmutableSet.of(
+                    DesignatedContact.create(Type.ADMIN, Key.create(contact)),
+                    DesignatedContact.create(Type.TECH, Key.create(contact))))
+            .setAuthInfo(DomainAuthInfo.create(PasswordAuth.create("fooBAR")))
+            .addGracePeriod(
+                GracePeriod.create(GracePeriodStatus.ADD, now.plusDays(10), "foo", null))
+            .build();
+    HistoryEntry historyEntryDomainCreate =
+        persistResource(
+            new HistoryEntry.Builder()
+                .setType(HistoryEntry.Type.DOMAIN_CREATE)
+                .setParent(domain)
+                .build());
+    BillingEvent.Recurring autorenewEvent =
+        persistResource(
+            new BillingEvent.Recurring.Builder()
+                .setReason(Reason.RENEW)
+                .setFlags(ImmutableSet.of(Flag.AUTO_RENEW))
+                .setTargetId(domainName)
+                .setClientId("TheRegistrar")
+                .setEventTime(expirationTime)
+                .setRecurrenceEndTime(END_OF_TIME)
+                .setParent(historyEntryDomainCreate)
+                .build());
+    PollMessage.Autorenew autorenewPollMessage =
+        persistResource(
+            new PollMessage.Autorenew.Builder()
+                .setTargetId(domainName)
+                .setClientId("TheRegistrar")
+                .setEventTime(expirationTime)
+                .setAutorenewEndTime(END_OF_TIME)
+                .setMsg("Domain was auto-renewed.")
+                .setParent(historyEntryDomainCreate)
+                .build());
+    return persistResource(
+        domain
+            .asBuilder()
+            .setAutorenewBillingEvent(Key.create(autorenewEvent))
+            .setAutorenewPollMessage(Key.create(autorenewPollMessage))
             .build());
   }
 

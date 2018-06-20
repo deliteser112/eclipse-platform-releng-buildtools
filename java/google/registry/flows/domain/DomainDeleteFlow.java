@@ -51,6 +51,7 @@ import google.registry.flows.FlowModule.TargetId;
 import google.registry.flows.SessionMetadata;
 import google.registry.flows.TransactionalFlow;
 import google.registry.flows.annotations.ReportingSpec;
+import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.custom.DomainDeleteFlowCustomLogic;
 import google.registry.flows.custom.DomainDeleteFlowCustomLogic.AfterValidationParameters;
 import google.registry.flows.custom.DomainDeleteFlowCustomLogic.BeforeResponseParameters;
@@ -127,6 +128,7 @@ public final class DomainDeleteFlow implements TransactionalFlow {
   @Inject HistoryEntry.Builder historyBuilder;
   @Inject DnsQueue dnsQueue;
   @Inject Trid trid;
+  @Inject AsyncFlowEnqueuer asyncFlowEnqueuer;
   @Inject EppResponse.Builder responseBuilder;
   @Inject DomainDeleteFlowCustomLogic flowCustomLogic;
   @Inject DomainDeleteFlow() {}
@@ -179,16 +181,19 @@ public final class DomainDeleteFlow implements TransactionalFlow {
       builder.setDeletionTime(now).setStatusValues(null);
     } else {
       DateTime deletionTime = now.plus(durationUntilDelete);
+      DateTime redemptionTime = now.plus(redemptionGracePeriodLength);
       PollMessage.OneTime deletePollMessage =
           createDeletePollMessage(existingDomain, historyEntry, deletionTime);
       entitiesToSave.add(deletePollMessage);
+      asyncFlowEnqueuer.enqueueAsyncResave(existingDomain, now, deletionTime);
+      asyncFlowEnqueuer.enqueueAsyncResave(existingDomain, now, redemptionTime);
       builder.setDeletionTime(deletionTime)
           .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
           // Clear out all old grace periods and add REDEMPTION, which does not include a key to a
           // billing event because there isn't one for a domain delete.
           .setGracePeriods(ImmutableSet.of(GracePeriod.createWithoutBillingEvent(
               GracePeriodStatus.REDEMPTION,
-              now.plus(redemptionGracePeriodLength),
+              redemptionTime,
               clientId)))
           .setDeletePollMessage(Key.create(deletePollMessage));
       // Note: The expiration time is unchanged, so if it's before the new deletion time, there will
