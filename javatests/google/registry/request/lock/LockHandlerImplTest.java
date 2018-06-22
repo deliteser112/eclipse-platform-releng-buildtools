@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import google.registry.model.server.Lock;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
+import google.registry.util.RequestStatusCheckerImpl;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
@@ -72,7 +73,7 @@ public final class LockHandlerImplTest {
   }
 
   private boolean executeWithLocks(Callable<Void> callable, final @Nullable Lock acquiredLock) {
-    LockHandlerImpl lockHandler = new LockHandlerImpl() {
+    LockHandlerImpl lockHandler = new LockHandlerImpl(new RequestStatusCheckerImpl(), clock) {
       private static final long serialVersionUID = 0L;
       @Override
       Optional<Lock> acquire(String resourceName, String tld, Duration leaseLength) {
@@ -82,7 +83,6 @@ public final class LockHandlerImplTest {
         return Optional.ofNullable(acquiredLock);
       }
     };
-    lockHandler.clock = clock;
 
     return lockHandler.executeWithLocks(callable, "tld", ONE_DAY, "resourceName");
   }

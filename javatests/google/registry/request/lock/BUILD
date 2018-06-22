@@ -14,6 +14,7 @@ java_library(
     deps = [
         "//java/google/registry/model",
         "//java/google/registry/request/lock",
+        "//java/google/registry/util",
         "//javatests/google/registry/testing",
         "//third_party/java/appengine:appengine-api-testonly",
         "//third_party/java/appengine:appengine-integration-testing",

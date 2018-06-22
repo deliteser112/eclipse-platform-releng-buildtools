@@ -27,6 +27,8 @@ import google.registry.model.server.Lock;
 import google.registry.util.AppEngineTimeLimiter;
 import google.registry.util.Clock;
 import google.registry.util.RequestStatusChecker;
+import google.registry.util.SystemClock;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -40,19 +42,30 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 
 /** Implementation of {@link LockHandler} that uses the datastore lock. */
-public class LockHandlerImpl implements LockHandler {
+public class LockHandlerImpl implements LockHandler, Serializable {
 
-  private static final long serialVersionUID = 6551645164118637767L;
-
+  private static final long serialVersionUID = 5162259753801400985L;
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** Fudge factor to make sure we kill threads before a lock actually expires. */
   private static final Duration LOCK_TIMEOUT_FUDGE = Duration.standardSeconds(5);
 
-  @Inject Clock clock;
-  @Inject RequestStatusChecker requestStatusChecker;
+  private final RequestStatusChecker requestStatusChecker;
+  @Nullable private transient Clock clock;
 
-  @Inject public LockHandlerImpl() {}
+  @Inject
+  public LockHandlerImpl(RequestStatusChecker requestStatusChecker, Clock clock) {
+    this.requestStatusChecker = requestStatusChecker;
+    this.clock = clock;
+  }
+
+  private synchronized Clock getClock() {
+    // Re-set the clock on first use after de-serialization
+    if (clock == null) {
+      clock = new SystemClock();
+    }
+    return clock;
+  }
 
   /**
    * Acquire one or more locks and execute a Void {@link Callable}.
@@ -70,7 +83,7 @@ public class LockHandlerImpl implements LockHandler {
       @Nullable String tld,
       Duration leaseLength,
       String... lockNames) {
-    DateTime startTime = clock.nowUtc();
+    DateTime startTime = getClock().nowUtc();
     String sanitizedTld = Strings.emptyToNull(tld);
     try {
       return AppEngineTimeLimiter.create()
@@ -87,7 +100,7 @@ public class LockHandlerImpl implements LockHandler {
                 "Execution on locks '%s' for TLD '%s' timed out after %s; started at %s",
                 Joiner.on(", ").join(lockNames),
                 Optional.ofNullable(sanitizedTld).orElse("(null)"),
-                new Duration(startTime, clock.nowUtc()),
+                new Duration(startTime, getClock().nowUtc()),
                 startTime),
             cause);
       }
@@ -113,10 +126,7 @@ public class LockHandlerImpl implements LockHandler {
     final Set<String> lockNames;
 
     LockingCallable(
-        Callable<Void> delegate,
-        String tld,
-        Duration leaseLength,
-        String... lockNames) {
+        Callable<Void> delegate, String tld, Duration leaseLength, String... lockNames) {
       checkArgument(leaseLength.isLongerThan(LOCK_TIMEOUT_FUDGE));
       this.delegate = delegate;
       this.tld = tld;
