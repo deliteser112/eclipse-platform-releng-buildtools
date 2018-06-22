@@ -58,8 +58,9 @@ public class DomainWhoisResponseTest {
 
   HostResource hostResource1;
   HostResource hostResource2;
-  ContactResource registrant;
+  RegistrarContact abuseContact;
   ContactResource adminContact;
+  ContactResource registrant;
   ContactResource techContact;
   DomainResource domainResource;
 
@@ -76,7 +77,7 @@ public class DomainWhoisResponseTest {
                 .setIanaIdentifier(5555555L)
                 .build());
 
-    persistResource(
+    abuseContact = persistResource(
         new RegistrarContact.Builder()
             .setParent(registrar)
             .setName("Jake Doe")
@@ -261,6 +262,17 @@ public class DomainWhoisResponseTest {
                 false,
                 "Doodle Disclaimer\nI exist so that carriage return\nin disclaimer can be tested."))
         .isEqualTo(WhoisResponseResults.create(loadFile("whois_domain.txt"), 1));
+  }
+
+  @Test
+  public void getPlainTextOutputTest_registrarAbuseInfoMissing() {
+    persistResource(abuseContact.asBuilder().setVisibleInDomainWhoisAsAbuse(false).build());
+    DomainWhoisResponse domainWhoisResponse =
+        new DomainWhoisResponse(domainResource, false, clock.nowUtc());
+    assertThat(domainWhoisResponse.getResponse(false, "Footer"))
+        .isEqualTo(
+            WhoisResponseResults.create(
+                loadFile("whois_domain_registrar_abuse_info_missing.txt"), 1));
   }
 
   @Test

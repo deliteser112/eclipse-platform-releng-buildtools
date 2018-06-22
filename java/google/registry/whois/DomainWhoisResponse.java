@@ -97,12 +97,12 @@ final class DomainWhoisResponse extends WhoisResponseImpl {
             .emitField("Registrar IANA ID", Objects.toString(registrar.getIanaIdentifier(), ""))
             // Email address is a required field for registrar contacts. Therefore as long as there
             // is an abuse contact, we can get an email address from it.
-            .emitFieldIfDefined(
+            .emitField(
                 "Registrar Abuse Contact Email",
-                abuseContact.map(RegistrarContact::getEmailAddress).orElse(null))
-            .emitFieldIfDefined(
+                abuseContact.map(RegistrarContact::getEmailAddress).orElse(""))
+            .emitField(
                 "Registrar Abuse Contact Phone",
-                abuseContact.map(RegistrarContact::getPhoneNumber).orElse(null))
+                abuseContact.map(RegistrarContact::getPhoneNumber).orElse(""))
             .emitStatusValues(domain.getStatusValues(), domain.getGracePeriods())
             .emitContact("Registrant", Optional.of(domain.getRegistrant()), preferUnicode)
             .emitContact("Admin", getContactReference(Type.ADMIN), preferUnicode)
