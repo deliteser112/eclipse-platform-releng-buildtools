@@ -14,12 +14,20 @@
 
 package google.registry.util;
 
+import java.io.Serializable;
 import javax.annotation.concurrent.ThreadSafe;
 import org.joda.time.DateTime;
 
-/** A clock that tells the current time in milliseconds or nanoseconds. */
+/**
+ * A clock that tells the current time in milliseconds or nanoseconds.
+ *
+ * <p>Clocks are technically serializable because they are either a stateless wrapper around the
+ * system clock, or for testing, are just a wrapper around a DateTime. This means that if you
+ * serialize a clock and deserialize it elsewhere, you won't necessarily get the same time or time
+ * zone -- what you will get is a functioning clock.
+ */
 @ThreadSafe
-public interface Clock {
+public interface Clock extends Serializable {
 
   /** Returns current time in UTC timezone. */
   DateTime nowUtc();

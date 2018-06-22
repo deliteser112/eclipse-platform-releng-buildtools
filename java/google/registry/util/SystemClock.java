@@ -25,6 +25,8 @@ import org.joda.time.DateTime;
 @ThreadSafe
 public class SystemClock implements Clock {
 
+  private static final long serialVersionUID = 5165372013848947515L;
+
   /** Returns the current time. */
   @Override
   public DateTime nowUtc() {

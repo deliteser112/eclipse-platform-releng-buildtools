@@ -19,7 +19,6 @@ import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.millis;
 
 import google.registry.util.Clock;
-import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.ThreadSafe;
 import org.joda.time.DateTime;
@@ -28,7 +27,7 @@ import org.joda.time.ReadableInstant;
 
 /** A mock clock for testing purposes that supports telling, setting, and advancing the time. */
 @ThreadSafe
-public final class FakeClock implements Clock, Serializable {
+public final class FakeClock implements Clock {
 
   private static final long serialVersionUID = 675054721685304599L;
 
