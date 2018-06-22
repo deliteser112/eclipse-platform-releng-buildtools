@@ -41,7 +41,6 @@ import javax.inject.Singleton;
 @Singleton
 @Component(
   modules = {
-    // TODO(b/79692981): Remove flow-related includes once check API is rewritten to not wrap flow.
     AppIdentityCredentialModule.class,
     AuthModule.class,
     ConfigModule.class,

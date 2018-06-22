@@ -1,4 +1,4 @@
-// Copyright 2017 The Nomulus Authors. All Rights Reserved.
+// Copyright 2018 The Nomulus Authors. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,133 +14,160 @@
 
 package google.registry.flows;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Strings.nullToEmpty;
-import static com.google.common.io.Resources.getResource;
 import static com.google.common.net.HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
-import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.FEE_0_11;
-import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.FEE_0_12;
-import static google.registry.model.eppcommon.ProtocolDefinition.ServiceExtension.FEE_0_6;
-import static google.registry.model.registry.Registries.findTldForNameOrThrow;
+import static google.registry.flows.domain.DomainFlowUtils.validateDomainName;
+import static google.registry.flows.domain.DomainFlowUtils.validateDomainNameWithIdnTables;
+import static google.registry.flows.domain.DomainFlowUtils.verifyNotInPredelegation;
+import static google.registry.model.registry.label.ReservationType.getTypeOfHighestSeverity;
+import static google.registry.model.registry.label.ReservedList.getReservationTypes;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Availability.AVAILABLE;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Availability.REGISTERED;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Availability.RESERVED;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Status.INVALID_NAME;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Status.INVALID_REGISTRY_PHASE;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Status.SUCCESS;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Status.UNKNOWN_ERROR;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Tier.PREMINUM;
+import static google.registry.monitoring.whitebox.CheckApiMetric.Tier.STANDARD;
+import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.util.DomainNameUtils.canonicalizeDomainName;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.json.simple.JSONValue.toJSONString;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import com.google.common.net.InternetDomainName;
 import com.google.common.net.MediaType;
-import com.google.template.soy.SoyFileSet;
-import com.google.template.soy.tofu.SoyTofu;
 import dagger.Module;
 import dagger.Provides;
-import google.registry.config.RegistryConfig.Config;
-import google.registry.flows.soy.DomainCheckFeeEppSoyInfo;
-import google.registry.model.domain.fee.FeeCheckResponseExtension;
-import google.registry.model.eppoutput.CheckData.DomainCheck;
-import google.registry.model.eppoutput.CheckData.DomainCheckData;
-import google.registry.model.eppoutput.EppResponse;
+import google.registry.flows.domain.DomainFlowUtils.BadCommandForRegistryPhaseException;
+import google.registry.flows.domain.DomainFlowUtils.InvalidIdnDomainLabelException;
+import google.registry.model.domain.DomainResource;
+import google.registry.model.index.ForeignKeyIndex;
+import google.registry.model.registry.Registry;
+import google.registry.model.registry.label.ReservationType;
+import google.registry.monitoring.whitebox.CheckApiMetric;
+import google.registry.monitoring.whitebox.CheckApiMetric.Availability;
 import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
+import google.registry.util.Clock;
 import java.util.Map;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.DateTime;
 
 /**
- * A servlet that returns availability and premium checks as JSON.
+ * An action that returns availability and premium checks as JSON.
  *
  * <p>This action returns plain JSON without a safety prefix, so it's vital that the output not be
  * user controlled, lest it open an XSS vector. Do not modify this to return the domain name in the
  * response.
  */
-@Action(
-  path = "/check",
-  auth = Auth.AUTH_PUBLIC_ANONYMOUS
-)
+@Action(path = "/check", auth = Auth.AUTH_PUBLIC_ANONYMOUS)
 public class CheckApiAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private static final SoyTofu TOFU =
-      SoyFileSet.builder().add(getResource(DomainCheckFeeEppSoyInfo.class,
-          DomainCheckFeeEppSoyInfo.getInstance().getFileName())).build().compileToTofu();
+  @Inject
+  @Parameter("domain")
+  String domain;
 
-  @Inject @Parameter("domain") String domain;
   @Inject Response response;
-  @Inject EppController eppController;
-  @Inject @Config("checkApiServletRegistrarClientId") String checkApiServletRegistrarClientId;
-  @Inject CheckApiAction() {}
+  @Inject Clock clock;
+  @Inject CheckApiMetric.Builder metricBuilder;
+  @Inject CheckApiMetrics checkApiMetrics;
+
+  @Inject
+  CheckApiAction() {}
 
   @Override
   public void run() {
-    response.setHeader("Content-Disposition", "attachment");
-    response.setHeader("X-Content-Type-Options", "nosniff");
-    response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-    response.setContentType(MediaType.JSON_UTF_8);
-    response.setPayload(toJSONString(doCheck()));
+    try {
+      response.setHeader("Content-Disposition", "attachment");
+      response.setHeader("X-Content-Type-Options", "nosniff");
+      response.setHeader(ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+      response.setContentType(MediaType.JSON_UTF_8);
+      response.setPayload(toJSONString(doCheck()));
+    } finally {
+      CheckApiMetric metric = metricBuilder.build();
+      checkApiMetrics.incrementCheckApiRequest(metric);
+      checkApiMetrics.recordProcessingTime(metric);
+    }
   }
 
   private Map<String, Object> doCheck() {
     String domainString;
+    InternetDomainName domainName;
     try {
       domainString = canonicalizeDomainName(nullToEmpty(domain));
-      // Validate the TLD.
-      findTldForNameOrThrow(InternetDomainName.from(domainString));
-    } catch (IllegalStateException | IllegalArgumentException e) {
+      domainName = validateDomainName(domainString);
+    } catch (IllegalArgumentException | EppException e) {
+      metricBuilder.status(INVALID_NAME);
       return fail("Must supply a valid domain name on an authoritative TLD");
     }
     try {
-      byte[] inputXml = TOFU
-          .newRenderer(DomainCheckFeeEppSoyInfo.DOMAINCHECKFEE)
-          .setData(ImmutableMap.of("domainName", domainString))
-          .render()
-          .getBytes(UTF_8);
-      SessionMetadata sessionMetadata =
-          new StatelessRequestSessionMetadata(checkApiServletRegistrarClientId, FEE_EXTENSION_URIS);
-      EppResponse response = eppController
-          .handleEppCommand(
-              sessionMetadata,
-              new PasswordOnlyTransportCredentials(),
-              EppRequestSource.CHECK_API,
-              false,  // This endpoint is never a dry run.
-              false,  // This endpoint is never a superuser.
-              inputXml)
-          .getResponse();
-      if (!response.getResult().getCode().isSuccess()) {
-        return fail(response.getResult().getMsg());
+      // Throws an EppException with a reasonable error message which will be sent back to caller.
+      validateDomainNameWithIdnTables(domainName);
+
+      DateTime now = clock.nowUtc();
+      Registry registry = Registry.get(domainName.parent().toString());
+      try {
+        verifyNotInPredelegation(registry, now);
+      } catch (BadCommandForRegistryPhaseException e) {
+        metricBuilder.status(INVALID_REGISTRY_PHASE);
+        return fail("Check in this TLD is not allowed in the current registry phase");
       }
-      DomainCheckData checkData = (DomainCheckData) response.getResponseData().get(0);
-      DomainCheck check = (DomainCheck) checkData.getChecks().get(0);
-      boolean available = check.getName().getAvail();
-      ImmutableMap.Builder<String, Object> builder = new ImmutableMap.Builder<>();
-      builder
-          .put("status", "success")
-          .put("available", available);
-      if (available) {
-        FeeCheckResponseExtension<?> feeCheckResponseExtension =
-            (FeeCheckResponseExtension<?>) response.getFirstExtensionOfType(
-                FEE_0_12.getResponseExtensionClass(),
-                FEE_0_11.getResponseExtensionClass(),
-                FEE_0_6.getResponseExtensionClass());
-        if (feeCheckResponseExtension != null) {
-          builder.put("tier",
-              firstNonNull(
-                  Iterables.getOnlyElement(feeCheckResponseExtension.getItems()).getFeeClass(),
-                  "standard"));
-        }
+
+      boolean isRegistered = checkExists(domainString, now);
+      Optional<String> reservedError = Optional.empty();
+      boolean isReserved = false;
+      if (!isRegistered) {
+        reservedError = checkReserved(domainName);
+        isReserved = reservedError.isPresent();
+      }
+      Availability availability = isRegistered ? REGISTERED : (isReserved ? RESERVED : AVAILABLE);
+      String errorMsg = isRegistered ? "In use" : (isReserved ? reservedError.get() : null);
+
+      ImmutableMap.Builder<String, Object> responseBuilder = new ImmutableMap.Builder<>();
+      metricBuilder.status(SUCCESS).availability(availability);
+      responseBuilder.put("status", "success").put("available", availability.equals(AVAILABLE));
+
+      boolean isPremium = isDomainPremium(domainString, now);
+      metricBuilder.tier(isPremium ? PREMINUM : STANDARD);
+      if (availability.equals(AVAILABLE)) {
+        responseBuilder.put("tier", isPremium ? "premium" : "standard");
       } else {
-        builder.put("reason", check.getReason());
+        responseBuilder.put("reason", errorMsg);
       }
-      return builder.build();
+      return responseBuilder.build();
+    } catch (InvalidIdnDomainLabelException e) {
+      metricBuilder.status(INVALID_NAME);
+      return fail(e.getResult().getMsg());
     } catch (Exception e) {
+      metricBuilder.status(UNKNOWN_ERROR);
       logger.atWarning().withCause(e).log("Unknown error");
       return fail("Invalid request");
     }
+  }
+
+  private boolean checkExists(String domainString, DateTime now) {
+    return !ForeignKeyIndex.loadCached(DomainResource.class, ImmutableList.of(domainString), now)
+        .isEmpty();
+  }
+
+  private Optional<String> checkReserved(InternetDomainName domainName) {
+    ImmutableSet<ReservationType> reservationTypes =
+        getReservationTypes(domainName.parts().get(0), domainName.parent().toString());
+    if (!reservationTypes.isEmpty()) {
+      return Optional.of(getTypeOfHighestSeverity(reservationTypes).getMessageForCheck());
+    }
+    return Optional.empty();
   }
 
   private Map<String, Object> fail(String reason) {
@@ -150,6 +177,7 @@ public class CheckApiAction implements Runnable {
   /** Dagger module for the check api endpoint. */
   @Module
   public static final class CheckApiModule {
+
     @Provides
     @Parameter("domain")
     static String provideDomain(HttpServletRequest req) {
