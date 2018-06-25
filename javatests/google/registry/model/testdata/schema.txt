@@ -70,36 +70,6 @@ class google.registry.model.billing.BillingEvent$Recurring {
   org.joda.time.DateTime eventTime;
   org.joda.time.DateTime recurrenceEndTime;
 }
-class google.registry.model.billing.RegistrarBillingEntry {
-  @Id long id;
-  @Parent com.googlecode.objectify.Key<google.registry.model.registrar.Registrar> parent;
-  java.lang.String description;
-  java.lang.String transactionId;
-  org.joda.money.CurrencyUnit currency;
-  org.joda.money.Money amount;
-  org.joda.money.Money balance;
-  org.joda.time.DateTime created;
-}
-class google.registry.model.billing.RegistrarCredit {
-  @Id long id;
-  @Parent com.googlecode.objectify.Key<google.registry.model.registrar.Registrar> parent;
-  google.registry.model.billing.RegistrarCredit$CreditType type;
-  java.lang.String description;
-  java.lang.String tld;
-  org.joda.money.CurrencyUnit currency;
-  org.joda.time.DateTime creationTime;
-}
-enum google.registry.model.billing.RegistrarCredit$CreditType {
-  AUCTION;
-  PROMOTION;
-}
-class google.registry.model.billing.RegistrarCreditBalance {
-  @Id long id;
-  @Parent com.googlecode.objectify.Key<google.registry.model.billing.RegistrarCredit> parent;
-  org.joda.money.Money amount;
-  org.joda.time.DateTime effectiveTime;
-  org.joda.time.DateTime writtenTime;
-}
 class google.registry.model.common.Cursor {
   @Id java.lang.String id;
   @Parent com.googlecode.objectify.Key<google.registry.model.common.EntityGroupRoot> parent;

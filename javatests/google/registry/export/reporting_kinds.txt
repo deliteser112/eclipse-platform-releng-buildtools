@@ -20,6 +20,4 @@ PremiumListRevision
 Recurring
 Registrar
 RegistrarContact
-RegistrarCredit
-RegistrarCreditBalance
 Registry

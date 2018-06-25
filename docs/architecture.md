@@ -377,11 +377,6 @@ registry codebase:
 *   `Registrar` -- These hold information about client registrars.
 *   `RegistrarContact` -- Registrars have contacts just as domains do. These are
     stored in a special RegistrarContact entity.
-*   `RegistrarCredit` and `RegistrarCreditBalance` -- These entities implement
-    the concept of registrar "credits" which are pools of credit that would
-    apply to charges owed by the registrar. Note, however, that Nomulus
-    currently has no support for actually incorporating credits into billing
-    output, and these entities may be removed at any time.
 *   `Registry` -- These hold information about the TLDs supported by the
     Registry system.
 *   `RegistryCursor` -- These entities are the predecessor to the Cursor

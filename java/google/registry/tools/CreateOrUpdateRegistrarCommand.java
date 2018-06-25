@@ -15,7 +15,6 @@
 package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Predicates.isNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
@@ -29,7 +28,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import google.registry.model.billing.RegistrarBillingUtils;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.BillingMethod;
 import google.registry.model.registrar.RegistrarAddress;
@@ -51,7 +49,6 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.joda.money.CurrencyUnit;
-import org.joda.money.Money;
 import org.joda.time.DateTime;
 
 /** Shared base class for commands to create or update a {@link Registrar}. */
@@ -370,18 +367,7 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
         newBillingAccountMap.putAll(billingAccountMap);
         builder.setBillingAccountMap(newBillingAccountMap);
       }
-      if (billingMethod != null) {
-        if (oldRegistrar != null && !billingMethod.equals(oldRegistrar.getBillingMethod())) {
-          Map<CurrencyUnit, Money> balances = RegistrarBillingUtils.loadBalance(oldRegistrar);
-          for (Money balance : balances.values()) {
-            checkState(balance.isZero(),
-                "Refusing to change billing method on Registrar '%s' from %s to %s"
-                    + " because current balance is non-zero: %s",
-                clientId, oldRegistrar.getBillingMethod(), billingMethod, balances);
-          }
-        }
-        builder.setBillingMethod(billingMethod);
-      }
+      Optional.ofNullable(billingMethod).ifPresent(builder::setBillingMethod);
       List<Object> streetAddressFields = Arrays.asList(street, city, state, zip, countryCode);
       checkArgument(
           streetAddressFields.stream().anyMatch(isNull())

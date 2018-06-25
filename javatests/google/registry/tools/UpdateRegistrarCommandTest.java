@@ -28,14 +28,12 @@ import com.beust.jcommander.ParameterException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import google.registry.model.billing.RegistrarBillingEntry;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.BillingMethod;
 import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registrar.Registrar.Type;
 import google.registry.util.CidrAddressBlock;
 import org.joda.money.CurrencyUnit;
-import org.joda.money.Money;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
@@ -267,30 +265,6 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
     runCommand("--billing_method=braintree", "--force", "NewRegistrar");
     assertThat(loadRegistrar("NewRegistrar").getBillingMethod())
         .isEqualTo(BillingMethod.BRAINTREE);
-  }
-
-  @Test
-  public void testFailure_changeBillingMethodWhenBalanceIsNonZero() {
-    createTlds("xn--q9jyb4c");
-    Registrar registrar = loadRegistrar("NewRegistrar");
-    persistResource(
-        new RegistrarBillingEntry.Builder()
-            .setPrevious(null)
-            .setParent(registrar)
-            .setCreated(DateTime.parse("1984-12-18TZ"))
-            .setDescription("USD Invoice for December")
-            .setAmount(Money.parse("USD 10.00"))
-            .build());
-    assertThat(registrar.getBillingMethod()).isEqualTo(BillingMethod.EXTERNAL);
-    IllegalStateException thrown =
-        assertThrows(
-            IllegalStateException.class,
-            () -> runCommand("--billing_method=braintree", "--force", "NewRegistrar"));
-    assertThat(thrown)
-        .hasMessageThat()
-        .isEqualTo(
-            "Refusing to change billing method on Registrar 'NewRegistrar' from EXTERNAL to "
-                + "BRAINTREE because current balance is non-zero: {USD=USD 10.00}");
   }
 
   @Test

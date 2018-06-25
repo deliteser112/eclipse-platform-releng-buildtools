@@ -23,9 +23,6 @@ PremiumListRevision
 RdeRevision
 Recurring
 Registrar
-RegistrarBillingEntry
 RegistrarContact
-RegistrarCredit
-RegistrarCreditBalance
 Registry
 ReservedList

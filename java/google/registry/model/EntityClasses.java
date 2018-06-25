@@ -16,9 +16,6 @@ package google.registry.model;
 
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.billing.BillingEvent;
-import google.registry.model.billing.RegistrarBillingEntry;
-import google.registry.model.billing.RegistrarCredit;
-import google.registry.model.billing.RegistrarCreditBalance;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.EntityGroupRoot;
 import google.registry.model.common.GaeUserIdConverter;
@@ -103,10 +100,7 @@ public final class EntityClasses {
           PremiumList.PremiumListRevision.class,
           RdeRevision.class,
           Registrar.class,
-          RegistrarBillingEntry.class,
           RegistrarContact.class,
-          RegistrarCredit.class,
-          RegistrarCreditBalance.class,
           Registry.class,
           ReservedList.class,
           ServerSecret.class,
