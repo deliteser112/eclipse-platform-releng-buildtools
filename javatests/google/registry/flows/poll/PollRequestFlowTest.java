@@ -59,26 +59,40 @@ public class PollRequestFlowTest extends FlowTestCase<PollRequestFlow> {
     host = persistActiveHost("ns1.test.example");
   }
 
-  @Test
-  public void testSuccess_domainTransferApproved() throws Exception {
+  private void persistPendingTransferPollMessage() {
     persistResource(
         new PollMessage.OneTime.Builder()
             .setClientId(getClientIdForFlow())
             .setEventTime(clock.nowUtc().minusDays(1))
             .setMsg("Transfer approved.")
-            .setResponseData(ImmutableList.of(new DomainTransferResponse.Builder()
-                .setFullyQualifiedDomainName("test.example")
-                .setTransferStatus(TransferStatus.SERVER_APPROVED)
-                .setGainingClientId(getClientIdForFlow())
-                .setTransferRequestTime(clock.nowUtc().minusDays(5))
-                .setLosingClientId("TheRegistrar")
-                .setPendingTransferExpirationTime(clock.nowUtc().minusDays(1))
-                .setExtendedRegistrationExpirationTime(clock.nowUtc().plusYears(1))
-                .build()))
+            .setResponseData(
+                ImmutableList.of(
+                    new DomainTransferResponse.Builder()
+                        .setFullyQualifiedDomainName("test.example")
+                        .setTransferStatus(TransferStatus.SERVER_APPROVED)
+                        .setGainingClientId(getClientIdForFlow())
+                        .setTransferRequestTime(clock.nowUtc().minusDays(5))
+                        .setLosingClientId("TheRegistrar")
+                        .setPendingTransferExpirationTime(clock.nowUtc().minusDays(1))
+                        .setExtendedRegistrationExpirationTime(clock.nowUtc().plusYears(1))
+                        .build()))
             .setParent(createHistoryEntryForEppResource(domain))
             .build());
+  }
+
+  @Test
+  public void testSuccess_domainTransferApproved() throws Exception {
+    persistPendingTransferPollMessage();
     assertTransactionalFlow(false);
     runFlowAssertResponse(loadFile("poll_response_domain_transfer.xml"));
+  }
+
+  @Test
+  public void testSuccess_clTridNotSpecified() throws Exception {
+    setEppInput("poll_no_cltrid.xml");
+    persistPendingTransferPollMessage();
+    assertTransactionalFlow(false);
+    runFlowAssertResponse(loadFile("poll_response_domain_transfer_no_cltrid.xml"));
   }
 
   @Test

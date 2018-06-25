@@ -156,6 +156,12 @@ public class DomainInfoFlowTest extends ResourceFlowTestCase<DomainInfoFlow, Dom
   }
 
   @Test
+  public void testSuccess_clTridNotSpecified() throws Exception {
+    setEppInput("domain_info_no_cltrid.xml");
+    doSuccessfulTest("domain_info_response_no_cltrid.xml");
+  }
+
+  @Test
   public void testSuccess_allHosts_noDelegatedHosts() throws Exception {
     // There aren't any delegated hosts.
     doSuccessfulTestNoNameservers("domain_info_response_subordinate_hosts.xml");

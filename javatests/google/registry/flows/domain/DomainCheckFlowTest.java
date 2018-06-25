@@ -115,6 +115,16 @@ public class DomainCheckFlowTest
   }
 
   @Test
+  public void testSuccess_clTridNotSpecified() throws Exception {
+    setEppInput("domain_check_no_cltrid.xml");
+    persistActiveDomain("example1.tld");
+    doCheckTest(
+        create(false, "example1.tld", "In use"),
+        create(true, "example2.tld", null),
+        create(true, "example3.tld", null));
+  }
+
+  @Test
   public void testSuccess_oneExists_allocationTokenIsInvalid() throws Exception {
     setEppInput("domain_check_allocationtoken.xml");
     persistActiveDomain("example1.tld");

@@ -63,6 +63,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -141,8 +142,9 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     return TestDataHelper.loadFile(getClass(), filename, substitutions);
   }
 
+  @Nullable
   protected String getClientTrid() throws Exception {
-    return eppLoader.getEpp().getCommandWrapper().getClTrid();
+    return eppLoader.getEpp().getCommandWrapper().getClTrid().orElse(null);
   }
 
   /** Gets the client ID that the flow will run as. */

@@ -124,9 +124,8 @@ public final class AsyncFlowEnqueuer {
             .param(PARAM_SERVER_TRANSACTION_ID, trid.getServerTransactionId())
             .param(PARAM_IS_SUPERUSER, Boolean.toString(isSuperuser))
             .param(PARAM_REQUESTED_TIME, now.toString());
-    if (trid.getClientTransactionId().isPresent()) {
-      task.param(PARAM_CLIENT_TRANSACTION_ID, trid.getClientTransactionId().get());
-    }
+    trid.getClientTransactionId()
+        .ifPresent(clTrid -> task.param(PARAM_CLIENT_TRANSACTION_ID, clTrid));
     addTaskToQueueWithRetry(asyncDeletePullQueue, task);
   }
 

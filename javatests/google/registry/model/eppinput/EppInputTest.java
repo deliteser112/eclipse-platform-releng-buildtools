@@ -35,7 +35,7 @@ public class EppInputTest {
   public void testUnmarshalling_contactInfo() throws Exception {
     EppInput input =
         unmarshal(EppInput.class, loadBytes(ContactResourceTest.class, "contact_info.xml").read());
-    assertThat(input.getCommandWrapper().getClTrid()).isEqualTo("ABC-12345");
+    assertThat(input.getCommandWrapper().getClTrid()).hasValue("ABC-12345");
     assertThat(input.getCommandType()).isEqualTo("info");
     assertThat(input.getResourceType()).hasValue("contact");
     assertThat(input.getSingleTargetId()).hasValue("sh8013");
@@ -46,7 +46,7 @@ public class EppInputTest {
   public void testUnmarshalling_domainCheck() throws Exception {
     EppInput input =
         unmarshal(EppInput.class, loadBytes(DomainResourceTest.class, "domain_check.xml").read());
-    assertThat(input.getCommandWrapper().getClTrid()).isEqualTo("ABC-12345");
+    assertThat(input.getCommandWrapper().getClTrid()).hasValue("ABC-12345");
     assertThat(input.getCommandType()).isEqualTo("check");
     assertThat(input.getResourceType()).hasValue("domain");
     assertThat(input.getSingleTargetId()).isEmpty();
@@ -56,7 +56,7 @@ public class EppInputTest {
   @Test
   public void testUnmarshalling_login() throws Exception {
     EppInput input = unmarshal(EppInput.class, loadBytes(getClass(), "login_valid.xml").read());
-    assertThat(input.getCommandWrapper().getClTrid()).isEqualTo("ABC-12345");
+    assertThat(input.getCommandWrapper().getClTrid()).hasValue("ABC-12345");
     assertThat(input.getCommandType()).isEqualTo("login");
     assertThat(input.getResourceType()).isEmpty();
     assertThat(input.getSingleTargetId()).isEmpty();

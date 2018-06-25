@@ -394,6 +394,13 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
+  public void testSuccess_clTridNotSpecified() throws Exception {
+    setEppInput("domain_create_no_cltrid.xml");
+    persistContactsAndHosts();
+    doSuccessfulTest("tld", "domain_create_response_no_cltrid.xml");
+  }
+
+  @Test
   public void testFailure_invalidAllocationToken() {
     setEppInput("domain_create_allocationtoken.xml");
     persistContactsAndHosts();

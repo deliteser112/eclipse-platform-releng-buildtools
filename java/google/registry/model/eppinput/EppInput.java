@@ -366,10 +366,15 @@ public class EppInput extends ImmutableObject {
     @XmlElementWrapper
     List<CommandExtension> extension;
 
-    String clTRID;
+    @Nullable String clTRID;
 
-    public String getClTrid() {
-      return clTRID;
+    /**
+     * Returns the client transaction ID.
+     *
+     * <p>This is optional (i.e. it may not be specified) per RFC 5730.
+     */
+    public Optional<String> getClTrid() {
+      return Optional.ofNullable(clTRID);
     }
 
     public InnerCommand getCommand() {

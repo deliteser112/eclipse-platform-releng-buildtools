@@ -156,7 +156,8 @@ public class FlowModule {
   @FlowScope
   Trid provideTrid(EppInput eppInput, ServerTridProvider serverTridProvider) {
     return Trid.create(
-        eppInput.getCommandWrapper().getClTrid(), serverTridProvider.createServerTrid());
+        eppInput.getCommandWrapper().getClTrid().orElse(null),
+        serverTridProvider.createServerTrid());
   }
 
   @Provides

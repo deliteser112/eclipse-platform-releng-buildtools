@@ -16,7 +16,6 @@ package google.registry.model.eppcommon;
 
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.googlecode.objectify.annotation.Embed;
 import google.registry.model.ImmutableObject;
 import java.util.Optional;
@@ -40,6 +39,7 @@ public class Trid extends ImmutableObject {
 
   /** The client transaction id, if provided by the client, otherwise null. */
   @XmlElement(name = "clTRID", namespace = "urn:ietf:params:xml:ns:epp-1.0")
+  @Nullable
   String clientTransactionId;
 
   public String getServerTransactionId() {
@@ -50,7 +50,6 @@ public class Trid extends ImmutableObject {
     return Optional.ofNullable(clientTransactionId);
   }
 
-  @VisibleForTesting
   public static Trid create(@Nullable String clientTransactionId, String serverTransactionId) {
     checkArgumentNotNull(serverTransactionId, "serverTransactionId cannot be null");
     Trid instance = new Trid();

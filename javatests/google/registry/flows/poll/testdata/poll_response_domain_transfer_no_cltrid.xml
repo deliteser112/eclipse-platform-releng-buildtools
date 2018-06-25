@@ -1,0 +1,25 @@
+<epp xmlns="urn:ietf:params:xml:ns:epp-1.0">
+  <response>
+    <result code="1301">
+      <msg>Command completed successfully; ack to dequeue</msg>
+    </result>
+    <msgQ count="1" id="1-3-EXAMPLE-5-6-2011">
+      <qDate>2011-01-01T01:01:01Z</qDate>
+      <msg>Transfer approved.</msg>
+    </msgQ>
+    <resData>
+      <domain:trnData xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
+        <domain:name>test.example</domain:name>
+        <domain:trStatus>serverApproved</domain:trStatus>
+        <domain:reID>NewRegistrar</domain:reID>
+        <domain:reDate>2010-12-28T01:01:01Z</domain:reDate>
+        <domain:acID>TheRegistrar</domain:acID>
+        <domain:acDate>2011-01-01T01:01:01Z</domain:acDate>
+        <domain:exDate>2012-01-02T01:01:01Z</domain:exDate>
+      </domain:trnData>
+    </resData>
+    <trID>
+      <svTRID>server-trid</svTRID>
+    </trID>
+  </response>
+</epp>

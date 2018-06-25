@@ -107,14 +107,11 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   ContactResource unusedContact;
   HistoryEntry historyEntryDomainCreate;
 
-  public DomainUpdateFlowTest() {
-    // Note that "domain_update.xml" tests adding and removing the same contact type.
-    setEppInput("domain_update.xml");
-  }
-
   @Before
   public void initDomainTest() {
     createTld("tld");
+    // Note that "domain_update.xml" tests adding and removing the same contact type.
+    setEppInput("domain_update.xml");
   }
 
   private void persistReferencedEntities() {
@@ -149,8 +146,12 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   }
 
   private void doSuccessfulTest() throws Exception {
+    doSuccessfulTest("domain_update_response.xml");
+  }
+
+  private void doSuccessfulTest(String expectedXmlFilename) throws Exception {
     assertTransactionalFlow(true);
-    runFlowAssertResponse(loadFile("domain_update_response.xml"));
+    runFlowAssertResponse(loadFile(expectedXmlFilename));
     // Check that the domain was updated. These values came from the xml.
     assertAboutDomains()
         .that(reloadResourceByForeignKey())
@@ -176,6 +177,14 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistReferencedEntities();
     persistDomain();
     doSuccessfulTest();
+  }
+
+  @Test
+  public void testSuccess_clTridNotSpecified() throws Exception {
+    setEppInput("domain_update_no_cltrid.xml");
+    persistReferencedEntities();
+    persistDomain();
+    doSuccessfulTest("generic_success_response_no_cltrid.xml");
   }
 
   @Test

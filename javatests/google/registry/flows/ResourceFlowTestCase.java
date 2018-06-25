@@ -170,9 +170,8 @@ public abstract class ResourceFlowTestCase<F extends Flow, R extends EppResource
         .param("serverTransactionId", trid.getServerTransactionId())
         .param("isSuperuser", Boolean.toString(isSuperuser))
         .param("requestedTime", clock.nowUtc().toString());
-    if (trid.getClientTransactionId().isPresent()) {
-      expected.param("clientTransactionId", trid.getClientTransactionId().get());
-    }
+    trid.getClientTransactionId()
+        .ifPresent(clTrid -> expected.param("clientTransactionId", clTrid));
     assertTasksEnqueued("async-delete-pull", expected);
   }
 
