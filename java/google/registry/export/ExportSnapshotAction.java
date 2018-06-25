@@ -35,7 +35,7 @@ import javax.inject.Inject;
  *   <li>The snapshot is exported to Google Cloud Storage (this action).
  *   <li>The {@link CheckSnapshotAction} polls until the export is completed.
  *   <li>The {@link LoadSnapshotAction} imports the data from GCS to BigQuery.
- *   <li>The {@link UpdateSnapshotViewAction} updates the view in latest_snapshot.
+ *   <li>The {@link UpdateSnapshotViewAction} updates the view in latest_datastore_export.
  * </ol>
  */
 @Action(

@@ -102,21 +102,18 @@ public class UpdateSnapshotViewActionTest {
     InOrder factoryOrder = inOrder(bigqueryFactory);
     // Check that the BigQuery factory was called in such a way that the dataset would be created
     // if it didn't already exist.
-    factoryOrder.verify(bigqueryFactory).create("myproject", "latest_snapshot");
     factoryOrder.verify(bigqueryFactory).create("myproject", "latest_datastore_export");
 
     // Check that we updated both views
     InOrder tableOrder = inOrder(bigqueryTables);
     ArgumentCaptor<Table> tableArg = ArgumentCaptor.forClass(Table.class);
-    tableOrder.verify(bigqueryTables)
-        .update(eq("myproject"), eq("latest_snapshot"), eq("fookind"), tableArg.capture());
-    tableOrder.verify(bigqueryTables)
+    tableOrder
+        .verify(bigqueryTables)
         .update(eq("myproject"), eq("latest_datastore_export"), eq("fookind"), tableArg.capture());
     Iterable<String> actualQueries =
         Iterables.transform(tableArg.getAllValues(), table -> table.getView().getQuery());
-    assertThat(actualQueries).containsExactly(
-        "#legacySQL\nSELECT * FROM [myproject:some_dataset.12345_fookind]",
-        "#standardSQL\nSELECT * FROM `myproject.some_dataset.12345_fookind`");
+    assertThat(actualQueries)
+        .containsExactly("#standardSQL\nSELECT * FROM `myproject.some_dataset.12345_fookind`");
   }
 
   @Test
@@ -125,7 +122,10 @@ public class UpdateSnapshotViewActionTest {
         .thenThrow(new IOException("I'm sorry Dave, I can't let you do that"));
     InternalServerErrorException thrown =
         assertThrows(InternalServerErrorException.class, action::run);
-    assertThat(thrown).hasMessageThat().contains("Could not update snapshot view for table");
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo(
+            "Could not update snapshot view latest_datastore_export for table 12345_fookind");
     assertThat(thrown).hasCauseThat().hasMessageThat().contains("I'm sorry Dave");
   }
 }

@@ -44,8 +44,7 @@ public class UpdateSnapshotViewAction implements Runnable {
   static final String UPDATE_SNAPSHOT_TABLE_ID_PARAM = "table";
   static final String UPDATE_SNAPSHOT_KIND_PARAM = "kind";
 
-  static final String LEGACY_LATEST_SNAPSHOT_DATASET = "latest_snapshot";
-  static final String STANDARD_LATEST_SNAPSHOT_DATASET = "latest_datastore_export";
+  private static final String TARGET_DATASET_NAME = "latest_datastore_export";
 
   /** Servlet-specific details needed for enqueuing tasks against itself. */
   static final String QUEUE = "export-snapshot-update-view"; // See queue.xml.
@@ -87,22 +86,15 @@ public class UpdateSnapshotViewAction implements Runnable {
   @Override
   public void run() {
     try {
-      // TODO(b/32377148): Remove the legacySql view when migration complete.
-      SqlTemplate legacyTemplate =
-          SqlTemplate.create(
-              "#legacySQL\nSELECT * FROM [%PROJECT%:%SOURCE_DATASET%.%SOURCE_TABLE%]");
-      updateSnapshotView(
-          datasetId, tableId, kindName, LEGACY_LATEST_SNAPSHOT_DATASET, legacyTemplate, true);
-
-      SqlTemplate standardTemplate =
+      SqlTemplate sqlTemplate =
           SqlTemplate.create(
               "#standardSQL\nSELECT * FROM `%PROJECT%.%SOURCE_DATASET%.%SOURCE_TABLE%`");
-      updateSnapshotView(
-          datasetId, tableId, kindName, STANDARD_LATEST_SNAPSHOT_DATASET, standardTemplate, false);
-
+      updateSnapshotView(datasetId, tableId, kindName, TARGET_DATASET_NAME, sqlTemplate);
     } catch (Throwable e) {
       throw new InternalServerErrorException(
-          String.format("Could not update snapshot view for table %s", tableId), e);
+          String.format(
+              "Could not update snapshot view %s for table %s", TARGET_DATASET_NAME, tableId),
+          e);
     }
   }
 
@@ -111,8 +103,7 @@ public class UpdateSnapshotViewAction implements Runnable {
       String sourceTableId,
       String kindName,
       String viewDataset,
-      SqlTemplate viewQueryTemplate,
-      boolean useLegacySql)
+      SqlTemplate viewQueryTemplate)
       throws IOException {
 
     Bigquery bigquery = bigqueryFactory.create(projectId, viewDataset);
@@ -126,7 +117,7 @@ public class UpdateSnapshotViewAction implements Runnable {
                     .setTableId(kindName))
             .setView(
                 new ViewDefinition()
-                    .setUseLegacySql(useLegacySql)
+                    .setUseLegacySql(false)
                     .setQuery(
                         viewQueryTemplate
                             .put("PROJECT", projectId)
