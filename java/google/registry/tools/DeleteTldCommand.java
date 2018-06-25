@@ -19,7 +19,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registry.Registry;
@@ -78,11 +77,7 @@ final class DeleteTldCommand extends ConfirmingCommand implements RemoteApiComma
 
   @Override
   protected String execute() {
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().delete().entity(registry).now();
-      }});
+    ofy().transactNew(() -> ofy().delete().entity(registry).now());
     registry.invalidateInCache();
     return String.format("Deleted TLD '%s'.\n", tld);
   }

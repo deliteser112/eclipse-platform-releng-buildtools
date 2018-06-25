@@ -41,7 +41,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import google.registry.dns.writer.VoidDnsWriter;
 import google.registry.model.pricing.StaticPremiumListPricingEngine;
 import google.registry.model.registry.Registry;
@@ -193,18 +192,14 @@ public class PremiumListUtilsTest {
     // Remove one of the premium list entries from behind the Bloom filter's back.
     ofy()
         .transactNew(
-            new VoidWork() {
-              @Override
-              public void vrun() {
+            () ->
                 ofy()
                     .delete()
                     .keys(
                         Key.create(
                             PremiumList.getCached("tld").get().getRevisionKey(),
                             PremiumListEntry.class,
-                            "rich"));
-              }
-            });
+                            "rich")));
     ofy().clearSessionCache();
 
     assertThat(getPremiumPrice("rich", Registry.get("tld"))).isEmpty();

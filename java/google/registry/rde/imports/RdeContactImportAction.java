@@ -24,7 +24,6 @@ import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
-import com.googlecode.objectify.VoidWork;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
@@ -139,14 +138,13 @@ public class RdeContactImportAction implements Runnable {
         // Record number of attempted map operations
         getContext().incrementCounter("contact imports attempted");
         logger.atInfo().log("Saving contact %s", xjcContact.getId());
-        ofy().transact(new VoidWork() {
-          @Override
-          public void vrun() {
-            ContactResource contact =
-                XjcToContactResourceConverter.convertContact(xjcContact);
-            getImportUtils().importEppResource(contact);
-          }
-        });
+        ofy()
+            .transact(
+                () -> {
+                  ContactResource contact =
+                      XjcToContactResourceConverter.convertContact(xjcContact);
+                  getImportUtils().importEppResource(contact);
+                });
         // Record number of contacts imported
         getContext().incrementCounter("contacts saved");
         logger.atInfo().log("Contact %s was imported successfully", xjcContact.getId());

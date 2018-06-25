@@ -35,7 +35,6 @@ import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.apphosting.api.DeadlineExceededException;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.ofy.Ofy;
@@ -174,15 +173,7 @@ public class LordnTaskTest {
   public void test_enqueueDomainResourceTask_throwsNpeOnNullDomain() {
     assertThrows(
         NullPointerException.class,
-        () ->
-            ofy()
-                .transactNew(
-                    new VoidWork() {
-                      @Override
-                      public void vrun() {
-                        LordnTask.enqueueDomainResourceTask(null);
-                      }
-                    }));
+        () -> ofy().transactNew(() -> LordnTask.enqueueDomainResourceTask(null)));
   }
 
   @SuppressWarnings("unchecked")

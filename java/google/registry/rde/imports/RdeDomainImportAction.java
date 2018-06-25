@@ -35,7 +35,6 @@ import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
-import com.googlecode.objectify.VoidWork;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.dns.DnsQueue;
@@ -171,120 +170,10 @@ public class RdeDomainImportAction implements Runnable {
       try {
         // Record number of attempted map operations
         getContext().incrementCounter("domain imports attempted");
-
         logger.atInfo().log("Saving domain %s", xjcDomain.getName());
-        ofy()
-            .transact(
-                new VoidWork() {
-                  @Override
-                  public void vrun() {
-                    HistoryEntry historyEntry = createHistoryEntryForDomainImport(xjcDomain);
-                    BillingEvent.Recurring autorenewBillingEvent =
-                        createAutoRenewBillingEventForDomainImport(xjcDomain, historyEntry);
-                    PollMessage.Autorenew autorenewPollMessage =
-                        createAutoRenewPollMessageForDomainImport(xjcDomain, historyEntry);
-                    DomainResource domain =
-                        XjcToDomainResourceConverter.convertDomain(
-                            xjcDomain, autorenewBillingEvent, autorenewPollMessage);
-                    getDnsQueue().addDomainRefreshTask(domain.getFullyQualifiedDomainName());
-                    // Keep a list of "extra objects" that need to be saved along with the domain
-                    // and add to it if necessary.
-                    ImmutableSet<Object> extraEntitiesToSave =
-                        getImportUtils().createIndexesForEppResource(domain);
-                    // Create speculative server approval entities for pending transfers
-                    if (domain.getTransferData().getTransferStatus() == TransferStatus.PENDING) {
-                      TransferData transferData = domain.getTransferData();
-                      checkArgumentNotNull(
-                          transferData,
-                          "Domain %s is in pending transfer but has no transfer data",
-                          domain.getFullyQualifiedDomainName());
-                      Money transferCost =
-                          getDomainRenewCost(
-                              domain.getFullyQualifiedDomainName(),
-                              transferData.getPendingTransferExpirationTime(),
-                              1);
-                      DateTime automaticTransferTime =
-                          transferData.getPendingTransferExpirationTime();
-                      // If the transfer will occur within the autorenew grace period, it should
-                      // subsume the autorenew, so we don't add the normal extra year. See the
-                      // original logic in DomainTransferRequestFlow (which is very similar) for
-                      // more information. That said, note that here we stop 1 millisecond before
-                      // the actual transfer time to avoid hitting the transfer-handling part of
-                      // cloneProjectedAtTime(), since unlike in the DomainTransferRequestFlow case,
-                      // this domain already has a pending transfer.
-                      DomainResource domainAtTransferTime =
-                          domain.cloneProjectedAtTime(automaticTransferTime.minusMillis(1));
-                      boolean inAutorenewGraceAtTransfer =
-                          !domainAtTransferTime
-                              .getGracePeriodsOfType(GracePeriodStatus.AUTO_RENEW)
-                              .isEmpty();
-                      int extraYears = inAutorenewGraceAtTransfer ? 0 : 1;
-                      // Construct the capped new expiration time.
-                      DateTime serverApproveNewExpirationTime =
-                          extendRegistrationWithCap(
-                              automaticTransferTime,
-                              domainAtTransferTime.getRegistrationExpirationTime(),
-                              extraYears);
-                      // Create speculative entities in anticipation of an automatic server
-                      // approval.
-                      ImmutableSet<TransferServerApproveEntity> serverApproveEntities =
-                          createTransferServerApproveEntities(
-                              automaticTransferTime,
-                              serverApproveNewExpirationTime,
-                              historyEntry,
-                              domain,
-                              historyEntry.getTrid(),
-                              transferData.getGainingClientId(),
-                              Optional.of(transferCost),
-                              transferData.getTransferRequestTime());
-                      transferData =
-                          createPendingTransferData(
-                              transferData.asBuilder(),
-                              serverApproveEntities,
-                              Period.create(1, Unit.YEARS));
-                      // Create a poll message to notify the losing registrar that a transfer was
-                      // requested.
-                      PollMessage requestPollMessage =
-                          createLosingTransferPollMessage(
-                                  domain.getRepoId(),
-                                  transferData,
-                                  serverApproveNewExpirationTime,
-                                  historyEntry)
-                              .asBuilder()
-                              .setEventTime(transferData.getTransferRequestTime())
-                              .build();
-                      domain = domain.asBuilder().setTransferData(transferData).build();
-                      autorenewBillingEvent =
-                          autorenewBillingEvent
-                              .asBuilder()
-                              .setRecurrenceEndTime(transferData.getPendingTransferExpirationTime())
-                              .build();
-                      autorenewPollMessage =
-                          autorenewPollMessage
-                              .asBuilder()
-                              .setAutorenewEndTime(transferData.getPendingTransferExpirationTime())
-                              .build();
-                      extraEntitiesToSave =
-                          new ImmutableSet.Builder<>()
-                              .add(requestPollMessage)
-                              .addAll(extraEntitiesToSave)
-                              .addAll(serverApproveEntities)
-                              .build();
-                    } // End pending transfer check
-                    ofy()
-                        .save()
-                        .entities(
-                            new ImmutableSet.Builder<>()
-                                .add(
-                                    domain,
-                                    historyEntry,
-                                    autorenewBillingEvent,
-                                    autorenewPollMessage)
-                                .addAll(extraEntitiesToSave)
-                                .build())
-                        .now();
-                  }
-                });
+
+        ofy().transact(() -> saveDomain(xjcDomain));
+
         // Record the number of domains imported
         getContext().incrementCounter("domains saved");
         logger.atInfo().log("Domain %s was imported successfully", xjcDomain.getName());
@@ -297,6 +186,102 @@ public class RdeDomainImportAction implements Runnable {
         logger.atSevere().withCause(e).log(
             "Error processing domain %s; xml=%s", xjcDomain.getName(), xjcDomain);
       }
+    }
+
+    private void saveDomain(XjcRdeDomain xjcDomain) {
+      HistoryEntry historyEntry = createHistoryEntryForDomainImport(xjcDomain);
+      BillingEvent.Recurring autorenewBillingEvent =
+          createAutoRenewBillingEventForDomainImport(xjcDomain, historyEntry);
+      PollMessage.Autorenew autorenewPollMessage =
+          createAutoRenewPollMessageForDomainImport(xjcDomain, historyEntry);
+      DomainResource domain =
+          XjcToDomainResourceConverter.convertDomain(
+              xjcDomain, autorenewBillingEvent, autorenewPollMessage);
+      getDnsQueue().addDomainRefreshTask(domain.getFullyQualifiedDomainName());
+      // Keep a list of "extra objects" that need to be saved along with the domain
+      // and add to it if necessary.
+      ImmutableSet<Object> extraEntitiesToSave =
+          getImportUtils().createIndexesForEppResource(domain);
+      // Create speculative server approval entities for pending transfers
+      if (domain.getTransferData().getTransferStatus() == TransferStatus.PENDING) {
+        TransferData transferData = domain.getTransferData();
+        checkArgumentNotNull(
+            transferData,
+            "Domain %s is in pending transfer but has no transfer data",
+            domain.getFullyQualifiedDomainName());
+        Money transferCost =
+            getDomainRenewCost(
+                domain.getFullyQualifiedDomainName(),
+                transferData.getPendingTransferExpirationTime(),
+                1);
+        DateTime automaticTransferTime = transferData.getPendingTransferExpirationTime();
+        // If the transfer will occur within the autorenew grace period, it should
+        // subsume the autorenew, so we don't add the normal extra year. See the
+        // original logic in DomainTransferRequestFlow (which is very similar) for
+        // more information. That said, note that here we stop 1 millisecond before
+        // the actual transfer time to avoid hitting the transfer-handling part of
+        // cloneProjectedAtTime(), since unlike in the DomainTransferRequestFlow case,
+        // this domain already has a pending transfer.
+        DomainResource domainAtTransferTime =
+            domain.cloneProjectedAtTime(automaticTransferTime.minusMillis(1));
+        boolean inAutorenewGraceAtTransfer =
+            !domainAtTransferTime.getGracePeriodsOfType(GracePeriodStatus.AUTO_RENEW).isEmpty();
+        int extraYears = inAutorenewGraceAtTransfer ? 0 : 1;
+        // Construct the capped new expiration time.
+        DateTime serverApproveNewExpirationTime =
+            extendRegistrationWithCap(
+                automaticTransferTime,
+                domainAtTransferTime.getRegistrationExpirationTime(),
+                extraYears);
+        // Create speculative entities in anticipation of an automatic server
+        // approval.
+        ImmutableSet<TransferServerApproveEntity> serverApproveEntities =
+            createTransferServerApproveEntities(
+                automaticTransferTime,
+                serverApproveNewExpirationTime,
+                historyEntry,
+                domain,
+                historyEntry.getTrid(),
+                transferData.getGainingClientId(),
+                Optional.of(transferCost),
+                transferData.getTransferRequestTime());
+        transferData =
+            createPendingTransferData(
+                transferData.asBuilder(), serverApproveEntities, Period.create(1, Unit.YEARS));
+        // Create a poll message to notify the losing registrar that a transfer was
+        // requested.
+        PollMessage requestPollMessage =
+            createLosingTransferPollMessage(
+                    domain.getRepoId(), transferData, serverApproveNewExpirationTime, historyEntry)
+                .asBuilder()
+                .setEventTime(transferData.getTransferRequestTime())
+                .build();
+        domain = domain.asBuilder().setTransferData(transferData).build();
+        autorenewBillingEvent =
+            autorenewBillingEvent
+                .asBuilder()
+                .setRecurrenceEndTime(transferData.getPendingTransferExpirationTime())
+                .build();
+        autorenewPollMessage =
+            autorenewPollMessage
+                .asBuilder()
+                .setAutorenewEndTime(transferData.getPendingTransferExpirationTime())
+                .build();
+        extraEntitiesToSave =
+            new ImmutableSet.Builder<>()
+                .add(requestPollMessage)
+                .addAll(extraEntitiesToSave)
+                .addAll(serverApproveEntities)
+                .build();
+      } // End pending transfer check
+      ofy()
+          .save()
+          .entities(
+              new ImmutableSet.Builder<>()
+                  .add(domain, historyEntry, autorenewBillingEvent, autorenewPollMessage)
+                  .addAll(extraEntitiesToSave)
+                  .build())
+          .now();
     }
   }
 }

@@ -22,7 +22,6 @@ import static google.registry.model.rde.RdeRevision.saveRevision;
 import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.google.common.base.VerifyException;
-import com.googlecode.objectify.VoidWork;
 import google.registry.testing.AppEngineRule;
 import org.joda.time.DateTime;
 import org.junit.Rule;
@@ -51,17 +50,12 @@ public class RdeRevisionTest {
 
   @Test
   public void testSaveRevision_objectDoesntExist_newRevisionIsZero_nextRevIsOne() {
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        saveRevision("despondency", DateTime.parse("1984-12-18TZ"), FULL, 0);
-      }});
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        assertThat(getNextRevision("despondency", DateTime.parse("1984-12-18TZ"), FULL))
-            .isEqualTo(1);
-      }});
+    ofy().transact(() -> saveRevision("despondency", DateTime.parse("1984-12-18TZ"), FULL, 0));
+    ofy()
+        .transact(
+            () ->
+                assertThat(getNextRevision("despondency", DateTime.parse("1984-12-18TZ"), FULL))
+                    .isEqualTo(1));
   }
 
   @Test
@@ -72,12 +66,8 @@ public class RdeRevisionTest {
             () ->
                 ofy()
                     .transact(
-                        new VoidWork() {
-                          @Override
-                          public void vrun() {
-                            saveRevision("despondency", DateTime.parse("1984-12-18TZ"), FULL, 1);
-                          }
-                        }));
+                        () ->
+                            saveRevision("despondency", DateTime.parse("1984-12-18TZ"), FULL, 1)));
     assertThat(thrown).hasMessageThat().contains("object missing");
   }
 
@@ -90,29 +80,19 @@ public class RdeRevisionTest {
             () ->
                 ofy()
                     .transact(
-                        new VoidWork() {
-                          @Override
-                          public void vrun() {
-                            saveRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 0);
-                          }
-                        }));
+                        () -> saveRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 0)));
     assertThat(thrown).hasMessageThat().contains("object already created");
   }
 
   @Test
   public void testSaveRevision_objectExistsAtZero_newRevisionIsOne_nextRevIsTwo() {
     save("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 0);
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        saveRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 1);
-      }});
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        assertThat(getNextRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL))
-            .isEqualTo(2);
-      }});
+    ofy().transact(() -> saveRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 1));
+    ofy()
+        .transact(
+            () ->
+                assertThat(getNextRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL))
+                    .isEqualTo(2));
   }
 
   @Test
@@ -124,12 +104,7 @@ public class RdeRevisionTest {
             () ->
                 ofy()
                     .transact(
-                        new VoidWork() {
-                          @Override
-                          public void vrun() {
-                            saveRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 2);
-                          }
-                        }));
+                        () -> saveRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL, 2)));
     assertThat(thrown).hasMessageThat().contains("should be at 1 ");
   }
 
@@ -141,12 +116,8 @@ public class RdeRevisionTest {
             () ->
                 ofy()
                     .transact(
-                        new VoidWork() {
-                          @Override
-                          public void vrun() {
-                            saveRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL, -1);
-                          }
-                        }));
+                        () ->
+                            saveRevision("melancholy", DateTime.parse("1984-12-18TZ"), FULL, -1)));
     assertThat(thrown).hasMessageThat().contains("Negative revision");
   }
 

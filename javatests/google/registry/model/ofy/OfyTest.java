@@ -83,13 +83,13 @@ public class OfyTest {
     // This can't be initialized earlier because namespaces need the AppEngineRule to work.
   }
 
-  private void doBackupGroupRootTimestampInversionTest(VoidWork work) {
+  private void doBackupGroupRootTimestampInversionTest(Runnable runnable) {
     DateTime groupTimestamp = ofy().load().key(someObject.getParent()).now()
         .getUpdateAutoTimestamp().getTimestamp();
     // Set the clock in Ofy to the same time as the backup group root's save time.
     Ofy ofy = new Ofy(new FakeClock(groupTimestamp));
     TimestampInversionException thrown =
-        assertThrows(TimestampInversionException.class, () -> ofy.transact(work));
+        assertThrows(TimestampInversionException.class, () -> ofy.transact(runnable));
     assertThat(thrown)
         .hasMessageThat()
         .contains(
@@ -101,20 +101,12 @@ public class OfyTest {
 
   @Test
   public void testBackupGroupRootTimestampsMustIncreaseOnSave() {
-    doBackupGroupRootTimestampInversionTest(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(someObject);
-      }});
+    doBackupGroupRootTimestampInversionTest(() -> ofy().save().entity(someObject));
   }
 
   @Test
   public void testBackupGroupRootTimestampsMustIncreaseOnDelete() {
-    doBackupGroupRootTimestampInversionTest(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().delete().entity(someObject);
-      }});
+    doBackupGroupRootTimestampInversionTest(() -> ofy().delete().entity(someObject));
   }
 
   @Test
@@ -125,12 +117,9 @@ public class OfyTest {
             () ->
                 ofy()
                     .transact(
-                        new VoidWork() {
-                          @Override
-                          public void vrun() {
-                            ofy().save().entity(someObject);
-                            ofy().save().entity(someObject);
-                          }
+                        () -> {
+                          ofy().save().entity(someObject);
+                          ofy().save().entity(someObject);
                         }));
     assertThat(thrown).hasMessageThat().contains("Multiple entries with same key");
   }
@@ -143,12 +132,9 @@ public class OfyTest {
             () ->
                 ofy()
                     .transact(
-                        new VoidWork() {
-                          @Override
-                          public void vrun() {
-                            ofy().delete().entity(someObject);
-                            ofy().delete().entity(someObject);
-                          }
+                        () -> {
+                          ofy().delete().entity(someObject);
+                          ofy().delete().entity(someObject);
                         }));
     assertThat(thrown).hasMessageThat().contains("Multiple entries with same key");
   }
@@ -161,12 +147,9 @@ public class OfyTest {
             () ->
                 ofy()
                     .transact(
-                        new VoidWork() {
-                          @Override
-                          public void vrun() {
-                            ofy().save().entity(someObject);
-                            ofy().delete().entity(someObject);
-                          }
+                        () -> {
+                          ofy().save().entity(someObject);
+                          ofy().delete().entity(someObject);
                         }));
     assertThat(thrown).hasMessageThat().contains("Multiple entries with same key");
   }
@@ -179,12 +162,9 @@ public class OfyTest {
             () ->
                 ofy()
                     .transact(
-                        new VoidWork() {
-                          @Override
-                          public void vrun() {
-                            ofy().delete().entity(someObject);
-                            ofy().save().entity(someObject);
-                          }
+                        () -> {
+                          ofy().delete().entity(someObject);
+                          ofy().save().entity(someObject);
                         }));
     assertThat(thrown).hasMessageThat().contains("Multiple entries with same key");
   }
@@ -193,15 +173,7 @@ public class OfyTest {
   public void testSavingKeyTwiceInOneCall() {
     assertThrows(
         IllegalArgumentException.class,
-        () ->
-            ofy()
-                .transact(
-                    new VoidWork() {
-                      @Override
-                      public void vrun() {
-                        ofy().save().entities(someObject, someObject);
-                      }
-                    }));
+        () -> ofy().transact(() -> ofy().save().entities(someObject, someObject)));
   }
 
   /** Simple entity class with lifecycle callbacks. */
@@ -241,11 +213,7 @@ public class OfyTest {
   public void testLifecycleCallbacks_loadFromDatastore() {
     ofy().factory().register(LifecycleObject.class);
     final LifecycleObject object = new LifecycleObject();
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().entity(object).now();
-      }});
+    ofy().transact(() -> ofy().save().entity(object).now());
     assertThat(object.onSaveCalled).isTrue();
     ofy().clearSessionCache();
     assertThat(ofy().load().entity(object).now().onLoadCalled).isTrue();

@@ -30,10 +30,10 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.base.Ascii;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.template.soy.data.SoyMapData;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import google.registry.flows.EppException;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainApplication;
@@ -99,98 +99,92 @@ final class AllocateDomainCommand extends MutatingEppToolCommand {
   protected void initMutatingEppToolCommand() {
     checkArgument(superuser, "This command MUST be run as --superuser.");
     setSoyTemplate(DomainAllocateSoyInfo.getInstance(), DomainAllocateSoyInfo.CREATE);
-    ofy()
-        .transactNewReadOnly(
-            new VoidWork() {
-              @Override
-              public void vrun() {
-                Iterable<Key<DomainApplication>> keys =
-                    transform(
-                        Splitter.on(',').split(ids),
-                        applicationId -> Key.create(DomainApplication.class, applicationId));
-                for (DomainApplication application : ofy().load().keys(keys).values()) {
-                  // If the application is already allocated print a warning but do not fail.
-                  if (application.getApplicationStatus() == ApplicationStatus.ALLOCATED) {
-                    System.err.printf(
-                        "Application %s has already been allocated\n", application.getRepoId());
-                    continue;
-                  }
-                  // Ensure domain doesn't already have a final status which it shouldn't be updated
-                  // from.
-                  checkState(
-                      !application.getApplicationStatus().isFinalStatus(),
-                      "Application has final status %s",
-                      application.getApplicationStatus());
-                  try {
-                    HistoryEntry history =
-                        checkNotNull(
-                            ofy()
-                                .load()
-                                .type(HistoryEntry.class)
-                                .ancestor(checkNotNull(application))
-                                .order("modificationTime")
-                                .first()
-                                .now(),
-                            "Could not find any history entries for domain application %s",
-                            application.getRepoId());
-                    String clientTransactionId =
-                        emptyToNull(history.getTrid().getClientTransactionId().orElse(null));
-                    Period period = checkNotNull(extractPeriodFromXml(history.getXmlBytes()));
-                    checkArgument(period.getUnit() == Period.Unit.YEARS);
-                    ImmutableMap.Builder<String, String> contactsMapBuilder =
-                        new ImmutableMap.Builder<>();
-                    for (DesignatedContact contact : application.getContacts()) {
-                      contactsMapBuilder.put(
-                          Ascii.toLowerCase(contact.getType().toString()),
-                          ofy().load().key(contact.getContactKey()).now().getForeignKey());
-                    }
-                    LaunchNotice launchNotice = application.getLaunchNotice();
-                    addSoyRecord(
-                        application.getCurrentSponsorClientId(),
-                        new SoyMapData(
-                            "name", application.getFullyQualifiedDomainName(),
-                            "period", period.getValue(),
-                            "nameservers", application.loadNameserverFullyQualifiedHostNames(),
-                            "registrant",
-                                ofy().load().key(application.getRegistrant()).now().getForeignKey(),
-                            "contacts", contactsMapBuilder.build(),
-                            "authInfo", application.getAuthInfo().getPw().getValue(),
-                            "smdId",
-                                application.getEncodedSignedMarks().isEmpty()
-                                    ? null
-                                    : unmarshal(
-                                            SignedMark.class,
-                                            application.getEncodedSignedMarks().get(0).getBytes())
-                                        .getId(),
-                            "applicationRoid", application.getRepoId(),
-                            "applicationTime", application.getCreationTime().toString(),
-                            "launchNotice",
-                                launchNotice == null
-                                    ? null
-                                    : ImmutableMap.of(
-                                        "noticeId", launchNotice.getNoticeId().getTcnId(),
-                                        "expirationTime",
-                                            launchNotice.getExpirationTime().toString(),
-                                        "acceptedTime", launchNotice.getAcceptedTime().toString()),
-                            "dsRecords",
-                                application
-                                    .getDsData()
-                                    .stream()
-                                    .map(
-                                        dsData ->
-                                            ImmutableMap.of(
-                                                "keyTag", dsData.getKeyTag(),
-                                                "algorithm", dsData.getAlgorithm(),
-                                                "digestType", dsData.getDigestType(),
-                                                "digest", base16().encode(dsData.getDigest())))
-                                    .collect(toImmutableList()),
-                            "clTrid", clientTransactionId));
-                    applicationKeys.add(Key.create(application));
-                  } catch (EppException e) {
-                    throw new RuntimeException(e);
-                  }
-                }
-              }
-            });
+    ofy().transactNewReadOnly(this::initAllocateDomainCommand);
+  }
+
+  private void initAllocateDomainCommand() {
+    Iterable<Key<DomainApplication>> keys =
+        transform(
+            Splitter.on(',').split(ids),
+            applicationId -> Key.create(DomainApplication.class, applicationId));
+    for (DomainApplication application : ofy().load().keys(keys).values()) {
+      // If the application is already allocated print a warning but do not fail.
+      if (application.getApplicationStatus() == ApplicationStatus.ALLOCATED) {
+        System.err.printf("Application %s has already been allocated\n", application.getRepoId());
+        continue;
+      }
+      // Ensure domain doesn't already have a final status which it shouldn't be updated
+      // from.
+      checkState(
+          !application.getApplicationStatus().isFinalStatus(),
+          "Application has final status %s",
+          application.getApplicationStatus());
+      try {
+        HistoryEntry history =
+            checkNotNull(
+                ofy()
+                    .load()
+                    .type(HistoryEntry.class)
+                    .ancestor(checkNotNull(application))
+                    .order("modificationTime")
+                    .first()
+                    .now(),
+                "Could not find any history entries for domain application %s",
+                application.getRepoId());
+        String clientTransactionId =
+            emptyToNull(history.getTrid().getClientTransactionId().orElse(null));
+        Period period = checkNotNull(extractPeriodFromXml(history.getXmlBytes()));
+        checkArgument(period.getUnit() == Period.Unit.YEARS);
+        ImmutableMap.Builder<String, String> contactsMapBuilder = new ImmutableMap.Builder<>();
+        for (DesignatedContact contact : application.getContacts()) {
+          contactsMapBuilder.put(
+              Ascii.toLowerCase(contact.getType().toString()),
+              ofy().load().key(contact.getContactKey()).now().getForeignKey());
+        }
+        LaunchNotice launchNotice = application.getLaunchNotice();
+        String smdId =
+            application.getEncodedSignedMarks().isEmpty()
+                ? null
+                : unmarshal(SignedMark.class, application.getEncodedSignedMarks().get(0).getBytes())
+                    .getId();
+        ImmutableMap<String, String> launchNoticeMap =
+            (launchNotice == null)
+                ? null
+                : ImmutableMap.of(
+                    "noticeId", launchNotice.getNoticeId().getTcnId(),
+                    "expirationTime", launchNotice.getExpirationTime().toString(),
+                    "acceptedTime", launchNotice.getAcceptedTime().toString());
+        ImmutableList<ImmutableMap<String, ?>> dsRecords =
+            application
+                .getDsData()
+                .stream()
+                .map(
+                    dsData ->
+                        ImmutableMap.of(
+                            "keyTag", dsData.getKeyTag(),
+                            "algorithm", dsData.getAlgorithm(),
+                            "digestType", dsData.getDigestType(),
+                            "digest", base16().encode(dsData.getDigest())))
+                .collect(toImmutableList());
+        addSoyRecord(
+            application.getCurrentSponsorClientId(),
+            new SoyMapData(
+                "name", application.getFullyQualifiedDomainName(),
+                "period", period.getValue(),
+                "nameservers", application.loadNameserverFullyQualifiedHostNames(),
+                "registrant", ofy().load().key(application.getRegistrant()).now().getForeignKey(),
+                "contacts", contactsMapBuilder.build(),
+                "authInfo", application.getAuthInfo().getPw().getValue(),
+                "smdId", smdId,
+                "applicationRoid", application.getRepoId(),
+                "applicationTime", application.getCreationTime().toString(),
+                "launchNotice", launchNoticeMap,
+                "dsRecords", dsRecords,
+                "clTrid", clientTransactionId));
+        applicationKeys.add(Key.create(application));
+      } catch (EppException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 }

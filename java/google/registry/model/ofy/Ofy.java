@@ -309,6 +309,14 @@ public class Ofy {
     throw new AssertionError();  // How on earth did we get here?
   }
 
+  public void transactNewReadOnly(Runnable work) {
+    transactNewReadOnly(
+        () -> {
+          work.run();
+          return null;
+        });
+  }
+
   /** Execute some work in a transactionless context. */
   public <R> R doTransactionless(Work<R> work) {
     try {

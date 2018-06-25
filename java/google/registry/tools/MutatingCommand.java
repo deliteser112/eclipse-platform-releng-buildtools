@@ -30,7 +30,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.ImmutableObject;
 import google.registry.tools.Command.RemoteApiCommand;
 import java.util.ArrayList;
@@ -142,37 +141,31 @@ public abstract class MutatingCommand extends ConfirmingCommand implements Remot
   @Override
   protected String execute() throws Exception {
     for (final List<EntityChange> batch : getCollatedEntityChangeBatches()) {
-      ofy().transact(new VoidWork() {
-        @Override
-        public void vrun() {
-          for (EntityChange change : batch) {
-            // Load the key of the entity to mutate and double-check that it hasn't been
-            // modified from the version that existed when the change was prepared.
-            ImmutableObject existingEntity = ofy().load().key(change.key).now();
-            checkState(
-                Objects.equals(change.oldEntity, existingEntity),
-                "Entity changed since init() was called.\n%s",
-                prettyPrintEntityDeepDiff(
-                    change.oldEntity == null ? ImmutableMap.of()
-                        : change.oldEntity.toDiffableFieldMap(),
-                    existingEntity == null ? ImmutableMap.of()
-                        : existingEntity.toDiffableFieldMap()));
-            switch (change.type) {
-              case CREATE:  // Fall through.
-              case UPDATE:
-                ofy().save().entity(change.newEntity).now();
-                break;
-              case DELETE:
-                ofy().delete().key(change.key).now();
-                break;
-              default:
-                throw new UnsupportedOperationException(
-                    "Unknown entity change type: " + change.type);
-            }
-          }
-        }});
+      ofy().transact(() -> batch.forEach(this::executeChange));
     }
     return String.format("Updated %d entities.\n", changedEntitiesMap.size());
+  }
+
+  private void executeChange(EntityChange change) {
+    // Load the key of the entity to mutate and double-check that it hasn't been
+    // modified from the version that existed when the change was prepared.
+    ImmutableObject existingEntity = ofy().load().key(change.key).now();
+    checkState(
+        Objects.equals(change.oldEntity, existingEntity),
+        "Entity changed since init() was called.\n%s",
+        prettyPrintEntityDeepDiff(
+            (change.oldEntity == null) ? ImmutableMap.of() : change.oldEntity.toDiffableFieldMap(),
+            (existingEntity == null) ? ImmutableMap.of() : existingEntity.toDiffableFieldMap()));
+    switch (change.type) {
+      case CREATE: // Fall through.
+      case UPDATE:
+        ofy().save().entity(change.newEntity).now();
+        return;
+      case DELETE:
+        ofy().delete().key(change.key).now();
+        return;
+    }
+    throw new UnsupportedOperationException("Unknown entity change type: " + change.type);
   }
 
   /**

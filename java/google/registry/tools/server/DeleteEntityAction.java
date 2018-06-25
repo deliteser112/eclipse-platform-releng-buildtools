@@ -25,7 +25,6 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
-import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.impl.EntityMetadata;
 import google.registry.request.Action;
 import google.registry.request.HttpException.BadRequestException;
@@ -90,11 +89,7 @@ public class DeleteEntityAction implements Runnable {
     getDatastoreService().delete(rawDeletions);
     // Delete ofy entities.
     final ImmutableList<Object> ofyDeletions = ofyDeletionsBuilder.build();
-    ofy().transactNew(new VoidWork() {
-        @Override
-        public void vrun() {
-          ofy().delete().entities(ofyDeletions).now();
-        }});
+    ofy().transactNew(() -> ofy().delete().entities(ofyDeletions).now());
     String message = String.format(
         "Deleted %d raw entities and %d registered entities",
         rawDeletions.size(),

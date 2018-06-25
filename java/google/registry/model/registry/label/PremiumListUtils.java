@@ -36,7 +36,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import google.registry.model.registry.Registry;
 import google.registry.model.registry.label.DomainLabelMetrics.PremiumListCheckOutcome;
 import google.registry.model.registry.label.PremiumList.PremiumListEntry;
@@ -196,11 +195,7 @@ public final class PremiumListUtils {
 
   /** Deletes the PremiumList and all of its child entities. */
   public static void deletePremiumList(final PremiumList premiumList) {
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().delete().entity(premiumList);
-      }});
+    ofy().transactNew(() -> ofy().delete().entity(premiumList));
     deleteRevisionAndEntriesOfPremiumList(premiumList);
     cachePremiumLists.invalidate(premiumList.getName());
   }
@@ -209,20 +204,13 @@ public final class PremiumListUtils {
     if (premiumList.getRevisionKey() == null) {
       return;
     }
-    for (final List<Key<PremiumListEntry>> batch : partition(
-        ofy().load().type(PremiumListEntry.class).ancestor(premiumList.revisionKey).keys(),
-        TRANSACTION_BATCH_SIZE)) {
-      ofy().transactNew(new VoidWork() {
-        @Override
-        public void vrun() {
-          ofy().delete().keys(batch);
-        }});
+    for (final List<Key<PremiumListEntry>> batch :
+        partition(
+            ofy().load().type(PremiumListEntry.class).ancestor(premiumList.revisionKey).keys(),
+            TRANSACTION_BATCH_SIZE)) {
+      ofy().transactNew(() -> ofy().delete().keys(batch));
     }
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().delete().key(premiumList.getRevisionKey());
-      }});
+    ofy().transactNew(() -> ofy().delete().key(premiumList.getRevisionKey()));
   }
 
   /** Returns whether a PremiumList of the given name exists, bypassing the cache. */

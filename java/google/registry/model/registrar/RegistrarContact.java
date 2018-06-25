@@ -26,7 +26,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Streams;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
@@ -156,22 +155,15 @@ public class RegistrarContact extends ImmutableObject implements Jsonifiable {
       final Registrar registrar, final Set<RegistrarContact> contacts) {
     ofy()
         .transact(
-            new VoidWork() {
-              @Override
-              public void vrun() {
-                ofy()
-                    .delete()
-                    .keys(
-                        difference(
-                            ImmutableSet.copyOf(
-                                ofy()
-                                    .load()
-                                    .type(RegistrarContact.class)
-                                    .ancestor(registrar)
-                                    .keys()),
-                            contacts.stream().map(Key::create).collect(toImmutableSet())));
-                ofy().save().entities(contacts);
-              }
+            () -> {
+              ofy()
+                  .delete()
+                  .keys(
+                      difference(
+                          ImmutableSet.copyOf(
+                              ofy().load().type(RegistrarContact.class).ancestor(registrar).keys()),
+                          contacts.stream().map(Key::create).collect(toImmutableSet())));
+              ofy().save().entities(contacts);
             });
   }
 

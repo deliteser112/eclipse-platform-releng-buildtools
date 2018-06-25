@@ -53,7 +53,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
 import com.google.common.net.InetAddresses;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.cmd.Saver;
 import google.registry.dns.writer.VoidDnsWriter;
 import google.registry.model.Buildable;
@@ -366,11 +365,7 @@ public class DatastoreHelper {
     final DomainResource persistedDomain = persistResource(domain);
     // Calls {@link LordnTask#enqueueDomainResourceTask} wrapped in an ofy transaction so that the
     // transaction time is set correctly.
-    ofy().transactNew(new VoidWork() {
-      @Override
-      public void vrun() {
-        LordnTask.enqueueDomainResourceTask(persistedDomain);
-      }});
+    ofy().transactNew(() -> LordnTask.enqueueDomainResourceTask(persistedDomain));
     return persistedDomain;
   }
 
@@ -947,11 +942,7 @@ public class DatastoreHelper {
     assertWithMessage("Attempting to persist a Builder is almost certainly an error in test code")
         .that(resource)
         .isNotInstanceOf(Buildable.Builder.class);
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        saveResource(resource, wantBackup);
-      }});
+    ofy().transact(() -> saveResource(resource, wantBackup));
     // Force the session cache to be cleared so that when we read the resource back, we read from
     // Datastore and not from the session cache. This is needed to trigger Objectify's load process
     // (unmarshalling entity protos to POJOs, nulling out empty collections, calling @OnLoad
@@ -964,13 +955,13 @@ public class DatastoreHelper {
   public static <R extends EppResource> R persistEppResourceInFirstBucket(final R resource) {
     final EppResourceIndex eppResourceIndex =
         EppResourceIndex.create(Key.create(EppResourceIndexBucket.class, 1), Key.create(resource));
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        Saver saver = ofy().save();
-        saver.entity(resource);
-        persistEppResourceExtras(resource, eppResourceIndex, saver);
-      }});
+    ofy()
+        .transact(
+            () -> {
+              Saver saver = ofy().save();
+              saver.entity(resource);
+              persistEppResourceExtras(resource, eppResourceIndex, saver);
+            });
     ofy().clearSessionCache();
     return ofy().load().entity(resource).now();
   }
@@ -987,13 +978,7 @@ public class DatastoreHelper {
     }
     // Persist domains ten at a time, to avoid exceeding the entity group limit.
     for (final List<R> chunk : Iterables.partition(resources, 10)) {
-      ofy().transact(new VoidWork() {
-        @Override
-        public void vrun() {
-          for (R resource : chunk) {
-            saveResource(resource, wantBackup);
-          }
-        }});
+      ofy().transact(() -> chunk.forEach(resource -> saveResource(resource, wantBackup)));
     }
     // Force the session to be cleared so that when we read it back, we read from Datastore
     // and not from the transaction's session cache.
@@ -1015,18 +1000,20 @@ public class DatastoreHelper {
    */
   public static <R extends EppResource> R persistEppResource(final R resource) {
     checkState(!ofy().inTransaction());
-    ofy().transact(new VoidWork() {
-      @Override
-      public void vrun() {
-        ofy().save().<ImmutableObject>entities(
-            resource,
-            new HistoryEntry.Builder()
-                .setParent(resource)
-                .setType(getHistoryEntryType(resource))
-                .setModificationTime(ofy().getTransactionTime())
-                .build());
-        ofy().save().entity(ForeignKeyIndex.create(resource, resource.getDeletionTime()));
-      }});
+    ofy()
+        .transact(
+            () -> {
+              ofy()
+                  .save()
+                  .<ImmutableObject>entities(
+                      resource,
+                      new HistoryEntry.Builder()
+                          .setParent(resource)
+                          .setType(getHistoryEntryType(resource))
+                          .setModificationTime(ofy().getTransactionTime())
+                          .build());
+              ofy().save().entity(ForeignKeyIndex.create(resource, resource.getDeletionTime()));
+            });
     ofy().clearSessionCache();
     return ofy().load().entity(resource).safe();
   }
@@ -1099,11 +1086,7 @@ public class DatastoreHelper {
    * ForeignKeyedEppResources.
    */
   public static <R> ImmutableList<R> persistSimpleResources(final Iterable<R> resources) {
-    ofy().transact(new VoidWork(){
-      @Override
-      public void vrun() {
-        ofy().saveWithoutBackup().entities(resources);
-      }});
+    ofy().transact(() -> ofy().saveWithoutBackup().entities(resources));
     // Force the session to be cleared so that when we read it back, we read from Datastore
     // and not from the transaction's session cache.
     ofy().clearSessionCache();

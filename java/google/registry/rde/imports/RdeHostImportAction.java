@@ -24,7 +24,6 @@ import com.google.appengine.tools.cloudstorage.RetryParams;
 import com.google.appengine.tools.mapreduce.Mapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
-import com.googlecode.objectify.VoidWork;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.gcs.GcsUtils;
@@ -124,14 +123,12 @@ public class RdeHostImportAction implements Runnable {
         // Record number of attempted map operations
         getContext().incrementCounter("host imports attempted");
         logger.atInfo().log("Saving host %s", xjcHost.getName());
-        ofy().transact(new VoidWork() {
-
-          @Override
-          public void vrun() {
-            HostResource host = XjcToHostResourceConverter.convert(xjcHost);
-            getImportUtils().importEppResource(host);
-          }
-        });
+        ofy()
+            .transact(
+                () -> {
+                  HostResource host = XjcToHostResourceConverter.convert(xjcHost);
+                  getImportUtils().importEppResource(host);
+                });
         // Record number of hosts imported
         getContext().incrementCounter("hosts saved");
         logger.atInfo().log("Host %s was imported successfully", xjcHost.getName());
