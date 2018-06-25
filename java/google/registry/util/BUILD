@@ -8,9 +8,9 @@ java_library(
     name = "util",
     srcs = glob(["*.java"]),
     deps = [
-        "//third_party/java/appengine:appengine-api",
         "//third_party/jaxb",
         "//third_party/objectify:objectify-v4_1",
+        "@com_google_appengine_api_1_0_sdk",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_errorprone_error_prone_annotations",

@@ -62,7 +62,7 @@ java_library(
     visibility = ["//visibility:public"],
     deps = [
         "//java/google/registry/config",
-        "//third_party/java/appengine:appengine-api",
+        "@com_google_appengine_api_1_0_sdk",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_guava",

@@ -4,9 +4,9 @@ package(
 
 licenses(["notice"])  # Apache 2.0
 
-# Restrict visibility to :tools because :remoteapi-internal (and transitively
-# :appengine-api-link) should never be linked into an App Engine deploy jar,
-# since the App Engine API is provided by the runtime environment.
+# Restrict visibility to :tools because :remoteapi-internal should never be
+# linked into an App Engine deploy jar, since the App Engine API is provided by
+# the runtime environment.
 package_group(
     name = "allowed-tools",
     packages = [
@@ -66,15 +66,15 @@ java_library(
         "//java/google/registry/whois",
         "//java/google/registry/xjc",
         "//java/google/registry/xml",
-        "//third_party/java/appengine:appengine-api",
-        "//third_party/java/appengine:appengine-remote-api",
-        "//third_party/java/appengine:appengine-remote-api-link",
         "//third_party/jaxb",
         "//third_party/objectify:objectify-v4_1",
         "@com_beust_jcommander",
         "@com_google_api_client",
         "@com_google_apis_google_api_services_bigquery",
         "@com_google_apis_google_api_services_dns",
+        "@com_google_appengine_api_1_0_sdk",
+        "@com_google_appengine_remote_api",
+        "@com_google_appengine_remote_api//:link",
         "@com_google_auto_value",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
@@ -104,8 +104,8 @@ java_binary(
     main_class = "google.registry.tools.RegistryTool",
     runtime_deps = [
         ":tools",
-        "//third_party/java/appengine:appengine-api-link",
-        "//third_party/java/appengine:appengine-remote-api-link",
+        "@com_google_appengine_api_1_0_sdk//:link",
+        "@com_google_appengine_remote_api//:link",
     ],
 )
 
