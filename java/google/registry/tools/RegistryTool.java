@@ -101,7 +101,6 @@ public final class RegistryTool {
           .put("logout", LogoutCommand.class)
           .put("pending_escrow", PendingEscrowCommand.class)
           .put("populate_null_registrar_fields", PopulateNullRegistrarFieldsCommand.class)
-          .put("registrar_activity_report", RegistrarActivityReportCommand.class)
           .put("registrar_contact", RegistrarContactCommand.class)
           .put("remove_ip_address", RemoveIpAddressCommand.class)
           .put("renew_domain", RenewDomainCommand.class)
