@@ -136,7 +136,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
   public void testDryRun() throws Exception {
     createTld("tld");
     persistActiveSubordinateHost(oldHostName(), persistActiveDomain("example.tld"));
-    dryRunFlowAssertResponse(loadFile("host_update_response.xml"));
+    dryRunFlowAssertResponse(loadFile("generic_success_response.xml"));
   }
 
   private HostResource doSuccessfulTest() throws Exception {
@@ -153,7 +153,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     runFlowAssertResponse(
         CommitMode.LIVE,
         isSuperuser ? UserPrivileges.SUPERUSER : UserPrivileges.NORMAL,
-        loadFile("host_update_response.xml"));
+        loadFile("generic_success_response.xml"));
     // The example xml does a host rename, so reloading the host (which uses the original host name)
     // should now return null.
     assertThat(reloadResourceByForeignKey()).isNull();
@@ -214,7 +214,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     DomainResource domain = persistActiveDomain("example.tld");
     HostResource oldHost = persistActiveSubordinateHost(oldHostName(), domain);
     clock.advanceOneMilli();
-    runFlowAssertResponse(loadFile("host_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
     // The example xml doesn't do a host rename, so reloading the host should work.
     assertAboutHosts()
         .that(reloadResourceByForeignKey())
@@ -240,7 +240,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     DomainResource domain = persistResource(createDomainWithServerApprovedTransfer("example.tld"));
     HostResource oldHost = persistActiveSubordinateHost(oldHostName(), domain);
     clock.advanceOneMilli();
-    runFlowAssertResponse(loadFile("host_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
     // The example xml doesn't do a host rename, so reloading the host should work.
     assertAboutHosts()
         .that(reloadResourceByForeignKey())
@@ -479,7 +479,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("host_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
     assertAboutHosts()
         .that(reloadResourceByForeignKey())
         .hasPersistedCurrentSponsorClientId("TheRegistrar")
@@ -1070,7 +1070,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
 
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("host_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -1088,7 +1088,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
 
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.DRY_RUN, UserPrivileges.SUPERUSER, loadFile("host_update_response.xml"));
+        CommitMode.DRY_RUN, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -1110,7 +1110,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .build());
 
     clock.advanceOneMilli();
-    runFlowAssertResponse(loadFile("host_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -1150,7 +1150,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .build());
 
     clock.advanceOneMilli();
-    runFlowAssertResponse(loadFile("host_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -1233,7 +1233,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
             .build());
 
     clock.advanceOneMilli();
-    runFlowAssertResponse(loadFile("host_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
   }
 
   private void doFailingHostNameTest(String hostName, Class<? extends EppException> exception)
@@ -1304,7 +1304,7 @@ public class HostUpdateFlowTest extends ResourceFlowTestCase<HostUpdateFlow, Hos
     clock.advanceOneMilli();
     setEppInput("host_update_metadata.xml");
     eppRequestSource = EppRequestSource.TOOL;
-    runFlowAssertResponse(loadFile("host_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
     assertAboutHistoryEntries()
         .that(
             getOnlyHistoryEntryOfType(reloadResourceByForeignKey(), HistoryEntry.Type.HOST_UPDATE))

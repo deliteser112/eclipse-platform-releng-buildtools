@@ -146,7 +146,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   }
 
   private void doSuccessfulTest() throws Exception {
-    doSuccessfulTest("domain_update_response.xml");
+    doSuccessfulTest("generic_success_response.xml");
   }
 
   private void doSuccessfulTest(String expectedXmlFilename) throws Exception {
@@ -169,7 +169,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
   public void testDryRun() throws Exception {
     persistReferencedEntities();
     persistDomain();
-    dryRunFlowAssertResponse(loadFile("domain_update_response.xml"));
+    dryRunFlowAssertResponse(loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -214,7 +214,8 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     // avoid a confusing assertBillingEvents() later if it doesn't exist.
     assertBillingEvents(sunrushAddBillingEvent);
 
-    runFlowAssertResponse(CommitMode.LIVE, userPrivileges, loadFile("domain_update_response.xml"));
+    runFlowAssertResponse(
+        CommitMode.LIVE, userPrivileges, loadFile("generic_success_response.xml"));
 
     // Verify that the domain now has the new nameserver and is in the add grace period.
     DomainResource resource = reloadResourceByForeignKey();
@@ -385,7 +386,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.NORMAL, loadFile("domain_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.NORMAL, loadFile("generic_success_response.xml"));
     // Verify that the domain is still in the sunrush add grace period.
     assertGracePeriods(
         reloadResourceByForeignKey().getGracePeriods(),
@@ -449,7 +450,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .build());
     clock.advanceOneMilli();
     assertTransactionalFlow(true);
-    runFlowAssertResponse(loadFile("domain_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
     DomainResource domain = reloadResourceByForeignKey();
     assertAboutDomains()
         .that(domain)
@@ -523,7 +524,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                 .build());
     clock.advanceOneMilli();
     assertTransactionalFlow(true);
-    runFlowAssertResponse(loadFile("domain_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
     domain = reloadResourceByForeignKey();
     assertThat(domain.getNameservers()).containsExactly(Key.create(addedHost));
     assertThat(domain.getSubordinateHosts()).containsExactly("ns1.example.tld", "ns2.example.tld");
@@ -544,7 +545,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .setRegistrant(Key.create(sh8013))
             .build());
     clock.advanceOneMilli();
-    runFlowAssertResponse(loadFile("domain_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -564,7 +565,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
                     DesignatedContact.create(Type.TECH, sh8013Key)))
             .build());
     clock.advanceOneMilli();
-    runFlowAssertResponse(loadFile("domain_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -592,7 +593,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
         newDomainResource(getUniqueIdFromCommand()).asBuilder().setDsData(originalDsData).build());
     assertTransactionalFlow(true);
     clock.advanceOneMilli();
-    runFlowAssertResponse(loadFile("domain_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
     DomainResource resource = reloadResourceByForeignKey();
     assertAboutDomains()
         .that(resource)
@@ -721,7 +722,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     setEppInput(xmlFilename);
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
 
     if (isBillable) {
       assertBillingEvents(
@@ -808,7 +809,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
             .build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
     assertAboutDomains()
         .that(reloadResourceByForeignKey())
         .hasStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED)
@@ -956,7 +957,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistReferencedEntities();
     persistDomain();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -977,7 +978,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistResource(persistDomain().asBuilder().addStatusValue(SERVER_UPDATE_PROHIBITED).build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -995,7 +996,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistReferencedEntities();
     persistDomain();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -1075,7 +1076,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistDomain();
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -1096,7 +1097,7 @@ public class DomainUpdateFlowTest extends ResourceFlowTestCase<DomainUpdateFlow,
     persistDomain();
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test

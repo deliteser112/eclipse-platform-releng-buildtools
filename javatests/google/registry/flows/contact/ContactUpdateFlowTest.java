@@ -55,7 +55,7 @@ public class ContactUpdateFlowTest
     persistActiveContact(getUniqueIdFromCommand());
     clock.advanceOneMilli();
     assertTransactionalFlow(true);
-    runFlowAssertResponse(loadFile("contact_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
     // Check that the contact was updated. This value came from the xml.
     assertAboutContacts().that(reloadResourceByForeignKey())
         .hasAuthInfoPwd("2fooBAR").and()
@@ -67,7 +67,7 @@ public class ContactUpdateFlowTest
   @Test
   public void testDryRun() throws Exception {
     persistActiveContact(getUniqueIdFromCommand());
-    dryRunFlowAssertResponse(loadFile("contact_update_response.xml"));
+    dryRunFlowAssertResponse(loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -98,7 +98,7 @@ public class ContactUpdateFlowTest
         .hasNonNullLocalizedPostalInfo().and()
         .hasNullInternationalizedPostalInfo();
 
-    runFlowAssertResponse(loadFile("contact_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
     assertAboutContacts().that(reloadResourceByForeignKey())
         .hasNullLocalizedPostalInfo().and()
         .hasInternationalizedPostalInfo(new PostalInfo.Builder()
@@ -137,7 +137,7 @@ public class ContactUpdateFlowTest
         .hasNonNullInternationalizedPostalInfo().and()
         .hasNullLocalizedPostalInfo();
 
-    runFlowAssertResponse(loadFile("contact_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
     assertAboutContacts().that(reloadResourceByForeignKey())
         .hasNullInternationalizedPostalInfo().and()
         .hasLocalizedPostalInfo(new PostalInfo.Builder()
@@ -172,7 +172,7 @@ public class ContactUpdateFlowTest
             .build());
     clock.advanceOneMilli();
     // The test xml updates the address of the postal info and should leave the name untouched.
-    runFlowAssertResponse(loadFile("contact_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
     assertAboutContacts().that(reloadResourceByForeignKey()).hasLocalizedPostalInfo(
         new PostalInfo.Builder()
             .setType(Type.LOCALIZED)
@@ -224,7 +224,7 @@ public class ContactUpdateFlowTest
     // internationalized postal info to the same value it previously had, which causes it to be
     // preserved. If the xml had not mentioned the internationalized one at all it would have been
     // deleted.
-    runFlowAssertResponse(loadFile("contact_update_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
     assertAboutContacts().that(reloadResourceByForeignKey())
         .hasLocalizedPostalInfo(
             new PostalInfo.Builder()
@@ -286,7 +286,7 @@ public class ContactUpdateFlowTest
     persistActiveContact(getUniqueIdFromCommand());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("contact_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -303,7 +303,7 @@ public class ContactUpdateFlowTest
     persistActiveContact(getUniqueIdFromCommand());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("contact_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -330,7 +330,7 @@ public class ContactUpdateFlowTest
             .build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("contact_update_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
     assertAboutContacts()
         .that(reloadResourceByForeignKey())
         .hasStatusValue(StatusValue.CLIENT_UPDATE_PROHIBITED)

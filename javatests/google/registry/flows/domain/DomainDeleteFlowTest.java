@@ -292,7 +292,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setUpSuccessfulTest();
     setUpGracePeriods(
         GracePeriod.create(GracePeriodStatus.ADD, TIME_BEFORE_FLOW.plusDays(1), "foo", null));
-    dryRunFlowAssertResponse(loadFile("domain_delete_response.xml"));
+    dryRunFlowAssertResponse(loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -333,7 +333,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   @Test
   public void testSuccess_addGracePeriodResultsInImmediateDelete() throws Exception {
     sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
-    doImmediateDeleteTest(GracePeriodStatus.ADD, "domain_delete_response.xml");
+    doImmediateDeleteTest(GracePeriodStatus.ADD, "generic_success_response.xml");
   }
 
   @Test
@@ -357,7 +357,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
   @Test
   public void testSuccess_sunrushAddGracePeriodResultsInImmediateDelete() throws Exception {
     sessionMetadata.setServiceExtensionUris(ImmutableSet.of());
-    doImmediateDeleteTest(GracePeriodStatus.SUNRUSH_ADD, "domain_delete_response.xml");
+    doImmediateDeleteTest(GracePeriodStatus.SUNRUSH_ADD, "generic_success_response.xml");
   }
 
   private void doSuccessfulTest_noAddGracePeriod(String responseFilename) throws Exception {
@@ -684,7 +684,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
             .setDeletionTime(START_OF_TIME)
             .build());
     clock.advanceOneMilli();
-    runFlowAssertResponse(loadFile("domain_delete_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
     assertDnsTasksEnqueued("example.tld");
     assertAutorenewClosedAndCancellationCreatedFor(
         graceBillingEvent, getOnlyHistoryEntryOfType(domain, DOMAIN_DELETE));
@@ -1110,7 +1110,7 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setUpSuccessfulTest();
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
     assertThat(reloadResourceByForeignKey()).isNull();
   }
 

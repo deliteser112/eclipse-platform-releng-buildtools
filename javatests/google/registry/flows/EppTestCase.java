@@ -120,7 +120,7 @@ public class EppTestCase extends ShardableTestCase {
   }
 
   void assertThatLoginSucceeds(String clientId, String password) throws Exception {
-    assertThatLogin(clientId, password).hasResponse("login_response.xml");
+    assertThatLogin(clientId, password).hasResponse("generic_success_response.xml");
   }
 
   void assertThatLogoutSucceeds() throws Exception {

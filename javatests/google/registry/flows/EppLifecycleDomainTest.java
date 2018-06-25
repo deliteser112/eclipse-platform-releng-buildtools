@@ -125,7 +125,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     // Add new nameserver to domain.
     assertThatCommand("domain_update_add_nameserver_fakesite.xml")
         .atTime("2000-06-08T00:00:00Z")
-        .hasResponse("domain_update_add_nameserver_response_fakesite.xml");
+        .hasResponse("generic_success_response.xml");
     // Verify new nameserver was added.
     assertThatCommand("domain_info_fakesite.xml")
         .atTime("2000-06-08T00:01:00Z")
@@ -159,7 +159,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     // Restore the domain.
     assertThatCommand("domain_update_restore_request.xml")
         .atTime("2000-07-01T00:03:00Z")
-        .hasResponse("domain_update_restore_request_response.xml");
+        .hasResponse("generic_success_response.xml");
 
     assertThatLogoutSucceeds();
   }
@@ -268,7 +268,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
   @Test
   public void testEapDomainDeletion_withinAddGracePeriod_eapFeeIsNotRefunded() throws Exception {
-    assertThatCommand("login_valid_fee_extension.xml").hasResponse("login_response.xml");
+    assertThatCommand("login_valid_fee_extension.xml").hasResponse("generic_success_response.xml");
     createContacts(DateTime.parse("2000-06-01T00:00:00Z"));
 
     // Set the EAP schedule.
@@ -561,7 +561,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
             START_OF_TIME, TldState.PREDELEGATION,
             gaDate, TldState.GENERAL_AVAILABILITY));
 
-    assertThatCommand("login_valid_fee_extension.xml").hasResponse("login_response.xml");
+    assertThatCommand("login_valid_fee_extension.xml").hasResponse("generic_success_response.xml");
 
     assertThatCommand("domain_check_fee_premium.xml")
         .atTime(gaDate.plusDays(1))
@@ -796,7 +796,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse("domain_info_response_fakesite_pending_delete.xml");
     assertThatCommand("domain_update_restore_fakesite.xml")
         .atTime("2002-05-30T01:03:00Z")
-        .hasResponse("domain_update_restore_request_response.xml");
+        .hasResponse("generic_success_response.xml");
 
     // Expect domain is ok now, not pending delete or transfer, and has been extended by a year from
     // the date of the restore.  (Not from the original expiration date.)
@@ -1031,7 +1031,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
     assertThatLogin("NewRegistrar", "foo-BAR2")
         .atTime(sunriseDate.minusDays(3))
-        .hasResponse("login_response.xml");
+        .hasResponse("generic_success_response.xml");
 
     createContactsAndHosts();
 
@@ -1118,7 +1118,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
     assertThatLogin("NewRegistrar", "foo-BAR2")
         .atTime(sunriseDate.minusDays(3))
-        .hasResponse("login_response.xml");
+        .hasResponse("generic_success_response.xml");
 
     createContactsAndHosts();
 

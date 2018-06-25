@@ -70,7 +70,7 @@ public class DomainApplicationDeleteFlowTest
   public void doSuccessfulTest() throws Exception {
     assertTransactionalFlow(true);
     clock.advanceOneMilli();
-    runFlowAssertResponse(loadFile("domain_delete_response.xml"));
+    runFlowAssertResponse(loadFile("generic_success_response.xml"));
     // Check that the domain is fully deleted.
     assertThat(reloadDomainApplication()).isNull();
     assertNoBillingEvents();
@@ -79,7 +79,7 @@ public class DomainApplicationDeleteFlowTest
   @Test
   public void testDryRun() throws Exception {
     persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
-    dryRunFlowAssertResponse(loadFile("domain_delete_response.xml"));
+    dryRunFlowAssertResponse(loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -164,7 +164,7 @@ public class DomainApplicationDeleteFlowTest
     persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -183,7 +183,7 @@ public class DomainApplicationDeleteFlowTest
         loadRegistrar("TheRegistrar").asBuilder().setAllowedTlds(ImmutableSet.of()).build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -213,7 +213,7 @@ public class DomainApplicationDeleteFlowTest
             .build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -296,7 +296,7 @@ public class DomainApplicationDeleteFlowTest
     persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -305,7 +305,7 @@ public class DomainApplicationDeleteFlowTest
     persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -314,7 +314,7 @@ public class DomainApplicationDeleteFlowTest
     persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
@@ -323,7 +323,7 @@ public class DomainApplicationDeleteFlowTest
     persistResource(newDomainApplication("example.tld").asBuilder().setRepoId("1-TLD").build());
     clock.advanceOneMilli();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_delete_response.xml"));
+        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("generic_success_response.xml"));
   }
 
   @Test
