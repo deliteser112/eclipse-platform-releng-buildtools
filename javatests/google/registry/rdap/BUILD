@@ -40,7 +40,7 @@ java_library(
 GenTestRules(
     name = "GeneratedTestRules",
     medium_tests = ["RdapDomainSearchActionTest"],
-    shard_count = 4,
+    shard_count = 6,
     test_files = glob(["*Test.java"]),
     deps = [":rdap"],
 )
