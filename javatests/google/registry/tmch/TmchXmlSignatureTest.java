@@ -69,7 +69,7 @@ public class TmchXmlSignatureTest {
   //
   // When updating this date, also update the dates below, which test to make sure that dates before
   // and after the validity window result in rejection.
-  private final FakeClock clock = new FakeClock(DateTime.parse("2017-11-24T23:15:37.4Z"));
+  private final FakeClock clock = new FakeClock(DateTime.parse("2018-05-15T23:15:37.4Z"));
 
   private byte[] smdData;
   private TmchXmlSignature tmchXmlSignature;
@@ -83,7 +83,7 @@ public class TmchXmlSignatureTest {
   @Test
   public void testWrongCertificateAuthority() {
     tmchXmlSignature = new TmchXmlSignature(new TmchCertificateAuthority(TmchCaMode.PRODUCTION));
-    smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
+    smdData = loadSmd("active/Court-Agent-Arab-Active.smd");
     CertificateSignatureException e =
         assertThrows(CertificateSignatureException.class, () -> tmchXmlSignature.verify(smdData));
     assertThat(e).hasMessageThat().contains("Signature does not match");
@@ -91,21 +91,21 @@ public class TmchXmlSignatureTest {
 
   @Test
   public void testTimeTravelBeforeCertificateWasCreated() {
-    smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
+    smdData = loadSmd("active/Court-Agent-Arab-Active.smd");
     clock.setTo(DateTime.parse("2013-05-01T00:00:00Z"));
     assertThrows(CertificateNotYetValidException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test
   public void testTimeTravelAfterCertificateHasExpired() {
-    smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
+    smdData = loadSmd("active/Court-Agent-Arab-Active.smd");
     clock.setTo(DateTime.parse("2023-06-01T00:00:00Z"));
     assertThrows(CertificateExpiredException.class, () -> tmchXmlSignature.verify(smdData));
   }
 
   @Test
-  public void testActiveCourtAgentArabicActive() throws Exception {
-    smdData = loadSmd("active/Court-Agent-Arabic-Active.smd");
+  public void testActiveCourtAgentArabActive() throws Exception {
+    smdData = loadSmd("active/Court-Agent-Arab-Active.smd");
     tmchXmlSignature.verify(smdData);
   }
 
@@ -134,8 +134,8 @@ public class TmchXmlSignatureTest {
   }
 
   @Test
-  public void testActiveCourtHolderArabicActive() throws Exception {
-    smdData = loadSmd("active/Court-Holder-Arabic-Active.smd");
+  public void testActiveCourtHolderArabActive() throws Exception {
+    smdData = loadSmd("active/Court-Holder-Arab-Active.smd");
     tmchXmlSignature.verify(smdData);
   }
 
@@ -164,8 +164,8 @@ public class TmchXmlSignatureTest {
   }
 
   @Test
-  public void testActiveTrademarkAgentArabicActive() throws Exception {
-    smdData = loadSmd("active/Trademark-Agent-Arabic-Active.smd");
+  public void testActiveTrademarkAgentArabActive() throws Exception {
+    smdData = loadSmd("active/Trademark-Agent-Arab-Active.smd");
     tmchXmlSignature.verify(smdData);
   }
 
@@ -194,8 +194,8 @@ public class TmchXmlSignatureTest {
   }
 
   @Test
-  public void testActiveTrademarkHolderArabicActive() throws Exception {
-    smdData = loadSmd("active/Trademark-Holder-Arabic-Active.smd");
+  public void testActiveTrademarkHolderArabActive() throws Exception {
+    smdData = loadSmd("active/Trademark-Holder-Arab-Active.smd");
     tmchXmlSignature.verify(smdData);
   }
 
@@ -224,8 +224,8 @@ public class TmchXmlSignatureTest {
   }
 
   @Test
-  public void testActiveTreatystatuteAgentArabicActive() throws Exception {
-    smdData = loadSmd("active/TreatyStatute-Agent-Arabic-Active.smd");
+  public void testActiveTreatystatuteAgentArabActive() throws Exception {
+    smdData = loadSmd("active/TreatyStatute-Agent-Arab-Active.smd");
     tmchXmlSignature.verify(smdData);
   }
 
@@ -254,8 +254,8 @@ public class TmchXmlSignatureTest {
   }
 
   @Test
-  public void testActiveTreatystatuteHolderArabicActive() throws Exception {
-    smdData = loadSmd("active/TreatyStatute-Holder-Arabic-Active.smd");
+  public void testActiveTreatystatuteHolderArabActive() throws Exception {
+    smdData = loadSmd("active/TreatyStatute-Holder-Arab-Active.smd");
     tmchXmlSignature.verify(smdData);
   }
 
@@ -326,7 +326,7 @@ public class TmchXmlSignatureTest {
     smdData = loadSmd("revoked/tmv/TMVRevoked-Trademark-Agent-English-Active.smd");
     CertificateRevokedException e =
         assertThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
-    assertThat(e).hasMessageThat().contains("KEY_COMPROMISE");
+    assertThat(e).hasMessageThat().contains("Certificate has been revoked");
   }
 
   @Test
@@ -334,7 +334,7 @@ public class TmchXmlSignatureTest {
     smdData = loadSmd("revoked/tmv/TMVRevoked-Trademark-Agent-Russian-Active.smd");
     CertificateRevokedException e =
         assertThrows(CertificateRevokedException.class, () -> tmchXmlSignature.verify(smdData));
-    assertThat(e).hasMessageThat().contains("KEY_COMPROMISE");
+    assertThat(e).hasMessageThat().contains("Certificate has been revoked");
   }
 
   @Test

@@ -23,11 +23,12 @@ import static google.registry.testing.DatastoreHelper.newDomainApplication;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.DomainApplicationSubject.assertAboutApplications;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static google.registry.testing.TestDataHelper.loadFile;
+import static google.registry.tmch.TmchTestData.loadFile;
+import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.io.CharSource;
 import google.registry.flows.EppException.ParameterValuePolicyErrorException;
 import google.registry.flows.EppException.ParameterValueSyntaxErrorException;
 import google.registry.flows.EppException.RequiredParameterMissingException;
@@ -36,11 +37,12 @@ import google.registry.model.domain.DomainApplication;
 import google.registry.model.ofy.Ofy;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.EncodedSignedMark;
-import google.registry.model.smd.SignedMarkRevocationList;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
+import google.registry.tmch.SmdrlCsvParser;
 import google.registry.tmch.TmchCertificateAuthority;
 import google.registry.tmch.TmchData;
+import google.registry.tmch.TmchTestData;
 import google.registry.tmch.TmchXmlSignature;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -50,23 +52,23 @@ import org.junit.Test;
 /** Unit tests for {@link UpdateSmdCommandTest}. */
 public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
 
-  /** This is the id of the SMD stored in "Court-Agent-English-Active.xml". */
-  public static final String ACTIVE_SMD_ID = "0000001761376042759136-65535";
-
   DomainApplication domainApplication;
 
   private static final String ACTIVE_SMD =
-      loadFile(UpdateSmdCommandTest.class, "Court-Agent-English-Active.smd");
+      loadFile("active/Court-Agent-English-Active.smd");
   private static final String DIFFERENT_LABEL_SMD =
-      loadFile(UpdateSmdCommandTest.class, "Court-Agent-Chinese-Active.smd");
+      loadFile("active/Court-Agent-Chinese-Active.smd");
+  private static final String REVOKED_SMD =
+      loadFile("revoked/smd/Trademark-Holder-English-Revoked.smd");
   private static final String INVALID_SMD =
-      loadFile(UpdateSmdCommandTest.class, "InvalidSignature-Trademark-Agent-English-Active.smd");
+      loadFile("invalid/InvalidSignature-Trademark-Agent-English-Active.smd");
   private static final String REVOKED_TMV_SMD =
-      loadFile(UpdateSmdCommandTest.class, "TMVRevoked-Trademark-Agent-English-Active.smd");
+      loadFile("revoked/tmv/TMVRevoked-Trademark-Agent-English-Active.smd");
+  private static final CharSource REVOCATION_LIST =
+      TmchTestData.loadBytes("tmch_test_smd_revocation_list.csv").asCharSource(US_ASCII);
 
-  // The test data was created by ICANN on 2013. It includes SMDs that expire sometime during 2017.
-  // We want the "current date" to be sometime between 2013 and 2017.
-  private final FakeClock clock = new FakeClock(DateTime.parse("2015-01-01TZ"));
+  // Use a date that is within the valid range for the SMD test files.
+  private final FakeClock clock = new FakeClock(DateTime.parse("2018-06-01TZ"));
 
   @Rule
   public final InjectRule inject = new InjectRule();
@@ -121,10 +123,9 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
 
   @Test
   public void testFailure_revokedSmd() throws Exception {
-    DateTime now = clock.nowUtc();
+    SmdrlCsvParser.parse(REVOCATION_LIST.readLines()).save();
     clock.advanceOneMilli();
-    SignedMarkRevocationList.create(now, ImmutableMap.of(ACTIVE_SMD_ID, now)).save();
-    String smdFile = writeToTmpFile(ACTIVE_SMD);
+    String smdFile = writeToTmpFile(REVOKED_SMD);
     Exception e =
         assertThrows(Exception.class, () -> runCommand("--id=2-Q9JYB4C", "--smd=" + smdFile));
     assertThat(e).hasCauseThat().isInstanceOf(ParameterValuePolicyErrorException.class);

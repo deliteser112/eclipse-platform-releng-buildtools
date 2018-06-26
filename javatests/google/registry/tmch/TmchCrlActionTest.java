@@ -16,6 +16,7 @@ package google.registry.tmch;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static google.registry.testing.TestDataHelper.loadBytes;
 import static google.registry.util.ResourceUtils.readResourceBytes;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -54,13 +55,9 @@ public class TmchCrlActionTest extends TmchActionTestCase {
   @Test
   public void testFailure_crlTooOld() throws Exception {
     clock.setTo(DateTime.parse("2020-01-01TZ"));
-    when(httpResponse.getContent()).thenReturn(
-        readResourceBytes(TmchCertificateAuthority.class, "icann-tmch-pilot.crl").read());
-    // We use the pilot CRL here only because we know that it was generated more recently than the
-    // production CRL, and thus attempting to replace it with the production CRL will fail. It
-    // doesn't matter that the wrong CRT would be used to verify it because that check happens after
-    // the age check.
-    TmchCrlAction action = newTmchCrlAction(TmchCaMode.PRODUCTION);
+    when(httpResponse.getContent())
+        .thenReturn(loadBytes(TmchCrlActionTest.class, "icann-tmch-pilot-old.crl").read());
+    TmchCrlAction action = newTmchCrlAction(TmchCaMode.PILOT);
     Exception e = assertThrows(Exception.class, action::run);
     assertThat(e).hasCauseThat().isInstanceOf(CRLException.class);
     assertThat(e)

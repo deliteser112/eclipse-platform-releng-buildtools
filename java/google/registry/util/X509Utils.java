@@ -31,6 +31,7 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CRLException;
+import java.security.cert.CRLReason;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateParsingException;
@@ -40,6 +41,7 @@ import java.security.cert.X509CRLEntry;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import javax.annotation.Tainted;
 
 /** X.509 Public Key Infrastructure (PKI) helper functions. */
@@ -146,7 +148,7 @@ public final class X509Utils {
       X509CRLEntry entry = crl.getRevokedCertificate(cert);
       throw new CertificateRevokedException(
           checkNotNull(entry.getRevocationDate(), "revocationDate"),
-          checkNotNull(entry.getRevocationReason(), "revocationReason"),
+          Optional.ofNullable(entry.getRevocationReason()).orElse(CRLReason.UNSPECIFIED),
           firstNonNull(entry.getCertificateIssuer(), crl.getIssuerX500Principal()),
           ImmutableMap.of());
     }

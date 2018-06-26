@@ -19,7 +19,14 @@ import static google.registry.util.ResourceUtils.readResourceBytes;
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.ByteSource;
+import com.google.common.io.MoreFiles;
+import com.google.common.io.Resources;
+import java.net.URI;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -81,5 +88,12 @@ public final class TestDataHelper {
   public static String filePath(Class<?> context, String filename) {
     String packagePath = context.getPackage().getName().replace('.', '/');
     return String.format("javatests/%s/testdata/%s", packagePath, filename);
+  }
+
+  /** Returns a recursive iterable of all files in the given directory. */
+  public static Iterable<Path> listFiles(Class<?> context, String directory) throws Exception {
+    URI dir = Resources.getResource(context, directory).toURI();
+    FileSystems.newFileSystem(dir, ImmutableMap.of("create", "true"));
+    return MoreFiles.fileTraverser().breadthFirst(Paths.get(dir));
   }
 }

@@ -63,11 +63,21 @@ public final class DomainFlowTmchUtils {
     if (!(signedMarks.get(0) instanceof EncodedSignedMark)) {
       throw new SignedMarksMustBeEncodedException();
     }
-    return verifyEncodedSignedMark((EncodedSignedMark) signedMarks.get(0), domainLabel, now);
+    SignedMark signedMark =
+        verifyEncodedSignedMark((EncodedSignedMark) signedMarks.get(0), now);
+    return verifySignedMarkValidForDomainLabel(signedMark, domainLabel);
   }
 
-  public SignedMark verifyEncodedSignedMark(
-      EncodedSignedMark encodedSignedMark, String domainLabel, DateTime now) throws EppException {
+  public SignedMark verifySignedMarkValidForDomainLabel(SignedMark signedMark, String domainLabel)
+      throws NoMarksFoundMatchingDomainException {
+    if (!containsMatchingLabel(signedMark.getMark(), domainLabel)) {
+      throw new NoMarksFoundMatchingDomainException();
+    }
+    return signedMark;
+  }
+
+  public SignedMark verifyEncodedSignedMark(EncodedSignedMark encodedSignedMark, DateTime now)
+      throws EppException {
     if (!encodedSignedMark.getEncoding().equals("base64")) {
       throw new Base64RequiredForEncodedSignedMarksException();
     }
@@ -116,10 +126,6 @@ public final class DomainFlowTmchUtils {
 
     if (now.isAfter(signedMark.getExpirationTime())) {
       throw new FoundMarkExpiredException();
-    }
-
-    if (!containsMatchingLabel(signedMark.getMark(), domainLabel)) {
-      throw new NoMarksFoundMatchingDomainException();
     }
 
     return signedMark;

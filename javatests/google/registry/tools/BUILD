@@ -34,6 +34,7 @@ java_library(
         "//javatests/google/registry/model",
         "//javatests/google/registry/rde",
         "//javatests/google/registry/testing",
+        "//javatests/google/registry/tmch",
         "//javatests/google/registry/tools/server",
         "//javatests/google/registry/xml",
         "//third_party/jaxb",

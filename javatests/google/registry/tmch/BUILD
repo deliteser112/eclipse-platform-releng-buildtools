@@ -11,13 +11,12 @@ java_library(
     name = "tmch",
     srcs = glob(["*.java"]),
     resources = glob([
-        "*.crt",
-        "testdata/*",
-        "testdata/*/*",
-        "testdata/*/*/*",
+        "testdata/**",
     ]),
     deps = [
+        "//java/com/google/common/flogger",
         "//java/google/registry/config",
+        "//java/google/registry/flows",
         "//java/google/registry/model",
         "//java/google/registry/request",
         "//java/google/registry/tmch",

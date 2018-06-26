@@ -29,6 +29,7 @@ import google.registry.flows.domain.DomainFlowTmchUtils;
 import google.registry.model.domain.DomainApplication;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.EncodedSignedMark;
+import google.registry.model.smd.SignedMark;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.PathParameter;
 import java.nio.file.Files;
@@ -92,9 +93,10 @@ final class UpdateSmdCommand implements RemoteApiCommand {
         "Can't update SMD on a landrush application.");
 
     // Verify the new SMD.
-    String domainLabel = InternetDomainName.from(domainApplication.getFullyQualifiedDomainName())
-        .parts().get(0);
-    tmchUtils.verifyEncodedSignedMark(encodedSignedMark, domainLabel, now);
+    String domainLabel =
+        InternetDomainName.from(domainApplication.getFullyQualifiedDomainName()).parts().get(0);
+    SignedMark signedMark = tmchUtils.verifyEncodedSignedMark(encodedSignedMark, now);
+    tmchUtils.verifySignedMarkValidForDomainLabel(signedMark, domainLabel);
 
     DomainApplication updatedApplication = domainApplication.asBuilder()
         .setEncodedSignedMarks(ImmutableList.of(encodedSignedMark))
