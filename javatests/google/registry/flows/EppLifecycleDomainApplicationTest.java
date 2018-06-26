@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.testing.AppEngineRule;
-import google.registry.tmch.TmchCertificateAuthority;
 import google.registry.util.DateTimeUtils;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -43,8 +42,6 @@ public class EppLifecycleDomainApplicationTest extends EppTestCase {
 
   @Before
   public void initTld() {
-    // Setting the clock used for SignedMark signature validity.
-    TmchCertificateAuthority.clock = () -> DateTime.parse("2015-01-01TZ");
     createTld("example", ImmutableSortedMap.of(
         DateTimeUtils.START_OF_TIME, TldState.SUNRISE,
         START_OF_GA, TldState.GENERAL_AVAILABILITY));

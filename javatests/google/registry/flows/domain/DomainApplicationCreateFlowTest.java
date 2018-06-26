@@ -124,7 +124,6 @@ import google.registry.model.registry.Registry.TldState;
 import google.registry.model.registry.label.ReservedList;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.model.smd.SignedMarkRevocationList;
-import google.registry.tmch.TmchCertificateAuthority;
 import google.registry.tmch.TmchXmlSignature;
 import java.security.GeneralSecurityException;
 import java.util.List;
@@ -151,11 +150,10 @@ public class DomainApplicationCreateFlowTest
 
   @Before
   public void setUp() {
+    clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput("domain_create_sunrise_encoded_signed_mark.xml");
     createTld("tld", TldState.SUNRISE);
     persistResource(Registry.get("tld").asBuilder().setReservedLists(createReservedList()).build());
-    inject.setStaticField(TmchCertificateAuthority.class, "clock", clock);
-    clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
   }
 
   /** Create host and contact entries for testing. */

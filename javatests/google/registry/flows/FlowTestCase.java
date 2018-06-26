@@ -108,8 +108,11 @@ public abstract class FlowTestCase<F extends Flow> extends ShardableTestCase {
     sessionMetadata.setClientId("TheRegistrar");
     sessionMetadata.setServiceExtensionUris(ProtocolDefinition.getVisibleServiceExtensionUris());
     ofy().saveWithoutBackup().entity(new ClaimsListSingleton()).now();
-    inject.setStaticField(Ofy.class, "clock", clock);  // For transactional flows.
-  }
+    // For transactional flows
+    inject.setStaticField(Ofy.class, "clock", clock);
+    // For SignedMark signature validity
+    inject.setStaticField(TmchCertificateAuthority.class, "clock", clock);
+ }
 
   protected void removeServiceExtensionUri(String uri) {
     sessionMetadata.setServiceExtensionUris(

@@ -151,7 +151,6 @@ import google.registry.model.reporting.DomainTransactionRecord.TransactionReport
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.monitoring.whitebox.EppMetric;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
-import google.registry.tmch.TmchCertificateAuthority;
 import java.util.Map;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -173,8 +172,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Before
   public void initCreateTest() {
-    // Setting the clock used for SignedMark signature validity.
-    TmchCertificateAuthority.clock = () -> DateTime.parse("2015-01-01TZ");
     createTld("tld");
     persistResource(
         Registry.get("tld")

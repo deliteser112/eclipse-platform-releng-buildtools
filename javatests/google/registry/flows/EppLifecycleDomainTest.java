@@ -45,7 +45,6 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldState;
 import google.registry.model.reporting.HistoryEntry.Type;
 import google.registry.testing.AppEngineRule;
-import google.registry.tmch.TmchCertificateAuthority;
 import java.util.Objects;
 import java.util.Optional;
 import org.joda.money.Money;
@@ -66,8 +65,6 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
   @Before
   public void initTld() {
-    // Setting the clock used for SignedMark signature validity.
-    TmchCertificateAuthority.clock = () -> DateTime.parse("2015-01-01TZ");
     createTlds("example", "tld");
   }
 
