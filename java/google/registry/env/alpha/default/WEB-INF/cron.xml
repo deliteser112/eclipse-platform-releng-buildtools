@@ -23,6 +23,15 @@
   </cron>
 
   <cron>
+    <url><![CDATA[/_dr/cron/fanout?queue=rde-upload&endpoint=/_dr/task/rdeUpload&forEachRealTld]]></url>
+    <description>
+      This job is a no-op unless RdeUploadCursor falls behind for some reason.
+    </description>
+    <schedule>every 4 hours synchronized</schedule>
+    <target>backend</target>
+  </cron>
+
+  <cron>
     <url><![CDATA[/_dr/cron/fanout?queue=marksdb&endpoint=/_dr/task/tmchDnl&runInEmpty]]></url>
     <description>
       This job downloads the latest DNL from MarksDB and inserts it into the database.
