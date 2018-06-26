@@ -51,7 +51,7 @@ public class RydePgpFileOutputStream extends ImprovedOutputStream {
       @WillNotClose OutputStream os,
       DateTime modified,
       String filename) {
-    super(createDelegate(bufferSize, os, modified, filename));
+    super("RydePgpFileOutputStream", createDelegate(bufferSize, os, modified, filename));
   }
 
   private static OutputStream

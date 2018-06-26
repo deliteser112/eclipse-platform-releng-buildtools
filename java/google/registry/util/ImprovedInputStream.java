@@ -14,7 +14,6 @@
 
 package google.registry.util;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.flogger.FluentLogger;
@@ -47,18 +46,17 @@ public class ImprovedInputStream extends FilterInputStream {
 
   private long count;
   private long mark = -1;
-  private final long expected;
   private final boolean shouldClose;
+  private final String name;
 
-  public ImprovedInputStream(@WillCloseWhenClosed InputStream out) {
-    this(out, true, -1);
+  public ImprovedInputStream(String name, @WillCloseWhenClosed InputStream out) {
+    this(name, out, true);
   }
 
-  public ImprovedInputStream(InputStream in, boolean shouldClose, long expected) {
+  public ImprovedInputStream(String name, InputStream in, boolean shouldClose) {
     super(checkNotNull(in, "in"));
-    checkArgument(expected >= -1, "expected >= 0 or -1");
     this.shouldClose = shouldClose;
-    this.expected = expected;
+    this.name = name;
   }
 
   @Override
@@ -126,16 +124,12 @@ public class ImprovedInputStream extends FilterInputStream {
     if (in == null) {
       return;
     }
-    logger.atInfo().log("%s closed with %,d bytes read", getClass().getSimpleName(), count);
-    if (expected != -1 && count != expected) {
-      throw new IOException(String.format("%s expected %,d bytes but read %,d bytes",
-          getClass().getCanonicalName(), expected, count));
-    }
     onClose();
     if (shouldClose) {
       in.close();
     }
     in = null;
+    logger.atInfo().log("%s closed with %,d bytes read", name, count);
   }
 
   /**

@@ -30,6 +30,8 @@ import org.joda.time.DateTime;
 @AutoFactory(allowSubclasses = true)
 public class RydeTarOutputStream extends ImprovedOutputStream {
 
+  private final long expectedSize;
+
   /**
    * Creates a new instance that outputs a tar archive.
    *
@@ -42,8 +44,9 @@ public class RydeTarOutputStream extends ImprovedOutputStream {
    */
   public RydeTarOutputStream(
       @WillNotClose OutputStream os, long size, DateTime modified, String filename) {
-    super(os, false, size);
+    super("RydeTarOutputStream", os, false);
     checkArgument(size >= 0);
+    this.expectedSize = size;
     checkArgument(filename.endsWith(".xml"),
         "Ryde expects tar archive to contain a filename with an '.xml' extension.");
     try {
@@ -61,7 +64,13 @@ public class RydeTarOutputStream extends ImprovedOutputStream {
   /** Writes the end of archive marker. */
   @Override
   public void onClose() throws IOException {
+    if (getBytesWritten() != expectedSize) {
+      throw new IOException(
+          String.format(
+              "RydeTarOutputStream expected %,d bytes, but got %,d bytes",
+              expectedSize, getBytesWritten()));
+    }
     // Round up to a 512-byte boundary and another 1024-bytes to indicate end of archive.
-    write(new byte[1024 + 512 - (int) (getBytesWritten() % 512L)]);
+    out.write(new byte[1024 + 512 - (int) (getBytesWritten() % 512L)]);
   }
 }

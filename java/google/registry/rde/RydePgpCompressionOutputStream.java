@@ -43,7 +43,7 @@ public class RydePgpCompressionOutputStream extends ImprovedOutputStream {
   public RydePgpCompressionOutputStream(
       @Provided @Config("rdeRydeBufferSize") Integer bufferSize,
       @WillNotClose OutputStream os) {
-    super(createDelegate(bufferSize, os));
+    super("RydePgpCompressionOutputStream", createDelegate(bufferSize, os));
   }
 
   private static OutputStream createDelegate(int bufferSize, OutputStream os) {

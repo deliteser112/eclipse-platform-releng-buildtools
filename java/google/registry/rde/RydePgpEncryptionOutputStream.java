@@ -95,7 +95,7 @@ public class RydePgpEncryptionOutputStream extends ImprovedOutputStream {
       @Provided @Config("rdeRydeBufferSize") Integer bufferSize,
       @WillNotClose OutputStream os,
       PGPPublicKey receiverKey) {
-    super(createDelegate(bufferSize, os, receiverKey));
+    super("RydePgpEncryptionOutputStream", createDelegate(bufferSize, os, receiverKey));
   }
 
   private static

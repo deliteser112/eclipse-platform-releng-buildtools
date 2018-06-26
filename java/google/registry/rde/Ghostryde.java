@@ -246,7 +246,7 @@ public final class Ghostryde {
     private final DateTime modified;
 
     Input(@WillCloseWhenClosed InputStream input, String name, DateTime modified) {
-      super(input);
+      super("Input", input);
       this.name = checkNotNull(name, "name");
       this.modified = checkNotNull(modified, "modified");
     }
@@ -273,7 +273,7 @@ public final class Ghostryde {
   @NotThreadSafe
   public static final class Output extends ImprovedOutputStream {
     Output(@WillCloseWhenClosed OutputStream os) {
-      super(os);
+      super("Output", os);
     }
   }
 
@@ -287,7 +287,7 @@ public final class Ghostryde {
   @NotThreadSafe
   public static final class Encryptor extends ImprovedOutputStream {
     Encryptor(@WillCloseWhenClosed OutputStream os) {
-      super(os);
+      super("Encryptor", os);
     }
   }
 
@@ -303,7 +303,7 @@ public final class Ghostryde {
     private final PGPPublicKeyEncryptedData crypt;
 
     Decryptor(@WillCloseWhenClosed InputStream input, PGPPublicKeyEncryptedData crypt) {
-      super(input);
+      super("Decryptor", input);
       this.crypt = checkNotNull(crypt, "crypt");
     }
 
@@ -340,7 +340,7 @@ public final class Ghostryde {
   @NotThreadSafe
   public static final class Compressor extends ImprovedOutputStream {
     Compressor(@WillCloseWhenClosed OutputStream os) {
-      super(os);
+      super("Compressor", os);
     }
   }
 
@@ -354,7 +354,7 @@ public final class Ghostryde {
   @NotThreadSafe
   public static final class Decompressor extends ImprovedInputStream {
     Decompressor(@WillCloseWhenClosed InputStream input) {
-      super(input);
+      super("Decompressor", input);
     }
   }
 

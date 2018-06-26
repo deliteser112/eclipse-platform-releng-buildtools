@@ -14,7 +14,6 @@
 
 package google.registry.util;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.flogger.FluentLogger;
@@ -46,18 +45,17 @@ public class ImprovedOutputStream extends FilterOutputStream {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private long count;
-  private final long expected;
   private final boolean shouldClose;
+  private final String name;
 
-  public ImprovedOutputStream(@WillCloseWhenClosed OutputStream out) {
-    this(out, true, -1);
+  public ImprovedOutputStream(String name, @WillCloseWhenClosed OutputStream out) {
+    this(name, out, true);
   }
 
-  public ImprovedOutputStream(OutputStream out, boolean shouldClose, long expected) {
+  public ImprovedOutputStream(String name, OutputStream out, boolean shouldClose) {
     super(checkNotNull(out, "out"));
-    checkArgument(expected >= -1, "expected >= 0 or -1");
     this.shouldClose = shouldClose;
-    this.expected = expected;
+    this.name = name;
   }
 
   /** Returns the number of bytes that have been written to this stream thus far. */
@@ -103,18 +101,14 @@ public class ImprovedOutputStream extends FilterOutputStream {
     try {
       flush();
     } catch (IOException e) {
-      logger.atWarning().withCause(e).log("%s.flush() failed", getClass().getSimpleName());
-    }
-    logger.atInfo().log("%s closed with %,d bytes written", getClass().getSimpleName(), count);
-    if (expected != -1 && count != expected) {
-      throw new IOException(String.format(
-          "%s expected %,d bytes but got %,d bytes", getClass().getSimpleName(), expected, count));
+      logger.atWarning().withCause(e).log("flush() failed for %s", name);
     }
     onClose();
     if (shouldClose) {
       out.close();
     }
     out = null;
+    logger.atInfo().log("%s closed with %,d bytes written", name, count);
   }
 
   /**

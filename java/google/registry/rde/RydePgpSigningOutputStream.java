@@ -56,7 +56,7 @@ public class RydePgpSigningOutputStream extends ImprovedOutputStream {
   public RydePgpSigningOutputStream(
       @WillNotClose OutputStream os,
       PGPKeyPair signingKey) {
-    super(os, false, -1);
+    super("RydePgpSigningOutputStream", os, false);
     try {
       signer = new PGPSignatureGenerator(
           new BcPGPContentSignerBuilder(RSA_GENERAL, SHA256));
