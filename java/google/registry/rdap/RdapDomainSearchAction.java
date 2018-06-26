@@ -47,6 +47,7 @@ import google.registry.request.Parameter;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.Idn;
+import google.registry.util.NonFinalForTesting;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -73,11 +74,12 @@ import org.joda.time.DateTime;
 )
 public class RdapDomainSearchAction extends RdapSearchActionBase {
 
-  public static final String PATH = "/rdap/domains";
+  static final String PATH = "/rdap/domains";
 
-  public static final int RESULT_SET_SIZE_SCALING_FACTOR = 30;
+  static final int RESULT_SET_SIZE_SCALING_FACTOR = 30;
 
-  public static final int MAX_NAMESERVERS_IN_FIRST_STAGE = 300;
+  @NonFinalForTesting
+  static int maxNameserversInFirstStage = 300;
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
@@ -319,7 +321,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
     // must be present, to avoid querying every host in the system. This restriction is enforced by
     // {@link queryItems}.
     //
-    // Only return the first MAX_NAMESERVERS_IN_FIRST_STAGE nameservers. This could result in an
+    // Only return the first maxNameserversInFirstStage nameservers. This could result in an
     // incomplete result set if a search asks for something like "ns*", but we need to enforce a
     // limit in order to avoid arbitrarily long-running queries.
     Query<HostResource> query =
@@ -328,7 +330,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
             "fullyQualifiedHostName",
             partialStringQuery,
             DeletedItemHandling.EXCLUDE,
-            MAX_NAMESERVERS_IN_FIRST_STAGE);
+            maxNameserversInFirstStage);
     Optional<String> desiredRegistrar = getDesiredRegistrar();
     if (desiredRegistrar.isPresent()) {
       query = query.filter("currentSponsorClientId", desiredRegistrar.get());
@@ -416,7 +418,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
    * <p>In theory, we could have any number of hosts using the same IP address. To make sure we get
    * all the associated domains, we have to retrieve all of them, and use them to look up domains.
    * This could open us up to a kind of DoS attack if huge number of hosts are defined on a single
-   * IP. To avoid this, fetch only the first {@link #MAX_NAMESERVERS_IN_FIRST_STAGE} nameservers. In
+   * IP. To avoid this, fetch only the first {@link #maxNameserversInFirstStage} nameservers. In
    * all normal circumstances, this should be orders of magnitude more than there actually are. But
    * it could result in us missing some domains.
    *
@@ -433,7 +435,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
             Optional.empty(),
             Optional.empty(),
             DeletedItemHandling.EXCLUDE,
-            MAX_NAMESERVERS_IN_FIRST_STAGE);
+            maxNameserversInFirstStage);
     Optional<String> desiredRegistrar = getDesiredRegistrar();
     if (desiredRegistrar.isPresent()) {
       query = query.filter("currentSponsorClientId", desiredRegistrar.get());
@@ -494,7 +496,7 @@ public class RdapDomainSearchAction extends RdapSearchActionBase {
       // so, indicate the result might be incomplete.
       return makeSearchResults(
           domains,
-          (numHostKeysSearched >= MAX_NAMESERVERS_IN_FIRST_STAGE)
+          (numHostKeysSearched >= maxNameserversInFirstStage)
               ? IncompletenessWarningType.MIGHT_BE_INCOMPLETE
               : IncompletenessWarningType.COMPLETE,
           (numHostKeysSearched > 0) ? Optional.of((long) domains.size()) : Optional.empty(),

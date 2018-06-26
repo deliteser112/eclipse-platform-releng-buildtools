@@ -87,13 +87,9 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .build();
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
 
-  @Rule
-  public final InjectRule inject = new InjectRule();
+  @Rule public final InjectRule inject = new InjectRule();
 
   private final HttpServletRequest request = mock(HttpServletRequest.class);
   private final FakeClock clock = new FakeClock(DateTime.parse("2000-01-01T00:00:00Z"));
@@ -176,6 +172,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
 
   @Before
   public void setUp() {
+    RdapDomainSearchAction.maxNameserversInFirstStage = 40;
     inject.setStaticField(Ofy.class, "clock", clock);
 
     // cat.lol and cat2.lol
@@ -1761,16 +1758,16 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
 
   @Test
   public void testNameserverMatchManyNameserversForTheSameDomainsWithSuffix() {
-    // Same as above, except that we find all 40 nameservers because of the wildcard. But we
+    // Same as above, except that we find all 39 nameservers because of the wildcard. But we
     // should still only return 3 domains, because we merge duplicate domains together in a set.
     // Since we fetch domains by nameserver in batches of 30 nameservers, we need to make sure to
     // have more than that number of nameservers for an effective test.
-    createManyDomainsAndHosts(3, 1, 40);
+    createManyDomainsAndHosts(3, 1, 39);
     rememberWildcardType("ns*.domain1.lol");
     Object obj = generateActualJson(RequestType.NS_LDH_NAME, "ns*.domain1.lol");
     assertThat(response.getStatus()).isEqualTo(200);
     checkNumberOfDomainsInResult(obj, 3);
-    verifyMetrics(SearchType.BY_NAMESERVER_NAME, Optional.of(3L), Optional.of(40L));
+    verifyMetrics(SearchType.BY_NAMESERVER_NAME, Optional.of(3L), Optional.of(39L));
   }
 
   @Test
@@ -1827,37 +1824,36 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
 
   @Test
   public void testNameserverMatch_duplicatesNotTruncated() {
-    // 60 nameservers for each of 4 domains; these should translate into 2 30-nameserver domain
-    // fetches, which should _not_ trigger the truncation warning because all the domains will be
-    // duplicates.
-    createManyDomainsAndHosts(4, 1, 60);
+    // 36 nameservers for each of 4 domains; these should translate into two fetches, which should
+    // not trigger the truncation warning because all the domains will be duplicates.
+    createManyDomainsAndHosts(4, 1, 36);
     rememberWildcardType("ns*.domain1.lol");
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns*.domain1.lol"))
         .isEqualTo(readMultiDomainFile(
             "rdap_nontruncated_domains.json",
             "domain1.lol",
-            "BA-LOL",
+            "8A-LOL",
             "domain2.lol",
-            "B9-LOL",
+            "89-LOL",
             "domain3.lol",
-            "B8-LOL",
+            "88-LOL",
             "domain4.lol",
-            "B7-LOL"));
+            "87-LOL"));
     assertThat(response.getStatus()).isEqualTo(200);
-    verifyMetrics(SearchType.BY_NAMESERVER_NAME, Optional.of(4L), Optional.of(60L));
+    verifyMetrics(SearchType.BY_NAMESERVER_NAME, Optional.of(4L), Optional.of(36L));
   }
 
   @Test
   public void testNameserverMatch_incompleteResultsSet() {
-    createManyDomainsAndHosts(2, 1, 2500);
+    createManyDomainsAndHosts(2, 1, 41);
     rememberWildcardType("ns*.domain1.lol");
     assertThat(generateActualJson(RequestType.NS_LDH_NAME, "ns*.domain1.lol"))
         .isEqualTo(readMultiDomainFile(
             "rdap_incomplete_domains.json",
             "domain1.lol",
-            "13C8-LOL",
+            "92-LOL",
             "domain2.lol",
-            "13C7-LOL",
+            "91-LOL",
             "x",
             "x",
             "x",
@@ -1866,7 +1862,7 @@ public class RdapDomainSearchActionTest extends RdapSearchActionTestCase {
     verifyMetrics(
         SearchType.BY_NAMESERVER_NAME,
         Optional.of(2L),
-        Optional.of(2500L),
+        Optional.of(41L),
         IncompletenessWarningType.MIGHT_BE_INCOMPLETE);
   }
 
