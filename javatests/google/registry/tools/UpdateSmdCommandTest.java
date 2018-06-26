@@ -73,6 +73,8 @@ public class UpdateSmdCommandTest extends CommandTestCase<UpdateSmdCommand> {
 
   @Before
   public void init() {
+    // Setting the clock used for SignedMark signature validity.
+    TmchCertificateAuthority.clock = () -> DateTime.parse("2015-01-01TZ");
     inject.setStaticField(Ofy.class, "clock", clock);
     createTld("xn--q9jyb4c");
     clock.advanceOneMilli();

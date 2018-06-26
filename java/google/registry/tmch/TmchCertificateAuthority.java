@@ -20,6 +20,7 @@ import static google.registry.config.RegistryConfig.getSingletonCacheRefreshDura
 import static google.registry.util.ResourceUtils.readResourceUtf8;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -119,7 +120,8 @@ public final class TmchCertificateAuthority {
                 }});
 
   @NonFinalForTesting
-  private static Clock clock = new SystemClock();
+  @VisibleForTesting
+  public static Clock clock = new SystemClock();
 
   /**
    * Check that {@code cert} is signed by the ICANN TMCH CA root and not revoked.
