@@ -21,6 +21,7 @@ java_library(
         "@com_google_http_client",
         "@com_google_http_client_appengine",
         "@com_google_http_client_jackson2",
+        "@javax_inject",
         "@joda_time",
     ],
 )

@@ -16,7 +16,6 @@ java_library(
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
         "@com_google_apis_google_api_services_bigquery",
-        "@com_google_code_findbugs_jsr305",
         "@com_google_guava",
         "@com_google_http_client",
         "@com_google_truth",

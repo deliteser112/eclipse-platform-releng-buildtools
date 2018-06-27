@@ -11,7 +11,6 @@ java_library(
     deps = [
         "//java/google/registry/util",
         "//third_party/objectify:objectify-v4_1",
-        "@com_google_code_findbugs_jsr305",
         "@com_google_guava",
         "@com_google_re2j",
         "@javax_servlet_api",

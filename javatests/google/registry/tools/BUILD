@@ -54,7 +54,6 @@ java_library(
         "@com_google_truth",
         "@com_google_truth_extensions_truth_java8_extension",
         "@com_googlecode_json_simple",
-        "@javax_inject",
         "@joda_time",
         "@junit",
         "@org_joda_money",

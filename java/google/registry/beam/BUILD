@@ -18,6 +18,7 @@ java_library(
         "@com_google_flogger",
         "@com_google_flogger_system_backend",
         "@com_google_guava",
+        "@javax_inject",
         "@org_apache_avro",
         "@org_apache_beam_runners_direct_java",
         "@org_apache_beam_runners_google_cloud_dataflow_java",

@@ -31,6 +31,7 @@ java_library(
         "@com_google_flogger",
         "@com_google_flogger_system_backend",
         "@com_google_guava",
+        "@javax_inject",
         "@javax_servlet_api",
         "@joda_time",
         "@org_joda_money",

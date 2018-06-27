@@ -27,6 +27,7 @@ java_library(
         "@com_google_flogger_system_backend",
         "@com_google_guava",
         "@com_google_monitoring_client_metrics",
+        "@javax_inject",
         "@javax_servlet_api",
         "@org_bouncycastle_bcpkix_jdk15on",
     ],

@@ -31,6 +31,7 @@ java_library(
         "@io_netty_common",
         "@io_netty_handler",
         "@io_netty_transport",
+        "@javax_inject",
         "@joda_time",
         "@junit",
         "@org_bouncycastle_bcpkix_jdk15on",

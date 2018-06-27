@@ -13,6 +13,7 @@ java_library(
         "@com_google_dagger",
         "@com_google_guava",
         "@com_google_http_client",
+        "@javax_inject",
         "@joda_time",
     ],
 )

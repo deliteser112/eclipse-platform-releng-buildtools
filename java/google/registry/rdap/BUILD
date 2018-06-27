@@ -26,6 +26,7 @@ java_library(
         "@com_google_monitoring_client_metrics",
         "@com_google_re2j",
         "@com_googlecode_json_simple",
+        "@javax_inject",
         "@javax_servlet_api",
         "@joda_time",
     ],

@@ -15,7 +15,6 @@ java_library(
         "//java/google/registry/util",
         "//java/google/registry/xjc",
         "//javatests/google/registry/testing",
-        "@com_google_code_findbugs_jsr305",
         "@com_google_re2j",
         "@com_google_truth",
         "@com_google_truth_extensions_truth_java8_extension",

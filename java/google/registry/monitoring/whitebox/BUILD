@@ -28,6 +28,7 @@ java_library(
         "@com_google_http_client",
         "@com_google_monitoring_client_metrics",
         "@com_google_monitoring_client_stackdriver",
+        "@javax_inject",
         "@javax_servlet_api",
         "@joda_time",
     ],

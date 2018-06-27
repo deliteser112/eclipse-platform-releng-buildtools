@@ -17,7 +17,6 @@ java_library(
         "//javatests/google/registry/testing",
         "//third_party/objectify:objectify-v4_1",
         "@com_google_apis_google_api_services_dns",
-        "@com_google_code_findbugs_jsr305",
         "@com_google_guava",
         "@com_google_truth",
         "@com_google_truth_extensions_truth_java8_extension",

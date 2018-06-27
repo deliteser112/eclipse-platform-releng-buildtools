@@ -15,7 +15,6 @@ java_library(
         "//java/google/registry/model",
         "//javatests/google/registry/testing",
         "//third_party/objectify:objectify-v4_1",
-        "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
         "@com_google_guava",
         "@com_google_re2j",
