@@ -8,8 +8,7 @@ java_library(
     name = "model",
     srcs = glob([
         "*.java",
-        "*/*.java",
-        "*/*/*.java",
+        "**/*.java",
     ]),
     visibility = ["//visibility:public"],
     deps = [

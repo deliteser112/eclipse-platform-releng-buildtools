@@ -10,10 +10,10 @@ load("//java/com/google/testing/builddefs:GenTestRules.bzl", "GenTestRules")
 java_library(
     name = "export",
     srcs = glob(["*.java"]),
-    resources = glob([
+    resources = [
         "backup_kinds.txt",
         "reporting_kinds.txt",
-    ]),
+    ],
     deps = [
         "//java/google/registry/bigquery",
         "//java/google/registry/config",
