@@ -13,7 +13,5 @@ java_library(
         "//third_party/objectify:objectify-v4_1",
         "@com_google_guava",
         "@com_google_re2j",
-        "@javax_servlet_api",
-        "@joda_time",
     ],
 )

@@ -21,9 +21,7 @@ java_library(
         "@com_google_code_findbugs_jsr305",
         "@com_google_guava",
         "@com_google_re2j",
-        "@com_googlecode_json_simple",
         "@io_bazel_rules_closure//closure/templates",
-        "@javax_servlet_api",
         "@joda_time",
     ],
 )

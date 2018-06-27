@@ -20,7 +20,6 @@ java_library(
         "@com_google_re2j",
         "@com_ibm_icu_icu4j",
         "@javax_inject",
-        "@javax_servlet_api",
         "@joda_time",
     ],
 )

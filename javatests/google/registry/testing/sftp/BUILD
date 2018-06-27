@@ -17,7 +17,6 @@ java_library(
         "@junit",
         "@org_apache_ftpserver_core",
         "@org_apache_sshd_core",
-        "@org_bouncycastle_bcpg_jdk15on",
         "@org_bouncycastle_bcpkix_jdk15on",
     ],
 )

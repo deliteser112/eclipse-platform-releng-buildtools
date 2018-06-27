@@ -21,6 +21,5 @@ java_library(
         "@com_google_http_client",
         "@javax_inject",
         "@org_bouncycastle_bcpg_jdk15on",
-        "@org_bouncycastle_bcpkix_jdk15on",
     ],
 )

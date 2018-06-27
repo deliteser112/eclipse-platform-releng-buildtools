@@ -20,7 +20,6 @@ java_library(
         "@com_google_guava",
         "@com_google_truth",
         "@com_google_truth_extensions_truth_java8_extension",
-        "@joda_time",
         "@junit",
         "@org_apache_avro",
         "@org_apache_beam_runners_direct_java",

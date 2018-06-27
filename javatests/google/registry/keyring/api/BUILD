@@ -20,7 +20,6 @@ java_library(
         "@com_google_truth_extensions_truth_java8_extension",
         "@junit",
         "@org_bouncycastle_bcpg_jdk15on",
-        "@org_bouncycastle_bcpkix_jdk15on",
         "@org_mockito_all",
     ],
 )

@@ -31,8 +31,6 @@ java_library(
         "@javax_servlet_api",
         "@joda_time",
         "@junit",
-        "@org_bouncycastle_bcpg_jdk15on",
-        "@org_bouncycastle_bcpkix_jdk15on",
         "@org_mockito_all",
     ],
 )

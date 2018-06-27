@@ -21,7 +21,6 @@ java_library(
         "@joda_time",
         "@junit",
         "@org_joda_money",
-        "@org_mockito_all",
     ],
 )
 

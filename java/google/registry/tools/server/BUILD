@@ -21,7 +21,6 @@ java_library(
         "//java/google/registry/request/auth",
         "//java/google/registry/util",
         "//third_party/objectify:objectify-v4_1",
-        "@com_beust_jcommander",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_appengine_tools_appengine_gcs_client",
         "@com_google_appengine_tools_appengine_mapreduce",
@@ -34,6 +33,5 @@ java_library(
         "@javax_inject",
         "@javax_servlet_api",
         "@joda_time",
-        "@org_joda_money",
     ],
 )

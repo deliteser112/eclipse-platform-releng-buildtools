@@ -28,7 +28,6 @@ java_library(
         "@com_google_appengine_tools_appengine_mapreduce",
         "@com_google_appengine_tools_appengine_pipeline",
         "@com_google_guava",
-        "@com_google_re2j",
         "@com_google_truth",
         "@com_google_truth_extensions_truth_java8_extension",
         "@javax_servlet_api",
