@@ -18,7 +18,6 @@ java_library(
         "//java/google/registry/request",
         "//java/google/registry/util",
         "//javatests/google/registry/testing",
-        "@com_google_guava",
         "@com_google_truth",
         "@com_google_truth_extensions_truth_java8_extension",
         "@javax_servlet_api",
