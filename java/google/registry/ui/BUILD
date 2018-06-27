@@ -18,6 +18,13 @@ filegroup(
 )
 
 filegroup(
+    name = "minimal_runfiles",
+    srcs = [
+        "//java/google/registry/ui/html:html_files",
+    ],
+)
+
+filegroup(
     name = "runfiles_debug",
     srcs = [
         ":brain_bin",
@@ -38,6 +45,15 @@ zip_file(
         "domain_registry/java/google/registry/ui/css": "assets/css",
         "domain_registry/java/google/registry/ui/html": "",
         "domain_registry/java/google/registry/ui": "assets/js",
+    },
+)
+
+zip_file(
+    name = "minimal_war",
+    srcs = [":minimal_runfiles"],
+    out = "minimal_ui.war",
+    mappings = {
+        "domain_registry/java/google/registry/ui/html": "",
     },
 )
 

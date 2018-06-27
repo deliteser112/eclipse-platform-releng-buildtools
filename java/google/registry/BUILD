@@ -133,7 +133,7 @@ zip_file(
     },
     deps = [
         ":common_war",
-        "//java/google/registry/ui:war",
+        "//java/google/registry/ui:minimal_war",
     ],
 )
 

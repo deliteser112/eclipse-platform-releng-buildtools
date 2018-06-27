@@ -22,9 +22,6 @@
 
   <static-files>
     <include path="/*.html" expiration="1d"/>
-    <include path="/assets/js/**" expiration="1d"/>
-    <include path="/assets/css/**" expiration="1d"/>
-    <include path="/assets/images/**" expiration="1d"/>
   </static-files>
 
   <!-- Prevent uncaught servlet errors from leaking a stack trace. -->
