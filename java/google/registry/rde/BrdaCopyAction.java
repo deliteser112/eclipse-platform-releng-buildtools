@@ -16,7 +16,6 @@ package google.registry.rde;
 
 import static google.registry.model.rde.RdeMode.THIN;
 import static google.registry.request.Action.Method.POST;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
 import com.google.common.flogger.FluentLogger;
@@ -29,7 +28,6 @@ import google.registry.request.Action;
 import google.registry.request.Parameter;
 import google.registry.request.RequestParameters;
 import google.registry.request.auth.Auth;
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -66,7 +64,6 @@ public final class BrdaCopyAction implements Runnable {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject GcsUtils gcsUtils;
-  @Inject Ghostryde ghostryde;
   @Inject RydePgpCompressionOutputStreamFactory pgpCompressionFactory;
   @Inject RydePgpFileOutputStreamFactory pgpFileFactory;
   @Inject RydePgpEncryptionOutputStreamFactory pgpEncryptionFactory;
@@ -102,10 +99,7 @@ public final class BrdaCopyAction implements Runnable {
     logger.atInfo().log("Writing %s", rydeFile);
     byte[] signature;
     try (InputStream gcsInput = gcsUtils.openInputStream(xmlFilename);
-        Ghostryde.Decryptor decryptor = ghostryde.openDecryptor(gcsInput, stagingDecryptionKey);
-        Ghostryde.Decompressor decompressor = ghostryde.openDecompressor(decryptor);
-        Ghostryde.Input ghostInput = ghostryde.openInput(decompressor);
-        BufferedInputStream xmlInput = new BufferedInputStream(ghostInput);
+        InputStream ghostrydeDecoder = Ghostryde.decoder(gcsInput, stagingDecryptionKey);
         OutputStream gcsOutput = gcsUtils.openOutputStream(rydeFile);
         RydePgpSigningOutputStream signLayer = pgpSigningFactory.create(gcsOutput, signingKey)) {
       try (OutputStream encryptLayer = pgpEncryptionFactory.create(signLayer, receiverKey);
@@ -113,7 +107,7 @@ public final class BrdaCopyAction implements Runnable {
           OutputStream fileLayer = pgpFileFactory.create(compressLayer, watermark, prefix + ".tar");
           OutputStream tarLayer =
               tarFactory.create(fileLayer, xmlLength, watermark, prefix + ".xml")) {
-        ByteStreams.copy(xmlInput, tarLayer);
+        ByteStreams.copy(ghostrydeDecoder, tarLayer);
       }
       signature = signLayer.getSignature();
     }
@@ -127,7 +121,7 @@ public final class BrdaCopyAction implements Runnable {
   /** Reads the contents of a file from Cloud Storage that contains nothing but an integer. */
   private long readXmlLength(GcsFilename xmlLengthFilename) throws IOException {
     try (InputStream input = gcsUtils.openInputStream(xmlLengthFilename)) {
-      return Long.parseLong(new String(ByteStreams.toByteArray(input), UTF_8).trim());
+      return Ghostryde.readLength(input);
     }
   }
 }

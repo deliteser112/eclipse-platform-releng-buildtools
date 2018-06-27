@@ -65,13 +65,10 @@ final class ValidateEscrowDepositCommand implements Command {
   @Override
   public void run() throws Exception {
     if (input.toString().endsWith(".ghostryde")) {
-      Ghostryde ghostryde = new Ghostryde(64 * 1024);
       try (InputStream in = Files.newInputStream(input);
-          Ghostryde.Decryptor decryptor =
-              ghostryde.openDecryptor(in, keyring.getRdeStagingDecryptionKey());
-          Ghostryde.Decompressor decompressor = ghostryde.openDecompressor(decryptor);
-          Ghostryde.Input ghostInput = ghostryde.openInput(decompressor)) {
-        validateXmlStream(ghostInput);
+          InputStream ghostrydeDecoder =
+              Ghostryde.decoder(in, keyring.getRdeStagingDecryptionKey())) {
+        validateXmlStream(ghostrydeDecoder);
       }
     } else {
       try (InputStream inputStream = Files.newInputStream(input)) {

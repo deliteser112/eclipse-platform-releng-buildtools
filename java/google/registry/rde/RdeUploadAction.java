@@ -24,7 +24,6 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.model.rde.RdeMode.FULL;
 import static google.registry.request.Action.Method.POST;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 
 import com.google.appengine.api.taskqueue.Queue;
@@ -92,7 +91,6 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
 
   @Inject Clock clock;
   @Inject GcsUtils gcsUtils;
-  @Inject Ghostryde ghostryde;
   @Inject EscrowTaskRunner runner;
 
   // Using Lazy<JSch> instead of JSch to prevent fetching of rdeSsh*Keys before we know we're
@@ -213,9 +211,7 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
       throws Exception {
     logger.atInfo().log("Uploading XML file '%s' to remote path '%s'.", xmlFile, uploadUrl);
     try (InputStream gcsInput = gcsUtils.openInputStream(xmlFile);
-        Ghostryde.Decryptor decryptor = ghostryde.openDecryptor(gcsInput, stagingDecryptionKey);
-        Ghostryde.Decompressor decompressor = ghostryde.openDecompressor(decryptor);
-        Ghostryde.Input xmlInput = ghostryde.openInput(decompressor)) {
+        InputStream ghostrydeDecoder = Ghostryde.decoder(gcsInput, stagingDecryptionKey)) {
       try (JSchSshSession session = jschSshSessionFactory.create(lazyJsch.get(), uploadUrl);
           JSchSftpChannel ftpChan = session.openSftpChannel()) {
         byte[] signature;
@@ -231,7 +227,7 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
               OutputStream fileLayer = pgpFileFactory.create(kompressor, watermark, name + ".tar");
               OutputStream tarLayer =
                   tarFactory.create(fileLayer, xmlLength, watermark, name + ".xml")) {
-            ByteStreams.copy(xmlInput, tarLayer);
+            ByteStreams.copy(ghostrydeDecoder, tarLayer);
           }
           signature = signer.getSignature();
           logger.atInfo().log("uploaded %,d bytes: %s.ryde", signer.getBytesWritten(), name);
@@ -247,7 +243,7 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
   /** Reads the contents of a file from Cloud Storage that contains nothing but an integer. */
   private long readXmlLength(GcsFilename xmlLengthFilename) throws IOException {
     try (InputStream input = gcsUtils.openInputStream(xmlLengthFilename)) {
-      return Long.parseLong(new String(ByteStreams.toByteArray(input), UTF_8).trim());
+      return Ghostryde.readLength(input);
     }
   }
 

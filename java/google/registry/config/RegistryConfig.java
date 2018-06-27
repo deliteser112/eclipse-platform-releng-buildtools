@@ -639,17 +639,6 @@ public final class RegistryConfig {
     }
 
     /**
-     * Size of Ghostryde buffer in bytes for each layer in the pipeline.
-     *
-     * @see google.registry.rde.Ghostryde
-     */
-    @Provides
-    @Config("rdeGhostrydeBufferSize")
-    public static Integer provideRdeGhostrydeBufferSize() {
-      return 64 * 1024;
-    }
-
-    /**
      * Amount of time between RDE deposits.
      *
      * @see google.registry.rde.PendingDepositChecker

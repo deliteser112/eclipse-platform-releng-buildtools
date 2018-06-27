@@ -23,7 +23,6 @@ import static google.registry.request.Action.Method.POST;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
-import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
 import google.registry.config.RegistryConfig.Config;
 import google.registry.gcs.GcsUtils;
@@ -59,10 +58,7 @@ public final class RdeReportAction implements Runnable, EscrowTask {
 
   static final String PATH = "/_dr/task/rdeReport";
 
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-
   @Inject GcsUtils gcsUtils;
-  @Inject Ghostryde ghostryde;
   @Inject EscrowTaskRunner runner;
   @Inject Response response;
   @Inject RdeReporter reporter;
@@ -101,10 +97,8 @@ public final class RdeReportAction implements Runnable, EscrowTask {
   /** Reads and decrypts the XML file from cloud storage. */
   private byte[] readReportFromGcs(GcsFilename reportFilename) throws IOException, PGPException {
     try (InputStream gcsInput = gcsUtils.openInputStream(reportFilename);
-        Ghostryde.Decryptor decryptor = ghostryde.openDecryptor(gcsInput, stagingDecryptionKey);
-        Ghostryde.Decompressor decompressor = ghostryde.openDecompressor(decryptor);
-        Ghostryde.Input xmlInput = ghostryde.openInput(decompressor)) {
-      return ByteStreams.toByteArray(xmlInput);
+        InputStream ghostrydeDecoder = Ghostryde.decoder(gcsInput, stagingDecryptionKey)) {
+      return ByteStreams.toByteArray(ghostrydeDecoder);
     }
   }
 }

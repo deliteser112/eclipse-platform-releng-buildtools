@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import org.bouncycastle.openpgp.PGPPublicKey;
-import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.experimental.theories.DataPoints;
 import org.junit.experimental.theories.Theories;
@@ -62,18 +61,6 @@ public class GhostrydeGpgIntegrationTest extends ShardableTestCase {
   };
 
   @DataPoints
-  public static BufferSize[] bufferSizes = new BufferSize[] {
-    new BufferSize(1),
-    new BufferSize(7),
-  };
-
-  @DataPoints
-  public static Filename[] filenames = new Filename[] {
-    new Filename("lol.txt"),
-    // new Filename("(◕‿◕).txt"),  // gpg displays this with zany hex characters.
-  };
-
-  @DataPoints
   public static Content[] contents = new Content[] {
     new Content("(◕‿◕)"),
     new Content(repeat("Fanatics have their dreams, wherewith they weave\n", 1000)),
@@ -82,21 +69,16 @@ public class GhostrydeGpgIntegrationTest extends ShardableTestCase {
   };
 
   @Theory
-  public void test(GpgCommand cmd, BufferSize bufferSize, Filename filename, Content content)
-      throws Exception {
+  public void test(GpgCommand cmd, Content content) throws Exception {
     assumeTrue(hasCommand(cmd.get() + " --version"));
     Keyring keyring = new FakeKeyringModule().get();
     PGPPublicKey publicKey = keyring.getRdeStagingEncryptionKey();
     File file = new File(gpg.getCwd(), "love.gpg");
     byte[] data = content.get().getBytes(UTF_8);
-    DateTime mtime = DateTime.parse("1984-12-18T00:30:00Z");
 
-    Ghostryde ghost = new Ghostryde(bufferSize.get());
     try (OutputStream output = new FileOutputStream(file);
-        Ghostryde.Encryptor encryptor = ghost.openEncryptor(output, publicKey);
-        Ghostryde.Compressor kompressor = ghost.openCompressor(encryptor);
-        OutputStream os = ghost.openOutput(kompressor, filename.get(), mtime)) {
-      os.write(data);
+        OutputStream ghostrydeEncoder = Ghostryde.encoder(output, publicKey)) {
+      ghostrydeEncoder.write(data);
     }
 
     Process pid = gpg.exec(cmd.get(), "--list-packets", "--keyid-format", "long", file.getPath());
@@ -106,13 +88,13 @@ public class GhostrydeGpgIntegrationTest extends ShardableTestCase {
     assertThat(stdout).contains(":compressed packet:");
     assertThat(stdout).contains(":encrypted data packet:");
     assertThat(stdout).contains("version 3, algo 1, keyid A59C132F3589A1D5");
-    assertThat(stdout).contains("name=\"" + filename.get() + "\"");
+    assertThat(stdout).contains("name=\"" + Ghostryde.INNER_FILENAME + "\"");
     assertThat(stderr).contains("encrypted with 2048-bit RSA key, ID A59C132F3589A1D5");
 
     pid = gpg.exec(cmd.get(), "--use-embedded-filename", file.getPath());
     stderr = CharStreams.toString(new InputStreamReader(pid.getErrorStream(), UTF_8));
     assertWithMessage(stderr).that(pid.waitFor()).isEqualTo(0);
-    File dataFile = new File(gpg.getCwd(), filename.get());
+    File dataFile = new File(gpg.getCwd(), Ghostryde.INNER_FILENAME);
     assertThat(dataFile.exists()).isTrue();
     assertThat(slurp(dataFile)).isEqualTo(content.get());
   }
@@ -125,30 +107,6 @@ public class GhostrydeGpgIntegrationTest extends ShardableTestCase {
     private final String value;
 
     GpgCommand(String value) {
-      this.value = value;
-    }
-
-    String get() {
-      return value;
-    }
-  }
-
-  private static class BufferSize {
-    private final int value;
-
-    BufferSize(int value) {
-      this.value = value;
-    }
-
-    int get() {
-      return value;
-    }
-  }
-
-  private static class Filename {
-    private final String value;
-
-    Filename(String value) {
       this.value = value;
     }
 

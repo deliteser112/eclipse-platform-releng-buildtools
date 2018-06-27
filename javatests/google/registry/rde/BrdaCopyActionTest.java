@@ -19,7 +19,6 @@ import static com.google.common.truth.Truth.assertWithMessage;
 import static google.registry.testing.GcsTestingUtils.readGcsFile;
 import static google.registry.testing.SystemInfo.hasCommand;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.joda.time.DateTimeZone.UTC;
 import static org.junit.Assume.assumeTrue;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
@@ -101,7 +100,6 @@ public class BrdaCopyActionTest extends ShardableTestCase {
   @Before
   public void before() throws Exception {
     action.gcsUtils = gcsUtils;
-    action.ghostryde = new Ghostryde(23);
     action.pgpCompressionFactory = new RydePgpCompressionOutputStreamFactory(() -> 1024);
     action.pgpEncryptionFactory = new RydePgpEncryptionOutputStreamFactory(() -> 1024);
     action.pgpFileFactory = new RydePgpFileOutputStreamFactory(() -> 1024);
@@ -116,8 +114,7 @@ public class BrdaCopyActionTest extends ShardableTestCase {
     action.stagingDecryptionKey = decryptKey;
 
     byte[] xml = DEPOSIT_XML.read();
-    GcsTestingUtils.writeGcsFile(gcsService, STAGE_FILE,
-        Ghostryde.encode(xml, encryptKey, "lobster.xml", new DateTime(UTC)));
+    GcsTestingUtils.writeGcsFile(gcsService, STAGE_FILE, Ghostryde.encode(xml, encryptKey));
     GcsTestingUtils.writeGcsFile(gcsService, STAGE_LENGTH_FILE,
         Long.toString(xml.length).getBytes(UTF_8));
   }

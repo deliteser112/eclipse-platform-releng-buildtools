@@ -17,15 +17,16 @@ package google.registry.rde;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static java.nio.charset.StandardCharsets.US_ASCII;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.bouncycastle.bcpg.CompressionAlgorithmTags.ZLIB;
 import static org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags.AES_128;
 import static org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME;
 import static org.bouncycastle.openpgp.PGPLiteralData.BINARY;
-import static org.joda.time.DateTimeZone.UTC;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
-import google.registry.config.RegistryConfig.Config;
+import com.google.common.io.Closer;
 import google.registry.util.ImprovedInputStream;
 import google.registry.util.ImprovedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -38,11 +39,7 @@ import java.security.ProviderException;
 import java.security.SecureRandom;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
-import javax.annotation.WillCloseWhenClosed;
 import javax.annotation.WillNotClose;
-import javax.annotation.concurrent.Immutable;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.inject.Inject;
 import org.bouncycastle.openpgp.PGPCompressedData;
 import org.bouncycastle.openpgp.PGPCompressedDataGenerator;
 import org.bouncycastle.openpgp.PGPEncryptedDataGenerator;
@@ -68,39 +65,42 @@ import org.joda.time.DateTime;
  * eyes of anyone with access to the <a href="https://cloud.google.com/console">Google Cloud
  * Console</a>.
  *
- * <p>This class has an unusual API that's designed to take advantage of Java 7 try-with-resource
- * statements to the greatest extent possible, while also maintaining security contracts at
- * compile-time.
+ * <p>The encryption is similar to the "regular" RyDE RDE deposit file encryption. The main
+ * difference (and the reason we had to create a custom encryption) is that the RDE deposit has a
+ * tar file in the encoding. A tar file needs to know its final size in the header, which means we
+ * have to create the entire deposit before we can start encoding it.
+ *
+ * <p>Deposits are big, and there's no reason to hold it all in memory. Instead, save a "staging"
+ * version encrypted with Ghostryde instead of "RyDE" (the RDE encryption/encoding), using the
+ * "rde-staging" keys. We also remember the actual data size during the staging creation.
+ *
+ * <p>Then when we want to create the actual deposits, we decrypt the staging version, and using the
+ * saved value for the data size we can encrypt with "RyDE" using the receiver key.
  *
  * <p>Here's how you write a file:
  *
  * <pre>   {@code
- *   File in = new File("lol.txt");
- *   File out = new File("lol.txt.ghostryde");
- *   Ghostryde ghost = new Ghostryde(1024);
- *   try (OutputStream output = new FileOutputStream(out);
- *       Ghostryde.Encryptor encryptor = ghost.openEncryptor(output, publicKey);
- *       Ghostryde.Compressor kompressor = ghost.openCompressor(encryptor);
- *       OutputStream go = ghost.openOutput(kompressor, in.getName(), DateTime.now(UTC));
- *       InputStream input = new FileInputStream(in)) &lbrace;
- *     ByteStreams.copy(input, go);
- *   &rbrace;}</pre>
+ * File in = new File("lol.txt");
+ * File out = new File("lol.txt.ghostryde");
+ * File lengthOut = new File("lol.length.ghostryde");
+ * try (OutputStream output = new FileOutputStream(out);
+ *     OutputStream lengthOutput = new FileOutputStream(lengthOut);
+ *     OutputStream ghostrydeEncoder = Ghostryde.encoder(output, publicKey, lengthOut);
+ *     InputStream input = new FileInputStream(in)) &lbrace;
+ *   ByteStreams.copy(input, ghostrydeEncoder);
+ * &rbrace;}</pre>
  *
  * <p>Here's how you read a file:
  *
  * <pre>   {@code
- *   File in = new File("lol.txt.ghostryde");
- *   File out = new File("lol.txt");
- *   Ghostryde ghost = new Ghostryde(1024);
- *   try (InputStream fileInput = new FileInputStream(in);
- *       Ghostryde.Decryptor decryptor = ghost.openDecryptor(fileInput, privateKey);
- *       Ghostryde.Decompressor decompressor = ghost.openDecompressor(decryptor);
- *       Ghostryde.Input input = ghost.openInput(decompressor);
- *       OutputStream fileOutput = new FileOutputStream(out)) &lbrace;
- *     System.out.println("name = " + input.getName());
- *     System.out.println("modified = " + input.getModified());
- *     ByteStreams.copy(input, fileOutput);
- *   &rbrace;}</pre>
+ * File in = new File("lol.txt.ghostryde");
+ * File out = new File("lol.txt");
+ * Ghostryde ghost = new Ghostryde(1024);
+ * try (InputStream fileInput = new FileInputStream(in);
+ *     InputStream ghostrydeDecoder = new Ghostryde.decoder(fileInput, privateKey);
+ *     OutputStream fileOutput = new FileOutputStream(out)) &lbrace;
+ *   ByteStreams.copy(ghostryderDecoder, fileOutput);
+ * &rbrace;}</pre>
  *
  * <h2>Simple API</h2>
  *
@@ -108,10 +108,11 @@ import org.joda.time.DateTime;
  * static methods more convenient:
  *
  * <pre>   {@code
- *   byte[] data = "hello kitty".getBytes(UTF_8);
- *   byte[] blob = Ghostryde.encode(data, publicKey, "lol.txt", DateTime.now(UTC));
- *   Ghostryde.Result result = Ghostryde.decode(blob, privateKey);
- *   }</pre>
+ * byte[] data = "hello kitty".getBytes(UTF_8);
+ * byte[] blob = Ghostryde.encode(data, publicKey);
+ * byte[] result = Ghostryde.decode(blob, privateKey);
+ *
+ * }</pre>
  *
  * <h2>GhostRYDE Format</h2>
  *
@@ -122,10 +123,12 @@ import org.joda.time.DateTime;
  * <p>Ghostryde is different from RyDE in the sense that ghostryde is only used for <i>internal</i>
  * storage; whereas RyDE is meant to protect data being stored by a third-party.
  */
-@Immutable
 public final class Ghostryde {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  /** Size of the buffer used by the intermediate streams. */
+  static final int BUFFER_SIZE = 64 * 1024;
 
   /**
    * Compression algorithm to use when creating ghostryde files.
@@ -163,21 +166,26 @@ public final class Ghostryde {
   static final String RANDOM_SOURCE = "NativePRNG";
 
   /**
+   * For backwards compatibility reasons, we wrap the data in a PGP file, which preserves the
+   * original filename and modification time. However, these values are never used, so we just
+   * set them to a constant value.
+   */
+  static final String INNER_FILENAME = "file.xml";
+  static final DateTime INNER_MODIFICATION_TIME = DateTime.parse("2000-01-01TZ");
+
+  /**
    * Creates a ghostryde file from an in-memory byte array.
    *
    * @throws PGPException
    * @throws IOException
    */
-  public static byte[] encode(byte[] data, PGPPublicKey key, String name, DateTime modified)
+  public static byte[] encode(byte[] data, PGPPublicKey key)
       throws IOException, PGPException {
     checkNotNull(data, "data");
     checkArgument(key.isEncryptionKey(), "not an encryption key");
-    Ghostryde ghost = new Ghostryde(1024 * 64);
     ByteArrayOutputStream output = new ByteArrayOutputStream();
-    try (Encryptor encryptor = ghost.openEncryptor(output, key);
-        Compressor kompressor = ghost.openCompressor(encryptor);
-        OutputStream go = ghost.openOutput(kompressor, name, modified)) {
-      go.write(data);
+    try (OutputStream encoder = encoder(output, key)) {
+      encoder.write(data);
     }
     return output.toByteArray();
   }
@@ -188,191 +196,106 @@ public final class Ghostryde {
    * @throws PGPException
    * @throws IOException
    */
-  public static DecodeResult decode(byte[] data, PGPPrivateKey key)
+  public static byte[] decode(byte[] data, PGPPrivateKey key)
       throws IOException, PGPException {
     checkNotNull(data, "data");
-    Ghostryde ghost = new Ghostryde(1024 * 64);
     ByteArrayInputStream dataStream = new ByteArrayInputStream(data);
     ByteArrayOutputStream output = new ByteArrayOutputStream();
-    String name;
-    DateTime modified;
-    try (Decryptor decryptor = ghost.openDecryptor(dataStream, key);
-        Decompressor decompressor = ghost.openDecompressor(decryptor);
-        Input input = ghost.openInput(decompressor)) {
-      name = input.getName();
-      modified = input.getModified();
-      ByteStreams.copy(input, output);
+    try (InputStream ghostrydeDecoder = decoder(dataStream, key)) {
+      ByteStreams.copy(ghostrydeDecoder, output);
     }
-    return new DecodeResult(output.toByteArray(), name, modified);
+    return output.toByteArray();
   }
 
-  /** Result class for the {@link Ghostryde#decode(byte[], PGPPrivateKey)} method. */
-  @Immutable
-  public static final class DecodeResult {
-    private final byte[] data;
-    private final String name;
-    private final DateTime modified;
-
-    DecodeResult(byte[] data, String name, DateTime modified) {
-      this.data = checkNotNull(data, "data");
-      this.name = checkNotNull(name, "name");
-      this.modified = checkNotNull(modified, "modified");
-    }
-
-    /** Returns the decoded ghostryde content bytes. */
-    public byte[] getData() {
-      return data;
-    }
-
-    /** Returns the name of the original file, taken from the literal data packet. */
-    public String getName() {
-      return name;
-    }
-
-    /** Returns the time this file was created or modified, take from the literal data packet. */
-    public DateTime getModified() {
-      return modified;
-    }
+  /** Reads the value of a length stream - see {@link #encoder}. */
+  public static long readLength(InputStream lengthStream) throws IOException {
+    return Long.parseLong(new String(ByteStreams.toByteArray(lengthStream), UTF_8).trim());
   }
 
   /**
-   * PGP literal file {@link InputStream}.
+   * Creates a Ghostryde Encoder.
    *
-   * @see Ghostryde#openInput(Decompressor)
+   * <p>Optionally can also save the total length of the data written to an OutputStream.
+   *
+   * <p>This is necessary because the RyDE format uses a tar file which requires the total length in
+   * the header. We don't want to have to decrypt the entire ghostryde file to determine the length,
+   * so we just save it separately.
+   *
+   * @param output where to write the encrypted data
+   * @param encryptionKey the encryption key to use
+   * @param lengthOutput if not null - will save the total length of the data written to this
+   *     output. See {@link #readLength}.
    */
-  @NotThreadSafe
-  public static final class Input extends ImprovedInputStream {
-    private final String name;
-    private final DateTime modified;
+  public static ImprovedOutputStream encoder(
+      OutputStream output, PGPPublicKey encryptionKey, @Nullable OutputStream lengthOutput)
+      throws IOException, PGPException {
 
-    Input(@WillCloseWhenClosed InputStream input, String name, DateTime modified) {
-      super("Input", input);
-      this.name = checkNotNull(name, "name");
-      this.modified = checkNotNull(modified, "modified");
-    }
+    // We use a Closer to handle the stream .close, to make sure it's done correctly.
+    Closer closer = Closer.create();
+    OutputStream encryptionLayer = closer.register(openEncryptor(output, encryptionKey));
+    OutputStream kompressor = closer.register(openCompressor(encryptionLayer));
+    OutputStream fileLayer =
+        closer.register(
+            openPgpFileOutputStream(kompressor, INNER_FILENAME, INNER_MODIFICATION_TIME));
 
-    /** Returns the name of the original file, taken from the literal data packet. */
-    public String getName() {
-      return name;
-    }
-
-    /** Returns the time this file was created or modified, take from the literal data packet. */
-    public DateTime getModified() {
-      return modified;
-    }
-  }
-
-  /**
-   * PGP literal file {@link OutputStream}.
-   *
-   * <p>This class isn't needed for ordering safety, but is included regardless for consistency and
-   * to improve the appearance of log messages.
-   *
-   * @see Ghostryde#openOutput(Compressor, String, DateTime)
-   */
-  @NotThreadSafe
-  public static final class Output extends ImprovedOutputStream {
-    Output(@WillCloseWhenClosed OutputStream os) {
-      super("Output", os);
-    }
-  }
-
-  /**
-   * Encryption {@link OutputStream}.
-   *
-   * <p>This type exists to guarantee {@code open*()} methods are called in the correct order.
-   *
-   * @see Ghostryde#openEncryptor(OutputStream, PGPPublicKey)
-   */
-  @NotThreadSafe
-  public static final class Encryptor extends ImprovedOutputStream {
-    Encryptor(@WillCloseWhenClosed OutputStream os) {
-      super("Encryptor", os);
-    }
-  }
-
-  /**
-   * Decryption {@link InputStream}.
-   *
-   * <p>This type exists to guarantee {@code open*()} methods are called in the correct order.
-   *
-   * @see Ghostryde#openDecryptor(InputStream, PGPPrivateKey)
-   */
-  @NotThreadSafe
-  public static final class Decryptor extends ImprovedInputStream {
-    private final PGPPublicKeyEncryptedData crypt;
-
-    Decryptor(@WillCloseWhenClosed InputStream input, PGPPublicKeyEncryptedData crypt) {
-      super("Decryptor", input);
-      this.crypt = checkNotNull(crypt, "crypt");
-    }
-
-    /**
-     * Verifies that the ciphertext wasn't corrupted or tampered with.
-     *
-     * <p>Note: If {@link Ghostryde#USE_INTEGRITY_PACKET} is {@code true}, any ghostryde file
-     * without an integrity packet will be considered invalid and an exception will be thrown.
-     *
-     * @throws IllegalStateException to propagate {@link PGPException}
-     * @throws IOException
-     */
-    @Override
-    protected void onClose() throws IOException {
-      if (USE_INTEGRITY_PACKET) {
-        try {
-          if (!crypt.verify()) {
-            throw new PGPException("ghostryde integrity check failed: possible tampering D:");
-          }
-        } catch (PGPException e) {
-          throw new IllegalStateException(e);
+    return new ImprovedOutputStream("GhostrydeEncoder", fileLayer) {
+      @Override
+      public void onClose() throws IOException {
+        // Close all the streams we opened
+        closer.close();
+        // Optionally also output the size of the encoded data - which is needed for the RyDE
+        // encoding.
+        if (lengthOutput != null) {
+          lengthOutput.write(Long.toString(getBytesWritten()).getBytes(US_ASCII));
         }
       }
-    }
+    };
   }
 
   /**
-   * Compression {@link OutputStream}.
+   * Creates a Ghostryde Encoder.
    *
-   * <p>This type exists to guarantee {@code open*()} methods are called in the correct order.
-   *
-   * @see Ghostryde#openCompressor(Encryptor)
+   * @param output where to write the encrypted data
+   * @param encryptionKey the encryption key to use
    */
-  @NotThreadSafe
-  public static final class Compressor extends ImprovedOutputStream {
-    Compressor(@WillCloseWhenClosed OutputStream os) {
-      super("Compressor", os);
-    }
+  public static ImprovedOutputStream encoder(OutputStream output, PGPPublicKey encryptionKey)
+      throws IOException, PGPException {
+    return encoder(output, encryptionKey, null);
   }
 
   /**
-   * Decompression {@link InputStream}.
+   * Creates a Ghostryde decoder.
    *
-   * <p>This type exists to guarantee {@code open*()} methods are called in the correct order.
-   *
-   * @see Ghostryde#openDecompressor(Decryptor)
+   * @param input from where to read the encrypted data
+   * @param decryptionKey the decryption key to use
    */
-  @NotThreadSafe
-  public static final class Decompressor extends ImprovedInputStream {
-    Decompressor(@WillCloseWhenClosed InputStream input) {
-      super("Decompressor", input);
-    }
+  public static ImprovedInputStream decoder(InputStream input, PGPPrivateKey decryptionKey)
+      throws IOException, PGPException {
+
+    // We use a Closer to handle the stream .close, to make sure it's done correctly.
+    Closer closer = Closer.create();
+    InputStream decryptionLayer = closer.register(openDecryptor(input, decryptionKey));
+    InputStream decompressor = closer.register(openDecompressor(decryptionLayer));
+    InputStream fileLayer = closer.register(openPgpFileInputStream(decompressor));
+
+    return new ImprovedInputStream("GhostryderDecoder", fileLayer) {
+      @Override
+      public void onClose() throws IOException {
+        // Close all the streams we opened
+        closer.close();
+      }
+    };
   }
 
-  private final int bufferSize;
-
-  /** Constructs a new {@link Ghostryde} object. */
-  @Inject
-  public Ghostryde(
-      @Config("rdeGhostrydeBufferSize") int bufferSize) {
-    checkArgument(bufferSize > 0, "bufferSize");
-    this.bufferSize = bufferSize;
-  }
+  private Ghostryde() {}
 
   /**
-   * Opens a new {@link Encryptor} (Writing Step 1/3)
+   * Opens a new encryptor (Writing Step 1/3)
    *
-   * <p>This is the first step in creating a ghostryde file. After this method, you'll want to
-   * call {@link #openCompressor(Encryptor)}.
+   * <p>This is the first step in creating a ghostryde file. After this method, you'll want to call
+   * {@link #openCompressor}.
+   *
+   * <p>TODO(b/110465985): merge with the RyDE version.
    *
    * @param os is the upstream {@link OutputStream} to which the result is written.
    * @param publicKey is the public encryption key of the recipient.
@@ -380,19 +303,20 @@ public final class Ghostryde {
    * @throws PGPException
    */
   @CheckReturnValue
-  public Encryptor openEncryptor(@WillNotClose OutputStream os, PGPPublicKey publicKey)
-      throws IOException, PGPException {
+  private static ImprovedOutputStream openEncryptor(
+      @WillNotClose OutputStream os, PGPPublicKey publicKey) throws IOException, PGPException {
     PGPEncryptedDataGenerator encryptor = new PGPEncryptedDataGenerator(
         new JcePGPDataEncryptorBuilder(CIPHER)
            .setWithIntegrityPacket(USE_INTEGRITY_PACKET)
            .setSecureRandom(getRandom())
            .setProvider(PROVIDER_NAME));
     encryptor.addMethod(new BcPublicKeyKeyEncryptionMethodGenerator(publicKey));
-    return new Encryptor(encryptor.open(os, new byte[bufferSize]));
+    return new ImprovedOutputStream(
+        "GhostrydeEncryptor", encryptor.open(os, new byte[BUFFER_SIZE]));
   }
 
   /** Does stuff. */
-  private SecureRandom getRandom() {
+  private static SecureRandom getRandom() {
     SecureRandom random;
     try {
       random = SecureRandom.getInstance(RANDOM_SOURCE);
@@ -403,44 +327,57 @@ public final class Ghostryde {
   }
 
   /**
-   * Opens a new {@link Compressor} (Writing Step 2/3)
+   * Opens a new compressor (Writing Step 2/3)
    *
-   * <p>This is the second step in creating a ghostryde file. After this method, you'll want to
-   * call {@link #openOutput(Compressor, String, DateTime)}.
+   * <p>This is the second step in creating a ghostryde file. After this method, you'll want to call
+   * {@link #openPgpFileOutputStream}.
+   *
+   * <p>TODO(b/110465985): merge with the RyDE version.
    *
    * @param os is the value returned by {@link #openEncryptor(OutputStream, PGPPublicKey)}.
    * @throws IOException
    * @throws PGPException
    */
   @CheckReturnValue
-  public Compressor openCompressor(@WillNotClose Encryptor os) throws IOException, PGPException {
+  private static ImprovedOutputStream openCompressor(@WillNotClose OutputStream os)
+      throws IOException, PGPException {
     PGPCompressedDataGenerator kompressor = new PGPCompressedDataGenerator(COMPRESSION_ALGORITHM);
-    return new Compressor(kompressor.open(os, new byte[bufferSize]));
+    return new ImprovedOutputStream(
+        "GhostrydeCompressor", kompressor.open(os, new byte[BUFFER_SIZE]));
   }
 
   /**
    * Opens an {@link OutputStream} to which the actual data should be written (Writing Step 3/3)
    *
-   * <p>This is the third and final step in creating a ghostryde file. You'll want to write data
-   * to the returned object.
+   * <p>This is the third and final step in creating a ghostryde file. You'll want to write data to
+   * the returned object.
    *
-   * @param os is the value returned by {@link #openCompressor(Encryptor)}.
+   * <p>TODO(b/110465985): merge with the RyDE version.
+   *
+   * @param os is the value returned by {@link #openCompressor}.
    * @param name is a filename for your data which gets written in the literal tag.
    * @param modified is a timestamp for your data which gets written to the literal tags.
    * @throws IOException
    */
   @CheckReturnValue
-  public Output openOutput(@WillNotClose Compressor os, String name, DateTime modified)
-      throws IOException {
-    return new Output(new PGPLiteralDataGenerator().open(
-        os, BINARY, name, modified.toDate(), new byte[bufferSize]));
+  private static ImprovedOutputStream openPgpFileOutputStream(
+      @WillNotClose OutputStream os, String name, DateTime modified) throws IOException {
+    return new ImprovedOutputStream(
+        "GhostrydePgpFileOutput",
+        new PGPLiteralDataGenerator()
+            .open(os, BINARY, name, modified.toDate(), new byte[BUFFER_SIZE]));
   }
 
   /**
-   * Opens a new {@link Decryptor} (Reading Step 1/3)
+   * Opens a new decryptor (Reading Step 1/3)
    *
-   * <p>This is the first step in opening a ghostryde file. After this method, you'll want to
-   * call {@link #openDecompressor(Decryptor)}.
+   * <p>This is the first step in opening a ghostryde file. After this method, you'll want to call
+   * {@link #openDecompressor}.
+   *
+   * <p>Note: If {@link Ghostryde#USE_INTEGRITY_PACKET} is {@code true}, any ghostryde file without
+   * an integrity packet will be considered invalid and an exception will be thrown.
+   *
+   * <p>TODO(b/110465985): merge with the RyDE version.
    *
    * @param input is an {@link InputStream} of the ghostryde file data.
    * @param privateKey is the private encryption key of the recipient (which is us!)
@@ -448,60 +385,81 @@ public final class Ghostryde {
    * @throws PGPException
    */
   @CheckReturnValue
-  public Decryptor openDecryptor(@WillNotClose InputStream input, PGPPrivateKey privateKey)
-      throws IOException, PGPException {
+  private static ImprovedInputStream openDecryptor(
+      @WillNotClose InputStream input, PGPPrivateKey privateKey) throws IOException, PGPException {
     checkNotNull(privateKey, "privateKey");
     PGPObjectFactory fact = new BcPGPObjectFactory(checkNotNull(input, "input"));
-    PGPEncryptedDataList crypts = pgpCast(fact.nextObject(), PGPEncryptedDataList.class);
-    checkState(crypts.size() > 0);
-    if (crypts.size() > 1) {
-      logger.atWarning().log("crypts.size() is %d (should be 1)", crypts.size());
+    PGPEncryptedDataList ciphertexts = pgpCast(fact.nextObject(), PGPEncryptedDataList.class);
+    checkState(ciphertexts.size() > 0);
+    if (ciphertexts.size() > 1) {
+      logger.atWarning().log("crypts.size() is %d (should be 1)", ciphertexts.size());
     }
-    PGPPublicKeyEncryptedData crypt = pgpCast(crypts.get(0), PGPPublicKeyEncryptedData.class);
-    if (crypt.getKeyID() != privateKey.getKeyID()) {
+    PGPPublicKeyEncryptedData cyphertext =
+        pgpCast(ciphertexts.get(0), PGPPublicKeyEncryptedData.class);
+    if (cyphertext.getKeyID() != privateKey.getKeyID()) {
       throw new PGPException(String.format(
           "Message was encrypted for keyid %x but ours is %x",
-          crypt.getKeyID(), privateKey.getKeyID()));
+          cyphertext.getKeyID(), privateKey.getKeyID()));
     }
-    return new Decryptor(
-        crypt.getDataStream(new BcPublicKeyDataDecryptorFactory(privateKey)),
-        crypt);
+
+    // We want an input stream that also verifies ciphertext wasn't corrupted or tampered with when
+    // the stream is closed.
+    return new ImprovedInputStream(
+        "GhostrydeDecryptor",
+        cyphertext.getDataStream(new BcPublicKeyDataDecryptorFactory(privateKey))) {
+      @Override
+      protected void onClose() throws IOException {
+        if (USE_INTEGRITY_PACKET) {
+          try {
+            if (!cyphertext.verify()) {
+              throw new PGPException("ghostryde integrity check failed: possible tampering D:");
+            }
+          } catch (PGPException e) {
+            throw new IllegalStateException(e);
+          }
+        }
+      }
+    };
   }
 
   /**
-   * Opens a new {@link Decompressor} (Reading Step 2/3)
+   * Opens a new decompressor (Reading Step 2/3)
    *
-   * <p>This is the second step in reading a ghostryde file. After this method, you'll want to
-   * call {@link #openInput(Decompressor)}.
+   * <p>This is the second step in reading a ghostryde file. After this method, you'll want to call
+   * {@link #openPgpFileInputStream}.
+   *
+   * <p>TODO(b/110465985): merge with the RyDE version.
    *
    * @param input is the value returned by {@link #openDecryptor}.
    * @throws IOException
    * @throws PGPException
    */
   @CheckReturnValue
-  public Decompressor openDecompressor(@WillNotClose Decryptor input)
+  private static ImprovedInputStream openDecompressor(@WillNotClose InputStream input)
       throws IOException, PGPException {
     PGPObjectFactory fact = new BcPGPObjectFactory(checkNotNull(input, "input"));
     PGPCompressedData compressed = pgpCast(fact.nextObject(), PGPCompressedData.class);
-    return new Decompressor(compressed.getDataStream());
+    return new ImprovedInputStream("GhostrydeDecompressor", compressed.getDataStream());
   }
 
   /**
-   * Opens a new {@link Input} for reading the original contents (Reading Step 3/3)
+   * Opens a new decoder for reading the original contents (Reading Step 3/3)
    *
    * <p>This is the final step in reading a ghostryde file. After calling this method, you should
    * call the read methods on the returned {@link InputStream}.
+   *
+   * <p>TODO(b/110465985): merge with the RyDE version.
    *
    * @param input is the value returned by {@link #openDecompressor}.
    * @throws IOException
    * @throws PGPException
    */
   @CheckReturnValue
-  public Input openInput(@WillNotClose Decompressor input) throws IOException, PGPException {
+  private static ImprovedInputStream openPgpFileInputStream(@WillNotClose InputStream input)
+      throws IOException, PGPException {
     PGPObjectFactory fact = new BcPGPObjectFactory(checkNotNull(input, "input"));
     PGPLiteralData literal = pgpCast(fact.nextObject(), PGPLiteralData.class);
-    DateTime modified = new DateTime(literal.getModificationTime(), UTC);
-    return new Input(literal.getDataStream(), literal.getFileName(), modified);
+    return new ImprovedInputStream("GhostrydePgpFileInputStream", literal.getDataStream());
   }
 
   /** Safely extracts an object from an OpenPGP message. */

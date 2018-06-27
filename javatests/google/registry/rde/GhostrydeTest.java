@@ -26,17 +26,17 @@ import static org.junit.Assume.assumeThat;
 
 import com.google.common.io.ByteStreams;
 import google.registry.keyring.api.Keyring;
-import google.registry.rde.Ghostryde.DecodeResult;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.FakeKeyringModule;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Base64;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
-import org.joda.time.DateTime;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,18 +54,6 @@ public class GhostrydeTest {
   public final BouncyCastleProviderRule bouncy = new BouncyCastleProviderRule();
 
   @DataPoints
-  public static BufferSize[] bufferSizes = new BufferSize[] {
-    new BufferSize(1),
-    new BufferSize(7),
-  };
-
-  @DataPoints
-  public static Filename[] filenames = new Filename[] {
-    new Filename("lol.txt"),
-    // new Filename("(◕‿◕).txt"),  // gpg displays this with zany hex characters.
-  };
-
-  @DataPoints
   public static Content[] contents = new Content[] {
     new Content("hi"),
     new Content("(◕‿◕)"),
@@ -75,46 +63,34 @@ public class GhostrydeTest {
   };
 
   @Theory
-  public void testSimpleApi(Filename filename, Content content) throws Exception {
+  public void testSimpleApi(Content content) throws Exception {
     Keyring keyring = new FakeKeyringModule().get();
     byte[] data = content.get().getBytes(UTF_8);
-    DateTime mtime = DateTime.parse("1984-12-18T00:30:00Z");
     PGPPublicKey publicKey = keyring.getRdeStagingEncryptionKey();
     PGPPrivateKey privateKey = keyring.getRdeStagingDecryptionKey();
 
-    byte[] blob = Ghostryde.encode(data, publicKey, filename.get(), mtime);
-    DecodeResult result = Ghostryde.decode(blob, privateKey);
+    byte[] blob = Ghostryde.encode(data, publicKey);
+    byte[] result = Ghostryde.decode(blob, privateKey);
 
-    assertThat(result.getName()).isEqualTo(filename.get());
-    assertThat(result.getModified()).isEqualTo(mtime);
-    assertThat(new String(result.getData(), UTF_8)).isEqualTo(content.get());
+    assertThat(new String(result, UTF_8)).isEqualTo(content.get());
   }
 
   @Theory
-  public void testStreamingApi(BufferSize bufferSize, Filename filename, Content content)
-      throws Exception {
+  public void testStreamingApi(Content content) throws Exception {
     Keyring keyring = new FakeKeyringModule().get();
     byte[] data = content.get().getBytes(UTF_8);
-    DateTime mtime = DateTime.parse("1984-12-18T00:30:00Z");
     PGPPublicKey publicKey = keyring.getRdeStagingEncryptionKey();
     PGPPrivateKey privateKey = keyring.getRdeStagingDecryptionKey();
 
-    Ghostryde ghost = new Ghostryde(bufferSize.get());
     ByteArrayOutputStream bsOut = new ByteArrayOutputStream();
-    try (Ghostryde.Encryptor encryptor = ghost.openEncryptor(bsOut, publicKey);
-        Ghostryde.Compressor kompressor = ghost.openCompressor(encryptor);
-        OutputStream output = ghost.openOutput(kompressor, filename.get(), mtime)) {
-      output.write(data);
+    try (OutputStream encoder = Ghostryde.encoder(bsOut, publicKey)) {
+      encoder.write(data);
     }
 
     ByteArrayInputStream bsIn = new ByteArrayInputStream(bsOut.toByteArray());
     bsOut.reset();
-    try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey);
-        Ghostryde.Decompressor decompressor = ghost.openDecompressor(decryptor);
-        Ghostryde.Input input = ghost.openInput(decompressor)) {
-      assertThat(input.getName()).isEqualTo(filename.get());
-      assertThat(input.getModified()).isEqualTo(mtime);
-      ByteStreams.copy(input, bsOut);
+    try (InputStream decoder = Ghostryde.decoder(bsIn, privateKey)) {
+      ByteStreams.copy(decoder, bsOut);
     }
     assertThat(bsOut.size()).isEqualTo(data.length);
 
@@ -122,51 +98,20 @@ public class GhostrydeTest {
   }
 
   @Theory
-  public void testEncryptOnly(Content content) throws Exception {
+  public void testStreamingApi_withSize(Content content) throws Exception {
     Keyring keyring = new FakeKeyringModule().get();
     byte[] data = content.get().getBytes(UTF_8);
     PGPPublicKey publicKey = keyring.getRdeStagingEncryptionKey();
-    PGPPrivateKey privateKey = keyring.getRdeStagingDecryptionKey();
 
-    Ghostryde ghost = new Ghostryde(1024);
     ByteArrayOutputStream bsOut = new ByteArrayOutputStream();
-    try (Ghostryde.Encryptor encryptor = ghost.openEncryptor(bsOut, publicKey)) {
-      encryptor.write(data);
+    ByteArrayOutputStream lenOut = new ByteArrayOutputStream();
+    try (OutputStream encoder = Ghostryde.encoder(bsOut, publicKey, lenOut)) {
+      encoder.write(data);
     }
 
-    ByteArrayInputStream bsIn = new ByteArrayInputStream(bsOut.toByteArray());
-    bsOut.reset();
-    try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {
-      ByteStreams.copy(decryptor, bsOut);
-    }
-
-    assertThat(new String(bsOut.toByteArray(), UTF_8)).isEqualTo(content.get());
-  }
-
-  @Theory
-  public void testEncryptCompressOnly(Content content) throws Exception {
-    Keyring keyring = new FakeKeyringModule().get();
-    PGPPublicKey publicKey = keyring.getRdeStagingEncryptionKey();
-    PGPPrivateKey privateKey = keyring.getRdeStagingDecryptionKey();
-    byte[] data = content.get().getBytes(UTF_8);
-
-    Ghostryde ghost = new Ghostryde(1024);
-    ByteArrayOutputStream bsOut = new ByteArrayOutputStream();
-    try (Ghostryde.Encryptor encryptor = ghost.openEncryptor(bsOut, publicKey);
-        Ghostryde.Compressor kompressor = ghost.openCompressor(encryptor)) {
-      kompressor.write(data);
-    }
-
-    assertThat(new String(bsOut.toByteArray(), UTF_8)).isNotEqualTo(content.get());
-
-    ByteArrayInputStream bsIn = new ByteArrayInputStream(bsOut.toByteArray());
-    bsOut.reset();
-    try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey);
-        Ghostryde.Decompressor decompressor = ghost.openDecompressor(decryptor)) {
-      ByteStreams.copy(decompressor, bsOut);
-    }
-
-    assertThat(new String(bsOut.toByteArray(), UTF_8)).isEqualTo(content.get());
+    assertThat(Ghostryde.readLength(new ByteArrayInputStream(lenOut.toByteArray())))
+        .isEqualTo(data.length);
+    assertThat(Long.parseLong(new String(lenOut.toByteArray(), UTF_8))).isEqualTo(data.length);
   }
 
   @Theory
@@ -177,26 +122,22 @@ public class GhostrydeTest {
     PGPPublicKey publicKey = keyring.getRdeStagingEncryptionKey();
     PGPPrivateKey privateKey = keyring.getRdeStagingDecryptionKey();
     byte[] data = content.get().getBytes(UTF_8);
-    DateTime mtime = DateTime.parse("1984-12-18T00:30:00Z");
 
-    Ghostryde ghost = new Ghostryde(1024);
     ByteArrayOutputStream bsOut = new ByteArrayOutputStream();
-    try (Ghostryde.Encryptor encryptor = ghost.openEncryptor(bsOut, publicKey);
-        Ghostryde.Compressor kompressor = ghost.openCompressor(encryptor);
-        OutputStream output = ghost.openOutput(kompressor, "lol", mtime)) {
-      output.write(data);
+    try (OutputStream encoder = Ghostryde.encoder(bsOut, publicKey)) {
+      encoder.write(data);
     }
 
     byte[] ciphertext = bsOut.toByteArray();
-    korruption(ciphertext, ciphertext.length / 2);
+    korruption(ciphertext, ciphertext.length - 1);
 
     ByteArrayInputStream bsIn = new ByteArrayInputStream(ciphertext);
     IllegalStateException thrown =
         assertThrows(
             IllegalStateException.class,
             () -> {
-              try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {
-                ByteStreams.copy(decryptor, ByteStreams.nullOutputStream());
+              try (InputStream decoder = Ghostryde.decoder(bsIn, privateKey)) {
+                ByteStreams.copy(decoder, ByteStreams.nullOutputStream());
               }
             });
     assertThat(thrown).hasMessageThat().contains("tampering");
@@ -210,14 +151,10 @@ public class GhostrydeTest {
     PGPPublicKey publicKey = keyring.getRdeStagingEncryptionKey();
     PGPPrivateKey privateKey = keyring.getRdeStagingDecryptionKey();
     byte[] data = content.get().getBytes(UTF_8);
-    DateTime mtime = DateTime.parse("1984-12-18T00:30:00Z");
 
-    Ghostryde ghost = new Ghostryde(1024);
     ByteArrayOutputStream bsOut = new ByteArrayOutputStream();
-    try (Ghostryde.Encryptor encryptor = ghost.openEncryptor(bsOut, publicKey);
-        Ghostryde.Compressor kompressor = ghost.openCompressor(encryptor);
-        OutputStream output = ghost.openOutput(kompressor, "lol", mtime)) {
-      output.write(data);
+    try (OutputStream encoder = Ghostryde.encoder(bsOut, publicKey)) {
+      encoder.write(data);
     }
 
     byte[] ciphertext = bsOut.toByteArray();
@@ -227,28 +164,58 @@ public class GhostrydeTest {
     assertThrows(
         PGPException.class,
         () -> {
-          try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {
-            ByteStreams.copy(decryptor, ByteStreams.nullOutputStream());
+          try (InputStream decoder = Ghostryde.decoder(bsIn, privateKey)) {
+            ByteStreams.copy(decoder, ByteStreams.nullOutputStream());
           }
         });
+  }
+
+  @Test
+  public void testFullEncryption() throws Exception {
+    // Check that the full encryption hasn't changed. All the other tests check that encrypting and
+    // decrypting results in the original data, but not whether the encryption method has changed.
+    FakeKeyringModule keyringModule = new FakeKeyringModule();
+    PGPKeyPair dsa = keyringModule.get("rde-unittest@registry.test", ENCRYPT);
+    PGPPrivateKey privateKey = dsa.getPrivateKey();
+
+    // Encryption is inconsistent because it uses a random state. But decryption is consistent!
+    //
+    // If the encryption has legitimately changed - uncomment the following code, and copy the new
+    // encryptedInputBase64 from the test error:
+    //
+    // assertThat(
+    //         Base64.getMimeEncoder()
+    //             .encodeToString(
+    //                 Ghostryde.encode("Some data!!!111!!!".getBytes(UTF_8), dsa.getPublicKey())))
+    //     .isEqualTo("expect error");
+
+    String encryptedInputBase64 =
+        "    hQEMA6WcEy81iaHVAQgAnn9bS6IOCTW2uZnITPWH8zIYr6K7YJslv38c4YU5eQqVhHC5PN0NhM2l\n"
+            + "    i89U3lUE6gp3DdEEbTbugwXCHWyRL4fYTlpiHZjBn2vZdSS21EAG+q1XuTaD8DTjkC2G060/sW6i\n"
+            + "    0gSIkksqgubbSVZTxHEqh92tv35KCqiYc52hjKZIIGI8FHhpJOtDa3bhMMad8nrMy3vbv5LiYNh5\n"
+            + "    j3DUCFhskU8Ldi1vBfXIonqUNLBrD/R471VVJyQ3NoGQTVUF9uXLoy+2dL0oBLc1Avj1XNP5PQ08\n"
+            + "    MWlqmezkLdY0oHnQqTHYhYDxRo/Sw7xO1GLwWR11rcx/IAJloJbKSHTFeNJUAcKFnKvPDwBk3nnr\n"
+            + "    uR505HtOj/tZDT5weVjhrlnmWXzaBRmYASy6PXZu6KzTbPUQTf4JeeJWdyw7glLMr2WPdMVPGZ8e\n"
+            + "    gcFAjSJZjZlqohZyBUpP\n";
+
+    byte[] result =
+        Ghostryde.decode(Base64.getMimeDecoder().decode(encryptedInputBase64), privateKey);
+
+    assertThat(new String(result, UTF_8)).isEqualTo("Some data!!!111!!!");
   }
 
   @Test
   public void testFailure_keyMismatch() throws Exception {
     FakeKeyringModule keyringModule = new FakeKeyringModule();
     byte[] data = "Fanatics have their dreams, wherewith they weave.".getBytes(UTF_8);
-    DateTime mtime = DateTime.parse("1984-12-18T00:30:00Z");
     PGPKeyPair dsa1 = keyringModule.get("rde-unittest@registry.test", ENCRYPT);
     PGPKeyPair dsa2 = keyringModule.get("rde-unittest-dsa@registry.test", ENCRYPT);
     PGPPublicKey publicKey = dsa1.getPublicKey();
     PGPPrivateKey privateKey = dsa2.getPrivateKey();
 
-    Ghostryde ghost = new Ghostryde(1024);
     ByteArrayOutputStream bsOut = new ByteArrayOutputStream();
-    try (Ghostryde.Encryptor encryptor = ghost.openEncryptor(bsOut, publicKey);
-        Ghostryde.Compressor kompressor = ghost.openCompressor(encryptor);
-        OutputStream output = ghost.openOutput(kompressor, "lol", mtime)) {
-      output.write(data);
+    try (OutputStream encoder = Ghostryde.encoder(bsOut, publicKey)) {
+      encoder.write(data);
     }
 
     ByteArrayInputStream bsIn = new ByteArrayInputStream(bsOut.toByteArray());
@@ -256,8 +223,8 @@ public class GhostrydeTest {
         assertThrows(
             PGPException.class,
             () -> {
-              try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {
-                ByteStreams.copy(decryptor, ByteStreams.nullOutputStream());
+              try (InputStream decoder = Ghostryde.decoder(bsIn, privateKey)) {
+                ByteStreams.copy(decoder, ByteStreams.nullOutputStream());
               }
             });
     assertThat(thrown)
@@ -270,7 +237,6 @@ public class GhostrydeTest {
   public void testFailure_keyCorruption() throws Exception {
     FakeKeyringModule keyringModule = new FakeKeyringModule();
     byte[] data = "Fanatics have their dreams, wherewith they weave.".getBytes(UTF_8);
-    DateTime mtime = DateTime.parse("1984-12-18T00:30:00Z");
     PGPKeyPair rsa = keyringModule.get("rde-unittest@registry.test", ENCRYPT);
     PGPPublicKey publicKey = rsa.getPublicKey();
 
@@ -282,17 +248,14 @@ public class GhostrydeTest {
         rsa.getPrivateKey().getPublicKeyPacket(),
         rsa.getPrivateKey().getPrivateKeyDataPacket());
 
-    Ghostryde ghost = new Ghostryde(1024);
     ByteArrayOutputStream bsOut = new ByteArrayOutputStream();
-    try (Ghostryde.Encryptor encryptor = ghost.openEncryptor(bsOut, publicKey);
-        Ghostryde.Compressor kompressor = ghost.openCompressor(encryptor);
-        OutputStream output = ghost.openOutput(kompressor, "lol", mtime)) {
-      output.write(data);
+    try (OutputStream encoder = Ghostryde.encoder(bsOut, publicKey)) {
+      encoder.write(data);
     }
 
     ByteArrayInputStream bsIn = new ByteArrayInputStream(bsOut.toByteArray());
-    try (Ghostryde.Decryptor decryptor = ghost.openDecryptor(bsIn, privateKey)) {
-      ByteStreams.copy(decryptor, ByteStreams.nullOutputStream());
+    try (InputStream decoder = Ghostryde.decoder(bsIn, privateKey)) {
+      ByteStreams.copy(decoder, ByteStreams.nullOutputStream());
     }
   }
 
@@ -301,30 +264,6 @@ public class GhostrydeTest {
       bytes[position] = 7;
     } else {
       bytes[position] = 23;
-    }
-  }
-
-  private static class BufferSize {
-    private final int value;
-
-    BufferSize(int value) {
-      this.value = value;
-    }
-
-    int get() {
-      return value;
-    }
-  }
-
-  private static class Filename {
-    private final String value;
-
-    Filename(String value) {
-      this.value = value;
-    }
-
-    String get() {
-      return value;
     }
   }
 

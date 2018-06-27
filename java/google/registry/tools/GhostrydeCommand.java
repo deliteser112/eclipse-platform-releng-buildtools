@@ -16,7 +16,6 @@ package google.registry.tools;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
@@ -31,13 +30,11 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileTime;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
-import org.joda.time.DateTime;
 
 /** Command to encrypt/decrypt {@code .ghostryde} files. */
 @Parameters(separators = " =", commandDescription = "Encrypt/decrypt a ghostryde file.")
@@ -61,15 +58,13 @@ final class GhostrydeCommand implements RemoteApiCommand {
 
   @Parameter(
       names = {"-o", "--output"},
-      description = "Output file. If this is a directory, then in --encrypt mode, the output "
-          + "filename will be the input filename with '.ghostryde' appended, and in --decrypt "
-          + "mode, the output filename will be determined based on the name stored within the "
-          + "archive.",
+      description =
+          "Output file. If this is a directory: (a) in --encrypt mode, the output "
+              + "filename will be the input filename with '.ghostryde' appended, and will have an "
+              + "extra '<filename>.length' file with the original file's length; (b) In --decrypt "
+              + "mode, the output filename will be the input filename with '.decrypt' appended.",
       validateWith = PathParameter.class)
   private Path output = Paths.get("/dev/stdout");
-
-  @Inject
-  Ghostryde ghostryde;
 
   @Inject
   @Key("rdeStagingEncryptionKey")
@@ -93,30 +88,23 @@ final class GhostrydeCommand implements RemoteApiCommand {
     Path outFile = Files.isDirectory(output)
         ? output.resolve(input.getFileName() + ".ghostryde")
         : output;
+    Path lenOutFile =
+        Files.isDirectory(output) ? output.resolve(input.getFileName() + ".length") : null;
     try (OutputStream out = Files.newOutputStream(outFile);
-        Ghostryde.Encryptor encryptor =
-            ghostryde.openEncryptor(out, rdeStagingEncryptionKey.get());
-        Ghostryde.Compressor kompressor = ghostryde.openCompressor(encryptor);
-        Ghostryde.Output ghostOutput =
-            ghostryde.openOutput(kompressor, input.getFileName().toString(),
-                new DateTime(Files.getLastModifiedTime(input).toMillis(), UTC));
+        OutputStream lenOut = lenOutFile == null ? null : Files.newOutputStream(lenOutFile);
+        OutputStream ghostrydeEncoder =
+            Ghostryde.encoder(out, rdeStagingEncryptionKey.get(), lenOut);
         InputStream in = Files.newInputStream(input)) {
-      ByteStreams.copy(in, ghostOutput);
+      ByteStreams.copy(in, ghostrydeEncoder);
     }
   }
 
   private void runDecrypt() throws IOException, PGPException {
     try (InputStream in = Files.newInputStream(input);
-        Ghostryde.Decryptor decryptor =
-            ghostryde.openDecryptor(in, rdeStagingDecryptionKey.get());
-        Ghostryde.Decompressor decompressor = ghostryde.openDecompressor(decryptor);
-        Ghostryde.Input ghostInput = ghostryde.openInput(decompressor)) {
-      Path outFile = Files.isDirectory(output)
-          ? output.resolve(ghostInput.getName())
-          : output;
-      Files.copy(ghostInput, outFile, REPLACE_EXISTING);
-      Files.setLastModifiedTime(outFile,
-          FileTime.fromMillis(ghostInput.getModified().getMillis()));
+        InputStream ghostDecoder = Ghostryde.decoder(in, rdeStagingDecryptionKey.get())) {
+      Path outFile =
+          Files.isDirectory(output) ? output.resolve(input.getFileName() + ".decrypt") : output;
+      Files.copy(ghostDecoder, outFile, REPLACE_EXISTING);
     }
   }
 }

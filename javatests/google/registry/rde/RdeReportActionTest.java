@@ -26,7 +26,6 @@ import static google.registry.testing.GcsTestingUtils.writeGcsFile;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
-import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardSeconds;
 import static org.mockito.Matchers.any;
@@ -105,7 +104,6 @@ public class RdeReportActionTest {
     reporter.retrier = new Retrier(new FakeSleeper(new FakeClock()), 3);
     RdeReportAction action = new RdeReportAction();
     action.gcsUtils = new GcsUtils(gcsService, 1024);
-    action.ghostryde = new Ghostryde(1024);
     action.response = response;
     action.bucket = "tub";
     action.tld = "test";
@@ -125,10 +123,7 @@ public class RdeReportActionTest {
         Cursor.create(RDE_REPORT, DateTime.parse("2006-06-06TZ"), Registry.get("test")));
     persistResource(
         Cursor.create(RDE_UPLOAD, DateTime.parse("2006-06-07TZ"), Registry.get("test")));
-    writeGcsFile(
-        gcsService,
-        reportFile,
-        Ghostryde.encode(REPORT_XML.read(), encryptKey, "darkside.xml", DateTime.now(UTC)));
+    writeGcsFile(gcsService, reportFile, Ghostryde.encode(REPORT_XML.read(), encryptKey));
   }
 
   @Test

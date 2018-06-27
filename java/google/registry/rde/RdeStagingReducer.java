@@ -23,7 +23,6 @@ import static google.registry.model.common.Cursor.getCursorTimeOrStartOfTime;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.xml.ValidationMode.LENIENT;
 import static google.registry.xml.ValidationMode.STRICT;
-import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.appengine.tools.cloudstorage.GcsFilename;
@@ -74,7 +73,6 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
   private final LockHandler lockHandler;
   private final int gcsBufferSize;
   private final String bucket;
-  private final int ghostrydeBufferSize;
   private final Duration lockTimeout;
   private final byte[] stagingKeyBytes;
   private final RdeMarshaller marshaller;
@@ -85,7 +83,6 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
       LockHandler lockHandler,
       @Config("gcsBufferSize") int gcsBufferSize,
       @Config("rdeBucket") String bucket,
-      @Config("rdeGhostrydeBufferSize") int ghostrydeBufferSize,
       @Config("rdeStagingLockTimeout") Duration lockTimeout,
       @KeyModule.Key("rdeStagingEncryptionKey") byte[] stagingKeyBytes,
       @Parameter(RdeModule.PARAM_LENIENT) boolean lenient) {
@@ -93,7 +90,6 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
     this.lockHandler = lockHandler;
     this.gcsBufferSize = gcsBufferSize;
     this.bucket = bucket;
-    this.ghostrydeBufferSize = ghostrydeBufferSize;
     this.lockTimeout = lockTimeout;
     this.stagingKeyBytes = stagingKeyBytes;
     this.marshaller = new RdeMarshaller(lenient ? LENIENT : STRICT);
@@ -119,7 +115,6 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
     Security.addProvider(new BouncyCastleProvider());
 
     // Construct things that Dagger would inject if this wasn't serialized.
-    Ghostryde ghostryde = new Ghostryde(ghostrydeBufferSize);
     PGPPublicKey stagingKey = PgpHelper.loadPublicKeyBytes(stagingKeyBytes);
     GcsUtils cloudStorage =
         new GcsUtils(createGcsService(RetryParams.getDefaultInstance()), gcsBufferSize);
@@ -139,21 +134,25 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
       prefix = "manual/" + key.directoryWithTrailingSlash() + prefix;
     }
     GcsFilename xmlFilename = new GcsFilename(bucket, prefix + ".xml.ghostryde");
+    // This file will containg the byte length (ASCII) of the raw unencrypted XML.
+    //
+    // This is necessary because RdeUploadAction creates a tar file which requires that the length
+    // be outputted. We don't want to have to decrypt the entire ghostryde file to determine the
+    // length, so we just save it separately.
     GcsFilename xmlLengthFilename = new GcsFilename(bucket, prefix + ".xml.length");
     GcsFilename reportFilename = new GcsFilename(bucket, prefix + "-report.xml.ghostryde");
 
     // These variables will be populated as we write the deposit XML and used for other files.
     boolean failed = false;
-    long xmlLength;
     XjcRdeHeader header;
 
     // Write a gigantic XML file to GCS. We'll start by opening encrypted out/err file handles.
-    logger.atInfo().log("Writing %s", xmlFilename);
+
+    logger.atInfo().log("Writing %s and %s", xmlFilename, xmlLengthFilename);
     try (OutputStream gcsOutput = cloudStorage.openOutputStream(xmlFilename);
-        Ghostryde.Encryptor encryptor = ghostryde.openEncryptor(gcsOutput, stagingKey);
-        Ghostryde.Compressor kompressor = ghostryde.openCompressor(encryptor);
-        Ghostryde.Output gOutput = ghostryde.openOutput(kompressor, prefix + ".xml", watermark);
-        Writer output = new OutputStreamWriter(gOutput, UTF_8)) {
+        OutputStream lengthOutput = cloudStorage.openOutputStream(xmlLengthFilename);
+        OutputStream ghostrydeEncoder = Ghostryde.encoder(gcsOutput, stagingKey, lengthOutput);
+        Writer output = new OutputStreamWriter(ghostrydeEncoder, UTF_8)) {
 
       // Output the top portion of the XML document.
       output.write(marshaller.makeHeader(id, watermark, RdeResourceType.getUris(mode), revision));
@@ -182,9 +181,6 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
       // Output the bottom of the XML document.
       output.write(marshaller.makeFooter());
 
-      // And we're done! How many raw XML bytes did we write?
-      output.flush();
-      xmlLength = gOutput.getBytesWritten();
     } catch (IOException | PGPException e) {
       throw new RuntimeException(e);
     }
@@ -192,29 +188,14 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
     // If an entity was broken, abort after writing as much logs/deposit data as possible.
     verify(!failed, "RDE staging failed for TLD %s", tld);
 
-    // Write a file to GCS containing the byte length (ASCII) of the raw unencrypted XML.
-    //
-    // This is necessary because RdeUploadAction creates a tar file which requires that the length
-    // be outputted. We don't want to have to decrypt the entire ghostryde file to determine the
-    // length, so we just save it separately.
-    logger.atInfo().log("Writing %s", xmlLengthFilename);
-    try (OutputStream gcsOutput = cloudStorage.openOutputStream(xmlLengthFilename)) {
-      gcsOutput.write(Long.toString(xmlLength).getBytes(US_ASCII));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
     // Write a tiny XML file to GCS containing some information about the deposit.
     //
     // This will be sent to ICANN once we're done uploading the big XML to the escrow provider.
     if (mode == RdeMode.FULL) {
       logger.atInfo().log("Writing %s", reportFilename);
-      String innerName = prefix + "-report.xml";
       try (OutputStream gcsOutput = cloudStorage.openOutputStream(reportFilename);
-          Ghostryde.Encryptor encryptor = ghostryde.openEncryptor(gcsOutput, stagingKey);
-          Ghostryde.Compressor kompressor = ghostryde.openCompressor(encryptor);
-          Ghostryde.Output output = ghostryde.openOutput(kompressor, innerName, watermark)) {
-        counter.makeReport(id, watermark, header, revision).marshal(output, UTF_8);
+          OutputStream ghostrydeEncoder = Ghostryde.encoder(gcsOutput, stagingKey)) {
+        counter.makeReport(id, watermark, header, revision).marshal(ghostrydeEncoder, UTF_8);
       } catch (IOException | PGPException | XmlException e) {
         throw new RuntimeException(e);
       }

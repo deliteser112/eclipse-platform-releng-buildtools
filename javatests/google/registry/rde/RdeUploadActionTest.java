@@ -187,7 +187,6 @@ public class RdeUploadActionTest {
       RdeUploadAction action = new RdeUploadAction();
       action.clock = clock;
       action.gcsUtils = new GcsUtils(gcsService, BUFFER_SIZE);
-      action.ghostryde = new Ghostryde(BUFFER_SIZE);
       action.lazyJsch =
           () ->
               JSchModule.provideJSch(
@@ -239,18 +238,12 @@ public class RdeUploadActionTest {
 
     createTld("tld");
     PGPPublicKey encryptKey = new FakeKeyringModule().get().getRdeStagingEncryptionKey();
-    writeGcsFile(gcsService, GHOSTRYDE_FILE,
-        Ghostryde.encode(DEPOSIT_XML.read(), encryptKey, "lobster.xml", clock.nowUtc()));
-    writeGcsFile(gcsService, GHOSTRYDE_R1_FILE,
-        Ghostryde.encode(DEPOSIT_XML.read(), encryptKey, "lobster.xml", clock.nowUtc()));
-    writeGcsFile(gcsService, LENGTH_FILE,
-        Long.toString(DEPOSIT_XML.size()).getBytes(UTF_8));
-    writeGcsFile(gcsService, LENGTH_R1_FILE,
-        Long.toString(DEPOSIT_XML.size()).getBytes(UTF_8));
-    writeGcsFile(gcsService, REPORT_FILE,
-        Ghostryde.encode(REPORT_XML.read(), encryptKey, "dieform.xml", clock.nowUtc()));
-    writeGcsFile(gcsService, REPORT_R1_FILE,
-        Ghostryde.encode(REPORT_XML.read(), encryptKey, "dieform.xml", clock.nowUtc()));
+    writeGcsFile(gcsService, GHOSTRYDE_FILE, Ghostryde.encode(DEPOSIT_XML.read(), encryptKey));
+    writeGcsFile(gcsService, GHOSTRYDE_R1_FILE, Ghostryde.encode(DEPOSIT_XML.read(), encryptKey));
+    writeGcsFile(gcsService, LENGTH_FILE, Long.toString(DEPOSIT_XML.size()).getBytes(UTF_8));
+    writeGcsFile(gcsService, LENGTH_R1_FILE, Long.toString(DEPOSIT_XML.size()).getBytes(UTF_8));
+    writeGcsFile(gcsService, REPORT_FILE, Ghostryde.encode(REPORT_XML.read(), encryptKey));
+    writeGcsFile(gcsService, REPORT_R1_FILE, Ghostryde.encode(REPORT_XML.read(), encryptKey));
     ofy()
         .transact(
             () -> {
