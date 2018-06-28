@@ -59,6 +59,7 @@ public abstract class CloudDnsWriterModule {
   @IntoMap
   @StringKey(CloudDnsWriter.NAME)
   abstract DnsWriter provideWriter(CloudDnsWriter writer);
+
   @Provides
   @IntoSet
   @Named("dnsWriterNames")

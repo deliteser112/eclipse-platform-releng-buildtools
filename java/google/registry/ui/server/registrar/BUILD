@@ -26,7 +26,6 @@ java_library(
         "//java/google/registry/ui/soy/registrar:soy_java_wrappers",
         "//java/google/registry/util",
         "//third_party/objectify:objectify-v4_1",
-        "@com_braintreepayments_gateway_braintree_java",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",

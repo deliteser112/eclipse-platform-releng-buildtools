@@ -110,12 +110,12 @@ abstract class CreateOrUpdatePremiumListCommand extends ConfirmingCommand
     return extractServerResponse(response);
   }
 
-  // TODO(tjb): refactor this behavior into a better general-purpose
+  // TODO(user): refactor this behavior into a better general-purpose
   // response validation that can be re-used across the new client/server commands.
   String extractServerResponse(String response) {
     Map<String, Object> responseMap = toMap(JSONValue.parse(stripJsonPrefix(response)));
 
-    // TODO(tjb): consider using jart's FormField Framework.
+    // TODO(user): consider using jart's FormField Framework.
     // See: j/c/g/d/r/ui/server/RegistrarFormFields.java
     String status = (String) responseMap.get("status");
     Verify.verify(!status.equals("error"), "Server error: %s", responseMap.get("error"));
@@ -128,7 +128,7 @@ abstract class CreateOrUpdatePremiumListCommand extends ConfirmingCommand
     return (Map<String, Object>) obj;
   }
 
-  // TODO(tjb): figure out better place to put this method to make it re-usable
+  // TODO(user): figure out better place to put this method to make it re-usable
   static String stripJsonPrefix(String json) {
     Verify.verify(json.startsWith(JSON_SAFETY_PREFIX));
     return json.substring(JSON_SAFETY_PREFIX.length());

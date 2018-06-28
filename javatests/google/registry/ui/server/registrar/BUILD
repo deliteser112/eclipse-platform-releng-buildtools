@@ -25,7 +25,6 @@ java_library(
         "//javatests/google/registry/security",
         "//javatests/google/registry/testing",
         "//third_party/objectify:objectify-v4_1",
-        "@com_braintreepayments_gateway_braintree_java",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_flogger",
         "@com_google_flogger_system_backend",
