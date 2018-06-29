@@ -20,7 +20,6 @@ java_library(
         "//java/google/registry/request/auth",
         "//java/google/registry/security",
         "//java/google/registry/ui/server/registrar",
-        "//java/google/registry/ui/soy/registrar:soy_java_wrappers",
         "//java/google/registry/util",
         "//javatests/google/registry/security",
         "//javatests/google/registry/testing",

@@ -12,7 +12,6 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["testdata/*.xml"]),
     deps = [
-        "//java/google/registry/util",
         "//java/google/registry/xjc",
         "//javatests/google/registry/testing",
         "@com_google_re2j",

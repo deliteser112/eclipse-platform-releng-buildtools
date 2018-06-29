@@ -12,8 +12,6 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["testdata/*"]),
     deps = [
-        "//java/google/registry/bigquery",
-        "//java/google/registry/gcs",
         "//java/google/registry/reporting",
         "//java/google/registry/request",
         "//java/google/registry/util",

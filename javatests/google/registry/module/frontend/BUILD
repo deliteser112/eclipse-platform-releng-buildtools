@@ -15,7 +15,6 @@ java_library(
     ],
     deps = [
         "//java/google/registry/module/frontend",
-        "//java/google/registry/request",
         "//javatests/google/registry/testing",
         "@javax_servlet_api",
         "@junit",

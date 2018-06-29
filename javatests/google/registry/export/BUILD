@@ -16,11 +16,8 @@ java_library(
     ],
     deps = [
         "//java/google/registry/bigquery",
-        "//java/google/registry/config",
         "//java/google/registry/export",
-        "//java/google/registry/gcs",
         "//java/google/registry/groups",
-        "//java/google/registry/mapreduce",
         "//java/google/registry/model",
         "//java/google/registry/request",
         "//java/google/registry/storage/drive",

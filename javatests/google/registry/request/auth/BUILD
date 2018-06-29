@@ -12,7 +12,6 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["testdata/*"]),
     deps = [
-        "//java/google/registry/request",
         "//java/google/registry/request/auth",
         "//java/google/registry/security",
         "//javatests/google/registry/testing",

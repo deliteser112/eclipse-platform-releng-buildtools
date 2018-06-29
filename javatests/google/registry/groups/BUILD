@@ -11,9 +11,7 @@ java_library(
     name = "groups",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/google/registry/cron",
         "//java/google/registry/groups",
-        "//java/google/registry/model",
         "//javatests/google/registry/testing",
         "@com_google_api_client",
         "@com_google_apis_google_api_services_admin_directory",

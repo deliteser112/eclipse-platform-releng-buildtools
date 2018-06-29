@@ -14,12 +14,10 @@ java_library(
     deps = [
         "//java/google/registry/dns",
         "//java/google/registry/groups",
-        "//java/google/registry/mapreduce",
         "//java/google/registry/model",
         "//java/google/registry/request",
         "//java/google/registry/tools/server",
         "//java/google/registry/util",
-        "//javatests/google/registry/model",
         "//javatests/google/registry/testing",
         "//javatests/google/registry/testing/mapreduce",
         "//third_party/objectify:objectify-v4_1",

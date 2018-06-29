@@ -13,7 +13,6 @@ java_library(
     deps = [
         "//java/google/registry/request",
         "//java/google/registry/request/auth",
-        "//java/google/registry/security",
         "//javatests/google/registry/testing",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_guava",

@@ -11,7 +11,6 @@ java_library(
     name = "inputs",
     srcs = glob(["*.java"]),
     deps = [
-        "//java/google/registry/config",
         "//java/google/registry/mapreduce/inputs",
         "//java/google/registry/model",
         "//java/google/registry/util",
