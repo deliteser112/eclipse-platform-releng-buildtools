@@ -28,6 +28,7 @@ import google.registry.batch.ExpandRecurringBillingEventsAction;
 import google.registry.batch.MapreduceEntityCleanupAction;
 import google.registry.batch.RefreshDnsOnHostRenameAction;
 import google.registry.batch.ResaveAllEppResourcesAction;
+import google.registry.batch.ResaveEntityAction;
 import google.registry.batch.VerifyEntityIntegrityAction;
 import google.registry.cron.CommitLogFanoutAction;
 import google.registry.cron.CronModule;
@@ -147,6 +148,7 @@ interface BackendRequestComponent {
   RefreshDnsAction refreshDnsAction();
   RefreshDnsOnHostRenameAction refreshDnsOnHostRenameAction();
   ResaveAllEppResourcesAction resaveAllEppResourcesAction();
+  ResaveEntityAction resaveEntityAction();
   SyncGroupMembersAction syncGroupMembersAction();
   SyncRegistrarsSheetAction syncRegistrarsSheetAction();
   TldFanoutAction tldFanoutAction();
