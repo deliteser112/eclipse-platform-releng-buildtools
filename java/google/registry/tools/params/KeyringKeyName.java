@@ -21,7 +21,6 @@ package google.registry.tools.params;
  * any secret update command such as UpdateKmsKeyringCommand.
  */
 public enum KeyringKeyName {
-  BRAINTREE_PRIVATE_KEY,
   BRDA_RECEIVER_PUBLIC_KEY,
   BRDA_SIGNING_KEY_PAIR,
   BRDA_SIGNING_PUBLIC_KEY,

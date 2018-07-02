@@ -32,14 +32,11 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.net.URI;
 import java.net.URL;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.inject.Named;
 import javax.inject.Qualifier;
 import javax.inject.Singleton;
-import org.joda.money.CurrencyUnit;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.Duration;
 
@@ -885,51 +882,6 @@ public final class RegistryConfig {
     @Config("rdapWhoisServer")
     public static String provideRdapWhoisServer() {
       return null;
-    }
-
-    /**
-     * Returns Braintree Merchant Account IDs for each supported currency.
-     *
-     * @see google.registry.ui.server.registrar.RegistrarPaymentAction
-     * @see google.registry.ui.server.registrar.RegistrarPaymentSetupAction
-     */
-    @Provides
-    @Config("braintreeMerchantAccountIds")
-    public static ImmutableMap<CurrencyUnit, String> provideBraintreeMerchantAccountId(
-        RegistryConfigSettings config) {
-      Map<String, String> merchantAccountIds = config.braintree.merchantAccountIdsMap;
-      ImmutableMap.Builder<CurrencyUnit, String> builder = new ImmutableMap.Builder<>();
-      for (Entry<String, String> entry : merchantAccountIds.entrySet()) {
-        builder.put(CurrencyUnit.of(entry.getKey()), entry.getValue());
-      }
-      return builder.build();
-    }
-
-    /**
-     * Returns Braintree Merchant ID of Registry, used for accessing Braintree API.
-     *
-     * <p>This is a base32 value copied from the Braintree website.
-     *
-     * @see google.registry.braintree.BraintreeModule
-     */
-    @Provides
-    @Config("braintreeMerchantId")
-    public static String provideBraintreeMerchantId(RegistryConfigSettings config) {
-      return config.braintree.merchantId;
-    }
-
-    /**
-     * Returns Braintree Public Key of Registry, used for accessing Braintree API.
-     *
-     * <p>This is a base32 value copied from the Braintree website.
-     *
-     * @see google.registry.braintree.BraintreeModule
-     * @see google.registry.keyring.api.Keyring#getBraintreePrivateKey()
-     */
-    @Provides
-    @Config("braintreePublicKey")
-    public static String provideBraintreePublicKey(RegistryConfigSettings config) {
-      return config.braintree.publicKey;
     }
 
     /**

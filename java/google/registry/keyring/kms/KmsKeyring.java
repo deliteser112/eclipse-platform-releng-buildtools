@@ -64,7 +64,6 @@ public class KmsKeyring implements Keyring {
   }
 
   enum StringKeyLabel {
-    BRAINTREE_PRIVATE_KEY_STRING,
     ICANN_REPORTING_PASSWORD_STRING,
     JSON_CREDENTIAL_STRING,
     MARKSDB_DNL_LOGIN_STRING,
@@ -148,11 +147,6 @@ public class KmsKeyring implements Keyring {
   @Override
   public String getJsonCredential() {
     return getString(StringKeyLabel.JSON_CREDENTIAL_STRING);
-  }
-
-  @Override
-  public String getBraintreePrivateKey() {
-    return getString(StringKeyLabel.BRAINTREE_PRIVATE_KEY_STRING);
   }
 
   /** No persistent resources are maintained for this Keyring implementation. */

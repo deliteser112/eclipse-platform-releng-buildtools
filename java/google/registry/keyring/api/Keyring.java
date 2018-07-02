@@ -149,15 +149,6 @@ public interface Keyring extends AutoCloseable {
    */
   String getJsonCredential();
 
-  /**
-   * Returns Braintree API private key for Registry.
-   *
-   * <p>This is a base32 value copied from the Braintree website.
-   *
-   * @see google.registry.config.RegistryConfig.ConfigModule#provideBraintreePublicKey
-   */
-  String getBraintreePrivateKey();
-
   // Don't throw so try-with-resources works better.
   @Override
   void close();

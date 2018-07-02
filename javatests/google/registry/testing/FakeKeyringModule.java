@@ -54,7 +54,6 @@ public final class FakeKeyringModule {
   private static final String MARKSDB_DNL_LOGIN = "dnl:yolo";
   private static final String MARKSDB_LORDN_PASSWORD = "yolo";
   private static final String MARKSDB_SMDRL_LOGIN = "smdrl:yolo";
-  private static final String BRAINTREE_PRIVATE_KEY = "braintree123";
   private static final String JSON_CREDENTIAL = "json123";
 
   @Provides
@@ -143,11 +142,6 @@ public final class FakeKeyringModule {
       @Override
       public PGPPublicKey getBrdaReceiverKey() {
         return rdeReceiverKey;
-      }
-
-      @Override
-      public String getBraintreePrivateKey() {
-        return BRAINTREE_PRIVATE_KEY;
       }
 
       @Override

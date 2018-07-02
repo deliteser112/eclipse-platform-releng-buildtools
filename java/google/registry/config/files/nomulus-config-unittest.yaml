@@ -19,8 +19,3 @@ caching:
   staticPremiumListMaxCachedEntries: 50
   eppResourceCachingEnabled: true
   eppResourceCachingSeconds: 0
-
-braintree:
-  merchantAccountIdsMap:
-    USD: accountIdUsd
-    JPY: accountIdJpy

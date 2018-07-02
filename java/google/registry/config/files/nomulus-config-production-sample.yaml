@@ -57,15 +57,5 @@ registrarConsole:
 misc:
   sheetExportId: placeholder
 
-# You only need to specify this section if using Braintree.
-braintree:
-  merchantId: placeholder
-  publicKey: placeholder
-  # Only include currencies that you use.
-  merchantAccountIdsMap:
-    EUR: placeholder
-    JPY: placeholder
-    USD: placeholder
-
 kms:
   projectId: placeholder

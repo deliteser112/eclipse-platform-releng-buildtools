@@ -47,7 +47,6 @@ function setUp() {
     logoutUrl: 'https://justinetunney.com',
     isAdmin: true,
     clientId: 'ignore',
-    showPaymentLink: false,
     logoFilename: 'logo.png',
     productName: 'Nomulus',
     integrationEmail: 'integration@example.com',

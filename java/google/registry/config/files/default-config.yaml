@@ -246,21 +246,6 @@ misc:
   # hosts from being used on domains.
   asyncDeleteDelaySeconds: 90
 
-# Braintree is a credit card payment processor that is used on the registrar
-# console to allow registrars to pay their invoices.
-braintree:
-  # Merchant ID of the Braintree account.
-  merchantId: example
-
-  # Public key used for accessing Braintree API (this is found on their site).
-  publicKey: example
-
-  # A map of JODA Money CurrencyUnits, specified in three letter ISO-4217
-  # format, to Braintree account IDs (each account is limited to a single
-  # currency). For example, one entry might be:
-  #   USD: accountIdUsingUSD
-  merchantAccountIdsMap: {}
-
 kms:
   # GCP project containing the KMS keyring. Should only be used for KMS in
   # order to keep a simple locked down IAM configuration.

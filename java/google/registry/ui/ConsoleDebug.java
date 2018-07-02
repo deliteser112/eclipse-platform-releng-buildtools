@@ -14,6 +14,9 @@
 
 package google.registry.ui;
 
+import dagger.Module;
+import dagger.Provides;
+
 /** Enum defining which JS/CSS files get rendered in a soy templates. */
 public enum ConsoleDebug {
 
@@ -43,5 +46,15 @@ public enum ConsoleDebug {
   /** Sets the global {@link ConsoleDebug} state. */
   public static void set(ConsoleDebug value) {
     System.setProperty(PROPERTY, value.toString());
+  }
+
+  /** Dagger module for ConsoleDebug. */
+  @Module
+  public static final class ConsoleConfigModule {
+
+    @Provides
+    static ConsoleDebug provideConsoleDebug() {
+      return ConsoleDebug.get();
+    }
   }
 }

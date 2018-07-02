@@ -174,15 +174,6 @@ public class KmsKeyringTest {
     assertThat(jsonCredential).isEqualTo("json-credential-stringmoo");
   }
 
-  @Test
-  public void test_getBraintreePrivateKey() {
-    saveCleartextSecret("braintree-private-key-string");
-
-    String braintreePrivateKey = keyring.getBraintreePrivateKey();
-
-    assertThat(braintreePrivateKey).isEqualTo("braintree-private-key-stringmoo");
-  }
-
   private static void persistSecret(String secretName, byte[] secretValue) {
     KmsConnection kmsConnection = new FakeKmsConnection();
 

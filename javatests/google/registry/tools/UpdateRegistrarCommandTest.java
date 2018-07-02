@@ -29,7 +29,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import google.registry.model.registrar.Registrar;
-import google.registry.model.registrar.Registrar.BillingMethod;
 import google.registry.model.registrar.Registrar.State;
 import google.registry.model.registrar.Registrar.Type;
 import google.registry.util.CidrAddressBlock;
@@ -256,15 +255,6 @@ public class UpdateRegistrarCommandTest extends CommandTestCase<UpdateRegistrarC
     runCommand("--billing_account_map=JPY=123xyz", "--allowed_tlds=foo", "--force", "NewRegistrar");
     assertThat(loadRegistrar("NewRegistrar").getBillingAccountMap())
         .containsExactly(CurrencyUnit.JPY, "123xyz", CurrencyUnit.USD, "abc123");
-  }
-
-  @Test
-  public void testSuccess_changeBillingMethodToBraintreeWhenBalanceIsZero() throws Exception {
-    createTlds("xn--q9jyb4c");
-    assertThat(loadRegistrar("NewRegistrar").getBillingMethod()).isEqualTo(BillingMethod.EXTERNAL);
-    runCommand("--billing_method=braintree", "--force", "NewRegistrar");
-    assertThat(loadRegistrar("NewRegistrar").getBillingMethod())
-        .isEqualTo(BillingMethod.BRAINTREE);
   }
 
   @Test

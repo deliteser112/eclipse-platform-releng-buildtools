@@ -109,7 +109,6 @@ public final class DummyKeyringModule {
         "not a real login",
         "not a real password",
         "not a real login",
-        "not a real credential",
-        "not a real key");
+        "not a real credential");
   }
 }

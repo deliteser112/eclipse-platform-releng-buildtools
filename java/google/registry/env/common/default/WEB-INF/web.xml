@@ -31,18 +31,6 @@
     <url-pattern>/registrar</url-pattern>
   </servlet-mapping>
 
-  <!-- Registrar Braintree payment form setup. -->
-  <servlet-mapping>
-    <servlet-name>frontend-servlet</servlet-name>
-    <url-pattern>/registrar-payment-setup</url-pattern>
-  </servlet-mapping>
-
-  <!-- Registrar Braintree payment. -->
-  <servlet-mapping>
-    <servlet-name>frontend-servlet</servlet-name>
-    <url-pattern>/registrar-payment</url-pattern>
-  </servlet-mapping>
-
   <!-- Registrar Self-serve Settings. -->
   <servlet-mapping>
     <servlet-name>frontend-servlet</servlet-name>
@@ -73,7 +61,6 @@
       <!-- TODO(b/26776367): Move these files to /assets/sources. -->
       <url-pattern>/assets/js/registrar_bin.js.map</url-pattern>
       <url-pattern>/assets/js/registrar_dbg.js</url-pattern>
-      <url-pattern>/assets/js/brain_bin.js.map</url-pattern>
       <url-pattern>/assets/css/registrar_dbg.css</url-pattern>
 
     </web-resource-collection>

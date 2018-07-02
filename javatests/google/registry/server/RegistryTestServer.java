@@ -87,10 +87,6 @@ public final class RegistryTestServer {
       // Registrar Console
       route("/registrar", google.registry.module.frontend.FrontendServlet.class),
       route("/registrar-settings",
-          google.registry.module.frontend.FrontendServlet.class),
-      route("/registrar-payment",
-          google.registry.module.frontend.FrontendServlet.class),
-      route("/registrar-payment-setup",
           google.registry.module.frontend.FrontendServlet.class));
 
   private static final ImmutableList<Class<? extends Filter>> FILTERS = ImmutableList.of(

@@ -26,7 +26,6 @@ goog.require('registry.registrar.Dashboard');
 goog.require('registry.registrar.Domain');
 goog.require('registry.registrar.EppSession');
 goog.require('registry.registrar.Host');
-goog.require('registry.registrar.Payment');
 goog.require('registry.registrar.Resources');
 goog.require('registry.registrar.SecuritySettings');
 goog.require('registry.registrar.WhoisSettings');
@@ -86,7 +85,6 @@ registry.registrar.Console = function(params) {
   this.pageMap['contact-us'] = registry.registrar.ContactUs;
   this.pageMap['resources'] = registry.registrar.Resources;
   this.pageMap['contact'] = registry.registrar.Contact;
-  this.pageMap['payment'] = registry.registrar.Payment;
   this.pageMap['domain'] = registry.registrar.Domain;
   this.pageMap['host'] = registry.registrar.Host;
   this.pageMap[''] = registry.registrar.Dashboard;

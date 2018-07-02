@@ -55,7 +55,6 @@ function setUp() {
     isAdmin: true,
     xsrfToken: test.testXsrfToken,
     clientId: test.testClientId,
-    showPaymentLink: false,
     logoFilename: 'logo.png',
     productName: 'Nomulus',
     integrationEmail: 'integration@example.com',

@@ -158,16 +158,6 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
     SUSPENDED;
   }
 
-  /** Method for acquiring money from a registrar customer. */
-  public enum BillingMethod {
-
-    /** Billing method where billing invoice data is exported to an external accounting system. */
-    EXTERNAL,
-
-    /** Billing method where we accept Braintree credit card payments in the Registrar Console. */
-    BRAINTREE;
-  }
-
   /** Regex for E.164 phone number format specified by {@code contact.xsd}. */
   private static final Pattern E164_PATTERN = Pattern.compile("\\+[0-9]{1,3}\\.[0-9]{1,14}");
 
@@ -398,16 +388,6 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
    */
   boolean contactsRequireSyncing = true;
 
-  /**
-   * Method for receiving money from a registrar customer.
-   *
-   * <p>Each registrar may opt-in to their preferred billing method. This value can be changed at
-   * any time using the {@code update_registrar} command.
-   *
-   * <p><b>Note:</b> This value should not be changed if the balance is non-zero.
-   */
-  BillingMethod billingMethod;
-
   /** Whether the registrar must acknowledge the price to register non-standard-priced domains. */
   boolean premiumPriceAckRequired;
 
@@ -553,10 +533,6 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
 
   public String getDriveFolderId() {
     return driveFolderId;
-  }
-
-  public BillingMethod getBillingMethod() {
-    return firstNonNull(billingMethod, BillingMethod.EXTERNAL);
   }
 
   /**
@@ -831,11 +807,6 @@ public class Registrar extends ImmutableObject implements Buildable, Jsonifiable
 
     public Builder setDriveFolderId(String driveFolderId) {
       getInstance().driveFolderId = driveFolderId;
-      return this;
-    }
-
-    public Builder setBillingMethod(BillingMethod billingMethod) {
-      getInstance().billingMethod = billingMethod;
       return this;
     }
 

@@ -21,6 +21,7 @@ import static google.registry.testing.TestDataHelper.filePath;
 import static google.registry.testing.TestDataHelper.loadFile;
 
 import com.google.common.base.Joiner;
+import com.google.common.flogger.FluentLogger;
 import google.registry.request.RouterDisplayHelper;
 
 /**
@@ -28,6 +29,8 @@ import google.registry.request.RouterDisplayHelper;
  * necessary.
  */
 public class GoldenFileTestHelper {
+
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   String actualValue = null;
   String nomulusCommand = null;
@@ -73,6 +76,7 @@ public class GoldenFileTestHelper {
     checkNotNull(context);
     checkNotNull(filename);
     if (!actualValue.equals(loadFile(context, filename).trim())) {
+      logger.atWarning().log("Actual routing map was:\n\n%s", actualValue);
       assert_()
           .fail(
               String.format(

@@ -17,7 +17,6 @@ package google.registry.module.frontend;
 import com.google.monitoring.metrics.MetricReporter;
 import dagger.Component;
 import dagger.Lazy;
-import google.registry.braintree.BraintreeModule;
 import google.registry.config.RegistryConfig.ConfigModule;
 import google.registry.flows.ServerTridProviderModule;
 import google.registry.flows.custom.CustomLogicFactoryModule;
@@ -34,7 +33,7 @@ import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.request.Modules.UserServiceModule;
 import google.registry.request.auth.AuthModule;
-import google.registry.ui.ConsoleConfigModule;
+import google.registry.ui.ConsoleDebug.ConsoleConfigModule;
 import google.registry.util.SystemClock.SystemClockModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;
 import javax.inject.Singleton;
@@ -45,7 +44,6 @@ import javax.inject.Singleton;
   modules = {
     AppIdentityCredentialModule.class,
     AuthModule.class,
-    BraintreeModule.class,
     ConfigModule.class,
     ConsoleConfigModule.class,
     CustomLogicFactoryModule.class,

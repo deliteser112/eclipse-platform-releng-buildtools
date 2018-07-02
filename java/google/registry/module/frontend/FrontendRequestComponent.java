@@ -26,8 +26,6 @@ import google.registry.request.RequestComponentBuilder;
 import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
 import google.registry.ui.server.registrar.ConsoleUiAction;
-import google.registry.ui.server.registrar.RegistrarPaymentAction;
-import google.registry.ui.server.registrar.RegistrarPaymentSetupAction;
 import google.registry.ui.server.registrar.RegistrarSettingsAction;
 
 /** Dagger component with per-request lifetime for "default" App Engine module. */
@@ -44,8 +42,6 @@ interface FrontendRequestComponent {
   EppConsoleAction eppConsoleAction();
   EppTlsAction eppTlsAction();
   FlowComponent.Builder flowComponentBuilder();
-  RegistrarPaymentAction registrarPaymentAction();
-  RegistrarPaymentSetupAction registrarPaymentSetupAction();
   RegistrarSettingsAction registrarSettingsAction();
 
   @Subcomponent.Builder

@@ -50,14 +50,14 @@ public class KmsUpdaterTest {
   @Test
   public void test_setMultipleSecrets() {
     updater
-        .setBraintreePrivateKey("value1")
+        .setMarksdbDnlLogin("value1")
         .setIcannReportingPassword("value2")
         .setJsonCredential("value3")
         .update();
 
     verifySecretAndSecretRevisionWritten(
-        "braintree-private-key-string",
-        "braintree-private-key-string/foo",
+        "marksdb-dnl-login-string",
+        "marksdb-dnl-login-string/foo",
         getCiphertext("value1"));
     verifySecretAndSecretRevisionWritten(
         "icann-reporting-password-string",
@@ -65,16 +65,6 @@ public class KmsUpdaterTest {
         getCiphertext("value2"));
     verifySecretAndSecretRevisionWritten(
         "json-credential-string", "json-credential-string/foo", getCiphertext("value3"));
-  }
-
-  @Test
-  public void test_setBraintreePrivateKey() {
-    updater.setBraintreePrivateKey("value1").update();
-
-    verifySecretAndSecretRevisionWritten(
-        "braintree-private-key-string",
-        "braintree-private-key-string/foo",
-        getCiphertext("value1"));
   }
 
   @Test

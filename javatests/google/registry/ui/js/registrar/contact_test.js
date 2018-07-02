@@ -41,7 +41,6 @@ function setUp() {
     logoutUrl: 'omg',
     isAdmin: true,
     clientId: 'daddy',
-    showPaymentLink: false,
     logoFilename: 'logo.png',
     productName: 'Nomulus',
     integrationEmail: 'integration@example.com',

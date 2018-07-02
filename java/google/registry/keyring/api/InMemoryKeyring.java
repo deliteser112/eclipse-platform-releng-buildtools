@@ -38,7 +38,6 @@ public final class InMemoryKeyring implements Keyring {
   private final String marksdbLordnPassword;
   private final String marksdbSmdrlLogin;
   private final String jsonCredential;
-  private final String braintreePrivateKey;
 
   public InMemoryKeyring(
       PGPKeyPair rdeStagingKey,
@@ -52,8 +51,7 @@ public final class InMemoryKeyring implements Keyring {
       String marksdbDnlLogin,
       String marksdbLordnPassword,
       String marksdbSmdrlLogin,
-      String jsonCredential,
-      String braintreePrivateKey) {
+      String jsonCredential) {
     checkArgument(PgpHelper.isSigningKey(rdeSigningKey.getPublicKey()),
         "RDE signing key must support signing: %s", rdeSigningKey.getKeyID());
     checkArgument(rdeStagingKey.getPublicKey().isEncryptionKey(),
@@ -76,7 +74,6 @@ public final class InMemoryKeyring implements Keyring {
     this.marksdbLordnPassword = checkNotNull(marksdbLordnPassword, "marksdbLordnPassword");
     this.marksdbSmdrlLogin = checkNotNull(marksdbSmdrlLogin, "marksdbSmdrlLogin");
     this.jsonCredential = checkNotNull(jsonCredential, "jsonCredential");
-    this.braintreePrivateKey = checkNotNull(braintreePrivateKey, "braintreePrivateKey");
   }
 
   @Override
@@ -142,11 +139,6 @@ public final class InMemoryKeyring implements Keyring {
   @Override
   public String getJsonCredential() {
     return jsonCredential;
-  }
-
-  @Override
-  public String getBraintreePrivateKey() {
-    return braintreePrivateKey;
   }
 
   /** Does nothing. */

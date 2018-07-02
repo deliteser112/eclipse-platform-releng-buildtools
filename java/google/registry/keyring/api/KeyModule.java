@@ -120,10 +120,4 @@ public final class KeyModule {
   static String provideJsonCredential(Keyring keyring) {
     return keyring.getJsonCredential();
   }
-
-  @Provides
-  @Key("braintreePrivateKey")
-  static String provideBraintreePrivateKey(Keyring keyring) {
-    return keyring.getBraintreePrivateKey();
-  }
 }

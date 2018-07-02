@@ -57,9 +57,6 @@ final class GetKeyringSecretCommand implements RemoteApiCommand {
     Security.addProvider(new BouncyCastleProvider());
 
     switch (keyringKeyName) {
-      case BRAINTREE_PRIVATE_KEY:
-        out.write(KeySerializer.serializeString(keyring.getBraintreePrivateKey()));
-        break;
       case BRDA_RECEIVER_PUBLIC_KEY:
         out.write(KeySerializer.serializePublicKey(keyring.getBrdaReceiverKey()));
         break;

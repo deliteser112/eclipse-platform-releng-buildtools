@@ -61,7 +61,6 @@
       <!-- TODO(b/26776367): Move these files to /assets/sources. -->
       <url-pattern>/assets/js/registrar_bin.js.map</url-pattern>
       <url-pattern>/assets/js/registrar_dbg.js</url-pattern>
-      <url-pattern>/assets/js/brain_bin.js.map</url-pattern>
       <url-pattern>/assets/css/registrar_dbg.css</url-pattern>
 
     </web-resource-collection>

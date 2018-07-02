@@ -15,7 +15,6 @@
 package google.registry.config;
 
 import java.util.List;
-import java.util.Map;
 
 /** The POJO that YAML config files are deserialized into. */
 public class RegistryConfigSettings {
@@ -33,7 +32,6 @@ public class RegistryConfigSettings {
   public RegistrarConsole registrarConsole;
   public Monitoring monitoring;
   public Misc misc;
-  public Braintree braintree;
   public Kms kms;
   public RegistryTool registryTool;
 
@@ -156,13 +154,6 @@ public class RegistryConfigSettings {
     public String alertRecipientEmailAddress;
     public String alertEmailSenderDomain;
     public int asyncDeleteDelaySeconds;
-  }
-
-  /** Configuration for Braintree credit card payment processing. */
-  public static class Braintree {
-    public String merchantId;
-    public String publicKey;
-    public Map<String, String> merchantAccountIdsMap;
   }
 
   /** Configuration options for the registry tool. */

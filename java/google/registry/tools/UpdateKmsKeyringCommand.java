@@ -56,9 +56,6 @@ final class UpdateKmsKeyringCommand implements RemoteApiCommand {
     byte[] input = Files.readAllBytes(inputPath);
 
     switch (keyringKeyName) {
-      case BRAINTREE_PRIVATE_KEY:
-        kmsUpdater.setBraintreePrivateKey(deserializeString(input));
-        break;
       case BRDA_RECEIVER_PUBLIC_KEY:
         kmsUpdater.setBrdaReceiverPublicKey(deserializePublicKey(input));
         break;

@@ -29,7 +29,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import google.registry.model.registrar.Registrar;
-import google.registry.model.registrar.Registrar.BillingMethod;
 import google.registry.model.registrar.RegistrarAddress;
 import google.registry.model.registry.Registry;
 import google.registry.tools.params.KeyValueMapParameter.CurrencyUnitToStringMap;
@@ -186,12 +185,6 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
     validateWith = CurrencyUnitToStringMap.class
   )
   private Map<CurrencyUnit, String> billingAccountMap;
-
-  @Nullable
-  @Parameter(
-      names = "--billing_method",
-      description = "Method by which registry bills this registrar customer")
-  private BillingMethod billingMethod;
 
   @Nullable
   @Parameter(
@@ -367,7 +360,6 @@ abstract class CreateOrUpdateRegistrarCommand extends MutatingCommand {
         newBillingAccountMap.putAll(billingAccountMap);
         builder.setBillingAccountMap(newBillingAccountMap);
       }
-      Optional.ofNullable(billingMethod).ifPresent(builder::setBillingMethod);
       List<Object> streetAddressFields = Arrays.asList(street, city, state, zip, countryCode);
       checkArgument(
           streetAddressFields.stream().anyMatch(isNull())

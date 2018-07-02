@@ -75,28 +75,3 @@ div.domain-registrar-contact div.tooltip .pointer {
   padding-left: 1em;
   list-style: disc inside;
 }
-
-.reg-payment p {
-  max-width: 45em;
-}
-
-/* Note: Empty definitions are for class name minimization. */
-
-.reg-payment-form {}
-
-.reg-payment-form-method {}
-
-.reg-payment-form-method.kd-formerror {
-  border: none;
-}
-
-.reg-payment-form-method-info {}
-
-.reg-payment-form-submit {}
-
-.reg-payment-form-loader {
-  vertical-align: middle;
-  padding-left: 10px;
-}
-
-.reg-payment-again {}

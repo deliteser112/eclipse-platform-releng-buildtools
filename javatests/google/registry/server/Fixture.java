@@ -32,7 +32,6 @@ import google.registry.model.contact.ContactResource;
 import google.registry.model.contact.PostalInfo;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.ofy.Ofy;
-import google.registry.model.registrar.Registrar;
 import google.registry.testing.FakeClock;
 import google.registry.testing.InjectRule;
 import org.joda.time.DateTime;
@@ -139,7 +138,6 @@ public enum Fixture {
           loadRegistrar("TheRegistrar")
               .asBuilder()
               .setAllowedTlds(ImmutableSet.of("example", "xn--q9jyb4c"))
-              .setBillingMethod(Registrar.BillingMethod.BRAINTREE)
               .build());
     }
   };

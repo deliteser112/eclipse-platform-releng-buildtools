@@ -23,7 +23,6 @@ def domain_registry_bazel_check():
 
 def domain_registry_repositories(
     omit_com_beust_jcommander=False,
-    omit_com_braintreepayments_gateway_braintree_java=False,
     omit_com_fasterxml_jackson_core=False,
     omit_com_fasterxml_jackson_core_jackson_annotations=False,
     omit_com_fasterxml_jackson_core_jackson_databind=False,
@@ -163,8 +162,6 @@ def domain_registry_repositories(
   domain_registry_bazel_check()
   if not omit_com_beust_jcommander:
     com_beust_jcommander()
-  if not omit_com_braintreepayments_gateway_braintree_java:
-    com_braintreepayments_gateway_braintree_java()
   if not omit_com_fasterxml_jackson_core:
     com_fasterxml_jackson_core()
   if not omit_com_fasterxml_jackson_core_jackson_annotations:
@@ -445,17 +442,6 @@ def com_beust_jcommander():
           "http://repo1.maven.org/maven2/com/beust/jcommander/1.48/jcommander-1.48.jar",
       ],
       licenses = ["notice"],  # The Apache Software License, Version 2.0
-  )
-
-def com_braintreepayments_gateway_braintree_java():
-  java_import_external(
-      name = "com_braintreepayments_gateway_braintree_java",
-      jar_sha256 = "e6fa51822d05334971d60a8353d4bfcab155b9639d9d8d3d052fe75ead534dd9",
-      jar_urls = [
-          "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/braintreepayments/gateway/braintree-java/2.54.0/braintree-java-2.54.0.jar",
-          "http://repo1.maven.org/maven2/com/braintreepayments/gateway/braintree-java/2.54.0/braintree-java-2.54.0.jar",
-      ],
-      licenses = ["notice"],  # MIT license
   )
 
 def com_fasterxml_jackson_core():

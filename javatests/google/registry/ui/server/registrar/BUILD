@@ -12,7 +12,6 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["testdata/*"]),
     deps = [
-        "//java/google/registry/braintree",
         "//java/google/registry/config",
         "//java/google/registry/export/sheet",
         "//java/google/registry/model",

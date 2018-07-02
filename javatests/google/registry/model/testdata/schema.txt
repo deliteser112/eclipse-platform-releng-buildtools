@@ -560,7 +560,6 @@ class google.registry.model.registrar.Registrar {
   boolean premiumPriceAckRequired;
   google.registry.model.CreateAutoTimestamp creationTime;
   google.registry.model.UpdateAutoTimestamp lastUpdateTime;
-  google.registry.model.registrar.Registrar$BillingMethod billingMethod;
   google.registry.model.registrar.Registrar$State state;
   google.registry.model.registrar.Registrar$Type type;
   google.registry.model.registrar.RegistrarAddress internationalizedAddress;
@@ -590,10 +589,6 @@ class google.registry.model.registrar.Registrar {
 class google.registry.model.registrar.Registrar$BillingAccountEntry {
   java.lang.String accountId;
   org.joda.money.CurrencyUnit currency;
-}
-enum google.registry.model.registrar.Registrar$BillingMethod {
-  BRAINTREE;
-  EXTERNAL;
 }
 enum google.registry.model.registrar.Registrar$State {
   ACTIVE;

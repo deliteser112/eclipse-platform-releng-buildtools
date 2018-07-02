@@ -24,7 +24,6 @@ import static google.registry.keyring.kms.KmsKeyring.PublicKeyLabel.BRDA_SIGNING
 import static google.registry.keyring.kms.KmsKeyring.PublicKeyLabel.RDE_RECEIVER_PUBLIC;
 import static google.registry.keyring.kms.KmsKeyring.PublicKeyLabel.RDE_SIGNING_PUBLIC;
 import static google.registry.keyring.kms.KmsKeyring.PublicKeyLabel.RDE_STAGING_PUBLIC;
-import static google.registry.keyring.kms.KmsKeyring.StringKeyLabel.BRAINTREE_PRIVATE_KEY_STRING;
 import static google.registry.keyring.kms.KmsKeyring.StringKeyLabel.ICANN_REPORTING_PASSWORD_STRING;
 import static google.registry.keyring.kms.KmsKeyring.StringKeyLabel.JSON_CREDENTIAL_STRING;
 import static google.registry.keyring.kms.KmsKeyring.StringKeyLabel.MARKSDB_DNL_LOGIN_STRING;
@@ -114,10 +113,6 @@ public final class KmsUpdater {
 
   public KmsUpdater setJsonCredential(String credential) {
     return setString(credential, JSON_CREDENTIAL_STRING);
-  }
-
-  public KmsUpdater setBraintreePrivateKey(String braintreePrivateKey) {
-    return setString(braintreePrivateKey, BRAINTREE_PRIVATE_KEY_STRING);
   }
 
   /**

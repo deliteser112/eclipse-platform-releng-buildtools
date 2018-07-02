@@ -10,7 +10,6 @@ exports_files(["globals.txt"])
 filegroup(
     name = "runfiles",
     srcs = glob(["assets/**"]) + [
-        "brain_bin.js",
         "registrar_bin.js",
         "//java/google/registry/ui/css:registrar_bin.css",
         "//java/google/registry/ui/html:html_files",
@@ -27,7 +26,6 @@ filegroup(
 filegroup(
     name = "runfiles_debug",
     srcs = [
-        ":brain_bin",
         ":deps",
         ":registrar_bin",
         ":registrar_dbg",
@@ -63,7 +61,6 @@ zip_file(
     out = "ui_debug.war",
     data = [":runfiles_debug"],
     mappings = {
-        "domain_registry/java/google/registry/ui/brain_bin.js.map": "assets/js/brain_bin.js.map",
         "domain_registry/java/google/registry/ui/registrar_bin.js.map": "assets/js/registrar_bin.js.map",
         "domain_registry/java/google/registry/ui/registrar_dbg.js": "assets/js/registrar_dbg.js",
         "domain_registry/java/google/registry/ui/css/registrar_dbg.css": "assets/css/registrar_dbg.css",
@@ -77,7 +74,6 @@ java_library(
     srcs = glob(["*.java"]),
     visibility = ["//visibility:public"],
     deps = [
-        "//java/google/registry/config",
         "@com_google_appengine_api_1_0_sdk",
         "@com_google_code_findbugs_jsr305",
         "@com_google_dagger",
@@ -119,19 +115,6 @@ closure_js_binary(
     debug = 1,
     entry_points = ["goog:registry.registrar.main"],
     formatting = "PRETTY_PRINT",
-    deps = [
-        "//java/google/registry/ui/externs",
-        "//java/google/registry/ui/js/registrar",
-    ],
-)
-
-################################################################################
-## Braintree Payment Method Frame (Brainframe)
-
-closure_js_binary(
-    name = "brain_bin",
-    entry_points = ["goog:registry.registrar.BrainFrame.main"],
-    output_wrapper = "%output%//# sourceMappingURL=brain_bin.js.map",
     deps = [
         "//java/google/registry/ui/externs",
         "//java/google/registry/ui/js/registrar",
