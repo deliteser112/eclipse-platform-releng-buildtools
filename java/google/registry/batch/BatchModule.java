@@ -15,15 +15,18 @@
 package google.registry.batch;
 
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESAVE_TIMES;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
 import static google.registry.request.RequestParameters.extractOptionalBooleanParameter;
 import static google.registry.request.RequestParameters.extractOptionalIntParameter;
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredDatetimeParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
+import static google.registry.request.RequestParameters.extractSetOfDatetimeParameters;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import dagger.Module;
 import dagger.Provides;
@@ -88,5 +91,11 @@ public class BatchModule {
   @Parameter(PARAM_REQUESTED_TIME)
   static DateTime provideRequestedTime(HttpServletRequest req) {
     return extractRequiredDatetimeParameter(req, PARAM_REQUESTED_TIME);
+  }
+
+  @Provides
+  @Parameter(PARAM_RESAVE_TIMES)
+  static ImmutableSet<DateTime> provideResaveTimes(HttpServletRequest req) {
+    return extractSetOfDatetimeParameters(req, PARAM_RESAVE_TIMES, null);
   }
 }

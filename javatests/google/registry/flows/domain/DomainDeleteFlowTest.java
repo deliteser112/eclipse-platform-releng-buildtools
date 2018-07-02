@@ -17,6 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESAVE_TIMES;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PATH_RESAVE_ENTITY;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
@@ -269,22 +270,18 @@ public class DomainDeleteFlowTest extends ResourceFlowTestCase<DomainDeleteFlow,
     setUpSuccessfulTest();
     clock.advanceOneMilli();
     runFlowAssertResponse(loadFile("domain_delete_response_pending.xml"));
-    // This seems like it's too long.
+    Duration when = standardDays(3);
     assertTasksEnqueued(
         QUEUE_ASYNC_ACTIONS,
-        createExpectedResaveTask(standardDays(3)),
-        createExpectedResaveTask(standardDays(5)));
-  }
-
-  private TaskMatcher createExpectedResaveTask(Duration when) {
-    return new TaskMatcher()
-        .url(PATH_RESAVE_ENTITY)
-        .method("POST")
-        .header("Host", "backend.hostname.fake")
-        .header("content-type", "application/x-www-form-urlencoded")
-        .param(PARAM_RESOURCE_KEY, Key.create(domain).getString())
-        .param(PARAM_REQUESTED_TIME, clock.nowUtc().toString())
-        .etaDelta(when.minus(standardSeconds(30)), when.plus(standardSeconds(30)));
+        new TaskMatcher()
+            .url(PATH_RESAVE_ENTITY)
+            .method("POST")
+            .header("Host", "backend.hostname.fake")
+            .header("content-type", "application/x-www-form-urlencoded")
+            .param(PARAM_RESOURCE_KEY, Key.create(domain).getString())
+            .param(PARAM_REQUESTED_TIME, clock.nowUtc().toString())
+            .param(PARAM_RESAVE_TIMES, clock.nowUtc().plusDays(5).toString())
+            .etaDelta(when.minus(standardSeconds(30)), when.plus(standardSeconds(30))));
   }
 
   @Test

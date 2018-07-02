@@ -23,6 +23,8 @@ import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
 import google.registry.config.RegistryConfig.Config;
@@ -47,6 +49,7 @@ public final class AsyncFlowEnqueuer {
   public static final String PARAM_IS_SUPERUSER = "isSuperuser";
   public static final String PARAM_HOST_KEY = "hostKey";
   public static final String PARAM_REQUESTED_TIME = "requestedTime";
+  public static final String PARAM_RESAVE_TIMES = "resaveTimes";
 
   /** The task queue names used by async flows. */
   public static final String QUEUE_ASYNC_ACTIONS = "async-actions";
@@ -85,12 +88,25 @@ public final class AsyncFlowEnqueuer {
   /** Enqueues a task to asynchronously re-save an entity at some point in the future. */
   public void enqueueAsyncResave(
       ImmutableObject entityToResave, DateTime now, DateTime whenToResave) {
-    checkArgument(isBeforeOrAt(now, whenToResave), "Can't enqueue a resave to run in the past");
+    enqueueAsyncResave(entityToResave, now, ImmutableSortedSet.of(whenToResave));
+  }
+
+  /**
+   * Enqueues a task to asynchronously re-save an entity at some point(s) in the future.
+   *
+   * <p>Multiple re-save times are chained one after the other, i.e. any given run will re-enqueue
+   * itself to run at the next time if there are remaining re-saves scheduled.
+   */
+  public void enqueueAsyncResave(
+      ImmutableObject entityToResave, DateTime now, ImmutableSortedSet<DateTime> whenToResave) {
+    DateTime firstResave = whenToResave.first();
+    checkArgument(isBeforeOrAt(now, firstResave), "Can't enqueue a resave to run in the past");
     Key<ImmutableObject> entityKey = Key.create(entityToResave);
-    Duration etaDuration = new Duration(now, whenToResave);
+    Duration etaDuration = new Duration(now, firstResave);
     if (etaDuration.isLongerThan(MAX_ASYNC_ETA)) {
-      logger.atInfo().log("Ignoring async re-save of %s; %s is past the ETA threshold of %s.",
-          entityKey, whenToResave, MAX_ASYNC_ETA);
+      logger.atInfo().log(
+          "Ignoring async re-save of %s; %s is past the ETA threshold of %s.",
+          entityKey, firstResave, MAX_ASYNC_ETA);
       return;
     }
     logger.atInfo().log("Enqueuing async re-save of %s to run at %s.", entityKey, whenToResave);
@@ -102,6 +118,9 @@ public final class AsyncFlowEnqueuer {
             .countdownMillis(etaDuration.getMillis())
             .param(PARAM_RESOURCE_KEY, entityKey.getString())
             .param(PARAM_REQUESTED_TIME, now.toString());
+    if (whenToResave.size() > 1) {
+      task.param(PARAM_RESAVE_TIMES, Joiner.on(',').join(whenToResave.tailSet(firstResave, false)));
+    }
     addTaskToQueueWithRetry(asyncActionsPushQueue, task);
   }
 

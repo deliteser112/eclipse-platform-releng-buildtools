@@ -15,11 +15,15 @@
 package google.registry.batch;
 
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESAVE_TIMES;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.flogger.FluentLogger;
 import com.googlecode.objectify.Key;
+import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.request.Action;
@@ -27,7 +31,6 @@ import google.registry.request.Action.Method;
 import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
-import google.registry.util.Clock;
 import javax.inject.Inject;
 import org.joda.time.DateTime;
 
@@ -43,18 +46,21 @@ public class ResaveEntityAction implements Runnable {
 
   private final Key<ImmutableObject> resourceKey;
   private final DateTime requestedTime;
-  private final Clock clock;
+  private final ImmutableSortedSet<DateTime> resaveTimes;
+  private final AsyncFlowEnqueuer asyncFlowEnqueuer;
   private final Response response;
 
   @Inject
   ResaveEntityAction(
       @Parameter(PARAM_RESOURCE_KEY) Key<ImmutableObject> resourceKey,
       @Parameter(PARAM_REQUESTED_TIME) DateTime requestedTime,
-      Clock clock,
+      @Parameter(PARAM_RESAVE_TIMES) ImmutableSet<DateTime> resaveTimes,
+      AsyncFlowEnqueuer asyncFlowEnqueuer,
       Response response) {
     this.resourceKey = resourceKey;
     this.requestedTime = requestedTime;
-    this.clock = clock;
+    this.resaveTimes = ImmutableSortedSet.copyOf(resaveTimes);
+    this.asyncFlowEnqueuer = asyncFlowEnqueuer;
     this.response = response;
   }
 
@@ -66,8 +72,11 @@ public class ResaveEntityAction implements Runnable {
       ImmutableObject entity = ofy().load().key(resourceKey).now();
       ofy().save().entity(
           (entity instanceof EppResource)
-              ? ((EppResource) entity).cloneProjectedAtTime(clock.nowUtc()) : entity
+              ? ((EppResource) entity).cloneProjectedAtTime(ofy().getTransactionTime()) : entity
       );
+      if (!resaveTimes.isEmpty()) {
+        asyncFlowEnqueuer.enqueueAsyncResave(entity, requestedTime, resaveTimes);
+      }
     });
     response.setPayload("Entity re-saved.");
   }

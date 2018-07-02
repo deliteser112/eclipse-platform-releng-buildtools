@@ -16,6 +16,7 @@ package google.registry.flows.async;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESAVE_TIMES;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
 import static google.registry.flows.async.AsyncFlowEnqueuer.PATH_RESAVE_ENTITY;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
@@ -26,11 +27,13 @@ import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.testing.TestLogHandlerUtils.assertLogMessage;
 import static org.joda.time.Duration.standardDays;
+import static org.joda.time.Duration.standardHours;
 import static org.joda.time.Duration.standardSeconds;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.modules.ModulesService;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.flogger.LoggerConfig;
 import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactResource;
@@ -101,6 +104,31 @@ public class AsyncFlowEnqueuerTest extends ShardableTestCase {
             .etaDelta(
                 standardDays(5).minus(standardSeconds(30)),
                 standardDays(5).plus(standardSeconds(30))));
+  }
+
+  @Test
+  public void test_enqueueAsyncResave_multipleResaves() {
+    ContactResource contact = persistActiveContact("jd23456");
+    DateTime now = clock.nowUtc();
+    asyncFlowEnqueuer.enqueueAsyncResave(
+        contact,
+        now,
+        ImmutableSortedSet.of(now.plusHours(24), now.plusHours(50), now.plusHours(75)));
+    assertTasksEnqueued(
+        QUEUE_ASYNC_ACTIONS,
+        new TaskMatcher()
+            .url(PATH_RESAVE_ENTITY)
+            .method("POST")
+            .header("Host", "backend.hostname.fake")
+            .header("content-type", "application/x-www-form-urlencoded")
+            .param(PARAM_RESOURCE_KEY, Key.create(contact).getString())
+            .param(PARAM_REQUESTED_TIME, now.toString())
+            .param(
+                PARAM_RESAVE_TIMES,
+                "2015-05-20T14:34:56.000Z,2015-05-21T15:34:56.000Z")
+            .etaDelta(
+                standardHours(24).minus(standardSeconds(30)),
+                standardHours(24).plus(standardSeconds(30))));
   }
 
   @Test

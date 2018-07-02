@@ -14,29 +14,56 @@
 
 package google.registry.batch;
 
+import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_REQUESTED_TIME;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PARAM_RESOURCE_KEY;
+import static google.registry.flows.async.AsyncFlowEnqueuer.PATH_RESAVE_ENTITY;
+import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
+import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
+import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.createTld;
+import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveContact;
 import static google.registry.testing.DatastoreHelper.persistDomainWithDependentResources;
 import static google.registry.testing.DatastoreHelper.persistDomainWithPendingTransfer;
-import static org.mockito.Mockito.mock;
+import static google.registry.testing.DatastoreHelper.persistResource;
+import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
+import static org.joda.time.Duration.standardDays;
+import static org.joda.time.Duration.standardSeconds;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.google.appengine.api.modules.ModulesService;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.googlecode.objectify.Key;
+import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.model.ImmutableObject;
 import google.registry.model.domain.DomainResource;
+import google.registry.model.domain.GracePeriod;
+import google.registry.model.domain.rgp.GracePeriodStatus;
+import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.ofy.Ofy;
 import google.registry.request.Response;
 import google.registry.testing.AppEngineRule;
 import google.registry.testing.FakeClock;
+import google.registry.testing.FakeSleeper;
+import google.registry.testing.InjectRule;
+import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.ShardableTestCase;
-import google.registry.util.Clock;
+import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.util.Retrier;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mock;
 
 /** Unit tests for {@link ResaveEntityAction}. */
 @RunWith(JUnit4.class)
@@ -46,16 +73,37 @@ public class ResaveEntityActionTest extends ShardableTestCase {
   public final AppEngineRule appEngine =
       AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
-  private final Clock clock = new FakeClock(DateTime.parse("2016-02-11T10:00:00Z"));
-  private final Response response = mock(Response.class);
+  @Rule public final InjectRule inject = new InjectRule();
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
+
+  @Mock private ModulesService modulesService;
+  @Mock private Response response;
+  private final FakeClock clock = new FakeClock(DateTime.parse("2016-02-11T10:00:00Z"));
+  private AsyncFlowEnqueuer asyncFlowEnqueuer;
 
   @Before
   public void before() {
+    inject.setStaticField(Ofy.class, "clock", clock);
+    when(modulesService.getVersionHostname(any(String.class), any(String.class)))
+        .thenReturn("backend.hostname.fake");
+    asyncFlowEnqueuer =
+        new AsyncFlowEnqueuer(
+            getQueue(QUEUE_ASYNC_ACTIONS),
+            getQueue(QUEUE_ASYNC_DELETE),
+            getQueue(QUEUE_ASYNC_HOST_RENAME),
+            Duration.ZERO,
+            modulesService,
+            new Retrier(new FakeSleeper(clock), 1));
     createTld("tld");
   }
 
-  private void runAction(Key<ImmutableObject> resourceKey, DateTime requestedTime) {
-    ResaveEntityAction action = new ResaveEntityAction(resourceKey, requestedTime, clock, response);
+  private void runAction(
+      Key<ImmutableObject> resourceKey,
+      DateTime requestedTime,
+      ImmutableSortedSet<DateTime> resaveTimes) {
+    ResaveEntityAction action =
+        new ResaveEntityAction(
+            resourceKey, requestedTime, resaveTimes, asyncFlowEnqueuer, response);
     action.run();
   }
 
@@ -74,10 +122,48 @@ public class ResaveEntityActionTest extends ShardableTestCase {
             DateTime.parse("2016-02-11T10:00:00Z"),
             DateTime.parse("2017-01-02T10:11:00Z"),
             DateTime.parse("2016-02-06T10:00:00Z"));
+    clock.advanceOneMilli();
     assertThat(domain.getCurrentSponsorClientId()).isEqualTo("TheRegistrar");
-    runAction(Key.create(domain), DateTime.parse("2016-02-06T10:00:01Z"));
+    runAction(Key.create(domain), DateTime.parse("2016-02-06T10:00:01Z"), ImmutableSortedSet.of());
     DomainResource resavedDomain = ofy().load().entity(domain).now();
     assertThat(resavedDomain.getCurrentSponsorClientId()).isEqualTo("NewRegistrar");
     verify(response).setPayload("Entity re-saved.");
+  }
+
+  @Test
+  public void test_domainPendingDeletion_isResavedAndReenqueued() {
+    DomainResource domain =
+        persistResource(
+            newDomainResource("domain.tld")
+                .asBuilder()
+                .setDeletionTime(clock.nowUtc().plusDays(35))
+                .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
+                .setGracePeriods(
+                    ImmutableSet.of(
+                        GracePeriod.createWithoutBillingEvent(
+                            GracePeriodStatus.REDEMPTION,
+                            clock.nowUtc().plusDays(30),
+                            "TheRegistrar")))
+                .build());
+    clock.advanceBy(standardDays(30));
+    DateTime requestedTime = clock.nowUtc();
+
+    assertThat(domain.getGracePeriods()).isNotEmpty();
+    runAction(Key.create(domain), requestedTime, ImmutableSortedSet.of(requestedTime.plusDays(5)));
+    DomainResource resavedDomain = ofy().load().entity(domain).now();
+    assertThat(resavedDomain.getGracePeriods()).isEmpty();
+
+    assertTasksEnqueued(
+        QUEUE_ASYNC_ACTIONS,
+        new TaskMatcher()
+            .url(PATH_RESAVE_ENTITY)
+            .method("POST")
+            .header("Host", "backend.hostname.fake")
+            .header("content-type", "application/x-www-form-urlencoded")
+            .param(PARAM_RESOURCE_KEY, Key.create(resavedDomain).getString())
+            .param(PARAM_REQUESTED_TIME, requestedTime.toString())
+            .etaDelta(
+                standardDays(5).minus(standardSeconds(30)),
+                standardDays(5).plus(standardSeconds(30))));
   }
 }

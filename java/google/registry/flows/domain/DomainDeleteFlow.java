@@ -39,6 +39,7 @@ import static google.registry.util.CollectionUtils.union;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
 import google.registry.dns.DnsQueue;
@@ -185,8 +186,8 @@ public final class DomainDeleteFlow implements TransactionalFlow {
       PollMessage.OneTime deletePollMessage =
           createDeletePollMessage(existingDomain, historyEntry, deletionTime);
       entitiesToSave.add(deletePollMessage);
-      asyncFlowEnqueuer.enqueueAsyncResave(existingDomain, now, deletionTime);
-      asyncFlowEnqueuer.enqueueAsyncResave(existingDomain, now, redemptionTime);
+      asyncFlowEnqueuer.enqueueAsyncResave(
+          existingDomain, now, ImmutableSortedSet.of(redemptionTime, deletionTime));
       builder.setDeletionTime(deletionTime)
           .setStatusValues(ImmutableSet.of(StatusValue.PENDING_DELETE))
           // Clear out all old grace periods and add REDEMPTION, which does not include a key to a
