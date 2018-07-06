@@ -14,48 +14,53 @@
 
 """Build rule for unit testing the zip_file() rule."""
 
-load('//java/google/registry/builddefs:defs.bzl', 'ZIPPER')
+load("//java/google/registry/builddefs:defs.bzl", "ZIPPER")
 
 def _impl(ctx):
-  """Implementation of zip_contents_test() rule."""
-  cmd = [
-      'set -e',
-      'repo="$(pwd)"',
-      'zipper="${repo}/%s"' % ctx.file._zipper.short_path,
-      'archive="${repo}/%s"' % ctx.file.src.short_path,
-      ('listing="$("${zipper}" v "${archive}"' +
-       ' | grep -v ^d | awk \'{print $3}\' | LC_ALL=C sort)"'),
-      'if [[ "${listing}" != "%s" ]]; then' % (
-          '\n'.join(ctx.attr.contents.keys())),
-      '  echo "archive had different file listing:"',
-      '  "${zipper}" v "${archive}" | grep -v ^d',
-      '  exit 1',
-      'fi',
-      'tmp="$(mktemp -d "${TMPDIR:-/tmp}/zip_contents_test.XXXXXXXXXX")"',
-      'cd "${tmp}"',
-      '"${zipper}" x "${archive}"',
-  ]
-  for path, data in ctx.attr.contents.items():
-    cmd += [
-        'if [[ "$(cat "%s")" != "%s" ]]; then' % (path, data),
-        '  echo "%s had different contents:"' % path,
-        '  cat "%s"' % path,
-        '  exit 1',
-        'fi',
+    """Implementation of zip_contents_test() rule."""
+    cmd = [
+        "set -e",
+        'repo="$(pwd)"',
+        'zipper="${repo}/%s"' % ctx.file._zipper.short_path,
+        'archive="${repo}/%s"' % ctx.file.src.short_path,
+        ('listing="$("${zipper}" v "${archive}"' +
+         ' | grep -v ^d | awk \'{print $3}\' | LC_ALL=C sort)"'),
+        'if [[ "${listing}" != "%s" ]]; then' % (
+            "\n".join(ctx.attr.contents.keys())
+        ),
+        '  echo "archive had different file listing:"',
+        '  "${zipper}" v "${archive}" | grep -v ^d',
+        "  exit 1",
+        "fi",
+        'tmp="$(mktemp -d "${TMPDIR:-/tmp}/zip_contents_test.XXXXXXXXXX")"',
+        'cd "${tmp}"',
+        '"${zipper}" x "${archive}"',
     ]
-  cmd += ['cd "${repo}"',
-          'rm -rf "${tmp}"']
-  ctx.file_action(
-      output=ctx.outputs.executable,
-      content='\n'.join(cmd),
-      executable=True)
-  return struct(runfiles=ctx.runfiles([ctx.file.src, ctx.file._zipper]))
+    for path, data in ctx.attr.contents.items():
+        cmd += [
+            'if [[ "$(cat "%s")" != "%s" ]]; then' % (path, data),
+            '  echo "%s had different contents:"' % path,
+            '  cat "%s"' % path,
+            "  exit 1",
+            "fi",
+        ]
+    cmd += [
+        'cd "${repo}"',
+        'rm -rf "${tmp}"',
+    ]
+    ctx.file_action(
+        output = ctx.outputs.executable,
+        content = "\n".join(cmd),
+        executable = True,
+    )
+    return struct(runfiles = ctx.runfiles([ctx.file.src, ctx.file._zipper]))
 
 zip_contents_test = rule(
-    implementation=_impl,
-    test=True,
-    attrs={
-        'src': attr.label(allow_single_file=True),
-        'contents': attr.string_dict(),
-        '_zipper': attr.label(default=Label(ZIPPER), single_file=True),
-    })
+    implementation = _impl,
+    test = True,
+    attrs = {
+        "src": attr.label(allow_single_file = True),
+        "contents": attr.string_dict(),
+        "_zipper": attr.label(default = Label(ZIPPER), single_file = True),
+    },
+)

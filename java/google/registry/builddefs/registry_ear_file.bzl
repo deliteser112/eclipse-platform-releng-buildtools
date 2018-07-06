@@ -17,37 +17,37 @@
 load("//java/google/registry/builddefs:defs.bzl", "ZIPPER")
 
 def registry_ear_file(name, out, configs, wars, **kwargs):
-  """Creates an EAR archive by combining WAR archives."""
-  cmd = [
-      "set -e",
-      "repo=$$(pwd)",
-      "zipper=$$repo/$(location %s)" % ZIPPER,
-      "tmp=$$(mktemp -d $${TMPDIR:-/tmp}/registry_ear_file.XXXXXXXXXX)",
-      "cd $${tmp}",
-  ]
-  for target, dest in configs.items():
-    cmd += [
-        "mkdir -p $${tmp}/$$(dirname %s)" % dest,
-        "ln -s $${repo}/$(location %s) $${tmp}/%s" % (target, dest),
+    """Creates an EAR archive by combining WAR archives."""
+    cmd = [
+        "set -e",
+        "repo=$$(pwd)",
+        "zipper=$$repo/$(location %s)" % ZIPPER,
+        "tmp=$$(mktemp -d $${TMPDIR:-/tmp}/registry_ear_file.XXXXXXXXXX)",
+        "cd $${tmp}",
     ]
-  for target, dest in wars.items():
+    for target, dest in configs.items():
+        cmd += [
+            "mkdir -p $${tmp}/$$(dirname %s)" % dest,
+            "ln -s $${repo}/$(location %s) $${tmp}/%s" % (target, dest),
+        ]
+    for target, dest in wars.items():
+        cmd += [
+            "mkdir " + dest,
+            "cd " + dest,
+            "$${zipper} x $${repo}/$(location %s)" % target,
+            "cd ..",
+        ]
     cmd += [
-        "mkdir " + dest,
-        "cd " + dest,
-        "$${zipper} x $${repo}/$(location %s)" % target,
-        "cd ..",
+        "$${zipper} cC $${repo}/$@ $$(find . | sed 1d | cut -c 3- | LC_ALL=C sort)",
+        "cd $${repo}",
+        "rm -rf $${tmp}",
     ]
-  cmd += [
-      "$${zipper} cC $${repo}/$@ $$(find . | sed 1d | cut -c 3- | LC_ALL=C sort)",
-      "cd $${repo}",
-      "rm -rf $${tmp}",
-  ]
-  native.genrule(
-      name = name,
-      srcs = configs.keys() + wars.keys(),
-      outs = [out],
-      cmd = "\n".join(cmd),
-      tools = [ZIPPER],
-      message = "Generating EAR archive",
-      **kwargs
-  )
+    native.genrule(
+        name = name,
+        srcs = configs.keys() + wars.keys(),
+        outs = [out],
+        cmd = "\n".join(cmd),
+        tools = [ZIPPER],
+        message = "Generating EAR archive",
+        **kwargs
+    )
