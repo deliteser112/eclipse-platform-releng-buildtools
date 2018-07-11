@@ -112,7 +112,7 @@
           </button>
         </th>
       </tr>
-      {if isNonnull($item['domain:ns'] and isNonnull($item['domain:ns']['domain:hostObj']))}
+      {if isNonnull($item['domain:ns']) and isNonnull($item['domain:ns']['domain:hostObj'])}
         {for $hostObj in $item['domain:ns']['domain:hostObj']}
           {let $hostIdx: index($hostObj) /}
           {call registry.soy.forms.inputFieldRowWithValue data="all"}
