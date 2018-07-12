@@ -23,6 +23,7 @@ import static google.registry.request.RequestParameters.extractOptionalEnumParam
 import static google.registry.request.RequestParameters.extractOptionalParameter;
 import static google.registry.request.RequestParameters.extractRequiredDatetimeParameter;
 import static google.registry.request.RequestParameters.extractRequiredParameter;
+import static google.registry.request.RequestParameters.extractSetOfParameters;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -76,6 +77,43 @@ public class RequestParametersTest {
   public void testExtractOptionalParameter_empty_returnsAbsent() {
     when(req.getParameter("spin")).thenReturn("");
     assertThat(extractOptionalParameter(req, "spin")).isEmpty();
+  }
+
+  @Test
+  public void testExtractSetOfParameters_notPresent_returnsEmpty() {
+    assertThat(extractSetOfParameters(req, "spin")).isEmpty();
+  }
+
+  @Test
+  public void testExtractSetOfParameters_empty_returnsEmpty() {
+    when(req.getParameterValues("spin")).thenReturn(new String[]{""});
+    assertThat(extractSetOfParameters(req, "spin")).isEmpty();
+  }
+
+  @Test
+  public void testExtractSetOfParameters_oneValue_returnsValue() {
+    when(req.getParameterValues("spin")).thenReturn(new String[]{"bog"});
+    assertThat(extractSetOfParameters(req, "spin")).containsExactly("bog");
+  }
+
+  @Test
+  public void testExtractSetOfParameters_multipleValues_returnsAll() {
+    when(req.getParameterValues("spin")).thenReturn(new String[]{"bog,gob"});
+    assertThat(extractSetOfParameters(req, "spin")).containsExactly("bog", "gob");
+  }
+
+  @Test
+  public void testExtractSetOfParameters_multipleValuesWithEmpty_removesEmpty() {
+    when(req.getParameterValues("spin")).thenReturn(new String[]{",bog,,gob,"});
+    assertThat(extractSetOfParameters(req, "spin")).containsExactly("bog", "gob");
+  }
+
+  @Test
+  public void testExtractSetOfParameters_multipleParameters_error() {
+    when(req.getParameterValues("spin")).thenReturn(new String[]{"bog", "gob"});
+    BadRequestException thrown =
+        assertThrows(BadRequestException.class, () -> extractSetOfParameters(req, "spin"));
+    assertThat(thrown).hasMessageThat().contains("spin");
   }
 
   @Test

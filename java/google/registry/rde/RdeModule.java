@@ -59,7 +59,7 @@ public abstract class RdeModule {
   @Provides
   @Parameter(PARAM_WATERMARKS)
   static ImmutableSet<DateTime> provideWatermarks(HttpServletRequest req) {
-    return extractSetOfDatetimeParameters(req, PARAM_WATERMARKS, PARAM_WATERMARK);
+    return extractSetOfDatetimeParameters(req, PARAM_WATERMARKS);
   }
 
   @Provides

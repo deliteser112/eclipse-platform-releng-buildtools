@@ -23,7 +23,6 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import com.google.common.base.Ascii;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.flogger.FluentLogger;
 import google.registry.request.HttpException.BadRequestException;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -32,8 +31,6 @@ import org.joda.time.DateTime;
 
 /** Utilities for extracting parameters from HTTP requests. */
 public final class RequestParameters {
-
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** The standardized request parameter name used by any action taking a tld parameter. */
   public static final String PARAM_TLD = "tld";
@@ -101,64 +98,33 @@ public final class RequestParameters {
   /**
    * Returns all GET or POST parameters associated with {@code name} (or {@code nameLegacy}).
    *
-   * <p>While transitioning from "param=key1&param=key2" to "params=key1,key2" style of set inputing
-   * - we will be accepting all options (with a warning for "wrong" uses).
+   * <p>The parameter value is assumed to be a comma-delimited set of values - so tlds=com,net would
+   * result in ImmutableSet.of("com", "net").
    *
-   * <p>TODO(b/78226288): remove transition code (including "legacyName") once there are no more
-   * warnings.
+   * <p>Empty strings are not supported, and are automatically removed from the result.
+   *
+   * <p>Both missing parameter and parameter with empty value result in an empty set.
    *
    * @param req the request that has the parameter
-   * @param name the name of the parameter, should be in plural form (e.g. tlds=com,net)
-   * @param legacyName the legacy, singular form, name. Used only while transitioning from the
-   *     tld=com&tld=net form, in case we forgot to fix some reference. Null if there was no
-   *     singular form to transition from.
+   * @param name the name of the parameter, should be in plural form (e.g. tlds=, not tld=)
    */
-  public static ImmutableSet<String> extractSetOfParameters(
-      HttpServletRequest req, String name, @Nullable String legacyName) {
+  public static ImmutableSet<String> extractSetOfParameters(HttpServletRequest req, String name) {
     String[] parameters = req.getParameterValues(name);
-    if (legacyName != null) {
-      String[] legacyParameters = req.getParameterValues(legacyName);
-      if (legacyParameters != null) {
-        if (parameters == null) {
-          logger.atWarning().log(
-              "Bad 'set of parameters' input! Used legacy name %s instead of new name %s",
-              legacyName, name);
-          parameters = legacyParameters;
-        } else {
-          logger.atSevere().log(
-              "Bad 'set of parameters' input! Used both legacy name %s and new name %s! "
-                  + "Ignoring lagacy name.",
-              legacyName, name);
-        }
-      }
-    }
-    if (parameters == null) {
+    if (parameters == null || parameters.length == 0) {
       return ImmutableSet.of();
     }
     if (parameters.length > 1) {
-      logger.atWarning().log(
-          "Bad 'set of parameters' input! "
-              + "Received multiple values instead of single comma-delimited value for parameter %s",
-          name);
-      return ImmutableSet.copyOf(parameters);
+      throw new BadRequestException(
+          String.format(
+              "Bad 'set of parameters' input! Received multiple values instead of single "
+                  + "comma-delimited value for parameter %s",
+              name));
     }
-    if (parameters[0].isEmpty()) {
-      return ImmutableSet.of();
-    }
-    return ImmutableSet.copyOf(Splitter.on(',').split(parameters[0]));
-  }
-
-  /**
-   * Returns all GET or POST parameters associated with {@code name}.
-   *
-   * <p>While transitioning from "param=key1&param=key2" to "params=key1,key2" style of set inputing
-   * - we will be accepting all options (with a warning for "wrong" uses).
-   *
-   * <p>TODO(b/78226288): remove transition code (including "legacyName") once there are no more
-   * warnings.
-   */
-  public static ImmutableSet<String> extractSetOfParameters(HttpServletRequest req, String name) {
-    return extractSetOfParameters(req, name, null);
+    return Splitter.on(',')
+        .splitToList(parameters[0])
+        .stream()
+        .filter(s -> !s.isEmpty())
+        .collect(toImmutableSet());
   }
 
   /**
@@ -260,9 +226,9 @@ public final class RequestParameters {
    * @throws BadRequestException if one of the parameter values is not a valid {@link DateTime}.
    */
   public static ImmutableSet<DateTime> extractSetOfDatetimeParameters(
-      HttpServletRequest req, String name, @Nullable String legacyName) {
+      HttpServletRequest req, String name) {
     try {
-      return extractSetOfParameters(req, name, legacyName)
+      return extractSetOfParameters(req, name)
           .stream()
           .filter(not(String::isEmpty))
           .map(DateTime::parse)

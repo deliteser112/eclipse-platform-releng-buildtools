@@ -88,7 +88,7 @@ public class ToolsServerModule {
   @Provides
   @Parameter(RequestParameters.PARAM_TLDS)
   static ImmutableSet<String> provideTlds(HttpServletRequest req) {
-    return extractSetOfParameters(req, RequestParameters.PARAM_TLDS, RequestParameters.PARAM_TLD);
+    return extractSetOfParameters(req, RequestParameters.PARAM_TLDS);
   }
 
   @Provides

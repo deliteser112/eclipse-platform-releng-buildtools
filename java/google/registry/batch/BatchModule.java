@@ -96,6 +96,6 @@ public class BatchModule {
   @Provides
   @Parameter(PARAM_RESAVE_TIMES)
   static ImmutableSet<DateTime> provideResaveTimes(HttpServletRequest req) {
-    return extractSetOfDatetimeParameters(req, PARAM_RESAVE_TIMES, null);
+    return extractSetOfDatetimeParameters(req, PARAM_RESAVE_TIMES);
   }
 }
