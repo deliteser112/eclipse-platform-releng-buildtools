@@ -25,6 +25,7 @@ public class ProxyConfig {
 
   enum Environment {
     PRODUCTION,
+    PRODUCTION_CANARY,
     SANDBOX,
     SANDBOX_CANARY,
     ALPHA,

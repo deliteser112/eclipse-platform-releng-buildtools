@@ -141,7 +141,7 @@ public class ProxyModule {
       throw e;
     }
     checkArgument(
-        !log || env != Environment.PRODUCTION,
+        !log || (env != Environment.PRODUCTION && env != Environment.PRODUCTION_CANARY),
         "Logging cannot be enabled for production environment");
     configureLogging();
     return this;
