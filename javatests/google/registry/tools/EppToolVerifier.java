@@ -17,6 +17,7 @@ package google.registry.tools;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.xml.XmlTestUtils.assertXmlEquals;
+import static google.registry.xml.XmlTransformer.prettyPrint;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atLeast;
@@ -191,9 +192,7 @@ public class EppToolVerifier {
   private EppToolVerifier verifySentContents(String expectedXmlContent) throws Exception {
     setArgumentsIfNeeded();
     assertThat(capturedParams.size()).isGreaterThan(paramIndex);
-    assertXmlEquals(
-        expectedXmlContent,
-        bytesToXml(capturedParams.get(paramIndex)));
+    assertXmlEquals(expectedXmlContent, prettyPrint(bytesToXml(capturedParams.get(paramIndex))));
     paramIndex++;
     return this;
   }

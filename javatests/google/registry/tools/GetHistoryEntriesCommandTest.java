@@ -55,7 +55,8 @@ public class GetHistoryEntriesCommandTest extends CommandTestCase<GetHistoryEntr
             + "Time: 2000-01-01T00:00:00.000Z\n"
             + "Client TRID: ABC-123\n"
             + "Server TRID: server-trid\n"
-            + "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xml/>\n"
+            + "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+            + "<xml/>\n"
             + "\n");
   }
 
@@ -77,7 +78,8 @@ public class GetHistoryEntriesCommandTest extends CommandTestCase<GetHistoryEntr
             + "Time: 2000-01-01T00:00:00.000Z\n"
             + "Client TRID: null\n"
             + "Server TRID: null\n"
-            + "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xml/>\n"
+            + "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
+            + "<xml/>\n"
             + "\n");
   }
 }

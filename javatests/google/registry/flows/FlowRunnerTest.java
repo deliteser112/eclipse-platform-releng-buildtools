@@ -132,7 +132,8 @@ public class FlowRunnerTest extends ShardableTestCase {
             "TheRegistrar",
             "StatelessRequestSessionMetadata"
                 + "{clientId=TheRegistrar, failedLoginAttempts=0, serviceExtensionUris=}",
-            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xml/>",
+            "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>",
+            "<xml/>",
             "", // Extra newline at the end of the XML.
             "PasswordOnlyTransportCredentials{}",
             "UNIT_TEST",
