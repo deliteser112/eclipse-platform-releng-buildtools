@@ -24,7 +24,7 @@ import com.google.appengine.tools.remoteapi.RemoteApiException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
-import google.registry.model.domain.AllocationToken;
+import google.registry.model.domain.token.AllocationToken;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.util.NonFinalForTesting;
 import google.registry.util.Retrier;

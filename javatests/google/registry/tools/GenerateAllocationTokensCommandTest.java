@@ -25,7 +25,7 @@ import com.beust.jcommander.ParameterException;
 import com.google.appengine.tools.remoteapi.RemoteApiException;
 import com.google.common.collect.ImmutableMap;
 import com.googlecode.objectify.Key;
-import google.registry.model.domain.AllocationToken;
+import google.registry.model.domain.token.AllocationToken;
 import google.registry.model.reporting.HistoryEntry;
 import google.registry.testing.DeterministicStringGenerator;
 import google.registry.testing.DeterministicStringGenerator.Rule;

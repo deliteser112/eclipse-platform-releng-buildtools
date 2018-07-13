@@ -145,12 +145,6 @@ enum google.registry.model.contact.PostalInfo$Type {
   INTERNATIONALIZED;
   LOCALIZED;
 }
-class google.registry.model.domain.AllocationToken {
-  @Id java.lang.String token;
-  com.googlecode.objectify.Key<google.registry.model.reporting.HistoryEntry> redemptionHistoryEntry;
-  google.registry.model.CreateAutoTimestamp creationTime;
-  google.registry.model.UpdateAutoTimestamp updateTimestamp;
-}
 class google.registry.model.domain.DesignatedContact {
   com.googlecode.objectify.Key<google.registry.model.contact.ContactResource> contact;
   google.registry.model.domain.DesignatedContact$Type type;
@@ -306,6 +300,12 @@ class google.registry.model.domain.secdns.DelegationSignerData {
   int algorithm;
   int digestType;
   int keyTag;
+}
+class google.registry.model.domain.token.AllocationToken {
+  @Id java.lang.String token;
+  com.googlecode.objectify.Key<google.registry.model.reporting.HistoryEntry> redemptionHistoryEntry;
+  google.registry.model.CreateAutoTimestamp creationTime;
+  google.registry.model.UpdateAutoTimestamp updateTimestamp;
 }
 class google.registry.model.eppcommon.AuthInfo$PasswordAuth {
   java.lang.String repoId;
