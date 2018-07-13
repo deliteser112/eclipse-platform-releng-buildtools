@@ -16,6 +16,7 @@ package google.registry.tools;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
+import static google.registry.testing.DatastoreHelper.createTlds;
 import static google.registry.testing.DatastoreHelper.newContactResource;
 import static google.registry.testing.DatastoreHelper.newDomainResource;
 import static google.registry.testing.DatastoreHelper.persistActiveHost;
@@ -23,6 +24,7 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
 
 import com.beust.jcommander.ParameterException;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import google.registry.model.contact.ContactResource;
@@ -75,6 +77,32 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
     eppVerifier
         .verifySent("domain_update_complete.xml")
         .verifySent("domain_update_complete_abc.xml");
+  }
+
+  @Test
+  public void testSuccess_multipleDomains_setNameservers() throws Exception {
+    createTlds("abc", "tld");
+    HostResource host1 = persistActiveHost("foo.bar.tld");
+    HostResource host2 = persistActiveHost("baz.bar.tld");
+    persistResource(
+        newDomainResource("example.abc")
+            .asBuilder()
+            .setNameservers(ImmutableSet.of(Key.create(host1)))
+            .build());
+    persistResource(
+        newDomainResource("example.tld")
+            .asBuilder()
+            .setNameservers(ImmutableSet.of(Key.create(host2)))
+            .build());
+    runCommandForced(
+        "--client=NewRegistrar", "-n ns1.foo.fake,ns2.foo.fake", "example.abc", "example.tld");
+    eppVerifier
+        .verifySent(
+            "domain_update_add_two_hosts_remove_one.xml",
+            ImmutableMap.of("DOMAIN", "example.abc", "REMOVEHOST", "foo.bar.tld"))
+        .verifySent(
+            "domain_update_add_two_hosts_remove_one.xml",
+            ImmutableMap.of("DOMAIN", "example.tld", "REMOVEHOST", "baz.bar.tld"));
   }
 
   @Test

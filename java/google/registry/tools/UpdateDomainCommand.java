@@ -19,6 +19,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static google.registry.model.EppResourceUtils.loadByForeignKey;
 import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import static org.joda.time.DateTimeZone.UTC;
 
 import com.beust.jcommander.Parameter;
@@ -155,10 +156,19 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
     }
 
     for (String domain : domains) {
+      Set<String> addAdminsThisDomain = new HashSet<>(addAdmins);
+      Set<String> removeAdminsThisDomain = new HashSet<>(removeAdmins);
+      Set<String> addTechsThisDomain = new HashSet<>(addTechs);
+      Set<String> removeTechsThisDomain = new HashSet<>(removeTechs);
+      Set<String> addNameserversThisDomain = new HashSet<>(addNameservers);
+      Set<String> removeNameserversThisDomain = new HashSet<>(removeNameservers);
+      Set<String> addStatusesThisDomain = new HashSet<>(addStatuses);
+      Set<String> removeStatusesThisDomain = new HashSet<>(removeStatuses);
+
       if (!nameservers.isEmpty() || !admins.isEmpty() || !techs.isEmpty() || !statuses.isEmpty()) {
         DateTime now = DateTime.now(UTC);
         DomainResource domainResource = loadByForeignKey(DomainResource.class, domain, now);
-        checkArgument(domainResource != null, "Domain '%s' does not exist", domain);
+        checkArgumentNotNull(domainResource, "Domain '%s' does not exist", domain);
         checkArgument(
             !domainResource.getStatusValues().contains(SERVER_UPDATE_PROHIBITED),
             "The domain '%s' has status SERVER_UPDATE_PROHIBITED. Verify that you are allowed "
@@ -170,10 +180,14 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
           populateAddRemoveLists(
               ImmutableSet.copyOf(nameservers),
               existingNameservers,
-              addNameservers,
-              removeNameservers);
+              addNameserversThisDomain,
+              removeNameserversThisDomain);
+          int numNameservers =
+              existingNameservers.size()
+                  + addNameserversThisDomain.size()
+                  - removeNameserversThisDomain.size();
           checkArgument(
-              existingNameservers.size() + addNameservers.size() - removeNameservers.size() <= 13,
+              numNameservers <= 13,
               "The resulting nameservers count for domain %s would be more than 13",
               domain);
         }
@@ -185,11 +199,17 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
 
           if (!admins.isEmpty()) {
             populateAddRemoveLists(
-                ImmutableSet.copyOf(admins), existingAdmins, addAdmins, removeAdmins);
+                ImmutableSet.copyOf(admins),
+                existingAdmins,
+                addAdminsThisDomain,
+                removeAdminsThisDomain);
           }
           if (!techs.isEmpty()) {
             populateAddRemoveLists(
-                ImmutableSet.copyOf(techs), existingTechs, addTechs, removeTechs);
+                ImmutableSet.copyOf(techs),
+                existingTechs,
+                addTechsThisDomain,
+                removeTechsThisDomain);
           }
         }
         if (!statuses.isEmpty()) {
@@ -198,21 +218,24 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
             currentStatusValues.add(statusValue.getXmlName());
           }
           populateAddRemoveLists(
-              ImmutableSet.copyOf(statuses), currentStatusValues, addStatuses, removeStatuses);
+              ImmutableSet.copyOf(statuses),
+              currentStatusValues,
+              addStatusesThisDomain,
+              removeStatusesThisDomain);
         }
       }
 
       boolean add =
-          !addNameservers.isEmpty()
-              || !addAdmins.isEmpty()
-              || !addTechs.isEmpty()
-              || !addStatuses.isEmpty();
+          !addNameserversThisDomain.isEmpty()
+              || !addAdminsThisDomain.isEmpty()
+              || !addTechsThisDomain.isEmpty()
+              || !addStatusesThisDomain.isEmpty();
 
       boolean remove =
-          !removeNameservers.isEmpty()
-              || !removeAdmins.isEmpty()
-              || !removeTechs.isEmpty()
-              || !removeStatuses.isEmpty();
+          !removeNameserversThisDomain.isEmpty()
+              || !removeAdminsThisDomain.isEmpty()
+              || !removeTechsThisDomain.isEmpty()
+              || !removeStatusesThisDomain.isEmpty();
 
       boolean change = registrant != null || password != null;
 
@@ -233,15 +256,15 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
           new SoyMapData(
               "domain", domain,
               "add", add,
-              "addNameservers", addNameservers,
-              "addAdmins", addAdmins,
-              "addTechs", addTechs,
-              "addStatuses", addStatuses,
+              "addNameservers", addNameserversThisDomain,
+              "addAdmins", addAdminsThisDomain,
+              "addTechs", addTechsThisDomain,
+              "addStatuses", addStatusesThisDomain,
               "remove", remove,
-              "removeNameservers", removeNameservers,
-              "removeAdmins", removeAdmins,
-              "removeTechs", removeTechs,
-              "removeStatuses", removeStatuses,
+              "removeNameservers", removeNameserversThisDomain,
+              "removeAdmins", removeAdminsThisDomain,
+              "removeTechs", removeTechsThisDomain,
+              "removeStatuses", removeStatusesThisDomain,
               "change", change,
               "registrant", registrant,
               "password", password,
@@ -253,9 +276,9 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
   }
 
   protected void populateAddRemoveLists(
-      Set<String> targetSet, Set<String> oldSet, List<String> addList, List<String> removeList) {
-    addList.addAll(Sets.difference(targetSet, oldSet));
-    removeList.addAll(Sets.difference(oldSet, targetSet));
+      Set<String> targetSet, Set<String> oldSet, Set<String> addSet, Set<String> removeSet) {
+    addSet.addAll(Sets.difference(targetSet, oldSet));
+    removeSet.addAll(Sets.difference(oldSet, targetSet));
   }
 
   ImmutableSet<String> getContactsOfType(
