@@ -25,7 +25,7 @@ sh_binary(
     data = [
         "bindings.xjb",
         "//java/google/registry/xml:xml_schema_files",
-        "@com_sun_xml_bind_jaxb_xjc//:XJCFacade",
+        "//third_party/jaxb:jaxb-xjc",
     ],
 )
 
@@ -38,7 +38,7 @@ genrule(
     outs = xjc_generated_files,
     cmd = " && ".join([
         "REP=$$(pwd)",
-        "XJC=$$REP/$(location @com_sun_xml_bind_jaxb_xjc//:XJCFacade)",
+        "XJC=$$REP/$(location //third_party/jaxb:jaxb-xjc)",
         "OUT=$$REP/$(GENDIR)/java",
         "TMP=$$(mktemp -d $${TMPDIR:-/tmp}/jaxb.XXXXXXXXXX)",
         "mkdir -p $$OUT",
@@ -52,7 +52,7 @@ genrule(
         "cd $$REP",
         "rm -rf $$TMP",
     ]),
-    tools = ["@com_sun_xml_bind_jaxb_xjc//:XJCFacade"],
+    tools = ["//third_party/jaxb:jaxb-xjc"],
 )
 
 sh_binary(
