@@ -125,7 +125,21 @@ public class InvoicingPipelineTest {
             1,
             "USD",
             20.5,
-            ""));
+            ""),
+        BillingEvent.create(
+            1,
+            ZonedDateTime.of(2017, 10, 4, 0, 0, 0, 0, ZoneId.of("UTC")),
+            ZonedDateTime.of(2017, 10, 4, 0, 0, 0, 0, ZoneId.of("UTC")),
+            "anotherRegistrar",
+            "789",
+            "test",
+            "CREATE",
+            "mydomain5.test",
+            "REPO-ID",
+            1,
+            "USD",
+            0,
+            "SUNRISE ANCHOR_TENANT"));
   }
 
   /** Returns a map from filename to expected contents for detail reports. */
@@ -144,7 +158,11 @@ public class InvoicingPipelineTest {
         "invoice_details_2017-10_googledomains_test.csv",
         ImmutableList.of(
             "1,2017-10-04 00:00:00 UTC,2017-10-04 00:00:00 UTC,googledomains,456,"
-                + "test,RENEW,mydomain4.test,REPO-ID,1,USD,20.50,"));
+                + "test,RENEW,mydomain4.test,REPO-ID,1,USD,20.50,"),
+        "invoice_details_2017-10_anotherRegistrar_test.csv",
+        ImmutableList.of(
+            "1,2017-10-04 00:00:00 UTC,2017-10-04 00:00:00 UTC,anotherRegistrar,789,"
+                + "test,CREATE,mydomain5.test,REPO-ID,1,USD,0.00,SUNRISE ANCHOR_TENANT"));
   }
 
   private ImmutableList<String> getExpectedInvoiceOutput() {
@@ -154,7 +172,9 @@ public class InvoicingPipelineTest {
         "2017-10-01,2022-09-30,234,70.75,JPY,10125,1,PURCHASE,theRegistrar - hello,1,"
             + "CREATE | TLD: hello | TERM: 5-year,70.75,JPY,",
         "2017-10-01,2018-09-30,456,20.50,USD,10125,1,PURCHASE,googledomains - test,1,"
-            + "RENEW | TLD: test | TERM: 1-year,20.50,USD,");
+            + "RENEW | TLD: test | TERM: 1-year,20.50,USD,",
+        "2017-10-01,2018-09-30,789,0.00,USD,10125,1,PURCHASE,anotherRegistrar - test,1,"
+            + "CREATE | TLD: test | TERM: 1-year,0.00,USD,");
   }
 
   @Test

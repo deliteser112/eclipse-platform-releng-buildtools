@@ -100,6 +100,22 @@ public class BillingEventTest {
   }
 
   @Test
+  public void testParseBillingEventFromRecord_sunriseCreate_reducedPrice_success() {
+    schemaAndRecord.getRecord().put("flags", "SUNRISE");
+    BillingEvent event = BillingEvent.parseFromRecord(schemaAndRecord);
+    assertThat(event.amount()).isEqualTo(17.43);
+    assertThat(event.flags()).isEqualTo("SUNRISE");
+  }
+
+  @Test
+  public void testParseBillingEventFromRecord_anchorTenant_zeroPrice_success() {
+    schemaAndRecord.getRecord().put("flags", "SUNRISE ANCHOR_TENANT");
+    BillingEvent event = BillingEvent.parseFromRecord(schemaAndRecord);
+    assertThat(event.amount()).isZero();
+    assertThat(event.flags()).isEqualTo("SUNRISE ANCHOR_TENANT");
+  }
+
+  @Test
   public void testParseBillingEventFromRecord_nullValue_throwsException() {
     schemaAndRecord.getRecord().put("tld", null);
     assertThrows(IllegalStateException.class, () -> BillingEvent.parseFromRecord(schemaAndRecord));

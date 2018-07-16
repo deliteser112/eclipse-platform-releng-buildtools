@@ -10,6 +10,7 @@ java_library(
     resources = glob(["sql/*"]),
     deps = [
         "//java/google/registry/config",
+        "//java/google/registry/model",
         "//java/google/registry/reporting/billing",
         "//java/google/registry/util",
         "@com_google_apis_google_api_services_bigquery",

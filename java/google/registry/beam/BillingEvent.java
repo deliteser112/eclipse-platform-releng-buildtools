@@ -19,11 +19,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
+import google.registry.model.billing.BillingEvent.Flag;
 import google.registry.reporting.billing.BillingModule;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -51,6 +53,9 @@ public abstract class BillingEvent implements Serializable {
   private static final DateTimeFormatter DATE_TIME_FORMATTER =
       DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss zzz");
 
+
+  /** The amount we multiply the price for sunrise creates. This is currently a 15% discount. */
+  private static final double SUNRISE_DISCOUNT_PRICE_MODIFIER = 0.85;
 
   private static final ImmutableList<String> FIELD_NAMES =
       ImmutableList.of(
@@ -105,6 +110,8 @@ public abstract class BillingEvent implements Serializable {
   static BillingEvent parseFromRecord(SchemaAndRecord schemaAndRecord) {
     checkFieldsNotNull(schemaAndRecord);
     GenericRecord record = schemaAndRecord.getRecord();
+    String flags = extractField(record, "flags");
+    double amount = getDiscountedAmount(Double.parseDouble(extractField(record, "amount")), flags);
     return create(
         // We need to chain parsers off extractField because GenericRecord only returns
         // Objects, which contain a string representation of their underlying types.
@@ -122,8 +129,30 @@ public abstract class BillingEvent implements Serializable {
         extractField(record, "repositoryId"),
         Integer.parseInt(extractField(record, "years")),
         extractField(record, "currency"),
-        Double.parseDouble(extractField(record, "amount")),
-        extractField(record, "flags"));
+        amount,
+        flags);
+  }
+
+  /**
+   * Applies a discount to sunrise creates and anchor tenant creates if applicable.
+   *
+   * Currently sunrise creates are discounted 15% and anchor tenant creates are free for 2 years.
+   * All anchor tenant creates are enforced to be 2 years in
+   * {@link google.registry.flows.domain.DomainCreateFlow#verifyAnchorTenantValidPeriod}.
+   */
+  private static double getDiscountedAmount(double amount, String flags) {
+    // Apply a configurable discount to sunrise creates.
+    if (flags.contains(Flag.SUNRISE.name())) {
+      amount =
+          Double.parseDouble(
+              new DecimalFormat("#.##").format(amount * SUNRISE_DISCOUNT_PRICE_MODIFIER));
+    }
+    // Anchor tenant creates are free for the initial create. This is enforced to be a 2 year period
+    // upon domain create.
+    if (flags.contains(Flag.ANCHOR_TENANT.name())) {
+      amount = 0;
+    }
+    return amount;
   }
 
   /**
