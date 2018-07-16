@@ -8,9 +8,10 @@
   <threadsafe>true</threadsafe>
   <sessions-enabled>true</sessions-enabled>
   <instance-class>B4_1G</instance-class>
-  <manual-scaling>
-    <instances>20</instances>
-  </manual-scaling>
+  <basic-scaling>
+    <max-instances>100</max-instances>
+    <idle-timeout>30m</idle-timeout>
+  </basic-scaling>
 
   <system-properties>
     <property name="java.util.logging.config.file"
