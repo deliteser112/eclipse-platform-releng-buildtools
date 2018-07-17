@@ -17,11 +17,15 @@ package google.registry.flows.domain;
 import static com.google.common.io.BaseEncoding.base16;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
+import static google.registry.flows.FlowTestCase.UserPrivileges.SUPERUSER;
+import static google.registry.model.billing.BillingEvent.Flag.ANCHOR_TENANT;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
 import static google.registry.model.eppcommon.StatusValue.OK;
 import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIBITED;
 import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABILITY;
+import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.pricing.PricingEngineProxy.isDomainPremium;
 import static google.registry.testing.DatastoreHelper.assertBillingEvents;
 import static google.registry.testing.DatastoreHelper.assertPollMessagesForResource;
@@ -216,7 +220,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
         Money.of(
             Registry.get(domainTld).getCurrency(),
             Registry.get(domainTld).getEapFeeFor(clock.nowUtc()).getCost());
-    boolean isAnchorTenant = expectedBillingFlags.contains(Flag.ANCHOR_TENANT);
+    boolean isAnchorTenant = expectedBillingFlags.contains(ANCHOR_TENANT);
     DateTime billingTime =
         isAnchorTenant
             ? clock.nowUtc().plus(Registry.get(domainTld).getAnchorTenantAddGracePeriodLength())
@@ -339,11 +343,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   private void doSuccessfulTest(
-      String domainTld, String responseXmlFile, UserPrivileges userPrivileges) throws Exception {
-    doSuccessfulTest(domainTld, responseXmlFile, userPrivileges, ImmutableMap.of());
-  }
-
-  private void doSuccessfulTest(
       String domainTld,
       String responseXmlFile,
       UserPrivileges userPrivileges,
@@ -362,12 +361,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     doSuccessfulTest(domainTld, responseXmlFile, UserPrivileges.NORMAL, substitutions);
   }
 
-  private void doSuccessfulTest(String domainTld, String responseXmlFile) throws Exception {
-    doSuccessfulTest(domainTld, responseXmlFile, UserPrivileges.NORMAL);
-  }
-
   private void doSuccessfulTest(String domainTld) throws Exception {
-    doSuccessfulTest(domainTld, "domain_create_response.xml");
+    doSuccessfulTest(
+        domainTld, "domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   private void doSuccessfulTest() throws Exception {
@@ -377,7 +373,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testDryRun() throws Exception {
     persistContactsAndHosts();
-    dryRunFlowAssertResponse(loadFile("domain_create_response.xml"));
+    dryRunFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
   }
 
   @Test
@@ -397,7 +394,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_clTridNotSpecified() throws Exception {
     setEppInput("domain_create_no_cltrid.xml");
     persistContactsAndHosts();
-    doSuccessfulTest("tld", "domain_create_response_no_cltrid.xml");
+    doSuccessfulTest(
+        "tld", "domain_create_response_no_cltrid.xml", ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   @Test
@@ -445,7 +443,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     assertTransactionalFlow(true);
     String expectedResponseXml =
         loadFile(
-            "domain_create_response_wildcard.xml", ImmutableMap.of("DOMAIN", "example.foo.tld"));
+            "domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.foo.tld"));
     runFlowAssertResponse(CommitMode.LIVE, UserPrivileges.NORMAL, expectedResponseXml);
     assertSuccessfulCreate("foo.tld", ImmutableSet.of());
     assertNoLordn();
@@ -474,8 +472,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     eppRequestSource = EppRequestSource.TOOL;
     setEppInput("domain_create_anchor_tenant.xml");
     persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT));
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertNoLordn();
   }
 
@@ -495,7 +494,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                 .build());
     setEppInput("domain_create_lrp.xml");
     persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response.xml"));
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
     assertSuccessfulCreate("tld", ImmutableSet.of());
     assertNoLordn();
     assertThat(ofy().load().entity(token).now().getRedemptionHistoryEntry()).isNotNull();
@@ -520,7 +520,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                 .build());
     setEppInput("domain_create_lrp.xml");
     persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response.xml"));
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
     assertSuccessfulCreate("tld", ImmutableSet.of());
     assertNoLordn();
     assertThat(ofy().load().entity(token).now().getRedemptionHistoryEntry()).isNull();
@@ -539,7 +540,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_generalAvailability_withEncodedSignedMark() {
-    createTld("tld", TldState.GENERAL_AVAILABILITY);
+    createTld("tld", GENERAL_AVAILABILITY);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput(
         "domain_create_registration_encoded_signed_mark.xml",
@@ -552,7 +553,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_generalAvailability_superuserMismatchedEncodedSignedMark() {
-    createTld("tld", TldState.GENERAL_AVAILABILITY);
+    createTld("tld", GENERAL_AVAILABILITY);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput(
         "domain_create_registration_encoded_signed_mark.xml",
@@ -746,7 +747,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistResource(Registry.get("example").asBuilder().setPremiumPriceAckRequired(false).build());
     setEppInput("domain_create_premium.xml");
     persistContactsAndHosts("net");
-    doSuccessfulTest("example", "domain_create_response_premium.xml");
+    doSuccessfulTest(
+        "example", "domain_create_response_premium.xml", ImmutableMap.of("DOMAIN", "rich.example"));
   }
 
   @Test
@@ -767,7 +769,10 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                     clock.nowUtc().plusDays(1),
                     Money.of(USD, 0)))
             .build());
-    doSuccessfulTest("example", "domain_create_response_premium_eap.xml");
+    doSuccessfulTest(
+        "example",
+        "domain_create_response_premium_eap.xml",
+        ImmutableMap.of("DOMAIN", "rich.example"));
   }
 
   /**
@@ -842,7 +847,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_noNameserversOrDsData() throws Exception {
     setEppInput("domain_create_no_hosts_or_dsdata.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response.xml"));
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
     assertNoDnsTasksEnqueued();
   }
 
@@ -851,7 +857,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_missing_period.xml");
     persistContactsAndHosts();
     runFlowAssertResponse(
-        loadFile("domain_create_response.xml"),
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")),
         "epp.response.resData.creData.exDate"); // Ignore expiration date; we verify it below
     assertAboutDomains()
         .that(reloadResourceByForeignKey())
@@ -883,7 +889,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     persistClaimsList(ImmutableMap.of("example", CLAIMS_KEY));
     persistContactsAndHosts();
     persistResource(Registry.get("tld").asBuilder().setClaimsPeriodEnd(clock.nowUtc()).build());
-    runFlowAssertResponse(loadFile("domain_create_response.xml"));
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
     assertSuccessfulCreate("tld", ImmutableSet.of());
     assertDnsTasksEnqueued("example.tld");
   }
@@ -1088,8 +1095,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_anchor_authcode.xml");
     persistContactsAndHosts();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_create_anchor_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT));
+        CommitMode.LIVE, SUPERUSER, loadFile("domain_create_anchor_response.xml"));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     // Token should not be marked as used, since interpreting the authcode as anchor tenant should
     // take precedence.
     assertThat(ofy().load().entity(token).now().getRedemptionHistoryEntry()).isNull();
@@ -1100,7 +1107,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_anchor_authcode.xml");
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_anchor_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertNoLordn();
   }
 
@@ -1114,7 +1121,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_anchor_authcode.xml");
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_anchor_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertNoLordn();
   }
 
@@ -1128,8 +1135,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     eppRequestSource = EppRequestSource.TOOL;
     setEppInput("domain_create_anchor_tenant.xml");
     persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT));
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertNoLordn();
   }
 
@@ -1146,7 +1154,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertDnsTasksEnqueued("example-one.tld");
     assertClaimsLordn();
   }
@@ -1156,7 +1164,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_reserved.xml");
     persistContactsAndHosts();
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_create_reserved_response.xml"));
+        CommitMode.LIVE, SUPERUSER, loadFile("domain_create_reserved_response.xml"));
     assertSuccessfulCreate("tld", ImmutableSet.of());
   }
 
@@ -1199,7 +1207,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_superuserOpenApplication() throws Exception {
     persistContactsAndHosts();
     persistActiveDomainApplication(getUniqueIdFromCommand());
-    doSuccessfulTest("tld", "domain_create_response.xml", UserPrivileges.SUPERUSER);
+    doSuccessfulTest(
+        "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   @Test
@@ -1286,7 +1295,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_startDateSunrise_missingLaunchExtension() {
-    createTld("tld", TldState.START_DATE_SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     persistContactsAndHosts();
     EppException thrown =
         assertThrows(MustHaveSignedMarksInCurrentPhaseException.class, this::runFlow);
@@ -1306,28 +1315,32 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_superuserPredelegation() throws Exception {
     createTld("tld", TldState.PREDELEGATION);
     persistContactsAndHosts();
-    doSuccessfulTest("tld", "domain_create_response.xml", UserPrivileges.SUPERUSER);
+    doSuccessfulTest(
+        "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   @Test
   public void testSuccess_superuserSunrush() throws Exception {
     createTld("tld", TldState.SUNRUSH);
     persistContactsAndHosts();
-    doSuccessfulTest("tld", "domain_create_response.xml", UserPrivileges.SUPERUSER);
+    doSuccessfulTest(
+        "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   @Test
   public void testSuccess_superuserStartDateSunrise_isSuperuser() throws Exception {
-    createTld("tld", TldState.START_DATE_SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     persistContactsAndHosts();
-    doSuccessfulTest("tld", "domain_create_response.xml", UserPrivileges.SUPERUSER);
+    doSuccessfulTest(
+        "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   @Test
   public void testSuccess_superuserQuietPeriod() throws Exception {
     createTld("tld", TldState.QUIET_PERIOD);
     persistContactsAndHosts();
-    doSuccessfulTest("tld", "domain_create_response.xml", UserPrivileges.SUPERUSER);
+    doSuccessfulTest(
+        "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   @Test
@@ -1339,7 +1352,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     // Modify the Registrar to block premium names.
     persistResource(loadRegistrar("TheRegistrar").asBuilder().setBlockPremiumNames(true).build());
     runFlowAssertResponse(
-        CommitMode.LIVE, UserPrivileges.SUPERUSER, loadFile("domain_create_response_premium.xml"));
+        CommitMode.LIVE, SUPERUSER, loadFile("domain_create_response_premium.xml"));
     assertSuccessfulCreate("example", ImmutableSet.of());
   }
 
@@ -1352,7 +1365,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     runFlowAssertResponse(
         CommitMode.LIVE,
         UserPrivileges.NORMAL,
-        loadFile("domain_create_response_wildcard.xml", substitutions));
+        loadFile("domain_create_response.xml", substitutions));
     DomainResource domain = reloadResourceByForeignKey();
     HistoryEntry historyEntry = getHistoryEntries(domain).get(0);
     assertPollMessagesForResource(
@@ -1719,7 +1732,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.SUNRISE);
     setEppInput("domain_create_registration_sunrise.xml");
     persistContactsAndHosts();
-    doSuccessfulTest("tld", "domain_create_response.xml", UserPrivileges.SUPERUSER);
+    doSuccessfulTest(
+        "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   @Test
@@ -1728,8 +1742,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_registration_qlp_sunrise.xml");
     eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT));
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertNoLordn();
   }
 
@@ -1741,7 +1756,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_response_encoded_signed_mark_name.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT, Flag.SUNRISE));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT, Flag.SUNRISE));
     assertSunriseLordn();
   }
 
@@ -1753,13 +1768,13 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertClaimsLordn();
   }
 
   @Test
   public void testFailure_startDateSunriseRegistration_missingSignedMark() {
-    createTld("tld", TldState.START_DATE_SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     setEppInput("domain_create_registration_sunrise.xml");
     persistContactsAndHosts();
     EppException thrown =
@@ -1769,26 +1784,28 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_superuserStartDateSunriseRegistration_isSuperuser() throws Exception {
-    createTld("tld", TldState.START_DATE_SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     setEppInput("domain_create_registration_sunrise.xml");
     persistContactsAndHosts();
-    doSuccessfulTest("tld", "domain_create_response.xml", UserPrivileges.SUPERUSER);
+    doSuccessfulTest(
+        "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   @Test
   public void testSuccess_qlpRegistrationSunriseRegistration() throws Exception {
-    createTld("tld", TldState.START_DATE_SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     setEppInput("domain_create_registration_qlp_start_date_sunrise.xml");
     eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT));
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertNoLordn();
   }
 
   @Test
   public void testSuccess_startDateSunriseRegistration_withEncodedSignedMark() throws Exception {
-    createTld("tld", TldState.START_DATE_SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput(
         "domain_create_registration_encoded_signed_mark.xml",
@@ -1808,7 +1825,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testSuccess_startDateSunriseRegistration_withEncodedSignedMark_noType()
       throws Exception {
-    createTld("tld", TldState.START_DATE_SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput("domain_create_sunrise_encoded_signed_mark_no_type.xml");
     persistContactsAndHosts();
@@ -1834,7 +1851,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFail_startDateSunriseRegistration_wrongEncodedSignedMark() {
-    createTld("tld", TldState.START_DATE_SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput(
         "domain_create_registration_encoded_signed_mark.xml",
@@ -1846,7 +1863,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFail_startDateSunriseRegistration_markNotYetValid() {
-    createTld("tld", TldState.START_DATE_SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     // If we move now back in time a bit, the mark will not have gone into effect yet.
     clock.setTo(DateTime.parse("2013-08-09T10:05:59Z").minusSeconds(1));
     setEppInput(
@@ -1859,7 +1876,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFail_startDateSunriseRegistration_markExpired() {
-    createTld("tld", TldState.START_DATE_SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     // Move time forward to the mark expiration time.
     clock.setTo(DateTime.parse("2017-07-23T22:00:00.000Z"));
     setEppInput(
@@ -1872,7 +1889,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_startDateSunriseRegistration_withClaimsNotice() {
-    createTld("tld", TldState.START_DATE_SUNRISE);
+    createTld("tld", START_DATE_SUNRISE);
     clock.setTo(DateTime.parse("2009-08-16T09:00:00.0Z"));
     setEppInput("domain_create_registration_start_date_sunrise_claims_notice.xml");
     persistContactsAndHosts();
@@ -1909,7 +1926,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.SUNRUSH);
     setEppInput("domain_create_registration_sunrush.xml");
     persistContactsAndHosts();
-    doSuccessfulTest("tld", "domain_create_response.xml", UserPrivileges.SUPERUSER);
+    doSuccessfulTest(
+        "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   @Test
@@ -1918,8 +1936,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_registration_qlp_sunrush.xml");
     eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT));
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertNoLordn();
   }
 
@@ -1931,7 +1950,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_response_encoded_signed_mark_name.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT, Flag.SUNRISE));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT, Flag.SUNRISE));
     assertSunriseLordn();
   }
 
@@ -1943,7 +1962,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertClaimsLordn();
   }
 
@@ -1962,7 +1981,8 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     createTld("tld", TldState.LANDRUSH);
     setEppInput("domain_create_registration_landrush.xml");
     persistContactsAndHosts();
-    doSuccessfulTest("tld", "domain_create_response.xml", UserPrivileges.SUPERUSER);
+    doSuccessfulTest(
+        "tld", "domain_create_response.xml", SUPERUSER, ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   @Test
@@ -1971,8 +1991,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_registration_qlp_landrush.xml");
     eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT));
+    runFlowAssertResponse(
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld")));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertNoLordn();
   }
 
@@ -1996,7 +2017,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_response_claims.xml"));
-    assertSuccessfulCreate("tld", ImmutableSet.of(Flag.ANCHOR_TENANT));
+    assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT));
     assertClaimsLordn();
   }
 
@@ -2559,7 +2580,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                     clock.nowUtc().plusDays(2),
                     Money.of(USD, 0)))
             .build());
-    doSuccessfulTest("tld", "domain_create_response.xml");
+    doSuccessfulTest("tld", "domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   @Test
@@ -2577,7 +2598,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                     clock.nowUtc().minusDays(1),
                     Money.of(USD, 0)))
             .build());
-    doSuccessfulTest("tld", "domain_create_response.xml");
+    doSuccessfulTest("tld", "domain_create_response.xml", ImmutableMap.of("DOMAIN", "example.tld"));
   }
 
   @Test
