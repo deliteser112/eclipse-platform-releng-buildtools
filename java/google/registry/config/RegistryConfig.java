@@ -510,7 +510,7 @@ public final class RegistryConfig {
      * Returns the URL of the GCS location for storing the monthly invoicing Beam template.
      *
      * @see google.registry.reporting.billing.GenerateInvoicesAction
-     * @see google.registry.beam.InvoicingPipeline
+     * @see google.registry.beam.invoicing.InvoicingPipeline
      */
     @Provides
     @Config("invoiceTemplateUrl")
@@ -522,7 +522,7 @@ public final class RegistryConfig {
     /**
      * Returns the URL of the GCS location we store jar dependencies for the invoicing pipeline.
      *
-     * @see google.registry.beam.InvoicingPipeline
+     * @see google.registry.beam.invoicing.InvoicingPipeline
      */
     @Provides
     @Config("invoiceStagingUrl")
@@ -580,7 +580,7 @@ public final class RegistryConfig {
     /**
      * Returns the URL of the GCS bucket we store invoices and detail reports in.
      *
-     * @see google.registry.beam.InvoicingPipeline
+     * @see google.registry.beam.invoicing.InvoicingPipeline
      */
     @Provides
     @Config("billingBucketUrl")

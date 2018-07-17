@@ -15,10 +15,10 @@
 package google.registry.tools;
 
 import com.beust.jcommander.Parameters;
-import google.registry.beam.InvoicingPipeline;
+import google.registry.beam.invoicing.InvoicingPipeline;
 import javax.inject.Inject;
 
-/** Nomulus command that deploys the {@link google.registry.beam.InvoicingPipeline} template. */
+/** Nomulus command that deploys the {@link InvoicingPipeline} template. */
 @Parameters(commandDescription = "Deploy the invoicing pipeline to GCS.")
 public class DeployInvoicingPipelineCommand implements Command {
 

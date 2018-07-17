@@ -43,9 +43,9 @@ import org.joda.time.YearMonth;
  * Invokes the {@code InvoicingPipeline} beam template via the REST api, and enqueues the {@link
  * PublishInvoicesAction} to publish the subsequent output.
  *
- * <p>This action runs the {@link google.registry.beam.InvoicingPipeline} beam template, staged at
- * gs://<projectId>-beam/templates/invoicing. The pipeline then generates invoices for the month and
- * stores them on GCS.
+ * <p>This action runs the {@link google.registry.beam.invoicing.InvoicingPipeline} beam template,
+ * staged at gs://<projectId>-beam/templates/invoicing. The pipeline then generates invoices for the
+ * month and stores them on GCS.
  */
 @Action(path = GenerateInvoicesAction.PATH, method = POST, auth = Auth.AUTH_INTERNAL_ONLY)
 public class GenerateInvoicesAction implements Runnable {

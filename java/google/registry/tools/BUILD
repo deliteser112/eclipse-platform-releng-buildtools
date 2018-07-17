@@ -35,7 +35,7 @@ java_library(
     visibility = [":allowed-tools"],
     deps = [
         "//java/google/registry/backup",
-        "//java/google/registry/beam",
+        "//java/google/registry/beam/invoicing",
         "//java/google/registry/bigquery",
         "//java/google/registry/config",
         "//java/google/registry/dns",

@@ -37,7 +37,7 @@ import javax.inject.Inject;
 import org.joda.time.YearMonth;
 
 /**
- * Uploads the results of the {@link google.registry.beam.InvoicingPipeline}.
+ * Uploads the results of the {@link google.registry.beam.invoicing.InvoicingPipeline}.
  *
  * <p>This relies on the retry semantics in {@code queue.xml} to ensure proper upload, in spite of
  * fluctuations in generation timing.
