@@ -166,7 +166,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   private static final String CLAIMS_KEY = "2013041500/2/6/9/rJ1NrDO92vDsAzf7EQzgjX4R0000000001";
 
   public DomainCreateFlowTest() {
-    setEppInput("domain_create.xml");
+    setEppInput("domain_create.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     clock.setTo(DateTime.parse("1999-04-03T22:00:00.0Z").minus(Duration.millis(1)));
   }
 
@@ -454,7 +454,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testFailure_domainNameExistsAsTld_lowercase() {
     createTlds("foo.tld", "tld");
-    setEppInput("domain_create_wildcard.xml", ImmutableMap.of("DOMAIN", "foo.tld"));
+    setEppInput("domain_create.xml", ImmutableMap.of("DOMAIN", "foo.tld"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(DomainNameExistsAsTldException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -463,7 +463,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testFailure_domainNameExistsAsTld_uppercase() {
     createTlds("foo.tld", "tld");
-    setEppInput("domain_create_wildcard.xml", ImmutableMap.of("DOMAIN", "FOO.TLD"));
+    setEppInput("domain_create.xml", ImmutableMap.of("DOMAIN", "FOO.TLD"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(BadDomainNameCharacterException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -840,7 +840,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testSuccess_noNameserversOrDsData() throws Exception {
-    setEppInput("domain_create_no_hosts_or_dsdata.xml");
+    setEppInput("domain_create_no_hosts_or_dsdata.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistContactsAndHosts();
     runFlowAssertResponse(loadFile("domain_create_response.xml"));
     assertNoDnsTasksEnqueued();
@@ -881,7 +881,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testSuccess_noClaimsNotice_forClaimsListName_afterClaimsPeriodEnd() throws Exception {
     persistClaimsList(ImmutableMap.of("example", CLAIMS_KEY));
-    setEppInput("domain_create.xml");
     persistContactsAndHosts();
     persistResource(Registry.get("tld").asBuilder().setClaimsPeriodEnd(clock.nowUtc()).build());
     runFlowAssertResponse(loadFile("domain_create_response.xml"));
@@ -892,7 +891,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   @Test
   public void testFailure_missingClaimsNotice() {
     persistClaimsList(ImmutableMap.of("example", CLAIMS_KEY));
-    setEppInput("domain_create.xml");
     persistContactsAndHosts();
     EppException thrown = assertThrows(MissingClaimsNoticeException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1349,7 +1347,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   public void testSuccess_customLogicIsCalled_andSavesExtraEntity() throws Exception {
     // @see TestDomainCreateFlowCustomLogic for what the label "custom-logic-test" triggers.
     ImmutableMap<String, String> substitutions = ImmutableMap.of("DOMAIN", "custom-logic-test.tld");
-    setEppInput("domain_create_wildcard.xml", substitutions);
+    setEppInput("domain_create.xml", substitutions);
     persistContactsAndHosts();
     runFlowAssertResponse(
         CommitMode.LIVE,
@@ -1619,7 +1617,6 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_suspendedRegistrarCantCreateDomain() {
-    setEppInput("domain_create.xml");
     persistContactsAndHosts();
     persistResource(
         Registrar.loadByClientId("TheRegistrar")
@@ -2032,7 +2029,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_emptyNameserverFailsWhitelist() {
-    setEppInput("domain_create_no_hosts_or_dsdata.xml");
+    setEppInput("domain_create_no_hosts_or_dsdata.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistResource(
         Registry.get("tld")
             .asBuilder()
@@ -2075,7 +2072,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
 
   @Test
   public void testFailure_domainNameserverRestricted_noNameservers() {
-    setEppInput("domain_create_no_hosts_or_dsdata.xml");
+    setEppInput("domain_create_no_hosts_or_dsdata.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     persistContactsAndHosts();
     persistResource(
         Registry.get("tld")

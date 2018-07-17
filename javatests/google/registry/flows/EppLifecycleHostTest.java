@@ -165,7 +165,8 @@ public class EppLifecycleHostTest extends EppTestCase {
 
     // Create domain example.bar.foo.tld
     assertThatCommand(
-            "domain_create_wildcard.xml", ImmutableMap.of("HOSTNAME", "example.bar.foo.tld"))
+            "domain_create_no_hosts_or_dsdata.xml",
+            ImmutableMap.of("DOMAIN", "example.bar.foo.tld"))
         .atTime("2000-06-01T00:02:00.000Z")
         .hasResponse(
             "domain_create_response.xml",
@@ -175,7 +176,8 @@ public class EppLifecycleHostTest extends EppTestCase {
                 "EXDATE", "2002-06-01T00:02:00Z"));
 
     // Create domain example.foo.tld
-    assertThatCommand("domain_create_wildcard.xml", ImmutableMap.of("HOSTNAME", "example.foo.tld"))
+    assertThatCommand(
+            "domain_create_no_hosts_or_dsdata.xml", ImmutableMap.of("DOMAIN", "example.foo.tld"))
         .atTime("2000-06-01T00:02:00.001Z")
         .hasResponse(
             "domain_create_response.xml",
@@ -185,7 +187,8 @@ public class EppLifecycleHostTest extends EppTestCase {
                 "EXDATE", "2002-06-01T00:02:00Z"));
 
     // Create domain example.tld
-    assertThatCommand("domain_create_wildcard.xml", ImmutableMap.of("HOSTNAME", "example.tld"))
+    assertThatCommand(
+            "domain_create_no_hosts_or_dsdata.xml", ImmutableMap.of("DOMAIN", "example.tld"))
         .atTime("2000-06-01T00:02:00.002Z")
         .hasResponse(
             "domain_create_response.xml",

@@ -101,7 +101,7 @@ public class EppCommitLogsTest extends ShardableTestCase {
     clock.advanceBy(standardDays(1));
     DateTime timeAtCreate = clock.nowUtc();
     clock.setTo(timeAtCreate);
-    eppLoader = new EppLoader(this, "domain_create.xml");
+    eppLoader = new EppLoader(this, "domain_create.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     runFlow();
     ofy().clearSessionCache();
     Key<DomainResource> key = Key.create(ofy().load().type(DomainResource.class).first().now());
