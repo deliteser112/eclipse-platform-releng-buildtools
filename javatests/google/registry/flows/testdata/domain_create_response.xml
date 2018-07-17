@@ -6,7 +6,7 @@
     <resData>
       <domain:creData
        xmlns:domain="urn:ietf:params:xml:ns:domain-1.0">
-        <domain:name>%NAME%</domain:name>
+        <domain:name>%DOMAIN%</domain:name>
         <domain:crDate>%CRDATE%</domain:crDate>
         <domain:exDate>%EXDATE%</domain:exDate>
       </domain:creData>

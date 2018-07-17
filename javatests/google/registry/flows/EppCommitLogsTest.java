@@ -125,8 +125,8 @@ public class EppCommitLogsTest extends ShardableTestCase {
     DomainResource domainAfterSecondUpdate = ofy().load().key(key).now();
 
     clock.advanceBy(standardDays(2));
-    DateTime timeAtDelete = clock.nowUtc();  // before 'add' grace period ends
-    eppLoader = new EppLoader(this, "domain_delete.xml", ImmutableMap.of("NAME", "example.tld"));
+    DateTime timeAtDelete = clock.nowUtc(); // before 'add' grace period ends
+    eppLoader = new EppLoader(this, "domain_delete.xml", ImmutableMap.of("DOMAIN", "example.tld"));
     runFlow();
     ofy().clearSessionCache();
 

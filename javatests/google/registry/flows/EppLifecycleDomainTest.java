@@ -108,7 +108,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "fakesite.example",
+                "DOMAIN", "fakesite.example",
                 "CRDATE", "2000-06-01T00:04:00.0Z",
                 "EXDATE", "2002-06-01T00:04:00.0Z"));
     assertThatCommand("domain_info_fakesite.xml")
@@ -148,12 +148,12 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "example.tld",
+                "DOMAIN", "example.tld",
                 "CRDATE", "2000-06-01T00:02:00.0Z",
                 "EXDATE", "2002-06-01T00:02:00.0Z"));
 
     // Delete domain example.tld after its add grace period has expired.
-    assertThatCommand("domain_delete.xml", ImmutableMap.of("NAME", "example.tld"))
+    assertThatCommand("domain_delete.xml", ImmutableMap.of("DOMAIN", "example.tld"))
         .atTime("2000-07-01T00:02:00Z")
         .hasResponse("generic_success_action_pending_response.xml");
 
@@ -178,7 +178,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "example.tld",
+                "DOMAIN", "example.tld",
                 "CRDATE", "2000-06-01T00:02:00.0Z",
                 "EXDATE", "2002-06-01T00:02:00.0Z"));
 
@@ -187,12 +187,12 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
     // Delete domain example.tld within the add grace period.
     DateTime deleteTime = createTime.plusDays(1);
-    assertThatCommand("domain_delete.xml", ImmutableMap.of("NAME", "example.tld"))
+    assertThatCommand("domain_delete.xml", ImmutableMap.of("DOMAIN", "example.tld"))
         .atTime(deleteTime)
         .hasResponse("generic_success_response.xml");
 
     // Verify that it is immediately non-existent.
-    assertThatCommand("domain_info.xml")
+    assertThatCommand("domain_info.xml", ImmutableMap.of("DOMAIN", "example.tld"))
         .atTime(deleteTime.plusSeconds(1))
         .hasResponse(
             "response_error.xml",
@@ -227,30 +227,30 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "example.tld",
+                "DOMAIN", "example.tld",
                 "CRDATE", "2000-06-01T00:02:00.0Z",
                 "EXDATE", "2002-06-01T00:02:00.0Z"));
 
     DateTime deleteTime = DateTime.parse("2000-07-07T00:02:00Z"); // 1 month and 6 days after
     // Delete domain example.tld after its add grace period has expired.
-    assertThatCommand("domain_delete.xml", ImmutableMap.of("NAME", "example.tld"))
+    assertThatCommand("domain_delete.xml", ImmutableMap.of("DOMAIN", "example.tld"))
         .atTime(deleteTime)
         .hasResponse("generic_success_action_pending_response.xml");
 
     // Verify that domain shows redemptionPeriod soon after deletion.
-    assertThatCommand("domain_info.xml")
+    assertThatCommand("domain_info.xml", ImmutableMap.of("DOMAIN", "example.tld"))
         .atTime("2000-07-08T00:00:00Z")
         .hasResponse(
             "domain_info_response_wildcard.xml", ImmutableMap.of("STATUS", "redemptionPeriod"));
 
     // Verify that the domain shows pendingDelete next.
-    assertThatCommand("domain_info.xml")
+    assertThatCommand("domain_info.xml", ImmutableMap.of("DOMAIN", "example.tld"))
         .atTime("2000-08-08T00:00:00Z")
         .hasResponse(
             "domain_info_response_wildcard.xml", ImmutableMap.of("STATUS", "pendingDelete"));
 
     // Verify that the domain is non-existent (available for registration) later.
-    assertThatCommand("domain_info.xml")
+    assertThatCommand("domain_info.xml", ImmutableMap.of("DOMAIN", "example.tld"))
         .atTime("2000-09-01T00:00:00Z")
         .hasResponse(
             "response_error.xml",
@@ -297,7 +297,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
     // Delete domain example.tld within the add grade period.
     DateTime deleteTime = createTime.plusDays(1);
-    assertThatCommand("domain_delete.xml", ImmutableMap.of("NAME", "example.tld"))
+    assertThatCommand("domain_delete.xml", ImmutableMap.of("DOMAIN", "example.tld"))
         .atTime(deleteTime)
         .hasResponse("domain_delete_response_fee.xml");
 
@@ -409,7 +409,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     assertThatLoginSucceeds("NewRegistrar", "foo-BAR2");
     createFakesite();
     createSubordinateHost();
-    assertThatCommand("domain_delete.xml", ImmutableMap.of("NAME", "fakesite.example"))
+    assertThatCommand("domain_delete.xml", ImmutableMap.of("DOMAIN", "fakesite.example"))
         .atTime("2002-05-30T01:01:00Z")
         .hasResponse(
             "response_error.xml",
@@ -444,7 +444,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .and()
         .hasStatus(SUCCESS);
     // Delete the fakesite.example domain (which should succeed since it no longer has subords).
-    assertThatCommand("domain_delete.xml", ImmutableMap.of("NAME", "fakesite.example"))
+    assertThatCommand("domain_delete.xml", ImmutableMap.of("DOMAIN", "fakesite.example"))
         .atTime("2002-05-30T01:02:00Z")
         .hasResponse("generic_success_action_pending_response.xml");
     assertThat(getRecordedEppMetric())
@@ -490,7 +490,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "example.tld",
+                "DOMAIN", "example.tld",
                 "CRDATE", "2000-06-02T00:00:00.0Z",
                 "EXDATE", "2002-06-02T00:00:00.0Z"));
 
@@ -505,7 +505,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse("generic_success_response.xml");
     // Attempt to delete the fakesite.example domain (which should fail since it now has a
     // subordinate host).
-    assertThatCommand("domain_delete.xml", ImmutableMap.of("NAME", "fakesite.example"))
+    assertThatCommand("domain_delete.xml", ImmutableMap.of("DOMAIN", "fakesite.example"))
         .atTime("2002-05-30T01:02:00Z")
         .hasResponse(
             "response_error.xml",
@@ -792,7 +792,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
     assertThatCommand("domain_info_fakesite.xml")
         .atTime("2002-05-30T01:00:00Z")
         .hasResponse("domain_info_response_fakesite_pending_transfer.xml");
-    assertThatCommand("domain_delete.xml", ImmutableMap.of("NAME", "fakesite.example"))
+    assertThatCommand("domain_delete.xml", ImmutableMap.of("DOMAIN", "fakesite.example"))
         .atTime("2002-05-30T01:01:00Z")
         .hasResponse("generic_success_action_pending_response.xml");
     assertThatCommand("domain_info_fakesite.xml")
@@ -875,7 +875,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "secondsite.example",
+                "DOMAIN", "secondsite.example",
                 "CRDATE", "2001-01-08T00:00:00.0Z",
                 "EXDATE", "2003-01-08T00:00:00.0Z"));
     // Update the host to be subordinate to a different domain by renaming it to
@@ -958,7 +958,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "example.bar.foo.tld",
+                "DOMAIN", "example.bar.foo.tld",
                 "CRDATE", "2000-06-01T00:02:00Z",
                 "EXDATE", "2002-06-01T00:02:00Z"));
 
@@ -969,7 +969,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "example.foo.tld",
+                "DOMAIN", "example.foo.tld",
                 "CRDATE", "2000-06-01T00:02:00Z",
                 "EXDATE", "2002-06-01T00:02:00Z"));
 
@@ -980,7 +980,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "example.tld",
+                "DOMAIN", "example.tld",
                 "CRDATE", "2000-06-01T00:02:00Z",
                 "EXDATE", "2002-06-01T00:02:00Z"));
 
@@ -1001,7 +1001,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "example.tld.foo",
+                "DOMAIN", "example.tld.foo",
                 "CRDATE", "2000-06-01T00:02:00Z",
                 "EXDATE", "2002-06-01T00:02:00Z"));
 
@@ -1012,7 +1012,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "example.tld",
+                "DOMAIN", "example.tld",
                 "CRDATE", "2000-06-01T00:02:00Z",
                 "EXDATE", "2002-06-01T00:02:00Z"));
 
@@ -1071,11 +1071,11 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "test-validate.example",
+                "DOMAIN", "test-validate.example",
                 "CRDATE", "2014-09-09T09:09:09Z",
                 "EXDATE", "2015-09-09T09:09:09Z"));
 
-    assertThatCommand("domain_delete.xml", ImmutableMap.of("NAME", "test-validate.example"))
+    assertThatCommand("domain_delete.xml", ImmutableMap.of("DOMAIN", "test-validate.example"))
         .atTime(sunriseDate.plusDays(1).plusMinutes(1))
         .hasResponse("generic_success_response.xml");
 
@@ -1106,7 +1106,7 @@ public class EppLifecycleDomainTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "general.example",
+                "DOMAIN", "general.example",
                 "CRDATE", "2014-10-10T09:09:09Z",
                 "EXDATE", "2016-10-10T09:09:09Z"));
 
@@ -1139,28 +1139,29 @@ public class EppLifecycleDomainTest extends EppTestCase {
 
     // During start-date sunrise, create with mark will succeed but without will fail.
     // We also test we can delete without a mark.
-    assertThatCommand("domain_info.xml", ImmutableMap.of("NAME", "test-validate.example"))
+    assertThatCommand("domain_info.xml", ImmutableMap.of("DOMAIN", "test-validate.example"))
         .atTime(sunriseDate.plusDays(1))
         .hasResponse(
             "response_error.xml",
             ImmutableMap.of(
-                "CODE", "2303", "MSG", "The domain with given ID (example.tld) doesn't exist."));
+                "CODE", "2303",
+                "MSG", "The domain with given ID (test-validate.example) doesn't exist."));
 
     assertThatCommand("domain_create_start_date_sunrise_encoded_mark_no_type.xml")
         .atTime(sunriseDate.plusDays(1).plusMinutes(1))
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "test-validate.example",
+                "DOMAIN", "test-validate.example",
                 "CRDATE", "2014-09-09T09:10:09Z",
                 "EXDATE", "2015-09-09T09:10:09Z"));
 
-    assertThatCommand("domain_info_wildcard.xml", ImmutableMap.of("NAME", "test-validate.example"))
+    assertThatCommand("domain_info.xml", ImmutableMap.of("DOMAIN", "test-validate.example"))
         .atTime(sunriseDate.plusDays(1).plusMinutes(2))
         .hasResponse(
             "domain_info_response_ok_wildcard.xml",
             ImmutableMap.of(
-                "NAME", "test-validate.example",
+                "DOMAIN", "test-validate.example",
                 "CRDATE", "2014-09-09T09:10:09Z",
                 "EXDATE", "2015-09-09T09:10:09Z"));
 

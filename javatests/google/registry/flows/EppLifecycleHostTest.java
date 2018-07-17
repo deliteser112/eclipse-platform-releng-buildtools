@@ -116,7 +116,7 @@ public class EppLifecycleHostTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "fakesite.example",
+                "DOMAIN", "fakesite.example",
                 "CRDATE", "2000-06-01T00:04:00.0Z",
                 "EXDATE", "2002-06-01T00:04:00.0Z"));
     assertThatCommand("domain_info_fakesite.xml")
@@ -171,7 +171,7 @@ public class EppLifecycleHostTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "example.bar.foo.tld",
+                "DOMAIN", "example.bar.foo.tld",
                 "CRDATE", "2000-06-01T00:02:00Z",
                 "EXDATE", "2002-06-01T00:02:00Z"));
 
@@ -182,7 +182,7 @@ public class EppLifecycleHostTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "example.foo.tld",
+                "DOMAIN", "example.foo.tld",
                 "CRDATE", "2000-06-01T00:02:00Z",
                 "EXDATE", "2002-06-01T00:02:00Z"));
 
@@ -193,7 +193,7 @@ public class EppLifecycleHostTest extends EppTestCase {
         .hasResponse(
             "domain_create_response.xml",
             ImmutableMap.of(
-                "NAME", "example.tld",
+                "DOMAIN", "example.tld",
                 "CRDATE", "2000-06-01T00:02:00Z",
                 "EXDATE", "2002-06-01T00:02:00Z"));
 
