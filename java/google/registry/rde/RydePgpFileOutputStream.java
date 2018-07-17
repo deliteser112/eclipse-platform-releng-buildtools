@@ -17,9 +17,6 @@ package google.registry.rde;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.bouncycastle.openpgp.PGPLiteralData.BINARY;
 
-import com.google.auto.factory.AutoFactory;
-import com.google.auto.factory.Provided;
-import google.registry.config.RegistryConfig.Config;
 import google.registry.util.ImprovedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -36,8 +33,9 @@ import org.joda.time.DateTime;
  *
  * <p>According to escrow spec, the PGP message should contain a single tar file.
  */
-@AutoFactory(allowSubclasses = true)
 public class RydePgpFileOutputStream extends ImprovedOutputStream {
+
+  private static final int BUFFER_SIZE = 64 * 1024;
 
   /**
    * Creates a new instance for a particular file.
@@ -47,20 +45,19 @@ public class RydePgpFileOutputStream extends ImprovedOutputStream {
    * @throws RuntimeException to rethrow {@link IOException}
    */
   public RydePgpFileOutputStream(
-      @Provided @Config("rdeRydeBufferSize") Integer bufferSize,
       @WillNotClose OutputStream os,
       DateTime modified,
       String filename) {
-    super("RydePgpFileOutputStream", createDelegate(bufferSize, os, modified, filename));
+    super("RydePgpFileOutputStream", createDelegate(os, modified, filename));
   }
 
   private static OutputStream
-      createDelegate(int bufferSize, OutputStream os, DateTime modified, String filename) {
+      createDelegate(OutputStream os, DateTime modified, String filename) {
     try {
       checkArgument(filename.endsWith(".tar"),
           "Ryde PGP message should contain a tar file.");
       return new PGPLiteralDataGenerator().open(
-          os, BINARY, filename, modified.toDate(), new byte[bufferSize]);
+          os, BINARY, filename, modified.toDate(), new byte[BUFFER_SIZE]);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

@@ -18,7 +18,6 @@ import static org.bouncycastle.bcpg.HashAlgorithmTags.SHA256;
 import static org.bouncycastle.bcpg.PublicKeyAlgorithmTags.RSA_GENERAL;
 import static org.bouncycastle.openpgp.PGPSignature.BINARY_DOCUMENT;
 
-import com.google.auto.factory.AutoFactory;
 import google.registry.util.ImprovedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -40,7 +39,6 @@ import org.bouncycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
  * who receive a deposit to check the signature against our public key so they can know the
  * data hasn't been forged.
  */
-@AutoFactory(allowSubclasses = true)
 public class RydePgpSigningOutputStream extends ImprovedOutputStream {
 
   private final PGPSignatureGenerator signer;

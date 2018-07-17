@@ -100,11 +100,6 @@ public class BrdaCopyActionTest extends ShardableTestCase {
   @Before
   public void before() throws Exception {
     action.gcsUtils = gcsUtils;
-    action.pgpCompressionFactory = new RydePgpCompressionOutputStreamFactory(() -> 1024);
-    action.pgpEncryptionFactory = new RydePgpEncryptionOutputStreamFactory(() -> 1024);
-    action.pgpFileFactory = new RydePgpFileOutputStreamFactory(() -> 1024);
-    action.pgpSigningFactory = new RydePgpSigningOutputStreamFactory();
-    action.tarFactory = new RydeTarOutputStreamFactory();
     action.tld = "lol";
     action.watermark = DateTime.parse("2010-10-17TZ");
     action.brdaBucket = "tub";

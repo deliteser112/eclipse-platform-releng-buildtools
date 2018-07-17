@@ -14,18 +14,17 @@
 
 package google.registry.rde;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags.AES_128;
 import static org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME;
 
-import com.google.auto.factory.AutoFactory;
-import com.google.auto.factory.Provided;
-import google.registry.config.RegistryConfig.Config;
 import google.registry.util.ImprovedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
 import java.security.ProviderException;
 import java.security.SecureRandom;
+import java.util.Collection;
 import javax.annotation.WillNotClose;
 import org.bouncycastle.openpgp.PGPEncryptedDataGenerator;
 import org.bouncycastle.openpgp.PGPException;
@@ -53,8 +52,9 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodG
  * @see <a href="http://tools.ietf.org/html/rfc4880">RFC 4880 (OpenPGP Message Format)</a>
  * @see <a href="http://en.wikipedia.org/wiki/Advanced_Encryption_Standard">AES (Wikipedia)</a>
  */
-@AutoFactory(allowSubclasses = true)
 public class RydePgpEncryptionOutputStream extends ImprovedOutputStream {
+
+  private static final int BUFFER_SIZE = 64 * 1024;
 
   /**
    * The symmetric encryption algorithm to use. Do not change this value without checking the
@@ -92,22 +92,23 @@ public class RydePgpEncryptionOutputStream extends ImprovedOutputStream {
    * @throws RuntimeException to rethrow {@link PGPException} and {@link IOException}
    */
   public RydePgpEncryptionOutputStream(
-      @Provided @Config("rdeRydeBufferSize") Integer bufferSize,
       @WillNotClose OutputStream os,
-      PGPPublicKey receiverKey) {
-    super("RydePgpEncryptionOutputStream", createDelegate(bufferSize, os, receiverKey));
+      Collection<PGPPublicKey> receiverKeys) {
+    super("RydePgpEncryptionOutputStream", createDelegate(os, receiverKeys));
   }
 
-  private static
-      OutputStream createDelegate(int bufferSize, OutputStream os, PGPPublicKey receiverKey) {
+  private static OutputStream createDelegate(
+      OutputStream os, Collection<PGPPublicKey> receiverKeys) {
     try {
       PGPEncryptedDataGenerator encryptor = new PGPEncryptedDataGenerator(
           new JcePGPDataEncryptorBuilder(CIPHER)
               .setWithIntegrityPacket(USE_INTEGRITY_PACKET)
               .setSecureRandom(SecureRandom.getInstance(RANDOM_SOURCE))
               .setProvider(PROVIDER_NAME));
-      encryptor.addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(receiverKey));
-      return encryptor.open(os, new byte[bufferSize]);
+      checkArgument(!receiverKeys.isEmpty(), "Must give at least one receiver key");
+      receiverKeys.forEach(
+          key -> encryptor.addMethod(new JcePublicKeyKeyEncryptionMethodGenerator(key)));
+      return encryptor.open(os, new byte[BUFFER_SIZE]);
     } catch (NoSuchAlgorithmException e) {
       throw new ProviderException(e);
     } catch (IOException | PGPException e) {

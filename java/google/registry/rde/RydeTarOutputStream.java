@@ -16,7 +16,6 @@ package google.registry.rde;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.auto.factory.AutoFactory;
 import google.registry.util.ImprovedOutputStream;
 import google.registry.util.PosixTarHeader;
 import java.io.IOException;
@@ -27,7 +26,6 @@ import org.joda.time.DateTime;
 /**
  * Single-file POSIX tar archive creator that wraps an {@link OutputStream}.
  */
-@AutoFactory(allowSubclasses = true)
 public class RydeTarOutputStream extends ImprovedOutputStream {
 
   private final long expectedSize;

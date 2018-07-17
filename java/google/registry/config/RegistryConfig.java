@@ -673,20 +673,6 @@ public final class RegistryConfig {
     }
 
     /**
-     * Size of RYDE generator buffer in bytes for each of the five layers.
-     *
-     * @see google.registry.rde.RydePgpCompressionOutputStream
-     * @see google.registry.rde.RydePgpFileOutputStream
-     * @see google.registry.rde.RydePgpSigningOutputStream
-     * @see google.registry.rde.RydeTarOutputStream
-     */
-    @Provides
-    @Config("rdeRydeBufferSize")
-    public static Integer provideRdeRydeBufferSize() {
-      return 64 * 1024;
-    }
-
-    /**
      * Maximum amount of time generating an escrow deposit for a TLD could take, before killing.
      *
      * @see google.registry.rde.RdeStagingReducer

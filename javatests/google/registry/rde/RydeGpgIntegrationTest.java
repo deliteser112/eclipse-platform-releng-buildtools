@@ -69,12 +69,6 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
   };
 
   @DataPoints
-  public static BufferSize[] bufferSizes = new BufferSize[] {
-    new BufferSize(1),
-    new BufferSize(7),
-  };
-
-  @DataPoints
   public static Filename[] filenames = new Filename[] {
     new Filename("sloth"),
   };
@@ -88,21 +82,10 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
   };
 
   @Theory
-  public void test(GpgCommand cmd, BufferSize bufSize, Filename name, Content content)
+  public void test(GpgCommand cmd, Filename name, Content content)
       throws Exception {
     assumeTrue(hasCommand("tar"));
     assumeTrue(hasCommand(cmd.get() + " --version"));
-
-    RydeTarOutputStreamFactory tarFactory =
-        new RydeTarOutputStreamFactory();
-    RydePgpFileOutputStreamFactory pgpFileFactory =
-        new RydePgpFileOutputStreamFactory(bufSize::get);
-    RydePgpEncryptionOutputStreamFactory pgpEncryptionFactory =
-        new RydePgpEncryptionOutputStreamFactory(bufSize::get);
-    RydePgpCompressionOutputStreamFactory pgpCompressionFactory =
-        new RydePgpCompressionOutputStreamFactory(bufSize::get);
-    RydePgpSigningOutputStreamFactory pgpSigningFactory =
-        new RydePgpSigningOutputStreamFactory();
 
     Keyring keyring = keyringFactory.get();
     PGPKeyPair signingKey = keyring.getRdeSigningKey();
@@ -116,20 +99,13 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
     byte[] data = content.get().getBytes(UTF_8);
 
     try (OutputStream rydeOut = new FileOutputStream(rydeFile);
-        RydePgpSigningOutputStream signLayer = pgpSigningFactory.create(rydeOut, signingKey)) {
-      try (RydePgpEncryptionOutputStream encryptLayer =
-              pgpEncryptionFactory.create(signLayer, receiverKey);
-          RydePgpCompressionOutputStream compressLayer =
-              pgpCompressionFactory.create(encryptLayer);
-          RydePgpFileOutputStream fileLayer =
-              pgpFileFactory.create(compressLayer, modified, name.get() + ".tar");
-          RydeTarOutputStream tarLayer =
-              tarFactory.create(fileLayer, data.length, modified, name.get() + ".xml")) {
-        tarLayer.write(data);
-      }
-      try (OutputStream sigOut = new FileOutputStream(sigFile)) {
-        sigOut.write(signLayer.getSignature());
-      }
+        OutputStream sigOut = new FileOutputStream(sigFile);
+        RydeEncoder rydeEncoder = new RydeEncoder.Builder()
+            .setRydeOutput(rydeOut, receiverKey)
+            .setSignatureOutput(sigOut, signingKey)
+            .setFileMetadata(name.get(), data.length, modified)
+            .build()) {
+      rydeEncoder.write(data);
     }
 
     // Iron Mountain examines the ryde file to see what sort of OpenPGP layers it contains.
@@ -248,18 +224,6 @@ public class RydeGpgIntegrationTest extends ShardableTestCase {
     }
 
     String get() {
-      return value;
-    }
-  }
-
-  private static class BufferSize {
-    private final int value;
-
-    BufferSize(int value) {
-      this.value = value;
-    }
-
-    int get() {
       return value;
     }
   }

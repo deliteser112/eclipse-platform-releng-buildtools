@@ -20,11 +20,6 @@ import static google.registry.testing.TestDataHelper.loadBytes;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
 import google.registry.rde.RdeTestData;
-import google.registry.rde.RydePgpCompressionOutputStreamFactory;
-import google.registry.rde.RydePgpEncryptionOutputStreamFactory;
-import google.registry.rde.RydePgpFileOutputStreamFactory;
-import google.registry.rde.RydePgpSigningOutputStreamFactory;
-import google.registry.rde.RydeTarOutputStreamFactory;
 import google.registry.testing.BouncyCastleProviderRule;
 import google.registry.testing.FakeKeyringModule;
 import java.io.File;
@@ -43,11 +38,6 @@ public class EncryptEscrowDepositCommandTest
 
   static EscrowDepositEncryptor createEncryptor() {
     EscrowDepositEncryptor res = new EscrowDepositEncryptor();
-    res.pgpCompressionFactory = new RydePgpCompressionOutputStreamFactory(() -> 1024);
-    res.pgpEncryptionFactory = new RydePgpEncryptionOutputStreamFactory(() -> 1024);
-    res.pgpFileFactory = new RydePgpFileOutputStreamFactory(() -> 1024);
-    res.pgpSigningFactory = new RydePgpSigningOutputStreamFactory();
-    res.tarFactory = new RydeTarOutputStreamFactory();
     res.rdeReceiverKey = () -> new FakeKeyringModule().get().getRdeReceiverKey();
     res.rdeSigningKey = () -> new FakeKeyringModule().get().getRdeSigningKey();
     return res;

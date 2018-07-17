@@ -56,6 +56,7 @@ import google.registry.util.Retrier;
 import google.registry.util.TaskQueueUtils;
 import google.registry.util.TeeOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -103,11 +104,6 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
 
   @Inject JSchSshSessionFactory jschSshSessionFactory;
   @Inject Response response;
-  @Inject RydePgpCompressionOutputStreamFactory pgpCompressionFactory;
-  @Inject RydePgpEncryptionOutputStreamFactory pgpEncryptionFactory;
-  @Inject RydePgpFileOutputStreamFactory pgpFileFactory;
-  @Inject RydePgpSigningOutputStreamFactory pgpSigningFactory;
-  @Inject RydeTarOutputStreamFactory tarFactory;
   @Inject SftpProgressMonitor sftpProgressMonitor;
   @Inject TaskQueueUtils taskQueueUtils;
   @Inject Retrier retrier;
@@ -214,28 +210,27 @@ public final class RdeUploadAction implements Runnable, EscrowTask {
         InputStream ghostrydeDecoder = Ghostryde.decoder(gcsInput, stagingDecryptionKey)) {
       try (JSchSshSession session = jschSshSessionFactory.create(lazyJsch.get(), uploadUrl);
           JSchSftpChannel ftpChan = session.openSftpChannel()) {
-        byte[] signature;
+        ByteArrayOutputStream sigOut = new ByteArrayOutputStream();
         String rydeFilename = name + ".ryde";
         GcsFilename rydeGcsFilename = new GcsFilename(bucket, rydeFilename);
         try (OutputStream ftpOutput =
                 ftpChan.get().put(rydeFilename, sftpProgressMonitor, OVERWRITE);
             OutputStream gcsOutput = gcsUtils.openOutputStream(rydeGcsFilename);
             TeeOutputStream teeOutput = new TeeOutputStream(asList(ftpOutput, gcsOutput));
-            RydePgpSigningOutputStream signer = pgpSigningFactory.create(teeOutput, signingKey)) {
-          try (OutputStream encryptLayer = pgpEncryptionFactory.create(signer, receiverKey);
-              OutputStream kompressor = pgpCompressionFactory.create(encryptLayer);
-              OutputStream fileLayer = pgpFileFactory.create(kompressor, watermark, name + ".tar");
-              OutputStream tarLayer =
-                  tarFactory.create(fileLayer, xmlLength, watermark, name + ".xml")) {
-            ByteStreams.copy(ghostrydeDecoder, tarLayer);
+            RydeEncoder rydeEncoder =
+                new RydeEncoder.Builder()
+                    .setRydeOutput(teeOutput, receiverKey)
+                    .setSignatureOutput(sigOut, signingKey)
+                    .setFileMetadata(name, xmlLength, watermark)
+                    .build()) {
+            long bytesCopied = ByteStreams.copy(ghostrydeDecoder, rydeEncoder);
+            logger.atInfo().log("uploaded %,d bytes: %s", bytesCopied, rydeFilename);
           }
-          signature = signer.getSignature();
-          logger.atInfo().log("uploaded %,d bytes: %s.ryde", signer.getBytesWritten(), name);
-        }
         String sigFilename = name + ".sig";
+        byte[] signature = sigOut.toByteArray();
         gcsUtils.createFromBytes(new GcsFilename(bucket, sigFilename), signature);
         ftpChan.get().put(new ByteArrayInputStream(signature), sigFilename);
-        logger.atInfo().log("uploaded %,d bytes: %s.sig", signature.length, name);
+        logger.atInfo().log("uploaded %,d bytes: %s", signature.length, sigFilename);
       }
     }
   }

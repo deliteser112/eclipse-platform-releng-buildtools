@@ -20,16 +20,7 @@ import com.google.common.io.ByteStreams;
 import google.registry.keyring.api.KeyModule.Key;
 import google.registry.model.rde.RdeNamingUtils;
 import google.registry.rde.RdeUtil;
-import google.registry.rde.RydePgpCompressionOutputStream;
-import google.registry.rde.RydePgpCompressionOutputStreamFactory;
-import google.registry.rde.RydePgpEncryptionOutputStream;
-import google.registry.rde.RydePgpEncryptionOutputStreamFactory;
-import google.registry.rde.RydePgpFileOutputStream;
-import google.registry.rde.RydePgpFileOutputStreamFactory;
-import google.registry.rde.RydePgpSigningOutputStream;
-import google.registry.rde.RydePgpSigningOutputStreamFactory;
-import google.registry.rde.RydeTarOutputStream;
-import google.registry.rde.RydeTarOutputStreamFactory;
+import google.registry.rde.RydeEncoder;
 import google.registry.xml.XmlException;
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -40,7 +31,6 @@ import java.nio.file.Path;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
-import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.joda.time.DateTime;
@@ -50,18 +40,13 @@ final class EscrowDepositEncryptor {
 
   private static final int PEEK_BUFFER_SIZE = 64 * 1024;
 
-  @Inject RydePgpCompressionOutputStreamFactory pgpCompressionFactory;
-  @Inject RydePgpEncryptionOutputStreamFactory pgpEncryptionFactory;
-  @Inject RydePgpFileOutputStreamFactory pgpFileFactory;
-  @Inject RydePgpSigningOutputStreamFactory pgpSigningFactory;
-  @Inject RydeTarOutputStreamFactory tarFactory;
   @Inject @Key("rdeSigningKey") Provider<PGPKeyPair> rdeSigningKey;
   @Inject @Key("rdeReceiverKey") Provider<PGPPublicKey> rdeReceiverKey;
   @Inject EscrowDepositEncryptor() {}
 
   /** Creates a {@code .ryde} and {@code .sig} file, provided an XML deposit file. */
   void encrypt(String tld, Path xmlFile, Path outdir)
-      throws IOException, PGPException, XmlException {
+      throws IOException, XmlException {
     try (InputStream xmlFileInput = Files.newInputStream(xmlFile);
         BufferedInputStream xmlInput = new BufferedInputStream(xmlFileInput, PEEK_BUFFER_SIZE)) {
       DateTime watermark = RdeUtil.peekWatermark(xmlInput);
@@ -71,23 +56,17 @@ final class EscrowDepositEncryptor {
       Path pubPath = outdir.resolve(tld + ".pub");
       PGPKeyPair signingKey = rdeSigningKey.get();
       try (OutputStream rydeOutput = Files.newOutputStream(rydePath);
-          RydePgpSigningOutputStream signLayer =
-              pgpSigningFactory.create(rydeOutput, signingKey)) {
-        try (RydePgpEncryptionOutputStream encryptLayer =
-                pgpEncryptionFactory.create(signLayer, rdeReceiverKey.get());
-            RydePgpCompressionOutputStream compressLayer =
-                pgpCompressionFactory.create(encryptLayer);
-            RydePgpFileOutputStream fileLayer =
-                pgpFileFactory.create(compressLayer, watermark, name + ".tar");
-            RydeTarOutputStream tarLayer =
-                tarFactory.create(fileLayer, Files.size(xmlFile), watermark, name + ".xml")) {
-          ByteStreams.copy(xmlInput, tarLayer);
-        }
-        Files.write(sigPath, signLayer.getSignature());
-        try (OutputStream pubOutput = Files.newOutputStream(pubPath);
-            ArmoredOutputStream ascOutput = new ArmoredOutputStream(pubOutput)) {
-          signingKey.getPublicKey().encode(ascOutput);
-        }
+          OutputStream sigOutput = Files.newOutputStream(sigPath);
+          RydeEncoder rydeEncoder = new RydeEncoder.Builder()
+              .setRydeOutput(rydeOutput, rdeReceiverKey.get())
+              .setSignatureOutput(sigOutput, signingKey)
+              .setFileMetadata(name, Files.size(xmlFile), watermark)
+              .build()) {
+        ByteStreams.copy(xmlInput, rydeEncoder);
+      }
+      try (OutputStream pubOutput = Files.newOutputStream(pubPath);
+          ArmoredOutputStream ascOutput = new ArmoredOutputStream(pubOutput)) {
+        signingKey.getPublicKey().encode(ascOutput);
       }
     }
   }

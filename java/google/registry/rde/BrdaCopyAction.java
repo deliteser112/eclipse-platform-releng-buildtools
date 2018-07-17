@@ -64,11 +64,6 @@ public final class BrdaCopyAction implements Runnable {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject GcsUtils gcsUtils;
-  @Inject RydePgpCompressionOutputStreamFactory pgpCompressionFactory;
-  @Inject RydePgpFileOutputStreamFactory pgpFileFactory;
-  @Inject RydePgpEncryptionOutputStreamFactory pgpEncryptionFactory;
-  @Inject RydePgpSigningOutputStreamFactory pgpSigningFactory;
-  @Inject RydeTarOutputStreamFactory tarFactory;
   @Inject @Config("brdaBucket") String brdaBucket;
   @Inject @Config("rdeBucket") String stagingBucket;
   @Inject @Parameter(RequestParameters.PARAM_TLD) String tld;
@@ -96,25 +91,17 @@ public final class BrdaCopyAction implements Runnable {
 
     long xmlLength = readXmlLength(xmlLengthFilename);
 
-    logger.atInfo().log("Writing %s", rydeFile);
-    byte[] signature;
+    logger.atInfo().log("Writing %s and %s", rydeFile, sigFile);
     try (InputStream gcsInput = gcsUtils.openInputStream(xmlFilename);
         InputStream ghostrydeDecoder = Ghostryde.decoder(gcsInput, stagingDecryptionKey);
-        OutputStream gcsOutput = gcsUtils.openOutputStream(rydeFile);
-        RydePgpSigningOutputStream signLayer = pgpSigningFactory.create(gcsOutput, signingKey)) {
-      try (OutputStream encryptLayer = pgpEncryptionFactory.create(signLayer, receiverKey);
-          OutputStream compressLayer = pgpCompressionFactory.create(encryptLayer);
-          OutputStream fileLayer = pgpFileFactory.create(compressLayer, watermark, prefix + ".tar");
-          OutputStream tarLayer =
-              tarFactory.create(fileLayer, xmlLength, watermark, prefix + ".xml")) {
-        ByteStreams.copy(ghostrydeDecoder, tarLayer);
-      }
-      signature = signLayer.getSignature();
-    }
-
-    logger.atInfo().log("Writing %s", sigFile);
-    try (OutputStream gcsOutput = gcsUtils.openOutputStream(sigFile)) {
-      gcsOutput.write(signature);
+        OutputStream rydeOut = gcsUtils.openOutputStream(rydeFile);
+        OutputStream sigOut = gcsUtils.openOutputStream(sigFile);
+        RydeEncoder rydeEncoder = new RydeEncoder.Builder()
+            .setRydeOutput(rydeOut, receiverKey)
+            .setSignatureOutput(sigOut, signingKey)
+            .setFileMetadata(prefix, xmlLength, watermark)
+            .build()) {
+      ByteStreams.copy(ghostrydeDecoder, rydeEncoder);
     }
   }
 

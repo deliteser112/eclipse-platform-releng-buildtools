@@ -16,9 +16,6 @@ package google.registry.rde;
 
 import static org.bouncycastle.bcpg.CompressionAlgorithmTags.ZIP;
 
-import com.google.auto.factory.AutoFactory;
-import com.google.auto.factory.Provided;
-import google.registry.config.RegistryConfig.Config;
 import google.registry.util.ImprovedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -31,8 +28,9 @@ import org.bouncycastle.openpgp.PGPException;
  *
  * <p>This uses the ZIP compression algorithm per the ICANN escrow specification.
  */
-@AutoFactory(allowSubclasses = true)
 public class RydePgpCompressionOutputStream extends ImprovedOutputStream {
+
+  private static final int BUFFER_SIZE = 64 * 1024;
 
   /**
    * Creates a new instance that compresses data.
@@ -41,9 +39,8 @@ public class RydePgpCompressionOutputStream extends ImprovedOutputStream {
    * @throws RuntimeException to rethrow {@link PGPException} and {@link IOException}
    */
   public RydePgpCompressionOutputStream(
-      @Provided @Config("rdeRydeBufferSize") Integer bufferSize,
       @WillNotClose OutputStream os) {
-    super("RydePgpCompressionOutputStream", createDelegate(bufferSize, os));
+    super("RydePgpCompressionOutputStream", createDelegate(BUFFER_SIZE, os));
   }
 
   private static OutputStream createDelegate(int bufferSize, OutputStream os) {

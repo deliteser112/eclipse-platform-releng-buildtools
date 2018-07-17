@@ -70,7 +70,6 @@ import google.registry.testing.FakeKeyringModule;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
 import google.registry.testing.GpgSystemCommandRule;
-import google.registry.testing.IoSpyRule;
 import google.registry.testing.Lazies;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.testing.sftp.SftpServerRule;
@@ -81,10 +80,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.net.URI;
-import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -132,11 +129,6 @@ public class RdeUploadActionTest {
       RdeTestData.loadBytes("pgp-private-keyring-escrow.asc"));
 
   @Rule
-  public final IoSpyRule ioSpy = new IoSpyRule()
-      .checkClosedOnlyOnce()
-      .checkCharIoMaxCalls(10);
-
-  @Rule
   public final AppEngineRule appEngine = AppEngineRule.builder()
       .withDatastore()
       .withTaskQueue()
@@ -145,42 +137,6 @@ public class RdeUploadActionTest {
   private final FakeResponse response = new FakeResponse();
   private final EscrowTaskRunner runner = mock(EscrowTaskRunner.class);
   private final FakeClock clock = new FakeClock(DateTime.parse("2010-10-17TZ"));
-
-  private final RydeTarOutputStreamFactory tarFactory =
-      new RydeTarOutputStreamFactory() {
-        @Override
-        public RydeTarOutputStream create(
-            OutputStream os, long size, DateTime modified, String filename) {
-          return ioSpy.register(super.create(os, size, modified, filename));
-        }};
-
-  private final RydePgpFileOutputStreamFactory literalFactory =
-      new RydePgpFileOutputStreamFactory(() -> BUFFER_SIZE) {
-        @Override
-        public RydePgpFileOutputStream create(OutputStream os, DateTime modified, String filename) {
-          return ioSpy.register(super.create(os, modified, filename));
-        }};
-
-  private final RydePgpEncryptionOutputStreamFactory encryptFactory =
-      new RydePgpEncryptionOutputStreamFactory(() -> BUFFER_SIZE) {
-        @Override
-        public RydePgpEncryptionOutputStream create(OutputStream os, PGPPublicKey publicKey) {
-          return ioSpy.register(super.create(os, publicKey));
-        }};
-
-  private final RydePgpCompressionOutputStreamFactory compressFactory =
-      new RydePgpCompressionOutputStreamFactory(() -> BUFFER_SIZE) {
-        @Override
-        public RydePgpCompressionOutputStream create(OutputStream os) {
-          return ioSpy.register(super.create(os));
-        }};
-
-  private final RydePgpSigningOutputStreamFactory signFactory =
-      new RydePgpSigningOutputStreamFactory() {
-        @Override
-        public RydePgpSigningOutputStream create(OutputStream os, PGPKeyPair signingKey) {
-          return ioSpy.register(super.create(os, signingKey));
-        }};
 
   private RdeUploadAction createAction(URI uploadUrl) {
     try (Keyring keyring = new FakeKeyringModule().get()) {
@@ -195,11 +151,6 @@ public class RdeUploadActionTest {
                   keyring.getRdeSshClientPublicKey());
       action.jschSshSessionFactory = new JSchSshSessionFactory(standardSeconds(3));
       action.response = response;
-      action.pgpCompressionFactory = compressFactory;
-      action.pgpEncryptionFactory = encryptFactory;
-      action.pgpFileFactory = literalFactory;
-      action.pgpSigningFactory = signFactory;
-      action.tarFactory = tarFactory;
       action.bucket = "bucket";
       action.interval = standardDays(1);
       action.timeout = standardSeconds(23);
