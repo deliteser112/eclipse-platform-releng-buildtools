@@ -229,7 +229,8 @@ public class GhostrydeTest {
             });
     assertThat(thrown)
         .hasMessageThat()
-        .contains("Message was encrypted for keyid a59c132f3589a1d5 but ours is c9598c84ec70b9fd");
+        .contains(
+            "Message was encrypted for keyids [a59c132f3589a1d5] but ours is c9598c84ec70b9fd");
   }
 
   @Test

@@ -16,7 +16,6 @@ package google.registry.rde;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.bouncycastle.bcpg.CompressionAlgorithmTags.ZLIB;
@@ -24,7 +23,6 @@ import static org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags.AES_128;
 import static org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME;
 import static org.bouncycastle.openpgp.PGPLiteralData.BINARY;
 
-import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
 import google.registry.util.ImprovedInputStream;
@@ -37,6 +35,8 @@ import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
 import java.security.ProviderException;
 import java.security.SecureRandom;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.WillNotClose;
@@ -47,11 +47,9 @@ import org.bouncycastle.openpgp.PGPEncryptedDataList;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPLiteralData;
 import org.bouncycastle.openpgp.PGPLiteralDataGenerator;
-import org.bouncycastle.openpgp.PGPObjectFactory;
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyEncryptedData;
-import org.bouncycastle.openpgp.bc.BcPGPObjectFactory;
 import org.bouncycastle.openpgp.operator.bc.BcPublicKeyDataDecryptorFactory;
 import org.bouncycastle.openpgp.operator.bc.BcPublicKeyKeyEncryptionMethodGenerator;
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
@@ -124,8 +122,6 @@ import org.joda.time.DateTime;
  * storage; whereas RyDE is meant to protect data being stored by a third-party.
  */
 public final class Ghostryde {
-
-  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** Size of the buffer used by the intermediate streams. */
   static final int BUFFER_SIZE = 64 * 1024;
@@ -388,30 +384,35 @@ public final class Ghostryde {
   private static ImprovedInputStream openDecryptor(
       @WillNotClose InputStream input, PGPPrivateKey privateKey) throws IOException, PGPException {
     checkNotNull(privateKey, "privateKey");
-    PGPObjectFactory fact = new BcPGPObjectFactory(checkNotNull(input, "input"));
-    PGPEncryptedDataList ciphertexts = pgpCast(fact.nextObject(), PGPEncryptedDataList.class);
-    checkState(ciphertexts.size() > 0);
-    if (ciphertexts.size() > 1) {
-      logger.atWarning().log("crypts.size() is %d (should be 1)", ciphertexts.size());
-    }
-    PGPPublicKeyEncryptedData cyphertext =
-        pgpCast(ciphertexts.get(0), PGPPublicKeyEncryptedData.class);
-    if (cyphertext.getKeyID() != privateKey.getKeyID()) {
-      throw new PGPException(String.format(
-          "Message was encrypted for keyid %x but ours is %x",
-          cyphertext.getKeyID(), privateKey.getKeyID()));
+    PGPEncryptedDataList ciphertextList =
+        PgpUtils.readSinglePgpObject(input, PGPEncryptedDataList.class);
+    // Go over all the possible decryption keys, and look for the one that has our key ID.
+    Optional<PGPPublicKeyEncryptedData> cyphertext =
+        PgpUtils.stream(ciphertextList, PGPPublicKeyEncryptedData.class)
+            .filter(ciphertext -> ciphertext.getKeyID() == privateKey.getKeyID())
+            .findAny();
+    // If we can't find one with our key ID, then we can't decrypt the file!
+    if (!cyphertext.isPresent()) {
+      String keyIds =
+          PgpUtils.stream(ciphertextList, PGPPublicKeyEncryptedData.class)
+              .map(ciphertext -> Long.toHexString(ciphertext.getKeyID()))
+              .collect(Collectors.joining(","));
+      throw new PGPException(
+          String.format(
+              "Message was encrypted for keyids [%s] but ours is %x",
+              keyIds, privateKey.getKeyID()));
     }
 
     // We want an input stream that also verifies ciphertext wasn't corrupted or tampered with when
     // the stream is closed.
     return new ImprovedInputStream(
         "GhostrydeDecryptor",
-        cyphertext.getDataStream(new BcPublicKeyDataDecryptorFactory(privateKey))) {
+        cyphertext.get().getDataStream(new BcPublicKeyDataDecryptorFactory(privateKey))) {
       @Override
       protected void onClose() throws IOException {
         if (USE_INTEGRITY_PACKET) {
           try {
-            if (!cyphertext.verify()) {
+            if (!cyphertext.get().verify()) {
               throw new PGPException("ghostryde integrity check failed: possible tampering D:");
             }
           } catch (PGPException e) {
@@ -437,8 +438,7 @@ public final class Ghostryde {
   @CheckReturnValue
   private static ImprovedInputStream openDecompressor(@WillNotClose InputStream input)
       throws IOException, PGPException {
-    PGPObjectFactory fact = new BcPGPObjectFactory(checkNotNull(input, "input"));
-    PGPCompressedData compressed = pgpCast(fact.nextObject(), PGPCompressedData.class);
+    PGPCompressedData compressed = PgpUtils.readSinglePgpObject(input, PGPCompressedData.class);
     return new ImprovedInputStream("GhostrydeDecompressor", compressed.getDataStream());
   }
 
@@ -457,21 +457,7 @@ public final class Ghostryde {
   @CheckReturnValue
   private static ImprovedInputStream openPgpFileInputStream(@WillNotClose InputStream input)
       throws IOException, PGPException {
-    PGPObjectFactory fact = new BcPGPObjectFactory(checkNotNull(input, "input"));
-    PGPLiteralData literal = pgpCast(fact.nextObject(), PGPLiteralData.class);
+    PGPLiteralData literal = PgpUtils.readSinglePgpObject(input, PGPLiteralData.class);
     return new ImprovedInputStream("GhostrydePgpFileInputStream", literal.getDataStream());
-  }
-
-  /** Safely extracts an object from an OpenPGP message. */
-  private static <T> T pgpCast(@Nullable Object object, Class<T> expect) throws PGPException {
-    if (object == null) {
-      throw new PGPException(String.format(
-          "Expected %s but out of objects", expect.getSimpleName()));
-    }
-    if (!expect.isAssignableFrom(object.getClass())) {
-      throw new PGPException(String.format(
-          "Expected %s but got %s", expect.getSimpleName(), object.getClass().getSimpleName()));
-    }
-    return expect.cast(object);
   }
 }
