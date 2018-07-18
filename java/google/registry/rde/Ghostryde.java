@@ -16,9 +16,10 @@ package google.registry.rde;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.rde.RydeCompression.openCompressor;
+import static google.registry.rde.RydeCompression.openDecompressor;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.bouncycastle.bcpg.CompressionAlgorithmTags.ZLIB;
 import static org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags.AES_128;
 import static org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME;
 import static org.bouncycastle.openpgp.PGPLiteralData.BINARY;
@@ -40,8 +41,6 @@ import java.util.stream.Collectors;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.WillNotClose;
-import org.bouncycastle.openpgp.PGPCompressedData;
-import org.bouncycastle.openpgp.PGPCompressedDataGenerator;
 import org.bouncycastle.openpgp.PGPEncryptedDataGenerator;
 import org.bouncycastle.openpgp.PGPEncryptedDataList;
 import org.bouncycastle.openpgp.PGPException;
@@ -125,15 +124,6 @@ public final class Ghostryde {
 
   /** Size of the buffer used by the intermediate streams. */
   static final int BUFFER_SIZE = 64 * 1024;
-
-  /**
-   * Compression algorithm to use when creating ghostryde files.
-   *
-   * <p>We're going to use ZLIB since it's better than ZIP.
-   *
-   * @see org.bouncycastle.bcpg.CompressionAlgorithmTags
-   */
-  static final int COMPRESSION_ALGORITHM = ZLIB;
 
   /**
    * Symmetric encryption cipher to use when creating ghostryde files.
@@ -323,26 +313,6 @@ public final class Ghostryde {
   }
 
   /**
-   * Opens a new compressor (Writing Step 2/3)
-   *
-   * <p>This is the second step in creating a ghostryde file. After this method, you'll want to call
-   * {@link #openPgpFileOutputStream}.
-   *
-   * <p>TODO(b/110465985): merge with the RyDE version.
-   *
-   * @param os is the value returned by {@link #openEncryptor(OutputStream, PGPPublicKey)}.
-   * @throws IOException
-   * @throws PGPException
-   */
-  @CheckReturnValue
-  private static ImprovedOutputStream openCompressor(@WillNotClose OutputStream os)
-      throws IOException, PGPException {
-    PGPCompressedDataGenerator kompressor = new PGPCompressedDataGenerator(COMPRESSION_ALGORITHM);
-    return new ImprovedOutputStream(
-        "GhostrydeCompressor", kompressor.open(os, new byte[BUFFER_SIZE]));
-  }
-
-  /**
    * Opens an {@link OutputStream} to which the actual data should be written (Writing Step 3/3)
    *
    * <p>This is the third and final step in creating a ghostryde file. You'll want to write data to
@@ -421,25 +391,6 @@ public final class Ghostryde {
         }
       }
     };
-  }
-
-  /**
-   * Opens a new decompressor (Reading Step 2/3)
-   *
-   * <p>This is the second step in reading a ghostryde file. After this method, you'll want to call
-   * {@link #openPgpFileInputStream}.
-   *
-   * <p>TODO(b/110465985): merge with the RyDE version.
-   *
-   * @param input is the value returned by {@link #openDecryptor}.
-   * @throws IOException
-   * @throws PGPException
-   */
-  @CheckReturnValue
-  private static ImprovedInputStream openDecompressor(@WillNotClose InputStream input)
-      throws IOException, PGPException {
-    PGPCompressedData compressed = PgpUtils.readSinglePgpObject(input, PGPCompressedData.class);
-    return new ImprovedInputStream("GhostrydeDecompressor", compressed.getDataStream());
   }
 
   /**
