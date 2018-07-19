@@ -16,7 +16,7 @@ package google.registry.tools.params;
 
 import com.google.common.net.InternetDomainName;
 
-/** Duration CLI parameter converter/validator. */
+/** InternetDomainName CLI parameter converter/validator. */
 public final class InternetDomainNameParameter
     extends ParameterConverterValidator<InternetDomainName> {
 

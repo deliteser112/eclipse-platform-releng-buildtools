@@ -48,6 +48,22 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
   }
 
   @Test
+  public void testSuccess_completeWithSquareBrackets() throws Exception {
+    runCommandForced(
+        "--client=NewRegistrar",
+        "--period=1",
+        "--nameservers=ns[1-4].zdns.google",
+        "--registrant=crr-admin",
+        "--admins=crr-admin",
+        "--techs=crr-tech",
+        "--password=2fooBAR",
+        "--ds_records=1 2 3 abcd,4 5 6 EF01",
+        "--ds_records=60485 5  2  D4B7D520E7BB5F0F67674A0CCEB1E3E0614B93C4F9E99B8383F6A1E4469DA50A",
+        "example.tld");
+    eppVerifier.verifySent("domain_create_complete.xml");
+  }
+
+  @Test
   public void testSuccess_minimal() throws Exception {
     // Test that each optional field can be omitted. Also tests the auto-gen password.
     runCommandForced(
@@ -212,6 +228,22 @@ public class CreateDomainCommandTest extends EppToolCommandTestCase<CreateDomain
                         + "ns5.zdns.google,ns6.zdns.google,ns7.zdns.google,ns8.zdns.google,"
                         + "ns9.zdns.google,ns10.zdns.google,ns11.zdns.google,ns12.zdns.google,"
                         + "ns13.zdns.google,ns14.zdns.google",
+                    "example.tld"));
+    assertThat(thrown).hasMessageThat().contains("There can be at most 13 nameservers");
+  }
+
+  @Test
+  public void testFailure_tooManyNameServers_usingSquareBracketRange() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommandForced(
+                    "--client=NewRegistrar",
+                    "--registrant=crr-admin",
+                    "--admins=crr-admin",
+                    "--techs=crr-tech",
+                    "--nameservers=ns[1-14].zdns.google",
                     "example.tld"));
     assertThat(thrown).hasMessageThat().contains("There can be at most 13 nameservers");
   }

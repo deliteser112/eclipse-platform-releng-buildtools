@@ -7,8 +7,8 @@
         <domain:name>example.abc</domain:name>
         <domain:add>
           <domain:ns>
+            <domain:hostObj>ns1.zdns.google</domain:hostObj>
             <domain:hostObj>ns2.zdns.google</domain:hostObj>
-            <domain:hostObj>ns3.zdns.google</domain:hostObj>
           </domain:ns>
           <domain:contact type="admin">crr-admin2</domain:contact>
           <domain:contact type="tech">crr-tech2</domain:contact>
@@ -16,6 +16,7 @@
         </domain:add>
         <domain:rem>
           <domain:ns>
+            <domain:hostObj>ns3.zdns.google</domain:hostObj>
             <domain:hostObj>ns4.zdns.google</domain:hostObj>
           </domain:ns>
           <domain:contact type="admin">crr-admin1</domain:contact>

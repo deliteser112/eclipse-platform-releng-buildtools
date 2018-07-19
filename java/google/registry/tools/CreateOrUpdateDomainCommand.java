@@ -29,7 +29,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.BaseEncoding;
 import com.google.template.soy.data.SoyListData;
 import com.google.template.soy.data.SoyMapData;
+import google.registry.tools.params.NameserversParameter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -47,10 +49,11 @@ abstract class CreateOrUpdateDomainCommand extends MutatingEppToolCommand {
   private List<String> mainParameters;
 
   @Parameter(
-    names = {"-n", "--nameservers"},
-    description = "Comma-separated list of nameservers, up to 13."
-  )
-  List<String> nameservers = new ArrayList<>();
+      names = {"-n", "--nameservers"},
+      description = "Comma-delimited list of nameservers, up to 13.",
+      converter = NameserversParameter.class,
+      validateWith = NameserversParameter.class)
+  Set<String> nameservers = new HashSet<>();
 
   @Parameter(
     names = {"-r", "--registrant"},

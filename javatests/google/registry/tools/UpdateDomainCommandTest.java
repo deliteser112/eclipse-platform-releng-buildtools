@@ -40,12 +40,32 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   public void testSuccess_complete() throws Exception {
     runCommandForced(
         "--client=NewRegistrar",
-        "--add_nameservers=ns2.zdns.google,ns3.zdns.google",
+        "--add_nameservers=ns1.zdns.google,ns2.zdns.google",
         "--add_admins=crr-admin2",
         "--add_techs=crr-tech2",
         "--add_statuses=serverDeleteProhibited",
         "--add_ds_records=1 2 3 abcd,4 5 6 EF01",
-        "--remove_nameservers=ns4.zdns.google",
+        "--remove_nameservers=ns3.zdns.google,ns4.zdns.google",
+        "--remove_admins=crr-admin1",
+        "--remove_techs=crr-tech1",
+        "--remove_statuses=serverHold",
+        "--remove_ds_records=7 8 9 12ab,6 5 4 34CD",
+        "--registrant=crr-admin",
+        "--password=2fooBAR",
+        "example.tld");
+    eppVerifier.verifySent("domain_update_complete.xml");
+  }
+
+  @Test
+  public void testSuccess_completeWithSquareBrackets() throws Exception {
+    runCommandForced(
+        "--client=NewRegistrar",
+        "--add_nameservers=ns[1-2].zdns.google",
+        "--add_admins=crr-admin2",
+        "--add_techs=crr-tech2",
+        "--add_statuses=serverDeleteProhibited",
+        "--add_ds_records=1 2 3 abcd,4 5 6 EF01",
+        "--remove_nameservers=ns[3-4].zdns.google",
         "--remove_admins=crr-admin1",
         "--remove_techs=crr-tech1",
         "--remove_statuses=serverHold",
@@ -60,12 +80,12 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
   public void testSuccess_multipleDomains() throws Exception {
     runCommandForced(
         "--client=NewRegistrar",
-        "--add_nameservers=ns2.zdns.google,ns3.zdns.google",
+        "--add_nameservers=ns1.zdns.google,ns2.zdns.google",
         "--add_admins=crr-admin2",
         "--add_techs=crr-tech2",
         "--add_statuses=serverDeleteProhibited",
         "--add_ds_records=1 2 3 abcd,4 5 6 EF01",
-        "--remove_nameservers=ns4.zdns.google",
+        "--remove_nameservers=ns[3-4].zdns.google",
         "--remove_admins=crr-admin1",
         "--remove_techs=crr-tech1",
         "--remove_statuses=serverHold",
@@ -81,6 +101,15 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
 
   @Test
   public void testSuccess_multipleDomains_setNameservers() throws Exception {
+    runTest_multipleDomains_setNameservers("-n ns1.foo.fake,ns2.foo.fake");
+  }
+
+  @Test
+  public void testSuccess_multipleDomains_setNameserversWithSquareBrackets() throws Exception {
+    runTest_multipleDomains_setNameservers("-n ns[1-2].foo.fake");
+  }
+
+  private void runTest_multipleDomains_setNameservers(String nsParam) throws Exception {
     createTlds("abc", "tld");
     HostResource host1 = persistActiveHost("foo.bar.tld");
     HostResource host2 = persistActiveHost("baz.bar.tld");
@@ -95,7 +124,7 @@ public class UpdateDomainCommandTest extends EppToolCommandTestCase<UpdateDomain
             .setNameservers(ImmutableSet.of(Key.create(host2)))
             .build());
     runCommandForced(
-        "--client=NewRegistrar", "-n ns1.foo.fake,ns2.foo.fake", "example.abc", "example.tld");
+        "--client=NewRegistrar", nsParam, "example.abc", "example.tld");
     eppVerifier
         .verifySent(
             "domain_update_add_two_hosts_remove_one.xml",

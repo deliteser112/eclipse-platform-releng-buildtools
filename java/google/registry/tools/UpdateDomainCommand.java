@@ -32,11 +32,13 @@ import com.google.template.soy.data.SoyMapData;
 import google.registry.model.domain.DesignatedContact;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.eppcommon.StatusValue;
+import google.registry.tools.params.NameserversParameter;
 import google.registry.tools.soy.DomainUpdateSoyInfo;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import org.joda.time.DateTime;
 
 /** A command to update a new domain via EPP. */
@@ -49,12 +51,13 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
   private List<String> statuses = new ArrayList<>();
 
   @Parameter(
-    names = "--add_nameservers",
-    description =
-        "Comma-separated list of nameservers to add, up to 13. "
-            + "Cannot be set if --nameservers is set."
-  )
-  private List<String> addNameservers = new ArrayList<>();
+      names = "--add_nameservers",
+      description =
+          "Comma-delimited list of nameservers to add, up to 13. "
+              + "Cannot be set if --nameservers is set.",
+      converter = NameserversParameter.class,
+      validateWith = NameserversParameter.class)
+  private Set<String> addNameservers = new HashSet<>();
 
   @Parameter(
     names = "--add_admins",
@@ -79,12 +82,13 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
   private List<DsRecord> addDsRecords = new ArrayList<>();
 
   @Parameter(
-    names = "--remove_nameservers",
-    description =
-        "Comma-separated list of nameservers to remove, up to 13. "
-            + "Cannot be set if --nameservers is set."
-  )
-  private List<String> removeNameservers = new ArrayList<>();
+      names = "--remove_nameservers",
+      description =
+          "Comma-delimited list of nameservers to remove, up to 13. "
+              + "Cannot be set if --nameservers is set.",
+      converter = NameserversParameter.class,
+      validateWith = NameserversParameter.class)
+  private Set<String> removeNameservers = new HashSet<>();
 
   @Parameter(
     names = "--remove_admins",
@@ -156,14 +160,15 @@ final class UpdateDomainCommand extends CreateOrUpdateDomainCommand {
     }
 
     for (String domain : domains) {
-      Set<String> addAdminsThisDomain = new HashSet<>(addAdmins);
-      Set<String> removeAdminsThisDomain = new HashSet<>(removeAdmins);
-      Set<String> addTechsThisDomain = new HashSet<>(addTechs);
-      Set<String> removeTechsThisDomain = new HashSet<>(removeTechs);
-      Set<String> addNameserversThisDomain = new HashSet<>(addNameservers);
-      Set<String> removeNameserversThisDomain = new HashSet<>(removeNameservers);
-      Set<String> addStatusesThisDomain = new HashSet<>(addStatuses);
-      Set<String> removeStatusesThisDomain = new HashSet<>(removeStatuses);
+      // Use TreeSets so that the results are always in the same order (this makes testing easier).
+      Set<String> addAdminsThisDomain = new TreeSet<>(addAdmins);
+      Set<String> removeAdminsThisDomain = new TreeSet<>(removeAdmins);
+      Set<String> addTechsThisDomain = new TreeSet<>(addTechs);
+      Set<String> removeTechsThisDomain = new TreeSet<>(removeTechs);
+      Set<String> addNameserversThisDomain = new TreeSet<>(addNameservers);
+      Set<String> removeNameserversThisDomain = new TreeSet<>(removeNameservers);
+      Set<String> addStatusesThisDomain = new TreeSet<>(addStatuses);
+      Set<String> removeStatusesThisDomain = new TreeSet<>(removeStatuses);
 
       if (!nameservers.isEmpty() || !admins.isEmpty() || !techs.isEmpty() || !statuses.isEmpty()) {
         DateTime now = DateTime.now(UTC);
