@@ -18,12 +18,14 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.rde.RydeCompression.openCompressor;
 import static google.registry.rde.RydeCompression.openDecompressor;
+import static google.registry.rde.RydeEncryption.GHOSTRYDE_USE_INTEGRITY_PACKET;
+import static google.registry.rde.RydeEncryption.openDecryptor;
+import static google.registry.rde.RydeEncryption.openEncryptor;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags.AES_128;
-import static org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME;
 import static org.bouncycastle.openpgp.PGPLiteralData.BINARY;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
 import google.registry.util.ImprovedInputStream;
@@ -33,25 +35,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.NoSuchAlgorithmException;
-import java.security.ProviderException;
-import java.security.SecureRandom;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import javax.annotation.WillNotClose;
-import org.bouncycastle.openpgp.PGPEncryptedDataGenerator;
-import org.bouncycastle.openpgp.PGPEncryptedDataList;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPLiteralData;
 import org.bouncycastle.openpgp.PGPLiteralDataGenerator;
 import org.bouncycastle.openpgp.PGPPrivateKey;
 import org.bouncycastle.openpgp.PGPPublicKey;
-import org.bouncycastle.openpgp.PGPPublicKeyEncryptedData;
-import org.bouncycastle.openpgp.operator.bc.BcPublicKeyDataDecryptorFactory;
-import org.bouncycastle.openpgp.operator.bc.BcPublicKeyKeyEncryptionMethodGenerator;
-import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder;
 import org.joda.time.DateTime;
 
 /**
@@ -126,32 +117,6 @@ public final class Ghostryde {
   static final int BUFFER_SIZE = 64 * 1024;
 
   /**
-   * Symmetric encryption cipher to use when creating ghostryde files.
-   *
-   * <p>We're going to use AES-128 just like {@link RydePgpEncryptionOutputStream}, although we
-   * aren't forced to use this algorithm by the ICANN RFCs since this is an internal format.
-   *
-   * @see org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags
-   */
-  static final int CIPHER = AES_128;
-
-  /**
-   * Unlike {@link RydePgpEncryptionOutputStream}, we're going to enable the integrity packet
-   * because it makes GnuPG happy. It's also probably necessary to prevent tampering since we
-   * don't sign ghostryde files.
-   */
-  static final boolean USE_INTEGRITY_PACKET = true;
-
-  /**
-   * The source of random bits. You are strongly discouraged from changing this value because at
-   * Google it's configured to use {@code /dev/&lbrace;,u&rbrace;random} in production and somehow
-   * magically go fast and not drain entropy in the testing environment.
-   *
-   * @see SecureRandom#getInstance(String)
-   */
-  static final String RANDOM_SOURCE = "NativePRNG";
-
-  /**
    * For backwards compatibility reasons, we wrap the data in a PGP file, which preserves the
    * original filename and modification time. However, these values are never used, so we just
    * set them to a constant value.
@@ -214,11 +179,13 @@ public final class Ghostryde {
    */
   public static ImprovedOutputStream encoder(
       OutputStream output, PGPPublicKey encryptionKey, @Nullable OutputStream lengthOutput)
-      throws IOException, PGPException {
+      throws IOException {
 
     // We use a Closer to handle the stream .close, to make sure it's done correctly.
     Closer closer = Closer.create();
-    OutputStream encryptionLayer = closer.register(openEncryptor(output, encryptionKey));
+    OutputStream encryptionLayer =
+        closer.register(
+            openEncryptor(output, GHOSTRYDE_USE_INTEGRITY_PACKET, ImmutableList.of(encryptionKey)));
     OutputStream kompressor = closer.register(openCompressor(encryptionLayer));
     OutputStream fileLayer =
         closer.register(
@@ -245,7 +212,7 @@ public final class Ghostryde {
    * @param encryptionKey the encryption key to use
    */
   public static ImprovedOutputStream encoder(OutputStream output, PGPPublicKey encryptionKey)
-      throws IOException, PGPException {
+      throws IOException {
     return encoder(output, encryptionKey, null);
   }
 
@@ -260,7 +227,8 @@ public final class Ghostryde {
 
     // We use a Closer to handle the stream .close, to make sure it's done correctly.
     Closer closer = Closer.create();
-    InputStream decryptionLayer = closer.register(openDecryptor(input, decryptionKey));
+    InputStream decryptionLayer =
+        closer.register(openDecryptor(input, GHOSTRYDE_USE_INTEGRITY_PACKET, decryptionKey));
     InputStream decompressor = closer.register(openDecompressor(decryptionLayer));
     InputStream fileLayer = closer.register(openPgpFileInputStream(decompressor));
 
@@ -274,43 +242,6 @@ public final class Ghostryde {
   }
 
   private Ghostryde() {}
-
-  /**
-   * Opens a new encryptor (Writing Step 1/3)
-   *
-   * <p>This is the first step in creating a ghostryde file. After this method, you'll want to call
-   * {@link #openCompressor}.
-   *
-   * <p>TODO(b/110465985): merge with the RyDE version.
-   *
-   * @param os is the upstream {@link OutputStream} to which the result is written.
-   * @param publicKey is the public encryption key of the recipient.
-   * @throws IOException
-   * @throws PGPException
-   */
-  @CheckReturnValue
-  private static ImprovedOutputStream openEncryptor(
-      @WillNotClose OutputStream os, PGPPublicKey publicKey) throws IOException, PGPException {
-    PGPEncryptedDataGenerator encryptor = new PGPEncryptedDataGenerator(
-        new JcePGPDataEncryptorBuilder(CIPHER)
-           .setWithIntegrityPacket(USE_INTEGRITY_PACKET)
-           .setSecureRandom(getRandom())
-           .setProvider(PROVIDER_NAME));
-    encryptor.addMethod(new BcPublicKeyKeyEncryptionMethodGenerator(publicKey));
-    return new ImprovedOutputStream(
-        "GhostrydeEncryptor", encryptor.open(os, new byte[BUFFER_SIZE]));
-  }
-
-  /** Does stuff. */
-  private static SecureRandom getRandom() {
-    SecureRandom random;
-    try {
-      random = SecureRandom.getInstance(RANDOM_SOURCE);
-    } catch (NoSuchAlgorithmException e) {
-      throw new ProviderException(e);
-    }
-    return random;
-  }
 
   /**
    * Opens an {@link OutputStream} to which the actual data should be written (Writing Step 3/3)
@@ -332,65 +263,6 @@ public final class Ghostryde {
         "GhostrydePgpFileOutput",
         new PGPLiteralDataGenerator()
             .open(os, BINARY, name, modified.toDate(), new byte[BUFFER_SIZE]));
-  }
-
-  /**
-   * Opens a new decryptor (Reading Step 1/3)
-   *
-   * <p>This is the first step in opening a ghostryde file. After this method, you'll want to call
-   * {@link #openDecompressor}.
-   *
-   * <p>Note: If {@link Ghostryde#USE_INTEGRITY_PACKET} is {@code true}, any ghostryde file without
-   * an integrity packet will be considered invalid and an exception will be thrown.
-   *
-   * <p>TODO(b/110465985): merge with the RyDE version.
-   *
-   * @param input is an {@link InputStream} of the ghostryde file data.
-   * @param privateKey is the private encryption key of the recipient (which is us!)
-   * @throws IOException
-   * @throws PGPException
-   */
-  @CheckReturnValue
-  private static ImprovedInputStream openDecryptor(
-      @WillNotClose InputStream input, PGPPrivateKey privateKey) throws IOException, PGPException {
-    checkNotNull(privateKey, "privateKey");
-    PGPEncryptedDataList ciphertextList =
-        PgpUtils.readSinglePgpObject(input, PGPEncryptedDataList.class);
-    // Go over all the possible decryption keys, and look for the one that has our key ID.
-    Optional<PGPPublicKeyEncryptedData> cyphertext =
-        PgpUtils.stream(ciphertextList, PGPPublicKeyEncryptedData.class)
-            .filter(ciphertext -> ciphertext.getKeyID() == privateKey.getKeyID())
-            .findAny();
-    // If we can't find one with our key ID, then we can't decrypt the file!
-    if (!cyphertext.isPresent()) {
-      String keyIds =
-          PgpUtils.stream(ciphertextList, PGPPublicKeyEncryptedData.class)
-              .map(ciphertext -> Long.toHexString(ciphertext.getKeyID()))
-              .collect(Collectors.joining(","));
-      throw new PGPException(
-          String.format(
-              "Message was encrypted for keyids [%s] but ours is %x",
-              keyIds, privateKey.getKeyID()));
-    }
-
-    // We want an input stream that also verifies ciphertext wasn't corrupted or tampered with when
-    // the stream is closed.
-    return new ImprovedInputStream(
-        "GhostrydeDecryptor",
-        cyphertext.get().getDataStream(new BcPublicKeyDataDecryptorFactory(privateKey))) {
-      @Override
-      protected void onClose() throws IOException {
-        if (USE_INTEGRITY_PACKET) {
-          try {
-            if (!cyphertext.get().verify()) {
-              throw new PGPException("ghostryde integrity check failed: possible tampering D:");
-            }
-          } catch (PGPException e) {
-            throw new IllegalStateException(e);
-          }
-        }
-      }
-    };
   }
 
   /**

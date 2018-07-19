@@ -161,13 +161,15 @@ public class GhostrydeTest {
     korruption(ciphertext, ciphertext.length / 2);
 
     ByteArrayInputStream bsIn = new ByteArrayInputStream(ciphertext);
-    assertThrows(
-        PGPException.class,
-        () -> {
-          try (InputStream decoder = Ghostryde.decoder(bsIn, privateKey)) {
-            ByteStreams.copy(decoder, ByteStreams.nullOutputStream());
-          }
-        });
+    RuntimeException thrown =
+        assertThrows(
+            RuntimeException.class,
+            () -> {
+              try (InputStream decoder = Ghostryde.decoder(bsIn, privateKey)) {
+                ByteStreams.copy(decoder, ByteStreams.nullOutputStream());
+              }
+            });
+    assertThat(thrown).hasCauseThat().isInstanceOf(PGPException.class);
   }
 
   @Test
@@ -219,15 +221,17 @@ public class GhostrydeTest {
     }
 
     ByteArrayInputStream bsIn = new ByteArrayInputStream(bsOut.toByteArray());
-    PGPException thrown =
+    RuntimeException thrown =
         assertThrows(
-            PGPException.class,
+            RuntimeException.class,
             () -> {
               try (InputStream decoder = Ghostryde.decoder(bsIn, privateKey)) {
                 ByteStreams.copy(decoder, ByteStreams.nullOutputStream());
               }
             });
+    assertThat(thrown).hasCauseThat().isInstanceOf(PGPException.class);
     assertThat(thrown)
+        .hasCauseThat()
         .hasMessageThat()
         .contains(
             "Message was encrypted for keyids [a59c132f3589a1d5] but ours is c9598c84ec70b9fd");

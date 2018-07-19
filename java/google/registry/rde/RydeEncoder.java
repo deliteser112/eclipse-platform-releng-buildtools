@@ -16,6 +16,8 @@ package google.registry.rde;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.rde.RydeCompression.openCompressor;
+import static google.registry.rde.RydeEncryption.RYDE_USE_INTEGRITY_PACKET;
+import static google.registry.rde.RydeEncryption.openEncryptor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Closer;
@@ -69,7 +71,7 @@ public final class RydeEncoder extends FilterOutputStream {
     super(null);
     this.sigOutput = sigOutput;
     signer = closer.register(new RydePgpSigningOutputStream(checkNotNull(rydeOutput), signingKey));
-    encryptLayer = closer.register(new RydePgpEncryptionOutputStream(signer, receiverKeys));
+    encryptLayer = closer.register(openEncryptor(signer, RYDE_USE_INTEGRITY_PACKET, receiverKeys));
     kompressor = closer.register(openCompressor(encryptLayer));
     fileLayer =
         closer.register(new RydePgpFileOutputStream(kompressor, modified, filenamePrefix + ".tar"));

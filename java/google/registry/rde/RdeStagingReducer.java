@@ -57,7 +57,6 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -134,7 +133,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
       prefix = "manual/" + key.directoryWithTrailingSlash() + prefix;
     }
     GcsFilename xmlFilename = new GcsFilename(bucket, prefix + ".xml.ghostryde");
-    // This file will containg the byte length (ASCII) of the raw unencrypted XML.
+    // This file will contain the byte length (ASCII) of the raw unencrypted XML.
     //
     // This is necessary because RdeUploadAction creates a tar file which requires that the length
     // be outputted. We don't want to have to decrypt the entire ghostryde file to determine the
@@ -181,7 +180,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
       // Output the bottom of the XML document.
       output.write(marshaller.makeFooter());
 
-    } catch (IOException | PGPException e) {
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
 
@@ -196,7 +195,7 @@ public final class RdeStagingReducer extends Reducer<PendingDeposit, DepositFrag
       try (OutputStream gcsOutput = cloudStorage.openOutputStream(reportFilename);
           OutputStream ghostrydeEncoder = Ghostryde.encoder(gcsOutput, stagingKey)) {
         counter.makeReport(id, watermark, header, revision).marshal(ghostrydeEncoder, UTF_8);
-      } catch (IOException | PGPException | XmlException e) {
+      } catch (IOException | XmlException e) {
         throw new RuntimeException(e);
       }
     }
