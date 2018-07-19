@@ -21,6 +21,7 @@ import static google.registry.flows.FlowTestCase.UserPrivileges.SUPERUSER;
 import static google.registry.model.billing.BillingEvent.Flag.ANCHOR_TENANT;
 import static google.registry.model.domain.fee.Fee.FEE_EXTENSION_URIS;
 import static google.registry.model.eppcommon.StatusValue.OK;
+import static google.registry.model.eppcommon.StatusValue.SERVER_HOLD;
 import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIBITED;
 import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.model.ofy.ObjectifyService.ofy;
@@ -59,6 +60,7 @@ import static org.joda.money.CurrencyUnit.EUR;
 import static org.joda.money.CurrencyUnit.USD;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
@@ -144,6 +146,7 @@ import google.registry.model.domain.rgp.GracePeriodStatus;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.domain.token.AllocationToken;
 import google.registry.model.eppcommon.StatusValue;
+import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.Registrar.State;
@@ -184,7 +187,9 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
                 persistReservedList(
                     "tld-reserved",
                     "reserved,FULLY_BLOCKED",
-                    "anchor,RESERVED_FOR_ANCHOR_TENANT,2fooBAR"))
+                    "anchor,RESERVED_FOR_ANCHOR_TENANT,2fooBAR",
+                    "test-and-validate,NAME_COLLISION",
+                    "badcrash,NAME_COLLISION"))
             .build());
     persistClaimsList(ImmutableMap.of("example-one", CLAIMS_KEY));
   }
@@ -308,18 +313,17 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     assertNoTasksEnqueued(QUEUE_CLAIMS, QUEUE_SUNRISE);
   }
 
-  private void assertSunriseLordn() throws Exception {
+  private void assertSunriseLordn(String domainName) throws Exception {
     assertAboutDomains()
         .that(reloadResourceByForeignKey())
         .hasSmdId("0000001761376042759136-65535")
         .and()
         .hasLaunchNotice(null);
-    TaskMatcher task =
-        new TaskMatcher()
-            .payload(
-                reloadResourceByForeignKey().getRepoId()
-                    + ",test-validate.tld,0000001761376042759136-65535,1,2014-09-09T09:09:09.001Z");
-    assertTasksEnqueued(QUEUE_SUNRISE, task);
+    String expectedPayload =
+        String.format(
+            "%s,%s,0000001761376042759136-65535,1,2014-09-09T09:09:09.001Z",
+            reloadResourceByForeignKey().getRepoId(), domainName);
+    assertTasksEnqueued(QUEUE_SUNRISE, new TaskMatcher().payload(expectedPayload));
   }
 
   private void assertClaimsLordn() throws Exception {
@@ -544,7 +548,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput(
         "domain_create_registration_encoded_signed_mark.xml",
-        ImmutableMap.of("NAME", "test-validate.tld", "PHASE", "open"));
+        ImmutableMap.of("DOMAIN", "test-validate.tld", "PHASE", "open"));
     persistContactsAndHosts();
     EppException thrown =
         assertThrows(SignedMarksOnlyDuringSunriseException.class, this::runFlow);
@@ -557,7 +561,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput(
         "domain_create_registration_encoded_signed_mark.xml",
-        ImmutableMap.of("NAME", "wrong.tld", "PHASE", "open"));
+        ImmutableMap.of("DOMAIN", "wrong.tld", "PHASE", "open"));
     persistContactsAndHosts();
     EppException thrown =
         assertThrows(NoMarksFoundMatchingDomainException.class, this::runFlowAsSuperuser);
@@ -1169,6 +1173,77 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
   }
 
   @Test
+  public void testSuccess_reservedNameCollisionDomain_inSunrise_setsServerHoldAndPollMessage()
+      throws Exception {
+    persistResource(
+        Registry.get("tld")
+            .asBuilder()
+            .setTldStateTransitions(ImmutableSortedMap.of(START_OF_TIME, START_DATE_SUNRISE))
+            .build());
+    clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
+    setEppInput(
+        "domain_create_registration_encoded_signed_mark.xml",
+        ImmutableMap.of("DOMAIN", "test-and-validate.tld", "PHASE", "sunrise"));
+    persistContactsAndHosts();
+    runFlowAssertResponse(
+        loadFile(
+            "domain_create_response_encoded_signed_mark_name.xml",
+            ImmutableMap.of("DOMAIN", "test-and-validate.tld")));
+
+    assertSunriseLordn("test-and-validate.tld");
+
+    // Check for SERVER_HOLD status, no DNS tasks enqueued, and collision poll message.
+    assertNoDnsTasksEnqueued();
+    DomainResource domain = reloadResourceByForeignKey();
+    assertThat(domain.getStatusValues()).contains(SERVER_HOLD);
+    assertPollMessagesWithCollisionOneTime(domain);
+  }
+
+  @Test
+  public void testSuccess_reservedNameCollisionDomain_withSuperuser_setsServerHoldAndPollMessage()
+      throws Exception {
+    setEppInput("domain_create.xml", ImmutableMap.of("DOMAIN", "badcrash.tld"));
+    persistContactsAndHosts();
+    runFlowAssertResponse(
+        CommitMode.LIVE,
+        SUPERUSER,
+        loadFile("domain_create_response.xml", ImmutableMap.of("DOMAIN", "badcrash.tld")));
+
+    // Check for SERVER_HOLD status, no DNS tasks enqueued, and collision poll message.
+    assertNoDnsTasksEnqueued();
+    DomainResource domain = reloadResourceByForeignKey();
+    assertThat(domain.getStatusValues()).contains(SERVER_HOLD);
+    assertPollMessagesWithCollisionOneTime(domain);
+  }
+
+  private void assertPollMessagesWithCollisionOneTime(DomainResource domain) {
+    HistoryEntry historyEntry = getHistoryEntries(domain).get(0);
+    assertPollMessagesForResource(
+        domain,
+        new PollMessage.Autorenew.Builder()
+            .setTargetId(domain.getFullyQualifiedDomainName())
+            .setClientId("TheRegistrar")
+            .setEventTime(domain.getRegistrationExpirationTime())
+            .setMsg("Domain was auto-renewed.")
+            .setParent(historyEntry)
+            .build(),
+        new PollMessage.OneTime.Builder()
+            .setParent(historyEntry)
+            .setEventTime(domain.getCreationTime())
+            .setClientId("TheRegistrar")
+            .setMsg(DomainFlowUtils.COLLISION_MESSAGE)
+            .setResponseData(
+                ImmutableList.of(
+                    DomainPendingActionNotificationResponse.create(
+                        domain.getFullyQualifiedDomainName(),
+                        true,
+                        historyEntry.getTrid(),
+                        clock.nowUtc())))
+            .setId(1L)
+            .build());
+  }
+
+  @Test
   public void testFailure_missingHost() {
     persistActiveHost("ns1.example.net");
     persistActiveContact("jd1234");
@@ -1755,9 +1830,12 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_registration_qlp_sunrise_encoded_signed_mark.xml");
     eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response_encoded_signed_mark_name.xml"));
+    runFlowAssertResponse(
+        loadFile(
+            "domain_create_response_encoded_signed_mark_name.xml",
+            ImmutableMap.of("DOMAIN", "test-validate.tld")));
     assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT, Flag.SUNRISE));
-    assertSunriseLordn();
+    assertSunriseLordn("test-validate.tld");
   }
 
   @Test
@@ -1809,11 +1887,14 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput(
         "domain_create_registration_encoded_signed_mark.xml",
-        ImmutableMap.of("NAME", "test-validate.tld", "PHASE", "sunrise"));
+        ImmutableMap.of("DOMAIN", "test-validate.tld", "PHASE", "sunrise"));
     persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response_encoded_signed_mark_name.xml"));
+    runFlowAssertResponse(
+        loadFile(
+            "domain_create_response_encoded_signed_mark_name.xml",
+            ImmutableMap.of("DOMAIN", "test-validate.tld")));
     assertSuccessfulCreate("tld", ImmutableSet.of(Flag.SUNRISE));
-    assertSunriseLordn();
+    assertSunriseLordn("test-validate.tld");
   }
 
   /**
@@ -1829,11 +1910,13 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput("domain_create_sunrise_encoded_signed_mark_no_type.xml");
     persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response_encoded_signed_mark_name.xml"));
+    runFlowAssertResponse(
+        loadFile(
+            "domain_create_response_encoded_signed_mark_name.xml",
+            ImmutableMap.of("DOMAIN", "test-validate.tld")));
     assertSuccessfulCreate("tld", ImmutableSet.of(Flag.SUNRISE));
-    assertSunriseLordn();
+    assertSunriseLordn("test-validate.tld");
   }
-
 
   /** Tests possible confusion caused by the common start-date and end-date sunrise LaunchPhase. */
   @Test
@@ -1842,7 +1925,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput(
         "domain_create_registration_encoded_signed_mark.xml",
-        ImmutableMap.of("NAME", "test-validate.tld", "PHASE", "sunrise"));
+        ImmutableMap.of("DOMAIN", "test-validate.tld", "PHASE", "sunrise"));
     persistContactsAndHosts();
     EppException thrown =
         assertThrows(NoGeneralRegistrationsInCurrentPhaseException.class, this::runFlow);
@@ -1855,7 +1938,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2014-09-09T09:09:09Z"));
     setEppInput(
         "domain_create_registration_encoded_signed_mark.xml",
-        ImmutableMap.of("NAME", "wrong.tld", "PHASE", "sunrise"));
+        ImmutableMap.of("DOMAIN", "wrong.tld", "PHASE", "sunrise"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(NoMarksFoundMatchingDomainException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1868,7 +1951,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2013-08-09T10:05:59Z").minusSeconds(1));
     setEppInput(
         "domain_create_registration_encoded_signed_mark.xml",
-        ImmutableMap.of("NAME", "test-validate.tld", "PHASE", "sunrise"));
+        ImmutableMap.of("DOMAIN", "test-validate.tld", "PHASE", "sunrise"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(FoundMarkNotYetValidException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1881,7 +1964,7 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     clock.setTo(DateTime.parse("2017-07-23T22:00:00.000Z"));
     setEppInput(
         "domain_create_registration_encoded_signed_mark.xml",
-        ImmutableMap.of("NAME", "test-validate.tld", "PHASE", "sunrise"));
+        ImmutableMap.of("DOMAIN", "test-validate.tld", "PHASE", "sunrise"));
     persistContactsAndHosts();
     EppException thrown = assertThrows(FoundMarkExpiredException.class, this::runFlow);
     assertAboutEppExceptions().that(thrown).marshalsToXml();
@@ -1949,9 +2032,12 @@ public class DomainCreateFlowTest extends ResourceFlowTestCase<DomainCreateFlow,
     setEppInput("domain_create_registration_qlp_sunrush_encoded_signed_mark.xml");
     eppRequestSource = EppRequestSource.TOOL; // Only tools can pass in metadata.
     persistContactsAndHosts();
-    runFlowAssertResponse(loadFile("domain_create_response_encoded_signed_mark_name.xml"));
+    runFlowAssertResponse(
+        loadFile(
+            "domain_create_response_encoded_signed_mark_name.xml",
+            ImmutableMap.of("DOMAIN", "test-validate.tld")));
     assertSuccessfulCreate("tld", ImmutableSet.of(ANCHOR_TENANT, Flag.SUNRISE));
-    assertSunriseLordn();
+    assertSunriseLordn("test-validate.tld");
   }
 
   @Test

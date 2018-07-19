@@ -17,9 +17,11 @@ package google.registry.flows.domain;
 import static google.registry.flows.FlowUtils.persistEntityChanges;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
+import static google.registry.flows.domain.DomainFlowUtils.COLLISION_MESSAGE;
 import static google.registry.flows.domain.DomainFlowUtils.checkAllowedAccessToTld;
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
+import static google.registry.flows.domain.DomainFlowUtils.getReservationTypes;
 import static google.registry.flows.domain.DomainFlowUtils.prepareMarkedLrpTokenEntity;
 import static google.registry.flows.domain.DomainFlowUtils.validateCreateCommandContactsAndNameservers;
 import static google.registry.flows.domain.DomainFlowUtils.validateDomainAllowedOnCreateRestrictedTld;
@@ -38,6 +40,7 @@ import static google.registry.flows.domain.DomainFlowUtils.verifyPremiumNameIsNo
 import static google.registry.flows.domain.DomainFlowUtils.verifyRegistrarIsActive;
 import static google.registry.flows.domain.DomainFlowUtils.verifyUnitIsYears;
 import static google.registry.model.EppResourceUtils.createDomainRepoId;
+import static google.registry.model.eppcommon.StatusValue.SERVER_HOLD;
 import static google.registry.model.eppcommon.StatusValue.SERVER_TRANSFER_PROHIBITED;
 import static google.registry.model.eppcommon.StatusValue.SERVER_UPDATE_PROHIBITED;
 import static google.registry.model.index.DomainApplicationIndex.loadActiveApplicationsByDomainName;
@@ -46,6 +49,7 @@ import static google.registry.model.registry.Registry.TldState.GENERAL_AVAILABIL
 import static google.registry.model.registry.Registry.TldState.START_DATE_SUNRISE;
 import static google.registry.model.registry.Registry.TldState.SUNRISE;
 import static google.registry.model.registry.Registry.TldState.SUNRUSH;
+import static google.registry.model.registry.label.ReservationType.NAME_COLLISION;
 import static google.registry.model.registry.label.ReservedList.matchesAnchorTenantReservation;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static google.registry.util.DateTimeUtils.leapSafeAddYears;
@@ -74,7 +78,6 @@ import google.registry.flows.domain.token.AllocationTokenFlowUtils;
 import google.registry.model.ImmutableObject;
 import google.registry.model.billing.BillingEvent;
 import google.registry.model.billing.BillingEvent.Flag;
-import google.registry.model.billing.BillingEvent.OneTime;
 import google.registry.model.billing.BillingEvent.Reason;
 import google.registry.model.billing.BillingEvent.Recurring;
 import google.registry.model.domain.DomainApplication;
@@ -92,6 +95,7 @@ import google.registry.model.domain.secdns.SecDnsCreateExtension;
 import google.registry.model.domain.token.AllocationToken;
 import google.registry.model.domain.token.AllocationTokenExtension;
 import google.registry.model.eppcommon.AuthInfo;
+import google.registry.model.eppcommon.StatusValue;
 import google.registry.model.eppinput.EppInput;
 import google.registry.model.eppinput.ResourceCommand;
 import google.registry.model.eppoutput.CreateData.DomainCreateData;
@@ -99,6 +103,7 @@ import google.registry.model.eppoutput.EppResponse;
 import google.registry.model.index.EppResourceIndex;
 import google.registry.model.index.ForeignKeyIndex;
 import google.registry.model.ofy.ObjectifyService;
+import google.registry.model.poll.PendingActionNotificationResponse.DomainPendingActionNotificationResponse;
 import google.registry.model.poll.PollMessage;
 import google.registry.model.poll.PollMessage.Autorenew;
 import google.registry.model.registry.Registry;
@@ -326,6 +331,17 @@ public class DomainCreateFlow implements TransactionalFlow {
     if (!feesAndCredits.getEapCost().isZero()) {
       entitiesToSave.add(createEapBillingEvent(feesAndCredits, createBillingEvent));
     }
+
+    ImmutableSet.Builder<StatusValue> statuses = new ImmutableSet.Builder<>();
+    if (registry.getDomainCreateRestricted()) {
+      statuses.add(SERVER_UPDATE_PROHIBITED, SERVER_TRANSFER_PROHIBITED);
+    }
+    if (getReservationTypes(domainName).contains(NAME_COLLISION)) {
+      statuses.add(SERVER_HOLD);
+      entitiesToSave.add(
+          createNameCollisionOneTimePollMessage(targetId, historyEntry, clientId, now));
+    }
+
     DomainResource newDomain =
         new DomainResource.Builder()
             .setCreationClientId(clientId)
@@ -342,10 +358,7 @@ public class DomainCreateFlow implements TransactionalFlow {
             .setAuthInfo(command.getAuthInfo())
             .setFullyQualifiedDomainName(targetId)
             .setNameservers(command.getNameservers())
-            .setStatusValues(
-                registry.getDomainCreateRestricted()
-                    ? ImmutableSet.of(SERVER_UPDATE_PROHIBITED, SERVER_TRANSFER_PROHIBITED)
-                    : ImmutableSet.of())
+            .setStatusValues(statuses.build())
             .setContacts(command.getContacts())
             .addGracePeriod(GracePeriod.forBillingEvent(GracePeriodStatus.ADD, createBillingEvent))
             .build();
@@ -499,7 +512,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         .build();
   }
 
-  private OneTime createOneTimeBillingEvent(
+  private BillingEvent.OneTime createOneTimeBillingEvent(
       Registry registry,
       boolean isAnchorTenant,
       boolean isSunriseCreate,
@@ -556,7 +569,7 @@ public class DomainCreateFlow implements TransactionalFlow {
         .build();
   }
 
-  private static OneTime createEapBillingEvent(
+  private static BillingEvent.OneTime createEapBillingEvent(
       FeesAndCredits feesAndCredits, BillingEvent.OneTime createBillingEvent) {
     return new BillingEvent.OneTime.Builder()
         .setReason(Reason.FEE_EARLY_ACCESS)
@@ -568,6 +581,20 @@ public class DomainCreateFlow implements TransactionalFlow {
         .setBillingTime(createBillingEvent.getBillingTime())
         .setFlags(createBillingEvent.getFlags())
         .setParent(createBillingEvent.getParentKey())
+        .build();
+  }
+
+  private static PollMessage.OneTime createNameCollisionOneTimePollMessage(
+      String fullyQualifiedDomainName, HistoryEntry historyEntry, String clientId, DateTime now) {
+    return new PollMessage.OneTime.Builder()
+        .setClientId(clientId)
+        .setEventTime(now)
+        .setMsg(COLLISION_MESSAGE) // Remind the registrar of the name collision policy.
+        .setResponseData(
+            ImmutableList.of(
+                DomainPendingActionNotificationResponse.create(
+                    fullyQualifiedDomainName, true, historyEntry.getTrid(), now)))
+        .setParent(historyEntry)
         .build();
   }
 

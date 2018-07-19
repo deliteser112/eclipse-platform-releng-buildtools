@@ -17,6 +17,7 @@ package google.registry.flows.domain;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static google.registry.flows.FlowUtils.validateClientIsLoggedIn;
 import static google.registry.flows.ResourceFlowUtils.verifyResourceDoesNotExist;
+import static google.registry.flows.domain.DomainFlowUtils.COLLISION_MESSAGE;
 import static google.registry.flows.domain.DomainFlowUtils.cloneAndLinkReferences;
 import static google.registry.flows.domain.DomainFlowUtils.createFeeCreateResponse;
 import static google.registry.flows.domain.DomainFlowUtils.getReservationTypes;
@@ -112,11 +113,6 @@ import org.joda.time.Duration;
  */
 @ReportingSpec(ActivityReportField.DOMAIN_CREATE)  // Allocates are special domain creates.
 public class DomainAllocateFlow implements TransactionalFlow {
-
-  private static final String COLLISION_MESSAGE =
-      "Domain on the name collision list was allocated. But by policy, the domain will not be "
-      + "delegated. Please visit https://www.icann.org/namecollision  for more information on name "
-      + "collision.";
 
   @Inject ExtensionManager extensionManager;
   @Inject AuthInfo authInfo;

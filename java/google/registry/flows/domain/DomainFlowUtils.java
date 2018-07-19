@@ -149,6 +149,12 @@ public class DomainFlowUtils {
           ReservationType.NAME_COLLISION,
           ReservationType.MISTAKEN_PREMIUM);
 
+  /** Warning message for allocation of collision domains in sunrise. */
+  public static final String COLLISION_MESSAGE =
+      "Domain on the name collision list was allocated. But by policy, the domain will not be "
+          + "delegated. Please visit https://www.icann.org/namecollision  for more information on "
+          + "name collision.";
+
   /** Non-sunrise tld states. */
   private static final ImmutableSet<TldState> DISALLOWED_TLD_STATES_FOR_APPLICATION_FLOWS =
       Sets.immutableEnumSet(
