@@ -50,14 +50,13 @@ public class ProxyProtocolHandlerTest {
   }
 
   @Test
-  public void testSuccess_proxyHeaderMalformed_singleFrame() {
+  public void testSuccess_proxyHeaderUnknownSource_singleFrame() {
     header = "PROXY UNKNOWN\r\n";
     String message = "some message";
     // Header processed, rest of the message passed along.
     assertThat(channel.writeInbound(Unpooled.wrappedBuffer((header + message).getBytes(UTF_8))))
         .isTrue();
     assertThat(((ByteBuf) channel.readInbound()).toString(UTF_8)).isEqualTo(message);
-    // Header malformed.
     assertThat(channel.attr(REMOTE_ADDRESS_KEY).get()).isNull();
     assertThat(channel.pipeline().get(ProxyProtocolHandler.class)).isNull();
     assertThat(channel.isActive()).isTrue();

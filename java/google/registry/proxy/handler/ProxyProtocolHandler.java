@@ -81,7 +81,7 @@ public class ProxyProtocolHandler extends ByteToMessageDecoder {
           remoteIP = headerArray[2];
           logger.atFine().log("Header parsed, using %s as remote IP.", remoteIP);
         } else {
-          logger.atFine().log("Cannot parse the header, use source IP as a last resort.");
+          logger.atFine().log("Cannot parse the header, using source IP as a last resort.");
           remoteIP = getSourceIP(ctx);
         }
       } else {
