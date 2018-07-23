@@ -15,6 +15,8 @@
 package google.registry.testing;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.lenientFormat;
+import static com.google.common.truth.Fact.simpleFact;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.EppResourceUtils.isActive;
 import static google.registry.testing.DatastoreHelper.getHistoryEntriesOfType;
@@ -136,15 +138,19 @@ abstract class AbstractEppResourceSubject
 
   public And<S> hasStatusValue(StatusValue statusValue) {
     if (!actual().getStatusValues().contains(statusValue)) {
-      failWithRawMessage("%s should have had status value %s", actualAsString(), statusValue);
+      failWithoutActual(
+          simpleFact(
+              lenientFormat("%s should have had status value %s", actualAsString(), statusValue)));
     }
     return andChainer();
   }
 
   public And<S> doesNotHaveStatusValue(StatusValue statusValue) {
     if (actual().getStatusValues().contains(statusValue)) {
-      failWithRawMessage(
-          "%s should not have had status value %s", actualAsString(), statusValue);
+      failWithoutActual(
+          simpleFact(
+              lenientFormat(
+                  "%s should not have had status value %s", actualAsString(), statusValue)));
     }
     return andChainer();
   }
