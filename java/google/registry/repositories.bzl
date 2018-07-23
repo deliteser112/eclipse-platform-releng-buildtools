@@ -943,10 +943,10 @@ def com_google_auth_library_oauth2_http():
 def com_google_auto_common():
     java_import_external(
         name = "com_google_auto_common",
-        jar_sha256 = "eee75e0d1b1b8f31584dcbe25e7c30752545001b46673d007d468d75cf6b2c52",
+        jar_sha256 = "97db1709f57b91b32edacb596ef4641872f227b7d99ad90e467f0d77f5ba134a",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/auto/auto-common/0.7/auto-common-0.7.jar",
-            "http://repo1.maven.org/maven2/com/google/auto/auto-common/0.7/auto-common-0.7.jar",
+            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/auto/auto-common/0.8/auto-common-0.8.jar",
+            "http://repo1.maven.org/maven2/com/google/auto/auto-common/0.8/auto-common-0.8.jar",
         ],
         licenses = ["notice"],  # Apache 2.0
         deps = ["@com_google_guava"],
@@ -1003,10 +1003,10 @@ def com_google_auto_factory():
 def com_google_auto_service():
     java_import_external(
         name = "com_google_auto_service",
-        jar_sha256 = "46808c92276b4c19e05781963432e6ab3e920b305c0e6df621517d3624a35d71",
+        jar_sha256 = "e422d49c312fd2031222e7306e8108c1b4118eb9c049f1b51eca280bed87e924",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/auto/service/auto-service/1.0-rc2/auto-service-1.0-rc2.jar",
-            "http://repo1.maven.org/maven2/com/google/auto/service/auto-service/1.0-rc2/auto-service-1.0-rc2.jar",
+            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/auto/service/auto-service/1.0-rc4/auto-service-1.0-rc4.jar",
+            "http://repo1.maven.org/maven2/com/google/auto/service/auto-service/1.0-rc4/auto-service-1.0-rc4.jar",
         ],
         licenses = ["notice"],  # Apache 2.0
         neverlink = True,
@@ -1035,10 +1035,10 @@ def com_google_auto_service():
 def com_google_auto_value():
     java_import_external(
         name = "com_google_auto_value",
-        jar_sha256 = "ea26f99150825f61752efc8784739cf50dd25d7956774573f8cdc3b948b23086",
+        jar_sha256 = "edbe65a5c53e3d4f5cb10b055d4884ae7705a7cd697be4b2a5d8427761b8ba12",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/auto/value/auto-value/1.4-rc2/auto-value-1.4-rc2.jar",
-            "http://repo1.maven.org/maven2/com/google/auto/value/auto-value/1.4-rc2/auto-value-1.4-rc2.jar",
+            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/auto/value/auto-value/1.6.2/auto-value-1.6.2.jar",
+            "http://repo1.maven.org/maven2/com/google/auto/value/auto-value/1.6.2/auto-value-1.6.2.jar",
         ],
         licenses = ["notice"],  # Apache 2.0
         neverlink = True,
@@ -1129,10 +1129,10 @@ def com_google_code_findbugs_jsr305():
     java_import_external(
         name = "com_google_code_findbugs_jsr305",
         licenses = ["notice"],  # The Apache Software License, Version 2.0
-        jar_sha256 = "c885ce34249682bc0236b4a7d56efcc12048e6135a5baf7a9cde8ad8cda13fcd",
+        jar_sha256 = "766ad2a0783f2687962c8ad74ceecc38a28b9f72a2d085ee438b7813e928d0c7",
         jar_urls = [
-            "http://repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.1/jsr305-3.0.1.jar",
-            "http://maven.ibiblio.org/maven2/com/google/code/findbugs/jsr305/3.0.1/jsr305-3.0.1.jar",
+            "http://repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+            "http://maven.ibiblio.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
         ],
     )
 
@@ -1224,10 +1224,10 @@ def com_google_dagger_producers():
 def com_google_errorprone_error_prone_annotations():
     java_import_external(
         name = "com_google_errorprone_error_prone_annotations",
-        jar_sha256 = "e7749ffdf03fb8ebe08a727ea205acb301c8791da837fee211b99b04f9d79c46",
+        jar_sha256 = "03d0329547c13da9e17c634d1049ea2ead093925e290567e1a364fd6b1fc7ff8",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.0.15/error_prone_annotations-2.0.15.jar",
-            "http://repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.0.15/error_prone_annotations-2.0.15.jar",
+            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.1.3/error_prone_annotations-2.1.3.jar",
+            "http://repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.1.3/error_prone_annotations-2.1.3.jar",
         ],
         licenses = ["notice"],  # Apache 2.0
     )
@@ -1307,10 +1307,10 @@ def com_google_googlejavaformat_google_java_format():
 def com_google_guava():
     java_import_external(
         name = "com_google_guava",
-        jar_sha256 = "3fd4341776428c7e0e5c18a7c10de129475b69ab9d30aeafbb5c277bb6074fa9",
+        jar_sha256 = "6db0c3a244c397429c2e362ea2837c3622d5b68bb95105d37c21c36e5bc70abf",
         jar_urls = [
-            "http://repo1.maven.org/maven2/com/google/guava/guava/25.0-jre/guava-25.0-jre.jar",
-            "http://maven.ibiblio.org/maven2/com/google/guava/guava/25.0-jre/guava-25.0-jre.jar",
+            "http://repo1.maven.org/maven2/com/google/guava/guava/25.1-jre/guava-25.1-jre.jar",
+            "http://maven.ibiblio.org/maven2/com/google/guava/guava/25.1-jre/guava-25.1-jre.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         exports = [
@@ -1530,10 +1530,10 @@ def com_google_template_soy():
 def com_google_truth():
     java_import_external(
         name = "com_google_truth",
-        jar_sha256 = "25ce04464511d4a7c05e1034477900a897228cba2f86110d2ed49c956d9a82af",
+        jar_sha256 = "dd652bdf0c4427c59848ac0340fd6b6d20c2cbfaa3c569a8366604dbcda5214c",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/truth/truth/0.39/truth-0.39.jar",
-            "http://repo1.maven.org/maven2/com/google/truth/truth/0.39/truth-0.39.jar",
+            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/truth/truth/0.42/truth-0.42.jar",
+            "http://repo1.maven.org/maven2/com/google/truth/truth/0.42/truth-0.42.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         testonly_ = True,
