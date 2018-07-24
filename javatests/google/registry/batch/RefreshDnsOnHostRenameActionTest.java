@@ -15,6 +15,8 @@
 package google.registry.batch;
 
 import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
@@ -33,12 +35,15 @@ import static google.registry.testing.TaskQueueHelper.assertNoTasksEnqueued;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.util.DateTimeUtils.START_OF_TIME;
 import static org.joda.time.Duration.millis;
+import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardHours;
 import static org.joda.time.Duration.standardSeconds;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.modules.ModulesService;
 import com.google.common.collect.ImmutableSet;
@@ -48,15 +53,19 @@ import google.registry.flows.async.AsyncFlowEnqueuer;
 import google.registry.flows.async.AsyncFlowMetrics;
 import google.registry.flows.async.AsyncFlowMetrics.OperationResult;
 import google.registry.model.host.HostResource;
+import google.registry.model.server.Lock;
 import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
 import google.registry.testing.InjectRule;
+import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.testing.mapreduce.MapreduceTestCase;
+import google.registry.util.RequestStatusChecker;
 import google.registry.util.Retrier;
 import google.registry.util.Sleeper;
 import google.registry.util.SystemSleeper;
+import java.util.Optional;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Before;
@@ -64,17 +73,20 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mock;
 
 /** Unit tests for {@link RefreshDnsOnHostRenameAction}. */
 @RunWith(JUnit4.class)
 public class RefreshDnsOnHostRenameActionTest
     extends MapreduceTestCase<RefreshDnsOnHostRenameAction> {
 
-  @Rule
-  public InjectRule inject = new InjectRule();
+  @Rule public final InjectRule inject = new InjectRule();
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
   private AsyncFlowEnqueuer enqueuer;
   private final FakeClock clock = new FakeClock(DateTime.parse("2015-01-15T11:22:33Z"));
+  private final FakeResponse fakeResponse = new FakeResponse();
+  @Mock private RequestStatusChecker requestStatusChecker;
 
   @Before
   public void setup() {
@@ -95,8 +107,12 @@ public class RefreshDnsOnHostRenameActionTest
     action.clock = clock;
     action.mrRunner = makeDefaultRunner();
     action.pullQueue = getQueue(QUEUE_ASYNC_HOST_RENAME);
-    action.response = new FakeResponse();
+    action.requestStatusChecker = requestStatusChecker;
+    action.response = fakeResponse;
     action.retrier = new Retrier(new FakeSleeper(clock), 1);
+    when(requestStatusChecker.getLogId()).thenReturn("requestId");
+    when(requestStatusChecker.isRunning(anyString()))
+        .thenThrow(new AssertionError("Should not be called"));
   }
 
   private void runMapreduce() throws Exception {
@@ -108,6 +124,14 @@ public class RefreshDnsOnHostRenameActionTest
     sleeper.sleep(millis(50));
     executeTasksUntilEmpty("mapreduce", clock);
     sleeper.sleep(millis(50));
+    clock.advanceBy(standardSeconds(5));
+    ofy().clearSessionCache();
+  }
+
+  /** Kicks off, but does not run, the mapreduce tasks. Useful for testing validation/setup. */
+  private void enqueueMapreduceOnly() {
+    clock.advanceOneMilli();
+    action.run();
     clock.advanceBy(standardSeconds(5));
     ofy().clearSessionCache();
   }
@@ -191,12 +215,48 @@ public class RefreshDnsOnHostRenameActionTest
   public void testRun_hostDoesntExist_delaysTask() throws Exception {
     HostResource host = newHostResource("ns1.example.tld");
     enqueuer.enqueueAsyncDnsRefresh(host, clock.nowUtc());
-    runMapreduce();
+    enqueueMapreduceOnly();
     assertNoDnsTasksEnqueued();
     assertTasksEnqueued(
         QUEUE_ASYNC_HOST_RENAME,
         new TaskMatcher()
             .etaDelta(standardHours(23), standardHours(25))
             .param("hostKey", Key.create(host).getString()));
+    assertThat(acquireLock()).isPresent();
+  }
+
+  @Test
+  public void test_cannotAcquireLock() {
+    // Make lock acquisition fail.
+    acquireLock();
+    enqueueMapreduceOnly();
+    assertThat(fakeResponse.getPayload()).isEqualTo("Can't acquire lock; aborting.");
+    assertNoDnsTasksEnqueued();
+  }
+
+  @Test
+  public void test_mapreduceHasWorkToDo_lockIsAcquired() {
+    HostResource host = persistActiveHost("ns1.example.tld");
+    enqueuer.enqueueAsyncDnsRefresh(host, clock.nowUtc());
+    enqueueMapreduceOnly();
+    assertThat(acquireLock()).isEmpty();
+  }
+
+  @Test
+  public void test_noTasksToLease_releasesLockImmediately() throws Exception {
+    enqueueMapreduceOnly();
+    assertNoDnsTasksEnqueued();
+    assertNoTasksEnqueued(QUEUE_ASYNC_HOST_RENAME);
+    // If the Lock was correctly released, then we can acquire it now.
+    assertThat(acquireLock()).isPresent();
+  }
+
+  private Optional<Lock> acquireLock() {
+    return Lock.acquire(
+        RefreshDnsOnHostRenameAction.class.getSimpleName(),
+        null,
+        standardDays(30),
+        requestStatusChecker,
+        false);
   }
 }

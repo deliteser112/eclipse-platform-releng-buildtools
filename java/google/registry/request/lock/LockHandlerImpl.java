@@ -105,7 +105,7 @@ public class LockHandlerImpl implements LockHandler {
   /** Allows injection of mock Lock in tests. */
   @VisibleForTesting
   Optional<Lock> acquire(String lockName, @Nullable String tld, Duration leaseLength) {
-    return Lock.acquire(lockName, tld, leaseLength, requestStatusChecker);
+    return Lock.acquire(lockName, tld, leaseLength, requestStatusChecker, true);
   }
 
   /** A {@link Callable} that acquires and releases a lock around a delegate {@link Callable}. */

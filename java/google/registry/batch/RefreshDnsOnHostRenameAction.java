@@ -29,7 +29,10 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.DateTimeUtils.latestOf;
 import static google.registry.util.PipelineUtils.createJobPath;
 import static java.util.concurrent.TimeUnit.DAYS;
-import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.SEVERE;
+import static org.joda.time.Duration.standardHours;
 
 import com.google.appengine.api.taskqueue.LeaseOptions;
 import com.google.appengine.api.taskqueue.Queue;
@@ -50,20 +53,25 @@ import google.registry.mapreduce.MapreduceRunner;
 import google.registry.mapreduce.inputs.NullInput;
 import google.registry.model.domain.DomainResource;
 import google.registry.model.host.HostResource;
+import google.registry.model.server.Lock;
 import google.registry.request.Action;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.util.Clock;
 import google.registry.util.NonFinalForTesting;
+import google.registry.util.RequestStatusChecker;
 import google.registry.util.Retrier;
 import google.registry.util.SystemClock;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.logging.Level;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 
 /** Performs batched DNS refreshes for applicable domains following a host rename. */
 @Action(
@@ -73,26 +81,48 @@ import org.joda.time.DateTime;
 public class RefreshDnsOnHostRenameAction implements Runnable {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
-  private static final long LEASE_MINUTES = 20;
+  private static final Duration LEASE_LENGTH = standardHours(4);
 
   @Inject AsyncFlowMetrics asyncFlowMetrics;
   @Inject Clock clock;
   @Inject MapreduceRunner mrRunner;
   @Inject @Named(QUEUE_ASYNC_HOST_RENAME) Queue pullQueue;
+  @Inject RequestStatusChecker requestStatusChecker;
   @Inject Response response;
   @Inject Retrier retrier;
   @Inject RefreshDnsOnHostRenameAction() {}
 
   @Override
   public void run() {
-    LeaseOptions options =
-        LeaseOptions.Builder.withCountLimit(maxLeaseCount()).leasePeriod(LEASE_MINUTES, MINUTES);
-    List<TaskHandle> tasks = pullQueue.leaseTasks(options);
-    asyncFlowMetrics.recordDnsRefreshBatchSize(tasks.size());
-    if (tasks.isEmpty()) {
-      response.setPayload("No DNS refresh on host rename tasks to process in pull queue.");
+    // Check if the lock can be acquired, and if not, a previous run of this mapreduce is still
+    // executing, so return early.
+    Optional<Lock> lock =
+        Lock.acquire(
+            RefreshDnsOnHostRenameAction.class.getSimpleName(),
+            null,
+            LEASE_LENGTH,
+            requestStatusChecker,
+            false);
+
+    if (!lock.isPresent()) {
+      logRespondAndUnlock(INFO, "Can't acquire lock; aborting.", lock);
       return;
     }
+
+    // Lease the async tasks to process.
+    LeaseOptions options =
+        LeaseOptions.Builder.withCountLimit(maxLeaseCount())
+            .leasePeriod(LEASE_LENGTH.getStandardSeconds(), SECONDS);
+    List<TaskHandle> tasks = pullQueue.leaseTasks(options);
+    asyncFlowMetrics.recordDnsRefreshBatchSize(tasks.size());
+
+    // Check if there are no tasks to process, and if so, return early.
+    if (tasks.isEmpty()) {
+      logRespondAndUnlock(
+          INFO, "No DNS refresh on host rename tasks to process in pull queue; finishing.", lock);
+      return;
+    }
+
     ImmutableList.Builder<DnsRefreshRequest> requestsBuilder = new ImmutableList.Builder<>();
     ImmutableList.Builder<Key<HostResource>> hostKeys = new ImmutableList.Builder<>();
     final List<DnsRefreshRequest> requestsToDelete = new ArrayList<>();
@@ -119,32 +149,39 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
         requestsToDelete, pullQueue, asyncFlowMetrics, retrier, OperationResult.STALE);
     ImmutableList<DnsRefreshRequest> refreshRequests = requestsBuilder.build();
     if (refreshRequests.isEmpty()) {
-      logger.atInfo().log(
-          "No asynchronous DNS refreshes to process because all renamed hosts are deleted.");
-      response.setPayload("All requested DNS refreshes are on hosts that were since deleted.");
+      logRespondAndUnlock(
+          INFO, "No async DNS refreshes to process because all renamed hosts are deleted.", lock);
     } else {
       logger.atInfo().log(
           "Processing asynchronous DNS refresh for renamed hosts: %s", hostKeys.build());
-      runMapreduce(refreshRequests);
+      runMapreduce(refreshRequests, lock);
     }
   }
 
-  private void runMapreduce(ImmutableList<DnsRefreshRequest> refreshRequests) {
+  private void runMapreduce(ImmutableList<DnsRefreshRequest> refreshRequests, Optional<Lock> lock) {
     try {
-      response.sendJavaScriptRedirect(createJobPath(mrRunner
-          .setJobName("Enqueue DNS refreshes for domains referencing renamed hosts")
-          .setModuleName("backend")
-          .setDefaultReduceShards(1)
-          .runMapreduce(
-              new RefreshDnsOnHostRenameMapper(refreshRequests, retrier),
-              new RefreshDnsOnHostRenameReducer(refreshRequests, retrier),
-              // Add an extra NullInput so that the reducer always fires exactly once.
-              ImmutableList.of(
-                  new NullInput<>(), createEntityInput(DomainResource.class)))));
+      response.sendJavaScriptRedirect(
+          createJobPath(
+              mrRunner
+                  .setJobName("Enqueue DNS refreshes for domains referencing renamed hosts")
+                  .setModuleName("backend")
+                  .setDefaultReduceShards(1)
+                  .runMapreduce(
+                      new RefreshDnsOnHostRenameMapper(refreshRequests, retrier),
+                      new RefreshDnsOnHostRenameReducer(refreshRequests, lock.get(), retrier),
+                      // Add an extra NullInput so that the reducer always fires exactly once.
+                      ImmutableList.of(
+                          new NullInput<>(), createEntityInput(DomainResource.class)))));
     } catch (Throwable t) {
-      logger.atSevere().withCause(t).log(
-          "Error while kicking off mapreduce to refresh DNS for renamed hosts.");
+      logRespondAndUnlock(
+          SEVERE, "Error starting mapreduce to refresh DNS for renamed hosts.", lock);
     }
+  }
+
+  private void logRespondAndUnlock(Level level, String message, Optional<Lock> lock) {
+    logger.at(level).log(message);
+    response.setPayload(message);
+    lock.ifPresent(Lock::release);
   }
 
   /** Map over domains and refresh the DNS of those that reference the renamed hosts. */
@@ -205,27 +242,34 @@ public class RefreshDnsOnHostRenameAction implements Runnable {
    */
   public static class RefreshDnsOnHostRenameReducer extends Reducer<Boolean, Boolean, Void> {
 
-    private static final long serialVersionUID = -2850944843275790412L;
+    private static final long serialVersionUID = 9077366205249562118L;
 
     @NonFinalForTesting
     private static AsyncFlowMetrics asyncFlowMetrics = new AsyncFlowMetrics(new SystemClock());
 
+    private final Lock lock;
     private final Retrier retrier;
     private final List<DnsRefreshRequest> refreshRequests;
 
-    RefreshDnsOnHostRenameReducer(List<DnsRefreshRequest> refreshRequests, Retrier retrier) {
+    RefreshDnsOnHostRenameReducer(
+        List<DnsRefreshRequest> refreshRequests, Lock lock, Retrier retrier) {
       this.refreshRequests = refreshRequests;
+      this.lock = lock;
       this.retrier = retrier;
     }
 
     @Override
     public void reduce(Boolean key, ReducerInput<Boolean> values) {
+      // The reduce() method is run precisely once, because the NullInput caused the mapper to emit
+      // a dummy value once.
       deleteTasksWithRetry(
           refreshRequests,
           getQueue(QUEUE_ASYNC_HOST_RENAME),
           asyncFlowMetrics,
           retrier,
           OperationResult.SUCCESS);
+
+      lock.release();
     }
   }
 

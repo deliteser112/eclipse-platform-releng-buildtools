@@ -9,6 +9,7 @@ java_library(
     srcs = glob(["*.java"]),
     deps = [
         "//java/google/registry/mapreduce/inputs",
+        "//java/google/registry/model",
         "//java/google/registry/request",
         "//java/google/registry/util",
         "//third_party/objectify:objectify-v4_1",

@@ -29,6 +29,7 @@ import google.registry.model.annotations.NotBackedUp;
 import google.registry.model.annotations.NotBackedUp.Reason;
 import google.registry.util.RequestStatusChecker;
 import google.registry.util.RequestStatusCheckerImpl;
+import java.io.Serializable;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -45,8 +46,9 @@ import org.joda.time.Duration;
  */
 @Entity
 @NotBackedUp(reason = Reason.TRANSIENT)
-public class Lock extends ImmutableObject {
+public class Lock extends ImmutableObject implements Serializable {
 
+  private static final long serialVersionUID = 756397280691684645L;
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** Disposition of locking, for monitoring. */
@@ -164,10 +166,11 @@ public class Lock extends ImmutableObject {
 
   /** Try to acquire a lock. Returns absent if it can't be acquired. */
   public static Optional<Lock> acquire(
-      final String resourceName,
-      @Nullable final String tld,
-      final Duration leaseLength,
-      final RequestStatusChecker requestStatusChecker) {
+      String resourceName,
+      @Nullable String tld,
+      Duration leaseLength,
+      RequestStatusChecker requestStatusChecker,
+      boolean checkThreadRunning) {
     String lockId = makeLockId(resourceName, tld);
     // It's important to use transactNew rather than transact, because a Lock can be used to control
     // access to resources like GCS that can't be transactionally rolled back. Therefore, the lock
@@ -189,7 +192,8 @@ public class Lock extends ImmutableObject {
                     lockState = LockState.FREE;
                   } else if (isAtOrAfter(now, lock.expirationTime)) {
                     lockState = LockState.TIMED_OUT;
-                  } else if (!requestStatusChecker.isRunning(lock.requestLogId)) {
+                  } else if (checkThreadRunning
+                      && !requestStatusChecker.isRunning(lock.requestLogId)) {
                     lockState = LockState.OWNER_DIED;
                   } else {
                     lockState = LockState.IN_USE;

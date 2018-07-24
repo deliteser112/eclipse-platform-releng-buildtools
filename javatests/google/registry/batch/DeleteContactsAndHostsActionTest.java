@@ -52,11 +52,14 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static google.registry.util.DateTimeUtils.END_OF_TIME;
 import static org.joda.time.DateTimeZone.UTC;
 import static org.joda.time.Duration.millis;
+import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardHours;
 import static org.joda.time.Duration.standardSeconds;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.modules.ModulesService;
 import com.google.appengine.api.taskqueue.TaskOptions;
@@ -88,6 +91,7 @@ import google.registry.model.poll.PollMessage;
 import google.registry.model.poll.PollMessage.OneTime;
 import google.registry.model.registry.Registry;
 import google.registry.model.reporting.HistoryEntry;
+import google.registry.model.server.Lock;
 import google.registry.model.transfer.TransferData;
 import google.registry.model.transfer.TransferResponse;
 import google.registry.model.transfer.TransferStatus;
@@ -95,8 +99,10 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeResponse;
 import google.registry.testing.FakeSleeper;
 import google.registry.testing.InjectRule;
+import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.testing.mapreduce.MapreduceTestCase;
+import google.registry.util.RequestStatusChecker;
 import google.registry.util.Retrier;
 import google.registry.util.Sleeper;
 import google.registry.util.SystemSleeper;
@@ -108,17 +114,20 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mock;
 
 /** Unit tests for {@link DeleteContactsAndHostsAction}. */
 @RunWith(JUnit4.class)
 public class DeleteContactsAndHostsActionTest
     extends MapreduceTestCase<DeleteContactsAndHostsAction> {
 
-  @Rule
-  public final InjectRule inject = new InjectRule();
+  @Rule public final InjectRule inject = new InjectRule();
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
-  AsyncFlowEnqueuer enqueuer;
-  FakeClock clock = new FakeClock(DateTime.parse("2015-01-15T11:22:33Z"));
+  private AsyncFlowEnqueuer enqueuer;
+  private final FakeClock clock = new FakeClock(DateTime.parse("2015-01-15T11:22:33Z"));
+  private final FakeResponse fakeResponse = new FakeResponse();
+  @Mock private RequestStatusChecker requestStatusChecker;
 
   private void runMapreduce() throws Exception {
     clock.advanceBy(standardSeconds(5));
@@ -134,8 +143,17 @@ public class DeleteContactsAndHostsActionTest
     ofy().clearSessionCache();
   }
 
+  /** Kicks off, but does not run, the mapreduce tasks. Useful for testing validation/setup. */
+  private void enqueueMapreduceOnly() {
+    clock.advanceBy(standardSeconds(5));
+    action.run();
+    clock.advanceBy(standardSeconds(5));
+    ofy().clearSessionCache();
+  }
+
   @Before
   public void setup() {
+    inject.setStaticField(Ofy.class, "clock", clock);
     enqueuer =
         new AsyncFlowEnqueuer(
             getQueue(QUEUE_ASYNC_ACTIONS),
@@ -150,10 +168,13 @@ public class DeleteContactsAndHostsActionTest
     inject.setStaticField(DeleteEppResourceReducer.class, "asyncFlowMetrics", asyncFlowMetricsMock);
     action.clock = clock;
     action.mrRunner = makeDefaultRunner();
-    action.response = new FakeResponse();
+    action.requestStatusChecker = requestStatusChecker;
+    action.response = fakeResponse;
     action.retrier = new Retrier(new FakeSleeper(clock), 1);
     action.queue = getQueue(QUEUE_ASYNC_DELETE);
-    inject.setStaticField(Ofy.class, "clock", clock);
+    when(requestStatusChecker.getLogId()).thenReturn("requestId");
+    when(requestStatusChecker.isRunning(anyString()))
+        .thenThrow(new AssertionError("Should not be called"));
 
     createTld("tld");
     clock.advanceOneMilli();
@@ -207,6 +228,35 @@ public class DeleteContactsAndHostsActionTest
     runSuccessfulContactDeletionTest(Optional.empty());
   }
 
+  @Test
+  public void test_cannotAcquireLock() {
+    // Make lock acquisition fail.
+    acquireLock();
+    enqueueMapreduceOnly();
+    assertThat(fakeResponse.getPayload()).isEqualTo("Can't acquire lock; aborting.");
+  }
+
+  @Test
+  public void test_mapreduceHasWorkToDo_lockIsAcquired() {
+    ContactResource contact = persistContactPendingDelete("blah8221");
+    persistResource(newDomainResource("example.tld", contact));
+    DateTime timeEnqueued = clock.nowUtc();
+    enqueuer.enqueueAsyncDelete(
+        contact,
+        timeEnqueued,
+        "TheRegistrar",
+        Trid.create("fakeClientTrid", "fakeServerTrid"),
+        false);
+    enqueueMapreduceOnly();
+    assertThat(acquireLock()).isEmpty();
+  }
+
+  @Test
+  public void test_noTasksToLease_releasesLockImmediately() {
+    enqueueMapreduceOnly();
+    // If the Lock was correctly released, then we can acquire it now.
+    assertThat(acquireLock()).isPresent();
+  }
 
   private void runSuccessfulContactDeletionTest(Optional<String> clientTrid) throws Exception {
     ContactResource contact = persistContactWithPii("jim919");
@@ -454,7 +504,7 @@ public class DeleteContactsAndHostsActionTest
         "TheRegistrar",
         Trid.create("fakeClientTrid", "fakeServerTrid"),
         false);
-    runMapreduce();
+    enqueueMapreduceOnly();
     assertTasksEnqueued(
         QUEUE_ASYNC_DELETE,
         new TaskMatcher()
@@ -473,6 +523,7 @@ public class DeleteContactsAndHostsActionTest
             .param("serverTransactionId", "fakeServerTrid")
             .param("isSuperuser", "false")
             .param("requestedTime", timeBeforeRun.toString()));
+    assertThat(acquireLock()).isPresent();
   }
 
   @Test
@@ -480,7 +531,7 @@ public class DeleteContactsAndHostsActionTest
     TaskOptions task =
         TaskOptions.Builder.withMethod(Method.PULL).param("gobbledygook", "kljhadfgsd9f7gsdfh");
     getQueue(QUEUE_ASYNC_DELETE).add(task);
-    runMapreduce();
+    enqueueMapreduceOnly();
     assertTasksEnqueued(
         QUEUE_ASYNC_DELETE,
         new TaskMatcher()
@@ -488,6 +539,7 @@ public class DeleteContactsAndHostsActionTest
             .etaDelta(standardHours(23), standardHours(25)));
     verify(action.asyncFlowMetrics).recordContactHostDeletionBatchSize(1L);
     verifyNoMoreInteractions(action.asyncFlowMetrics);
+    assertThat(acquireLock()).isPresent();
   }
 
   @Test
@@ -507,7 +559,7 @@ public class DeleteContactsAndHostsActionTest
         "TheRegistrar",
         Trid.create("fakeClientTrid", "fakeServerTrid"),
         false);
-    runMapreduce();
+    enqueueMapreduceOnly();
     assertThat(loadByForeignKey(ContactResource.class, "blah2222", clock.nowUtc()))
         .isEqualTo(contact);
     assertThat(loadByForeignKey(HostResource.class, "rustles.your.jimmies", clock.nowUtc()))
@@ -519,6 +571,7 @@ public class DeleteContactsAndHostsActionTest
     verify(action.asyncFlowMetrics)
         .recordAsyncFlowResult(OperationType.HOST_DELETE, STALE, timeEnqueued);
     verifyNoMoreInteractions(action.asyncFlowMetrics);
+    assertThat(acquireLock()).isPresent();
   }
 
   @Test
@@ -537,10 +590,11 @@ public class DeleteContactsAndHostsActionTest
         "TheRegistrar",
         Trid.create("fakeClientTrid", "fakeServerTrid"),
         false);
-    runMapreduce();
+    enqueueMapreduceOnly();
     assertThat(ofy().load().entity(contactDeleted).now()).isEqualTo(contactDeleted);
     assertThat(ofy().load().entity(hostDeleted).now()).isEqualTo(hostDeleted);
     assertNoTasksEnqueued(QUEUE_ASYNC_DELETE);
+    assertThat(acquireLock()).isPresent();
   }
 
   @Test
@@ -893,5 +947,14 @@ public class DeleteContactsAndHostsActionTest
             .asBuilder()
             .setNameservers(ImmutableSet.of(Key.create(host)))
             .build());
+  }
+
+  private Optional<Lock> acquireLock() {
+    return Lock.acquire(
+        DeleteContactsAndHostsAction.class.getSimpleName(),
+        null,
+        standardDays(30),
+        requestStatusChecker,
+        false);
   }
 }

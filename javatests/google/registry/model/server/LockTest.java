@@ -50,16 +50,12 @@ public class LockTest {
   private static final RequestStatusChecker requestStatusChecker = mock(RequestStatusChecker.class);
   private static final FakeClock clock = new FakeClock();
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .build();
+  @Rule public final AppEngineRule appEngine = AppEngineRule.builder().withDatastore().build();
+  @Rule public final InjectRule inject = new InjectRule();
 
-  @Rule
-  public final InjectRule inject = new InjectRule();
   private Optional<Lock> acquire(String tld, Duration leaseLength, LockState expectedLockState) {
     Lock.lockMetrics = mock(LockMetrics.class);
-    Optional<Lock> lock = Lock.acquire(RESOURCE_NAME, tld, leaseLength, requestStatusChecker);
+    Optional<Lock> lock = Lock.acquire(RESOURCE_NAME, tld, leaseLength, requestStatusChecker, true);
     verify(Lock.lockMetrics).recordAcquire(RESOURCE_NAME, tld, expectedLockState);
     verifyNoMoreInteractions(Lock.lockMetrics);
     Lock.lockMetrics = null;
@@ -74,7 +70,6 @@ public class LockTest {
     verifyNoMoreInteractions(Lock.lockMetrics);
     Lock.lockMetrics = null;
   }
-
 
   @Before public void setUp() {
     inject.setStaticField(Ofy.class, "clock", clock);
@@ -138,7 +133,7 @@ public class LockTest {
     IllegalArgumentException thrown =
         assertThrows(
             IllegalArgumentException.class,
-            () -> Lock.acquire("", "", TWO_MILLIS, requestStatusChecker));
+            () -> Lock.acquire("", "", TWO_MILLIS, requestStatusChecker, true));
     assertThat(thrown).hasMessageThat().contains("resourceName cannot be null or empty");
   }
 }

@@ -45,6 +45,7 @@ import google.registry.model.domain.DesignatedContact.Type;
 import google.registry.model.domain.launch.LaunchNotice;
 import google.registry.model.domain.secdns.DelegationSignerData;
 import google.registry.model.host.HostResource;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -165,12 +166,11 @@ public abstract class DomainBase extends EppResource {
 
   /** Returns all referenced contacts from this domain or application. */
   public ImmutableSet<Key<ContactResource>> getReferencedContacts() {
-    ImmutableSet.Builder<Key<ContactResource>> contactsBuilder =
-        new ImmutableSet.Builder<>();
-    for (DesignatedContact designated : nullToEmptyImmutableCopy(allContacts)) {
-      contactsBuilder.add(designated.getContactKey());
-    }
-    return contactsBuilder.build();
+    return nullToEmptyImmutableCopy(allContacts)
+        .stream()
+        .map(DesignatedContact::getContactKey)
+        .filter(Objects::nonNull)
+        .collect(toImmutableSet());
   }
 
   public String getTld() {
