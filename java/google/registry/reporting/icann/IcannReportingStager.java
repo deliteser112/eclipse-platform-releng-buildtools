@@ -60,7 +60,7 @@ public class IcannReportingStager {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  @Inject @Config("icannReportingBucket") String reportingBucket;
+  @Inject @Config("reportingBucket") String reportingBucket;
 
   @Inject YearMonth yearMonth;
   @Inject @ReportingSubdir

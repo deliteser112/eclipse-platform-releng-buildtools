@@ -83,6 +83,7 @@ interface RegistryToolComponent {
   void inject(CreateLrpTokensCommand command);
   void inject(CreateTldCommand command);
   void inject(DeployInvoicingPipelineCommand command);
+  void inject(DeploySpec11PipelineCommand command);
   void inject(EncryptEscrowDepositCommand command);
   void inject(GenerateAllocationTokensCommand command);
   void inject(GenerateApplicationsReportCommand command);

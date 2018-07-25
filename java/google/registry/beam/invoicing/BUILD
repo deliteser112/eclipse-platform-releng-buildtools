@@ -9,6 +9,7 @@ java_library(
     srcs = glob(["*.java"]),
     resources = glob(["sql/*"]),
     deps = [
+        "//java/google/registry/beam",
         "//java/google/registry/config",
         "//java/google/registry/model",
         "//java/google/registry/reporting/billing",

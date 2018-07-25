@@ -54,6 +54,7 @@ public final class RegistryTool {
           .put("delete_reserved_list", DeleteReservedListCommand.class)
           .put("delete_tld", DeleteTldCommand.class)
           .put("deploy_invoicing_pipeline", DeployInvoicingPipelineCommand.class)
+          .put("deploy_spec11_pipeline", DeploySpec11PipelineCommand.class)
           .put("domain_application_info", DomainApplicationInfoCommand.class)
           .put("encrypt_escrow_deposit", EncryptEscrowDepositCommand.class)
           .put("execute_epp", ExecuteEppCommand.class)

@@ -60,7 +60,7 @@ public final class IcannReportingUploadAction implements Runnable {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Inject
-  @Config("icannReportingBucket")
+  @Config("reportingBucket")
   String reportingBucket;
 
   @Inject @ReportingSubdir

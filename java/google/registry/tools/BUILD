@@ -36,6 +36,7 @@ java_library(
     deps = [
         "//java/google/registry/backup",
         "//java/google/registry/beam/invoicing",
+        "//java/google/registry/beam/spec11",
         "//java/google/registry/bigquery",
         "//java/google/registry/config",
         "//java/google/registry/dns",

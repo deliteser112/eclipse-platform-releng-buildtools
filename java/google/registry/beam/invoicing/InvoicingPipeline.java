@@ -67,8 +67,8 @@ public class InvoicingPipeline implements Serializable {
   String invoiceTemplateUrl;
 
   @Inject
-  @Config("invoiceStagingUrl")
-  String invoiceStagingUrl;
+  @Config("beamStagingUrl")
+  String beamStagingUrl;
 
   @Inject
   @Config("billingBucketUrl")
@@ -99,7 +99,7 @@ public class InvoicingPipeline implements Serializable {
     options.setRunner(DataflowRunner.class);
     // This causes p.run() to stage the pipeline as a template on GCS, as opposed to running it.
     options.setTemplateLocation(invoiceTemplateUrl);
-    options.setStagingLocation(invoiceStagingUrl);
+    options.setStagingLocation(beamStagingUrl);
     Pipeline p = Pipeline.create(options);
 
     PCollection<BillingEvent> billingEvents =

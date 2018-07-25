@@ -520,25 +520,38 @@ public final class RegistryConfig {
     }
 
     /**
-     * Returns the URL of the GCS location we store jar dependencies for the invoicing pipeline.
+     * Returns the URL of the GCS location for storing the monthly spec11 Beam template.
      *
-     * @see google.registry.beam.invoicing.InvoicingPipeline
+     * @see google.registry.beam.spec11.Spec11Pipeline
      */
     @Provides
-    @Config("invoiceStagingUrl")
+    @Config("spec11TemplateUrl")
+    public static String provideSpec11TemplateUrl(
+        @Config("apacheBeamBucketUrl") String beamBucketUrl) {
+      return beamBucketUrl + "/templates/spec11";
+    }
+
+    /**
+     * Returns the URL of the GCS location we store jar dependencies for beam pipelines.
+     *
+     * @see google.registry.beam.invoicing.InvoicingPipeline
+     * @see google.registry.beam.spec11.Spec11Pipeline
+     */
+    @Provides
+    @Config("beamStagingUrl")
     public static String provideInvoiceStagingUrl(
         @Config("apacheBeamBucketUrl") String beamBucketUrl) {
       return beamBucketUrl + "/staging";
     }
 
     /**
-     * Returns the Google Cloud Storage bucket for ICANN transaction and activity reports to
-     * be uploaded.
+     * Returns the Google Cloud Storage bucket for Spec11 and ICANN transaction and activity reports
+     * to be uploaded.
      *
      * @see google.registry.reporting.icann.IcannReportingUploadAction
      */
     @Provides
-    @Config("icannReportingBucket")
+    @Config("reportingBucket")
     public static String provideIcannReportingBucket(@Config("projectId") String projectId) {
       return projectId + "-reporting";
     }
@@ -586,6 +599,17 @@ public final class RegistryConfig {
     @Config("billingBucketUrl")
     public static String provideBillingBucketUrl(@Config("billingBucket") String billingBucket) {
       return "gs://" + billingBucket;
+    }
+
+    /**
+     * Returns the URL of the GCS subdirectory we store Spec11 reports in.
+     *
+     * @see google.registry.beam.spec11.Spec11Pipeline
+     */
+    @Provides
+    @Config("spec11BucketUrl")
+    public static String provideSpec11BucketUrl(@Config("reportingBucket") String reportingBucket) {
+      return "gs://" + reportingBucket + "/icann/spec11";
     }
 
     /**

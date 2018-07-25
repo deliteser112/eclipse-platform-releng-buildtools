@@ -14,6 +14,9 @@
 
 package google.registry.beam.invoicing;
 
+import static google.registry.beam.BeamUtils.checkFieldsNotNull;
+import static google.registry.beam.BeamUtils.extractField;
+
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -108,7 +111,7 @@ public abstract class BillingEvent implements Serializable {
    *     Apache AVRO GenericRecord</a>
    */
   static BillingEvent parseFromRecord(SchemaAndRecord schemaAndRecord) {
-    checkFieldsNotNull(schemaAndRecord);
+    checkFieldsNotNull(FIELD_NAMES, schemaAndRecord);
     GenericRecord record = schemaAndRecord.getRecord();
     String flags = extractField(record, "flags");
     double amount = getDiscountedAmount(Double.parseDouble(extractField(record, "amount")), flags);
@@ -335,32 +338,6 @@ public abstract class BillingEvent implements Serializable {
             stringCoder.decode(inStream),
             stringCoder.decode(inStream));
       }
-    }
-  }
-
-  /** Extracts a string representation of a field in a {@code GenericRecord}. */
-  private static String extractField(GenericRecord record, String fieldName) {
-    return String.valueOf(record.get(fieldName));
-  }
-
-  /**
-   * Checks that no expected fields in the record are missing.
-   *
-   * <p>Note that this simply makes sure the field is not null; it may still generate a parse error
-   * in {@code parseFromRecord}.
-   */
-  private static void checkFieldsNotNull(SchemaAndRecord schemaAndRecord) {
-    GenericRecord record = schemaAndRecord.getRecord();
-    ImmutableList<String> nullFields =
-        FIELD_NAMES
-            .stream()
-            .filter(fieldName -> record.get(fieldName) == null)
-            .collect(ImmutableList.toImmutableList());
-    if (!nullFields.isEmpty()) {
-      logger.atSevere().log(
-          "Found unexpected null value(s) in field(s) %s for record %s",
-          Joiner.on(", ").join(nullFields), record);
-      throw new IllegalStateException("Read null value from Bigquery query");
     }
   }
 }
