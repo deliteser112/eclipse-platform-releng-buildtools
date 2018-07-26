@@ -23,9 +23,6 @@ import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
-import com.google.appengine.api.modules.ModulesService;
-import com.google.appengine.api.modules.ModulesServiceFactory;
-import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
@@ -34,7 +31,6 @@ import google.registry.request.Parameter;
 import google.registry.request.Response;
 import google.registry.request.auth.Auth;
 import google.registry.request.lock.LockHandler;
-import google.registry.util.NonFinalForTesting;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -108,9 +104,6 @@ public class SyncRegistrarsSheetAction implements Runnable {
   private static final String LOCK_NAME = "Synchronize registrars sheet";
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  @NonFinalForTesting
-  private static ModulesService modulesService = ModulesServiceFactory.getModulesService();
-
   @Inject Response response;
   @Inject SyncRegistrarsSheet syncRegistrarsSheet;
   @Inject @Config("sheetLockTimeout") Duration timeout;
@@ -152,9 +145,10 @@ public class SyncRegistrarsSheetAction implements Runnable {
     }
   }
 
-  /** Creates, enqueues, and returns a new backend task to sync registrar spreadsheets. */
-  public static TaskHandle enqueueBackendTask() {
-    String hostname = modulesService.getVersionHostname("backend", null);
-    return getQueue(QUEUE).add(withUrl(PATH).method(Method.GET).header("Host", hostname));
+  /**
+   * Enqueues a sync registrar sheet task targeting the App Engine service specified by hostname.
+   */
+  public static void enqueueRegistrarSheetSync(String hostname) {
+    getQueue(QUEUE).add(withUrl(PATH).method(Method.GET).header("Host", hostname));
   }
 }

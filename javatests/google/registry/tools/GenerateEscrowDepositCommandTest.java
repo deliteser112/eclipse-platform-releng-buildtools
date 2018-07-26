@@ -22,13 +22,12 @@ import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.mockito.Mockito.when;
 
 import com.beust.jcommander.ParameterException;
-import com.google.appengine.api.modules.ModulesService;
 import google.registry.testing.InjectRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.util.AppEngineServiceUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 
 /** Unit tests for {@link GenerateEscrowDepositCommand}. */
@@ -38,17 +37,17 @@ public class GenerateEscrowDepositCommandTest
   @Rule
   public final InjectRule inject = new InjectRule();
 
-  @Mock ModulesService modulesService;
+  @Mock AppEngineServiceUtils appEngineServiceUtils;
 
   @Before
   public void before() {
     createTld("tld");
     createTld("anothertld");
     command = new GenerateEscrowDepositCommand();
-    command.modulesService = modulesService;
+    command.appEngineServiceUtils = appEngineServiceUtils;
     command.queue = getQueue("rde-report");
-    when(modulesService.getVersionHostname(Matchers.anyString(), Matchers.anyString()))
-        .thenReturn("1.backend.test.localhost");
+    when(appEngineServiceUtils.getCurrentVersionHostname("backend"))
+        .thenReturn("backend.test.localhost");
   }
 
   @Test
@@ -191,7 +190,7 @@ public class GenerateEscrowDepositCommandTest
     assertTasksEnqueued("rde-report",
         new TaskMatcher()
             .url("/_dr/task/rdeStaging")
-            .header("Host", "1.backend.test.localhost")
+            .header("Host", "backend.test.localhost")
             .param("mode", "THIN")
             .param("watermarks", "2017-01-01T00:00:00.000Z")
             .param("tlds", "tld")
@@ -207,7 +206,7 @@ public class GenerateEscrowDepositCommandTest
     assertTasksEnqueued("rde-report",
         new TaskMatcher()
             .url("/_dr/task/rdeStaging")
-            .header("Host", "1.backend.test.localhost")
+            .header("Host", "backend.test.localhost")
             .param("mode", "THIN")
             .param("watermarks", "2017-01-01T00:00:00.000Z")
             .param("tlds", "tld")
@@ -222,7 +221,7 @@ public class GenerateEscrowDepositCommandTest
     assertTasksEnqueued("rde-report",
         new TaskMatcher()
             .url("/_dr/task/rdeStaging")
-            .header("Host", "1.backend.test.localhost")
+            .header("Host", "backend.test.localhost")
             .param("mode", "FULL")
             .param("watermarks", "2017-01-01T00:00:00.000Z")
             .param("tlds", "tld")
@@ -243,7 +242,7 @@ public class GenerateEscrowDepositCommandTest
     assertTasksEnqueued("rde-report",
         new TaskMatcher()
             .url("/_dr/task/rdeStaging")
-            .header("Host", "1.backend.test.localhost")
+            .header("Host", "backend.test.localhost")
             .param("mode", "THIN")
             .param("watermarks", "2017-01-01T00:00:00.000Z,2017-01-02T00:00:00.000Z")
             .param("tlds", "tld,anothertld")

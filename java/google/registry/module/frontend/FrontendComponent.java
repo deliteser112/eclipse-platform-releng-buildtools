@@ -27,13 +27,13 @@ import google.registry.monitoring.whitebox.StackdriverModule;
 import google.registry.request.Modules.AppIdentityCredentialModule;
 import google.registry.request.Modules.GoogleCredentialModule;
 import google.registry.request.Modules.Jackson2Module;
-import google.registry.request.Modules.ModulesServiceModule;
 import google.registry.request.Modules.NetHttpTransportModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.request.Modules.UserServiceModule;
 import google.registry.request.auth.AuthModule;
 import google.registry.ui.ConsoleDebug.ConsoleConfigModule;
+import google.registry.util.AppEngineServiceUtilsImpl.AppEngineServiceUtilsModule;
 import google.registry.util.SystemClock.SystemClockModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;
 import javax.inject.Singleton;
@@ -41,29 +41,28 @@ import javax.inject.Singleton;
 /** Dagger component with instance lifetime for "default" App Engine module. */
 @Singleton
 @Component(
-  modules = {
-    AppIdentityCredentialModule.class,
-    AuthModule.class,
-    ConfigModule.class,
-    ConsoleConfigModule.class,
-    CustomLogicFactoryModule.class,
-    google.registry.keyring.api.DummyKeyringModule.class,
-    FrontendRequestComponentModule.class,
-    GoogleCredentialModule.class,
-    Jackson2Module.class,
-    KeyModule.class,
-    KmsModule.class,
-    ModulesServiceModule.class,
-    NetHttpTransportModule.class,
-    ServerTridProviderModule.class,
-    StackdriverModule.class,
-    SystemClockModule.class,
-    SystemSleeperModule.class,
-    UrlFetchTransportModule.class,
-    UseAppIdentityCredentialForGoogleApisModule.class,
-    UserServiceModule.class,
-  }
-)
+    modules = {
+      AppEngineServiceUtilsModule.class,
+      AppIdentityCredentialModule.class,
+      AuthModule.class,
+      ConfigModule.class,
+      ConsoleConfigModule.class,
+      CustomLogicFactoryModule.class,
+      google.registry.keyring.api.DummyKeyringModule.class,
+      FrontendRequestComponentModule.class,
+      GoogleCredentialModule.class,
+      Jackson2Module.class,
+      KeyModule.class,
+      KmsModule.class,
+      NetHttpTransportModule.class,
+      ServerTridProviderModule.class,
+      StackdriverModule.class,
+      SystemClockModule.class,
+      SystemSleeperModule.class,
+      UrlFetchTransportModule.class,
+      UseAppIdentityCredentialForGoogleApisModule.class,
+      UserServiceModule.class,
+    })
 interface FrontendComponent {
   FrontendRequestHandler requestHandler();
 

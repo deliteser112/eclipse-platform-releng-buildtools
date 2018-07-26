@@ -16,6 +16,7 @@ package google.registry.ui.server.registrar;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Sets.difference;
+import static google.registry.export.sheet.SyncRegistrarsSheetAction.enqueueRegistrarSheetSync;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.security.JsonResponseHelper.Status.ERROR;
 import static google.registry.security.JsonResponseHelper.Status.SUCCESS;
@@ -29,7 +30,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Streams;
 import com.google.common.flogger.FluentLogger;
 import google.registry.config.RegistryConfig.Config;
-import google.registry.export.sheet.SyncRegistrarsSheetAction;
 import google.registry.model.registrar.Registrar;
 import google.registry.model.registrar.RegistrarContact;
 import google.registry.model.registrar.RegistrarContact.Builder;
@@ -43,6 +43,7 @@ import google.registry.security.JsonResponseHelper;
 import google.registry.ui.forms.FormException;
 import google.registry.ui.forms.FormFieldException;
 import google.registry.ui.server.RegistrarFormFields;
+import google.registry.util.AppEngineServiceUtils;
 import google.registry.util.CollectionUtils;
 import google.registry.util.DiffUtils;
 import java.util.HashSet;
@@ -76,6 +77,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
 
   @Inject HttpServletRequest request;
   @Inject JsonActionRunner jsonActionRunner;
+  @Inject AppEngineServiceUtils appEngineServiceUtils;
   @Inject AuthResult authResult;
   @Inject SendEmailUtils sendEmailUtils;
   @Inject SessionUtils sessionUtils;
@@ -368,7 +370,7 @@ public class RegistrarSettingsAction implements Runnable, JsonActionRunner.JsonA
     if (CollectionUtils.difference(changedKeys, "lastUpdateTime").isEmpty()) {
       return;
     }
-    SyncRegistrarsSheetAction.enqueueBackendTask();
+    enqueueRegistrarSheetSync(appEngineServiceUtils.getCurrentVersionHostname("backend"));
     if (!registrarChangesNotificationEmailAddresses.isEmpty()) {
       sendEmailUtils.sendEmail(
           registrarChangesNotificationEmailAddresses,

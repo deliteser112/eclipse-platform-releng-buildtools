@@ -19,16 +19,15 @@ import static com.google.common.collect.Iterables.transform;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.modules.ModulesService;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.InjectRule;
+import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.util.AppEngineServiceUtils;
 import java.util.Date;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -36,30 +35,28 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.mockito.Mock;
 
 /** Unit tests for {@link DatastoreBackupService}. */
 @RunWith(JUnit4.class)
 public class DatastoreBackupServiceTest {
 
   @Rule
-  public final InjectRule inject = new InjectRule();
+  public final AppEngineRule appEngine =
+      AppEngineRule.builder().withDatastore().withTaskQueue().build();
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .withTaskQueue()
-      .build();
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
-  private final ModulesService modulesService = mock(ModulesService.class);
+  @Mock private AppEngineServiceUtils appEngineServiceUtils;
 
   private static final DateTime START_TIME = DateTime.parse("2014-08-01T01:02:03Z");
 
-  private final DatastoreBackupService backupService = DatastoreBackupService.get();
+  private DatastoreBackupService backupService;
 
   @Before
   public void before() {
-    inject.setStaticField(DatastoreBackupService.class, "modulesService", modulesService);
-    when(modulesService.getVersionHostname("default", "ah-builtin-python-bundle"))
+    backupService = new DatastoreBackupService(appEngineServiceUtils);
+    when(appEngineServiceUtils.getVersionHostname("default", "ah-builtin-python-bundle"))
         .thenReturn("ah-builtin-python-bundle.default.localhost");
 
     persistBackupEntityWithName("backupA1");

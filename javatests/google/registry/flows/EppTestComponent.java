@@ -18,11 +18,9 @@ import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_ACTIONS;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_DELETE;
 import static google.registry.flows.async.AsyncFlowEnqueuer.QUEUE_ASYNC_HOST_RENAME;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.google.appengine.api.modules.ModulesService;
 import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
@@ -43,6 +41,7 @@ import google.registry.testing.FakeLockHandler;
 import google.registry.testing.FakeSleeper;
 import google.registry.tmch.TmchCertificateAuthority;
 import google.registry.tmch.TmchXmlSignature;
+import google.registry.util.AppEngineServiceUtils;
 import google.registry.util.Clock;
 import google.registry.util.Retrier;
 import google.registry.util.Sleeper;
@@ -71,7 +70,7 @@ interface EppTestComponent {
     private EppMetric.Builder metricBuilder;
     private FakeClock clock;
     private FakeLockHandler lockHandler;
-    private ModulesService modulesService;
+    private AppEngineServiceUtils appEngineServiceUtils;
     private Sleeper sleeper;
 
     public static FakesAndMocksModule create() {
@@ -91,23 +90,22 @@ interface EppTestComponent {
         EppMetric.Builder eppMetricBuilder,
         TmchXmlSignature tmchXmlSignature) {
       FakesAndMocksModule instance = new FakesAndMocksModule();
-      ModulesService modulesService = mock(ModulesService.class);
-      when(modulesService.getVersionHostname(any(String.class), any(String.class)))
-          .thenReturn("backend.hostname.fake");
+      AppEngineServiceUtils appEngineServiceUtils = mock(AppEngineServiceUtils.class);
+      when(appEngineServiceUtils.getServiceHostname("backend")).thenReturn("backend.hostname.fake");
       instance.asyncFlowEnqueuer =
           new AsyncFlowEnqueuer(
               getQueue(QUEUE_ASYNC_ACTIONS),
               getQueue(QUEUE_ASYNC_DELETE),
               getQueue(QUEUE_ASYNC_HOST_RENAME),
               Duration.standardSeconds(90),
-              modulesService,
+              appEngineServiceUtils,
               new Retrier(new FakeSleeper(clock), 1));
       instance.clock = clock;
       instance.domainFlowTmchUtils = new DomainFlowTmchUtils(tmchXmlSignature);
       instance.sleeper = new FakeSleeper(clock);
       instance.dnsQueue = DnsQueue.create();
       instance.metricBuilder = eppMetricBuilder;
-      instance.modulesService = modulesService;
+      instance.appEngineServiceUtils = appEngineServiceUtils;
       instance.metricsEnqueuer = mock(BigQueryMetricsEnqueuer.class);
       instance.lockHandler = new FakeLockHandler(true);
       return instance;
@@ -154,8 +152,8 @@ interface EppTestComponent {
     }
 
     @Provides
-    ModulesService provideModulesService() {
-      return modulesService;
+    AppEngineServiceUtils provideAppEngineServiceUtils() {
+      return appEngineServiceUtils;
     }
 
     @Provides

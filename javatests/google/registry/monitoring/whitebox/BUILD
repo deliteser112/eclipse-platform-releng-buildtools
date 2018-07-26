@@ -14,6 +14,7 @@ java_library(
         "//java/google/registry/bigquery",
         "//java/google/registry/model",
         "//java/google/registry/monitoring/whitebox",
+        "//java/google/registry/util",
         "//javatests/google/registry/testing",
         "//third_party/objectify:objectify-v4_1",
         "@com_google_apis_google_api_services_bigquery",

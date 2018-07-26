@@ -18,41 +18,36 @@ import static com.google.appengine.api.taskqueue.QueueFactory.getQueue;
 import static google.registry.bigquery.BigqueryUtils.toBigqueryTimestamp;
 import static google.registry.monitoring.whitebox.BigQueryMetricsEnqueuer.QUEUE_BIGQUERY_STREAMING_METRICS;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.api.services.bigquery.model.TableFieldSchema;
-import com.google.appengine.api.modules.ModulesService;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import google.registry.testing.AppEngineRule;
-import google.registry.testing.InjectRule;
+import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.util.AppEngineServiceUtils;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Matchers;
+import org.mockito.Mock;
 
 /** Unit tests for {@link BigQueryMetricsEnqueuer}. */
 @RunWith(JUnit4.class)
 public class BigQueryMetricsEnqueuerTest {
 
   @Rule
-  public final InjectRule inject = new InjectRule();
+  public final AppEngineRule appEngine =
+      AppEngineRule.builder().withDatastore().withLocalModules().withTaskQueue().build();
 
-  @Rule
-  public final AppEngineRule appEngine = AppEngineRule.builder()
-      .withDatastore()
-      .withLocalModules()
-      .withTaskQueue()
-      .build();
+  @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
-  private final ModulesService modulesService = mock(ModulesService.class);
+  @Mock private AppEngineServiceUtils appEngineServiceUtils;
 
   private BigQueryMetricsEnqueuer enqueuer;
 
@@ -60,10 +55,10 @@ public class BigQueryMetricsEnqueuerTest {
   public void setUp() {
     enqueuer = new BigQueryMetricsEnqueuer();
     enqueuer.idGenerator = Suppliers.ofInstance("laffo");
-    enqueuer.modulesService = modulesService;
+    enqueuer.appEngineServiceUtils = appEngineServiceUtils;
     enqueuer.queue = getQueue(QUEUE_BIGQUERY_STREAMING_METRICS);
-    when(modulesService.getVersionHostname(Matchers.anyString(), Matchers.anyString()))
-        .thenReturn("1.backend.test.localhost");
+    when(appEngineServiceUtils.getCurrentVersionHostname("backend"))
+        .thenReturn("backend.test.localhost");
   }
 
   @Test
@@ -77,7 +72,7 @@ public class BigQueryMetricsEnqueuerTest {
     assertTasksEnqueued("bigquery-streaming-metrics",
         new TaskMatcher()
             .url("/_dr/task/metrics")
-            .header("Host", "1.backend.test.localhost")
+            .header("Host", "backend.test.localhost")
             .param("tableId", "test")
             .param("startTime", "472176000.000000")
             .param("endTime", "472176000.001000")

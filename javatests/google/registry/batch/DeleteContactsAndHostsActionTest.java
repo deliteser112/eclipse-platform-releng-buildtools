@@ -61,7 +61,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import com.google.appengine.api.modules.ModulesService;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.collect.ImmutableList;
@@ -102,6 +101,7 @@ import google.registry.testing.InjectRule;
 import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
 import google.registry.testing.mapreduce.MapreduceTestCase;
+import google.registry.util.AppEngineServiceUtils;
 import google.registry.util.RequestStatusChecker;
 import google.registry.util.Retrier;
 import google.registry.util.Sleeper;
@@ -160,7 +160,7 @@ public class DeleteContactsAndHostsActionTest
             getQueue(QUEUE_ASYNC_DELETE),
             getQueue(QUEUE_ASYNC_HOST_RENAME),
             Duration.ZERO,
-            mock(ModulesService.class),
+            mock(AppEngineServiceUtils.class),
             new Retrier(new FakeSleeper(clock), 1));
     AsyncFlowMetrics asyncFlowMetricsMock = mock(AsyncFlowMetrics.class);
     action = new DeleteContactsAndHostsAction();

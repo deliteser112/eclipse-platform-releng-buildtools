@@ -26,11 +26,11 @@ import google.registry.request.Modules.AppIdentityCredentialModule;
 import google.registry.request.Modules.DatastoreServiceModule;
 import google.registry.request.Modules.GoogleCredentialModule;
 import google.registry.request.Modules.Jackson2Module;
-import google.registry.request.Modules.ModulesServiceModule;
 import google.registry.request.Modules.URLFetchServiceModule;
 import google.registry.request.Modules.UrlFetchTransportModule;
 import google.registry.request.Modules.UseAppIdentityCredentialForGoogleApisModule;
 import google.registry.request.Modules.UserServiceModule;
+import google.registry.util.AppEngineServiceUtilsImpl.AppEngineServiceUtilsModule;
 import google.registry.util.SystemClock.SystemClockModule;
 import google.registry.util.SystemSleeper.SystemSleeperModule;
 import google.registry.whois.WhoisModule;
@@ -44,37 +44,37 @@ import javax.inject.Singleton;
  */
 @Singleton
 @Component(
-  modules = {
-    AppEngineConnectionFlags.FlagsModule.class,
-    // TODO(b/36866706): Find a way to replace this with a command-line friendly version
-    AppIdentityCredentialModule.class,
-    AuthModule.class,
-    ConfigModule.class,
-    DatastoreServiceModule.class,
-    google.registry.keyring.api.DummyKeyringModule.class,
-    CloudDnsWriterModule.class,
-    DefaultRequestFactoryModule.class,
-    DefaultRequestFactoryModule.RequestFactoryModule.class,
-    DnsUpdateWriterModule.class,
-    GoogleCredentialModule.class,
-    Jackson2Module.class,
-    KeyModule.class,
-    KmsModule.class,
-    ModulesServiceModule.class,
-    RdeModule.class,
-    RegistryToolModule.class,
-    SystemClockModule.class,
-    SystemSleeperModule.class,
-    URLFetchServiceModule.class,
-    UrlFetchTransportModule.class,
-    // TODO(b/36866706): Find a way to replace this with a command-line friendly version
-    UseAppIdentityCredentialForGoogleApisModule.class,
-    UserServiceModule.class,
-    VoidDnsWriterModule.class,
-    WhoisModule.class,
-  }
-)
+    modules = {
+      AppEngineConnectionFlags.FlagsModule.class,
+      AppEngineServiceUtilsModule.class,
+      // TODO(b/36866706): Find a way to replace this with a command-line friendly version
+      AppIdentityCredentialModule.class,
+      AuthModule.class,
+      ConfigModule.class,
+      DatastoreServiceModule.class,
+      google.registry.keyring.api.DummyKeyringModule.class,
+      CloudDnsWriterModule.class,
+      DefaultRequestFactoryModule.class,
+      DefaultRequestFactoryModule.RequestFactoryModule.class,
+      DnsUpdateWriterModule.class,
+      GoogleCredentialModule.class,
+      Jackson2Module.class,
+      KeyModule.class,
+      KmsModule.class,
+      RdeModule.class,
+      RegistryToolModule.class,
+      SystemClockModule.class,
+      SystemSleeperModule.class,
+      URLFetchServiceModule.class,
+      UrlFetchTransportModule.class,
+      // TODO(b/36866706): Find a way to replace this with a command-line friendly version
+      UseAppIdentityCredentialForGoogleApisModule.class,
+      UserServiceModule.class,
+      VoidDnsWriterModule.class,
+      WhoisModule.class,
+    })
 interface RegistryToolComponent {
+  void inject(CheckSnapshotCommand command);
   void inject(CountDomainsCommand command);
   void inject(CreateAnchorTenantCommand command);
   void inject(CreateCdnsTld command);

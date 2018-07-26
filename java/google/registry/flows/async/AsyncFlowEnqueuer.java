@@ -17,7 +17,6 @@ package google.registry.flows.async;
 import static com.google.common.base.Preconditions.checkArgument;
 import static google.registry.util.DateTimeUtils.isBeforeOrAt;
 
-import com.google.appengine.api.modules.ModulesService;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
@@ -32,6 +31,7 @@ import google.registry.model.EppResource;
 import google.registry.model.ImmutableObject;
 import google.registry.model.eppcommon.Trid;
 import google.registry.model.host.HostResource;
+import google.registry.util.AppEngineServiceUtils;
 import google.registry.util.Retrier;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -65,7 +65,7 @@ public final class AsyncFlowEnqueuer {
   private final Queue asyncActionsPushQueue;
   private final Queue asyncDeletePullQueue;
   private final Queue asyncDnsRefreshPullQueue;
-  private final ModulesService modulesService;
+  private final AppEngineServiceUtils appEngineServiceUtils;
   private final Retrier retrier;
 
   @VisibleForTesting
@@ -75,13 +75,13 @@ public final class AsyncFlowEnqueuer {
       @Named(QUEUE_ASYNC_DELETE) Queue asyncDeletePullQueue,
       @Named(QUEUE_ASYNC_HOST_RENAME) Queue asyncDnsRefreshPullQueue,
       @Config("asyncDeleteFlowMapreduceDelay") Duration asyncDeleteDelay,
-      ModulesService modulesService,
+      AppEngineServiceUtils appEngineServiceUtils,
       Retrier retrier) {
     this.asyncActionsPushQueue = asyncActionsPushQueue;
     this.asyncDeletePullQueue = asyncDeletePullQueue;
     this.asyncDnsRefreshPullQueue = asyncDnsRefreshPullQueue;
     this.asyncDeleteDelay = asyncDeleteDelay;
-    this.modulesService = modulesService;
+    this.appEngineServiceUtils = appEngineServiceUtils;
     this.retrier = retrier;
   }
 
@@ -110,7 +110,7 @@ public final class AsyncFlowEnqueuer {
       return;
     }
     logger.atInfo().log("Enqueuing async re-save of %s to run at %s.", entityKey, whenToResave);
-    String backendHostname = modulesService.getVersionHostname("backend", null);
+    String backendHostname = appEngineServiceUtils.getServiceHostname("backend");
     TaskOptions task =
         TaskOptions.Builder.withUrl(PATH_RESAVE_ENTITY)
             .method(Method.POST)

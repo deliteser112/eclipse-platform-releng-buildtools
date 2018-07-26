@@ -16,12 +16,12 @@ package google.registry.monitoring.whitebox;
 
 import static com.google.appengine.api.taskqueue.TaskOptions.Builder.withUrl;
 
-import com.google.appengine.api.modules.ModulesService;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TransientFailureException;
 import com.google.common.base.Supplier;
 import com.google.common.flogger.FluentLogger;
+import google.registry.util.AppEngineServiceUtils;
 import java.util.Map.Entry;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -38,7 +38,7 @@ public class BigQueryMetricsEnqueuer {
 
   public static final String QUEUE_BIGQUERY_STREAMING_METRICS = "bigquery-streaming-metrics";
 
-  @Inject ModulesService modulesService;
+  @Inject AppEngineServiceUtils appEngineServiceUtils;
   @Inject @Named("insertIdGenerator") Supplier<String> idGenerator;
   @Inject @Named(QUEUE_BIGQUERY_STREAMING_METRICS) Queue queue;
 
@@ -46,7 +46,7 @@ public class BigQueryMetricsEnqueuer {
 
   public void export(BigQueryMetric metric) {
     try {
-      String hostname = modulesService.getVersionHostname("backend", null);
+      String hostname = appEngineServiceUtils.getCurrentVersionHostname("backend");
       TaskOptions opts =
           withUrl(MetricsExportAction.PATH)
               .header("Host", hostname)

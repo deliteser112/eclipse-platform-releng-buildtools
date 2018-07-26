@@ -29,10 +29,8 @@ import static google.registry.testing.TestLogHandlerUtils.assertLogMessage;
 import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardHours;
 import static org.joda.time.Duration.standardSeconds;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
-import com.google.appengine.api.modules.ModulesService;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.flogger.LoggerConfig;
 import com.googlecode.objectify.Key;
@@ -44,6 +42,7 @@ import google.registry.testing.InjectRule;
 import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.ShardableTestCase;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.util.AppEngineServiceUtils;
 import google.registry.util.CapturingLogHandler;
 import google.registry.util.Retrier;
 import java.util.logging.Level;
@@ -67,7 +66,7 @@ public class AsyncFlowEnqueuerTest extends ShardableTestCase {
 
   @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
-  @Mock private ModulesService modulesService;
+  @Mock private AppEngineServiceUtils appEngineServiceUtils;
 
   private AsyncFlowEnqueuer asyncFlowEnqueuer;
   private final CapturingLogHandler logHandler = new CapturingLogHandler();
@@ -76,15 +75,14 @@ public class AsyncFlowEnqueuerTest extends ShardableTestCase {
   @Before
   public void setUp() {
     LoggerConfig.getConfig(AsyncFlowEnqueuer.class).addHandler(logHandler);
-    when(modulesService.getVersionHostname(any(String.class), any(String.class)))
-        .thenReturn("backend.hostname.fake");
+    when(appEngineServiceUtils.getServiceHostname("backend")).thenReturn("backend.hostname.fake");
     asyncFlowEnqueuer =
         new AsyncFlowEnqueuer(
             getQueue(QUEUE_ASYNC_ACTIONS),
             getQueue(QUEUE_ASYNC_DELETE),
             getQueue(QUEUE_ASYNC_HOST_RENAME),
             standardSeconds(90),
-            modulesService,
+            appEngineServiceUtils,
             new Retrier(new FakeSleeper(clock), 1));
   }
 

@@ -27,8 +27,6 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.modules.ModulesService;
-import com.google.appengine.api.modules.ModulesServiceFactory;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 import com.google.appengine.api.users.UserService;
@@ -58,17 +56,6 @@ public final class Modules {
     @Provides
     static DatastoreService provideDatastoreService() {
       return datastoreService;
-    }
-  }
-
-  /** Dagger module for {@link ModulesService}. */
-  @Module
-  public static final class ModulesServiceModule {
-    private static final ModulesService modulesService = ModulesServiceFactory.getModulesService();
-
-    @Provides
-    static ModulesService provideModulesService() {
-      return modulesService;
     }
   }
 

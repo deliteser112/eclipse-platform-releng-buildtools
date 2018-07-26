@@ -26,13 +26,13 @@ import static google.registry.request.RequestParameters.PARAM_TLDS;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
-import com.google.appengine.api.modules.ModulesService;
 import com.google.appengine.api.taskqueue.Queue;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import google.registry.model.rde.RdeMode;
 import google.registry.rde.RdeStagingAction;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.tools.params.DateTimeParameter;
+import google.registry.util.AppEngineServiceUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -75,7 +75,7 @@ final class GenerateEscrowDepositCommand implements RemoteApiCommand {
       required = true)
   private String outdir;
 
-  @Inject ModulesService modulesService;
+  @Inject AppEngineServiceUtils appEngineServiceUtils;
   @Inject @Named("rde-report") Queue queue;
 
   @Override
@@ -102,7 +102,7 @@ final class GenerateEscrowDepositCommand implements RemoteApiCommand {
 
     // Unlike many tool commands, this command is actually invoking an action on the backend module
     // (because it's a mapreduce). So we invoke it in a different way.
-    String hostname = modulesService.getVersionHostname("backend", null);
+    String hostname = appEngineServiceUtils.getCurrentVersionHostname("backend");
     TaskOptions opts =
         withUrl(RdeStagingAction.PATH)
             .header("Host", hostname)

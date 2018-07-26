@@ -20,16 +20,15 @@ import static com.google.common.base.Strings.nullToEmpty;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.modules.ModulesService;
-import com.google.appengine.api.modules.ModulesServiceFactory;
 import com.google.appengine.api.taskqueue.TaskHandle;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
-import google.registry.util.NonFinalForTesting;
+import google.registry.util.AppEngineServiceUtils;
 import java.util.NoSuchElementException;
+import javax.inject.Inject;
 
 /** An object providing methods for starting and querying Datastore backups. */
 public class DatastoreBackupService {
@@ -40,19 +39,11 @@ public class DatastoreBackupService {
   /** The name of the app version used for hosting the Datastore Admin functionality. */
   static final String DATASTORE_ADMIN_VERSION_NAME = "ah-builtin-python-bundle";
 
-  @NonFinalForTesting
-  private static ModulesService modulesService = ModulesServiceFactory.getModulesService();
+  private final AppEngineServiceUtils appEngineServiceUtils;
 
-  /**
-   * Returns an instance of this service.
-   *
-   * <p>This method exists to allow for making the service a singleton object if desired at some
-   * future point; the choice is meaningless right now because the service maintains no state.
-   * That means its client-facing methods could in theory be static methods, but they are not
-   * because that makes it difficult to mock this service in clients.
-   */
-  public static DatastoreBackupService get() {
-    return new DatastoreBackupService();
+  @Inject
+  public DatastoreBackupService(AppEngineServiceUtils appEngineServiceUtils) {
+    this.appEngineServiceUtils = appEngineServiceUtils;
   }
 
   /**
@@ -60,9 +51,10 @@ public class DatastoreBackupService {
    *
    * @see <a href="https://developers.google.com/appengine/articles/scheduled_backups">Scheduled Backups</a>
    */
-  private static TaskOptions makeTaskOptions(
+  private TaskOptions makeTaskOptions(
       String queue, String name, String gcsBucket, ImmutableSet<String> kinds) {
-    String hostname = modulesService.getVersionHostname("default", DATASTORE_ADMIN_VERSION_NAME);
+    String hostname =
+        appEngineServiceUtils.getVersionHostname("default", DATASTORE_ADMIN_VERSION_NAME);
     TaskOptions options = TaskOptions.Builder.withUrl("/_ah/datastore_admin/backup.create")
         .header("Host", hostname)
         .method(Method.GET)

@@ -17,9 +17,11 @@ package google.registry.tools;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 import google.registry.export.DatastoreBackupInfo;
 import google.registry.export.DatastoreBackupService;
 import google.registry.tools.Command.RemoteApiCommand;
+import javax.inject.Inject;
 
 /**
  * Command to check the status of a Datastore backup, or "snapshot".
@@ -33,16 +35,16 @@ public class CheckSnapshotCommand implements RemoteApiCommand {
       required = true)
   private String snapshotName;
 
+  @Inject DatastoreBackupService datastoreBackupService;
+
   @Override
   public void run() {
     Iterable<DatastoreBackupInfo> backups =
-        DatastoreBackupService.get().findAllByNamePrefix(snapshotName);
+        datastoreBackupService.findAllByNamePrefix(snapshotName);
     if (Iterables.isEmpty(backups)) {
       System.err.println("No snapshot found with name: " + snapshotName);
       return;
     }
-    for (DatastoreBackupInfo backup : backups) {
-      System.out.println(backup.getInformation());
-    }
+    Streams.stream(backups).map(DatastoreBackupInfo::getInformation).forEach(System.out::println);
   }
 }

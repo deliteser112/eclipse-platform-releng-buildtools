@@ -32,11 +32,9 @@ import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.TaskQueueHelper.assertTasksEnqueued;
 import static org.joda.time.Duration.standardDays;
 import static org.joda.time.Duration.standardSeconds;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.appengine.api.modules.ModulesService;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.googlecode.objectify.Key;
@@ -55,6 +53,7 @@ import google.registry.testing.InjectRule;
 import google.registry.testing.MockitoJUnitRule;
 import google.registry.testing.ShardableTestCase;
 import google.registry.testing.TaskQueueHelper.TaskMatcher;
+import google.registry.util.AppEngineServiceUtils;
 import google.registry.util.Retrier;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -76,7 +75,7 @@ public class ResaveEntityActionTest extends ShardableTestCase {
   @Rule public final InjectRule inject = new InjectRule();
   @Rule public final MockitoJUnitRule mocks = MockitoJUnitRule.create();
 
-  @Mock private ModulesService modulesService;
+  @Mock private AppEngineServiceUtils appEngineServiceUtils;
   @Mock private Response response;
   private final FakeClock clock = new FakeClock(DateTime.parse("2016-02-11T10:00:00Z"));
   private AsyncFlowEnqueuer asyncFlowEnqueuer;
@@ -84,15 +83,14 @@ public class ResaveEntityActionTest extends ShardableTestCase {
   @Before
   public void before() {
     inject.setStaticField(Ofy.class, "clock", clock);
-    when(modulesService.getVersionHostname(any(String.class), any(String.class)))
-        .thenReturn("backend.hostname.fake");
+    when(appEngineServiceUtils.getServiceHostname("backend")).thenReturn("backend.hostname.fake");
     asyncFlowEnqueuer =
         new AsyncFlowEnqueuer(
             getQueue(QUEUE_ASYNC_ACTIONS),
             getQueue(QUEUE_ASYNC_DELETE),
             getQueue(QUEUE_ASYNC_HOST_RENAME),
             Duration.ZERO,
-            modulesService,
+            appEngineServiceUtils,
             new Retrier(new FakeSleeper(clock), 1));
     createTld("tld");
   }

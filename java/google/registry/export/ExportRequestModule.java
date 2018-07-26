@@ -103,9 +103,4 @@ public final class ExportRequestModule {
   static String provideProjectId(HttpServletRequest req) {
     return extractRequiredHeader(req, PROJECT_ID_HEADER);
   }
-
-  @Provides
-  static DatastoreBackupService provideDatastoreBackupService() {
-    return DatastoreBackupService.get();
-  }
 }
