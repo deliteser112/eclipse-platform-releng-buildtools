@@ -2,15 +2,9 @@ locals {
   proxy_cluster_zone = "${lookup(var.proxy_cluster_zones, var.proxy_cluster_region)}"
 }
 
-data "google_container_engine_versions" "gke_version" {
-  zone = "${local.proxy_cluster_zone}"
-}
-
 resource "google_container_cluster" "proxy_cluster" {
   name               = "proxy-cluster-${var.proxy_cluster_region}"
   zone               = "${local.proxy_cluster_zone}"
-  node_version       = "${data.google_container_engine_versions.gke_version.latest_node_version}"
-  min_master_version = "${data.google_container_engine_versions.gke_version.latest_master_version}"
 
   timeouts {
     update = "30m"
