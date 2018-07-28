@@ -28,6 +28,8 @@ variable "proxy_ports" {
     health_check = 30000
     whois        = 30001
     epp          = 30002
+    http-whois   = 30010
+    https-whois  = 30011
   }
 }
 
@@ -39,5 +41,7 @@ variable "proxy_ports_canary" {
     health_check = 31000
     whois        = 31001
     epp          = 31002
+    http-whois   = 31010
+    https-whois  = 31011
   }
 }

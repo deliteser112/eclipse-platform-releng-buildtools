@@ -22,6 +22,16 @@ spec:
     nodePort: 31002
     targetPort: epp
     name: epp
+  - protocol: TCP
+    port: 30010
+    nodePort: 31010
+    targetPort: http-whois
+    name: http-whois
+  - protocol: TCP
+    port: 30011
+    nodePort: 31011
+    targetPort: https-whois
+    name: https-whois
   type: NodePort
 ---
 apiVersion: autoscaling/v2beta1
