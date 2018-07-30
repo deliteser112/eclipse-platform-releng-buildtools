@@ -247,7 +247,7 @@ zip_file = rule(
     attrs = {
         "out": attr.output(mandatory = True),
         "srcs": attr.label_list(allow_files = True),
-        "data": attr.label_list(cfg = "data", allow_files = True),
+        "data": attr.label_list(allow_files = True),
         "deps": attr.label_list(providers = ["zip_file"]),
         "exclude": attr.string_list(),
         "mappings": attr.string_dict(),
