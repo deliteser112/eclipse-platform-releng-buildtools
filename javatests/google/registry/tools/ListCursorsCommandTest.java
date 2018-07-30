@@ -22,12 +22,31 @@ import static google.registry.testing.JUnitBackports.assertThrows;
 import com.beust.jcommander.ParameterException;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
+import google.registry.model.ofy.Ofy;
 import google.registry.model.registry.Registry;
+import google.registry.testing.FakeClock;
+import google.registry.testing.InjectRule;
 import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 /** Unit tests for {@link ListCursorsCommand}. */
 public class ListCursorsCommandTest extends CommandTestCase<ListCursorsCommand> {
+
+  private static final String HEADER_ONE =
+      "TLD                    Cursor Time                Last Update Time";
+
+  private static final String HEADER_TWO =
+      "--------------------------------------------------------------------------";
+
+  @Rule public final InjectRule inject = new InjectRule();
+
+  @Before
+  public void before() {
+    inject.setStaticField(
+        Ofy.class, "clock", new FakeClock(DateTime.parse("1984-12-21T06:07:08.789Z")));
+  }
 
   @Test
   public void testListCursors_noTlds_printsNothing() throws Exception {
@@ -42,7 +61,11 @@ public class ListCursorsCommandTest extends CommandTestCase<ListCursorsCommand> 
         Cursor.create(CursorType.BRDA, DateTime.parse("1984-12-18TZ"), Registry.get("bar")));
     runCommand("--type=BRDA");
     assertThat(getStdoutAsLines())
-        .containsExactly("(absent)                 foo", "1984-12-18T00:00:00.000Z bar")
+        .containsExactly(
+            HEADER_ONE,
+            HEADER_TWO,
+            "bar                    1984-12-18T00:00:00.000Z   1984-12-21T06:07:08.789Z",
+            "foo                    (absent)                   (absent)")
         .inOrder();
   }
 
@@ -63,6 +86,8 @@ public class ListCursorsCommandTest extends CommandTestCase<ListCursorsCommand> 
     createTlds("foo", "bar");
     persistResource(Registry.get("bar").asBuilder().setEscrowEnabled(true).build());
     runCommand("--type=BRDA", "--escrow_enabled");
-    assertThat(getStdoutAsLines()).containsExactly("(absent)                 bar");
+    assertThat(getStdoutAsLines())
+        .containsExactly(
+            HEADER_ONE, HEADER_TWO, "bar                    (absent)                   (absent)");
   }
 }

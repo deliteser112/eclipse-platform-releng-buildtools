@@ -19,6 +19,7 @@ import static google.registry.model.ofy.ObjectifyService.ofy;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.common.base.Strings;
 import com.googlecode.objectify.Key;
 import google.registry.model.common.Cursor;
 import google.registry.model.common.Cursor.CursorType;
@@ -27,6 +28,7 @@ import google.registry.model.registry.Registry;
 import google.registry.model.registry.Registry.TldType;
 import google.registry.tools.Command.RemoteApiCommand;
 import java.util.Map;
+import java.util.Optional;
 
 /** Lists {@link Cursor} timestamps used by locking rolling cursor tasks, like in RDE. */
 @Parameters(separators = " =", commandDescription = "Lists cursor timestamps used by LRC tasks")
@@ -45,6 +47,8 @@ final class ListCursorsCommand implements RemoteApiCommand {
       description = "Filter TLDs to only include those with RDE escrow enabled; defaults to false.")
   private boolean filterEscrowEnabled = false;
 
+  private static final String OUTPUT_FMT = "%-20s   %-24s   %-24s";
+
   @Override
   public void run() {
     Map<Registry, Key<Cursor>> registries =
@@ -55,18 +59,26 @@ final class ListCursorsCommand implements RemoteApiCommand {
             .filter(r -> !filterEscrowEnabled || r.getEscrowEnabled())
             .collect(toImmutableMap(r -> r, r -> Cursor.createKey(cursorType, r)));
     Map<Key<Cursor>, Cursor> cursors = ofy().load().keys(registries.values());
-    registries
-        .entrySet()
-        .stream()
-        .map(e -> renderLine(e.getKey().getTldStr(), e.getValue(), cursors))
-        .sorted()
-        .forEach(System.out::println);
+    if (!registries.isEmpty()) {
+      String header = String.format(OUTPUT_FMT, "TLD", "Cursor Time", "Last Update Time");
+      System.out.printf("%s\n%s\n", header, Strings.repeat("-", header.length()));
+      registries
+          .entrySet()
+          .stream()
+          .map(
+              e ->
+                  renderLine(
+                      e.getKey().getTldStr(), Optional.ofNullable(cursors.get(e.getValue()))))
+          .sorted()
+          .forEach(System.out::println);
+    }
   }
 
-  private static String renderLine(
-      String tld, Key<Cursor> cursorKey, Map<Key<Cursor>, Cursor> cursors) {
+  private static String renderLine(String tld, Optional<Cursor> cursor) {
     return String.format(
-        "%-25s%s",
-        cursors.containsKey(cursorKey) ? cursors.get(cursorKey).getCursorTime() : "(absent)", tld);
+        OUTPUT_FMT,
+        tld,
+        cursor.map(c -> c.getCursorTime().toString()).orElse("(absent)"),
+        cursor.map(c -> c.getLastUpdateTime().toString()).orElse("(absent)"));
   }
 }

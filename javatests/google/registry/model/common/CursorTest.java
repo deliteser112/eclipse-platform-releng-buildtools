@@ -32,6 +32,7 @@ import org.junit.Test;
 
 /** Unit tests for {@link Cursor}. */
 public class CursorTest extends EntityTestCase {
+
   @Test
   public void testSuccess_persistScopedCursor() {
     createTld("tld");

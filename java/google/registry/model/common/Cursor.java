@@ -25,6 +25,7 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
 import google.registry.model.ImmutableObject;
+import google.registry.model.UpdateAutoTimestamp;
 import google.registry.model.registry.Registry;
 import org.joda.time.DateTime;
 
@@ -107,6 +108,13 @@ public class Cursor extends ImmutableObject {
   String id;
 
   DateTime cursorTime = START_OF_TIME;
+
+  /** An automatically managed timestamp of when this object was last written to Datastore. */
+  UpdateAutoTimestamp lastUpdateTime = UpdateAutoTimestamp.create(null);
+
+  public DateTime getLastUpdateTime() {
+    return lastUpdateTime.getTimestamp();
+  }
 
   /**
    * Checks that the type of the scoped object (or null) matches the required type for the specified
