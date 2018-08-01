@@ -44,6 +44,7 @@ public class ProxyConfig {
   public Epp epp;
   public Whois whois;
   public HealthCheck healthCheck;
+  public WebWhois webWhois;
   public HttpsRelay httpsRelay;
   public Metrics metrics;
 
@@ -87,6 +88,13 @@ public class ProxyConfig {
     public int port;
     public String checkRequest;
     public String checkResponse;
+  }
+
+  /** Configuration options that apply to web WHOIS redirects. */
+  public static class WebWhois {
+    public int httpPort;
+    public int httpsPort;
+    public String redirectHost;
   }
 
   /** Configuration options that apply to HTTPS relay protocol. */

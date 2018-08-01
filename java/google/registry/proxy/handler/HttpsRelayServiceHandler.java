@@ -93,7 +93,7 @@ abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpRespo
         .set(HttpHeaderNames.USER_AGENT, "Proxy")
         .set(HttpHeaderNames.HOST, relayHost)
         .set(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessTokenSupplier.get())
-        .set(HttpHeaderNames.CONTENT_LENGTH, byteBuf.readableBytes());
+        .setInt(HttpHeaderNames.CONTENT_LENGTH, byteBuf.readableBytes());
     request.content().writeBytes(byteBuf);
     return request;
   }

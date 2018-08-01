@@ -42,13 +42,9 @@ public interface Protocol {
   /** The {@link ChannelHandler} providers to use for the protocol, in order. */
   ImmutableList<Provider<? extends ChannelHandler>> handlerProviders();
 
-  /**
-   * A builder for {@link FrontendProtocol}, default is non-health-checking.
-   *
-   * @see HealthCheckProtocolModule
-   */
+  /** A builder for {@link FrontendProtocol}, by default there is a backend associated with it. */
   static FrontendProtocol.Builder frontendBuilder() {
-    return new AutoValue_Protocol_FrontendProtocol.Builder().isHealthCheck(false);
+    return new AutoValue_Protocol_FrontendProtocol.Builder().hasBackend(true);
   }
 
   static BackendProtocol.Builder backendBuilder() {
@@ -83,18 +79,22 @@ public interface Protocol {
 
     /**
      * The {@link BackendProtocol} used to establish a relay channel and relay the traffic to. Not
-     * required for health check protocol.
+     * required for health check protocol or HTTP(S) redirect.
      */
     @Nullable
     public abstract BackendProtocol relayProtocol();
 
-    public abstract boolean isHealthCheck();
+    /**
+     * Whether this {@code FrontendProtocol} relays to a {@code BackendProtocol}. All proxied
+     * traffic must be represented by a protocol that has a backend.
+     */
+    public abstract boolean hasBackend();
 
     @AutoValue.Builder
     public abstract static class Builder extends Protocol.Builder<Builder, FrontendProtocol> {
       public abstract Builder relayProtocol(BackendProtocol value);
 
-      public abstract Builder isHealthCheck(boolean value);
+      public abstract Builder hasBackend(boolean value);
 
       abstract FrontendProtocol autoBuild();
 
@@ -102,7 +102,7 @@ public interface Protocol {
       public FrontendProtocol build() {
         FrontendProtocol frontendProtocol = autoBuild();
         Preconditions.checkState(
-            frontendProtocol.isHealthCheck() || frontendProtocol.relayProtocol() != null,
+            !frontendProtocol.hasBackend() || frontendProtocol.relayProtocol() != null,
             "Frontend protocol %s must define a relay protocol.",
             frontendProtocol.name());
         return frontendProtocol;

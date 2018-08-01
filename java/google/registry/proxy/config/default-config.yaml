@@ -187,6 +187,14 @@ httpsRelay:
   # Maximum size of an HTTP message in bytes.
   maxMessageLengthBytes: 524288
 
+webWhois:
+  httpPort: 30010
+  httpsPort: 30011
+
+  # The 302 redirect destination of HTTPS web WHOIS GET requests.
+  # HTTP web WHOIS GET requests will be 301 redirected to HTTPS first.
+  redirectHost: whois.yourdomain.tld
+
 metrics:
   # Max queries per second for the Google Cloud Monitoring V3 (aka Stackdriver)
   # API. The limit can be adjusted by contacting Cloud Support.

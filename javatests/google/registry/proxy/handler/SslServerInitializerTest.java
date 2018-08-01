@@ -87,6 +87,7 @@ public class SslServerInitializerTest {
           .build();
 
   private ChannelInitializer<LocalChannel> getServerInitializer(
+      boolean requireClientCert,
       Lock serverLock,
       Exception serverException,
       PrivateKey privateKey,
@@ -97,10 +98,20 @@ public class SslServerInitializerTest {
       protected void initChannel(LocalChannel ch) throws Exception {
         ch.pipeline()
             .addLast(
-                new SslServerInitializer<LocalChannel>(SslProvider.JDK, privateKey, certificates),
+                new SslServerInitializer<LocalChannel>(
+                    requireClientCert, SslProvider.JDK, privateKey, certificates),
                 new EchoHandler(serverLock, serverException));
       }
     };
+  }
+
+  private ChannelInitializer<LocalChannel> getServerInitializer(
+      Lock serverLock,
+      Exception serverException,
+      PrivateKey privateKey,
+      X509Certificate... certificates)
+      throws Exception {
+    return getServerInitializer(true, serverLock, serverException, privateKey, certificates);
   }
 
   private ChannelInitializer<LocalChannel> getClientInitializer(
@@ -137,7 +148,7 @@ public class SslServerInitializerTest {
   public void testSuccess_swappedInitializerWithSslHandler() throws Exception {
     SelfSignedCertificate ssc = new SelfSignedCertificate(SSL_HOST);
     SslServerInitializer<EmbeddedChannel> sslServerInitializer =
-        new SslServerInitializer<>(SslProvider.JDK, ssc.key(), ssc.cert());
+        new SslServerInitializer<>(true, SslProvider.JDK, ssc.key(), ssc.cert());
     EmbeddedChannel channel = new EmbeddedChannel();
     ChannelPipeline pipeline = channel.pipeline();
     pipeline.addLast(sslServerInitializer);
@@ -182,6 +193,39 @@ public class SslServerInitializerTest {
     // channel, therefore its local certificates are the remote certificates of the SslSession for
     // the server channel, and vice versa.
     assertThat(sslSession.getLocalCertificates()).asList().containsExactly(clientSsc.cert());
+    assertThat(sslSession.getPeerCertificates()).asList().containsExactly(serverSsc.cert());
+
+    Future<?> unusedFuture = eventLoopGroup.shutdownGracefully().syncUninterruptibly();
+  }
+
+  @Test
+  public void testSuccess_doesNotRequireClientCert() throws Exception {
+    SelfSignedCertificate serverSsc = new SelfSignedCertificate(SSL_HOST);
+    LocalAddress localAddress = new LocalAddress("DOES_NOT_REQUIRE_CLIENT_CERT");
+    Lock clientLock = new ReentrantLock();
+    Lock serverLock = new ReentrantLock();
+    ByteBuf buffer = Unpooled.buffer();
+    Exception clientException = new Exception();
+    Exception serverException = new Exception();
+    EventLoopGroup eventLoopGroup =
+        setUpServer(
+            getServerInitializer(
+                false, serverLock, serverException, serverSsc.key(), serverSsc.cert()),
+            localAddress);
+    Channel channel =
+        setUpClient(
+            eventLoopGroup,
+            getClientInitializer(serverSsc.cert(), null, null, clientLock, buffer, clientException),
+            localAddress,
+            PROTOCOL);
+
+    SSLSession sslSession =
+        verifySslChannel(
+            channel, ImmutableList.of(serverSsc.cert()), clientLock, serverLock, buffer, SSL_HOST);
+    // Verify that the SSL session does not contain any client cert. Note that this SslSession is
+    // for the client channel, therefore its local certificates are the remote certificates of the
+    // SslSession for the server channel, and vice versa.
+    assertThat(sslSession.getLocalCertificates()).isNull();
     assertThat(sslSession.getPeerCertificates()).asList().containsExactly(serverSsc.cert());
 
     Future<?> unusedFuture = eventLoopGroup.shutdownGracefully().syncUninterruptibly();

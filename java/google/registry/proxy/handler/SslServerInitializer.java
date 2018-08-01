@@ -15,7 +15,6 @@
 package google.registry.proxy.handler;
 
 import com.google.common.flogger.FluentLogger;
-import google.registry.proxy.CertificateModule.EppCertificates;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelInitializer;
@@ -30,8 +29,6 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 /**
  * Adds a server side SSL handler to the channel pipeline.
@@ -47,7 +44,6 @@ import javax.inject.Singleton;
  * certificate hash will be passed along to GAE as an HTTP header for verification (not handled by
  * this handler).
  */
-@Singleton
 @Sharable
 public class SslServerInitializer<C extends Channel> extends ChannelInitializer<C> {
 
@@ -59,16 +55,18 @@ public class SslServerInitializer<C extends Channel> extends ChannelInitializer<
       AttributeKey.valueOf("CLIENT_CERTIFICATE_PROMISE_KEY");
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  private final boolean requireClientCert;
   private final SslProvider sslProvider;
   private final PrivateKey privateKey;
   private final X509Certificate[] certificates;
 
-  @Inject
-  SslServerInitializer(
+  public SslServerInitializer(
+      boolean requireClientCert,
       SslProvider sslProvider,
-      @EppCertificates PrivateKey privateKey,
-      @EppCertificates X509Certificate... certificates) {
+      PrivateKey privateKey,
+      X509Certificate... certificates) {
     logger.atInfo().log("Server SSL Provider: %s", sslProvider);
+    this.requireClientCert = requireClientCert;
     this.sslProvider = sslProvider;
     this.privateKey = privateKey;
     this.certificates = certificates;
@@ -80,26 +78,28 @@ public class SslServerInitializer<C extends Channel> extends ChannelInitializer<
         SslContextBuilder.forServer(privateKey, certificates)
             .sslProvider(sslProvider)
             .trustManager(InsecureTrustManagerFactory.INSTANCE)
-            .clientAuth(ClientAuth.REQUIRE)
+            .clientAuth(requireClientCert ? ClientAuth.REQUIRE : ClientAuth.NONE)
             .build()
             .newHandler(channel.alloc());
-    Promise<X509Certificate> clientCertificatePromise = channel.eventLoop().newPromise();
-    Future<Channel> unusedFuture =
-        sslHandler
-            .handshakeFuture()
-            .addListener(
-                future -> {
-                  if (future.isSuccess()) {
-                    Promise<X509Certificate> unusedPromise =
-                        clientCertificatePromise.setSuccess(
-                            (X509Certificate)
-                                sslHandler.engine().getSession().getPeerCertificates()[0]);
-                  } else {
-                    Promise<X509Certificate> unusedPromise =
-                        clientCertificatePromise.setFailure(future.cause());
-                  }
-                });
-    channel.attr(CLIENT_CERTIFICATE_PROMISE_KEY).set(clientCertificatePromise);
+    if (requireClientCert) {
+      Promise<X509Certificate> clientCertificatePromise = channel.eventLoop().newPromise();
+      Future<Channel> unusedFuture =
+          sslHandler
+              .handshakeFuture()
+              .addListener(
+                  future -> {
+                    if (future.isSuccess()) {
+                      Promise<X509Certificate> unusedPromise =
+                          clientCertificatePromise.setSuccess(
+                              (X509Certificate)
+                                  sslHandler.engine().getSession().getPeerCertificates()[0]);
+                    } else {
+                      Promise<X509Certificate> unusedPromise =
+                          clientCertificatePromise.setFailure(future.cause());
+                    }
+                  });
+      channel.attr(CLIENT_CERTIFICATE_PROMISE_KEY).set(clientCertificatePromise);
+    }
     channel.pipeline().addLast(sslHandler);
   }
 }

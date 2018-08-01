@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
+import google.registry.proxy.CertificateModule.ServerCertificates;
 import google.registry.proxy.HttpsRelayProtocolModule.HttpsRelayProtocol;
 import google.registry.proxy.Protocol.BackendProtocol;
 import google.registry.proxy.Protocol.FrontendProtocol;
@@ -37,8 +38,11 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
+import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import java.io.IOException;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
@@ -76,8 +80,8 @@ public class EppProtocolModule {
   @Provides
   @EppProtocol
   static ImmutableList<Provider<? extends ChannelHandler>> provideHandlerProviders(
-      Provider<SslServerInitializer<NioSocketChannel>> sslServerInitializerProvider,
       Provider<ProxyProtocolHandler> proxyProtocolHandlerProvider,
+      @EppProtocol Provider<SslServerInitializer<NioSocketChannel>> sslServerInitializerProvider,
       @EppProtocol Provider<ReadTimeoutHandler> readTimeoutHandlerProvider,
       Provider<LengthFieldBasedFrameDecoder> lengthFieldBasedFrameDecoderProvider,
       Provider<LengthFieldPrepender> lengthFieldPrependerProvider,
@@ -150,6 +154,16 @@ public class EppProtocolModule {
         config.epp.serverHostname,
         helloBytes,
         metrics);
+  }
+
+  @Singleton
+  @Provides
+  @EppProtocol
+  static SslServerInitializer<NioSocketChannel> provideSslServerInitializer(
+      SslProvider sslProvider,
+      @ServerCertificates PrivateKey privateKey,
+      @ServerCertificates X509Certificate... certificates) {
+    return new SslServerInitializer<>(true, sslProvider, privateKey, certificates);
   }
 
   @Provides

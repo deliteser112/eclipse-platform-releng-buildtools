@@ -38,6 +38,8 @@ import google.registry.proxy.EppProtocolModule.EppProtocol;
 import google.registry.proxy.HealthCheckProtocolModule.HealthCheckProtocol;
 import google.registry.proxy.Protocol.FrontendProtocol;
 import google.registry.proxy.ProxyConfig.Environment;
+import google.registry.proxy.WebWhoisProtocolsModule.HttpWhoisProtocol;
+import google.registry.proxy.WebWhoisProtocolsModule.HttpsWhoisProtocol;
 import google.registry.proxy.WhoisProtocolModule.WhoisProtocol;
 import google.registry.proxy.handler.ProxyProtocolHandler;
 import google.registry.util.Clock;
@@ -75,8 +77,14 @@ public class ProxyModule {
   @Parameter(names = "--epp", description = "Port for EPP")
   private Integer eppPort;
 
-  @Parameter(names = "--health_check", description = "Port for health check protocol")
+  @Parameter(names = "--health_check", description = "Port for health check")
   private Integer healthCheckPort;
+
+  @Parameter(names = "--http_whois", description = "Port for HTTP WHOIS")
+  private Integer httpWhoisPort;
+
+  @Parameter(names = "--https_whois", description = "Port for HTTPS WHOIS")
+  private Integer httpsWhoisPort;
 
   @Parameter(names = "--env", description = "Environment to run the proxy in")
   private Environment env = Environment.LOCAL;
@@ -163,6 +171,18 @@ public class ProxyModule {
   @HealthCheckProtocol
   int provideHealthCheckPort(ProxyConfig config) {
     return Optional.ofNullable(healthCheckPort).orElse(config.healthCheck.port);
+  }
+
+  @Provides
+  @HttpWhoisProtocol
+  int provideHttpWhoisProtocol(ProxyConfig config) {
+    return Optional.ofNullable(httpWhoisPort).orElse(config.webWhois.httpPort);
+  }
+
+  @Provides
+  @HttpsWhoisProtocol
+  int provideHttpsWhoisProtocol(ProxyConfig config) {
+    return Optional.ofNullable(httpsWhoisPort).orElse(config.webWhois.httpsPort);
   }
 
   @Provides
@@ -316,16 +336,16 @@ public class ProxyModule {
   /** Root level component that exposes the port-to-protocol map. */
   @Singleton
   @Component(
-    modules = {
-      ProxyModule.class,
-      CertificateModule.class,
-      HttpsRelayProtocolModule.class,
-      WhoisProtocolModule.class,
-      EppProtocolModule.class,
-      HealthCheckProtocolModule.class,
-      MetricsModule.class
-    }
-  )
+      modules = {
+        ProxyModule.class,
+        CertificateModule.class,
+        HttpsRelayProtocolModule.class,
+        WhoisProtocolModule.class,
+        WebWhoisProtocolsModule.class,
+        EppProtocolModule.class,
+        HealthCheckProtocolModule.class,
+        MetricsModule.class
+      })
   interface ProxyComponent {
 
     ImmutableMap<Integer, FrontendProtocol> portToProtocolMap();

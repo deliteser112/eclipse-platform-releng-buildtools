@@ -50,7 +50,7 @@ public class HealthCheckProtocolModule {
     return Protocol.frontendBuilder()
         .name(PROTOCOL_NAME)
         .port(healthCheckPort)
-        .isHealthCheck(true)
+        .hasBackend(false)
         .handlerProviders(handlerProviders)
         .build();
   }

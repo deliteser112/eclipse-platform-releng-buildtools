@@ -175,15 +175,14 @@ public abstract class ProtocolModuleTest {
    */
   @Singleton
   @Component(
-    modules = {
-      TestModule.class,
-      CertificateModule.class,
-      WhoisProtocolModule.class,
-      EppProtocolModule.class,
-      HealthCheckProtocolModule.class,
-      HttpsRelayProtocolModule.class
-    }
-  )
+      modules = {
+        TestModule.class,
+        CertificateModule.class,
+        WhoisProtocolModule.class,
+        EppProtocolModule.class,
+        HealthCheckProtocolModule.class,
+        HttpsRelayProtocolModule.class
+      })
   interface TestComponent {
     @WhoisProtocol
     ImmutableList<Provider<? extends ChannelHandler>> whoisHandlers();

@@ -41,6 +41,10 @@ public class ProxyModuleTest {
     assertThat(proxyModule.provideEppPort(PROXY_CONFIG)).isEqualTo(PROXY_CONFIG.epp.port);
     assertThat(proxyModule.provideHealthCheckPort(PROXY_CONFIG))
         .isEqualTo(PROXY_CONFIG.healthCheck.port);
+    assertThat(proxyModule.provideHttpWhoisProtocol(PROXY_CONFIG))
+        .isEqualTo(PROXY_CONFIG.webWhois.httpPort);
+    assertThat(proxyModule.provideHttpsWhoisProtocol(PROXY_CONFIG))
+        .isEqualTo(PROXY_CONFIG.webWhois.httpsPort);
     assertThat(proxyModule.provideEnvironment()).isEqualTo(LOCAL);
     assertThat(proxyModule.log).isFalse();
   }
@@ -96,6 +100,20 @@ public class ProxyModuleTest {
     String[] args = {"--health_check", "23456"};
     proxyModule.parse(args);
     assertThat(proxyModule.provideHealthCheckPort(PROXY_CONFIG)).isEqualTo(23456);
+  }
+
+  @Test
+  public void testSuccess_parseArgs_customhttpWhoisPort() {
+    String[] args = {"--http_whois", "12121"};
+    proxyModule.parse(args);
+    assertThat(proxyModule.provideHttpWhoisProtocol(PROXY_CONFIG)).isEqualTo(12121);
+  }
+
+  @Test
+  public void testSuccess_parseArgs_customhttpsWhoisPort() {
+    String[] args = {"--https_whois", "21212"};
+    proxyModule.parse(args);
+    assertThat(proxyModule.provideHttpsWhoisProtocol(PROXY_CONFIG)).isEqualTo(21212);
   }
 
   @Test

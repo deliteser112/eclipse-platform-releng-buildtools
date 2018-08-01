@@ -48,14 +48,21 @@ public class TestUtils {
         .headers()
         .set(HttpHeaderNames.USER_AGENT, "Proxy")
         .set(HttpHeaderNames.HOST, host)
-        .set(HttpHeaderNames.CONTENT_LENGTH, buf.readableBytes());
+        .setInt(HttpHeaderNames.CONTENT_LENGTH, buf.readableBytes());
+    return request;
+  }
+
+  public static FullHttpRequest makeHttpGetRequest(String host, String path) {
+    FullHttpRequest request =
+        new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, path);
+    request.headers().set(HttpHeaderNames.HOST, host).setInt(HttpHeaderNames.CONTENT_LENGTH, 0);
     return request;
   }
 
   public static FullHttpResponse makeHttpResponse(String content, HttpResponseStatus status) {
     ByteBuf buf = Unpooled.wrappedBuffer(content.getBytes(US_ASCII));
     FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
-    response.headers().set(HttpHeaderNames.CONTENT_LENGTH, buf.readableBytes());
+    response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, buf.readableBytes());
     return response;
   }
 

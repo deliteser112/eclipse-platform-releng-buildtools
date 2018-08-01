@@ -23,6 +23,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.monitoring.metrics.MetricReporter;
 import google.registry.proxy.Protocol.BackendProtocol;
 import google.registry.proxy.Protocol.FrontendProtocol;
+import google.registry.proxy.ProxyConfig.Environment;
 import google.registry.proxy.ProxyModule.ProxyComponent;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -87,9 +88,9 @@ public class ProxyServer implements Runnable {
       inboundChannel.attr(PROTOCOL_KEY).set(inboundProtocol);
       addHandlers(inboundChannel.pipeline(), inboundProtocol.handlerProviders());
 
-      if (inboundProtocol.isHealthCheck()) {
-        // A health check server protocol has no relay channel. It simply replies to incoming
-        // request with a preset response.
+      if (!inboundProtocol.hasBackend()) {
+        // If the frontend has no backend to relay to (health check, web WHOIS redirect, etc), start
+        // reading immediately.
         inboundChannel.config().setAutoRead(true);
       } else {
         // Connect to the relay (outbound) channel specified by the BackendProtocol.
@@ -208,33 +209,35 @@ public class ProxyServer implements Runnable {
 
     // Configure the components, this needs to run first so that the logging format is properly
     // configured for each environment.
+    ProxyModule proxyModule = new ProxyModule().parse(args);
     ProxyComponent proxyComponent =
-        DaggerProxyModule_ProxyComponent.builder()
-            .proxyModule(new ProxyModule().parse(args))
-            .build();
+        DaggerProxyModule_ProxyComponent.builder().proxyModule(proxyModule).build();
 
-    MetricReporter metricReporter = proxyComponent.metricReporter();
-    try {
-      metricReporter.startAsync().awaitRunning(10, TimeUnit.SECONDS);
-      logger.atInfo().log("Started up MetricReporter");
-    } catch (TimeoutException timeoutException) {
-      logger.atSevere().withCause(timeoutException).log(
-          "Failed to initialize MetricReporter: %s", timeoutException);
+    // Do not write metrics when running locally.
+    if (proxyModule.provideEnvironment() != Environment.LOCAL) {
+      MetricReporter metricReporter = proxyComponent.metricReporter();
+      try {
+        metricReporter.startAsync().awaitRunning(10, TimeUnit.SECONDS);
+        logger.atInfo().log("Started up MetricReporter");
+      } catch (TimeoutException timeoutException) {
+        logger.atSevere().withCause(timeoutException).log(
+            "Failed to initialize MetricReporter: %s", timeoutException);
+      }
+      Runtime.getRuntime()
+          .addShutdownHook(
+              new Thread(
+                  () -> {
+                    try {
+                      metricReporter.stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
+                      logger.atInfo().log("Shut down MetricReporter");
+                    } catch (TimeoutException timeoutException) {
+                      logger.atWarning().withCause(timeoutException).log(
+                          "Failed to stop MetricReporter: %s", timeoutException);
+                    }
+                  }));
     }
 
-    Runtime.getRuntime()
-        .addShutdownHook(
-            new Thread(
-                () -> {
-                  try {
-                    metricReporter.stopAsync().awaitTerminated(10, TimeUnit.SECONDS);
-                    logger.atInfo().log("Shut down MetricReporter");
-                  } catch (TimeoutException timeoutException) {
-                    logger.atWarning().withCause(timeoutException).log(
-                        "Failed to stop MetricReporter: %s", timeoutException);
-                  }
-                }));
-
+    // Start the proxy.
     new ProxyServer(proxyComponent).run();
   }
 }
