@@ -29,6 +29,7 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.util.function.Supplier;
 
 /**
  * Adds a server side SSL handler to the channel pipeline.
@@ -57,25 +58,25 @@ public class SslServerInitializer<C extends Channel> extends ChannelInitializer<
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
   private final boolean requireClientCert;
   private final SslProvider sslProvider;
-  private final PrivateKey privateKey;
-  private final X509Certificate[] certificates;
+  private final Supplier<PrivateKey> privateKeySupplier;
+  private final Supplier<X509Certificate[]> certificatesSupplier;
 
   public SslServerInitializer(
       boolean requireClientCert,
       SslProvider sslProvider,
-      PrivateKey privateKey,
-      X509Certificate... certificates) {
+      Supplier<PrivateKey> privateKeySupplier,
+      Supplier<X509Certificate[]> certificatesSupplier) {
     logger.atInfo().log("Server SSL Provider: %s", sslProvider);
     this.requireClientCert = requireClientCert;
     this.sslProvider = sslProvider;
-    this.privateKey = privateKey;
-    this.certificates = certificates;
+    this.privateKeySupplier = privateKeySupplier;
+    this.certificatesSupplier = certificatesSupplier;
   }
 
   @Override
   protected void initChannel(C channel) throws Exception {
     SslHandler sslHandler =
-        SslContextBuilder.forServer(privateKey, certificates)
+        SslContextBuilder.forServer(privateKeySupplier.get(), certificatesSupplier.get())
             .sslProvider(sslProvider)
             .trustManager(InsecureTrustManagerFactory.INSTANCE)
             .clientAuth(requireClientCert ? ClientAuth.REQUIRE : ClientAuth.NONE)

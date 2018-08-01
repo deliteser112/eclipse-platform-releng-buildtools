@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
-import google.registry.proxy.CertificateModule.ServerCertificates;
 import google.registry.proxy.HttpsRelayProtocolModule.HttpsRelayProtocol;
 import google.registry.proxy.Protocol.BackendProtocol;
 import google.registry.proxy.Protocol.FrontendProtocol;
@@ -161,9 +160,9 @@ public class EppProtocolModule {
   @EppProtocol
   static SslServerInitializer<NioSocketChannel> provideSslServerInitializer(
       SslProvider sslProvider,
-      @ServerCertificates PrivateKey privateKey,
-      @ServerCertificates X509Certificate... certificates) {
-    return new SslServerInitializer<>(true, sslProvider, privateKey, certificates);
+      Supplier<PrivateKey> privateKeySupplier,
+      Supplier<X509Certificate[]> certificatesSupplier) {
+    return new SslServerInitializer<>(true, sslProvider, privateKeySupplier, certificatesSupplier);
   }
 
   @Provides

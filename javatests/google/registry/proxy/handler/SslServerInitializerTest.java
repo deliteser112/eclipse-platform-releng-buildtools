@@ -21,6 +21,7 @@ import static google.registry.proxy.handler.SslInitializerTestUtils.setUpServer;
 import static google.registry.proxy.handler.SslInitializerTestUtils.signKeyPair;
 import static google.registry.proxy.handler.SslInitializerTestUtils.verifySslChannel;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import google.registry.proxy.Protocol;
 import google.registry.proxy.Protocol.BackendProtocol;
@@ -99,7 +100,10 @@ public class SslServerInitializerTest {
         ch.pipeline()
             .addLast(
                 new SslServerInitializer<LocalChannel>(
-                    requireClientCert, SslProvider.JDK, privateKey, certificates),
+                    requireClientCert,
+                    SslProvider.JDK,
+                    Suppliers.ofInstance(privateKey),
+                    Suppliers.ofInstance(certificates)),
                 new EchoHandler(serverLock, serverException));
       }
     };
@@ -148,7 +152,11 @@ public class SslServerInitializerTest {
   public void testSuccess_swappedInitializerWithSslHandler() throws Exception {
     SelfSignedCertificate ssc = new SelfSignedCertificate(SSL_HOST);
     SslServerInitializer<EmbeddedChannel> sslServerInitializer =
-        new SslServerInitializer<>(true, SslProvider.JDK, ssc.key(), ssc.cert());
+        new SslServerInitializer<>(
+            true,
+            SslProvider.JDK,
+            Suppliers.ofInstance(ssc.key()),
+            Suppliers.ofInstance(new X509Certificate[] {ssc.cert()}));
     EmbeddedChannel channel = new EmbeddedChannel();
     ChannelPipeline pipeline = channel.pipeline();
     pipeline.addLast(sslServerInitializer);

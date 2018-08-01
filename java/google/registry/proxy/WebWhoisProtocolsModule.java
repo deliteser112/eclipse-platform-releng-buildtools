@@ -18,7 +18,6 @@ import com.google.common.collect.ImmutableList;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
-import google.registry.proxy.CertificateModule.ServerCertificates;
 import google.registry.proxy.Protocol.FrontendProtocol;
 import google.registry.proxy.handler.SslServerInitializer;
 import google.registry.proxy.handler.WebWhoisRedirectHandler;
@@ -29,6 +28,7 @@ import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
 import io.netty.handler.ssl.SslProvider;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.util.function.Supplier;
 import javax.inject.Provider;
 import javax.inject.Qualifier;
 import javax.inject.Singleton;
@@ -132,8 +132,8 @@ public class WebWhoisProtocolsModule {
   @HttpsWhoisProtocol
   static SslServerInitializer<NioSocketChannel> provideSslServerInitializer(
       SslProvider sslProvider,
-      @ServerCertificates PrivateKey privateKey,
-      @ServerCertificates X509Certificate... certificates) {
-    return new SslServerInitializer<>(false, sslProvider, privateKey, certificates);
+      Supplier<PrivateKey> privateKeySupplier,
+      Supplier<X509Certificate[]> certificatesSupplier) {
+    return new SslServerInitializer<>(false, sslProvider, privateKeySupplier, certificatesSupplier);
   }
 }

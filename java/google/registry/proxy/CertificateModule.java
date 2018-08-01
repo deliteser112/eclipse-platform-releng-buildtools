@@ -15,8 +15,10 @@
 package google.registry.proxy;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Suppliers.memoizeWithExpiration;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.google.common.collect.ImmutableList;
 import dagger.Lazy;
@@ -32,7 +34,9 @@ import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Qualifier;
 import javax.inject.Singleton;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -62,11 +66,11 @@ public class CertificateModule {
 
   /** Dagger qualifier to provide bindings related to the certificates that the server provides. */
   @Qualifier
-  @interface ServerCertificates {}
+  private @interface ServerCertificates {}
 
   /** Dagger qualifier to provide bindings when running locally. */
   @Qualifier
-  @interface Local {}
+  private @interface Local {}
 
   /**
    * Dagger qualifier to provide bindings when running in production.
@@ -100,6 +104,21 @@ public class CertificateModule {
 
   @Singleton
   @Provides
+  static Supplier<PrivateKey> providePrivateKeySupplier(
+      @ServerCertificates Provider<PrivateKey> privateKeyProvider, ProxyConfig config) {
+    return memoizeWithExpiration(
+        privateKeyProvider::get, config.serverCertificateCacheSeconds, SECONDS);
+  }
+
+  @Singleton
+  @Provides
+  static Supplier<X509Certificate[]> provideCertificatesSupplier(
+      @ServerCertificates Provider<X509Certificate[]> certificatesProvider, ProxyConfig config) {
+    return memoizeWithExpiration(
+        certificatesProvider::get, config.serverCertificateCacheSeconds, SECONDS);
+  }
+
+  @Provides
   @ServerCertificates
   static X509Certificate[] provideCertificates(
       Environment env,
@@ -108,7 +127,6 @@ public class CertificateModule {
     return (env == Environment.LOCAL) ? localCertificates.get() : prodCertificates.get();
   }
 
-  @Singleton
   @Provides
   @ServerCertificates
   static PrivateKey providePrivateKey(
@@ -142,7 +160,6 @@ public class CertificateModule {
     return new X509Certificate[] {ssc.cert()};
   }
 
-  @Singleton
   @Provides
   @Named("pemObjects")
   static ImmutableList<Object> providePemObjects(@Named("pemBytes") byte[] pemBytes) {
@@ -167,7 +184,7 @@ public class CertificateModule {
     return listBuilder.build();
   }
 
-  @Singleton
+  // This binding should not be used directly. Use the supplier binding instead.
   @Provides
   @Prod
   static PrivateKey provideProdPrivateKey(@Named("pemObjects") ImmutableList<Object> pemObjects) {
@@ -190,7 +207,7 @@ public class CertificateModule {
     return privateKeys.get(0);
   }
 
-  @Singleton
+  // This binding should not be used directly. Use the supplier binding instead.
   @Provides
   @Prod
   static X509Certificate[] provideProdCertificates(

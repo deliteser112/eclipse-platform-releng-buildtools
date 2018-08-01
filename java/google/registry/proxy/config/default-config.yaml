@@ -36,6 +36,14 @@ accessTokenValidPeriodSeconds: 1800
 # com.google.api.client.auth.oauth2.Credential#intercept.
 accessTokenRefreshBeforeExpirySeconds: 60
 
+# Server certificate is cached for 30 minutes.
+#
+# Encrypted server server certificate and private keys are stored on GCS. They
+# are cached and shared for all connections for 30 minutes. We not not cache
+# the certificate indefinitely because if we upload a new one to GCS, all
+# existing instances need to be killed if they cache the old one indefinitely.
+serverCertificateCacheSeconds: 1800
+
 gcs:
   # GCS bucket that stores the encrypted PEM file.
   bucket: your-gcs-bucket

@@ -260,7 +260,7 @@ public class ProxyModule {
         .build();
   }
 
-  @Singleton
+  // This binding should not be used directly. Use those provided in CertificateModule instead.
   @Provides
   @Named("encryptedPemBytes")
   static byte[] provideEncryptedPemBytes(Storage storage, ProxyConfig config) {
@@ -280,7 +280,7 @@ public class ProxyModule {
     }
   }
 
-  @Singleton
+  // This binding should not be used directly. Use those provided in CertificateModule instead.
   @Provides
   @Named("pemBytes")
   static byte[] providePemBytes(
