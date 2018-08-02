@@ -22,6 +22,7 @@ import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION;
 import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
 import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_PLAIN;
 import static io.netty.handler.codec.http.HttpMethod.GET;
+import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND;
 import static io.netty.handler.codec.http.HttpResponseStatus.METHOD_NOT_ALLOWED;
@@ -30,6 +31,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.flogger.FluentLogger;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -88,6 +90,8 @@ public class WebWhoisRedirectHandler extends SimpleChannelInboundHandler<HttpReq
     // We only support GET, any other HTTP method should result in 405 error.
     if (!msg.method().equals(GET)) {
       response = new DefaultFullHttpResponse(HTTP_1_1, METHOD_NOT_ALLOWED);
+    } else if (Strings.isNullOrEmpty(msg.headers().get(HOST))) {
+      response = new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST);
     } else {
       // All HTTP/1.1 request must contain a Host header with the format "host:[port]".
       // See https://tools.ietf.org/html/rfc2616#section-14.23
@@ -104,14 +108,16 @@ public class WebWhoisRedirectHandler extends SimpleChannelInboundHandler<HttpReq
         response = new DefaultFullHttpResponse(HTTP_1_1, isHttps ? FOUND : MOVED_PERMANENTLY);
         String redirectUrl = String.format("https://%s/", isHttps ? redirectHost : host);
         response.headers().set(LOCATION, redirectUrl);
+        // Add HSTS header to HTTPS response.
+        if (isHttps) {
+          response
+              .headers()
+              .set(HSTS_HEADER_NAME, String.format("max-age=%d", HSTS_MAX_AGE.getSeconds()));
+        }
       }
     }
-    // Add HSTS header to HTTPS response.
-    if (isHttps) {
-      response
-          .headers()
-          .set(HSTS_HEADER_NAME, String.format("max-age=%d", HSTS_MAX_AGE.getSeconds()));
-    }
+
+    // Common headers that need to be set on any response.
     response
         .headers()
         .set(CONTENT_TYPE, TEXT_PLAIN)

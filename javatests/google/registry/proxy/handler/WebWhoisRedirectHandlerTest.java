@@ -19,6 +19,7 @@ import static google.registry.proxy.TestUtils.assertHttpResponseEquivalent;
 import static google.registry.proxy.TestUtils.makeHttpGetRequest;
 import static google.registry.proxy.TestUtils.makeHttpPostRequest;
 import static google.registry.proxy.TestUtils.makeHttpResponse;
+import static io.netty.handler.codec.http.HttpHeaderNames.HOST;
 
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -35,13 +36,16 @@ public class WebWhoisRedirectHandlerTest {
   private static final String REDIRECT_HOST = "www.example.com";
   private static final String TARGET_HOST = "whois.nic.tld";
 
-  private WebWhoisRedirectHandler redirectHandler;
   private EmbeddedChannel channel;
   private FullHttpRequest request;
   private FullHttpResponse response;
 
+  private void setupChannel(boolean isHttps) {
+    channel = new EmbeddedChannel(new WebWhoisRedirectHandler(isHttps, REDIRECT_HOST));
+  }
+
   private static FullHttpResponse makeRedirectResponse(
-      HttpResponseStatus status, String location, boolean keepAlive, boolean isHttps) {
+      HttpResponseStatus status, String location, boolean keepAlive, boolean hsts) {
     FullHttpResponse response = makeHttpResponse("", status);
     response.headers().set("content-type", "text/plain").set("content-length", "0");
     if (location != null) {
@@ -50,16 +54,66 @@ public class WebWhoisRedirectHandlerTest {
     if (keepAlive) {
       response.headers().set("connection", "keep-alive");
     }
-    if (isHttps) {
+    if (hsts) {
       response.headers().set("Strict-Transport-Security", "max-age=31536000");
     }
     return response;
   }
 
+  // HTTP redirect tests.
+
+  @Test
+  public void testSuccess_http_notGet() {
+    setupChannel(false);
+    request = makeHttpPostRequest("", TARGET_HOST, "/");
+    // No inbound message passed to the next handler.
+    assertThat(channel.writeInbound(request)).isFalse();
+    response = channel.readOutbound();
+    assertHttpResponseEquivalent(
+        response, makeRedirectResponse(HttpResponseStatus.METHOD_NOT_ALLOWED, null, true, false));
+    assertThat(channel.isActive()).isTrue();
+  }
+
+  @Test
+  public void testSuccess_http_badHost() {
+    setupChannel(false);
+    request = makeHttpGetRequest("", "/");
+    // No inbound message passed to the next handler.
+    assertThat(channel.writeInbound(request)).isFalse();
+    response = channel.readOutbound();
+    assertHttpResponseEquivalent(
+        response, makeRedirectResponse(HttpResponseStatus.BAD_REQUEST, null, true, false));
+    assertThat(channel.isActive()).isTrue();
+  }
+
+  @Test
+  public void testSuccess_http_noHost() {
+    setupChannel(false);
+    request = makeHttpGetRequest("", "/");
+    request.headers().remove(HOST);
+    // No inbound message passed to the next handler.
+    assertThat(channel.writeInbound(request)).isFalse();
+    response = channel.readOutbound();
+    assertHttpResponseEquivalent(
+        response, makeRedirectResponse(HttpResponseStatus.BAD_REQUEST, null, true, false));
+    assertThat(channel.isActive()).isTrue();
+  }
+
+  @Test
+  public void testSuccess_http_healthCheck() {
+    setupChannel(false);
+    request = makeHttpPostRequest("", TARGET_HOST, "/");
+    // No inbound message passed to the next handler.
+    assertThat(channel.writeInbound(request)).isFalse();
+    response = channel.readOutbound();
+    assertHttpResponseEquivalent(
+        response, makeRedirectResponse(HttpResponseStatus.METHOD_NOT_ALLOWED, null, true, false));
+    assertThat(channel.isActive()).isTrue();
+  }
+
   @Test
   public void testSuccess_http_redirectToHttps() {
-    redirectHandler = new WebWhoisRedirectHandler(false, REDIRECT_HOST);
-    channel = new EmbeddedChannel(redirectHandler);
+    setupChannel(false);
     request = makeHttpGetRequest(TARGET_HOST, "/");
     // No inbound message passed to the next handler.
     assertThat(channel.writeInbound(request)).isFalse();
@@ -73,8 +127,7 @@ public class WebWhoisRedirectHandlerTest {
 
   @Test
   public void testSuccess_http_redirectToHttps_hostAndPort() {
-    redirectHandler = new WebWhoisRedirectHandler(false, REDIRECT_HOST);
-    channel = new EmbeddedChannel(redirectHandler);
+    setupChannel(false);
     request = makeHttpGetRequest(TARGET_HOST + ":80", "/");
     // No inbound message passed to the next handler.
     assertThat(channel.writeInbound(request)).isFalse();
@@ -88,8 +141,7 @@ public class WebWhoisRedirectHandlerTest {
 
   @Test
   public void testSuccess_http_redirectToHttps_noKeepAlive() {
-    redirectHandler = new WebWhoisRedirectHandler(false, REDIRECT_HOST);
-    channel = new EmbeddedChannel(redirectHandler);
+    setupChannel(false);
     request = makeHttpGetRequest(TARGET_HOST, "/");
     request.headers().set("connection", "close");
     // No inbound message passed to the next handler.
@@ -102,10 +154,11 @@ public class WebWhoisRedirectHandlerTest {
     assertThat(channel.isActive()).isFalse();
   }
 
+  // HTTPS redirect tests.
+
   @Test
-  public void testSuccess_http_notGet() {
-    redirectHandler = new WebWhoisRedirectHandler(false, REDIRECT_HOST);
-    channel = new EmbeddedChannel(redirectHandler);
+  public void testSuccess_https_notGet() {
+    setupChannel(true);
     request = makeHttpPostRequest("", TARGET_HOST, "/");
     // No inbound message passed to the next handler.
     assertThat(channel.writeInbound(request)).isFalse();
@@ -116,22 +169,45 @@ public class WebWhoisRedirectHandlerTest {
   }
 
   @Test
-  public void testSuccess_http_healthCheck() {
-    redirectHandler = new WebWhoisRedirectHandler(false, REDIRECT_HOST);
-    channel = new EmbeddedChannel(redirectHandler);
-    request = makeHttpPostRequest("", TARGET_HOST, "/");
+  public void testSuccess_https_badHost() {
+    setupChannel(true);
+    request = makeHttpGetRequest("", "/");
     // No inbound message passed to the next handler.
     assertThat(channel.writeInbound(request)).isFalse();
     response = channel.readOutbound();
     assertHttpResponseEquivalent(
-        response, makeRedirectResponse(HttpResponseStatus.METHOD_NOT_ALLOWED, null, true, false));
+        response, makeRedirectResponse(HttpResponseStatus.BAD_REQUEST, null, true, false));
+    assertThat(channel.isActive()).isTrue();
+  }
+
+  @Test
+  public void testSuccess_https_noHost() {
+    setupChannel(true);
+    request = makeHttpGetRequest("", "/");
+    request.headers().remove(HOST);
+    // No inbound message passed to the next handler.
+    assertThat(channel.writeInbound(request)).isFalse();
+    response = channel.readOutbound();
+    assertHttpResponseEquivalent(
+        response, makeRedirectResponse(HttpResponseStatus.BAD_REQUEST, null, true, false));
+    assertThat(channel.isActive()).isTrue();
+  }
+
+  @Test
+  public void testSuccess_https_healthCheck() {
+    setupChannel(true);
+    request = makeHttpGetRequest("health-check.invalid", "/");
+    // No inbound message passed to the next handler.
+    assertThat(channel.writeInbound(request)).isFalse();
+    response = channel.readOutbound();
+    assertHttpResponseEquivalent(
+        response, makeRedirectResponse(HttpResponseStatus.FORBIDDEN, null, true, false));
     assertThat(channel.isActive()).isTrue();
   }
 
   @Test
   public void testSuccess_https_redirectToDestination() {
-    redirectHandler = new WebWhoisRedirectHandler(true, REDIRECT_HOST);
-    channel = new EmbeddedChannel(redirectHandler);
+    setupChannel(true);
     request = makeHttpGetRequest(TARGET_HOST, "/");
     // No inbound message passed to the next handler.
     assertThat(channel.writeInbound(request)).isFalse();
@@ -144,8 +220,7 @@ public class WebWhoisRedirectHandlerTest {
 
   @Test
   public void testSuccess_https_redirectToDestination_noKeepAlive() {
-    redirectHandler = new WebWhoisRedirectHandler(true, REDIRECT_HOST);
-    channel = new EmbeddedChannel(redirectHandler);
+    setupChannel(true);
     request = makeHttpGetRequest(TARGET_HOST, "/");
     request.headers().set("connection", "close");
     // No inbound message passed to the next handler.
@@ -155,31 +230,5 @@ public class WebWhoisRedirectHandlerTest {
         response,
         makeRedirectResponse(HttpResponseStatus.FOUND, "https://www.example.com/", false, true));
     assertThat(channel.isActive()).isFalse();
-  }
-
-  @Test
-  public void testSuccess_https_notGet() {
-    redirectHandler = new WebWhoisRedirectHandler(true, REDIRECT_HOST);
-    channel = new EmbeddedChannel(redirectHandler);
-    request = makeHttpPostRequest("", TARGET_HOST, "/");
-    // No inbound message passed to the next handler.
-    assertThat(channel.writeInbound(request)).isFalse();
-    response = channel.readOutbound();
-    assertHttpResponseEquivalent(
-        response, makeRedirectResponse(HttpResponseStatus.METHOD_NOT_ALLOWED, null, true, true));
-    assertThat(channel.isActive()).isTrue();
-  }
-
-  @Test
-  public void testSuccess_https_healthCheck() {
-    redirectHandler = new WebWhoisRedirectHandler(true, REDIRECT_HOST);
-    channel = new EmbeddedChannel(redirectHandler);
-    request = makeHttpGetRequest("health-check.invalid", "/");
-    // No inbound message passed to the next handler.
-    assertThat(channel.writeInbound(request)).isFalse();
-    response = channel.readOutbound();
-    assertHttpResponseEquivalent(
-        response, makeRedirectResponse(HttpResponseStatus.FORBIDDEN, null, true, true));
-    assertThat(channel.isActive()).isTrue();
   }
 }
