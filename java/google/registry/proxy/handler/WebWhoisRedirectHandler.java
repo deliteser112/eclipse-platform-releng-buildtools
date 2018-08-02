@@ -135,7 +135,7 @@ public class WebWhoisRedirectHandler extends SimpleChannelInboundHandler<HttpReq
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-    logger.atSevere().withCause(cause).log(
+    logger.atWarning().withCause(cause).log(
         (isHttps ? "HTTPS" : "HTTP") + " WHOIS inbound exception caught for channel %s",
         ctx.channel());
     ChannelFuture unusedFuture = ctx.close();
