@@ -64,7 +64,7 @@ public final class RouterTest {
   }
 
   @Test
-  public void testRoute_pathMismatch_returnsAbsent() {
+  public void testRoute_pathMismatch_returnsEmpty() {
     assertThat(Router.create(SlothComponent.class).route("/doge")).isEmpty();
   }
 
@@ -92,7 +92,7 @@ public final class RouterTest {
   }
 
   @Test
-  public void testRoute_prefixDoesNotMatch_returnsAbsent() {
+  public void testRoute_prefixDoesNotMatch_returnsEmpty() {
     assertThat(Router.create(PrefixComponent.class).route("")).isEmpty();
     assertThat(Router.create(PrefixComponent.class).route("/")).isEmpty();
     assertThat(Router.create(PrefixComponent.class).route("/ulysses")).isEmpty();

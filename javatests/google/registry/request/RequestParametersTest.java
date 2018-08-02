@@ -69,12 +69,12 @@ public class RequestParametersTest {
   }
 
   @Test
-  public void testExtractOptionalParameter_notPresent_returnsAbsent() {
+  public void testExtractOptionalParameter_notPresent_returnsEmpty() {
     assertThat(extractOptionalParameter(req, "spin")).isEmpty();
   }
 
   @Test
-  public void testExtractOptionalParameter_empty_returnsAbsent() {
+  public void testExtractOptionalParameter_empty_returnsEmpty() {
     when(req.getParameter("spin")).thenReturn("");
     assertThat(extractOptionalParameter(req, "spin")).isEmpty();
   }
@@ -192,7 +192,7 @@ public class RequestParametersTest {
   }
 
   @Test
-  public void testOptionalExtractEnumValue_noValue_returnsAbsent() {
+  public void testOptionalExtractEnumValue_noValue_returnsEmpty() {
     when(req.getParameter("spin")).thenReturn("");
     assertThat(extractOptionalEnumParameter(req, Club.class, "spin")).isEmpty();
   }
@@ -239,7 +239,7 @@ public class RequestParametersTest {
   }
 
   @Test
-  public void testExtractOptionalDatetimeParameter_empty_returnsAbsent() {
+  public void testExtractOptionalDatetimeParameter_empty_returnsEmpty() {
     when(req.getParameter("timeParam")).thenReturn("");
     assertThat(extractOptionalDatetimeParameter(req, "timeParam")).isEmpty();
   }

@@ -37,12 +37,12 @@ public class PhoneNumberParameterTest {
   }
 
   @Test
-  public void testConvert_empty_returnsAbsent() {
+  public void testConvert_empty_returnsEmpty() {
     assertThat(instance.convert("")).isEmpty();
   }
 
   @Test
-  public void testConvert_nullString_returnsAbsent() {
+  public void testConvert_nullString_returnsEmpty() {
     assertThat(instance.convert("null")).isEmpty();
   }
 }
