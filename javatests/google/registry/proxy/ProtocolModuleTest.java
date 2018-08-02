@@ -29,6 +29,7 @@ import google.registry.proxy.EppProtocolModule.EppProtocol;
 import google.registry.proxy.HealthCheckProtocolModule.HealthCheckProtocol;
 import google.registry.proxy.HttpsRelayProtocolModule.HttpsRelayProtocol;
 import google.registry.proxy.ProxyConfig.Environment;
+import google.registry.proxy.WebWhoisProtocolsModule.HttpWhoisProtocol;
 import google.registry.proxy.WhoisProtocolModule.WhoisProtocol;
 import google.registry.proxy.handler.BackendMetricsHandler;
 import google.registry.proxy.handler.ProxyProtocolHandler;
@@ -38,6 +39,7 @@ import google.registry.proxy.handler.RelayHandler.FullHttpRequestRelayHandler;
 import google.registry.proxy.handler.RelayHandler.FullHttpResponseRelayHandler;
 import google.registry.proxy.handler.SslClientInitializer;
 import google.registry.proxy.handler.SslServerInitializer;
+import google.registry.proxy.handler.WebWhoisRedirectHandler;
 import google.registry.testing.FakeClock;
 import google.registry.util.Clock;
 import io.netty.channel.Channel;
@@ -95,6 +97,11 @@ public abstract class ProtocolModuleTest {
           // tested separately in their respective unit tests.
           FullHttpRequestRelayHandler.class,
           FullHttpResponseRelayHandler.class,
+          // This handler is tested in its own unit tests. It is installed in web whois redirect
+          // protocols. The end-to-end tests for the rest of the handlers in its pipeline need to
+          // be able to emit incoming requests out of the channel for assertions. Therefore this
+          // handler is removed from the pipeline.
+          WebWhoisRedirectHandler.class,
           // The rest are not part of business logic and do not need to be tested, obviously.
           LoggingHandler.class,
           // Metrics instrumentation is tested separately.
@@ -179,6 +186,7 @@ public abstract class ProtocolModuleTest {
         TestModule.class,
         CertificateModule.class,
         WhoisProtocolModule.class,
+        WebWhoisProtocolsModule.class,
         EppProtocolModule.class,
         HealthCheckProtocolModule.class,
         HttpsRelayProtocolModule.class
@@ -195,6 +203,9 @@ public abstract class ProtocolModuleTest {
 
     @HttpsRelayProtocol
     ImmutableList<Provider<? extends ChannelHandler>> httpsRelayHandlers();
+
+    @HttpWhoisProtocol
+    ImmutableList<Provider<? extends ChannelHandler>> httpWhoisHandlers();
   }
 
   /**

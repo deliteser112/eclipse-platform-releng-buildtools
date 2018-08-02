@@ -30,7 +30,9 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
@@ -63,6 +65,12 @@ public class TestUtils {
     ByteBuf buf = Unpooled.wrappedBuffer(content.getBytes(US_ASCII));
     FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
     response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, buf.readableBytes());
+    return response;
+  }
+
+  public static FullHttpResponse makeHttpResponse(HttpResponseStatus status) {
+    FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status);
+    response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, 0);
     return response;
   }
 
@@ -129,10 +137,12 @@ public class TestUtils {
    * <p>This method is not type-safe, msg1 & msg2 can be a request and a response, respectively. Do
    * not use this method directly.
    */
-  private static void assertHttpMessageEquivalent(FullHttpMessage msg1, FullHttpMessage msg2) {
+  private static void assertHttpMessageEquivalent(HttpMessage msg1, HttpMessage msg2) {
     assertThat(msg1.protocolVersion()).isEqualTo(msg2.protocolVersion());
-    assertThat(msg1.content()).isEqualTo(msg2.content());
     assertThat(msg1.headers()).isEqualTo(msg2.headers());
+    if (msg1 instanceof FullHttpRequest && msg2 instanceof FullHttpRequest) {
+      assertThat(((FullHttpRequest) msg1).content()).isEqualTo(((FullHttpRequest) msg2).content());
+    }
   }
 
   public static void assertHttpResponseEquivalent(FullHttpResponse res1, FullHttpResponse res2) {
@@ -140,7 +150,7 @@ public class TestUtils {
     assertHttpMessageEquivalent(res1, res2);
   }
 
-  public static void assertHttpRequestEquivalent(FullHttpRequest req1, FullHttpRequest req2) {
+  public static void assertHttpRequestEquivalent(HttpRequest req1, HttpRequest req2) {
     assertHttpMessageEquivalent(req1, req2);
   }
 }
