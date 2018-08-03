@@ -15,10 +15,16 @@
 package google.registry.proxy.handler;
 
 import static com.google.common.truth.Truth.assertThat;
+import static google.registry.proxy.Protocol.PROTOCOL_KEY;
+import static google.registry.proxy.handler.RelayHandler.RELAY_BUFFER_KEY;
 import static google.registry.proxy.handler.RelayHandler.RELAY_CHANNEL_KEY;
 
-import io.netty.channel.ChannelFuture;
+import com.google.common.collect.ImmutableList;
+import google.registry.proxy.Protocol;
+import google.registry.proxy.Protocol.BackendProtocol;
+import google.registry.proxy.Protocol.FrontendProtocol;
 import io.netty.channel.embedded.EmbeddedChannel;
+import java.util.ArrayDeque;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,10 +41,27 @@ public class RelayHandlerTest {
   private final RelayHandler<ExpectedType> relayHandler = new RelayHandler<>(ExpectedType.class);
   private final EmbeddedChannel inboundChannel = new EmbeddedChannel(relayHandler);
   private final EmbeddedChannel outboundChannel = new EmbeddedChannel();
+  private final FrontendProtocol frontendProtocol =
+      Protocol.frontendBuilder()
+          .port(0)
+          .name("FRONTEND")
+          .handlerProviders(ImmutableList.of())
+          .relayProtocol(
+              Protocol.backendBuilder()
+                  .host("host.invalid")
+                  .port(0)
+                  .name("BACKEND")
+                  .handlerProviders(ImmutableList.of())
+                  .build())
+          .build();
+  private final BackendProtocol backendProtocol = frontendProtocol.relayProtocol();
 
   @Before
   public void setUp() {
     inboundChannel.attr(RELAY_CHANNEL_KEY).set(outboundChannel);
+    inboundChannel.attr(RELAY_BUFFER_KEY).set(new ArrayDeque<>());
+    inboundChannel.attr(PROTOCOL_KEY).set(frontendProtocol);
+    outboundChannel.attr(PROTOCOL_KEY).set(backendProtocol);
   }
 
   @Test
@@ -62,21 +85,16 @@ public class RelayHandlerTest {
   }
 
   @Test
-  public void testSuccess_disconnectIfRelayIsUnsuccessful() {
+  public void testSuccess_outboundClosed_enqueueBuffer() {
     ExpectedType inboundMessage = new ExpectedType();
-    // Outbound channel is closed.
+    // Outbound channel (backend) is closed.
     outboundChannel.finish();
     assertThat(inboundChannel.writeInbound(inboundMessage)).isFalse();
     ExpectedType relayedMessage = outboundChannel.readOutbound();
     assertThat(relayedMessage).isNull();
-    // Inbound channel is closed as well.
-    assertThat(inboundChannel.isActive()).isFalse();
-  }
-
-  @Test
-  public void testSuccess_disconnectRelayChannelIfInactive() {
-    ChannelFuture unusedFuture = inboundChannel.close();
-    assertThat(outboundChannel.isActive()).isFalse();
+    // Inbound channel (frontend) should stay open.
+    assertThat(inboundChannel.isActive()).isTrue();
+    assertThat(inboundChannel.attr(RELAY_BUFFER_KEY).get()).containsExactly(inboundMessage);
   }
 
   @Test

@@ -14,7 +14,7 @@
 
 package google.registry.proxy.handler;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static google.registry.proxy.Protocol.PROTOCOL_KEY;
 
 import com.google.common.flogger.FluentLogger;
 import io.netty.channel.Channel;
@@ -25,6 +25,8 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
+import java.util.Deque;
+import java.util.Queue;
 import javax.inject.Inject;
 
 /**
@@ -32,6 +34,18 @@ import javax.inject.Inject;
  * the inbound channel's attribute.
  */
 public class RelayHandler<I> extends SimpleChannelInboundHandler<I> {
+
+  /**
+   * A queue that saves messages that failed to be relayed.
+   *
+   * <p>This queue is null for channels that should not retry on failure, i. e. backend channels.
+   *
+   * <p>This queue does not need to be synchronised because it is only accessed by the I/O thread of
+   * the channel, or its relay channel. Since both channels use the same EventLoop, their I/O
+   * activities are handled by the same thread.
+   */
+  public static final AttributeKey<Deque<Object>> RELAY_BUFFER_KEY =
+      AttributeKey.valueOf("RELAY_BUFFER_KEY");
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
@@ -43,43 +57,50 @@ public class RelayHandler<I> extends SimpleChannelInboundHandler<I> {
     super(clazz, false);
   }
 
-  /** Terminate connection when an exception is caught during inbound IO. */
-  @Override
-  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-    logger.atSevere().withCause(cause).log(
-        "Inbound exception caught for channel %s", ctx.channel());
-    ChannelFuture unusedFuture = ctx.close();
-  }
-
-  /** Close relay channel if this channel is closed. */
-  @Override
-  public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-    Channel relayChannel = ctx.channel().attr(RELAY_CHANNEL_KEY).get();
-    if (relayChannel != null) {
-      ChannelFuture unusedFuture = relayChannel.close();
-    }
-    ctx.fireChannelInactive();
-  }
-
   /** Read message of type {@code I}, write it as-is into the relay channel. */
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, I msg) throws Exception {
-    Channel relayChannel = ctx.channel().attr(RELAY_CHANNEL_KEY).get();
-    checkNotNull(relayChannel, "Relay channel not specified for channel: %s", ctx.channel());
-    if (relayChannel.isActive()) {
-      // Relay channel is open, write to it.
-      ChannelFuture channelFuture = relayChannel.writeAndFlush(msg);
-      channelFuture.addListener(
-          future -> {
-            // Cannot write into relay channel, close this channel.
-            if (!future.isSuccess()) {
-              ChannelFuture unusedFuture = ctx.close();
-            }
-          });
+    Channel channel = ctx.channel();
+    Channel relayChannel = channel.attr(RELAY_CHANNEL_KEY).get();
+    if (relayChannel == null) {
+      logger.atSevere().log("Relay channel not specified for channel: %s", channel);
+      ChannelFuture unusedFuture = channel.close();
     } else {
-      // close this channel if the relay channel is closed.
-      ChannelFuture unusedFuture = ctx.close();
+      writeToRelayChannel(channel, relayChannel, msg);
     }
+  }
+
+  public static void writeToRelayChannel(Channel channel, Channel relayChannel, Object msg) {
+    ChannelFuture unusedFuture =
+        relayChannel
+            .writeAndFlush(msg)
+            .addListener(
+                future -> {
+                  if (!future.isSuccess()) {
+                    logger.atWarning().log(
+                        "Relay failed: %s --> %s\nINBOUND: %s\nOUTBOUND: %s",
+                        channel.attr(PROTOCOL_KEY).get().name(),
+                        relayChannel.attr(PROTOCOL_KEY).get().name(),
+                        channel,
+                        relayChannel);
+                    // If we cannot write to the relay channel and the originating channel has
+                    // a relay buffer (i. e. we tried to relay the frontend to the backend), store
+                    // the message in the buffer for retry later. Otherwise, we are relaying from
+                    // the backend to the frontend, and this relay failure cannot be recovered
+                    // from, we should just kill the relay (frontend) channel, which in turn will
+                    // kill the backend channel. We should not kill any backend channel while the
+                    // the frontend channel is open, because that will just trigger a reconnect.
+                    // It is fine to just save the message object itself, not a clone of it,
+                    // because if the relay is not successful, its content is not read, therefore
+                    // its buffer is not cleared.
+                    Queue<Object> relayBuffer = channel.attr(RELAY_BUFFER_KEY).get();
+                    if (relayBuffer != null) {
+                      channel.attr(RELAY_BUFFER_KEY).get().add(msg);
+                    } else {
+                      ChannelFuture unusedFuture2 = relayChannel.close();
+                    }
+                  }
+                });
   }
 
   /** Specialized {@link RelayHandler} that takes a {@link FullHttpRequest} as inbound payload. */

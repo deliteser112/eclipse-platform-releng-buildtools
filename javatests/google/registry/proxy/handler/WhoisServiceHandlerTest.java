@@ -108,7 +108,7 @@ public class WhoisServiceHandlerTest {
     assertThat(parsedBuffer.toString(US_ASCII)).isEqualTo(outputString);
     // The channel is still open, and nothing else is to be written to it.
     assertThat((Object) channel.readOutbound()).isNull();
-    assertThat(channel.isActive()).isTrue();
+    assertThat(channel.isActive()).isFalse();
   }
 
   @Test

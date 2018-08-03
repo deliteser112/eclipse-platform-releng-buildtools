@@ -79,7 +79,6 @@ public class TestUtils {
     FullHttpRequest request = makeHttpPostRequest(content, host, path);
     request
         .headers()
-        .set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE)
         .set(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessToken)
         .set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN)
         .set(HttpHeaderNames.ACCEPT, HttpHeaderValues.TEXT_PLAIN);

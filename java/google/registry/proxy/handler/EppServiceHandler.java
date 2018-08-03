@@ -118,7 +118,8 @@ public class EppServiceHandler extends HttpsRelayServiceHandler {
                         "epp", sslClientCertificateHash, ctx.channel());
                     channelRead(ctx, Unpooled.wrappedBuffer(helloBytes));
                   } else {
-                    logger.atSevere().withCause(promise.cause()).log("Cannot finish handshake.");
+                    logger.atSevere().withCause(promise.cause()).log(
+                        "Cannot finish handshake for channel %s", ctx.channel());
                     ChannelFuture unusedFuture = ctx.close();
                   }
                 });

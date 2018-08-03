@@ -14,12 +14,17 @@
 
 package google.registry.proxy.handler;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import google.registry.proxy.metric.FrontendMetrics;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpResponse;
 import java.util.function.Supplier;
 
 /** Handler that processes WHOIS protocol logic. */
@@ -44,11 +49,18 @@ public final class WhoisServiceHandler extends HttpsRelayServiceHandler {
     FullHttpRequest request = super.decodeFullHttpRequest(byteBuf);
     request
         .headers()
-        // Close connection after a response is received, per RFC-3912
-        // https://tools.ietf.org/html/rfc3912
-        .set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE)
         .set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN)
         .set(HttpHeaderNames.ACCEPT, HttpHeaderValues.TEXT_PLAIN);
     return request;
+  }
+
+  @Override
+  public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise)
+      throws Exception {
+    // Close connection after a response is received, per RFC-3912
+    // https://tools.ietf.org/html/rfc3912
+    checkArgument(msg instanceof HttpResponse);
+    promise.addListener(ChannelFutureListener.CLOSE);
+    super.write(ctx, msg, promise);
   }
 }

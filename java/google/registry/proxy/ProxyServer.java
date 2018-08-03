@@ -15,7 +15,9 @@
 package google.registry.proxy;
 
 import static google.registry.proxy.Protocol.PROTOCOL_KEY;
+import static google.registry.proxy.handler.RelayHandler.RELAY_BUFFER_KEY;
 import static google.registry.proxy.handler.RelayHandler.RELAY_CHANNEL_KEY;
+import static google.registry.proxy.handler.RelayHandler.writeToRelayChannel;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -40,7 +42,9 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.JdkLoggerFactory;
+import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.inject.Provider;
@@ -86,6 +90,7 @@ public class ProxyServer implements Runnable {
       FrontendProtocol inboundProtocol =
           (FrontendProtocol) inboundChannel.parent().attr(PROTOCOL_KEY).get();
       inboundChannel.attr(PROTOCOL_KEY).set(inboundProtocol);
+      inboundChannel.attr(RELAY_BUFFER_KEY).set(new ArrayDeque<>());
       addHandlers(inboundChannel.pipeline(), inboundProtocol.handlerProviders());
 
       if (!inboundProtocol.hasBackend()) {
@@ -114,30 +119,99 @@ public class ProxyServer implements Runnable {
                 // Outbound channel relays to inbound channel.
                 .attr(RELAY_CHANNEL_KEY, inboundChannel)
                 .attr(PROTOCOL_KEY, outboundProtocol);
-        ChannelFuture outboundChannelFuture =
-            bootstrap.connect(outboundProtocol.host(), outboundProtocol.port());
-        outboundChannelFuture.addListener(
-            (ChannelFuture future) -> {
-              if (future.isSuccess()) {
-                Channel outboundChannel = future.channel();
-                // Inbound channel relays to outbound channel.
-                inboundChannel.attr(RELAY_CHANNEL_KEY).set(outboundChannel);
-                // Outbound channel established successfully, inbound channel can start reading.
-                // This setter also calls channel.read() to request read operation.
-                inboundChannel.config().setAutoRead(true);
+
+        connectOutboundChannel(bootstrap, inboundProtocol, outboundProtocol, inboundChannel);
+        // If the inbound connection is closed, close its outbound relay connection as well. There
+        // is no way to recover from an inbound connection termination, as the connection can only
+        // be initiated by the client.
+        ChannelFuture unusedChannelFuture =
+            inboundChannel
+                .closeFuture()
+                .addListener(
+                    (future) -> {
+                      // Check if there's a relay connection. In case that the outbound connection
+                      // is not successful, this attribute is not set.
+                      Channel outboundChannel = inboundChannel.attr(RELAY_CHANNEL_KEY).get();
+                      if (outboundChannel != null) {
+                        ChannelFuture unusedChannelFuture2 = outboundChannel.close();
+                      }
+                    });
+      }
+    }
+
+    /**
+     * Establishes an outbound relay channel and sets the relevant metadata on both channels.
+     *
+     * <p>This method also adds a listener that is called when the established outbound connection
+     * is closed. The outbound connection to GAE is *not* guaranteed to persist. In case that the
+     * outbound connection closes but the inbound connection is still active, the listener calls
+     * this function again to re-establish another outbound connection. The metadata is also reset
+     * so that the inbound channel knows to relay to the new outbound channel.
+     */
+    private static void connectOutboundChannel(
+        Bootstrap bootstrap,
+        FrontendProtocol inboundProtocol,
+        BackendProtocol outboundProtocol,
+        NioSocketChannel inboundChannel) {
+      ChannelFuture outboundChannelFuture =
+          bootstrap.connect(outboundProtocol.host(), outboundProtocol.port());
+      outboundChannelFuture.addListener(
+          (ChannelFuture future) -> {
+            if (future.isSuccess()) {
+              // Outbound connection is successful, now we can set the metadata to couple these two
+              // connections together.
+              Channel outboundChannel = future.channel();
+              // Inbound channel relays to outbound channel.
+              inboundChannel.attr(RELAY_CHANNEL_KEY).set(outboundChannel);
+              // Outbound channel established successfully, inbound channel can start reading.
+              // This setter also calls channel.read() to request read operation.
+              inboundChannel.config().setAutoRead(true);
+              logger.atInfo().log(
+                  "Relay established: %s <-> %s\nFRONTEND: %s\nBACKEND: %s",
+                  inboundProtocol.name(), outboundProtocol.name(), inboundChannel, outboundChannel);
+              // Now that we have a functional relay channel to the backend, if there's any
+              // buffered requests, send them off to the relay channel. We need to obtain a copy
+              // of the messages and clear the queue first, because if the relay is not successful,
+              // the message will be written back to the queue, causing an infinite loop.
+              Queue<Object> relayBuffer = inboundChannel.attr(RELAY_BUFFER_KEY).get();
+              Object[] messages = relayBuffer.toArray();
+              relayBuffer.clear();
+              for (Object msg : messages) {
+                writeToRelayChannel(inboundChannel, outboundChannel, msg);
                 logger.atInfo().log(
-                    "Relay established: %s <-> %s\nFRONTEND: %s\nBACKEND: %s",
+                    "Relay retried: %s <-> %s\nFRONTEND: %s\nBACKEND: %s",
                     inboundProtocol.name(),
                     outboundProtocol.name(),
                     inboundChannel,
                     outboundChannel);
-              } else {
-                logger.atSevere().withCause(future.cause()).log(
-                    "Cannot connect to relay channel for %s protocol connection from %s.",
-                    inboundProtocol.name(), inboundChannel.remoteAddress().getHostName());
               }
-            });
-      }
+              // When this outbound connection is closed, try reconnecting if the inbound connection
+              // is still active.
+              ChannelFuture unusedChannelFuture =
+                  outboundChannel
+                      .closeFuture()
+                      .addListener(
+                          (ChannelFuture future2) -> {
+                            if (inboundChannel.isActive()) {
+                              logger.atInfo().log(
+                                  "Relay interrupted: %s <-> %s\nFRONTEND: %s\nBACKEND: %s",
+                                  inboundProtocol.name(),
+                                  outboundProtocol.name(),
+                                  inboundChannel,
+                                  outboundChannel);
+                              connectOutboundChannel(
+                                  bootstrap, inboundProtocol, outboundProtocol, inboundChannel);
+                            }
+                          });
+            } else {
+              // We cannot connect to GAE for unknown reasons, no relay can be done so drop the
+              // inbound connection as well.
+              logger.atSevere().withCause(future.cause()).log(
+                  "Cannot connect to relay channel for %s channel: %s.",
+                  inboundProtocol.name(), inboundChannel);
+              ChannelFuture unusedFuture = inboundChannel.close();
+            }
+          });
     }
 
     private static void addHandlers(
