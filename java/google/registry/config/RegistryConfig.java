@@ -620,8 +620,7 @@ public final class RegistryConfig {
     @Provides
     @Config("defaultShouldPublishInvoices")
     public static boolean provideDefaultShouldPublishInvoices() {
-      // TODO(b/78278360): Make the default 'true' once we're done with SUNRISE.
-      return false;
+      return true;
     }
 
     /**
