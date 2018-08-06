@@ -34,6 +34,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.cookie.ClientCookieDecoder;
 import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.timeout.ReadTimeoutException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,8 +153,9 @@ abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpRespo
       throws Exception {
     checkArgument(
         response.status().equals(HttpResponseStatus.OK),
-        "Cannot relay HTTP response status \"%s\"\n%s",
+        "Cannot relay HTTP response status \"%s\"in channel %s:\n%s",
         response.status(),
+        ctx.channel(),
         response.content().toString(UTF_8));
     saveCookies(response);
     byteBuf.writeBytes(encodeFullHttpResponse(response));
@@ -162,8 +164,17 @@ abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpRespo
   /** Terminates connection upon inbound exception. */
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-    logger.atSevere().withCause(cause).log(
-        "Inbound exception caught for channel %s", ctx.channel());
+    // ReadTimeoutException is non fatal as the client times out due to inactivity.
+    // IllegalArgumentException is thrown by the checkArgument in the #encode command, it just means
+    // that GAE returns a non-200 response and the connection should be killed. The request is still
+    // processed by GAE, so this is not an unexpected behavior.
+    if (cause instanceof ReadTimeoutException || cause instanceof IllegalArgumentException) {
+      logger.atWarning().withCause(cause).log(
+          "Inbound exception caught for channel %s", ctx.channel());
+    } else {
+      logger.atSevere().withCause(cause).log(
+          "Inbound exception caught for channel %s", ctx.channel());
+    }
     ChannelFuture unusedFuture = ctx.close();
   }
 

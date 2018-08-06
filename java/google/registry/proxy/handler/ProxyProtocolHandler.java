@@ -75,23 +75,27 @@ public class ProxyProtocolHandler extends ByteToMessageDecoder {
       String remoteIP;
       if (proxyHeader != null) {
         logger.atFine().log("PROXIED CONNECTION: %s", ctx.channel());
-        logger.atFine().log("PROXY HEADER: %s", proxyHeader);
+        logger.atFine().log("PROXY HEADER for channel %s: %s", ctx.channel(), proxyHeader);
         String[] headerArray = proxyHeader.split(" ", -1);
         if (headerArray.length == 6) {
           remoteIP = headerArray[2];
-          logger.atFine().log("Header parsed, using %s as remote IP.", remoteIP);
+          logger.atFine().log(
+              "Header parsed, using %s as remote IP for channel %s", remoteIP, ctx.channel());
         } else {
-          logger.atFine().log("Cannot parse the header, using source IP as a last resort.");
+          logger.atFine().log(
+              "Cannot parse the header, using source IP as remote IP for channel %s",
+              ctx.channel());
           remoteIP = getSourceIP(ctx);
         }
       } else {
-        logger.atFine().log("No header present, using source IP directly.");
+        logger.atFine().log(
+            "No header present, using source IP directly for channel %s", ctx.channel());
         remoteIP = getSourceIP(ctx);
       }
       if (remoteIP != null) {
         ctx.channel().attr(REMOTE_ADDRESS_KEY).set(remoteIP);
       } else {
-        logger.atWarning().log("Not able to obtain remote IP for %s", ctx.channel());
+        logger.atWarning().log("Not able to obtain remote IP for channel %s", ctx.channel());
       }
       // ByteToMessageDecoder automatically flushes unread bytes in the ByteBuf to the next handler
       // when itself is being removed.
