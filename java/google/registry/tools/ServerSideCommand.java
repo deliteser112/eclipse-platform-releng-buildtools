@@ -18,6 +18,7 @@ import com.google.common.net.MediaType;
 import google.registry.tools.Command.RemoteApiCommand;
 import java.io.IOException;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 /** A command that executes on the server. */
 interface ServerSideCommand extends RemoteApiCommand {
@@ -27,8 +28,12 @@ interface ServerSideCommand extends RemoteApiCommand {
 
     void prefetchXsrfToken();
 
-    String send(String endpoint, Map<String, ?> params, MediaType contentType, byte[] payload)
+    /** Send a POST request.  TODO(mmuller): change to sendPostRequest() */
+    String send(
+        String endpoint, Map<String, ?> params, MediaType contentType, @Nullable byte[] payload)
         throws IOException;
+
+    String sendGetRequest(String endpoint, Map<String, ?> params) throws IOException;
 
     Map<String, Object> sendJson(String endpoint, Map<String, ?> object) throws IOException;
 

@@ -14,6 +14,7 @@
 
 package google.registry.tools;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Suppliers.memoize;
 import static com.google.common.net.HttpHeaders.X_REQUESTED_WITH;
 import static com.google.common.net.MediaType.JSON_UTF_8;
@@ -40,6 +41,7 @@ import google.registry.tools.ServerSideCommand.Connection;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import org.json.simple.JSONValue;
 
@@ -81,14 +83,16 @@ class AppEngineConnection implements Connection {
     return CharStreams.toString(new InputStreamReader(response.getContent(), UTF_8));
   }
 
-  @Override
-  public String send(
-      String endpoint, Map<String, ?> params, MediaType contentType, byte[] payload)
-          throws IOException {
+  private String internalSend(
+      String endpoint, Map<String, ?> params, MediaType contentType, @Nullable byte[] payload)
+      throws IOException {
     GenericUrl url = new GenericUrl(String.format("%s%s", getServerUrl(), endpoint));
     url.putAll(params);
     HttpRequest request =
-        requestFactory.buildPostRequest(url, new ByteArrayContent(contentType.toString(), payload));
+        (payload != null)
+            ? requestFactory.buildPostRequest(
+                url, new ByteArrayContent(contentType.toString(), payload))
+            : requestFactory.buildGetRequest(url);
     HttpHeaders headers = request.getHeaders();
     headers.setCacheControl("no-cache");
     headers.put(X_CSRF_TOKEN, ImmutableList.of(xsrfToken.get()));
@@ -118,14 +122,27 @@ class AppEngineConnection implements Connection {
     }
   }
 
+  // TODO(b/111123862): Rename this to sendPostRequest()
+  @Override
+  public String send(String endpoint, Map<String, ?> params, MediaType contentType, byte[] payload)
+      throws IOException {
+    return internalSend(endpoint, params, contentType, checkNotNull(payload, "payload"));
+  }
+
+  @Override
+  public String sendGetRequest(String endpoint, Map<String, ?> params) throws IOException {
+    return internalSend(endpoint, params, MediaType.PLAIN_TEXT_UTF_8, null);
+  }
+
   @Override
   @SuppressWarnings("unchecked")
   public Map<String, Object> sendJson(String endpoint, Map<String, ?> object) throws IOException {
-    String response = send(
-        endpoint,
-        ImmutableMap.of(),
-        JSON_UTF_8,
-        JSONValue.toJSONString(object).getBytes(UTF_8));
+    String response =
+        send(
+            endpoint,
+            ImmutableMap.of(),
+            JSON_UTF_8,
+            JSONValue.toJSONString(object).getBytes(UTF_8));
     return (Map<String, Object>) JSONValue.parse(response.substring(JSON_SAFETY_PREFIX.length()));
   }
 
