@@ -16,7 +16,6 @@ package google.registry.proxy.handler;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.proxy.Protocol.PROTOCOL_KEY;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
 import google.registry.proxy.Protocol.BackendProtocol;
@@ -240,8 +239,7 @@ public class SslInitializerTestUtils {
       ImmutableList<X509Certificate> certs,
       Lock clientLock,
       Lock serverLock,
-      ByteBuf buffer,
-      String sniHostname)
+      ByteBuf buffer)
       throws Exception {
     SslHandler sslHandler = channel.pipeline().get(SslHandler.class);
     // Wait till the handshake is complete.
@@ -253,10 +251,6 @@ public class SslInitializerTestUtils {
     assertThat(sslHandler.engine().getSession().getPeerCertificates())
         .asList()
         .containsExactly(certs.toArray());
-    // Verify that the client sent expected SNI name during handshake.
-    assertThat(sslHandler.engine().getSSLParameters().getServerNames()).hasSize(1);
-    assertThat(sslHandler.engine().getSSLParameters().getServerNames().get(0).getEncoded())
-        .isEqualTo(sniHostname.getBytes(UTF_8));
 
     // Test that message can go through, bound inbound and outbound.
     String inputString = "Hello, world!";

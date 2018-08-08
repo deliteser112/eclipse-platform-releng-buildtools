@@ -17,6 +17,9 @@ java_library(
         "resources/*",
         "config/*.yaml",
     ]),
+    runtime_deps = [
+        "@io_netty_tcnative",
+    ],
     deps = [
         "//java/google/registry/config",
         "//java/google/registry/util",
@@ -53,7 +56,6 @@ java_binary(
     main_class = "google.registry.proxy.ProxyServer",
     runtime_deps = [
         ":proxy",
-        "@io_netty_tcnative",
     ],
 )
 

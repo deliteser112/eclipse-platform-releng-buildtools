@@ -19,7 +19,6 @@ import static google.registry.proxy.TestUtils.assertHttpResponseEquivalent;
 import static google.registry.proxy.TestUtils.makeHttpGetRequest;
 import static google.registry.proxy.TestUtils.makeHttpPostRequest;
 import static google.registry.proxy.TestUtils.makeHttpResponse;
-import static io.netty.handler.codec.http.HttpHeaderNames.HOST;
 
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -90,7 +89,7 @@ public class WebWhoisRedirectHandlerTest {
   public void testSuccess_http_noHost() {
     setupChannel(false);
     request = makeHttpGetRequest("", "/");
-    request.headers().remove(HOST);
+    request.headers().remove("host");
     // No inbound message passed to the next handler.
     assertThat(channel.writeInbound(request)).isFalse();
     response = channel.readOutbound();
@@ -184,7 +183,7 @@ public class WebWhoisRedirectHandlerTest {
   public void testSuccess_https_noHost() {
     setupChannel(true);
     request = makeHttpGetRequest("", "/");
-    request.headers().remove(HOST);
+    request.headers().remove("host");
     // No inbound message passed to the next handler.
     assertThat(channel.writeInbound(request)).isFalse();
     response = channel.readOutbound();

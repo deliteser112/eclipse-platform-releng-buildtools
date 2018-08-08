@@ -39,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import javax.net.ssl.SSLHandshakeException;
 
 /**
  * Handler that relays a single (framed) ByteBuf message to an HTTPS server.
@@ -168,7 +169,11 @@ abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpRespo
     // IllegalArgumentException is thrown by the checkArgument in the #encode command, it just means
     // that GAE returns a non-200 response and the connection should be killed. The request is still
     // processed by GAE, so this is not an unexpected behavior.
-    if (cause instanceof ReadTimeoutException || cause instanceof IllegalArgumentException) {
+    // SslHandshakeException is caused by the client not able to complete the handshake, we should
+    // not log it at error as we do not control client behavior.
+    if (cause instanceof ReadTimeoutException
+        || cause instanceof IllegalArgumentException
+        || cause instanceof SSLHandshakeException) {
       logger.atWarning().withCause(cause).log(
           "Inbound exception caught for channel %s", ctx.channel());
     } else {

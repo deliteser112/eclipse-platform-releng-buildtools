@@ -22,6 +22,7 @@ import static google.registry.proxy.handler.SslInitializerTestUtils.setUpServer;
 import static google.registry.proxy.handler.SslInitializerTestUtils.signKeyPair;
 import static google.registry.proxy.handler.SslInitializerTestUtils.verifySslChannel;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import google.registry.proxy.Protocol;
 import google.registry.proxy.Protocol.BackendProtocol;
@@ -37,7 +38,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.channel.local.LocalAddress;
 import io.netty.channel.local.LocalChannel;
-import io.netty.handler.codec.DecoderException;
+import io.netty.handler.ssl.OpenSsl;
+import io.netty.handler.ssl.SniHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
@@ -51,10 +53,12 @@ import java.security.cert.X509Certificate;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
+import sun.security.provider.certpath.SunCertPathBuilderException;
 
 /**
  * Unit tests for {@link SslClientInitializer}.
@@ -67,7 +71,7 @@ import org.junit.runners.JUnit4;
  * <p>The local addresses used in each test method must to be different, otherwise tests run in
  * parallel may interfere with each other.
  */
-@RunWith(JUnit4.class)
+@RunWith(Parameterized.class)
 public class SslClientInitializerTest {
 
   /** Fake host to test if the SSL engine gets the correct peer host. */
@@ -75,6 +79,18 @@ public class SslClientInitializerTest {
 
   /** Fake port to test if the SSL engine gets the correct peer port. */
   private static final int SSL_PORT = 12345;
+
+  @Parameter(0)
+  public SslProvider sslProvider;
+
+  @Parameters(name = "{0}")
+  public static SslProvider[] data() {
+    return OpenSsl.isAvailable()
+        ? new SslProvider[] {SslProvider.JDK, SslProvider.OPENSSL}
+        : new SslProvider[] {SslProvider.JDK};
+  }
+
+  private String sniHostReceived;
 
   /** Fake protocol saved in channel attribute. */
   private static final BackendProtocol PROTOCOL =
@@ -97,7 +113,12 @@ public class SslClientInitializerTest {
       protected void initChannel(LocalChannel ch) throws Exception {
         ch.pipeline()
             .addLast(
-                sslContext.newHandler(ch.alloc()), new EchoHandler(serverLock, serverException));
+                new SniHandler(
+                    hostname -> {
+                      sniHostReceived = hostname;
+                      return sslContext;
+                    }),
+                new EchoHandler(serverLock, serverException));
       }
     };
   }
@@ -119,7 +140,7 @@ public class SslClientInitializerTest {
   @Test
   public void testSuccess_swappedInitializerWithSslHandler() throws Exception {
     SslClientInitializer<EmbeddedChannel> sslClientInitializer =
-        new SslClientInitializer<>(SslProvider.JDK, (X509Certificate[]) null);
+        new SslClientInitializer<>(sslProvider);
     EmbeddedChannel channel = new EmbeddedChannel();
     channel.attr(PROTOCOL_KEY).set(PROTOCOL);
     ChannelPipeline pipeline = channel.pipeline();
@@ -135,7 +156,7 @@ public class SslClientInitializerTest {
   @Test
   public void testSuccess_protocolAttributeNotSet() {
     SslClientInitializer<EmbeddedChannel> sslClientInitializer =
-        new SslClientInitializer<>(SslProvider.JDK, (X509Certificate[]) null);
+        new SslClientInitializer<>(sslProvider);
     EmbeddedChannel channel = new EmbeddedChannel();
     ChannelPipeline pipeline = channel.pipeline();
     pipeline.addLast(sslClientInitializer);
@@ -146,7 +167,8 @@ public class SslClientInitializerTest {
   @Test
   public void testFailure_defaultTrustManager_rejectSelfSignedCert() throws Exception {
     SelfSignedCertificate ssc = new SelfSignedCertificate(SSL_HOST);
-    LocalAddress localAddress = new LocalAddress("DEFAULT_TRUST_MANAGER_REJECT_SELF_SIGNED_CERT");
+    LocalAddress localAddress =
+        new LocalAddress("DEFAULT_TRUST_MANAGER_REJECT_SELF_SIGNED_CERT_" + sslProvider);
     Lock clientLock = new ReentrantLock();
     Lock serverLock = new ReentrantLock();
     ByteBuf buffer = Unpooled.buffer();
@@ -156,7 +178,7 @@ public class SslClientInitializerTest {
         setUpServer(
             getServerInitializer(ssc.key(), ssc.cert(), serverLock, serverException), localAddress);
     SslClientInitializer<LocalChannel> sslClientInitializer =
-        new SslClientInitializer<>(SslProvider.JDK, (X509Certificate[]) null);
+        new SslClientInitializer<>(sslProvider);
     Channel channel =
         setUpClient(
             eventLoopGroup,
@@ -169,13 +191,9 @@ public class SslClientInitializerTest {
     // The connection is now terminated, both the client side and the server side should get
     // exceptions (caught in the caughtException method in EchoHandler and DumpHandler,
     // respectively).
-    assertThat(clientException).hasCauseThat().isInstanceOf(DecoderException.class);
-    assertThat(clientException)
-        .hasCauseThat()
-        .hasCauseThat()
-        .isInstanceOf(SSLHandshakeException.class);
-    assertThat(serverException).hasCauseThat().isInstanceOf(DecoderException.class);
-    assertThat(serverException).hasCauseThat().hasCauseThat().isInstanceOf(SSLException.class);
+    assertThat(Throwables.getRootCause(clientException))
+        .isInstanceOf(SunCertPathBuilderException.class);
+    assertThat(Throwables.getRootCause(serverException)).isInstanceOf(SSLException.class);
     assertThat(channel.isActive()).isFalse();
 
     Future<?> unusedFuture = eventLoopGroup.shutdownGracefully().syncUninterruptibly();
@@ -184,7 +202,7 @@ public class SslClientInitializerTest {
   @Test
   public void testSuccess_customTrustManager_acceptCertSignedByTrustedCa() throws Exception {
     LocalAddress localAddress =
-        new LocalAddress("CUSTOM_TRUST_MANAGER_ACCEPT_CERT_SIGNED_BY_TRUSTED_CA");
+        new LocalAddress("CUSTOM_TRUST_MANAGER_ACCEPT_CERT_SIGNED_BY_TRUSTED_CA_" + sslProvider);
     Lock clientLock = new ReentrantLock();
     Lock serverLock = new ReentrantLock();
     ByteBuf buffer = Unpooled.buffer();
@@ -206,7 +224,7 @@ public class SslClientInitializerTest {
 
     // Set up the client to trust the self signed cert used to sign the cert that server provides.
     SslClientInitializer<LocalChannel> sslClientInitializer =
-        new SslClientInitializer<>(SslProvider.JDK, ssc.cert());
+        new SslClientInitializer<>(sslProvider, new X509Certificate[] {ssc.cert()});
     Channel channel =
         setUpClient(
             eventLoopGroup,
@@ -214,14 +232,18 @@ public class SslClientInitializerTest {
             localAddress,
             PROTOCOL);
 
-    verifySslChannel(channel, ImmutableList.of(cert), clientLock, serverLock, buffer, SSL_HOST);
+    verifySslChannel(channel, ImmutableList.of(cert), clientLock, serverLock, buffer);
+
+    // Verify that the SNI extension is sent during handshake.
+    assertThat(sniHostReceived).isEqualTo(SSL_HOST);
 
     Future<?> unusedFuture = eventLoopGroup.shutdownGracefully().syncUninterruptibly();
   }
 
   @Test
   public void testFailure_customTrustManager_wrongHostnameInCertificate() throws Exception {
-    LocalAddress localAddress = new LocalAddress("CUSTOM_TRUST_MANAGER_WRONG_HOSTNAME");
+    LocalAddress localAddress =
+        new LocalAddress("CUSTOM_TRUST_MANAGER_WRONG_HOSTNAME_" + sslProvider);
     Lock clientLock = new ReentrantLock();
     Lock serverLock = new ReentrantLock();
     ByteBuf buffer = Unpooled.buffer();
@@ -243,7 +265,7 @@ public class SslClientInitializerTest {
 
     // Set up the client to trust the self signed cert used to sign the cert that server provides.
     SslClientInitializer<LocalChannel> sslClientInitializer =
-        new SslClientInitializer<>(SslProvider.JDK, ssc.cert());
+        new SslClientInitializer<>(sslProvider, new X509Certificate[] {ssc.cert()});
     Channel channel =
         setUpClient(
             eventLoopGroup,
@@ -256,31 +278,10 @@ public class SslClientInitializerTest {
 
     // When the client rejects the server cert due to wrong hostname, the client error is wrapped
     // several layers in the exception. The server also throws an exception.
-    assertThat(clientException).hasCauseThat().isInstanceOf(DecoderException.class);
-    assertThat(clientException)
-        .hasCauseThat()
-        .hasCauseThat()
-        .isInstanceOf(SSLHandshakeException.class);
-    assertThat(clientException)
-        .hasCauseThat()
-        .hasCauseThat()
-        .hasCauseThat()
-        .isInstanceOf(SSLHandshakeException.class);
-    assertThat(clientException)
-        .hasCauseThat()
-        .hasCauseThat()
-        .hasCauseThat()
-        .hasCauseThat()
-        .isInstanceOf(CertificateException.class);
-    assertThat(clientException)
-        .hasCauseThat()
-        .hasCauseThat()
-        .hasCauseThat()
-        .hasCauseThat()
-        .hasMessageThat()
-        .contains(SSL_HOST);
-    assertThat(serverException).hasCauseThat().isInstanceOf(DecoderException.class);
-    assertThat(serverException).hasCauseThat().hasCauseThat().isInstanceOf(SSLException.class);
+    Throwable rootCause = Throwables.getRootCause(clientException);
+    assertThat(rootCause).isInstanceOf(CertificateException.class);
+    assertThat(rootCause).hasMessageThat().contains(SSL_HOST);
+    assertThat(Throwables.getRootCause(serverException)).isInstanceOf(SSLException.class);
     assertThat(channel.isActive()).isFalse();
 
     Future<?> unusedFuture = eventLoopGroup.shutdownGracefully().syncUninterruptibly();

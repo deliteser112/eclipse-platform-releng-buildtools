@@ -15,10 +15,6 @@
 package google.registry.proxy;
 
 import static com.google.common.truth.Truth.assertThat;
-import static google.registry.proxy.handler.EppServiceHandler.EPP_CONTENT_TYPE;
-import static google.registry.proxy.handler.EppServiceHandler.FORWARDED_FOR_FIELD;
-import static google.registry.proxy.handler.EppServiceHandler.REQUESTED_SERVERNAME_VIA_SNI_FIELD;
-import static google.registry.proxy.handler.EppServiceHandler.SSL_CLIENT_CERTIFICATE_HASH_FIELD;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
 import io.netty.buffer.ByteBuf;
@@ -28,8 +24,6 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpMessage;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -48,29 +42,29 @@ public class TestUtils {
         new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, path, buf);
     request
         .headers()
-        .set(HttpHeaderNames.USER_AGENT, "Proxy")
-        .set(HttpHeaderNames.HOST, host)
-        .setInt(HttpHeaderNames.CONTENT_LENGTH, buf.readableBytes());
+        .set("user-agent", "Proxy")
+        .set("host", host)
+        .setInt("content-length", buf.readableBytes());
     return request;
   }
 
   public static FullHttpRequest makeHttpGetRequest(String host, String path) {
     FullHttpRequest request =
         new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, path);
-    request.headers().set(HttpHeaderNames.HOST, host).setInt(HttpHeaderNames.CONTENT_LENGTH, 0);
+    request.headers().set("host", host).setInt("content-length", 0);
     return request;
   }
 
   public static FullHttpResponse makeHttpResponse(String content, HttpResponseStatus status) {
     ByteBuf buf = Unpooled.wrappedBuffer(content.getBytes(US_ASCII));
     FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
-    response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, buf.readableBytes());
+    response.headers().setInt("content-length", buf.readableBytes());
     return response;
   }
 
   public static FullHttpResponse makeHttpResponse(HttpResponseStatus status) {
     FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status);
-    response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, 0);
+    response.headers().setInt("content-length", 0);
     return response;
   }
 
@@ -79,9 +73,9 @@ public class TestUtils {
     FullHttpRequest request = makeHttpPostRequest(content, host, path);
     request
         .headers()
-        .set(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessToken)
-        .set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN)
-        .set(HttpHeaderNames.ACCEPT, HttpHeaderValues.TEXT_PLAIN);
+        .set("authorization", "Bearer " + accessToken)
+        .set("content-type", "text/plain")
+        .set("accept", "text/plain");
     return request;
   }
 
@@ -97,30 +91,30 @@ public class TestUtils {
     FullHttpRequest request = makeHttpPostRequest(content, host, path);
     request
         .headers()
-        .set(HttpHeaderNames.AUTHORIZATION, "Bearer " + accessToken)
-        .set(HttpHeaderNames.CONTENT_TYPE, EPP_CONTENT_TYPE)
-        .set(HttpHeaderNames.ACCEPT, EPP_CONTENT_TYPE)
-        .set(SSL_CLIENT_CERTIFICATE_HASH_FIELD, sslClientCertificateHash)
-        .set(REQUESTED_SERVERNAME_VIA_SNI_FIELD, serverHostname)
-        .set(FORWARDED_FOR_FIELD, clientAddress);
+        .set("authorization", "Bearer " + accessToken)
+        .set("content-type", "application/epp+xml")
+        .set("accept", "application/epp+xml")
+        .set("X-SSL-Certificate", sslClientCertificateHash)
+        .set("X-Requested-Servername-SNI", serverHostname)
+        .set("X-Forwarded-For", clientAddress);
     if (cookies.length != 0) {
-      request.headers().set(HttpHeaderNames.COOKIE, ClientCookieEncoder.STRICT.encode(cookies));
+      request.headers().set("cookie", ClientCookieEncoder.STRICT.encode(cookies));
     }
     return request;
   }
 
   public static FullHttpResponse makeWhoisHttpResponse(String content, HttpResponseStatus status) {
     FullHttpResponse response = makeHttpResponse(content, status);
-    response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN);
+    response.headers().set("content-type", "text/plain");
     return response;
   }
 
   public static FullHttpResponse makeEppHttpResponse(
       String content, HttpResponseStatus status, Cookie... cookies) {
     FullHttpResponse response = makeHttpResponse(content, status);
-    response.headers().set(HttpHeaderNames.CONTENT_TYPE, EPP_CONTENT_TYPE);
+    response.headers().set("content-type", "application/epp+xml");
     for (Cookie cookie : cookies) {
-      response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
+      response.headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(cookie));
     }
     return response;
   }

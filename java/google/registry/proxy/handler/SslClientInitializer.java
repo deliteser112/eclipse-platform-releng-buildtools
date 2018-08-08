@@ -17,8 +17,8 @@ package google.registry.proxy.handler;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static google.registry.proxy.Protocol.PROTOCOL_KEY;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.flogger.FluentLogger;
-import google.registry.proxy.HttpsRelayProtocolModule.HttpsRelayProtocol;
 import google.registry.proxy.Protocol.BackendProtocol;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -28,7 +28,6 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslProvider;
 import java.security.cert.X509Certificate;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.net.ssl.SSLEngine;
@@ -46,12 +45,18 @@ import javax.net.ssl.SSLParameters;
 public class SslClientInitializer<C extends Channel> extends ChannelInitializer<C> {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final SslProvider sslProvider;
   private final X509Certificate[] trustedCertificates;
 
   @Inject
-  SslClientInitializer(
-      SslProvider sslProvider, @Nullable @HttpsRelayProtocol X509Certificate... trustCertificates) {
+  public SslClientInitializer(SslProvider sslProvider) {
+    // null uses the system default trust store.
+    this(sslProvider, null);
+  }
+
+  @VisibleForTesting
+  SslClientInitializer(SslProvider sslProvider, X509Certificate[] trustCertificates) {
     logger.atInfo().log("Client SSL Provider: %s", sslProvider);
     this.sslProvider = sslProvider;
     this.trustedCertificates = trustCertificates;
