@@ -14,22 +14,31 @@
 
 package google.registry.tools;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.collect.Queues.newArrayDeque;
 import static com.google.common.collect.Sets.difference;
 import static google.registry.model.ofy.ObjectifyService.ofy;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.appengine.tools.remoteapi.RemoteApiException;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.Files;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.token.AllocationToken;
 import google.registry.tools.Command.RemoteApiCommand;
 import google.registry.util.NonFinalForTesting;
 import google.registry.util.Retrier;
 import google.registry.util.StringGenerator;
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
+import java.util.Deque;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -50,10 +59,15 @@ public class GenerateAllocationTokensCommand implements RemoteApiCommand {
 
   @Parameter(
     names = {"-n", "--number"},
-    description = "The number of tokens to generate",
-    required = true
+    description = "The number of tokens to generate"
   )
   private long numTokens;
+
+  @Parameter(
+      names = {"-d", "--domain_names_file"},
+      description = "A file with a list of newline-delimited domain names to create tokens for"
+  )
+  private String domainNamesFile;
 
   @Parameter(
     names = {"-l", "--length"},
@@ -62,7 +76,7 @@ public class GenerateAllocationTokensCommand implements RemoteApiCommand {
   private int tokenLength = 12;
 
   @Parameter(
-      names = {"-d", "--dry_run"},
+      names = {"--dry_run"},
       description = "Do not actually persist the tokens; defaults to false")
   boolean dryRun;
 
@@ -70,16 +84,41 @@ public class GenerateAllocationTokensCommand implements RemoteApiCommand {
   @Inject Retrier retrier;
 
   private static final int BATCH_SIZE = 20;
+  private static final Joiner SKIP_NULLS = Joiner.on(", ").skipNulls();
 
   @Override
-  public void run() {
+  public void run() throws IOException {
+    checkArgument(
+        (numTokens > 0) ^ (domainNamesFile != null),
+        "Must specify either --number or --domain_names_file, but not both");
+
+    Deque<String> domainNames;
+    if (domainNamesFile == null) {
+      domainNames = null;
+    } else {
+      domainNames =
+          newArrayDeque(
+              Splitter.on('\n')
+                  .omitEmptyStrings()
+                  .trimResults()
+                  .split(Files.asCharSource(new File(domainNamesFile), UTF_8).read()));
+      numTokens = domainNames.size();
+    }
+
     int tokensSaved = 0;
     do {
       ImmutableSet<AllocationToken> tokens =
           generateTokens(BATCH_SIZE)
               .stream()
               .limit(numTokens - tokensSaved)
-              .map(t -> new AllocationToken.Builder().setToken(t).build())
+              .map(
+                  t -> {
+                    AllocationToken.Builder token = new AllocationToken.Builder().setToken(t);
+                    if (domainNames != null) {
+                      token.setDomainName(domainNames.removeFirst());
+                    }
+                    return token.build();
+                  })
               .collect(toImmutableSet());
       // Wrap in a retrier to deal with transient 404 errors (thrown as RemoteApiExceptions).
       tokensSaved += retrier.callWithRetry(() -> saveTokens(tokens), RemoteApiException.class);
@@ -90,7 +129,8 @@ public class GenerateAllocationTokensCommand implements RemoteApiCommand {
   int saveTokens(final ImmutableSet<AllocationToken> tokens) {
     Collection<AllocationToken> savedTokens =
         dryRun ? tokens : ofy().transact(() -> ofy().save().entities(tokens).now().values());
-    savedTokens.stream().map(AllocationToken::getToken).forEach(System.out::println);
+    savedTokens.forEach(
+        t -> System.out.println(SKIP_NULLS.join(t.getDomainName().orElse(null), t.getToken())));
     return savedTokens.size();
   }
 

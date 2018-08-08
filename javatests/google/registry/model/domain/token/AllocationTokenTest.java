@@ -36,6 +36,7 @@ public class AllocationTokenTest extends EntityTestCase {
             new AllocationToken.Builder()
                 .setToken("abc123")
                 .setRedemptionHistoryEntry(Key.create(HistoryEntry.class, 1L))
+                .setDomainName("foo.example")
                 .setCreationTime(DateTime.parse("2010-11-12T05:00:00Z"))
                 .build());
     assertThat(ofy().load().entity(token).now()).isEqualTo(token);
@@ -44,11 +45,14 @@ public class AllocationTokenTest extends EntityTestCase {
   @Test
   public void testIndexing() throws Exception {
     verifyIndexing(
-        new AllocationToken.Builder()
-            .setToken("abc123")
-            .setCreationTime(DateTime.parse("2010-11-12T05:00:00Z"))
-            .build(),
-        "token");
+        persistResource(
+            new AllocationToken.Builder()
+                .setToken("abc123")
+                .setDomainName("blahdomain.fake")
+                .setCreationTime(DateTime.parse("2010-11-12T05:00:00Z"))
+                .build()),
+        "token",
+        "domainName");
   }
 
   @Test

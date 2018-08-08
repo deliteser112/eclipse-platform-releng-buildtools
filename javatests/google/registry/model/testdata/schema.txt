@@ -307,6 +307,7 @@ class google.registry.model.domain.token.AllocationToken {
   com.googlecode.objectify.Key<google.registry.model.reporting.HistoryEntry> redemptionHistoryEntry;
   google.registry.model.CreateAutoTimestamp creationTime;
   google.registry.model.UpdateAutoTimestamp updateTimestamp;
+  java.lang.String domainName;
 }
 class google.registry.model.eppcommon.AuthInfo$PasswordAuth {
   java.lang.String repoId;

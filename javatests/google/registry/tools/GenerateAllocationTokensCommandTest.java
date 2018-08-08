@@ -18,12 +18,13 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.testing.DatastoreHelper.persistResource;
 import static google.registry.testing.JUnitBackports.assertThrows;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
-import com.beust.jcommander.ParameterException;
 import com.google.appengine.tools.remoteapi.RemoteApiException;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import com.googlecode.objectify.Key;
 import google.registry.model.domain.token.AllocationToken;
 import google.registry.model.reporting.HistoryEntry;
@@ -33,6 +34,7 @@ import google.registry.testing.FakeClock;
 import google.registry.testing.FakeSleeper;
 import google.registry.util.Retrier;
 import google.registry.util.StringGenerator.Alphabets;
+import java.io.File;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import org.joda.time.DateTime;
@@ -54,7 +56,7 @@ public class GenerateAllocationTokensCommandTest
   @Test
   public void testSuccess_oneToken() throws Exception {
     runCommand("--prefix", "blah", "--number", "1", "--length", "9");
-    assertAllocationTokens(createToken("blah123456789", null));
+    assertAllocationTokens(createToken("blah123456789", null, null));
     assertInStdout("blah123456789");
   }
 
@@ -62,16 +64,16 @@ public class GenerateAllocationTokensCommandTest
   public void testSuccess_threeTokens() throws Exception {
     runCommand("--prefix", "foo", "--number", "3", "--length", "10");
     assertAllocationTokens(
-        createToken("foo123456789A", null),
-        createToken("fooBCDEFGHJKL", null),
-        createToken("fooMNPQRSTUVW", null));
+        createToken("foo123456789A", null, null),
+        createToken("fooBCDEFGHJKL", null, null),
+        createToken("fooMNPQRSTUVW", null, null));
     assertInStdout("foo123456789A\nfooBCDEFGHJKL\nfooMNPQRSTUVW");
   }
 
   @Test
   public void testSuccess_defaults() throws Exception {
     runCommand("--number", "1");
-    assertAllocationTokens(createToken("123456789ABC", null));
+    assertAllocationTokens(createToken("123456789ABC", null, null));
     assertInStdout("123456789ABC");
   }
 
@@ -85,7 +87,7 @@ public class GenerateAllocationTokensCommandTest
         .when(spyCommand)
         .saveTokens(Mockito.any());
     runCommand("--number", "1");
-    assertAllocationTokens(createToken("123456789ABC", null));
+    assertAllocationTokens(createToken("123456789ABC", null, null));
     assertInStdout("123456789ABC");
   }
 
@@ -94,7 +96,7 @@ public class GenerateAllocationTokensCommandTest
     AllocationToken existingToken =
         persistResource(new AllocationToken.Builder().setToken("DEADBEEF123456789ABC").build());
     runCommand("--number", "1", "--prefix", "DEADBEEF");
-    assertAllocationTokens(existingToken, createToken("DEADBEEFDEFGHJKLMNPQ", null));
+    assertAllocationTokens(existingToken, createToken("DEADBEEFDEFGHJKLMNPQ", null, null));
     assertInStdout("DEADBEEFDEFGHJKLMNPQ");
   }
 
@@ -116,10 +118,39 @@ public class GenerateAllocationTokensCommandTest
   }
 
   @Test
-  public void testFailure_mustSpecifyNumberOfTokens() {
-    ParameterException thrown =
-        assertThrows(ParameterException.class, () -> runCommand("--prefix", "FEET"));
-    assertThat(thrown).hasMessageThat().contains("The following option is required: -n, --number");
+  public void testSuccess_domainNames() throws Exception {
+    File domainNamesFile = tmpDir.newFile("domain_names.txt");
+    Files.asCharSink(domainNamesFile, UTF_8).write("foo1.tld\nboo2.tld\nbaz9.tld\n");
+    runCommand("--domain_names_file", domainNamesFile.getPath());
+    assertAllocationTokens(
+        createToken("123456789ABC", null, "foo1.tld"),
+        createToken("DEFGHJKLMNPQ", null, "boo2.tld"),
+        createToken("RSTUVWXYZabc", null, "baz9.tld"));
+    assertInStdout("foo1.tld, 123456789ABC\nboo2.tld, DEFGHJKLMNPQ\nbaz9.tld, RSTUVWXYZabc");
+  }
+
+  @Test
+  public void testFailure_mustSpecifyNumberOfTokensOrDomainsFile() {
+    IllegalArgumentException thrown =
+        assertThrows(IllegalArgumentException.class, () -> runCommand("--prefix", "FEET"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Must specify either --number or --domain_names_file, but not both");
+  }
+
+  @Test
+  public void testFailure_mustNotSpecifyBothNumberOfTokensAndDomainsFile() {
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                runCommand(
+                    "--prefix", "FEET",
+                    "--number", "999",
+                    "--domain_names_file", "/path/to/blaaaaah"));
+    assertThat(thrown)
+        .hasMessageThat()
+        .isEqualTo("Must specify either --number or --domain_names_file, but not both");
   }
 
   private void assertAllocationTokens(AllocationToken... expectedTokens) {
@@ -142,11 +173,14 @@ public class GenerateAllocationTokensCommandTest
   }
 
   private AllocationToken createToken(
-      String token, @Nullable Key<HistoryEntry> redemptionHistoryEntry) {
+      String token,
+      @Nullable Key<HistoryEntry> redemptionHistoryEntry,
+      @Nullable String domainName) {
     AllocationToken.Builder builder = new AllocationToken.Builder().setToken(token);
     if (redemptionHistoryEntry != null) {
       builder.setRedemptionHistoryEntry(redemptionHistoryEntry);
     }
+    builder.setDomainName(domainName);
     return builder.build();
   }
 }

@@ -21,12 +21,14 @@ import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
 import google.registry.model.BackupGroupRoot;
 import google.registry.model.Buildable;
 import google.registry.model.CreateAutoTimestamp;
 import google.registry.model.annotations.ReportedOn;
 import google.registry.model.reporting.HistoryEntry;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 /** An entity representing an allocation token. */
@@ -39,6 +41,9 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
 
   /** The key of the history entry for which the token was used. Null if not yet used. */
   Key<HistoryEntry> redemptionHistoryEntry;
+
+  /** The fully-qualified domain name that this token is limited to, if any. */
+  @Nullable @Index String domainName;
 
   /** When this token was created. */
   CreateAutoTimestamp creationTime = CreateAutoTimestamp.create(null);
@@ -53,6 +58,10 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
 
   public boolean isRedeemed() {
     return redemptionHistoryEntry != null;
+  }
+
+  public Optional<String> getDomainName() {
+    return Optional.ofNullable(domainName);
   }
 
   public Optional<DateTime> getCreationTime() {
@@ -83,6 +92,11 @@ public class AllocationToken extends BackupGroupRoot implements Buildable {
     public Builder setRedemptionHistoryEntry(Key<HistoryEntry> redemptionHistoryEntry) {
       getInstance().redemptionHistoryEntry =
           checkArgumentNotNull(redemptionHistoryEntry, "redemptionHistoryEntry must not be null");
+      return this;
+    }
+
+    public Builder setDomainName(@Nullable String domainName) {
+      getInstance().domainName = domainName;
       return this;
     }
 
