@@ -17,8 +17,10 @@ package google.registry.model.eppinput;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static google.registry.flows.EppXmlTransformer.unmarshal;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.testing.TestDataHelper.loadBytes;
 
+import google.registry.flows.EppException.SyntaxErrorException;
 import google.registry.model.contact.ContactResourceTest;
 import google.registry.model.domain.DomainResourceTest;
 import google.registry.model.eppinput.EppInput.InnerCommand;
@@ -76,5 +78,12 @@ public class EppInputTest {
             "urn:ietf:params:xml:ns:contact-1.0");
     assertThat(loginCommand.services.serviceExtensions)
         .containsExactly("urn:ietf:params:xml:ns:launch-1.0", "urn:ietf:params:xml:ns:rgp-1.0");
+  }
+
+  @Test
+  public void testUnmarshalling_loginTagInWrongCase_throws() {
+    assertThrows(
+        SyntaxErrorException.class,
+        () -> unmarshal(EppInput.class, loadBytes(getClass(), "login_wrong_case.xml").read()));
   }
 }

@@ -190,12 +190,13 @@ public class FlowRunnerTest extends ShardableTestCase {
   @Test
   public void testRun_loggingStatement_complexEppInput() throws Exception {
     String domainCreateXml = loadFile(getClass(), "domain_create_prettyprinted.xml");
+    String sanitizedDomainCreateXml = domainCreateXml.replace("2fooBAR", "*******");
     flowRunner.inputXmlBytes = domainCreateXml.getBytes(UTF_8);
     flowRunner.run(eppMetricBuilder);
     String logMessage = findFirstLogMessageByPrefix(handler, "EPP Command\n\t");
     List<String> lines = Splitter.on("\n\t").splitToList(logMessage);
     assertThat(lines.size()).named("number of lines in log message").isAtLeast(9);
     String xml = Joiner.on('\n').join(lines.subList(3, lines.size() - 4));
-    assertThat(xml).isEqualTo(domainCreateXml);
+    assertThat(xml).isEqualTo(sanitizedDomainCreateXml);
   }
 }

@@ -16,6 +16,7 @@ package google.registry.flows;
 
 import static google.registry.flows.EppXmlTransformer.marshalWithLenientRetry;
 import static google.registry.model.eppoutput.Result.Code.SUCCESS_AND_CLOSE;
+import static google.registry.xml.XmlTransformer.prettyPrint;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
@@ -53,7 +54,10 @@ public class EppRequestHandler {
           eppController.handleEppCommand(
               sessionMetadata, credentials, eppRequestSource, isDryRun, isSuperuser, inputXmlBytes);
       response.setContentType(APPLICATION_EPP_XML);
-      response.setPayload(new String(marshalWithLenientRetry(eppOutput), UTF_8));
+      byte[] eppResponseXmlBytes = marshalWithLenientRetry(eppOutput);
+      response.setPayload(new String(eppResponseXmlBytes, UTF_8));
+      logger.atInfo().log(
+          "EPP response: %s", prettyPrint(EppXmlSanitizer.sanitizeEppXml(eppResponseXmlBytes)));
       // Note that we always return 200 (OK) even if the EppController returns an error response.
       // This is because returning a non-OK HTTP status code will cause the proxy server to
       // silently close the connection without returning any data. The only time we will ever return

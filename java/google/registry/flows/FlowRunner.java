@@ -54,7 +54,7 @@ public class FlowRunner {
 
   /** Runs the EPP flow, and records metrics on the given builder. */
   public EppOutput run(final EppMetric.Builder eppMetricBuilder) throws EppException {
-    String prettyXml = prettyPrint(inputXmlBytes);
+    String prettyXml = prettyPrint(EppXmlSanitizer.sanitizeEppXml(inputXmlBytes));
 
     logger.atInfo().log(
         COMMAND_LOG_FORMAT,
