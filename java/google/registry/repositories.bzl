@@ -19,7 +19,7 @@ load("@io_bazel_rules_closure//closure/private:java_import_external.bzl", "java_
 
 def domain_registry_bazel_check():
     """Checks Bazel version for Nomulus."""
-    _check_bazel_version("Nomulus", "0.4.2")
+    _check_bazel_version("Nomulus", "0.15.0")
 
 def domain_registry_repositories(
         omit_com_beust_jcommander = False,
@@ -137,6 +137,7 @@ def domain_registry_repositories(
         omit_org_apache_mina_core = False,
         omit_org_apache_sshd_core = False,
         omit_org_apache_tomcat_servlet_api = False,
+        omit_org_apache_tomcat_annotations_api = False,
         omit_org_bouncycastle_bcpg_jdk15on = False,
         omit_org_bouncycastle_bcpkix_jdk15on = False,
         omit_org_bouncycastle_bcprov_jdk15on = False,
@@ -355,8 +356,6 @@ def domain_registry_repositories(
         javax_xml_bind_jaxb_api()
     if not omit_javax_xml_soap_api:
         javax_xml_soap_api()
-    if not omit_javax_xml_ws_jaxws_api:
-        javax_xml_ws_jaxws_api()
     if not omit_jline:
         jline()
     if not omit_joda_time:
@@ -391,6 +390,8 @@ def domain_registry_repositories(
         org_apache_sshd_core()
     if not omit_org_apache_tomcat_servlet_api:
         org_apache_tomcat_servlet_api()
+    if not omit_org_apache_tomcat_annotations_api:
+        org_apache_tomcat_annotations_api()
     if not omit_org_bouncycastle_bcpg_jdk15on:
         org_bouncycastle_bcpg_jdk15on()
     if not omit_org_bouncycastle_bcpkix_jdk15on:
@@ -872,7 +873,7 @@ def com_google_appengine_tools_appengine_mapreduce():
             "@com_google_appengine_tools_appengine_pipeline",
             "@com_googlecode_charts4j",
             "@org_json",
-            "@com_google_protobuf_java//:protobuf_java",
+            "@com_google_protobuf_java",
             "@com_google_guava",
             "@joda_time",
             "@it_unimi_dsi_fastutil",
@@ -979,6 +980,7 @@ def com_google_auto_factory():
             "        \"@com_google_guava\",",
             "        \"@com_squareup_javawriter\",",
             "        \"@javax_inject\",",
+            "        \"@org_apache_tomcat_annotations_api\",",
             "    ],",
             ")",
             "",
@@ -1633,10 +1635,10 @@ def com_squareup_javawriter():
 def com_sun_xml_bind_jaxb_core():
     java_import_external(
         name = "com_sun_xml_bind_jaxb_core",
-        jar_sha256 = "b13da0c655a3d590a2a945553648c407e6347648c9f7a3f811b7b3a8a1974baa",
+        jar_sha256 = "33061af8d2a07379d452f8f0fddcbbf518428dfd3b83d9e2d479c1948020795b",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-core/2.2.11/jaxb-core-2.2.11.jar",
-            "http://repo1.maven.org/maven2/com/sun/xml/bind/jaxb-core/2.2.11/jaxb-core-2.2.11.jar",
+            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-core/2.3.0/jaxb-core-2.3.0.jar",
+            "http://repo1.maven.org/maven2/com/sun/xml/bind/jaxb-core/2.3.0/jaxb-core-2.3.0.jar",
         ],
         licenses = ["reciprocal"],  # CDDL 1.1 or GPLv2 (We choo-choo-choose the CDDL)
     )
@@ -1644,10 +1646,10 @@ def com_sun_xml_bind_jaxb_core():
 def com_sun_xml_bind_jaxb_impl():
     java_import_external(
         name = "com_sun_xml_bind_jaxb_impl",
-        jar_sha256 = "f91793a96f185a2fc004c86a37086f060985854ce6b19935e03c4de51e3201d2",
+        jar_sha256 = "edd691fc6ad7c7f3167e1a6833372367bedf6f4f2a4b8230df444a59bb3718b1",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-impl/2.2.11/jaxb-impl-2.2.11.jar",
-            "http://repo1.maven.org/maven2/com/sun/xml/bind/jaxb-impl/2.2.11/jaxb-impl-2.2.11.jar",
+            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-impl/2.3.0/jaxb-impl-2.3.0.jar",
+            "http://repo1.maven.org/maven2/com/sun/xml/bind/jaxb-impl/2.3.0/jaxb-impl-2.3.0.jar",
         ],
         licenses = ["reciprocal"],  # CDDL 1.1 or GPLv2 (We choo-choo-choose the CDDL)
     )
@@ -1656,20 +1658,20 @@ def com_sun_xml_bind_jaxb_jxc():
     java_import_external(
         name = "com_sun_xml_bind_jaxb_jxc",
         licenses = ["restricted"],  # CDDL+GPL License
-        jar_sha256 = "25cbca594ec0682a1d0287c4a2fcb5f6a2a9718229d54a0ad09daf5cff180b4e",
+        jar_sha256 = "97bfe84b4862718ef86245f32d9f18bc84c03b442edfbe9070fcfe3ea2ca9dc5",
         jar_urls = [
-            "http://repo1.maven.org/maven2/com/sun/xml/bind/jaxb-jxc/2.2.11/jaxb-jxc-2.2.11.jar",
-            "http://maven.ibiblio.org/maven2/com/sun/xml/bind/jaxb-jxc/2.2.11/jaxb-jxc-2.2.11.jar",
+            "http://repo1.maven.org/maven2/com/sun/xml/bind/jaxb-jxc/2.3.0/jaxb-jxc-2.3.0.jar",
+            "http://maven.ibiblio.org/maven2/com/sun/xml/bind/jaxb-jxc/2.3.0/jaxb-jxc-2.3.0.jar",
         ],
     )
 
 def com_sun_xml_bind_jaxb_xjc():
     java_import_external(
         name = "com_sun_xml_bind_jaxb_xjc",
-        jar_sha256 = "d602e9fdc488512ee062a4cd2306aaa32f1c28bf0d0ae6024b2d93a2c8d62bdb",
+        jar_sha256 = "01c0cb72ac0e5471f4aa979ec51a0587accdd3cfd2012fa52184caf844589c98",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-xjc/2.2.11/jaxb-xjc-2.2.11.jar",
-            "http://repo1.maven.org/maven2/com/sun/xml/bind/jaxb-xjc/2.2.11/jaxb-xjc-2.2.11.jar",
+            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-xjc/2.3.0/jaxb-xjc-2.3.0.jar",
+            "http://repo1.maven.org/maven2/com/sun/xml/bind/jaxb-xjc/2.3.0/jaxb-xjc-2.3.0.jar",
         ],
         licenses = ["reciprocal"],  # CDDL 1.1 or GPLv2 (We choo-choo-choose the CDDL)
         extra_build_file_content = "\n".join([
@@ -1908,10 +1910,10 @@ def javax_servlet_api():
 def javax_xml_bind_jaxb_api():
     java_import_external(
         name = "javax_xml_bind_jaxb_api",
-        jar_sha256 = "273d82f8653b53ad9d00ce2b2febaef357e79a273560e796ff3fcfec765f8910",
+        jar_sha256 = "883007989d373d19f352ba9792b25dec21dc7d0e205a710a93a3815101bb3d03",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.2.11/jaxb-api-2.2.11.jar",
-            "http://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.2.11/jaxb-api-2.2.11.jar",
+            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar",
+            "http://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar",
         ],
         # CDDL 1.1 or GPLv2 w/ CPE (We choo-choo-choose the CDDL)
         # https://glassfish.java.net/public/CDDL+GPL_1_1.html
@@ -1926,21 +1928,6 @@ def javax_xml_soap_api():
         jar_urls = [
             "http://repo1.maven.org/maven2/javax/xml/soap/javax.xml.soap-api/1.4.0/javax.xml.soap-api-1.4.0.jar",
             "http://maven.ibiblio.org/maven2/javax/xml/soap/javax.xml.soap-api/1.4.0/javax.xml.soap-api-1.4.0.jar",
-        ],
-    )
-
-def javax_xml_ws_jaxws_api():
-    java_import_external(
-        name = "javax_xml_ws_jaxws_api",
-        licenses = ["restricted"],  # CDDL + GPLv2 with classpath exception
-        jar_sha256 = "c261f75c1a25ecb17d1936efe34a34236b5d0e79415b34ffb9324359a30a8c08",
-        jar_urls = [
-            "http://maven.ibiblio.org/maven2/javax/xml/ws/jaxws-api/2.3.0/jaxws-api-2.3.0.jar",
-            "http://repo1.maven.org/maven2/javax/xml/ws/jaxws-api/2.3.0/jaxws-api-2.3.0.jar",
-        ],
-        deps = [
-            "@javax_xml_bind_jaxb_api",
-            "@javax_xml_soap_api",
         ],
     )
 
@@ -2226,6 +2213,17 @@ def org_apache_tomcat_servlet_api():
             "http://repo1.maven.org/maven2/org/apache/tomcat/servlet-api/6.0.45/servlet-api-6.0.45.jar",
         ],
         licenses = ["reciprocal"],  # Apache License, Version 2.0 and Common Development And Distribution License (CDDL) Version 1.0
+    )
+
+def org_apache_tomcat_annotations_api():
+    java_import_external(
+        name = "org_apache_tomcat_annotations_api",
+        licenses = ["notice"],  # Apache License, Version 2.0
+        jar_sha256 = "748677bebb1651a313317dfd93e984ed8f8c9e345538fa8b0ab0cbb804631953",
+        jar_urls = [
+            "http://maven.ibiblio.org/maven2/org/apache/tomcat/tomcat-annotations-api/8.0.5/tomcat-annotations-api-8.0.5.jar",
+            "http://repo1.maven.org/maven2/org/apache/tomcat/tomcat-annotations-api/8.0.5/tomcat-annotations-api-8.0.5.jar",
+        ],
     )
 
 def org_bouncycastle_bcpg_jdk15on():

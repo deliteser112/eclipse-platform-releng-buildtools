@@ -13,6 +13,7 @@ closure_js_library(
         "JSC_UNKNOWN_EXPR_TYPE",
         "JSC_IMPLICITLY_NULLABLE_JSDOC",
         "JSC_DEPRECATED_PROP_REASON",
+        "JSC_STRICT_INEXISTENT_PROPERTY",
     ],
     deps = [
         "//java/google/registry/ui/js",

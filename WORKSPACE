@@ -1,19 +1,19 @@
 workspace(name = "domain_registry")
 
-# https://github.com/bazelbuild/rules_closure/releases/tag/0.4.2
+# https://github.com/bazelbuild/rules_closure/releases/tag/0.8.0
 http_archive(
     name = "io_bazel_rules_closure",
-    strip_prefix = "rules_closure-08039ba8ca59f64248bb3b6ae016460fe9c9914f",
-    sha256 = "6691c58a2cd30a86776dd9bb34898b041e37136f2dc7e24cadaeaf599c95c657",
+    sha256 = "b29a8bc2cb10513c864cb1084d6f38613ef14a143797cea0af0f91cd385f5e8c",
+    strip_prefix = "rules_closure-0.8.0",
     urls = [
-        "https://mirror.bazel.build/github.com/bazelbuild/rules_closure/archive/08039ba8ca59f64248bb3b6ae016460fe9c9914f.tar.gz",
-        "https://github.com/bazelbuild/rules_closure/archive/08039ba8ca59f64248bb3b6ae016460fe9c9914f.tar.gz",  # 2018-01-16
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_closure/archive/0.8.0.tar.gz",
+        "https://github.com/bazelbuild/rules_closure/archive/0.8.0.tar.gz",
     ],
 )
-
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_repositories")
 
 closure_repositories(
+    omit_com_google_auto_factory = True,
     omit_com_google_code_findbugs_jsr305 = True,
     omit_com_google_guava = True,
     omit_com_ibm_icu_icu4j = True,
