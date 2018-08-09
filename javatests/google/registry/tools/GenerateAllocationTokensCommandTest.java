@@ -73,8 +73,8 @@ public class GenerateAllocationTokensCommandTest
   @Test
   public void testSuccess_defaults() throws Exception {
     runCommand("--number", "1");
-    assertAllocationTokens(createToken("123456789ABC", null, null));
-    assertInStdout("123456789ABC");
+    assertAllocationTokens(createToken("123456789ABCDEFG", null, null));
+    assertInStdout("123456789ABCDEFG");
   }
 
   @Test
@@ -87,15 +87,15 @@ public class GenerateAllocationTokensCommandTest
         .when(spyCommand)
         .saveTokens(Mockito.any());
     runCommand("--number", "1");
-    assertAllocationTokens(createToken("123456789ABC", null, null));
-    assertInStdout("123456789ABC");
+    assertAllocationTokens(createToken("123456789ABCDEFG", null, null));
+    assertInStdout("123456789ABCDEFG");
   }
 
   @Test
   public void testSuccess_tokenCollision() throws Exception {
     AllocationToken existingToken =
         persistResource(new AllocationToken.Builder().setToken("DEADBEEF123456789ABC").build());
-    runCommand("--number", "1", "--prefix", "DEADBEEF");
+    runCommand("--number", "1", "--prefix", "DEADBEEF", "--length", "12");
     assertAllocationTokens(existingToken, createToken("DEADBEEFDEFGHJKLMNPQ", null, null));
     assertInStdout("DEADBEEFDEFGHJKLMNPQ");
   }
@@ -123,10 +123,11 @@ public class GenerateAllocationTokensCommandTest
     Files.asCharSink(domainNamesFile, UTF_8).write("foo1.tld\nboo2.tld\nbaz9.tld\n");
     runCommand("--domain_names_file", domainNamesFile.getPath());
     assertAllocationTokens(
-        createToken("123456789ABC", null, "foo1.tld"),
-        createToken("DEFGHJKLMNPQ", null, "boo2.tld"),
-        createToken("RSTUVWXYZabc", null, "baz9.tld"));
-    assertInStdout("foo1.tld, 123456789ABC\nboo2.tld, DEFGHJKLMNPQ\nbaz9.tld, RSTUVWXYZabc");
+        createToken("123456789ABCDEFG", null, "foo1.tld"),
+        createToken("HJKLMNPQRSTUVWXY", null, "boo2.tld"),
+        createToken("Zabcdefghijkmnop", null, "baz9.tld"));
+    assertInStdout(
+        "foo1.tld,123456789ABCDEFG\nboo2.tld,HJKLMNPQRSTUVWXY\nbaz9.tld,Zabcdefghijkmnop");
   }
 
   @Test

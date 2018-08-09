@@ -71,9 +71,9 @@ public class GenerateAllocationTokensCommand implements RemoteApiCommand {
 
   @Parameter(
     names = {"-l", "--length"},
-    description = "The length of each token, exclusive of the prefix (if specified); defaults to 12"
+    description = "The length of each token, exclusive of the prefix (if specified); defaults to 16"
   )
-  private int tokenLength = 12;
+  private int tokenLength = 16;
 
   @Parameter(
       names = {"--dry_run"},
@@ -84,7 +84,7 @@ public class GenerateAllocationTokensCommand implements RemoteApiCommand {
   @Inject Retrier retrier;
 
   private static final int BATCH_SIZE = 20;
-  private static final Joiner SKIP_NULLS = Joiner.on(", ").skipNulls();
+  private static final Joiner SKIP_NULLS = Joiner.on(',').skipNulls();
 
   @Override
   public void run() throws IOException {
