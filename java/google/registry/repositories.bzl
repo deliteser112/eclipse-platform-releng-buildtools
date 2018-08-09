@@ -109,6 +109,7 @@ def domain_registry_repositories(
         omit_io_netty_handler = False,
         omit_io_netty_resolver = False,
         omit_io_netty_tcnative = False,
+        omit_io_netty_tcnative_boringssl_static = False,
         omit_io_netty_transport = False,
         omit_it_unimi_dsi_fastutil = False,
         omit_com_sun_activation_javax_activation = False,
@@ -334,6 +335,8 @@ def domain_registry_repositories(
         io_netty_resolver()
     if not omit_io_netty_tcnative:
         io_netty_tcnative()
+    if not omit_io_netty_tcnative_boringssl_static:
+        io_netty_tcnative_boringssl_static()
     if not omit_io_netty_transport:
         io_netty_transport()
     if not omit_it_unimi_dsi_fastutil:
@@ -1732,10 +1735,10 @@ def io_netty_buffer():
     java_import_external(
         name = "io_netty_buffer",
         licenses = ["notice"],  # Apache License, Version 2.0
-        jar_sha256 = "b24a28e2129fc11e1f6124ebf93725d1f9c0904ea679d261da7b2e21d4c8615e",
+        jar_sha256 = "ca21c19fad249b27d762f0ad1685c52a8161a744c7cc3f7fa7400ef072c94dbf",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/io/netty/netty-buffer/4.1.17.Final/netty-buffer-4.1.17.Final.jar",
-            "http://repo1.maven.org/maven2/io/netty/netty-buffer/4.1.17.Final/netty-buffer-4.1.17.Final.jar",
+            "http://maven.ibiblio.org/maven2/io/netty/netty-buffer/4.1.28.Final/netty-buffer-4.1.28.Final.jar",
+            "http://repo1.maven.org/maven2/io/netty/netty-buffer/4.1.28.Final/netty-buffer-4.1.28.Final.jar",
         ],
         deps = ["@io_netty_common"],
     )
@@ -1744,10 +1747,10 @@ def io_netty_codec():
     java_import_external(
         name = "io_netty_codec",
         licenses = ["notice"],  # Apache License, Version 2.0
-        jar_sha256 = "790ce1b7694fc41663131579d776a370e332e3b3fe2fe6543662fd5a40a948e1",
+        jar_sha256 = "32590789123f462aee92b3b6ddef41cbb134a8664902dcf8db563f6e4c0f1447",
         jar_urls = [
-            "http://repo1.maven.org/maven2/io/netty/netty-codec/4.1.17.Final/netty-codec-4.1.17.Final.jar",
-            "http://maven.ibiblio.org/maven2/io/netty/netty-codec/4.1.17.Final/netty-codec-4.1.17.Final.jar",
+            "http://repo1.maven.org/maven2/io/netty/netty-codec/4.1.28.Final/netty-codec-4.1.28.Final.jar",
+            "http://maven.ibiblio.org/maven2/io/netty/netty-codec/4.1.28.Final/netty-codec-4.1.28.Final.jar",
         ],
         deps = ["@io_netty_transport"],
     )
@@ -1756,10 +1759,10 @@ def io_netty_codec_http():
     java_import_external(
         name = "io_netty_codec_http",
         licenses = ["notice"],  # Apache License, Version 2.0
-        jar_sha256 = "fc05d02755c5d204ccc848be8399ef5d48d5a80da9b93f075287c57eb9381e5b",
+        jar_sha256 = "6d8838da021a36f10f9497be6d5eca575d6eae77e463841bd893b62a7b589006",
         jar_urls = [
-            "http://repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.17.Final/netty-codec-http-4.1.17.Final.jar",
-            "http://maven.ibiblio.org/maven2/io/netty/netty-codec-http/4.1.17.Final/netty-codec-http-4.1.17.Final.jar",
+            "http://repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.28.Final/netty-codec-http-4.1.28.Final.jar",
+            "http://maven.ibiblio.org/maven2/io/netty/netty-codec-http/4.1.28.Final/netty-codec-http-4.1.28.Final.jar",
         ],
         deps = ["@io_netty_codec"],
     )
@@ -1768,10 +1771,10 @@ def io_netty_common():
     java_import_external(
         name = "io_netty_common",
         licenses = ["notice"],  # Apache License, Version 2.0
-        jar_sha256 = "dddabdec01959180da44129d130301b84c23b473411288f143d5e29e0b098d26",
+        jar_sha256 = "f81527b7db95e6bc4577e3633af34b61541d3b34408032079f1431a3358f0a93",
         jar_urls = [
-            "http://repo1.maven.org/maven2/io/netty/netty-common/4.1.17.Final/netty-common-4.1.17.Final.jar",
-            "http://maven.ibiblio.org/maven2/io/netty/netty-common/4.1.17.Final/netty-common-4.1.17.Final.jar",
+            "http://repo1.maven.org/maven2/io/netty/netty-common/4.1.28.Final/netty-common-4.1.28.Final.jar",
+            "http://maven.ibiblio.org/maven2/io/netty/netty-common/4.1.28.Final/netty-common-4.1.28.Final.jar",
         ],
     )
 
@@ -1779,10 +1782,10 @@ def io_netty_handler():
     java_import_external(
         name = "io_netty_handler",
         licenses = ["notice"],  # Apache License, Version 2.0
-        jar_sha256 = "85bada604fe14bc358da7b140583264a88d7a45ca12daba1216c4225aadb0c7b",
+        jar_sha256 = "c0b2ef68958ae0c2cc2534aed47f060bab8eee816a2d81b20af38d07d5292d83",
         jar_urls = [
-            "http://repo1.maven.org/maven2/io/netty/netty-handler/4.1.17.Final/netty-handler-4.1.17.Final.jar",
-            "http://maven.ibiblio.org/maven2/io/netty/netty-handler/4.1.17.Final/netty-handler-4.1.17.Final.jar",
+            "http://repo1.maven.org/maven2/io/netty/netty-handler/4.1.28.Final/netty-handler-4.1.28.Final.jar",
+            "http://maven.ibiblio.org/maven2/io/netty/netty-handler/4.1.28.Final/netty-handler-4.1.28.Final.jar",
         ],
     )
 
@@ -1790,10 +1793,10 @@ def io_netty_resolver():
     java_import_external(
         name = "io_netty_resolver",
         licenses = ["notice"],  # Apache License, Version 2.0
-        jar_sha256 = "082ac49149cb72c675c7ed1615ba35923d3167e65bfb37c4a1422ec499137cb1",
+        jar_sha256 = "19a6442a27d07423e8b1ce306670724192d828863e2ed840e8c45c92e80bbf2d",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/io/netty/netty-resolver/4.1.17.Final/netty-resolver-4.1.17.Final.jar",
-            "http://repo1.maven.org/maven2/io/netty/netty-resolver/4.1.17.Final/netty-resolver-4.1.17.Final.jar",
+            "http://maven.ibiblio.org/maven2/io/netty/netty-resolver/4.1.28.Final/netty-resolver-4.1.28.Final.jar",
+            "http://repo1.maven.org/maven2/io/netty/netty-resolver/4.1.28.Final/netty-resolver-4.1.28.Final.jar",
         ],
         deps = ["@io_netty_common"],
     )
@@ -1802,10 +1805,21 @@ def io_netty_tcnative():
     java_import_external(
         name = "io_netty_tcnative",
         licenses = ["notice"],  # Apache License, Version 2.0
-        jar_sha256 = "cd49317267a8f2fd617075d22e25ceb3aef98e6b64bd6f66cca95f8825cdc1f3",
+        jar_sha256 = "8a925a983af49f08abcea13aa76752246970d678fb8596afd548a84b2060c32b",
         jar_urls = [
-            "http://repo1.maven.org/maven2/io/netty/netty-tcnative/2.0.7.Final/netty-tcnative-2.0.7.Final.jar",
-            "http://maven.ibiblio.org/maven2/io/netty/netty-tcnative/2.0.7.Final/netty-tcnative-2.0.7.Final.jar",
+            "http://repo1.maven.org/maven2/io/netty/netty-tcnative/2.0.12.Final/netty-tcnative-2.0.12.Final.jar",
+            "http://maven.ibiblio.org/maven2/io/netty/netty-tcnative/2.0.12.Final/netty-tcnative-2.0.12.Final.jar",
+        ],
+    )
+
+def io_netty_tcnative_boringssl_static():
+    java_import_external(
+        name = "io_netty_tcnative_boringssl_static",
+        licenses = ["notice"],  # Apache License, Version 2.0
+        jar_sha256 = "3df756e569504137e90ff368c2fe09f1f953efeddb717d47ed391dfa6ba8b7e3",
+        jar_urls = [
+            "http://maven.ibiblio.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.12.Final/netty-tcnative-boringssl-static-2.0.12.Final.jar",
+            "http://repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.12.Final/netty-tcnative-boringssl-static-2.0.12.Final.jar",
         ],
     )
 
@@ -1813,10 +1827,10 @@ def io_netty_transport():
     java_import_external(
         name = "io_netty_transport",
         licenses = ["notice"],  # Apache License, Version 2.0
-        jar_sha256 = "60763426c79dd930c70d0da95e474f662bd17a58d3d57b332696d089cf208089",
+        jar_sha256 = "85fd10967f9645e53a3eee4474ee9a44d3085863db66e947828970b0cf5be122",
         jar_urls = [
-            "http://maven.ibiblio.org/maven2/io/netty/netty-transport/4.1.17.Final/netty-transport-4.1.17.Final.jar",
-            "http://repo1.maven.org/maven2/io/netty/netty-transport/4.1.17.Final/netty-transport-4.1.17.Final.jar",
+            "http://maven.ibiblio.org/maven2/io/netty/netty-transport/4.1.28.Final/netty-transport-4.1.28.Final.jar",
+            "http://repo1.maven.org/maven2/io/netty/netty-transport/4.1.28.Final/netty-transport-4.1.28.Final.jar",
         ],
         deps = [
             "@io_netty_buffer",

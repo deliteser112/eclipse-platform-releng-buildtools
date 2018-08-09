@@ -14,6 +14,9 @@ java_library(
         "testdata/*.xml",
         "quota/testdata/*.yaml",
     ]),
+    runtime_deps = [
+        "@io_netty_tcnative_boringssl_static",
+    ],
     deps = [
         "//java/google/registry/proxy",
         "//java/google/registry/util",
