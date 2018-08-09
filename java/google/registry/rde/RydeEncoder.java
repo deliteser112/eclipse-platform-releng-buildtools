@@ -19,6 +19,7 @@ import static google.registry.rde.RydeCompression.openCompressor;
 import static google.registry.rde.RydeEncryption.RYDE_USE_INTEGRITY_PACKET;
 import static google.registry.rde.RydeEncryption.openEncryptor;
 import static google.registry.rde.RydeFileEncoding.openPgpFileWriter;
+import static google.registry.rde.RydeTar.openTarWriter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Closer;
@@ -76,8 +77,7 @@ public final class RydeEncoder extends FilterOutputStream {
     kompressor = closer.register(openCompressor(encryptLayer));
     fileLayer = closer.register(openPgpFileWriter(kompressor, filenamePrefix + ".tar", modified));
     tarLayer =
-        closer.register(
-            new RydeTarOutputStream(fileLayer, dataLength, modified, filenamePrefix + ".xml"));
+        closer.register(openTarWriter(fileLayer, dataLength, filenamePrefix + ".xml", modified));
     this.out = tarLayer;
   }
 

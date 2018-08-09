@@ -108,7 +108,7 @@ public final class PosixTarHeader {
     UNSUPPORTED;
   }
 
-  private static final int HEADER_LENGTH = 512;
+  public static final int HEADER_LENGTH = 512;
 
   private final byte[] header;
 
