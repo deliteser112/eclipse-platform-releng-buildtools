@@ -17,6 +17,7 @@ package google.registry.proxy.handler;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.base.Throwables;
 import com.google.common.flogger.FluentLogger;
 import google.registry.proxy.metric.FrontendMetrics;
 import io.netty.buffer.ByteBuf;
@@ -154,7 +155,7 @@ abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpRespo
       throws Exception {
     checkArgument(
         response.status().equals(HttpResponseStatus.OK),
-        "Cannot relay HTTP response status \"%s\"in channel %s:\n%s",
+        "Cannot relay HTTP response status \"%s\" in channel %s:\n%s",
         response.status(),
         ctx.channel(),
         response.content().toString(UTF_8));
@@ -166,14 +167,9 @@ abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpRespo
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
     // ReadTimeoutException is non fatal as the client times out due to inactivity.
-    // IllegalArgumentException is thrown by the checkArgument in the #encode command, it just means
-    // that GAE returns a non-200 response and the connection should be killed. The request is still
-    // processed by GAE, so this is not an unexpected behavior.
     // SslHandshakeException is caused by the client not able to complete the handshake, we should
     // not log it at error as we do not control client behavior.
-    if (cause instanceof ReadTimeoutException
-        || cause instanceof IllegalArgumentException
-        || cause instanceof SSLHandshakeException) {
+    if (cause instanceof ReadTimeoutException || cause instanceof SSLHandshakeException) {
       logger.atWarning().withCause(cause).log(
           "Inbound exception caught for channel %s", ctx.channel());
     } else {
@@ -190,8 +186,17 @@ abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpRespo
     promise.addListener(
         (ChannelFuture channelFuture) -> {
           if (!channelFuture.isSuccess()) {
-            logger.atSevere().withCause(channelFuture.cause()).log(
-                "Outbound exception caught for channel %s", channelFuture.channel());
+            Throwable cause = channelFuture.cause();
+            // If the failure is caused by IllegalArgumentException, we know that it is because we
+            // got a non 200 response. This is an expected error from the backend and should not be
+            // logged at severe.
+            if (Throwables.getRootCause(cause) instanceof IllegalArgumentException) {
+              logger.atWarning().withCause(channelFuture.cause()).log(
+                  "Outbound exception caught for channel %s", channelFuture.channel());
+            } else {
+              logger.atSevere().withCause(channelFuture.cause()).log(
+                  "Outbound exception caught for channel %s", channelFuture.channel());
+            }
             ChannelFuture unusedFuture = channelFuture.channel().close();
           }
         });
