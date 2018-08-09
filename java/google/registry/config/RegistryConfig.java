@@ -532,6 +532,18 @@ public final class RegistryConfig {
     }
 
     /**
+     * Returns the default job zone to run Apache Beam (Cloud Dataflow) jobs in.
+     *
+     * @see google.registry.reporting.billing.GenerateInvoicesAction
+     * @see google.registry.reporting.spec11.GenerateSpec11ReportAction
+     */
+    @Provides
+    @Config("defaultJobZone")
+    public static String provideDefaultJobZone(RegistryConfigSettings config) {
+      return config.beam.defaultJobZone;
+    }
+
+    /**
      * Returns the URL of the GCS location we store jar dependencies for beam pipelines.
      *
      * @see google.registry.beam.invoicing.InvoicingPipeline

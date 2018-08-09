@@ -246,6 +246,10 @@ misc:
   # hosts from being used on domains.
   asyncDeleteDelaySeconds: 90
 
+beam:
+  # The default zone to run Apache Beam (Cloud Dataflow) jobs in.
+  defaultJobZone: us-east1-c
+
 kms:
   # GCP project containing the KMS keyring. Should only be used for KMS in
   # order to keep a simple locked down IAM configuration.

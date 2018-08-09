@@ -105,6 +105,9 @@ final class UpdateKmsKeyringCommand implements RemoteApiCommand {
       case RDE_STAGING_KEY_PAIR:
         kmsUpdater.setRdeStagingKey(deserializeKeyPair(input));
         break;
+      case SAFE_BROWSING_API_KEY:
+        kmsUpdater.setSafeBrowsingAPIKey(deserializeString(input));
+        break;
       case RDE_STAGING_PUBLIC_KEY:
         throw new IllegalArgumentException(
             "Can't update RDE_STAGING_PUBLIC_KEY directly."

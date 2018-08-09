@@ -69,6 +69,9 @@ final class GetKeyringSecretCommand implements RemoteApiCommand {
       case ICANN_REPORTING_PASSWORD:
         out.write(KeySerializer.serializeString(keyring.getIcannReportingPassword()));
         break;
+      case SAFE_BROWSING_API_KEY:
+        out.write(KeySerializer.serializeString(keyring.getSafeBrowsingAPIKey()));
+        break;
       case JSON_CREDENTIAL:
         out.write(KeySerializer.serializeString(keyring.getJsonCredential()));
         break;

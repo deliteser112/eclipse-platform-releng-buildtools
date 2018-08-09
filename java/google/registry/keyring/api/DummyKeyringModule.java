@@ -106,6 +106,7 @@ public final class DummyKeyringModule {
         "not a real key",
         "not a real key",
         "not a real password",
+        "not a real API key",
         "not a real login",
         "not a real password",
         "not a real login",

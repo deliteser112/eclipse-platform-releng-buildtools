@@ -34,6 +34,7 @@ public final class InMemoryKeyring implements Keyring {
   private final String rdeSshClientPublicKey;
   private final String rdeSshClientPrivateKey;
   private final String icannReportingPassword;
+  private final String safeBrowsingAPIKey;
   private final String marksdbDnlLogin;
   private final String marksdbLordnPassword;
   private final String marksdbSmdrlLogin;
@@ -48,6 +49,7 @@ public final class InMemoryKeyring implements Keyring {
       String rdeSshClientPublicKey,
       String rdeSshClientPrivateKey,
       String icannReportingPassword,
+      String safeBrowsingAPIKey,
       String marksdbDnlLogin,
       String marksdbLordnPassword,
       String marksdbSmdrlLogin,
@@ -70,6 +72,7 @@ public final class InMemoryKeyring implements Keyring {
     this.rdeSshClientPublicKey = checkNotNull(rdeSshClientPublicKey, "rdeSshClientPublicKey");
     this.rdeSshClientPrivateKey = checkNotNull(rdeSshClientPrivateKey, "rdeSshClientPrivateKey");
     this.icannReportingPassword = checkNotNull(icannReportingPassword, "icannReportingPassword");
+    this.safeBrowsingAPIKey = checkNotNull(safeBrowsingAPIKey, "safeBrowsingAPIKey");
     this.marksdbDnlLogin = checkNotNull(marksdbDnlLogin, "marksdbDnlLogin");
     this.marksdbLordnPassword = checkNotNull(marksdbLordnPassword, "marksdbLordnPassword");
     this.marksdbSmdrlLogin = checkNotNull(marksdbSmdrlLogin, "marksdbSmdrlLogin");
@@ -122,6 +125,11 @@ public final class InMemoryKeyring implements Keyring {
   }
 
   @Override
+  public String getSafeBrowsingAPIKey() {
+    return safeBrowsingAPIKey;
+  }
+
+    @Override
   public String getMarksdbDnlLogin() {
     return marksdbDnlLogin;
   }

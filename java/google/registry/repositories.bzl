@@ -2170,10 +2170,10 @@ def org_apache_ftpserver_core():
 def org_apache_httpcomponents_httpclient():
     java_import_external(
         name = "org_apache_httpcomponents_httpclient",
-        jar_sha256 = "752596ebdc7c9ae5d9a655de3bb06d078734679a9de23321dbf284ee44563c03",
+        jar_sha256 = "0dffc621400d6c632f55787d996b8aeca36b30746a716e079a985f24d8074057",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.0.1/httpclient-4.0.1.jar",
-            "http://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.0.1/httpclient-4.0.1.jar",
+            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.2/httpclient-4.5.2.jar",
+            "http://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.2/httpclient-4.5.2.jar",
         ],
         licenses = ["notice"],  # Apache License
         deps = [
@@ -2186,10 +2186,10 @@ def org_apache_httpcomponents_httpclient():
 def org_apache_httpcomponents_httpcore():
     java_import_external(
         name = "org_apache_httpcomponents_httpcore",
-        jar_sha256 = "3b6bf92affa85d4169a91547ce3c7093ed993b41ad2df80469fc768ad01e6b6b",
+        jar_sha256 = "f7bc09dc8a7003822d109634ffd3845d579d12e725ae54673e323a7ce7f5e325",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.0.1/httpcore-4.0.1.jar",
-            "http://repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.0.1/httpcore-4.0.1.jar",
+            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.4/httpcore-4.4.4.jar",
+            "http://repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.4/httpcore-4.4.4.jar",
         ],
         licenses = ["notice"],  # Apache License
     )

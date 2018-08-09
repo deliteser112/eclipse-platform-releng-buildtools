@@ -107,6 +107,14 @@
     <url-pattern>/_dr/task/icannReportingUpload</url-pattern>
   </servlet-mapping>
 
+  <!--
+    Generates the Spec11 report for the month, storing it on GCS.
+  -->
+  <servlet-mapping>
+    <servlet-name>backend-servlet</servlet-name>
+    <url-pattern>/_dr/task/generateSpec11</url-pattern>
+  </servlet-mapping>
+
   <!-- Trademark Clearinghouse -->
 
   <!-- Downloads TMCH DNL data from MarksDB. -->

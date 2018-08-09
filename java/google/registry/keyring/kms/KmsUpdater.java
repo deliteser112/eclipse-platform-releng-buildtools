@@ -31,6 +31,7 @@ import static google.registry.keyring.kms.KmsKeyring.StringKeyLabel.MARKSDB_LORD
 import static google.registry.keyring.kms.KmsKeyring.StringKeyLabel.MARKSDB_SMDRL_LOGIN_STRING;
 import static google.registry.keyring.kms.KmsKeyring.StringKeyLabel.RDE_SSH_CLIENT_PRIVATE_STRING;
 import static google.registry.keyring.kms.KmsKeyring.StringKeyLabel.RDE_SSH_CLIENT_PUBLIC_STRING;
+import static google.registry.keyring.kms.KmsKeyring.StringKeyLabel.SAFE_BROWSING_API_KEY;
 import static google.registry.model.ofy.ObjectifyService.ofy;
 import static google.registry.util.PreconditionsUtils.checkArgumentNotNull;
 
@@ -93,6 +94,10 @@ public final class KmsUpdater {
 
   public KmsUpdater setRdeSshClientPrivateKey(String asciiPrivateKey) {
     return setString(asciiPrivateKey, RDE_SSH_CLIENT_PRIVATE_STRING);
+  }
+
+  public KmsUpdater setSafeBrowsingAPIKey(String apiKey) {
+    return setString(apiKey, SAFE_BROWSING_API_KEY);
   }
 
   public KmsUpdater setIcannReportingPassword(String password) {

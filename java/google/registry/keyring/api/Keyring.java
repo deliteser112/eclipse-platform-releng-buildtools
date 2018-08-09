@@ -116,6 +116,13 @@ public interface Keyring extends AutoCloseable {
   String getRdeSshClientPrivateKey();
 
   /**
+   * Returns the API key for accessing the SafeBrowsing API.
+   *
+   * @see google.registry.reporting.spec11.GenerateSpec11ReportAction
+   */
+  String getSafeBrowsingAPIKey();
+
+  /**
    * Returns password to be used when uploading reports to ICANN.
    *
    * @see google.registry.rde.RdeReportAction

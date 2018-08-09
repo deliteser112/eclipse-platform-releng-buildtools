@@ -51,6 +51,7 @@ public final class FakeKeyringModule {
   private static final ByteSource PGP_PRIVATE_KEYRING =
       loadBytes(FakeKeyringModule.class, "pgp-private-keyring-registry.asc");
   private static final String ICANN_REPORTING_PASSWORD = "yolo";
+  private static final String SAFE_BROWSING_API_KEY = "a/b_c";
   private static final String MARKSDB_DNL_LOGIN = "dnl:yolo";
   private static final String MARKSDB_LORDN_PASSWORD = "yolo";
   private static final String MARKSDB_SMDRL_LOGIN = "smdrl:yolo";
@@ -132,6 +133,11 @@ public final class FakeKeyringModule {
       @Override
       public String getIcannReportingPassword() {
         return ICANN_REPORTING_PASSWORD;
+      }
+
+      @Override
+      public String getSafeBrowsingAPIKey() {
+        return SAFE_BROWSING_API_KEY;
       }
 
       @Override

@@ -64,6 +64,7 @@ public class KmsKeyring implements Keyring {
   }
 
   enum StringKeyLabel {
+    SAFE_BROWSING_API_KEY,
     ICANN_REPORTING_PASSWORD_STRING,
     JSON_CREDENTIAL_STRING,
     MARKSDB_DNL_LOGIN_STRING,
@@ -122,6 +123,11 @@ public class KmsKeyring implements Keyring {
   @Override
   public String getRdeSshClientPrivateKey() {
     return getString(StringKeyLabel.RDE_SSH_CLIENT_PRIVATE_STRING);
+  }
+
+  @Override
+  public String getSafeBrowsingAPIKey() {
+    return getString(StringKeyLabel.SAFE_BROWSING_API_KEY);
   }
 
   @Override

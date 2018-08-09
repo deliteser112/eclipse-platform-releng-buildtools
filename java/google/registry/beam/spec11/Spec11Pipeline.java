@@ -14,6 +14,7 @@
 
 package google.registry.beam.spec11;
 
+import google.registry.beam.spec11.SafeBrowsingTransforms.EvaluateSafeBrowsingFn;
 import google.registry.config.RegistryConfig.Config;
 import java.io.Serializable;
 import javax.inject.Inject;
@@ -26,7 +27,8 @@ import org.apache.beam.sdk.io.gcp.bigquery.BigQueryIO;
 import org.apache.beam.sdk.options.Description;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.ValueProvider;
-import org.apache.beam.sdk.transforms.Count;
+import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.transforms.Sample;
 import org.apache.beam.sdk.transforms.ToString;
 import org.apache.beam.sdk.values.PCollection;
 
@@ -70,13 +72,25 @@ public class Spec11Pipeline implements Serializable {
     /**
      * Sets the yearMonth we generate invoices for.
      *
-     * <p>This is implicitly set when executing the Dataflow template, by specifying the 'yearMonth
+     * <p>This is implicitly set when executing the Dataflow template, by specifying the "yearMonth"
      * parameter.
      */
     void setYearMonth(ValueProvider<String> value);
+
+    /** Returns the SafeBrowsing API key we use to evaluate subdomain health. */
+    @Description("The API key we use to access the SafeBrowsing API.")
+    ValueProvider<String> getSafeBrowsingApiKey();
+
+    /**
+     * Sets the SafeBrowsing API key we use.
+     *
+     * <p>This is implicitly set when executing the Dataflow template, by specifying the
+     * "safeBrowsingApiKey" parameter.
+     */
+    void setSafeBrowsingApiKey(ValueProvider<String> value);
   }
 
-  /** Deploys the spec11 pipeline as a template on GCS, for a given projectID and GCS bucket. */
+  /** Deploys the spec11 pipeline as a template on GCS. */
   public void deploy() {
     // We can't store options as a member variable due to serialization concerns.
     Spec11PipelineOptions options = PipelineOptionsFactory.as(Spec11PipelineOptions.class);
@@ -85,6 +99,7 @@ public class Spec11Pipeline implements Serializable {
     // This causes p.run() to stage the pipeline as a template on GCS, as opposed to running it.
     options.setTemplateLocation(spec11TemplateUrl);
     options.setStagingLocation(beamStagingUrl);
+
     Pipeline p = Pipeline.create(options);
     PCollection<Subdomain> domains =
         p.apply(
@@ -97,16 +112,24 @@ public class Spec11Pipeline implements Serializable {
                 .usingStandardSql()
                 .withoutValidation()
                 .withTemplateCompatibility());
-    countDomainsAndOutputResults(domains);
+    evaluateUrlHealth(domains, new EvaluateSafeBrowsingFn(options.getSafeBrowsingApiKey()));
     p.run();
   }
 
-  /** Globally count the number of elements and output the results to GCS. */
-  void countDomainsAndOutputResults(PCollection<Subdomain> domains) {
-    // TODO(b/111545355): Actually process each domain with the SafeBrowsing API
+  /**
+   * Evaluate each {@link Subdomain} URL via the SafeBrowsing API.
+   *
+   * <p>This is factored out to facilitate testing.
+   */
+  void evaluateUrlHealth(
+      PCollection<Subdomain> domains, EvaluateSafeBrowsingFn evaluateSafeBrowsingFn) {
     domains
-        .apply("Count number of subdomains", Count.globally())
-        .apply("Convert global count to string", ToString.elements())
+        // TODO(b/111545355): Remove this limiter once we're confident we won't go over quota.
+        .apply(
+            "Get just a few representative samples for now, don't want to overwhelm our quota",
+            Sample.any(1000))
+        .apply("Run through SafeBrowsingAPI", ParDo.of(evaluateSafeBrowsingFn))
+        .apply("Convert results to string", ToString.elements())
         .apply(
             "Output to text file",
             TextIO.write()
@@ -115,4 +138,5 @@ public class Spec11Pipeline implements Serializable {
                 .withoutSharding()
                 .withHeader("HELLO WORLD"));
   }
+
 }

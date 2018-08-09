@@ -32,6 +32,7 @@ java_library(
         "//java/google/registry/reporting",
         "//java/google/registry/reporting/billing",
         "//java/google/registry/reporting/icann",
+        "//java/google/registry/reporting/spec11",
         "//java/google/registry/request",
         "//java/google/registry/request:modules",
         "//java/google/registry/request/auth",

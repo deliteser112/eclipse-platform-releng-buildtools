@@ -75,6 +75,7 @@ import google.registry.reporting.billing.PublishInvoicesAction;
 import google.registry.reporting.icann.IcannReportingModule;
 import google.registry.reporting.icann.IcannReportingStagingAction;
 import google.registry.reporting.icann.IcannReportingUploadAction;
+import google.registry.reporting.spec11.GenerateSpec11ReportAction;
 import google.registry.request.RequestComponentBuilder;
 import google.registry.request.RequestModule;
 import google.registry.request.RequestScope;
@@ -128,6 +129,7 @@ interface BackendRequestComponent {
   ExportReservedTermsAction exportReservedTermsAction();
   ExportSnapshotAction exportSnapshotAction();
   GenerateInvoicesAction generateInvoicesAction();
+  GenerateSpec11ReportAction generateSpec11ReportAction();
   IcannReportingStagingAction icannReportingStagingAction();
   IcannReportingUploadAction icannReportingUploadAction();
   LoadSnapshotAction loadSnapshotAction();

@@ -32,6 +32,7 @@ public class RegistryConfigSettings {
   public RegistrarConsole registrarConsole;
   public Monitoring monitoring;
   public Misc misc;
+  public Beam beam;
   public Kms kms;
   public RegistryTool registryTool;
 
@@ -94,6 +95,11 @@ public class RegistryConfigSettings {
   public static class Kms {
     public String keyringName;
     public String projectId;
+  }
+
+  /** Configuration for Apache Beam (Cloud Dataflow). */
+  public static class Beam {
+    public String defaultJobZone;
   }
 
   /** Configuration for Cloud DNS. */
