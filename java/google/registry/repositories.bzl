@@ -442,7 +442,7 @@ def com_beust_jcommander():
         name = "com_beust_jcommander",
         jar_sha256 = "a7313fcfde070930e40ec79edf3c5948cf34e4f0d25cb3a09f9963d8bdd84113",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/beust/jcommander/1.48/jcommander-1.48.jar",
+            "http://maven.ibiblio.org/maven2/com/beust/jcommander/1.48/jcommander-1.48.jar",
             "http://repo1.maven.org/maven2/com/beust/jcommander/1.48/jcommander-1.48.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -453,7 +453,7 @@ def com_fasterxml_jackson_core():
         name = "com_fasterxml_jackson_core",
         jar_sha256 = "85b48d80d0ff36eecdc61ab57fe211a266b9fc326d5e172764d150e29fc99e21",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.8.5/jackson-core-2.8.5.jar",
+            "http://maven.ibiblio.org/maven2/com/fasterxml/jackson/core/jackson-core/2.8.5/jackson-core-2.8.5.jar",
             "http://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.8.5/jackson-core-2.8.5.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -464,7 +464,7 @@ def com_fasterxml_jackson_core_jackson_annotations():
         name = "com_fasterxml_jackson_core_jackson_annotations",
         jar_sha256 = "e61b7343aceeb6ecda291d4ef133cd3e765f178c631c357ffd081abab7f15db8",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.8.0/jackson-annotations-2.8.0.jar",
+            "http://maven.ibiblio.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.8.0/jackson-annotations-2.8.0.jar",
             "http://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.8.0/jackson-annotations-2.8.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -475,7 +475,7 @@ def com_fasterxml_jackson_core_jackson_databind():
         name = "com_fasterxml_jackson_core_jackson_databind",
         jar_sha256 = "2ed1d9d9ad732093bbe9f2c23f7d143c35c092ccc48f1754f23d031f8de2436e",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.8.5/jackson-databind-2.8.5.jar",
+            "http://maven.ibiblio.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.8.5/jackson-databind-2.8.5.jar",
             "http://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.8.5/jackson-databind-2.8.5.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -490,7 +490,7 @@ def com_google_api_client():
         name = "com_google_api_client",
         jar_sha256 = "47c625c83a8cf97b8bbdff2acde923ff8fd3174e62aabcfc5d1b86692594ffba",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/api-client/google-api-client/1.22.0/google-api-client-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client/1.22.0/google-api-client-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/api-client/google-api-client/1.22.0/google-api-client-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -507,7 +507,7 @@ def com_google_api_client_appengine():
         name = "com_google_api_client_appengine",
         jar_sha256 = "3b6f69bea556806e96ca6d443440968f848058c7956d945abea625e22b1d3fac",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/api-client/google-api-client-appengine/1.22.0/google-api-client-appengine-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client-appengine/1.22.0/google-api-client-appengine-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/api-client/google-api-client-appengine/1.22.0/google-api-client-appengine-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -604,7 +604,7 @@ def com_google_api_client_servlet():
         name = "com_google_api_client_servlet",
         jar_sha256 = "66cf62e2ecd7ae73c3dbf4713850e8ff5e5bb0bcaac61243bb0034fa28b2681c",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/api-client/google-api-client-servlet/1.22.0/google-api-client-servlet-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/api-client/google-api-client-servlet/1.22.0/google-api-client-servlet-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/api-client/google-api-client-servlet/1.22.0/google-api-client-servlet-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -620,7 +620,7 @@ def com_google_apis_google_api_services_admin_directory():
         name = "com_google_apis_google_api_services_admin_directory",
         jar_sha256 = "c1455436b318d16d665ed0ff305b03eb177542d8a74cfb8b7c1e9bfed5227640",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/apis/google-api-services-admin-directory/directory_v1-rev72-1.22.0/google-api-services-admin-directory-directory_v1-rev72-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-admin-directory/directory_v1-rev72-1.22.0/google-api-services-admin-directory-directory_v1-rev72-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/apis/google-api-services-admin-directory/directory_v1-rev72-1.22.0/google-api-services-admin-directory-directory_v1-rev72-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -632,7 +632,7 @@ def com_google_apis_google_api_services_bigquery():
         name = "com_google_apis_google_api_services_bigquery",
         jar_sha256 = "a8659f00301b34292878f288bc3604c5763d51cb6b82c956a46bbf5b46d8f3f0",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/apis/google-api-services-bigquery/v2-rev325-1.22.0/google-api-services-bigquery-v2-rev325-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-bigquery/v2-rev325-1.22.0/google-api-services-bigquery-v2-rev325-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/apis/google-api-services-bigquery/v2-rev325-1.22.0/google-api-services-bigquery-v2-rev325-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -657,7 +657,7 @@ def com_google_apis_google_api_services_cloudkms():
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         jar_sha256 = "c73854bdbd67c26f030eda346c65fc68e5b252a54f662af1a041caea77333ba4",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/apis/google-api-services-cloudkms/v1-rev12-1.22.0/google-api-services-cloudkms-v1-rev12-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-cloudkms/v1-rev12-1.22.0/google-api-services-cloudkms-v1-rev12-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/apis/google-api-services-cloudkms/v1-rev12-1.22.0/google-api-services-cloudkms-v1-rev12-1.22.0.jar",
         ],
         deps = ["@com_google_api_client"],
@@ -692,7 +692,7 @@ def com_google_apis_google_api_services_dns():
         name = "com_google_apis_google_api_services_dns",
         jar_sha256 = "70fd3a33fe59a033176feeee8e4e1e380a3939468fc953852843c4f874e7d087",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/apis/google-api-services-dns/v2beta1-rev6-1.22.0/google-api-services-dns-v2beta1-rev6-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-dns/v2beta1-rev6-1.22.0/google-api-services-dns-v2beta1-rev6-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/apis/google-api-services-dns/v2beta1-rev6-1.22.0/google-api-services-dns-v2beta1-rev6-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -704,7 +704,7 @@ def com_google_apis_google_api_services_drive():
         name = "com_google_apis_google_api_services_drive",
         jar_sha256 = "8894c1ac3bbf723c493c83aca1f786cd6acd8a833a3f1c31394bcc484b6916e4",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/apis/google-api-services-drive/v2-rev160-1.19.1/google-api-services-drive-v2-rev160-1.19.1.jar",
+            "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-drive/v2-rev160-1.19.1/google-api-services-drive-v2-rev160-1.19.1.jar",
             "http://repo1.maven.org/maven2/com/google/apis/google-api-services-drive/v2-rev160-1.19.1/google-api-services-drive-v2-rev160-1.19.1.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -716,7 +716,7 @@ def com_google_apis_google_api_services_groupssettings():
         name = "com_google_apis_google_api_services_groupssettings",
         jar_sha256 = "bb06f971362b1b78842f7ec71ae28adf3b31132c97d9cf786645bb2468d56b46",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/apis/google-api-services-groupssettings/v1-rev60-1.22.0/google-api-services-groupssettings-v1-rev60-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-groupssettings/v1-rev60-1.22.0/google-api-services-groupssettings-v1-rev60-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/apis/google-api-services-groupssettings/v1-rev60-1.22.0/google-api-services-groupssettings-v1-rev60-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -728,7 +728,7 @@ def com_google_apis_google_api_services_monitoring():
         name = "com_google_apis_google_api_services_monitoring",
         jar_sha256 = "8943d11779280ba90e57245d657368a94bb8474e260ad528e31f1e4ee081e1d9",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/apis/google-api-services-monitoring/v3-rev11-1.22.0/google-api-services-monitoring-v3-rev11-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-monitoring/v3-rev11-1.22.0/google-api-services-monitoring-v3-rev11-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/apis/google-api-services-monitoring/v3-rev11-1.22.0/google-api-services-monitoring-v3-rev11-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -740,7 +740,7 @@ def com_google_apis_google_api_services_sheets():
         name = "com_google_apis_google_api_services_sheets",
         jar_sha256 = "67529b9efceb1a16b72c6aa0822d50f4f6e8c3c84972a5a37ca6e7bdc19064ba",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/apis/google-api-services-sheets/v4-rev483-1.22.0/google-api-services-sheets-v4-rev483-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-sheets/v4-rev483-1.22.0/google-api-services-sheets-v4-rev483-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/apis/google-api-services-sheets/v4-rev483-1.22.0/google-api-services-sheets-v4-rev483-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -752,7 +752,7 @@ def com_google_apis_google_api_services_storage():
         name = "com_google_apis_google_api_services_storage",
         jar_sha256 = "3a6c857e409a4398ada630124ca52222582beba04943c3cd7c5c76aee0854fcf",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/apis/google-api-services-storage/v1-rev86-1.22.0/google-api-services-storage-v1-rev86-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/apis/google-api-services-storage/v1-rev86-1.22.0/google-api-services-storage-v1-rev86-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/apis/google-api-services-storage/v1-rev86-1.22.0/google-api-services-storage-v1-rev86-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -764,7 +764,7 @@ def com_google_appengine_api_1_0_sdk():
         name = "com_google_appengine_api_1_0_sdk",
         jar_sha256 = "c151aee2a0eb5ede2f051861f420da023d437e7b275b50a9f2fe42c893ba693b",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/appengine/appengine-api-1.0-sdk/1.9.48/appengine-api-1.0-sdk-1.9.48.jar",
+            "http://maven.ibiblio.org/maven2/com/google/appengine/appengine-api-1.0-sdk/1.9.48/appengine-api-1.0-sdk-1.9.48.jar",
             "http://repo1.maven.org/maven2/com/google/appengine/appengine-api-1.0-sdk/1.9.48/appengine-api-1.0-sdk-1.9.48.jar",
         ],
         # Google App Engine Terms of Service: https://cloud.google.com/terms/
@@ -790,7 +790,7 @@ def com_google_appengine_api_labs():
         name = "com_google_appengine_api_labs",
         jar_sha256 = "adb9e0e778ca0911c08c7715e0769c487a5e56d7a984a4e17e26044b5c1fc1be",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/appengine/appengine-api-labs/1.9.48/appengine-api-labs-1.9.48.jar",
+            "http://maven.ibiblio.org/maven2/com/google/appengine/appengine-api-labs/1.9.48/appengine-api-labs-1.9.48.jar",
             "http://repo1.maven.org/maven2/com/google/appengine/appengine-api-labs/1.9.48/appengine-api-labs-1.9.48.jar",
         ],
         licenses = ["permissive"],  # Google App Engine Terms of Service: https://cloud.google.com/terms/
@@ -801,7 +801,7 @@ def com_google_appengine_api_stubs():
         name = "com_google_appengine_api_stubs",
         jar_sha256 = "49c5a9228477c2ed589f62e2430a4c029464adf166a8b50c260ad35171b0d763",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/appengine/appengine-api-stubs/1.9.48/appengine-api-stubs-1.9.48.jar",
+            "http://maven.ibiblio.org/maven2/com/google/appengine/appengine-api-stubs/1.9.48/appengine-api-stubs-1.9.48.jar",
             "http://repo1.maven.org/maven2/com/google/appengine/appengine-api-stubs/1.9.48/appengine-api-stubs-1.9.48.jar",
         ],
         licenses = ["permissive"],  # Google App Engine Terms of Service: https://cloud.google.com/terms/
@@ -812,7 +812,7 @@ def com_google_appengine_remote_api():
         name = "com_google_appengine_remote_api",
         jar_sha256 = "6ea6dc3b529038ea6b37e855cd1cd7612f6640feaeb0eec842d4e6d85e1fd052",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/appengine/appengine-remote-api/1.9.48/appengine-remote-api-1.9.48.jar",
+            "http://maven.ibiblio.org/maven2/com/google/appengine/appengine-remote-api/1.9.48/appengine-remote-api-1.9.48.jar",
             "http://repo1.maven.org/maven2/com/google/appengine/appengine-remote-api/1.9.48/appengine-remote-api-1.9.48.jar",
         ],
         licenses = ["permissive"],  # Google App Engine Terms of Service: https://cloud.google.com/terms/
@@ -825,7 +825,7 @@ def com_google_appengine_testing():
         name = "com_google_appengine_testing",
         jar_sha256 = "f18c93f08b45a56330dcf5625a75e169af37ff1a1d62e0ee4af668c568266fd3",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/appengine/appengine-testing/1.9.58/appengine-testing-1.9.58.jar",
+            "http://maven.ibiblio.org/maven2/com/google/appengine/appengine-testing/1.9.58/appengine-testing-1.9.58.jar",
             "http://repo1.maven.org/maven2/com/google/appengine/appengine-testing/1.9.58/appengine-testing-1.9.58.jar",
         ],
         licenses = ["permissive"],  # Google App Engine Terms of Service: https://cloud.google.com/terms/
@@ -842,7 +842,7 @@ def com_google_appengine_tools_appengine_gcs_client():
         name = "com_google_appengine_tools_appengine_gcs_client",
         jar_sha256 = "99daa975012ac2f1509ecff1e70c9ec1e5eb435a499d3f381c88bb944739c7d8",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/appengine/tools/appengine-gcs-client/0.6/appengine-gcs-client-0.6.jar",
+            "http://maven.ibiblio.org/maven2/com/google/appengine/tools/appengine-gcs-client/0.6/appengine-gcs-client-0.6.jar",
             "http://repo1.maven.org/maven2/com/google/appengine/tools/appengine-gcs-client/0.6/appengine-gcs-client-0.6.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -862,7 +862,7 @@ def com_google_appengine_tools_appengine_mapreduce():
         name = "com_google_appengine_tools_appengine_mapreduce",
         jar_sha256 = "5247f29ad94f422511fb7321a11ffb47bdd6156b00b9b6d7221a4f8f00c4a750",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/appengine/tools/appengine-mapreduce/0.8.5/appengine-mapreduce-0.8.5.jar",
+            "http://maven.ibiblio.org/maven2/com/google/appengine/tools/appengine-mapreduce/0.8.5/appengine-mapreduce-0.8.5.jar",
             "http://repo1.maven.org/maven2/com/google/appengine/tools/appengine-mapreduce/0.8.5/appengine-mapreduce-0.8.5.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -892,7 +892,7 @@ def com_google_appengine_tools_appengine_pipeline():
         name = "com_google_appengine_tools_appengine_pipeline",
         jar_sha256 = "61da36f73843545db9eaf403112ba14f36a1fa6e685557cff56ce0083d0a7b97",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/appengine/tools/appengine-pipeline/0.2.13/appengine-pipeline-0.2.13.jar",
+            "http://maven.ibiblio.org/maven2/com/google/appengine/tools/appengine-pipeline/0.2.13/appengine-pipeline-0.2.13.jar",
             "http://repo1.maven.org/maven2/com/google/appengine/tools/appengine-pipeline/0.2.13/appengine-pipeline-0.2.13.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -910,7 +910,7 @@ def com_google_appengine_tools_sdk():
         name = "com_google_appengine_tools_sdk",
         jar_sha256 = "16acae92eed3a227dda8aae8b456e4058f3c0d30c18859ce0ec872c43101bbdc",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/appengine/appengine-tools-sdk/1.9.48/appengine-tools-sdk-1.9.48.jar",
+            "http://maven.ibiblio.org/maven2/com/google/appengine/appengine-tools-sdk/1.9.48/appengine-tools-sdk-1.9.48.jar",
             "http://repo1.maven.org/maven2/com/google/appengine/appengine-tools-sdk/1.9.48/appengine-tools-sdk-1.9.48.jar",
         ],
         licenses = ["permissive"],  # Google App Engine Terms of Service: https://cloud.google.com/terms/
@@ -949,7 +949,7 @@ def com_google_auto_common():
         name = "com_google_auto_common",
         jar_sha256 = "97db1709f57b91b32edacb596ef4641872f227b7d99ad90e467f0d77f5ba134a",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/auto/auto-common/0.8/auto-common-0.8.jar",
+            "http://maven.ibiblio.org/maven2/com/google/auto/auto-common/0.8/auto-common-0.8.jar",
             "http://repo1.maven.org/maven2/com/google/auto/auto-common/0.8/auto-common-0.8.jar",
         ],
         licenses = ["notice"],  # Apache 2.0
@@ -962,7 +962,7 @@ def com_google_auto_factory():
         licenses = ["notice"],  # Apache 2.0
         jar_sha256 = "a038e409da90b9e065ec537cce2375b0bb0b07548dca0f9448671b0befb83439",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/auto/factory/auto-factory/1.0-beta3/auto-factory-1.0-beta3.jar",
+            "http://maven.ibiblio.org/maven2/com/google/auto/factory/auto-factory/1.0-beta3/auto-factory-1.0-beta3.jar",
             "http://repo1.maven.org/maven2/com/google/auto/factory/auto-factory/1.0-beta3/auto-factory-1.0-beta3.jar",
         ],
         # Auto Factory ships its annotations, runtime, and processor in the same
@@ -1010,7 +1010,7 @@ def com_google_auto_service():
         name = "com_google_auto_service",
         jar_sha256 = "e422d49c312fd2031222e7306e8108c1b4118eb9c049f1b51eca280bed87e924",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/auto/service/auto-service/1.0-rc4/auto-service-1.0-rc4.jar",
+            "http://maven.ibiblio.org/maven2/com/google/auto/service/auto-service/1.0-rc4/auto-service-1.0-rc4.jar",
             "http://repo1.maven.org/maven2/com/google/auto/service/auto-service/1.0-rc4/auto-service-1.0-rc4.jar",
         ],
         licenses = ["notice"],  # Apache 2.0
@@ -1042,7 +1042,7 @@ def com_google_auto_value():
         name = "com_google_auto_value",
         jar_sha256 = "edbe65a5c53e3d4f5cb10b055d4884ae7705a7cd697be4b2a5d8427761b8ba12",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/auto/value/auto-value/1.6.2/auto-value-1.6.2.jar",
+            "http://maven.ibiblio.org/maven2/com/google/auto/value/auto-value/1.6.2/auto-value-1.6.2.jar",
             "http://repo1.maven.org/maven2/com/google/auto/value/auto-value/1.6.2/auto-value-1.6.2.jar",
         ],
         licenses = ["notice"],  # Apache 2.0
@@ -1231,7 +1231,7 @@ def com_google_errorprone_error_prone_annotations():
         name = "com_google_errorprone_error_prone_annotations",
         jar_sha256 = "03d0329547c13da9e17c634d1049ea2ead093925e290567e1a364fd6b1fc7ff8",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.1.3/error_prone_annotations-2.1.3.jar",
+            "http://maven.ibiblio.org/maven2/com/google/errorprone/error_prone_annotations/2.1.3/error_prone_annotations-2.1.3.jar",
             "http://repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.1.3/error_prone_annotations-2.1.3.jar",
         ],
         licenses = ["notice"],  # Apache 2.0
@@ -1282,7 +1282,7 @@ def com_google_gdata_core():
         name = "com_google_gdata_core",
         jar_sha256 = "671fb963dd0bc767a69c7e4a74c07cf8dad3912bd40d37e600cc2b06d7a42dea",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/gdata/core/1.47.1/core-1.47.1.jar",
+            "http://maven.ibiblio.org/maven2/com/google/gdata/core/1.47.1/core-1.47.1.jar",
             "http://repo1.maven.org/maven2/com/google/gdata/core/1.47.1/core-1.47.1.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -1347,7 +1347,7 @@ def com_google_http_client():
         name = "com_google_http_client",
         jar_sha256 = "f88ffa329ac52fb4f2ff0eb877ef7318423ac9b791a107f886ed5c7a00e77e11",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/http-client/google-http-client/1.22.0/google-http-client-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/http-client/google-http-client/1.22.0/google-http-client-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/http-client/google-http-client/1.22.0/google-http-client-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -1364,7 +1364,7 @@ def com_google_http_client_appengine():
         name = "com_google_http_client_appengine",
         jar_sha256 = "44a92b5caf023cc526fdbc94d5259457988a9a557a5ce570cbfbafad0fd32420",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/http-client/google-http-client-appengine/1.22.0/google-http-client-appengine-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/http-client/google-http-client-appengine/1.22.0/google-http-client-appengine-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/http-client/google-http-client-appengine/1.22.0/google-http-client-appengine-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -1379,7 +1379,7 @@ def com_google_http_client_jackson2():
         name = "com_google_http_client_jackson2",
         jar_sha256 = "45b1e34b2dcef5cb496ef25a1223d19cf102b8c2ea4abf96491631b2faf4611c",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/http-client/google-http-client-jackson2/1.22.0/google-http-client-jackson2-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/http-client/google-http-client-jackson2/1.22.0/google-http-client-jackson2-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/http-client/google-http-client-jackson2/1.22.0/google-http-client-jackson2-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -1394,7 +1394,7 @@ def com_google_oauth_client():
         name = "com_google_oauth_client",
         jar_sha256 = "a4c56168b3e042105d68cf136e40e74f6e27f63ed0a948df966b332678e19022",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client/1.22.0/google-oauth-client-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client/1.22.0/google-oauth-client-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client/1.22.0/google-oauth-client-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -1409,7 +1409,7 @@ def com_google_oauth_client_appengine():
         name = "com_google_oauth_client_appengine",
         jar_sha256 = "9d78ad610143fffea773e5fb9214fa1a6889c6d08be627d0b45e189f613f7877",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-appengine/1.22.0/google-oauth-client-appengine-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client-appengine/1.22.0/google-oauth-client-appengine-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-appengine/1.22.0/google-oauth-client-appengine-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -1428,7 +1428,7 @@ def com_google_oauth_client_java6():
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         jar_sha256 = "c8d61bbb65f6721b85c38a88e4cb2a1782e04b8055589036705391361b658197",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.22.0/google-oauth-client-java6-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.22.0/google-oauth-client-java6-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-java6/1.22.0/google-oauth-client-java6-1.22.0.jar",
         ],
         deps = ["@com_google_oauth_client"],
@@ -1440,7 +1440,7 @@ def com_google_oauth_client_jetty():
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         jar_sha256 = "fdeebd0a97b265af7649b77e7e5e22937a7ea99148440647ba75f73c5eacddd2",
         jar_urls = [
-            "https://storage.googleapis.com/domain-registry-maven/repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-jetty/1.22.0/google-oauth-client-jetty-1.22.0.jar",
+            "https://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client-jetty/1.22.0/google-oauth-client-jetty-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-jetty/1.22.0/google-oauth-client-jetty-1.22.0.jar",
         ],
         deps = [
@@ -1454,7 +1454,7 @@ def com_google_oauth_client_servlet():
         name = "com_google_oauth_client_servlet",
         jar_sha256 = "6956ac1bd055ebf0b1592a005f029a551af3039584a32fe03854f0d2f6f022ef",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-servlet/1.22.0/google-oauth-client-servlet-1.22.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/oauth-client/google-oauth-client-servlet/1.22.0/google-oauth-client-servlet-1.22.0.jar",
             "http://repo1.maven.org/maven2/com/google/oauth-client/google-oauth-client-servlet/1.22.0/google-oauth-client-servlet-1.22.0.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -1469,7 +1469,7 @@ def com_google_protobuf_java():
         name = "com_google_protobuf_java",
         jar_sha256 = "5636b013420f19c0a5342dab6de33956e20a40b06681d2cf021266d6ef478c6e",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/2.6.0/protobuf-java-2.6.0.jar",
+            "http://maven.ibiblio.org/maven2/com/google/protobuf/protobuf-java/2.6.0/protobuf-java-2.6.0.jar",
             "http://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/2.6.0/protobuf-java-2.6.0.jar",
         ],
         # New BSD license
@@ -1484,7 +1484,7 @@ def com_google_re2j():
         name = "com_google_re2j",
         jar_sha256 = "24ada84d1b5de584e3e84b06f0c7dd562cee6eafe8dea8083bd8eb123823bbe7",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/re2j/re2j/1.1/re2j-1.1.jar",
+            "http://maven.ibiblio.org/maven2/com/google/re2j/re2j/1.1/re2j-1.1.jar",
             "http://repo1.maven.org/maven2/com/google/re2j/re2j/1.1/re2j-1.1.jar",
         ],
         licenses = ["notice"],  # The Go license
@@ -1537,7 +1537,7 @@ def com_google_truth():
         name = "com_google_truth",
         jar_sha256 = "dd652bdf0c4427c59848ac0340fd6b6d20c2cbfaa3c569a8366604dbcda5214c",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/google/truth/truth/0.42/truth-0.42.jar",
+            "http://maven.ibiblio.org/maven2/com/google/truth/truth/0.42/truth-0.42.jar",
             "http://repo1.maven.org/maven2/com/google/truth/truth/0.42/truth-0.42.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -1555,7 +1555,7 @@ def com_google_truth_extensions_truth_java8_extension():
         name = "com_google_truth_extensions_truth_java8_extension",
         jar_sha256 = "47d3a91a3accbe062fbae59f95cc0e02f0483c60d1340ff82c89bc6ab82fa10a",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/central.maven.org/maven2/com/google/truth/extensions/truth-java8-extension/0.39/truth-java8-extension-0.39.jar",
+            "http://maven.ibiblio.org/maven2/com/google/truth/extensions/truth-java8-extension/0.39/truth-java8-extension-0.39.jar",
             "http://central.maven.org/maven2/com/google/truth/extensions/truth-java8-extension/0.39/truth-java8-extension-0.39.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -1571,7 +1571,7 @@ def com_googlecode_charts4j():
         name = "com_googlecode_charts4j",
         jar_sha256 = "6ac5ed6a390a585fecaed95d3ce6b96a8cfe95adb1e76bd93376e7e37249020a",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/googlecode/charts4j/charts4j/1.3/charts4j-1.3.jar",
+            "http://maven.ibiblio.org/maven2/com/googlecode/charts4j/charts4j/1.3/charts4j-1.3.jar",
             "http://repo1.maven.org/maven2/com/googlecode/charts4j/charts4j/1.3/charts4j-1.3.jar",
         ],
         licenses = ["notice"],  # The MIT License
@@ -1582,7 +1582,7 @@ def com_googlecode_json_simple():
         name = "com_googlecode_json_simple",
         jar_sha256 = "4e69696892b88b41c55d49ab2fdcc21eead92bf54acc588c0050596c3b75199c",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar",
+            "http://maven.ibiblio.org/maven2/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar",
             "http://repo1.maven.org/maven2/com/googlecode/json-simple/json-simple/1.1.1/json-simple-1.1.1.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -1593,7 +1593,7 @@ def com_ibm_icu_icu4j():
         name = "com_ibm_icu_icu4j",
         jar_sha256 = "759d89ed2f8c6a6b627ab954be5913fbdc464f62254a513294e52260f28591ee",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/ibm/icu/icu4j/57.1/icu4j-57.1.jar",
+            "http://maven.ibiblio.org/maven2/com/ibm/icu/icu4j/57.1/icu4j-57.1.jar",
             "http://repo1.maven.org/maven2/com/ibm/icu/icu4j/57.1/icu4j-57.1.jar",
         ],
         licenses = ["notice"],  # ICU License
@@ -1604,7 +1604,7 @@ def com_jcraft_jzlib():
         name = "com_jcraft_jzlib",
         jar_sha256 = "89b1360f407381bf61fde411019d8cbd009ebb10cff715f3669017a031027560",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/jcraft/jzlib/1.1.3/jzlib-1.1.3.jar",
+            "http://maven.ibiblio.org/maven2/com/jcraft/jzlib/1.1.3/jzlib-1.1.3.jar",
             "http://repo1.maven.org/maven2/com/jcraft/jzlib/1.1.3/jzlib-1.1.3.jar",
         ],
         licenses = ["notice"],  # BSD
@@ -1626,7 +1626,7 @@ def com_squareup_javawriter():
         name = "com_squareup_javawriter",
         jar_sha256 = "39b054910ff212d4379129a89070fb7dbb1f341371c925e9e99904f154a22d93",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/squareup/javawriter/2.5.1/javawriter-2.5.1.jar",
+            "http://maven.ibiblio.org/maven2/com/squareup/javawriter/2.5.1/javawriter-2.5.1.jar",
             "http://repo1.maven.org/maven2/com/squareup/javawriter/2.5.1/javawriter-2.5.1.jar",
         ],
         licenses = ["notice"],  # Apache 2.0
@@ -1637,7 +1637,7 @@ def com_sun_xml_bind_jaxb_core():
         name = "com_sun_xml_bind_jaxb_core",
         jar_sha256 = "33061af8d2a07379d452f8f0fddcbbf518428dfd3b83d9e2d479c1948020795b",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-core/2.3.0/jaxb-core-2.3.0.jar",
+            "http://maven.ibiblio.org/maven2/com/sun/xml/bind/jaxb-core/2.3.0/jaxb-core-2.3.0.jar",
             "http://repo1.maven.org/maven2/com/sun/xml/bind/jaxb-core/2.3.0/jaxb-core-2.3.0.jar",
         ],
         licenses = ["reciprocal"],  # CDDL 1.1 or GPLv2 (We choo-choo-choose the CDDL)
@@ -1648,7 +1648,7 @@ def com_sun_xml_bind_jaxb_impl():
         name = "com_sun_xml_bind_jaxb_impl",
         jar_sha256 = "edd691fc6ad7c7f3167e1a6833372367bedf6f4f2a4b8230df444a59bb3718b1",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-impl/2.3.0/jaxb-impl-2.3.0.jar",
+            "http://maven.ibiblio.org/maven2/com/sun/xml/bind/jaxb-impl/2.3.0/jaxb-impl-2.3.0.jar",
             "http://repo1.maven.org/maven2/com/sun/xml/bind/jaxb-impl/2.3.0/jaxb-impl-2.3.0.jar",
         ],
         licenses = ["reciprocal"],  # CDDL 1.1 or GPLv2 (We choo-choo-choose the CDDL)
@@ -1670,7 +1670,7 @@ def com_sun_xml_bind_jaxb_xjc():
         name = "com_sun_xml_bind_jaxb_xjc",
         jar_sha256 = "01c0cb72ac0e5471f4aa979ec51a0587accdd3cfd2012fa52184caf844589c98",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/sun/xml/bind/jaxb-xjc/2.3.0/jaxb-xjc-2.3.0.jar",
+            "http://maven.ibiblio.org/maven2/com/sun/xml/bind/jaxb-xjc/2.3.0/jaxb-xjc-2.3.0.jar",
             "http://repo1.maven.org/maven2/com/sun/xml/bind/jaxb-xjc/2.3.0/jaxb-xjc-2.3.0.jar",
         ],
         licenses = ["reciprocal"],  # CDDL 1.1 or GPLv2 (We choo-choo-choose the CDDL)
@@ -1693,7 +1693,7 @@ def com_thoughtworks_paranamer():
         name = "com_thoughtworks_paranamer",
         jar_sha256 = "63e3f53f8f70784b65c25b2ee475813979d6d0e7f7b2510b364c4e1f4a803ccc",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.7/paranamer-2.7.jar",
+            "http://maven.ibiblio.org/maven2/com/thoughtworks/paranamer/paranamer/2.7/paranamer-2.7.jar",
             "http://repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.7/paranamer-2.7.jar",
             "http://maven.ibiblio.org/maven2/com/thoughtworks/paranamer/paranamer/2.7/paranamer-2.7.jar",
         ],
@@ -1705,7 +1705,7 @@ def commons_codec():
         name = "commons_codec",
         jar_sha256 = "54b34e941b8e1414bd3e40d736efd3481772dc26db3296f6aa45cec9f6203d86",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/commons-codec/commons-codec/1.6/commons-codec-1.6.jar",
+            "http://maven.ibiblio.org/maven2/commons-codec/commons-codec/1.6/commons-codec-1.6.jar",
             "http://repo1.maven.org/maven2/commons-codec/commons-codec/1.6/commons-codec-1.6.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -1716,7 +1716,7 @@ def commons_logging():
         name = "commons_logging",
         jar_sha256 = "ce6f913cad1f0db3aad70186d65c5bc7ffcc9a99e3fe8e0b137312819f7c362f",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar",
+            "http://maven.ibiblio.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar",
             "http://repo1.maven.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -1727,7 +1727,7 @@ def dnsjava():
         name = "dnsjava",
         jar_sha256 = "2c52a6fabd5af9331d73fc7787dafc32a56bd8019c49f89749c2eeef244e303c",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/dnsjava/dnsjava/2.1.7/dnsjava-2.1.7.jar",
+            "http://maven.ibiblio.org/maven2/dnsjava/dnsjava/2.1.7/dnsjava-2.1.7.jar",
             "http://repo1.maven.org/maven2/dnsjava/dnsjava/2.1.7/dnsjava-2.1.7.jar",
         ],
         licenses = ["notice"],  # BSD 2-Clause license
@@ -1845,7 +1845,7 @@ def it_unimi_dsi_fastutil():
         name = "it_unimi_dsi_fastutil",
         jar_sha256 = "af5a1ad8261d0607e7d8d3759d97ba7ad834a6be8277466aaccf2121a75963c7",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/it/unimi/dsi/fastutil/6.5.16/fastutil-6.5.16.jar",
+            "http://maven.ibiblio.org/maven2/it/unimi/dsi/fastutil/6.5.16/fastutil-6.5.16.jar",
             "http://repo1.maven.org/maven2/it/unimi/dsi/fastutil/6.5.16/fastutil-6.5.16.jar",
         ],
         licenses = ["notice"],  # Apache License, Version 2.0
@@ -1878,7 +1878,7 @@ def javax_inject():
         name = "javax_inject",
         jar_sha256 = "91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
+            "http://maven.ibiblio.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
             "http://repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
         ],
         licenses = ["notice"],  # The Apache Software License, Version 2.0
@@ -1889,7 +1889,7 @@ def javax_mail():
         name = "javax_mail",
         jar_sha256 = "96868f82264ebd9b7d41f04d78cbe87ab75d68a7bbf8edfb82416aabe9b54b6c",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/javax/mail/mail/1.4/mail-1.4.jar",
+            "http://maven.ibiblio.org/maven2/javax/mail/mail/1.4/mail-1.4.jar",
             "http://repo1.maven.org/maven2/javax/mail/mail/1.4/mail-1.4.jar",
         ],
         licenses = ["reciprocal"],  # Common Development and Distribution License (CDDL) v1.0
@@ -1901,7 +1901,7 @@ def javax_servlet_api():
         name = "javax_servlet_api",
         jar_sha256 = "c658ea360a70faeeadb66fb3c90a702e4142a0ab7768f9ae9828678e0d9ad4dc",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar",
+            "http://maven.ibiblio.org/maven2/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar",
             "http://repo1.maven.org/maven2/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar",
         ],
         licenses = ["notice"],  # Apache
@@ -1912,7 +1912,7 @@ def javax_xml_bind_jaxb_api():
         name = "javax_xml_bind_jaxb_api",
         jar_sha256 = "883007989d373d19f352ba9792b25dec21dc7d0e205a710a93a3815101bb3d03",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar",
+            "http://maven.ibiblio.org/maven2/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar",
             "http://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar",
         ],
         # CDDL 1.1 or GPLv2 w/ CPE (We choo-choo-choose the CDDL)
@@ -1947,7 +1947,7 @@ def joda_time():
         name = "joda_time",
         jar_sha256 = "602fd8006641f8b3afd589acbd9c9b356712bdcf0f9323557ec8648cd234983b",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/joda-time/joda-time/2.3/joda-time-2.3.jar",
+            "http://maven.ibiblio.org/maven2/joda-time/joda-time/2.3/joda-time-2.3.jar",
             "http://repo1.maven.org/maven2/joda-time/joda-time/2.3/joda-time-2.3.jar",
         ],
         licenses = ["notice"],  # Apache 2
@@ -1958,7 +1958,7 @@ def junit():
         name = "junit",
         jar_sha256 = "59721f0805e223d84b90677887d9ff567dc534d7c502ca903c0c2b17f05c116a",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/junit/junit/4.12/junit-4.12.jar",
+            "http://maven.ibiblio.org/maven2/junit/junit/4.12/junit-4.12.jar",
             "http://repo1.maven.org/maven2/junit/junit/4.12/junit-4.12.jar",
         ],
         licenses = ["reciprocal"],  # Common Public License Version 1.0
@@ -1972,7 +1972,7 @@ def org_apache_avro():
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         jar_sha256 = "f754a0830ce67a5a9fa67a54ec15d103ef15e1c850d7b26faf7b647eeddc82d3",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/avro/avro/1.8.2/avro-1.8.2.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/avro/avro/1.8.2/avro-1.8.2.jar",
             "http://repo1.maven.org/maven2/org/apache/avro/avro/1.8.2/avro-1.8.2.jar",
         ],
         deps = [
@@ -1992,7 +1992,7 @@ def org_apache_beam_runners_direct_java():
         licenses = ["notice"],  # Apache License, Version 2.0
         jar_sha256 = "f394ad1577c2af67417af27305c9efd50de268d23629171fd2c7813f8d385713",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/beam/beam-runners-direct-java/2.2.0/beam-runners-direct-java-2.2.0.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/beam/beam-runners-direct-java/2.2.0/beam-runners-direct-java-2.2.0.jar",
             "http://repo1.maven.org/maven2/org/apache/beam/beam-runners-direct-java/2.2.0/beam-runners-direct-java-2.2.0.jar",
         ],
         deps = [
@@ -2046,7 +2046,7 @@ def org_apache_beam_sdks_common_runner_api():
         licenses = ["notice"],  # Apache License, Version 2.0
         jar_sha256 = "8af98f525b86bd8efc6c25f0008573c877b040b04d9e4b3284d12c86e12c7593",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/beam/beam-sdks-common-runner-api/2.1.0/beam-sdks-common-runner-api-2.1.0.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/beam/beam-sdks-common-runner-api/2.1.0/beam-sdks-common-runner-api-2.1.0.jar",
             "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-common-runner-api/2.1.0/beam-sdks-common-runner-api-2.1.0.jar",
         ],
     )
@@ -2057,7 +2057,7 @@ def org_apache_beam_sdks_java_core():
         licenses = ["notice"],  # Apache License, Version 2.0
         jar_sha256 = "814e94d9de8d41853281e488889b5dec6fba01ce434447dda091b8ca109a36f8",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-core/2.2.0/beam-sdks-java-core-2.2.0.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/beam/beam-sdks-java-core/2.2.0/beam-sdks-java-core-2.2.0.jar",
             "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-core/2.2.0/beam-sdks-java-core-2.2.0.jar",
         ],
         deps = [
@@ -2111,7 +2111,7 @@ def org_apache_beam_sdks_java_io_google_cloud_platform():
         licenses = ["notice"],  # Apache License, Version 2.0
         jar_sha256 = "7b94b19c5ff79e7a0cccf8ae3556b728643fc7b6c23a6fa21806795bbc69ce9a",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-io-google-cloud-platform/2.2.0/beam-sdks-java-io-google-cloud-platform-2.2.0.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/beam/beam-sdks-java-io-google-cloud-platform/2.2.0/beam-sdks-java-io-google-cloud-platform-2.2.0.jar",
             "http://repo1.maven.org/maven2/org/apache/beam/beam-sdks-java-io-google-cloud-platform/2.2.0/beam-sdks-java-io-google-cloud-platform-2.2.0.jar",
         ],
         deps = [
@@ -2133,7 +2133,7 @@ def org_apache_commons_compress():
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         jar_sha256 = "5fca136503f86ecc6cb61fbd17b137d59e56b45c7a5494e6b8fd3cabd4697fbd",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.8.1/commons-compress-1.8.1.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/commons/commons-compress/1.8.1/commons-compress-1.8.1.jar",
             "http://repo1.maven.org/maven2/org/apache/commons/commons-compress/1.8.1/commons-compress-1.8.1.jar",
             "http://maven.ibiblio.org/maven2/org/apache/commons/commons-compress/1.8.1/commons-compress-1.8.1.jar",
         ],
@@ -2144,7 +2144,7 @@ def org_apache_ftpserver_core():
         name = "org_apache_ftpserver_core",
         jar_sha256 = "e0b6df55cca376c65a8969e4d9ed72a92c9bf0780ee077a03ff728e07314edcb",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/ftpserver/ftpserver-core/1.0.6/ftpserver-core-1.0.6.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/ftpserver/ftpserver-core/1.0.6/ftpserver-core-1.0.6.jar",
             "http://repo1.maven.org/maven2/org/apache/ftpserver/ftpserver-core/1.0.6/ftpserver-core-1.0.6.jar",
         ],
         licenses = ["notice"],  # Apache 2.0 License
@@ -2159,7 +2159,7 @@ def org_apache_httpcomponents_httpclient():
         name = "org_apache_httpcomponents_httpclient",
         jar_sha256 = "0dffc621400d6c632f55787d996b8aeca36b30746a716e079a985f24d8074057",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.2/httpclient-4.5.2.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/httpcomponents/httpclient/4.5.2/httpclient-4.5.2.jar",
             "http://repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.2/httpclient-4.5.2.jar",
         ],
         licenses = ["notice"],  # Apache License
@@ -2175,7 +2175,7 @@ def org_apache_httpcomponents_httpcore():
         name = "org_apache_httpcomponents_httpcore",
         jar_sha256 = "f7bc09dc8a7003822d109634ffd3845d579d12e725ae54673e323a7ce7f5e325",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.4/httpcore-4.4.4.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/httpcomponents/httpcore/4.4.4/httpcore-4.4.4.jar",
             "http://repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.4/httpcore-4.4.4.jar",
         ],
         licenses = ["notice"],  # Apache License
@@ -2186,7 +2186,7 @@ def org_apache_mina_core():
         name = "org_apache_mina_core",
         jar_sha256 = "f6e37603b0ff1b50b31c1be7e5815098d78aff1f277db27d3aee5d7e8cce636e",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/mina/mina-core/2.0.4/mina-core-2.0.4.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/mina/mina-core/2.0.4/mina-core-2.0.4.jar",
             "http://repo1.maven.org/maven2/org/apache/mina/mina-core/2.0.4/mina-core-2.0.4.jar",
         ],
         licenses = ["notice"],  # Apache 2.0 License
@@ -2197,7 +2197,7 @@ def org_apache_sshd_core():
         name = "org_apache_sshd_core",
         jar_sha256 = "5630fa11f7e2f7f5b6b7e6b9be06e476715dfb48db37998b4b7c3eea098d86ff",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/sshd/sshd-core/1.2.0/sshd-core-1.2.0.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/sshd/sshd-core/1.2.0/sshd-core-1.2.0.jar",
             "http://repo1.maven.org/maven2/org/apache/sshd/sshd-core/1.2.0/sshd-core-1.2.0.jar",
         ],
         licenses = ["notice"],  # Apache 2.0 License
@@ -2209,7 +2209,7 @@ def org_apache_tomcat_servlet_api():
         name = "org_apache_tomcat_servlet_api",
         jar_sha256 = "8df016b101b7e5f24940dbbcdf03b8b6b1544462ec6af97a92d3bbf3641153b9",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/apache/tomcat/servlet-api/6.0.45/servlet-api-6.0.45.jar",
+            "http://maven.ibiblio.org/maven2/org/apache/tomcat/servlet-api/6.0.45/servlet-api-6.0.45.jar",
             "http://repo1.maven.org/maven2/org/apache/tomcat/servlet-api/6.0.45/servlet-api-6.0.45.jar",
         ],
         licenses = ["reciprocal"],  # Apache License, Version 2.0 and Common Development And Distribution License (CDDL) Version 1.0
@@ -2231,7 +2231,7 @@ def org_bouncycastle_bcpg_jdk15on():
         name = "org_bouncycastle_bcpg_jdk15on",
         jar_sha256 = "eb3c3744c9ad775a7afd03e9dfd3d34786c11832a93ea1143b97cc88b0344154",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/bouncycastle/bcpg-jdk15on/1.52/bcpg-jdk15on-1.52.jar",
+            "http://maven.ibiblio.org/maven2/org/bouncycastle/bcpg-jdk15on/1.52/bcpg-jdk15on-1.52.jar",
             "http://repo1.maven.org/maven2/org/bouncycastle/bcpg-jdk15on/1.52/bcpg-jdk15on-1.52.jar",
         ],
         # Bouncy Castle Licence
@@ -2247,7 +2247,7 @@ def org_bouncycastle_bcpkix_jdk15on():
         name = "org_bouncycastle_bcpkix_jdk15on",
         jar_sha256 = "8e8e9ac258051ec8d6f7f1128d0ddec800ed87b14e7a55023d0f2850b8049615",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk15on/1.52/bcpkix-jdk15on-1.52.jar",
+            "http://maven.ibiblio.org/maven2/org/bouncycastle/bcpkix-jdk15on/1.52/bcpkix-jdk15on-1.52.jar",
             "http://repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk15on/1.52/bcpkix-jdk15on-1.52.jar",
         ],
         licenses = ["notice"],  # Bouncy Castle Licence
@@ -2260,7 +2260,7 @@ def org_bouncycastle_bcprov_jdk15on():
         name = "org_bouncycastle_bcprov_jdk15on",
         jar_sha256 = "0dc4d181e4d347893c2ddbd2e6cd5d7287fc651c03648fa64b2341c7366b1773",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.52/bcprov-jdk15on-1.52.jar",
+            "http://maven.ibiblio.org/maven2/org/bouncycastle/bcprov-jdk15on/1.52/bcprov-jdk15on-1.52.jar",
             "http://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.52/bcprov-jdk15on-1.52.jar",
         ],
         licenses = ["notice"],  # Bouncy Castle Licence
@@ -2272,7 +2272,6 @@ def org_codehaus_jackson_core_asl():
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         jar_sha256 = "440a9cb5ca95b215f953d3a20a6b1a10da1f09b529a9ddea5f8a4905ddab4f5a",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/maven.ibiblio.org/maven2/org/codehaus/jackson/jackson-core-asl/1.9.13/jackson-core-asl-1.9.13.jar",
             "http://maven.ibiblio.org/maven2/org/codehaus/jackson/jackson-core-asl/1.9.13/jackson-core-asl-1.9.13.jar",
             "http://repo1.maven.org/maven2/org/codehaus/jackson/jackson-core-asl/1.9.13/jackson-core-asl-1.9.13.jar",
         ],
@@ -2284,7 +2283,6 @@ def org_codehaus_jackson_mapper_asl():
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         jar_sha256 = "74e7a07a76f2edbade29312a5a2ebccfa019128bc021ece3856d76197e9be0c2",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/maven.ibiblio.org/maven2/org/codehaus/jackson/jackson-mapper-asl/1.9.13/jackson-mapper-asl-1.9.13.jar",
             "http://maven.ibiblio.org/maven2/org/codehaus/jackson/jackson-mapper-asl/1.9.13/jackson-mapper-asl-1.9.13.jar",
             "http://repo1.maven.org/maven2/org/codehaus/jackson/jackson-mapper-asl/1.9.13/jackson-mapper-asl-1.9.13.jar",
         ],
@@ -2298,7 +2296,7 @@ def org_hamcrest_all():
         licenses = ["notice"],  # New BSD License
         jar_sha256 = "4877670629ab96f34f5f90ab283125fcd9acb7e683e66319a68be6eb2cca60de",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/hamcrest/hamcrest-all/1.3/hamcrest-all-1.3.jar",
+            "http://maven.ibiblio.org/maven2/org/hamcrest/hamcrest-all/1.3/hamcrest-all-1.3.jar",
             "http://repo1.maven.org/maven2/org/hamcrest/hamcrest-all/1.3/hamcrest-all-1.3.jar",
             "http://maven.ibiblio.org/maven2/org/hamcrest/hamcrest-all/1.3/hamcrest-all-1.3.jar",
         ],
@@ -2309,7 +2307,7 @@ def org_hamcrest_core():
         name = "org_hamcrest_core",
         jar_sha256 = "66fdef91e9739348df7a096aa384a5685f4e875584cce89386a7a47251c4d8e9",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
+            "http://maven.ibiblio.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
             "http://repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
         ],
         licenses = ["notice"],  # New BSD License
@@ -2321,7 +2319,7 @@ def org_hamcrest_library():
         name = "org_hamcrest_library",
         jar_sha256 = "711d64522f9ec410983bd310934296da134be4254a125080a0416ec178dfad1c",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar",
+            "http://maven.ibiblio.org/maven2/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar",
             "http://repo1.maven.org/maven2/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar",
         ],
         licenses = ["notice"],  # New BSD License
@@ -2334,7 +2332,7 @@ def org_joda_money():
         name = "org_joda_money",
         jar_sha256 = "d530b7f0907d91f5c98f25e91eb89ad164845412700be36b07652c07512ef8d4",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/joda/joda-money/0.10.0/joda-money-0.10.0.jar",
+            "http://maven.ibiblio.org/maven2/org/joda/joda-money/0.10.0/joda-money-0.10.0.jar",
             "http://repo1.maven.org/maven2/org/joda/joda-money/0.10.0/joda-money-0.10.0.jar",
         ],
         licenses = ["notice"],  # Apache 2
@@ -2345,7 +2343,7 @@ def org_json():
         name = "org_json",
         jar_sha256 = "bf51c9013128cb15201225e51476f60ad9116813729040655a238d2829aef8b8",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/json/json/20160810/json-20160810.jar",
+            "http://maven.ibiblio.org/maven2/org/json/json/20160810/json-20160810.jar",
             "http://repo1.maven.org/maven2/org/json/json/20160810/json-20160810.jar",
         ],
         licenses = ["notice"],  # The JSON License
@@ -2367,7 +2365,7 @@ def org_mockito_all():
         name = "org_mockito_all",
         jar_sha256 = "b2a63307d1dce3aa1623fdaacb2327a4cd7795b0066f31bf542b1e8f2683239e",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/mockito/mockito-all/1.9.5/mockito-all-1.9.5.jar",
+            "http://maven.ibiblio.org/maven2/org/mockito/mockito-all/1.9.5/mockito-all-1.9.5.jar",
             "http://repo1.maven.org/maven2/org/mockito/mockito-all/1.9.5/mockito-all-1.9.5.jar",
         ],
         licenses = ["notice"],  # The MIT License
@@ -2380,7 +2378,7 @@ def org_mortbay_jetty():
         name = "org_mortbay_jetty",
         jar_sha256 = "21091d3a9c1349f640fdc421504a604c040ed89087ecc12afbe32353326ed4e5",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/mortbay/jetty/jetty/6.1.26/jetty-6.1.26.jar",
+            "http://maven.ibiblio.org/maven2/org/mortbay/jetty/jetty/6.1.26/jetty-6.1.26.jar",
             "http://repo1.maven.org/maven2/org/mortbay/jetty/jetty/6.1.26/jetty-6.1.26.jar",
         ],
         # Apache Software License - Version 2.0
@@ -2399,7 +2397,7 @@ def org_mortbay_jetty_servlet_api():
         name = "org_mortbay_jetty_servlet_api",
         jar_sha256 = "068756096996fe00f604ac3b6672d6f663dc777ea4a83056e240d0456e77e472",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/mortbay/jetty/servlet-api/2.5-20081211/servlet-api-2.5-20081211.jar",
+            "http://maven.ibiblio.org/maven2/org/mortbay/jetty/servlet-api/2.5-20081211/servlet-api-2.5-20081211.jar",
             "http://repo1.maven.org/maven2/org/mortbay/jetty/servlet-api/2.5-20081211/servlet-api-2.5-20081211.jar",
         ],
         licenses = ["notice"],  # Apache License Version 2.0
@@ -2410,7 +2408,7 @@ def org_mortbay_jetty_util():
         name = "org_mortbay_jetty_util",
         jar_sha256 = "9b974ce2b99f48254b76126337dc45b21226f383aaed616f59780adaf167c047",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/mortbay/jetty/jetty-util/6.1.26/jetty-util-6.1.26.jar",
+            "http://maven.ibiblio.org/maven2/org/mortbay/jetty/jetty-util/6.1.26/jetty-util-6.1.26.jar",
             "http://repo1.maven.org/maven2/org/mortbay/jetty/jetty-util/6.1.26/jetty-util-6.1.26.jar",
         ],
         # Apache Software License - Version 2.0
@@ -2428,7 +2426,6 @@ def org_osgi_core():
         licenses = ["notice"],  # Apache License, Version 2.0
         jar_sha256 = "76c1f055f04987d1dc59f3efea30e548376ef7b9dadf2256b3f39600855541ab",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/maven.ibiblio.org/maven2/org/osgi/org.osgi.core/4.3.0/org.osgi.core-4.3.0.jar",
             "http://maven.ibiblio.org/maven2/org/osgi/org.osgi.core/4.3.0/org.osgi.core-4.3.0.jar",
             "http://repo1.maven.org/maven2/org/osgi/org.osgi.core/4.3.0/org.osgi.core-4.3.0.jar",
         ],
@@ -2439,7 +2436,7 @@ def org_slf4j_api():
         name = "org_slf4j_api",
         jar_sha256 = "e56288031f5e60652c06e7bb6e9fa410a61231ab54890f7b708fc6adc4107c5b",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.16/slf4j-api-1.7.16.jar",
+            "http://maven.ibiblio.org/maven2/org/slf4j/slf4j-api/1.7.16/slf4j-api-1.7.16.jar",
             "http://repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.16/slf4j-api-1.7.16.jar",
         ],
         licenses = ["notice"],  # MIT License
@@ -2451,7 +2448,6 @@ def org_tukaani_xz():
         licenses = ["unencumbered"],  # Public Domain
         jar_sha256 = "86f30fa8775fa3a62cdb39d1ed78a6019164c1058864048d42cbee244e26e840",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/maven.ibiblio.org/maven2/org/tukaani/xz/1.5/xz-1.5.jar",
             "http://maven.ibiblio.org/maven2/org/tukaani/xz/1.5/xz-1.5.jar",
             "http://repo1.maven.org/maven2/org/tukaani/xz/1.5/xz-1.5.jar",
         ],
@@ -2463,7 +2459,7 @@ def org_xerial_snappy_java():
         licenses = ["notice"],  # The Apache Software License, Version 2.0
         jar_sha256 = "18563b50e6691b37ab9428ef639a0f66def91337b3c0d9b3dcf20b0dd7ae78ba",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/xerial/snappy/snappy-java/1.1.4-M3/snappy-java-1.1.4-M3.jar",
+            "http://maven.ibiblio.org/maven2/org/xerial/snappy/snappy-java/1.1.4-M3/snappy-java-1.1.4-M3.jar",
             "http://repo1.maven.org/maven2/org/xerial/snappy/snappy-java/1.1.4-M3/snappy-java-1.1.4-M3.jar",
         ],
         deps = ["@org_osgi_core"],
@@ -2475,7 +2471,7 @@ def org_yaml_snakeyaml():
         licenses = ["notice"],  # Apache License, Version 2.0
         jar_sha256 = "5666b36f9db46f06dd5a19d73bbff3b588d5969c0f4b8848fde0f5ec849430a5",
         jar_urls = [
-            "http://domain-registry-maven.storage.googleapis.com/repo1.maven.org/maven2/org/yaml/snakeyaml/1.17/snakeyaml-1.17.jar",
+            "http://maven.ibiblio.org/maven2/org/yaml/snakeyaml/1.17/snakeyaml-1.17.jar",
             "http://repo1.maven.org/maven2/org/yaml/snakeyaml/1.17/snakeyaml-1.17.jar",
         ],
     )
