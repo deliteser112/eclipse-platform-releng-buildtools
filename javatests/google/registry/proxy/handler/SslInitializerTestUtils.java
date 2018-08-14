@@ -16,6 +16,7 @@ package google.registry.proxy.handler;
 
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.proxy.Protocol.PROTOCOL_KEY;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.collect.ImmutableList;
 import google.registry.proxy.Protocol.BackendProtocol;
@@ -32,9 +33,9 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.local.LocalAddress;
 import io.netty.channel.local.LocalChannel;
 import io.netty.channel.local.LocalServerChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+import io.netty.util.ReferenceCountUtil;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
@@ -45,7 +46,7 @@ import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.concurrent.locks.Lock;
+import java.util.concurrent.CountDownLatch;
 import javax.net.ssl.SSLSession;
 import javax.security.auth.x500.X500Principal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -61,43 +62,25 @@ public class SslInitializerTestUtils {
     Security.addProvider(new BouncyCastleProvider());
   }
 
-  /**
-   * Sets up a server channel bound to the given local address.
-   *
-   * @return the event loop group used to process incoming connections.
-   */
-  static EventLoopGroup setUpServer(
-      ChannelInitializer<LocalChannel> serverInitializer, LocalAddress localAddress)
-      throws Exception {
-    // Only use one thread in the event loop group. The same event loop group will be used to
-    // register client channels during setUpClient as well. This ensures that all I/O activities
-    // in both channels happen in the same thread, making debugging easier (i. e. no need to jump
-    // between threads when debugging, everything happens synchronously within the only I/O thread
-    // effectively). Note that the main thread is still separate from the I/O thread and
-    // synchronization (using the lock field) is still needed when the main thread needs to verify
-    // properties calculated by the I/O thread.
-    EventLoopGroup eventLoopGroup = new NioEventLoopGroup(1);
+  /** Sets up a server channel bound to the given local address. */
+  static void setUpServer(
+      EventLoopGroup eventLoopGroup,
+      ChannelInitializer<LocalChannel> serverInitializer,
+      LocalAddress localAddress) {
     ServerBootstrap sb =
         new ServerBootstrap()
             .group(eventLoopGroup)
             .channel(LocalServerChannel.class)
             .childHandler(serverInitializer);
     ChannelFuture unusedFuture = sb.bind(localAddress).syncUninterruptibly();
-    return eventLoopGroup;
   }
 
-  /**
-   * Sets up a client channel connecting to the give local address.
-   *
-   * @param eventLoopGroup the same {@link EventLoopGroup} that is used to bootstrap server.
-   * @return the connected client channel.
-   */
+  /** Sets up a client channel connecting to the give local address. */
   static Channel setUpClient(
       EventLoopGroup eventLoopGroup,
       ChannelInitializer<LocalChannel> clientInitializer,
       LocalAddress localAddress,
-      BackendProtocol protocol)
-      throws Exception {
+      BackendProtocol protocol) {
     Bootstrap b =
         new Bootstrap()
             .group(eventLoopGroup)
@@ -107,98 +90,102 @@ public class SslInitializerTestUtils {
     return b.connect(localAddress).syncUninterruptibly().channel();
   }
 
-  /** A handler that echoes back its inbound message. Used in test server. */
+  /**
+   * A handler that echoes back its inbound message. The message is also saved in a promise for
+   * inspection later.
+   */
   static class EchoHandler extends ChannelInboundHandlerAdapter {
 
-    /**
-     * A lock that synchronizes server I/O activity with the main thread. Acquired by the server I/O
-     * thread when the handler is constructed, released when the server echoes back, or when an
-     * exception is caught (during SSH handshake for example).
-     */
-    private final Lock lock;
+    private final CountDownLatch latch = new CountDownLatch(1);
+    private String request;
+    private Throwable cause;
 
-    /**
-     * Exception that would be initialized with the exception caught during SSL handshake. This
-     * field is constructed in the main thread and passed in the constructor. After a failure the
-     * main thread can inspect this object to assert the cause of the failure.
-     */
-    private final Exception serverException;
+    void waitTillReady() throws InterruptedException {
+      latch.await();
+    }
 
-    EchoHandler(Lock lock, Exception serverException) {
-      // This handler is constructed within getClientInitializer, which is called in the I/O thread.
-      // The server lock is therefore locked by the I/O thread.
-      lock.lock();
-      this.lock = lock;
-      this.serverException = serverException;
+    String getRequest() {
+      return request;
+    }
+
+    Throwable getCause() {
+      return cause;
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-      // Always unlock regardless of whether the write is successful.
-      ctx.writeAndFlush(msg).addListener(future -> lock.unlock());
+      // In the test we only send messages of type ByteBuf.
+      assertThat(msg).isInstanceOf(ByteBuf.class);
+      request = ((ByteBuf) msg).toString(UTF_8);
+      // After the message is written back to the client, fulfill the promise.
+      ChannelFuture unusedFuture = ctx.writeAndFlush(msg).addListener(f -> latch.countDown());
     }
 
-    /** Saves any inbound error into the server exception field. */
+    /** Saves any inbound error as the cause of the promise failure. */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-      serverException.initCause(cause);
-      // If an exception is caught, we should also release the lock after the channel is closed
-      // so that the main thread knows there is an exception to inspect now.
-      ctx.channel().closeFuture().addListener(f -> lock.unlock());
+      this.cause = cause;
+      ChannelFuture unusedFuture =
+          ctx.channel()
+              .closeFuture()
+              .addListener(
+                  // Apparently the JDK SSL provider will call #exceptionCaught twice with the same
+                  // exception when the handshake fails. In this case the second listener should not
+                  // set the promise again.
+                  f -> {
+                    if (latch.getCount() == 1) {
+                      latch.countDown();
+                    }
+                  });
     }
   }
 
-  /** A handler that dumps its inbound message in to {@link ByteBuf}. */
+  /** A handler that dumps its inbound message to a promise that can be inspected later. */
   static class DumpHandler extends ChannelInboundHandlerAdapter {
 
-    /**
-     * A lock that synchronizes client I/O activity with the main thread. Acquired by the client I/O
-     * thread when the handler is constructed, released when the client receives an response, or
-     * when an exception is caught (during SSH handshake for example).
-     */
-    private final Lock lock;
+    private final CountDownLatch latch = new CountDownLatch(1);
+    private String response;
+    private Throwable cause;
 
-    /**
-     * A Buffer that is used to store incoming message. Constructed in the main thread and passed in
-     * the constructor. The main thread can inspect this object to assert that the incoming message
-     * is as expected.
-     */
-    private final ByteBuf buffer;
+    void waitTillReady() throws InterruptedException {
+      latch.await();
+    }
 
-    /**
-     * Exception that would be initialized with the exception caught during SSL handshake. This
-     * field is constructed in the main thread and passed in the constructor. After a failure the
-     * main thread can inspect this object to assert the cause of the failure.
-     */
-    private final Exception clientException;
+    String getResponse() {
+      return response;
+    }
 
-    DumpHandler(Lock lock, ByteBuf buffer, Exception clientException) {
-      super();
-      // This handler is constructed within getClientInitializer, which is called in the I/O thread.
-      // The client lock is therefore locked by the I/O thread.
-      lock.lock();
-      this.lock = lock;
-      this.buffer = buffer;
-      this.clientException = clientException;
+    Throwable getCause() {
+      return cause;
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-      buffer.writeBytes((ByteBuf) msg);
-      // If a message is received here, the main thread must be waiting to acquire the lock from
-      // the I/O thread in order to verify it. Releasing the lock to notify the main thread it can
-      // continue now that the message has been written.
-      lock.unlock();
+      // In the test we only send messages of type ByteBuf.
+      assertThat(msg).isInstanceOf(ByteBuf.class);
+      response = ((ByteBuf) msg).toString(UTF_8);
+      // There is no more use of this message, we should release its reference count so that it
+      // can be more effectively garbage collected by Netty.
+      ReferenceCountUtil.release(msg);
+      // Save the string in the promise and make it as complete.
+      latch.countDown();
     }
 
-    /** Saves any inbound error into clientException. */
+    /** Saves any inbound error into the failure cause of the promise. */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-      clientException.initCause(cause);
-      // If an exception is caught here, the main thread must be waiting to acquire the lock from
-      // the I/O thread in order to verify it. Releasing the lock after the channel is closed to
-      // notify the main thread it can continue now that the exception has been written.
-      ctx.channel().closeFuture().addListener(f -> lock.unlock());
+      this.cause = cause;
+      ctx.channel()
+          .closeFuture()
+          .addListener(
+              f -> {
+                // Apparently the JDK SSL provider will call #exceptionCaught twice with the same
+                // exception when the handshake fails. In this case the second listener should not
+                // set the promise again.
+                if (latch.getCount() == 1) {
+                  latch.countDown();
+                }
+              });
     }
   }
 
@@ -237,9 +224,8 @@ public class SslInitializerTestUtils {
   static SSLSession verifySslChannel(
       Channel channel,
       ImmutableList<X509Certificate> certs,
-      Lock clientLock,
-      Lock serverLock,
-      ByteBuf buffer)
+      EchoHandler echoHandler,
+      DumpHandler dumpHandler)
       throws Exception {
     SslHandler sslHandler = channel.pipeline().get(SslHandler.class);
     // Wait till the handshake is complete.
@@ -254,18 +240,24 @@ public class SslInitializerTestUtils {
 
     // Test that message can go through, bound inbound and outbound.
     String inputString = "Hello, world!";
-    // The client writes the message to the server, which echos it back. The client receives the
-    // echo and writes to BUFFER. All these activities happens in the I/O thread, and this call
-    // returns immediately.
+    // The client writes the message to the server, which echos it back and saves the string in its
+    // promise. The client receives the echo and saves it in its promise. All these activities
+    // happens in the I/O thread, and this call itself returns immediately.
     ChannelFuture unusedFuture =
         channel.writeAndFlush(
             Unpooled.wrappedBuffer(inputString.getBytes(StandardCharsets.US_ASCII)));
-    // The lock is acquired by the I/O thread when the client's DumpHandler is constructed.
-    // Attempting to acquire it here blocks the main thread, until the I/O thread releases the lock
-    // after the DumpHandler writes the echo back to the buffer.
-    clientLock.lock();
-    serverLock.lock();
-    assertThat(buffer.toString(StandardCharsets.US_ASCII)).isEqualTo(inputString);
+
+    // Wait for both the server and the client to finish processing.
+    echoHandler.waitTillReady();
+    dumpHandler.waitTillReady();
+
+    // Checks that the message is transmitted faithfully.
+    String requestReceived = echoHandler.getRequest();
+    String responseReceived = dumpHandler.getResponse();
+    assertThat(inputString).isEqualTo(requestReceived);
+    assertThat(inputString).isEqualTo(responseReceived);
+
+    // Returns the SSL session for further assertion.
     return sslHandler.engine().getSession();
   }
 }

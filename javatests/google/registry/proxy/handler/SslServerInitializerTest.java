@@ -28,8 +28,6 @@ import google.registry.proxy.Protocol;
 import google.registry.proxy.Protocol.BackendProtocol;
 import google.registry.proxy.handler.SslInitializerTestUtils.DumpHandler;
 import google.registry.proxy.handler.SslInitializerTestUtils.EchoHandler;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
@@ -38,23 +36,22 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.channel.local.LocalAddress;
 import io.netty.channel.local.LocalChannel;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.ssl.OpenSsl;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
-import io.netty.util.concurrent.Future;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSession;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -93,6 +90,7 @@ public class SslServerInitializerTest {
   @Parameter(0)
   public SslProvider sslProvider;
 
+  // We do our best effort to test all available SSL providers.
   @Parameters(name = "{0}")
   public static SslProvider[] data() {
     return OpenSsl.isAvailable()
@@ -100,16 +98,27 @@ public class SslServerInitializerTest {
         : new SslProvider[] {SslProvider.JDK};
   }
 
+  // All I/O operations are done inside the single thread within this event loop group, which is
+  // different from the main test thread. Therefore synchronizations are required to make sure that
+  // certain I/O activities are finished when assertions are performed.
+  private final EventLoopGroup eventLoopGroup = new NioEventLoopGroup(1);
+
+  // Handler attached to server's channel to record the request received.
+  private final EchoHandler echoHandler = new EchoHandler();
+
+  // Handler attached to client's channel to record the response received.
+  private final DumpHandler dumpHandler = new DumpHandler();
+
+  @After
+  public void shutDown() {
+    eventLoopGroup.shutdownGracefully().getNow();
+  }
+
   private ChannelInitializer<LocalChannel> getServerInitializer(
-      boolean requireClientCert,
-      Lock serverLock,
-      Exception serverException,
-      PrivateKey privateKey,
-      X509Certificate... certificates)
-      throws Exception {
+      boolean requireClientCert, PrivateKey privateKey, X509Certificate... certificates) {
     return new ChannelInitializer<LocalChannel>() {
       @Override
-      protected void initChannel(LocalChannel ch) throws Exception {
+      protected void initChannel(LocalChannel ch) {
         ch.pipeline()
             .addLast(
                 new SslServerInitializer<LocalChannel>(
@@ -117,27 +126,18 @@ public class SslServerInitializerTest {
                     sslProvider,
                     Suppliers.ofInstance(privateKey),
                     Suppliers.ofInstance(certificates)),
-                new EchoHandler(serverLock, serverException));
+                echoHandler);
       }
     };
   }
 
   private ChannelInitializer<LocalChannel> getServerInitializer(
-      Lock serverLock,
-      Exception serverException,
-      PrivateKey privateKey,
-      X509Certificate... certificates)
-      throws Exception {
-    return getServerInitializer(true, serverLock, serverException, privateKey, certificates);
+      PrivateKey privateKey, X509Certificate... certificates) {
+    return getServerInitializer(true, privateKey, certificates);
   }
 
   private ChannelInitializer<LocalChannel> getClientInitializer(
-      X509Certificate trustedCertificate,
-      PrivateKey privateKey,
-      X509Certificate certificate,
-      Lock clientLock,
-      ByteBuf buffer,
-      Exception clientException) {
+      X509Certificate trustedCertificate, PrivateKey privateKey, X509Certificate certificate) {
     return new ChannelInitializer<LocalChannel>() {
       @Override
       protected void initChannel(LocalChannel ch) throws Exception {
@@ -155,8 +155,7 @@ public class SslServerInitializerTest {
         sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
         sslEngine.setSSLParameters(sslParameters);
 
-        ch.pipeline().addLast("Client SSL Handler", sslHandler);
-        ch.pipeline().addLast(new DumpHandler(clientLock, buffer, clientException));
+        ch.pipeline().addLast(sslHandler, dumpHandler);
       }
     };
   }
@@ -184,72 +183,49 @@ public class SslServerInitializerTest {
   public void testSuccess_trustAnyClientCert() throws Exception {
     SelfSignedCertificate serverSsc = new SelfSignedCertificate(SSL_HOST);
     LocalAddress localAddress = new LocalAddress("TRUST_ANY_CLIENT_CERT_" + sslProvider);
-    Lock clientLock = new ReentrantLock();
-    Lock serverLock = new ReentrantLock();
-    ByteBuf buffer = Unpooled.buffer();
-    Exception clientException = new Exception();
-    Exception serverException = new Exception();
-    EventLoopGroup eventLoopGroup =
-        setUpServer(
-            getServerInitializer(serverLock, serverException, serverSsc.key(), serverSsc.cert()),
-            localAddress);
+
+    setUpServer(
+        eventLoopGroup, getServerInitializer(serverSsc.key(), serverSsc.cert()), localAddress);
     SelfSignedCertificate clientSsc = new SelfSignedCertificate();
     Channel channel =
         setUpClient(
             eventLoopGroup,
-            getClientInitializer(
-                serverSsc.cert(),
-                clientSsc.key(),
-                clientSsc.cert(),
-                clientLock,
-                buffer,
-                clientException),
+            getClientInitializer(serverSsc.cert(), clientSsc.key(), clientSsc.cert()),
             localAddress,
             PROTOCOL);
 
     SSLSession sslSession =
-        verifySslChannel(
-            channel, ImmutableList.of(serverSsc.cert()), clientLock, serverLock, buffer);
+        verifySslChannel(channel, ImmutableList.of(serverSsc.cert()), echoHandler, dumpHandler);
     // Verify that the SSL session gets the client cert. Note that this SslSession is for the client
     // channel, therefore its local certificates are the remote certificates of the SslSession for
     // the server channel, and vice versa.
     assertThat(sslSession.getLocalCertificates()).asList().containsExactly(clientSsc.cert());
     assertThat(sslSession.getPeerCertificates()).asList().containsExactly(serverSsc.cert());
-
-    Future<?> unusedFuture = eventLoopGroup.shutdownGracefully().syncUninterruptibly();
   }
 
   @Test
   public void testSuccess_doesNotRequireClientCert() throws Exception {
     SelfSignedCertificate serverSsc = new SelfSignedCertificate(SSL_HOST);
     LocalAddress localAddress = new LocalAddress("DOES_NOT_REQUIRE_CLIENT_CERT_" + sslProvider);
-    Lock clientLock = new ReentrantLock();
-    Lock serverLock = new ReentrantLock();
-    ByteBuf buffer = Unpooled.buffer();
-    Exception clientException = new Exception();
-    Exception serverException = new Exception();
-    EventLoopGroup eventLoopGroup =
-        setUpServer(
-            getServerInitializer(
-                false, serverLock, serverException, serverSsc.key(), serverSsc.cert()),
-            localAddress);
+
+    setUpServer(
+        eventLoopGroup,
+        getServerInitializer(false, serverSsc.key(), serverSsc.cert()),
+        localAddress);
     Channel channel =
         setUpClient(
             eventLoopGroup,
-            getClientInitializer(serverSsc.cert(), null, null, clientLock, buffer, clientException),
+            getClientInitializer(serverSsc.cert(), null, null),
             localAddress,
             PROTOCOL);
 
     SSLSession sslSession =
-        verifySslChannel(
-            channel, ImmutableList.of(serverSsc.cert()), clientLock, serverLock, buffer);
+        verifySslChannel(channel, ImmutableList.of(serverSsc.cert()), echoHandler, dumpHandler);
     // Verify that the SSL session does not contain any client cert. Note that this SslSession is
     // for the client channel, therefore its local certificates are the remote certificates of the
     // SslSession for the server channel, and vice versa.
     assertThat(sslSession.getLocalCertificates()).isNull();
     assertThat(sslSession.getPeerCertificates()).asList().containsExactly(serverSsc.cert());
-
-    Future<?> unusedFuture = eventLoopGroup.shutdownGracefully().syncUninterruptibly();
   }
 
   @Test
@@ -259,62 +235,43 @@ public class SslServerInitializerTest {
     KeyPair keyPair = getKeyPair();
     X509Certificate serverCert = signKeyPair(caSsc, keyPair, SSL_HOST);
     LocalAddress localAddress = new LocalAddress("CERT_SIGNED_BY_OTHER_CA_" + sslProvider);
-    Lock clientLock = new ReentrantLock();
-    Lock serverLock = new ReentrantLock();
-    ByteBuf buffer = Unpooled.buffer();
-    Exception clientException = new Exception();
-    Exception serverException = new Exception();
-    EventLoopGroup eventLoopGroup =
-        setUpServer(
-            getServerInitializer(
-                serverLock,
-                serverException,
-                keyPair.getPrivate(),
-                // Serving both the server cert, and the CA cert
-                serverCert,
-                caSsc.cert()),
-            localAddress);
+
+    setUpServer(
+        eventLoopGroup,
+        getServerInitializer(
+            keyPair.getPrivate(),
+            // Serving both the server cert, and the CA cert
+            serverCert,
+            caSsc.cert()),
+        localAddress);
     SelfSignedCertificate clientSsc = new SelfSignedCertificate();
     Channel channel =
         setUpClient(
             eventLoopGroup,
             getClientInitializer(
                 // Client trusts the CA cert
-                caSsc.cert(),
-                clientSsc.key(),
-                clientSsc.cert(),
-                clientLock,
-                buffer,
-                clientException),
+                caSsc.cert(), clientSsc.key(), clientSsc.cert()),
             localAddress,
             PROTOCOL);
 
     SSLSession sslSession =
         verifySslChannel(
-            channel, ImmutableList.of(serverCert, caSsc.cert()), clientLock, serverLock, buffer);
+            channel, ImmutableList.of(serverCert, caSsc.cert()), echoHandler, dumpHandler);
 
     assertThat(sslSession.getLocalCertificates()).asList().containsExactly(clientSsc.cert());
     assertThat(sslSession.getPeerCertificates())
         .asList()
         .containsExactly(serverCert, caSsc.cert())
         .inOrder();
-
-    Future<?> unusedFuture = eventLoopGroup.shutdownGracefully().syncUninterruptibly();
   }
 
   @Test
   public void testFailure_requireClientCertificate() throws Exception {
     SelfSignedCertificate serverSsc = new SelfSignedCertificate(SSL_HOST);
     LocalAddress localAddress = new LocalAddress("REQUIRE_CLIENT_CERT_" + sslProvider);
-    Lock clientLock = new ReentrantLock();
-    Lock serverLock = new ReentrantLock();
-    ByteBuf buffer = Unpooled.buffer();
-    Exception clientException = new Exception();
-    Exception serverException = new Exception();
-    EventLoopGroup eventLoopGroup =
-        setUpServer(
-            getServerInitializer(serverLock, serverException, serverSsc.key(), serverSsc.cert()),
-            localAddress);
+
+    setUpServer(
+        eventLoopGroup, getServerInitializer(serverSsc.key(), serverSsc.cert()), localAddress);
     Channel channel =
         setUpClient(
             eventLoopGroup,
@@ -322,62 +279,45 @@ public class SslServerInitializerTest {
                 serverSsc.cert(),
                 // No client cert/private key used.
                 null,
-                null,
-                clientLock,
-                buffer,
-                clientException),
+                null),
             localAddress,
             PROTOCOL);
 
-    serverLock.lock();
-    clientLock.lock();
+    echoHandler.waitTillReady();
+    dumpHandler.waitTillReady();
 
-    // When the server rejects the client during handshake due to lack of client certificate, only
-    // the server throws an exception.
-    assertThat(Throwables.getRootCause(serverException)).isInstanceOf(SSLHandshakeException.class);
+    // When the server rejects the client during handshake due to lack of client certificate, both
+    // should throw exceptions.
+    assertThat(Throwables.getRootCause(echoHandler.getCause()))
+        .isInstanceOf(SSLHandshakeException.class);
+    assertThat(Throwables.getRootCause(dumpHandler.getCause())).isInstanceOf(SSLException.class);
     assertThat(channel.isActive()).isFalse();
-
-    Future<?> unusedFuture = eventLoopGroup.shutdownGracefully().syncUninterruptibly();
   }
 
   @Test
   public void testFailure_wrongHostnameInCertificate() throws Exception {
     SelfSignedCertificate serverSsc = new SelfSignedCertificate("wrong.com");
     LocalAddress localAddress = new LocalAddress("WRONG_HOSTNAME_" + sslProvider);
-    Lock clientLock = new ReentrantLock();
-    Lock serverLock = new ReentrantLock();
-    ByteBuf buffer = Unpooled.buffer();
-    Exception clientException = new Exception();
-    Exception serverException = new Exception();
-    EventLoopGroup eventLoopGroup =
-        setUpServer(
-            getServerInitializer(serverLock, serverException, serverSsc.key(), serverSsc.cert()),
-            localAddress);
+
+    setUpServer(
+        eventLoopGroup, getServerInitializer(serverSsc.key(), serverSsc.cert()), localAddress);
     SelfSignedCertificate clientSsc = new SelfSignedCertificate();
     Channel channel =
         setUpClient(
             eventLoopGroup,
-            getClientInitializer(
-                serverSsc.cert(),
-                clientSsc.key(),
-                clientSsc.cert(),
-                clientLock,
-                buffer,
-                clientException),
+            getClientInitializer(serverSsc.cert(), clientSsc.key(), clientSsc.cert()),
             localAddress,
             PROTOCOL);
 
-    serverLock.lock();
-    clientLock.lock();
+    echoHandler.waitTillReady();
+    dumpHandler.waitTillReady();
 
-    // When the client rejects the server cert due to wrong hostname, the client error is wrapped
-    // several layers in the exception. The server also throws an exception.
-    Throwable rootCause = Throwables.getRootCause(clientException);
+    // When the client rejects the server cert due to wrong hostname, both the server and the client
+    // throw exceptions.
+    Throwable rootCause = Throwables.getRootCause(dumpHandler.getCause());
     assertThat(rootCause).isInstanceOf(CertificateException.class);
     assertThat(rootCause).hasMessageThat().contains(SSL_HOST);
-    assertThat(Throwables.getRootCause(serverException)).isInstanceOf(SSLException.class);
+    assertThat(Throwables.getRootCause(echoHandler.getCause())).isInstanceOf(SSLException.class);
     assertThat(channel.isActive()).isFalse();
-
-    Future<?> unusedFuture = eventLoopGroup.shutdownGracefully().syncUninterruptibly();
   }
 }
