@@ -22,6 +22,7 @@ import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION;
 import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
 import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_PLAIN;
 import static io.netty.handler.codec.http.HttpMethod.GET;
+import static io.netty.handler.codec.http.HttpMethod.HEAD;
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
 import static io.netty.handler.codec.http.HttpResponseStatus.FOUND;
@@ -32,6 +33,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -39,6 +41,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpUtil;
 import java.time.Duration;
@@ -75,6 +78,7 @@ public class WebWhoisRedirectHandler extends SimpleChannelInboundHandler<HttpReq
 
   private static final String HSTS_HEADER_NAME = "Strict-Transport-Security";
   private static final Duration HSTS_MAX_AGE = Duration.ofDays(365);
+  private static final ImmutableList<HttpMethod> ALLOWED_METHODS = ImmutableList.of(GET, HEAD);
 
   private final boolean isHttps;
   private final String redirectHost;
@@ -87,8 +91,7 @@ public class WebWhoisRedirectHandler extends SimpleChannelInboundHandler<HttpReq
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, HttpRequest msg) {
     FullHttpResponse response;
-    // We only support GET, any other HTTP method should result in 405 error.
-    if (!msg.method().equals(GET)) {
+    if (!ALLOWED_METHODS.contains(msg.method())) {
       response = new DefaultFullHttpResponse(HTTP_1_1, METHOD_NOT_ALLOWED);
     } else if (Strings.isNullOrEmpty(msg.headers().get(HOST))) {
       response = new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST);

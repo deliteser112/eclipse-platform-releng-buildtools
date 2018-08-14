@@ -62,7 +62,7 @@ public class WebWhoisRedirectHandlerTest {
   // HTTP redirect tests.
 
   @Test
-  public void testSuccess_http_notGet() {
+  public void testSuccess_http_methodNotAllowed() {
     setupChannel(false);
     request = makeHttpPostRequest("", TARGET_HOST, "/");
     // No inbound message passed to the next handler.
@@ -156,7 +156,7 @@ public class WebWhoisRedirectHandlerTest {
   // HTTPS redirect tests.
 
   @Test
-  public void testSuccess_https_notGet() {
+  public void testSuccess_https_methodNotAllowed() {
     setupChannel(true);
     request = makeHttpPostRequest("", TARGET_HOST, "/");
     // No inbound message passed to the next handler.

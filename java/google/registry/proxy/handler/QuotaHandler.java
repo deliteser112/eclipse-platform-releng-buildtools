@@ -79,10 +79,7 @@ public abstract class QuotaHandler extends ChannelInboundHandlerAdapter {
 
   static class OverQuotaException extends Exception {
     OverQuotaException(String protocol, String userId) {
-      super(
-          String.format(
-              "\nPROTOCOL: %s\nUSER ID: %s\nQuota exceeded, terminating connection.",
-              protocol, userId));
+      super(String.format("Quota exceeded for: PROTOCOL: %s, USER ID: %s", protocol, userId));
     }
   }
 

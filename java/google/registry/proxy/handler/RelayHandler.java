@@ -17,6 +17,7 @@ package google.registry.proxy.handler;
 import static google.registry.proxy.Protocol.PROTOCOL_KEY;
 
 import com.google.common.flogger.FluentLogger;
+import google.registry.proxy.handler.QuotaHandler.OverQuotaException;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
@@ -67,6 +68,17 @@ public class RelayHandler<I> extends SimpleChannelInboundHandler<I> {
       ChannelFuture unusedFuture = channel.close();
     } else {
       writeToRelayChannel(channel, relayChannel, msg, false);
+    }
+  }
+
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+    if (cause instanceof OverQuotaException) {
+      logger.atWarning().withCause(cause).log(
+          "Channel %s closed due to quota exceeded", ctx.channel());
+      ChannelFuture unusedFuture = ctx.close();
+    } else {
+      ctx.fireExceptionCaught(cause);
     }
   }
 
