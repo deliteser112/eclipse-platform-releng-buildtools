@@ -19,14 +19,16 @@ import static google.registry.proxy.TestUtils.assertHttpRequestEquivalent;
 import static google.registry.proxy.TestUtils.makeEppHttpResponse;
 import static google.registry.proxy.handler.ProxyProtocolHandler.REMOTE_ADDRESS_KEY;
 import static google.registry.proxy.handler.SslServerInitializer.CLIENT_CERTIFICATE_PROMISE_KEY;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.X509Utils.getCertificateHash;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import com.google.common.base.Throwables;
 import google.registry.proxy.TestUtils;
+import google.registry.proxy.handler.HttpsRelayServiceHandler.NonOkHttpResponseException;
 import google.registry.proxy.metric.FrontendMetrics;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -248,7 +250,7 @@ public class EppServiceHandlerTest {
     response.headers().set("Epp-Session", "close");
     channel.writeOutbound(response);
     ByteBuf expectedResponse = channel.readOutbound();
-    assertThat(expectedResponse).isEqualTo(Unpooled.wrappedBuffer(content.getBytes(UTF_8)));
+    assertThat(Unpooled.wrappedBuffer(content.getBytes(UTF_8))).isEqualTo(expectedResponse);
     // Nothing further to pass to the next handler.
     assertThat((Object) channel.readOutbound()).isNull();
     // Channel is disconnected.
@@ -259,14 +261,16 @@ public class EppServiceHandlerTest {
   public void testFailure_disconnectOnNonOKResponseStatus() throws Exception {
     setHandshakeSuccess();
     String content = "<epp>stuff</epp>";
-    try {
-      channel.writeOutbound(makeEppHttpResponse(content, HttpResponseStatus.BAD_REQUEST));
-      fail("Expected EncoderException");
-    } catch (EncoderException e) {
-      assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
-      assertThat(e).hasMessageThat().contains(HttpResponseStatus.BAD_REQUEST.toString());
-      assertThat(channel.isActive()).isFalse();
-    }
+    EncoderException thrown =
+        assertThrows(
+            EncoderException.class,
+            () ->
+                channel.writeOutbound(
+                    makeEppHttpResponse(content, HttpResponseStatus.BAD_REQUEST)));
+    assertThat(Throwables.getRootCause(thrown)).isInstanceOf(NonOkHttpResponseException.class);
+    assertThat(thrown).hasMessageThat().contains(HttpResponseStatus.BAD_REQUEST.toString());
+    assertThat((Object) channel.readOutbound()).isNull();
+    assertThat(channel.isActive()).isFalse();
   }
 
   @Test

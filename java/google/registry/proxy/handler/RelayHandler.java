@@ -66,39 +66,51 @@ public class RelayHandler<I> extends SimpleChannelInboundHandler<I> {
       logger.atSevere().log("Relay channel not specified for channel: %s", channel);
       ChannelFuture unusedFuture = channel.close();
     } else {
-      writeToRelayChannel(channel, relayChannel, msg);
+      writeToRelayChannel(channel, relayChannel, msg, false);
     }
   }
 
-  public static void writeToRelayChannel(Channel channel, Channel relayChannel, Object msg) {
+  public static void writeToRelayChannel(
+      Channel channel, Channel relayChannel, Object msg, boolean retry) {
     ChannelFuture unusedFuture =
         relayChannel
             .writeAndFlush(msg)
             .addListener(
                 future -> {
                   if (!future.isSuccess()) {
-                    logger.atWarning().log(
-                        "Relay failed: %s --> %s\nINBOUND: %s\nOUTBOUND: %s",
+                    // TODO (jianglai): do not log the message once retry behavior is confirmed.
+                    logger.atWarning().withCause(future.cause()).log(
+                        "Relay failed: %s --> %s\nINBOUND: %s\nOUTBOUND: %s\nMESSAGE: %s",
                         channel.attr(PROTOCOL_KEY).get().name(),
                         relayChannel.attr(PROTOCOL_KEY).get().name(),
                         channel,
-                        relayChannel);
+                        relayChannel,
+                        msg);
                     // If we cannot write to the relay channel and the originating channel has
                     // a relay buffer (i. e. we tried to relay the frontend to the backend), store
-                    // the message in the buffer for retry later. Otherwise, we are relaying from
-                    // the backend to the frontend, and this relay failure cannot be recovered
-                    // from, we should just kill the relay (frontend) channel, which in turn will
-                    // kill the backend channel. We should not kill any backend channel while the
-                    // the frontend channel is open, because that will just trigger a reconnect.
-                    // It is fine to just save the message object itself, not a clone of it,
-                    // because if the relay is not successful, its content is not read, therefore
-                    // its buffer is not cleared.
+                    // the message in the buffer for retry later. The relay channel (backend) should
+                    // be killed (if it is not already dead, usually the relay is unsuccessful
+                    // because the connection is closed), and a new backend channel will re-connect
+                    // as long as the frontend channel is open. Otherwise, we are relaying from the
+                    // backend to the frontend, and this relay failure cannot be recovered from: we
+                    // should just kill the relay (frontend) channel, which in turn will kill the
+                    // backend channel. It is fine to just save the message object itself, not a
+                    // clone of it, because if the relay is not successful, its content is not read,
+                    // therefore its buffer is not cleared.
                     Queue<Object> relayBuffer = channel.attr(RELAY_BUFFER_KEY).get();
                     if (relayBuffer != null) {
                       channel.attr(RELAY_BUFFER_KEY).get().add(msg);
-                    } else {
-                      ChannelFuture unusedFuture2 = relayChannel.close();
                     }
+                    ChannelFuture unusedFuture2 = relayChannel.close();
+                  } else if (retry) {
+                    // TODO (jianglai): do not log the message once retry behavior is confirmed.
+                    logger.atInfo().log(
+                        "Relay retry succeeded: %s --> %s\nINBOUND: %s\nOUTBOUND: %s\nsMESSAGE: %s",
+                        channel.attr(PROTOCOL_KEY).get().name(),
+                        relayChannel.attr(PROTOCOL_KEY).get().name(),
+                        channel,
+                        relayChannel,
+                        msg);
                   }
                 });
   }

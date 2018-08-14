@@ -17,8 +17,8 @@ package google.registry.proxy;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.proxy.handler.SslInitializerTestUtils.getKeyPair;
 import static google.registry.proxy.handler.SslInitializerTestUtils.signKeyPair;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.junit.Assert.fail;
 
 import dagger.Component;
 import dagger.Module;
@@ -94,48 +94,36 @@ public class CertificateModuleTest {
   public void testFailure_noPrivateKey() throws Exception {
     byte[] pemBytes = getPemBytes(cert, ssc.cert());
     component = createComponent(pemBytes);
-    try {
-      component.privateKey();
-      fail("Expect IllegalStateException.");
-    } catch (IllegalStateException e) {
-      assertThat(e).hasMessageThat().contains("0 keys are found");
-    }
+    IllegalStateException thrown =
+        assertThrows(IllegalStateException.class, () -> component.privateKey());
+    assertThat(thrown).hasMessageThat().contains("0 keys are found");
   }
 
   @Test
   public void testFailure_twoPrivateKeys() throws Exception {
     byte[] pemBytes = getPemBytes(cert, ssc.cert(), key, ssc.key());
     component = createComponent(pemBytes);
-    try {
-      component.privateKey();
-      fail("Expect IllegalStateException.");
-    } catch (IllegalStateException e) {
-      assertThat(e).hasMessageThat().contains("2 keys are found");
-    }
+    IllegalStateException thrown =
+        assertThrows(IllegalStateException.class, () -> component.privateKey());
+    assertThat(thrown).hasMessageThat().contains("2 keys are found");
   }
 
   @Test
   public void testFailure_certificatesOutOfOrder() throws Exception {
     byte[] pemBytes = getPemBytes(ssc.cert(), cert, key);
     component = createComponent(pemBytes);
-    try {
-      component.certificates();
-      fail("Expect IllegalStateException.");
-    } catch (IllegalStateException e) {
-      assertThat(e).hasMessageThat().contains("is not signed by");
-    }
+    IllegalStateException thrown =
+        assertThrows(IllegalStateException.class, () -> component.certificates());
+    assertThat(thrown).hasMessageThat().contains("is not signed by");
   }
 
   @Test
   public void testFailure_noCertificates() throws Exception {
     byte[] pemBytes = getPemBytes(key);
     component = createComponent(pemBytes);
-    try {
-      component.certificates();
-      fail("Expect IllegalStateException.");
-    } catch (IllegalStateException e) {
-      assertThat(e).hasMessageThat().contains("No certificates");
-    }
+    IllegalStateException thrown =
+        assertThrows(IllegalStateException.class, () -> component.certificates());
+    assertThat(thrown).hasMessageThat().contains("No certificates");
   }
 
   @Module

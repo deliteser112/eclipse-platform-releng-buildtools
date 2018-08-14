@@ -14,13 +14,14 @@
 
 package google.registry.proxy.handler;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.flogger.FluentLogger;
 import google.registry.proxy.metric.FrontendMetrics;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
@@ -58,9 +59,15 @@ import javax.net.ssl.SSLHandshakeException;
  * <p>This handler is session aware and will store all the session cookies that the are contained in
  * the HTTP response headers, which are added back to headers of subsequent HTTP requests.
  */
-abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpResponse> {
+public abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpResponse> {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  protected static final ImmutableSet<Class<? extends Exception>> NON_FATAL_INBOUND_EXCEPTIONS =
+      ImmutableSet.of(ReadTimeoutException.class, SSLHandshakeException.class);
+
+  protected static final ImmutableSet<Class<? extends Exception>> NON_FATAL_OUTBOUND_EXCEPTIONS =
+      ImmutableSet.of(NonOkHttpResponseException.class);
 
   private final Map<String, Cookie> cookieStore = new LinkedHashMap<>();
   private final String relayHost;
@@ -153,12 +160,9 @@ abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpRespo
   @Override
   protected void encode(ChannelHandlerContext ctx, FullHttpResponse response, ByteBuf byteBuf)
       throws Exception {
-    checkArgument(
-        response.status().equals(HttpResponseStatus.OK),
-        "Cannot relay HTTP response status \"%s\" in channel %s:\n%s",
-        response.status(),
-        ctx.channel(),
-        response.content().toString(UTF_8));
+    if (!response.status().equals(HttpResponseStatus.OK)) {
+      throw new NonOkHttpResponseException(response, ctx.channel());
+    }
     saveCookies(response);
     byteBuf.writeBytes(encodeFullHttpResponse(response));
   }
@@ -166,10 +170,7 @@ abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpRespo
   /** Terminates connection upon inbound exception. */
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-    // ReadTimeoutException is non fatal as the client times out due to inactivity.
-    // SslHandshakeException is caused by the client not able to complete the handshake, we should
-    // not log it at error as we do not control client behavior.
-    if (cause instanceof ReadTimeoutException || cause instanceof SSLHandshakeException) {
+    if (NON_FATAL_INBOUND_EXCEPTIONS.contains(Throwables.getRootCause(cause).getClass())) {
       logger.atWarning().withCause(cause).log(
           "Inbound exception caught for channel %s", ctx.channel());
     } else {
@@ -187,10 +188,7 @@ abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpRespo
         (ChannelFuture channelFuture) -> {
           if (!channelFuture.isSuccess()) {
             Throwable cause = channelFuture.cause();
-            // If the failure is caused by IllegalArgumentException, we know that it is because we
-            // got a non 200 response. This is an expected error from the backend and should not be
-            // logged at severe.
-            if (Throwables.getRootCause(cause) instanceof IllegalArgumentException) {
+            if (NON_FATAL_OUTBOUND_EXCEPTIONS.contains(Throwables.getRootCause(cause).getClass())) {
               logger.atWarning().withCause(channelFuture.cause()).log(
                   "Outbound exception caught for channel %s", channelFuture.channel());
             } else {
@@ -201,5 +199,15 @@ abstract class HttpsRelayServiceHandler extends ByteToMessageCodec<FullHttpRespo
           }
         });
     super.write(ctx, msg, promise);
+  }
+
+  /** Exception thrown when the response status from GAE is not 200. */
+  public static class NonOkHttpResponseException extends Exception {
+    NonOkHttpResponseException(FullHttpResponse response, Channel channel) {
+      super(
+          String.format(
+              "Cannot relay HTTP response status \"%s\" in channel %s:\n%s",
+              response.status(), channel, response.content().toString(UTF_8)));
+    }
   }
 }

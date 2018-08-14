@@ -17,14 +17,18 @@ package google.registry.proxy;
 import static com.google.common.truth.Truth.assertThat;
 import static google.registry.proxy.handler.ProxyProtocolHandler.REMOTE_ADDRESS_KEY;
 import static google.registry.proxy.handler.SslServerInitializer.CLIENT_CERTIFICATE_PROMISE_KEY;
+import static google.registry.testing.JUnitBackports.assertThrows;
 import static google.registry.util.ResourceUtils.readResourceBytes;
 import static google.registry.util.X509Utils.getCertificateHash;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.base.Throwables;
+import google.registry.proxy.handler.HttpsRelayServiceHandler.NonOkHttpResponseException;
 import google.registry.testing.FakeClock;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
+import io.netty.handler.codec.EncoderException;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -108,8 +112,12 @@ public class EppProtocolModuleTest extends ProtocolModuleTest {
   }
 
   private FullHttpResponse makeEppHttpResponse(byte[] content, Cookie... cookies) {
-    return TestUtils.makeEppHttpResponse(
-        new String(content, UTF_8), HttpResponseStatus.OK, cookies);
+    return makeEppHttpResponse(content, HttpResponseStatus.OK, cookies);
+  }
+
+  private FullHttpResponse makeEppHttpResponse(
+      byte[] content, HttpResponseStatus status, Cookie... cookies) {
+    return TestUtils.makeEppHttpResponse(new String(content, UTF_8), status, cookies);
   }
 
   @Override
@@ -207,6 +215,28 @@ public class EppProtocolModuleTest extends ProtocolModuleTest {
     // Nothing more to write.
     assertThat((Object) channel.readOutbound()).isNull();
     assertThat(channel.isActive()).isTrue();
+  }
+
+  @Test
+  public void testFailure_nonOkOutboundMessage() throws Exception {
+    // First inbound message is hello.
+    channel.readInbound();
+
+    byte[] outputBytes = readResourceBytes(getClass(), "testdata/login_response.xml").read();
+
+    // Verify outbound message is not written to the peer as the response is not OK.
+    EncoderException thrown =
+        assertThrows(
+            EncoderException.class,
+            () ->
+                channel.writeOutbound(
+                    makeEppHttpResponse(outputBytes, HttpResponseStatus.UNAUTHORIZED)));
+    assertThat(Throwables.getRootCause(thrown)).isInstanceOf(NonOkHttpResponseException.class);
+    assertThat(thrown).hasMessageThat().contains("401 Unauthorized");
+    assertThat((Object) channel.readOutbound()).isNull();
+
+    // Channel is closed.
+    assertThat(channel.isActive()).isFalse();
   }
 
   @Test

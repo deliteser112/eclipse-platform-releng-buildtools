@@ -18,7 +18,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static google.registry.proxy.ProxyConfig.Environment.LOCAL;
 import static google.registry.proxy.ProxyConfig.getProxyConfig;
 import static google.registry.testing.JUnitBackports.assertThrows;
-import static org.junit.Assert.fail;
 
 import com.beust.jcommander.ParameterException;
 import google.registry.proxy.ProxyConfig.Environment;
@@ -66,12 +65,9 @@ public class ProxyModuleTest {
   @Test
   public void testFailure_parseArgs_wrongArguments() {
     String[] args = {"--wrong_flag", "some_value"};
-    try {
-      proxyModule.parse(args);
-      fail("Expected ParameterException.");
-    } catch (ParameterException e) {
-      assertThat(e).hasMessageThat().contains("--wrong_flag");
-    }
+    ParameterException thrown =
+        assertThrows(ParameterException.class, () -> proxyModule.parse(args));
+    assertThat(thrown).hasMessageThat().contains("--wrong_flag");
   }
 
   @Test

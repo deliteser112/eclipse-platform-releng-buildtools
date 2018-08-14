@@ -20,10 +20,12 @@ import static google.registry.proxy.TestUtils.makeWhoisHttpResponse;
 import static google.registry.testing.JUnitBackports.assertThrows;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 import static java.util.stream.Collectors.joining;
-import static org.junit.Assert.fail;
 
+import com.google.common.base.Throwables;
+import google.registry.proxy.handler.HttpsRelayServiceHandler.NonOkHttpResponseException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.EncoderException;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -152,13 +154,11 @@ public class WhoisProtocolModuleTest extends ProtocolModuleTest {
   public void testFailure_outboundResponseStatusNotOK() {
     String outputString = "line1\r\nline2\r\n";
     FullHttpResponse response = makeWhoisHttpResponse(outputString, HttpResponseStatus.BAD_REQUEST);
-    try {
-      channel.writeOutbound(response);
-      fail("Expected failure due to non-OK HTTP response status");
-    } catch (Exception e) {
-      assertThat(e).hasCauseThat().isInstanceOf(IllegalArgumentException.class);
-      assertThat(e).hasMessageThat().contains("400 Bad Request");
-    }
+    EncoderException thrown =
+        assertThrows(EncoderException.class, () -> channel.writeOutbound(response));
+    assertThat(Throwables.getRootCause(thrown)).isInstanceOf(NonOkHttpResponseException.class);
+    assertThat(thrown).hasMessageThat().contains("400 Bad Request");
+    assertThat((Object) channel.readOutbound()).isNull();
     assertThat(channel.isActive()).isFalse();
   }
 }

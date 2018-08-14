@@ -85,7 +85,23 @@ public class RelayHandlerTest {
   }
 
   @Test
-  public void testSuccess_outboundClosed_enqueueBuffer() {
+  public void testSuccess_frontClosed() {
+    inboundChannel.attr(RELAY_BUFFER_KEY).set(null);
+    inboundChannel.attr(PROTOCOL_KEY).set(backendProtocol);
+    outboundChannel.attr(PROTOCOL_KEY).set(frontendProtocol);
+    ExpectedType inboundMessage = new ExpectedType();
+    // Outbound channel (frontend) is closed.
+    outboundChannel.finish();
+    assertThat(inboundChannel.writeInbound(inboundMessage)).isFalse();
+    ExpectedType relayedMessage = outboundChannel.readOutbound();
+    assertThat(relayedMessage).isNull();
+    // Inbound channel (backend) should stay open.
+    assertThat(inboundChannel.isActive()).isTrue();
+    assertThat(inboundChannel.attr(RELAY_BUFFER_KEY).get()).isNull();
+  }
+
+  @Test
+  public void testSuccess_backendClosed_enqueueBuffer() {
     ExpectedType inboundMessage = new ExpectedType();
     // Outbound channel (backend) is closed.
     outboundChannel.finish();

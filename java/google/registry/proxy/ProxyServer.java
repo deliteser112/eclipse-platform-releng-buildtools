@@ -129,6 +129,8 @@ public class ProxyServer implements Runnable {
                 .closeFuture()
                 .addListener(
                     (future) -> {
+                      logger.atInfo().log(
+                          "Connection terminated: %s %s", inboundProtocol.name(), inboundChannel);
                       // Check if there's a relay connection. In case that the outbound connection
                       // is not successful, this attribute is not set.
                       Channel outboundChannel = inboundChannel.attr(RELAY_CHANNEL_KEY).get();
@@ -177,13 +179,15 @@ public class ProxyServer implements Runnable {
               Object[] messages = relayBuffer.toArray();
               relayBuffer.clear();
               for (Object msg : messages) {
-                writeToRelayChannel(inboundChannel, outboundChannel, msg);
+                // TODO (jianglai): do not log the message once retry behavior is confirmed.
                 logger.atInfo().log(
-                    "Relay retried: %s <-> %s\nFRONTEND: %s\nBACKEND: %s",
+                    "Relay retried: %s <-> %s\nFRONTEND: %s\nBACKEND: %s\nMESSAGE: %s",
                     inboundProtocol.name(),
                     outboundProtocol.name(),
                     inboundChannel,
-                    outboundChannel);
+                    outboundChannel,
+                    msg);
+                writeToRelayChannel(inboundChannel, outboundChannel, msg, true);
               }
               // When this outbound connection is closed, try reconnecting if the inbound connection
               // is still active.
