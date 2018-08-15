@@ -77,7 +77,7 @@ public class RelayHandler<I> extends SimpleChannelInboundHandler<I> {
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     if (cause instanceof OverQuotaException) {
       logger.atWarning().withCause(cause).log(
-          "Channel %s closed due to quota exceeded", ctx.channel());
+          "Channel %s closed due to quota exceeded.", ctx.channel());
       ChannelFuture unusedFuture = ctx.close();
     } else {
       ctx.fireExceptionCaught(cause);

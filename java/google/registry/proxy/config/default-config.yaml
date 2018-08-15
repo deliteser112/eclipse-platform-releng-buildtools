@@ -20,23 +20,22 @@ gcpScopes:
   # to authenticate.
   - https://www.googleapis.com/auth/userinfo.email
 
-# Access token is valid for 10 minutes.
+# Access token is cached for 15 minutes.
 #
-# Document says that the token should be good for 60 minutes, but in practice
-# we've run into problems with token becoming invalid before supposed expiration
-# time. This used to be set to 30 min but we still observe very rare occurrence
-# of INVALID_TOKEN response (not even EXPIRED_TOKEN, which is also a possible
-# response). Set it to 10 minutes so that the tokens can be refreshed more
-# frequently.
-# See also: Data store
-# (https://developers.google.com/api-client-library/java/google-api-java-client/oauth2#data_store).
-accessTokenValidPeriodSeconds: 600
-
-# Access token is refreshed 1 minutes before expiry.
-#
-# This is the default refresh time used by
-# com.google.api.client.auth.oauth2.Credential#intercept.
-accessTokenRefreshBeforeExpirySeconds: 60
+# Depending on how the credential is obtained, its renewal behavior is
+# different. A credential backed by a private key (like the ADC obtained
+# locally) will get a different token when #refreshToken() is called. On GCE,
+# the credential is just a wrapper around tokens sent from the metadata server,
+# which is valid from 3599 seconds to 1699 seconds (this is no documentation on
+# this, I got this number by logging in a GCE VM, calling curl on the metatdata
+# server every minute, and check the expiration time of the response). Calling
+# refreshToken() does *not* get a new token. The token is only refreshed by
+# metadata server itself (every 3599 - 1699 = 1900 seconds). We cache the token
+# for 900 seconds, which should be good for both cases. The private key
+# generated token is in theory valid for 1h, and the token obtained from the
+# metadata token is at least valid for 1699 seconds, so we can know for sure
+# that during the period that it is cached, the token will not expire.
+accessTokenValidPeriodSeconds: 900
 
 # Server certificate is cached for 30 minutes.
 #

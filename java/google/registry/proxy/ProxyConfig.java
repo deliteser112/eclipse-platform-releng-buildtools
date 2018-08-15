@@ -38,7 +38,6 @@ public class ProxyConfig {
   public String projectId;
   public List<String> gcpScopes;
   public int accessTokenValidPeriodSeconds;
-  public int accessTokenRefreshBeforeExpirySeconds;
   public int serverCertificateCacheSeconds;
   public Gcs gcs;
   public Kms kms;
