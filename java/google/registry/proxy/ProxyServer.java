@@ -93,13 +93,14 @@ public class ProxyServer implements Runnable {
       inboundChannel.attr(PROTOCOL_KEY).set(inboundProtocol);
       inboundChannel.attr(RELAY_BUFFER_KEY).set(new ArrayDeque<>());
       addHandlers(inboundChannel.pipeline(), inboundProtocol.handlerProviders());
-      logger.atInfo().log("Connection established: %s %s", inboundProtocol.name(), inboundChannel);
 
       if (!inboundProtocol.hasBackend()) {
         // If the frontend has no backend to relay to (health check, web WHOIS redirect, etc), start
         // reading immediately.
         inboundChannel.config().setAutoRead(true);
       } else {
+        logger.atInfo().log(
+            "Connection established: %s %s", inboundProtocol.name(), inboundChannel);
         // Connect to the relay (outbound) channel specified by the BackendProtocol.
         BackendProtocol outboundProtocol = inboundProtocol.relayProtocol();
         Bootstrap bootstrap =
