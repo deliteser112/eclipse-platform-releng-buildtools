@@ -93,6 +93,7 @@ public class ProxyServer implements Runnable {
       inboundChannel.attr(PROTOCOL_KEY).set(inboundProtocol);
       inboundChannel.attr(RELAY_BUFFER_KEY).set(new ArrayDeque<>());
       addHandlers(inboundChannel.pipeline(), inboundProtocol.handlerProviders());
+      logger.atInfo().log("Connection established: %s %s", inboundProtocol.name(), inboundChannel);
 
       if (!inboundProtocol.hasBackend()) {
         // If the frontend has no backend to relay to (health check, web WHOIS redirect, etc), start
@@ -146,10 +147,9 @@ public class ProxyServer implements Runnable {
                           .get()
                           .forEach(
                               msg -> {
-                                // TODO (jianglai): do not log the message once retry behavior is
-                                // confirmed.
                                 logger.atWarning().log(
-                                    "Unfinished relay for connection %s: %s", inboundChannel, msg);
+                                    "Unfinished relay for connection %s\nHASH: %s",
+                                    inboundChannel, msg.hashCode());
                                 ReferenceCountUtil.release(msg);
                               });
                     });
@@ -194,14 +194,13 @@ public class ProxyServer implements Runnable {
               Object[] messages = relayBuffer.toArray();
               relayBuffer.clear();
               for (Object msg : messages) {
-                // TODO (jianglai): do not log the message once retry behavior is confirmed.
                 logger.atInfo().log(
-                    "Relay retried: %s <-> %s\nFRONTEND: %s\nBACKEND: %s\nMESSAGE: %s",
+                    "Relay retried: %s <-> %s\nFRONTEND: %s\nBACKEND: %s\nHASH: %s",
                     inboundProtocol.name(),
                     outboundProtocol.name(),
                     inboundChannel,
                     outboundChannel,
-                    msg);
+                    msg.hashCode());
                 writeToRelayChannel(inboundChannel, outboundChannel, msg, true);
               }
               // When this outbound connection is closed, try reconnecting if the inbound connection
@@ -220,6 +219,13 @@ public class ProxyServer implements Runnable {
                                   outboundChannel);
                               connectOutboundChannel(
                                   bootstrap, inboundProtocol, outboundProtocol, inboundChannel);
+                            } else {
+                              logger.atInfo().log(
+                                  "Relay terminated: %s <-> %s\nFRONTEND: %s\nBACKEND: %s",
+                                  inboundProtocol.name(),
+                                  outboundProtocol.name(),
+                                  inboundChannel,
+                                  outboundChannel);
                             }
                           });
             } else {

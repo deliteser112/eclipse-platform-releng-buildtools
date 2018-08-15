@@ -101,14 +101,13 @@ public class RelayHandler<I> extends SimpleChannelInboundHandler<I> {
             .addListener(
                 future -> {
                   if (!future.isSuccess()) {
-                    // TODO (jianglai): do not log the message once retry behavior is confirmed.
                     logger.atWarning().withCause(future.cause()).log(
-                        "Relay failed: %s --> %s\nINBOUND: %s\nOUTBOUND: %s\nMESSAGE: %s",
+                        "Relay failed: %s --> %s\nINBOUND: %s\nOUTBOUND: %s\nHASH: %s",
                         channel.attr(PROTOCOL_KEY).get().name(),
                         relayChannel.attr(PROTOCOL_KEY).get().name(),
                         channel,
                         relayChannel,
-                        msg);
+                        msg.hashCode());
                     // If we cannot write to the relay channel and the originating channel has
                     // a relay buffer (i. e. we tried to relay the frontend to the backend), store
                     // the message in the buffer for retry later. The relay channel (backend) should
@@ -129,15 +128,13 @@ public class RelayHandler<I> extends SimpleChannelInboundHandler<I> {
                     ChannelFuture unusedFuture2 = relayChannel.close();
                   } else {
                     if (retry) {
-                      // TODO (jianglai): do not log the message once retry behavior is confirmed.
                       logger.atInfo().log(
-                          "Relay retry succeeded: %s --> %s\nINBOUND: %s\nOUTBOUND: %s\n"
-                              + "MESSAGE: %s",
+                          "Relay retry succeeded: %s --> %s\nINBOUND: %s\nOUTBOUND: %s\nHASH: %s",
                           channel.attr(PROTOCOL_KEY).get().name(),
                           relayChannel.attr(PROTOCOL_KEY).get().name(),
                           channel,
                           relayChannel,
-                          msg);
+                          msg.hashCode());
                     }
                     // If the write is successful, we know that no retry is needed. This function
                     // will decrement the reference count if the message is reference counted,
