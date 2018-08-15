@@ -116,7 +116,8 @@ class CreateCdnsTld extends ConfirmingCommand {
 
     Dns.Builder builder =
         new Dns.Builder(httpTransport, jsonFactory, credential).setApplicationName(projectId);
-    if (RegistryToolEnvironment.get() != RegistryToolEnvironment.PRODUCTION) {
+    if (RegistryToolEnvironment.get() != RegistryToolEnvironment.PRODUCTION
+        && RegistryToolEnvironment.get() != RegistryToolEnvironment.SANDBOX) {
       builder
           .setRootUrl("https://staging-www.sandbox.googleapis.com")
           .setServicePath("dns/v2beta1_staging/projects/");
