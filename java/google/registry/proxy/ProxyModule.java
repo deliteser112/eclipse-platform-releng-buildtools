@@ -29,6 +29,7 @@ import com.google.api.services.cloudkms.v1.model.DecryptRequest;
 import com.google.api.services.storage.Storage;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.flogger.LoggerConfig;
 import com.google.monitoring.metrics.MetricReporter;
 import dagger.Component;
@@ -70,6 +71,8 @@ import javax.inject.Singleton;
  */
 @Module
 public class ProxyModule {
+
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   @Parameter(names = "--whois", description = "Port for WHOIS")
   private Integer whoisPort;
@@ -130,6 +133,8 @@ public class ProxyModule {
       // Log source IP information if --log parameter is passed. This is considered PII and should
       // only be used in non-production environment for debugging purpose.
       LoggerConfig.getConfig(ProxyProtocolHandler.class).setLevel(Level.FINE);
+      // Log at debug level what is the refreshed access token.
+      LoggerConfig.getConfig(ProxyModule.class).setLevel(Level.FINE);
     }
   }
 
@@ -236,7 +241,10 @@ public class ProxyModule {
           } catch (IOException e) {
             throw new RuntimeException("Cannot refresh access token.", e);
           }
-          return credential.getAccessToken();
+          // TODO (jianglai): Remove access token refresh logging.
+          String token = credential.getAccessToken();
+          logger.atFine().log("Access token refreshed: %s", token);
+          return token;
         },
         config.accessTokenValidPeriodSeconds - config.accessTokenRefreshBeforeExpirySeconds,
         SECONDS);

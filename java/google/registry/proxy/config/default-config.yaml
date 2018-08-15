@@ -20,15 +20,17 @@ gcpScopes:
   # to authenticate.
   - https://www.googleapis.com/auth/userinfo.email
 
-# Access token is valid for 30 minutes.
+# Access token is valid for 10 minutes.
 #
 # Document says that the token should be good for 60 minutes, but in practice
 # we've run into problems with token becoming invalid before supposed expiration
-# time. 30 minutes seems to be a good compromise which guarantees token validity
-# without making many more API calls to the OAuth server.
+# time. This used to be set to 30 min but we still observe very rare occurrence
+# of INVALID_TOKEN response (not even EXPIRED_TOKEN, which is also a possible
+# response). Set it to 10 minutes so that the tokens can be refreshed more
+# frequently.
 # See also: Data store
 # (https://developers.google.com/api-client-library/java/google-api-java-client/oauth2#data_store).
-accessTokenValidPeriodSeconds: 1800
+accessTokenValidPeriodSeconds: 600
 
 # Access token is refreshed 1 minutes before expiry.
 #
