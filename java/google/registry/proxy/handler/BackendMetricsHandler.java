@@ -78,12 +78,12 @@ public class BackendMetricsHandler extends ChannelDuplexHandler {
   }
 
   @Override
-  public void channelActive(ChannelHandlerContext ctx) throws Exception {
+  public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
     // Backend channel is always established after a frontend channel is connected, so this
     relayedChannel = ctx.channel().attr(RELAY_CHANNEL_KEY).get();
     checkNotNull(relayedChannel, "No frontend channel found.");
     relayedProtocolName = relayedChannel.attr(PROTOCOL_KEY).get().name();
-    super.channelActive(ctx);
+    super.channelRegistered(ctx);
   }
 
   @Override

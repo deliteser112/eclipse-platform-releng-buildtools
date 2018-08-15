@@ -121,6 +121,10 @@ public class RelayHandler<I> extends SimpleChannelInboundHandler<I> {
                     Queue<Object> relayBuffer = channel.attr(RELAY_BUFFER_KEY).get();
                     if (relayBuffer != null) {
                       channel.attr(RELAY_BUFFER_KEY).get().add(msg);
+                    } else {
+                      // We are not going to retry, decrement a counter to allow the message to be
+                      // freed by Netty, if the message is reference counted.
+                      ReferenceCountUtil.release(msg);
                     }
                     ChannelFuture unusedFuture2 = relayChannel.close();
                   } else {

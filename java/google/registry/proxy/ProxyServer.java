@@ -39,6 +39,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.Future;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.JdkLoggerFactory;
@@ -137,6 +138,20 @@ public class ProxyServer implements Runnable {
                       if (outboundChannel != null) {
                         ChannelFuture unusedChannelFuture2 = outboundChannel.close();
                       }
+                      // If the frontend channel is closed and there are messages remaining in the
+                      // buffer, we should make sure that they are released (if the messages are
+                      // reference counted).
+                      inboundChannel
+                          .attr(RELAY_BUFFER_KEY)
+                          .get()
+                          .forEach(
+                              msg -> {
+                                // TODO (jianglai): do not log the message once retry behavior is
+                                // confirmed.
+                                logger.atWarning().log(
+                                    "Unfinished relay for connection %s: %s", inboundChannel, msg);
+                                ReferenceCountUtil.release(msg);
+                              });
                     });
       }
     }
